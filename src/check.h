@@ -35,7 +35,13 @@
  * Enable the RQ_FATAL to break the program on error. The value specifies
  * an exit code.
  */
-#define RQ_FATAL -1
+#define RQ_FATAL 1
+
+/*
+ * PARAMETER 3 - Colors
+ * Enable the RQ_COLOR to colorize the output.
+ */
+#define RQ_COLOR
 
 
 /*
@@ -45,23 +51,25 @@
 #	define RQ_PARM_BRK -314
 #	if defined __STDC_VERSION__ && __STDC_VERSION__ >= 199901L
 #		define RQ(...)		RQ_test( "", __FILE__, __LINE__,\
-			__func__, __VA_ARGS__, RQ_PARM_BRK, #__VA_ARGS__);
+			__FUNCTION__, #__VA_ARGS__, __VA_ARGS__, RQ_PARM_BRK);
 #		define PRE(...)		RQ_test( "pre", __FILE__, __LINE__,\
-			__func__, __VA_ARGS__, RQ_PARM_BRK, #__VA_ARGS__);
+			__FUNCTION__, #__VA_ARGS__, __VA_ARGS__, RQ_PARM_BRK);
 #		define POST(...)	RQ_test( "post", __FILE__, __LINE__,\
-			__func__, __VA_ARGS__, RQ_PARM_BRK, #__VA_ARGS__);
+			__FUNCTION__, #__VA_ARGS__, __VA_ARGS__, RQ_PARM_BRK);
 #	else
 #		define RQ(args...)	RQ_test( "", __FILE__, __LINE__,\
-			__FUNCTION__, args, RQ_PARM_BRK, #args);
+			__FUNCTION__, #args, args, RQ_PARM_BRK);
 #		define PRE(args...)	RQ_test( "pre", __FILE__, __LINE__,\
-			__FUNCTION__, args, RQ_PARM_BRK, #args);
+			__FUNCTION__, #args, args, RQ_PARM_BRK);
 #		define POST(args...)	RQ_test( "post", __FILE__, __LINE__,\
-			__FUNCTION__, args, RQ_PARM_BRK, #args);
+			__FUNCTION__, #args, args, RQ_PARM_BRK);
 #endif
 void RQ_test( const char *pre, const char *filename, int lineno,
-		const char *func, ...);
+		const char *func, const char *term, ...);
 #else
-#	define RQ( ...)
+#	define RQ( ...)		((void *)0)
+#	define PRE( ...)	((void *)0)
+#	define POST( ...)	((void *)0)
 #endif
 
 #endif /* _CHECK_H_ */

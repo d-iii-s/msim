@@ -305,7 +305,6 @@ dcpu_md( parm_link_s *parm, device_s *dev)
 		if (!(j&0x3))
 			dprintf( "  %08x    ", addr);
 		
-		res = excNone;
 		res = read_proc_mem( addr, 4, &val, false);
 		dprintf( "res: %d\n", res);
 		
@@ -344,7 +343,6 @@ dcpu_id( parm_link_s *parm, device_s *dev)
 	for (; siz; siz--, addr+=4)
 	{
 
-		res = excNone;
 		res = read_proc_ins( addr, &ii.icode, false);
 		
 		if (res != excNone)
@@ -354,6 +352,7 @@ dcpu_id( parm_link_s *parm, device_s *dev)
 		}
 		else
 			decode_instr( &ii);
+
 		iview( addr, &ii, true, 0);
 	}
 

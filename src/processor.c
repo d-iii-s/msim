@@ -352,6 +352,7 @@ acc_mem( bool wr, uint32_t addr, int size, uint32_t *value, bool h)
 	if ((res=mem_align_test( addr, size)) == excNone)
 	{
 		res = convert_addr( &addr, wr, h);
+
 		if (res == excNone)
 		{
 			if (wr)
@@ -1124,6 +1125,7 @@ execute( TInstrInfo *ii2)
 				uint32_t dw1, dw2;
 				pr->llval = false;
 				dw1 = dw2 = rrs +ii.imm;
+
 				res = convert_addr( &dw1, false, true);
 				if (res == excNone)
 				{
@@ -1132,7 +1134,8 @@ execute( TInstrInfo *ii2)
 					else
 					{
 						res = write_proc_mem( dw2, INT32, pr->regs[ ii.rt], true);
-						if (res == excNone) pr->regs[ ii.rt] = 1;
+						if (res == excNone)
+							pr->regs[ ii.rt] = 1;
 					}
 				}
 			}
@@ -1840,7 +1843,7 @@ static void
 manage( enum exc res)
 
 {
-	/* test for interrupt reqest */
+	/* test for interrupt request */
 	if (	(res == excNone) &&
 		!cp0_status_exl && !cp0_status_erl && cp0_status_ie &&
 		((cp0_cause & cp0_status) & cp0_cause_ip_mask) != 0)
@@ -1878,7 +1881,8 @@ instruction( enum exc *res)
 	TInstrInfo ii;
 
 	/* reading instruction code */
-	if ((*res = read_proc_ins( pr->pcreg, &ii.icode, true)) == excNone)
+	*res = read_proc_ins( pr->pcreg, &ii.icode, true);
+	if (*res == excNone)
 	{
 		char modif_regs[ 1024];
 		uint32_t old_pcreg = pr->pcreg;

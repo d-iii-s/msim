@@ -123,7 +123,7 @@ const char *
 dev_by_partial_name( const char *name, device_s **d)
 
 {
-	REQUIRED( d != NULL);
+	RQ( d != NULL);
 
 	if (!name)
 		name = "";
@@ -148,7 +148,7 @@ devs_by_partial_name( const char *name, device_s **d)
 	int cnt = 0;
 	device_s *dx = NULL;
 
-	REQUIRED( name != NULL, d != NULL);
+	RQ( name != NULL, d != NULL);
 
 	while (dev_next( &dx))
 		if (prefix( name, dx->name))
@@ -267,9 +267,9 @@ find_dev_gen( parm_link_s **pl, const struct device_struct *d,
 		gen_f *generator, void **data)
 
 {
-	REQUIRED( pl != NULL, data != NULL, generator != NULL, d != NULL);
-	REQUIRED( *generator == NULL, *pl != NULL, *data == NULL);
-	REQUIRED( parm_type( *pl) != tt_end);
+	RQ( pl != NULL, data != NULL, generator != NULL, d != NULL);
+	RQ( *generator == NULL, *pl != NULL, *data == NULL);
+	RQ( parm_type( *pl) != tt_end);
 
 	if (parm_type( *pl) != tt_str)
 	{

@@ -39,19 +39,19 @@ char **cp0name;
 char **cp1name;
 char **cp2name;
 char **cp3name;
-bool change	= true;
-bool interactive= false;
-bool errors	= true;
+bool change			= true;
+bool interactive		= false;
+bool errors			= true;
 bool breakpoint;
 bool script_stat;
-bool halt_on_error	= false;
+bool halt_on_error		= false;
 
-bool version	= false;
+bool version			= false;
 
-bool remote_gdb		= false;
-int remote_gdb_port	= 0;
-bool remote_gdb_conn	= false;
-bool remote_gdb_step	= false;
+bool remote_gdb			= false;
+int remote_gdb_port		= 0;
+bool remote_gdb_conn		= false;
+bool remote_gdb_step		= false;
 bool remote_gdb_one_step	= false;
 
 bool reenter;
@@ -392,7 +392,7 @@ void
 mem_link( mem_element_s *e)
 
 {
-	REQUIRED( e != NULL);
+	RQ( e != NULL);
 	
 	e->next = memlist;
 	memlist = e;
@@ -406,7 +406,7 @@ mem_unlink( mem_element_s *e)
 {
 	mem_element_s *ex = memlist, *ex2=0;
 
-	REQUIRED( e != NULL);
+	RQ( e != NULL);
 	
 	while (ex && (ex != e))
 	{

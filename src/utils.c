@@ -39,7 +39,7 @@ bool
 prefix( const char *pref, const char *str)
 
 {
-	REQUIRED( pref != NULL, str != NULL);
+	RQ( pref != NULL, str != NULL);
 
 	for (; *pref && *pref == *str; pref++, str++) ;
 

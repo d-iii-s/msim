@@ -1,18 +1,20 @@
 /*
- * Check routines.
+ * Check routines
  *
- * Copyright (c) 2004 Viliam Holub
- *
+ * See the header file check.h for details.
  */
 
 #include <stdio.h>
 #include <stdarg.h>
+#ifdef RQ_FATAL
+#	include <stdlib.h>
+#endif
 
 #include "check.h"
 
 
 #ifdef RQ_DEBUG
-void RQ_fail( const char *filename, int lineno, const char *func, ...)
+void RQ_test( const char *filename, int lineno, const char *func, ...)
 
 {
 	int i=0, b;
@@ -23,17 +25,24 @@ void RQ_fail( const char *filename, int lineno, const char *func, ...)
 	do {
 		b = va_arg( va, int);
 		i++;
-	} while (b && b!=-2);
+	} while (b && b!=RQ_PARM_BRK);
 	
 	
-	if (b != -2)
+	if (b != RQ_PARM_BRK)
 	{
 		do {
 			b = va_arg( va, int);
-		} while (b != -2);
+		} while (b != RQ_PARM_BRK);
+
 		term = va_arg( va, const char *);
-		fprintf( stderr, "RQ -- %s(%d): %s() the %d. condition of \"%s\" does not hold\n",
-			filename, lineno, func, i, term);
+		fflush( stdout);
+		fprintf( stderr, "RQ -- %s(%d): %s() the %d. condition of "
+				"\"%s\" does not hold\n",
+				filename, lineno, func, i, term);
+
+#ifdef RQ_FATAL
+		exit( RQ_FATAL);
+#endif
 	}
 	va_end( va);
 }

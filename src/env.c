@@ -552,8 +552,8 @@ generator_envname( parm_link_s *pl, const void *data, int level)
 	bool b;
 	static const set_s *d;
 
-	REQUIRED( pl != NULL);
-	REQUIRED( parm_type( pl) == tt_str || parm_type( pl) == tt_end);
+	RQ( pl != NULL);
+	RQ( parm_type( pl) == tt_str || parm_type( pl) == tt_end);
 	
 	// iterator initialization
 	if (level == 0)
@@ -573,8 +573,8 @@ char *
 generator_equal_char( parm_link_s *pl, const void *data, int level)
 
 {
-	REQUIRED( pl != NULL);
-	REQUIRED( parm_type( pl) == tt_str || parm_type( pl) == tt_end);
+	RQ( pl != NULL);
+	RQ( parm_type( pl) == tt_str || parm_type( pl) == tt_end);
 	
 	return (level == 0) ? xstrdup( "=") : NULL;
 }

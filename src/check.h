@@ -45,11 +45,11 @@
 #	define RQ_PARM_BRK -314
 #	if defined __STDC_VERSION__ && __STDC_VERSION__ >= 199901L
 #		define RQ(...)		RQ_test( "", __FILE__, __LINE__,\
-			__FUNCTION__, __VA_ARGS__, RQ_PARM_BRK, #__VA_ARGS__);
+			__func__, __VA_ARGS__, RQ_PARM_BRK, #__VA_ARGS__);
 #		define PRE(...)		RQ_test( "pre", __FILE__, __LINE__,\
-			__FUNCTION__, __VA_ARGS__, RQ_PARM_BRK, #__VA_ARGS__);
+			__func__, __VA_ARGS__, RQ_PARM_BRK, #__VA_ARGS__);
 #		define POST(...)	RQ_test( "post", __FILE__, __LINE__,\
-			__FUNCTION__, __VA_ARGS__, RQ_PARM_BRK, #__VA_ARGS__);
+			__func__, __VA_ARGS__, RQ_PARM_BRK, #__VA_ARGS__);
 #	else
 #		define RQ(args...)	RQ_test( "", __FILE__, __LINE__,\
 			__FUNCTION__, args, RQ_PARM_BRK, #args);

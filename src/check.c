@@ -1,7 +1,14 @@
 /*
- * Check routines
+ * Verbose assert
+ * 2004 Viliam Holub
  *
- * See the header file check.h for details.
+ * See the header file check.h for additional infomation.
+ *
+ * Implementation of the auxiliary function for condition checking
+ * and displaying error messages. Regarding to the specified parameter
+ * the program may by halted as well.
+ *
+ * Feel free to modify this code for your needs.
  */
 
 #include <stdio.h>
@@ -25,7 +32,7 @@ void RQ_test( const char *filename, int lineno, const char *func, ...)
 	do {
 		b = va_arg( va, int);
 		i++;
-	} while (b && b!=RQ_PARM_BRK);
+	} while (b && b != RQ_PARM_BRK);
 	
 	
 	if (b != RQ_PARM_BRK)

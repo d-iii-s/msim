@@ -337,6 +337,8 @@ mem_align_test( uint32_t addr, int size)
  * The operation (read/write) is specified via the wr parameter. This routine
  * does not specify the exception type.
  *
+ * If the exception occures, the value does not change.
+ *
  * IN wr	operation type specification
  * IN addr	memory address
  * IN size	argument size in bytes - 1, 2, 4
@@ -349,7 +351,8 @@ acc_mem( bool wr, uint32_t addr, int size, uint32_t *value, bool h)
 {
 	enum exc res;
 	
-	if ((res=mem_align_test( addr, size)) == excNone)
+	res = mem_align_test( addr, size);
+	if (res == excNone)
 	{
 		res = convert_addr( &addr, wr, h);
 
@@ -367,6 +370,8 @@ acc_mem( bool wr, uint32_t addr, int size, uint32_t *value, bool h)
 
 
 /** Preforms the read access from the virtual memory.
+ *
+ * Does not change the value if an exception occures.
  */
 enum exc
 read_proc_mem( uint32_t addr, int size, uint32_t *value, bool h)
@@ -942,7 +947,8 @@ execute( TInstrInfo *ii2)
 			{
 				uint32_t tmp;
 				res = read_proc_mem( rrs +ii.imm, INT16, &tmp, true);
-				pr->regs[ ii.rt] = tmp & 0xffff;
+				if (res == excNone)
+					pr->regs[ ii.rt] = tmp & 0xffff;
 			}
 			break;
 			
@@ -1444,7 +1450,7 @@ execute( TInstrInfo *ii2)
 			break;
 
 		/*
-		 * machine debugging instructions
+		 * Machine debugging instructions
 		 */
 
 		case opcDVAL:

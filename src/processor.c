@@ -7,6 +7,8 @@
 #include <stdlib.h>
 #include <stdio.h>
 
+#include "check.h"
+
 #include "mtypes.h"
 #include "endi.h"
 #include "processor.h"

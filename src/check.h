@@ -63,7 +63,7 @@
 			__FUNCTION__, #args, args, RQ_PARM_BRK);
 #		define POST(args...)	RQ_test( "post", __FILE__, __LINE__,\
 			__FUNCTION__, #args, args, RQ_PARM_BRK);
-#endif
+#	endif
 void RQ_test( const char *pre, const char *filename, int lineno,
 		const char *func, const char *term, ...);
 #else

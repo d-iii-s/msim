@@ -157,15 +157,12 @@ typedef struct cpu_data_s cpu_data_s;
 /*
  * Forward declarations
  */
-
 static int cpu_get_free_id( void);
 
 
 
 /** Inicialization.
- *
  */
-
 static bool
 dcpu_init( parm_link_s *parm, device_s *dev)
 
@@ -205,22 +202,18 @@ dcpu_init( parm_link_s *parm, device_s *dev)
 
 
 /** Info command implementation.
- *
  */
-
 static bool
 dcpu_info( parm_link_s *parm, device_s *dev)
 
 {
-	info_printf( "type:R4000.32\n");
+	dprintf_btag( INFO_SPC, "type:R4000.32\n");
 	return true;
 }
 
 
 /** Stat command implementation.
- *
  */
-
 static bool
 dcpu_stat( parm_link_s *parm, device_s *dev)
 
@@ -228,18 +221,20 @@ dcpu_stat( parm_link_s *parm, device_s *dev)
 	cpu_data_s *cd = dev->data;
 	processor_s *p = cd->proc;
 	
-        info_printf( "cycles total:%lld "
-			"in kernel:%lld in user:%lld in stdby:%lld\n", 
+        dprintf_btag( INFO_SPC, "cycles total:%lld " TBRK
+			"in kernel:%lld " TBRK "in user:%lld " TBRK
+			"in stdby:%lld " TBRK 
+			"tlb refill:%lld " TBRK "invalid: %lld " TBRK
+			"modified:%lld " TBRK
+			"interrupts 0:%lld 1:%lld 2:%lld 3:%lld 4:%lld 5:%lld"
+			" 6:%lld 7:%lld\n",
 			(long long)p->k_cycles +p->u_cycles +p->w_cycles,
 			(long long)p->k_cycles,
 			(long long)p->u_cycles,
-			(long long)p->w_cycles);
-	info_printf( INFO_SPC "tlb refill:%lld modified: %lld modified:%lld\n",
+			(long long)p->w_cycles,
 			(long long)p->tlb_refill,
 			(long long)p->tlb_invalid,
-			(long long)p->tlb_modified);
-	info_printf( INFO_SPC "interrupts 0:%lld 1:%lld 2:%lld 3:%lld 4:%lld 5:%lld"
-			" 6:%lld 7:%lld\n",
+			(long long)p->tlb_modified,
 			(long long)p->intr[ 0], (long long)p->intr[ 1],
 			(long long)p->intr[ 2], (long long)p->intr[ 3],
 			(long long)p->intr[ 4], (long long)p->intr[ 5],
@@ -249,10 +244,8 @@ dcpu_stat( parm_link_s *parm, device_s *dev)
 }
 
 
-/** Stat command implementation.
- *
+/** Cp0d command implementation.
  */
-
 static bool
 dcpu_cp0d( parm_link_s *parm, device_s *dev)
 
@@ -265,7 +258,7 @@ dcpu_cp0d( parm_link_s *parm, device_s *dev)
 		no = parm->token.tval.i;
 		if (no > 31)
 		{
-			dprintf( txt_cpu[ 2]);
+			dprintf_btag( INFO_SPC, txt_cpu[ 2]);
 			return false;
 		}
 	}
@@ -278,9 +271,7 @@ dcpu_cp0d( parm_link_s *parm, device_s *dev)
 
 
 /** Tlbd command implementation.
- *
  */
-
 static bool
 dcpu_tlbd( parm_link_s *parm, device_s *dev)
 
@@ -295,9 +286,7 @@ dcpu_tlbd( parm_link_s *parm, device_s *dev)
 
 
 /** Md command implementation.
- *
  */
-
 static bool
 dcpu_md( parm_link_s *parm, device_s *dev)
 
@@ -337,9 +326,7 @@ dcpu_md( parm_link_s *parm, device_s *dev)
 
 
 /** Id command implementation.
- *
  */
-
 static bool
 dcpu_id( parm_link_s *parm, device_s *dev)
 
@@ -375,9 +362,7 @@ dcpu_id( parm_link_s *parm, device_s *dev)
 
 
 /** Rd command implementation.
- *
  */
-
 static bool
 dcpu_rd( parm_link_s *parm, device_s *dev)
 
@@ -392,9 +377,7 @@ dcpu_rd( parm_link_s *parm, device_s *dev)
 
 
 /** Goto command implementation.
- *
  */
-
 static bool
 dcpu_goto( parm_link_s *parm, device_s *dev)
 
@@ -416,9 +399,7 @@ dcpu_goto( parm_link_s *parm, device_s *dev)
 
 
 /** Done
- *
  */
-
 static void
 dcpu_done( device_s *dev)
 
@@ -432,9 +413,7 @@ dcpu_done( device_s *dev)
 
 
 /** Execute one processor step.
- *
  */
-
 static void
 dcpu_step( device_s *dev)
 

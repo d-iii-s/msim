@@ -16,7 +16,7 @@ enum
 };
 
 
-bool interpret( const char *s, int lineno);
+bool interpret( const char *s);
 void script();
 void find_system_generator( parm_link_s **pl, gen_f *generator,
 		const void **data);

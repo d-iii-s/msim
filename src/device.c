@@ -312,3 +312,50 @@ find_dev_gen( parm_link_s **pl, const struct device_struct *d,
 	}
 }
 */
+
+
+void
+find_dev_gen( parm_link_s **pl, const device_s *d,
+		gen_f *generator, const void **data)
+
+{
+	int res;
+	const cmd_s *cmd;
+	parm_link_s *plx;
+
+	if (parm_type( *pl) != tt_str)
+		// illegal command name
+		return;
+	
+	// look up for device command
+	switch (res = cmd_find( parm_str( *pl), d->type->cmds+1, &cmd))
+	{
+		case CMP_NH:
+			// no such command
+			return;
+		case CMP_HIT:
+		case CMP_MHIT:
+			plx = *pl;
+			parm_next( pl);
+			if (parm_type( *pl) == tt_end)
+			{
+				// set the default command generator
+				*generator = generator_cmd; 
+				*data = d->type->cmds+1;
+				*pl = plx;
+				break;
+			}
+			else
+			{
+				if (res == CMP_MHIT)
+					// input error
+					break;
+
+				// continue to the next generator, if possible
+				if (cmd->find_gen)
+					cmd->find_gen( pl, cmd, generator,
+							data);
+			}
+			break;
+	}
+}

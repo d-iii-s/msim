@@ -25,10 +25,12 @@
 #include <stdio.h>
 #include <ctype.h>
 #include <string.h>
+#include <stdbool.h>
 
 #include "output.h"
 
 #include "check.h"
+#include "parser.h"
 
 /*
  * The output buffer size
@@ -47,6 +49,8 @@ volatile int screen_width;
 int buf_end;
 char output_buf[ OUTPUT_BUF_SIZE];
 
+int scr_cur;
+
 
 /** output_init - Initializes the output management.
  */
@@ -56,6 +60,7 @@ output_init( void)
 {
 	output = stdout;
 	buf_end = 0;
+	scr_cur = 0;
 	
 	if (isatty( 1))
 		screen_width = 79; /* ? */
@@ -64,59 +69,33 @@ output_init( void)
 }
 
 
-/** dprint_buffer - Prints the buffer on the screen with right width.
- *
- * SE The buffer is changed.
- * RQ The buffer have to be write-accessible.
- */
-static void
-dprint_buffer( char *buf)
-
-{
-	int i;
-	char *c, *co, *co2;
-
-	REQUIRED( buf != NULL);
-
-	c = co = buf;
-
-	do {
-		for (co=c, i=0; *c && i<screen_width-1; c++, i++) ;
-
-		if (!*c)
-		{
-			fprintf( output, "%s", co);
-			return;
-		}
-		co2 = c;
-
-		/* find the last white character */
-		for (; i && isspace( c); i--, c--) ;
-
-		if (i == 0)
-		{
-			char t;
-
-			c = co2;
-			t = *c;
-			*c = '\0';
-			fprintf( output, "%s", co);
-			*c = t;
-		}
-		else
-		{
-			*c = '\0';
-			fprintf( output, "%s\n", co);
-			c++;
-		}
-	} while (*c);
-}
-
 
 /** Prints the message on the screen.
  */
 void
 dprintf( const char *fmt, ...)
+
+{
+	va_list ap;
+	char dbuf[ DBUF_SIZE];
+
+	REQUIRED( fmt != NULL);
+
+	va_start( ap, fmt);
+	vsnprintf( dbuf, DBUF_SIZE, fmt, ap);
+	va_end( ap);
+
+	fprintf( output, "%s", dbuf);
+	scr_cur = 0;
+}
+
+
+/** Prints the message on the screen.
+ *
+ * The cursor pointer is not modified.
+ */
+void
+dprintf2( const char *fmt, ...)
 
 {
 	va_list ap;
@@ -151,19 +130,19 @@ string_space( const char *str)
 
 /** Prints the message with breaking tags. 
  *
- * Assuming the cursor is on the left. 
- *
  * nl	string which will be displayed on new lines
  */
+void
 dprintf_btag( const char *nl, const char *fmt, ...)
 
 {
 	va_list ap;
 	char dbuf[ DBUF_SIZE];
-	int cur = 0;
+	int ncur, acur;
 	char *s, *so;
-	char x, ncur;
+	char x;
 	int sw = screen_width;
+	bool newl = false;
 
 	REQUIRED( fmt != NULL);
 
@@ -176,19 +155,27 @@ dprintf_btag( const char *nl, const char *fmt, ...)
 	va_end( ap);
 
 	s = dbuf;
-	do {
+	for (x=*s; x; s++)
+	{
 		so = s;
 		for (; *s && *s!=TBRK_C; s++) ;
-		if (cur+string_space( so) > sw-1)
+
+		x = *s; *s = 0;
+
+		acur = string_space( so);
+		scr_cur += acur;
+		if (newl && scr_cur > sw-1)
 		{
-			dprintf( "\n%s", nl);
-			cur = ncur;
+			dprintf2( "\n%s", nl);
+			scr_cur = ncur +acur;
 		}
-		x = *s;
-		*s = '\0';
 		
-		dprintf( "%s", *so);
-	} while (x);
+		dprintf2( "%s", so);
+		if (*so)
+			if (so[ strlen( so)-1] == '\n')
+				scr_cur = 0;
+		newl = true;
+	}
 }
 
 
@@ -211,119 +198,71 @@ dprintf_n( int n, const char *fmt, ...)
 	va_end( ap);
 
 	fprintf( output, "%s", buf);
+	scr_cur = 0;
 }
 
 
-/** dprintf_text - Prints the regular text.
- *
- * The text is printed as a one line. 
- *
- * RQ fmt should not contain the line delimiter '\n'.
+#define BUF_SIZ	256
+
+/** Prints the text.
  */
 void
-dprintf_text( const char *fmt, ...)
+dprintf_text( const char *nl, const char *fmt, ...)
 
 {
-	size_t len;
+	char buf[ BUF_SIZ];
+	char buf2[ 2*BUF_SIZ];
 	va_list ap;
-	char dbuf[ DBUF_SIZE];
+	char *s, *s2;
 
 	REQUIRED( fmt != NULL);
 
 	va_start( ap, fmt);
-	vsnprintf( dbuf, DBUF_SIZE-1, fmt, ap);
+	vsnprintf( buf, BUF_SIZ, fmt, ap);
 	va_end( ap);
 
-	len = strlen( dbuf);
-	dbuf[ len  ] = '\n';
-	dbuf[ len+1] = '\0';
-	dprint_buffer( dbuf);
-}
-
-
-/** new_line - Prints a new line of comments.
- */
-/*
-static void
-new_line( int gap_size)
-
-{
-	dprintf( "\n");
-	while (gap_size--)
-		dprintf( " ");
-	dprintf( "# ");
-}
-*/
-
-
-/** dprintf_asm - Prints the disassembler text.
- *
- * The disassembler text consists of two main part - the disassembled
- * instruction and an optional debugging comment. These parts are
- * splitted by the '#' character.
- * If the disassembled part does not fit in the screen. We have to print
- * comments on a new line.
- *
- * RQ fmt should not contain the line delimiter '\n'.
- */
-/*
-void
-dprintf_asm( const char *fmt, ...)
-
-{
-	int i, o;
-	bool first;
-	const char *c, *co;
-	va_list ap;
-	char dbuf[ DBUF_SIZE+1];
-
-	REQUIRED( fmt != NULL);
-
-	va_start( ap, fmt);
-	vsnprintf( dbuf, DBUF_SIZE, fmt, ap);
-	va_end( ap);
-
-	// search for the '#' character
-	for (i=0, c=dbuf; *c && *c!='#'; c++)
-		i++;
-
-	// print the disassembly part
-	if (*c && *(c+1))
-	{
-		*c++ = 0;
-		dprintf( "%s", dbuf);
-	}
-	else
-	{
-		*c = 0;
-		dprintf( "%s", dbuf);
-		return;
-	}
-
-	// print the debug part
-	if (i+3 > screen_width)
-	{
-		i = 8;
-		new_line( i);
-	}
-	first = true;
+	s = buf;
+	s2 = buf2;
 	
-	do {
-		// get the size of a partial debug message
-		for (o=0, co=c; *c && *c!=','; c++)
-			o++;
-		if (o == 0)
-			break;
+	for (; *s; s++, s2++)
+	{
+		if (*s == ' ' || *s == '\n')
+		{
+			*s2 = *s;
+			s2++;
+			*s2 = TBRK_C;
+			continue;
+		}
 
-		if (*c)
-			*c++ = '\0';
+		*s2 = *s;
+	}
+	*s2 = '\0';
 
-		if (i+c+3 > screen_width)
-
-		if (!first)
-			dprintf( ", ");
-		dprintf( "%s", co);
-		i += o;
-	} while (true);
+	dprintf_btag( nl, "%s", buf2);
 }
-*/
+
+
+/** Prints the error message
+ */
+void
+dprintf_err( const char *fmt, ...)
+
+{
+	char buf[ BUF_SIZ];
+	va_list ap;
+	size_t len;
+
+	REQUIRED( fmt != NULL);
+
+	if (lineno != -1)
+		len = sprintf( buf, "%d: ", lineno);
+	else
+		len = 0;
+	buf[ len] = '\0';
+
+	va_start( ap, fmt);
+	vsnprintf( buf+len, BUF_SIZ-len, fmt, ap);
+	va_end( ap);
+
+	dprintf_text( NULL, "%s", buf);
+}

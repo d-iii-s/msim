@@ -11,7 +11,8 @@
 #include "fault.h"
 #include "check.h"
 
-void *xmalloc( size_t s)
+void *
+xmalloc( size_t s)
 
 {
 	void *v = malloc( s);
@@ -21,7 +22,8 @@ void *xmalloc( size_t s)
 }
 
 
-char *xstrdup( const char *s)
+char *
+xstrdup( const char *s)
 
 {
 	char *sx = strdup( s);

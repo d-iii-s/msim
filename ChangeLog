@@ -2,10 +2,20 @@
 # MSIM Changelog
 #
 
+2005-01-08	Viliam Holub <holub@nenya.ms.mff.cuni.cz>
+
+	* MTC0 fix (thx Ondrej Palkovsky)
+
+2005-01-08	Viliam Holub <holub@nenya.ms.mff.cuni.cz>
+	Version 1.2.18
+
 	* minor changes
 	* the first version of TAB completion
 	* all system and device command are now defined via structures
 	* malloc and strdup safe
+	* ERET fix, LBU fix, epc rewrite fix (thx Matej Pivoluska, Martin
+	  Horváth, Jakub Kotrla)
+	* code polishing
 
 2004-03-23	Viliam Holub <holub@nenya.ms.mff.cuni.cz>
 	Version 1.2.12
@@ -14,7 +24,6 @@
 	* generic context help
 
 2003-12-18	Viliam Holub <holub@nenya.ms.mff.cuni.cz>
-	Version 1.2.4
 
 	* code clean-up
 

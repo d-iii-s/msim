@@ -3,7 +3,6 @@
  * Copyright (c) 2002-2004 Viliam Holub
  */
 
-
 #ifndef _PARSER_H_
 #define _PARSER_H_
 
@@ -11,6 +10,10 @@
 #define PARSER_MAX_STR	256
 
 #include "mtypes.h"
+
+
+// Line number
+extern int lineno;
 
 /* careful
  * note to add overview to token_overview
@@ -101,6 +104,8 @@ struct parm_link_s
 	struct parm_link_s *next;
 };
 typedef struct parm_link_s parm_link_s;
+
+extern parm_link_s pars_end;
 
 extern const char *token_overview[];
 

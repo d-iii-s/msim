@@ -18,6 +18,8 @@ msim_SOURCES= \
 	main.c\
 	mcons.h\
 	mtypes.h\
+	input.c\
+	input.h\
 	output.c\
 	output.h\
 	parser.c\

@@ -1,5 +1,4 @@
 /*
- * dkeyboard.c
  * Keyboard device
  * Copyright (c) 2002-2004 Viliam Holub
  */
@@ -36,23 +35,11 @@ cmd_s keyboard_cmds[] =
 		REQ STR "keyboard name" NEXT
 		REQ INT "register address" NEXT
 		REQ INT "interrupt number" END},
-	{ "info", (cmd_f)dkeyboard_info,
-		DEFAULT,
-		DEFAULT,
-		"Configuration informations",
-		"Configuration informations",
-		NOCMD},
-	{ "stat", (cmd_f)dkeyboard_stat,
-		DEFAULT,
-		DEFAULT,
-		"Statistics",
-		"Statistics",
-		NOCMD},
 	{ "help", (cmd_f)dev_generic_help,
 		DEFAULT,
 		DEFAULT,
-		"Help",
-		"Help",
+		"Displays this help text",
+		"Displays this help text",
 		OPT STR "cmd/command name" END},
 	{ "info", (cmd_f)dkeyboard_info,
 		DEFAULT,
@@ -63,14 +50,14 @@ cmd_s keyboard_cmds[] =
 	{ "stat", (cmd_f)dkeyboard_stat,
 		DEFAULT,
 		DEFAULT,
-		"Displays keyboard statistics",
-		"Displays keyboard statistics",
+		"Displays keyboard statistic",
+		"Displays keyboard statistic",
 		NOCMD},
 	{ "gen", (cmd_f)dkeyboard_gen,
 		DEFAULT,
 		DEFAULT,
-		"Generate a key press with specified code",
-		"Generate a key press with specified code",
+		"Generates a key press with specified code",
+		"Generates a key press with specified code",
 		REQ VAR "key code" END},
 	LAST_CMD
 };
@@ -148,9 +135,7 @@ gen_key( device_s *dev, char k)
 
 
 /** Init command implementation
- *
  */
-
 static bool
 dkeyboard_init( parm_link_s *parm, device_s *dev)
 
@@ -196,16 +181,15 @@ dkeyboard_init( parm_link_s *parm, device_s *dev)
 
 
 /** Info command implementation
- *
  */
-
 static bool
 dkeyboard_info( parm_link_s *parm, device_s *dev)
 
 {
 	keyboard_data_s *kd = dev->data;
 	
-	info_printf( "address:0x%08x intno:%d regs(key:0x%02x ig:%d)\n",
+	dprintf_btag( INFO_SPC, "address:0x%08x " TBRK "intno:%d " TBRK
+			"regs(key:0x%02x " TBRK " ig:%d)\n",
 			kd->addr, kd->intno, kd->incomming, kd->ig);
 	
 	return true;
@@ -213,16 +197,15 @@ dkeyboard_info( parm_link_s *parm, device_s *dev)
 
 
 /** Stat command implementation
- * 
  */
-
 static bool
 dkeyboard_stat( parm_link_s *parm, device_s *dev)
 
 {
 	keyboard_data_s *kd = dev->data;
 	
-	info_printf( "intrc:%lld keycount:%lld overrun:%lld\n",
+	dprintf_btag( INFO_SPC, "intrc:%lld " TBRK "keycount:%lld " TBRK
+			"overrun:%lld\n",
 			kd->intrcount, kd->keycount, kd->overrun);
 	
 	return true;
@@ -230,9 +213,7 @@ dkeyboard_stat( parm_link_s *parm, device_s *dev)
 
 
 /** Gen command implementation
- *
  */
-
 static bool
 dkeyboard_gen( parm_link_s *parm, device_s *dev)
 

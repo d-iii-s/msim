@@ -1,5 +1,4 @@
 /*
- * dprinter.c
  * Simple printer device
  * Copyright (c) 2002-2004 Viliam Holub
  */
@@ -114,9 +113,7 @@ typedef struct printer_data_s printer_data_s;
 
 
 /** Init command implementation
- *
  */
-
 static bool
 dprinter_init( parm_link_s *parm, device_s *dev)
 
@@ -154,9 +151,7 @@ dprinter_init( parm_link_s *parm, device_s *dev)
 
 
 /** Redir command implementation
- *
  */
-
 static bool
 dprinter_redir( parm_link_s *parm, device_s *dev)
 
@@ -190,9 +185,7 @@ dprinter_redir( parm_link_s *parm, device_s *dev)
 
 
 /** Stdout command implementation
- *
  */
-
 static bool
 dprinter_stdout( parm_link_s *parm, device_s *dev)
 
@@ -215,32 +208,28 @@ dprinter_stdout( parm_link_s *parm, device_s *dev)
 
 
 /** Info command implementation
- *
  */
-
 static bool
 dprinter_info( parm_link_s *parm, device_s *dev)
 
 {
 	printer_data_s *pd = dev->data;
 	
-	info_printf( "address:0x%08x\n", pd->addr);
+	dprintf_btag( INFO_SPC, "address:0x%08x\n", pd->addr);
 	
 	return true;
 }
 
 
 /** Stat command implementation.
- *
  */
-
 static bool
 dprinter_stat( parm_link_s *parm, device_s *dev)
 
 {
 	printer_data_s *pd = dev->data;
 	
-	info_printf( "count:%lld\n", pd->count);
+	dprintf_btag( INFO_SPC, "count:%lld\n", pd->count);
 
 	return true;
 }

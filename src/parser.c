@@ -22,6 +22,10 @@
 #define SNAME_SIZE	32
 
 
+// Line number
+int lineno = -1;
+
+
 struct g_token_s
 {
 	enum token_enum ttype;
@@ -43,6 +47,12 @@ const char *token_overview[] =
 	"invalid number",
 	"invalid hexadecimal number",
 	"integer overflow"
+};
+
+
+parm_link_s pars_end = {
+	{ tt_end},
+	NULL
 };
 
 
@@ -924,7 +934,7 @@ cmd_run_by_spec( const cmd_s *cmd, parm_link_s *parm,
 		/* check the first quantifier */
 		if (*s != OPTC && *s != REQC)
 		{
-			dprintf( "Internal error: invalid parameter quantifier: \"%s\".\n",
+			dprintf_err( "Internal error: invalid parameter quantifier: \"%s\".\n",
 					s);
 			return false;
 		}
@@ -934,7 +944,7 @@ cmd_run_by_spec( const cmd_s *cmd, parm_link_s *parm,
 		else
 		if (*s == REQC && p->token.ttype == tt_end)
 		{
-			dprintf( "Missing parameter <%s>\n",
+			dprintf_err( "Missing parameter <%s>\n",
 					find_lname( s));
 
 			return false;
@@ -946,7 +956,7 @@ cmd_run_by_spec( const cmd_s *cmd, parm_link_s *parm,
 			case INTC:
 				if (p->token.ttype != tt_int)
 				{
-					dprintf( "Invalid argument, integer <%s> required.\n",
+					dprintf_err( "Invalid argument, integer <%s> required.\n",
 							find_lname( s));
 					return false;
 				}
@@ -954,7 +964,7 @@ cmd_run_by_spec( const cmd_s *cmd, parm_link_s *parm,
 			case STRC:
 				if (p->token.ttype != tt_str)
 				{
-					dprintf( "Invalid argument, string <%s> required.\n",
+					dprintf_err( "Invalid argument, string <%s> required.\n",
 							find_lname( s));
 					return false;
 				}
@@ -962,7 +972,7 @@ cmd_run_by_spec( const cmd_s *cmd, parm_link_s *parm,
 			case VARC:
 				if (p->token.ttype != tt_int && p->token.ttype != tt_str)
 				{
-					dprintf( "Invalid argument, string or integer <%s> required.\n",
+					dprintf_err( "Invalid argument, string or integer <%s> required.\n",
 							find_lname( s));
 					return false;
 				}
@@ -971,13 +981,13 @@ cmd_run_by_spec( const cmd_s *cmd, parm_link_s *parm,
 				if (p->token.ttype != tt_str ||
 					strcmp( parm_skipq( s), p->token.tval.s))
 				{
-					dprintf( "Invalid argument, string \"%s\" required.\n",
+					dprintf_err( "Invalid argument, string \"%s\" required.\n",
 							find_lname( s));
 					return false;
 				}
 				break;
 			default:
-				dprintf( "Internall error: Invalid parameter type.\n");
+				dprintf_err( "Internall error: Invalid parameter type.\n");
 				return false;
 		}
 		
@@ -987,7 +997,7 @@ cmd_run_by_spec( const cmd_s *cmd, parm_link_s *parm,
 
 	if (*s == ENDC && p->token.ttype != tt_end)
 	{
-		dprintf( "Too many parameters.\n");
+		dprintf_err( "Too many parameters.\n");
 		return false;
 	}
 
@@ -998,7 +1008,7 @@ cmd_run_by_spec( const cmd_s *cmd, parm_link_s *parm,
 	 */
 	if (!cmd->func)
 	{
-		dprintf( "Command not implemented.\n");
+		dprintf_err( "Command not implemented.\n");
 		return false;
 	}
 	
@@ -1024,10 +1034,10 @@ cmd_run_by_name( const char *cmd_name, parm_link_s *parm,
 	switch (cmd_find( cmd_name, cmds, &cmd))
 	{
 		case CMP_NH:
-			dprintf( "Unknown command: %s\n", cmd_name);
+			dprintf_err( "Unknown command: %s\n", cmd_name);
 			return false;
 		case CMP_MHIT:
-			dprintf( "Ambiguous command: %s\n", cmd_name);
+			dprintf_err( "Ambiguous command: %s\n", cmd_name);
 			return false;
 	}
 	
@@ -1035,7 +1045,7 @@ cmd_run_by_name( const char *cmd_name, parm_link_s *parm,
 }
 
 
-/** cmd_run_by_parm - Applies the specified command.
+/** Applies the specified command.
  * 
  * The command is specified by the first parameter.
  */
@@ -1049,7 +1059,7 @@ cmd_run_by_parm( parm_link_s *pl, const cmd_s *cmds,
 	/* check whether the first token is a string */
 	if (pl->token.ttype != tt_str)
 	{
-		dprintf( "Command name expected.\n");
+		dprintf_err( "Command name expected.\n");
 		return false;
 	}
 	
@@ -1083,53 +1093,6 @@ generator_cmd( parm_link_s *pl, const void *data, int level)
 		cmd_p++;
 
 	return cmd_p->name ? dup_lname( (cmd_p++)->name) : NULL;
-}
-
-
-void
-find_dev_gen( parm_link_s **pl, const device_s *d,
-		gen_f *generator, const void **data)
-
-{
-	int res;
-	const cmd_s *cmd;
-	parm_link_s *plx;
-
-	if (parm_type( *pl) != tt_str)
-		// illegal command name
-		return;
-	
-	// look up for device command
-	switch (res = cmd_find( parm_str( *pl), d->type->cmds+1, &cmd))
-	{
-		case CMP_NH:
-			// no such command
-			return;
-		case CMP_HIT:
-		case CMP_MHIT:
-			plx = *pl;
-			parm_next( pl);
-			if (parm_type( *pl) == tt_end)
-			{
-				// set the default command generator
-				*generator = generator_cmd; 
-				*data = d->type->cmds+1;
-				*pl = plx;
-				break;
-			}
-			else
-			{
-				if (res == CMP_MHIT)
-					// input error
-					break;
-
-				// continue to the next generator, if possible
-				if (cmd->find_gen)
-					cmd->find_gen( pl, cmd, generator,
-							data);
-			}
-			break;;
-	}
 }
 
 

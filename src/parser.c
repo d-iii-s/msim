@@ -138,8 +138,8 @@ skip_white_chars( const char **s)
 {
 	const char *c = *s;
 	
-	RQ( s != NULL);
-	RQ( *s != NULL);
+	PRE( s != NULL);
+	PRE( *s != NULL);
 
 	do {
 		// skip white chars
@@ -190,8 +190,8 @@ read_number( const char **s, g_token_s *t)
 	uint32_t i;
 	volatile uint32_t oi, oi2;
 
-	RQ( s != NULL, t != NULL);
-	RQ( *s != NULL);
+	PRE( s != NULL, t != NULL);
+	PRE( *s != NULL);
 
 	oi = 0;
 	i = 0;
@@ -264,8 +264,8 @@ read_string( const char **s, g_token_s *t)
 	char *c2 = t->s;
 	char cx;
 
-	RQ( s != NULL, t != NULL);
-	RQ( *s != NULL);
+	PRE( s != NULL, t != NULL);
+	PRE( *s != NULL);
 
 	if ((*c == '"') || (*c == '\''))
 	
@@ -335,8 +335,8 @@ read_token( const char **s, g_token_s *t)
 {
 	const char *c = *s;
 
-	RQ( s != NULL, t != NULL);
-	RQ( *s != NULL);
+	PRE( s != NULL, t != NULL);
+	PRE( *s != NULL);
 	
 	/* end ? */
 	if ((*c == 0) || (*c == '\n'))
@@ -364,8 +364,8 @@ void
 parse_g_next( const char **s, g_token_s *t)
 
 {
-	RQ( s != NULL, t != NULL);
-	RQ( *s != NULL);
+	PRE( s != NULL, t != NULL);
+	PRE( *s != NULL);
 
 	skip_white_chars( s);
 	read_token( s, t);
@@ -389,8 +389,8 @@ parse_next( const char **s, token_s *t)
 {
 	g_token_s gt;
 
-	RQ( s != NULL, t != NULL);
-	RQ( *s != NULL);
+	PRE( s != NULL, t != NULL);
+	PRE( *s != NULL);
 	
 	parse_g_next( s, &gt);
 
@@ -421,7 +421,7 @@ strndup( const char *s, size_t max)
 	int len;
 	char *r;
 
-	RQ( s != NULL);
+	PRE( s != NULL);
 
 	for (len=0; s[ len] && len<max; len++) ;
 	
@@ -470,7 +470,7 @@ parm_parse( const char *s)
 	parm_link_s *pl, **p = &pl;
 	g_token_s gt;
 
-	RQ( s != NULL);
+	PRE( s != NULL);
 	
 	do {
 		/* parse next token */
@@ -521,7 +521,7 @@ void parm_check_end( parm_link_s *pl, const char *input)
 	parm_link_s *plo;
 	size_t sl;
 
-	RQ( pl != NULL);
+	PRE( pl != NULL);
 	
 	if (parm_type( pl) == tt_end)
 		return;
@@ -554,7 +554,7 @@ find_lname( const char *s)
 {
 	const char *s2;
 
-	RQ( s != NULL);
+	PRE( s != NULL);
 	
 	/* seach for a separator */
 	s += 2;
@@ -578,7 +578,7 @@ find_sname_len( const char *s)
 {
 	const char *s2;
 
-	RQ( s != NULL);
+	PRE( s != NULL);
 	
 	/* seach for a separator */
 	s += 2;
@@ -598,7 +598,7 @@ const char *
 find_next_parm( const char *s)
 
 {
-	RQ( s != NULL);
+	PRE( s != NULL);
 
 	while (*s++) ;
 	return s;
@@ -616,8 +616,8 @@ dup_lname( const char *lname)
 {
 	int len;
 
-	RQ( lname);
-	RQ( *lname != '\0', *lname != '/');
+	PRE( lname);
+	PRE( *lname != '\0', *lname != '/');
 
 	for (len=0; lname[ len] && lname[ len] != '/'; len++) ;
 
@@ -642,7 +642,7 @@ cmdcmp( const char *s, const char *cmd)
 	int phit = 0;
 	const char *s2;
 
-	RQ( s != NULL, cmd != NULL);
+	PRE( s != NULL, cmd != NULL);
 
 	do {
 		if (*cmd == '/')
@@ -678,8 +678,8 @@ cmd_lprefix( const char *par_name, const cmd_s *cmd)
 	const char *s;
 	const char *s2;
 
-	RQ( par_name != NULL, cmd != NULL);
-	RQ( *par_name != '/');
+	PRE( par_name != NULL, cmd != NULL);
+	PRE( *par_name != '/');
 
 	// compare strings
 	s = par_name;
@@ -700,8 +700,8 @@ parm_link_s *
 parm_next( parm_link_s **pl)
 
 {
-	RQ( pl != NULL);
-	RQ( *pl != NULL);
+	PRE( pl != NULL);
+	PRE( *pl != NULL);
 
 	return *pl = (*pl)->next;
 }
@@ -713,7 +713,7 @@ int
 parm_type( parm_link_s *parm)
 
 {
-	RQ( parm != NULL);
+	PRE( parm != NULL);
 	return parm->token.ttype;
 }
 
@@ -724,7 +724,7 @@ uint32_t
 parm_int( parm_link_s *parm)
 
 {
-	RQ( parm != NULL);
+	PRE( parm != NULL);
 	return parm->token.tval.i;
 }
 
@@ -735,7 +735,7 @@ char *
 parm_str( parm_link_s *parm)
 
 {
-	RQ( parm != NULL);
+	PRE( parm != NULL);
 	return parm->token.tval.s;
 }
 
@@ -748,7 +748,7 @@ parm_next_int( parm_link_s **parm)
 {
 	uint32_t u;
 
-	RQ( parm != NULL); RQ( *parm != NULL);
+	PRE( parm != NULL); PRE( *parm != NULL);
 	
 	u = (*parm)->token.tval.i;
 	*parm = (*parm)->next;
@@ -765,7 +765,7 @@ parm_next_str( parm_link_s **parm)
 {
 	char *s;
 
-	RQ( parm != NULL); RQ( *parm != NULL);
+	PRE( parm != NULL); PRE( *parm != NULL);
 
 	s = (*parm)->token.tval.s;
 	*parm = (*parm)->next;
@@ -784,7 +784,7 @@ parm_insert_int( parm_link_s *pl, uint32_t val)
 {
 	parm_link_s *p;
 
-	RQ( pl != NULL);
+	PRE( pl != NULL);
 
 	p = xmalloc( sizeof( token_s));
 
@@ -807,7 +807,7 @@ parm_insert_str( parm_link_s *pl, char *s)
 {
 	parm_link_s *p;
 	
-	RQ( pl != NULL, s != NULL);
+	PRE( pl != NULL, s != NULL);
 
 	p = xmalloc( sizeof( token_s));
 
@@ -826,7 +826,7 @@ void
 parm_change_int( parm_link_s *parm, uint32_t val)
 
 {
-	RQ( parm != NULL);
+	PRE( parm != NULL);
 
 	if (parm->token.ttype == tt_str)
 		free( parm->token.tval.s);
@@ -843,7 +843,7 @@ void
 parm_set_str( parm_link_s *pl, const char *s)
 
 {
-	RQ( pl != NULL, s != NULL);
+	PRE( pl != NULL, s != NULL);
 
 	pl->token.ttype = tt_str;
 	strcpy( pl->token.tval.s, s);
@@ -856,7 +856,7 @@ const char *
 parm_skipq( const char *s)
 
 {
-	RQ( s != NULL);
+	PRE( s != NULL);
 
 	return s+2;
 }
@@ -878,7 +878,7 @@ cmd_find( const char *cmd_name, const cmd_s *cmds,
 {
 	int phit;
 
-	RQ( cmd_name != NULL, cmds != NULL);
+	PRE( cmd_name != NULL, cmds != NULL);
 
 	/* find fine command */
 	for (phit = 0; phit != -1 && cmds->name; cmds++)
@@ -923,7 +923,7 @@ cmd_run_by_spec( const cmd_s *cmd, parm_link_s *parm,
 	const char *s;
 	parm_link_s *p = parm;
 
-	RQ( cmd != NULL, parm != NULL);
+	PRE( cmd != NULL, parm != NULL);
 
 	/*
 	 * Now we have to go over all parameters and check them.
@@ -1028,7 +1028,7 @@ cmd_run_by_name( const char *cmd_name, parm_link_s *parm,
 {
 	const cmd_s *cmd;
 
-	RQ( cmd_name != NULL, parm != NULL, cmds != NULL);
+	PRE( cmd_name != NULL, parm != NULL, cmds != NULL);
 
 	/* find fine command */
 	switch (cmd_find( cmd_name, cmds, &cmd))
@@ -1054,7 +1054,7 @@ cmd_run_by_parm( parm_link_s *pl, const cmd_s *cmds,
 		void *data)
 
 {
-	RQ( pl != NULL, cmds != NULL);
+	PRE( pl != NULL, cmds != NULL);
 
 	/* check whether the first token is a string */
 	if (pl->token.ttype != tt_str)
@@ -1080,8 +1080,8 @@ generator_cmd( parm_link_s *pl, const void *data, int level)
 	const char *cmd_pre;
 	static const cmd_s *cmd_p;
 
-	RQ( data != NULL, pl != NULL);
-	RQ( parm_type( pl) == tt_str || parm_type( pl) == tt_end);
+	PRE( data != NULL, pl != NULL);
+	PRE( parm_type( pl) == tt_str || parm_type( pl) == tt_end);
 
 	if (level == 0)
 		cmd_p = (cmd_s *)data;
@@ -1113,7 +1113,7 @@ cat_parm( char *dest, const char *par, int max_char)
 	size_t t;
 	int i;
 
-	RQ( dest != NULL, par != NULL);
+	PRE( dest != NULL, par != NULL);
 
 	t = strlen( dest);
 	
@@ -1136,7 +1136,7 @@ cmd_print_help( const cmd_s *cmds)
 {
 	const char *s;
 
-	RQ( cmds != NULL);
+	PRE( cmds != NULL);
 
 	cmds++;
 
@@ -1194,7 +1194,7 @@ cmd_print_extended_help( parm_link_s *parm,
 	const char *s;
 	int opt, par;
 
-	RQ( parm != NULL, cmds != NULL);
+	PRE( parm != NULL, cmds != NULL);
 	
 	if (parm_type( parm) == tt_end)
 	{

@@ -1,5 +1,5 @@
 /*
- * Verbose assert
+ * Pre/post conditions
  * 2004 Viliam Holub
  *
  * See the header file check.h for additional infomation.
@@ -20,10 +20,11 @@
 
 
 #ifdef RQ_DEBUG
-void RQ_test( const char *filename, int lineno, const char *func, ...)
+void RQ_test( const char *pre, const char *filename, int lineno,
+		const char *func, ...)
 
 {
-	int i=0, b;
+	int i=0, c=0, b;
 	va_list va;
 	const char *term;
 
@@ -31,6 +32,7 @@ void RQ_test( const char *filename, int lineno, const char *func, ...)
 	do {
 		b = va_arg( va, int);
 		i++;
+		c++;
 	} while (b && b != RQ_PARM_BRK);
 	
 	
@@ -38,13 +40,19 @@ void RQ_test( const char *filename, int lineno, const char *func, ...)
 	{
 		do {
 			b = va_arg( va, int);
+			c++;
 		} while (b != RQ_PARM_BRK);
 
 		term = va_arg( va, const char *);
 		fflush( stdout);
-		fprintf( stderr, "RQ -- %s(%d): %s() the %d. condition of "
+		if (c==2)
+			fprintf( stderr, "\n%s(%d): in %s() %scondition "
 				"\"%s\" does not hold\n",
-				filename, lineno, func, i, term);
+				filename, lineno, func, pre, term);
+		else
+			fprintf( stderr, "\n%s(%d): in %s() the %d. %scondition of "
+				"\"%s\" does not hold\n",
+				filename, lineno, func, i, pre, term);
 
 #ifdef RQ_FATAL
 		exit( RQ_FATAL);

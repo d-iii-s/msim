@@ -392,7 +392,7 @@ void
 mem_link( mem_element_s *e)
 
 {
-	RQ( e != NULL);
+	PRE( e != NULL);
 	
 	e->next = memlist;
 	memlist = e;
@@ -406,7 +406,7 @@ mem_unlink( mem_element_s *e)
 {
 	mem_element_s *ex = memlist, *ex2=0;
 
-	RQ( e != NULL);
+	PRE( e != NULL);
 	
 	while (ex && (ex != e))
 	{

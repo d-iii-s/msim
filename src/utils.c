@@ -26,7 +26,11 @@ char *
 xstrdup( const char *s)
 
 {
-	char *sx = strdup( s);
+	char *sx;
+	
+	PRE( s);
+	
+	sx = strdup( s);
 	if (!sx)
 		die( FAULT_NOMEM, "Not enough memory");
 	return sx;
@@ -39,7 +43,7 @@ bool
 prefix( const char *pref, const char *str)
 
 {
-	RQ( pref != NULL, str != NULL);
+	PRE( pref != NULL, str != NULL);
 
 	for (; *pref && *pref == *str; pref++, str++) ;
 

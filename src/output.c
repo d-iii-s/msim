@@ -79,7 +79,7 @@ dprintf( const char *fmt, ...)
 	va_list ap;
 	char dbuf[ DBUF_SIZE];
 
-	RQ( fmt != NULL);
+	PRE( fmt != NULL);
 
 	va_start( ap, fmt);
 	vsnprintf( dbuf, DBUF_SIZE, fmt, ap);
@@ -101,7 +101,7 @@ dprintf2( const char *fmt, ...)
 	va_list ap;
 	char dbuf[ DBUF_SIZE];
 
-	RQ( fmt != NULL);
+	PRE( fmt != NULL);
 
 	va_start( ap, fmt);
 	vsnprintf( dbuf, DBUF_SIZE, fmt, ap);
@@ -144,7 +144,7 @@ dprintf_btag( const char *nl, const char *fmt, ...)
 	int sw = screen_width;
 	bool newl = false;
 
-	RQ( fmt != NULL);
+	PRE( fmt != NULL);
 
 	if (!nl)
 		nl = "";
@@ -188,7 +188,7 @@ dprintf_n( int n, const char *fmt, ...)
 	char buf[ 256];
 	va_list ap;
 
-	RQ( fmt != NULL);
+	PRE( fmt != NULL);
 
 	if (n > 255)
 		n = 255;
@@ -215,7 +215,7 @@ dprintf_text( const char *nl, const char *fmt, ...)
 	va_list ap;
 	char *s, *s2;
 
-	RQ( fmt != NULL);
+	PRE( fmt != NULL);
 
 	va_start( ap, fmt);
 	vsnprintf( buf, BUF_SIZ, fmt, ap);
@@ -252,7 +252,7 @@ dprintf_err( const char *fmt, ...)
 	va_list ap;
 	size_t len;
 
-	RQ( fmt != NULL);
+	PRE( fmt != NULL);
 
 	if (lineno != -1)
 		len = sprintf( buf, "%d: ", lineno);

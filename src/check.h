@@ -1,16 +1,16 @@
 /*
- * Verbose assert
+ * Pre/post conditions
  * 2004 Viliam Holub
  *
- * Usage: RQ( condition1, condition2, condition3, ...);
+ * Usage: {RQ,PRE,POST}( condition1, condition2, condition3, ...);
  *
  * In the developing stage RQ checks all conditions and diplays a warning
- * message about these which does not hold. RQ is used usually at
+ * message about those which does not hold. PRE is used usually at
  * the beginnig of functions to check input parameters, where it is doing
  * a very similar job as the "pre-conditions" statements in some programming
- * languages. But may be used almost everywhere, with similar behavior as
+ * languages. RQ may be used almost everywhere, with similar behavior as
  * a "more intelligent" assert.
- * In release stage RQ is removed by the preprocessor.
+ * In release stage RQ, PRE and POST are removed by the preprocessor.
  *
  * Feel free to modify this code for your needs.
  *
@@ -44,13 +44,22 @@
 #ifdef RQ_DEBUG
 #	define RQ_PARM_BRK -314
 #	if defined __STDC_VERSION__ && __STDC_VERSION__ >= 199901L
-#		define RQ(...)		RQ_test( __FILE__, __LINE__,\
+#		define RQ(...)		RQ_test( "", __FILE__, __LINE__,\
+			__FUNCTION__, __VA_ARGS__, RQ_PARM_BRK, #__VA_ARGS__);
+#		define PRE(...)		RQ_test( "pre", __FILE__, __LINE__,\
+			__FUNCTION__, __VA_ARGS__, RQ_PARM_BRK, #__VA_ARGS__);
+#		define POST(...)	RQ_test( "post", __FILE__, __LINE__,\
 			__FUNCTION__, __VA_ARGS__, RQ_PARM_BRK, #__VA_ARGS__);
 #	else
-#		define RQ(args...)	RQ_test( __FILE__, __LINE__,\
+#		define RQ(args...)	RQ_test( "", __FILE__, __LINE__,\
+			__FUNCTION__, args, RQ_PARM_BRK, #args);
+#		define PRE(args...)	RQ_test( "pre", __FILE__, __LINE__,\
+			__FUNCTION__, args, RQ_PARM_BRK, #args);
+#		define POST(args...)	RQ_test( "post", __FILE__, __LINE__,\
 			__FUNCTION__, args, RQ_PARM_BRK, #args);
 #endif
-void RQ_test( const char *filename, int lineno, const char *func, ...);
+void RQ_test( const char *pre, const char *filename, int lineno,
+		const char *func, ...);
 #else
 #	define RQ( ...)
 #endif

@@ -602,8 +602,8 @@ generator_devtype( parm_link_s *pl, const void *data, int level)
 	const char *s;
 	const static device_type_s **d;
 
-	RQ( pl != NULL);
-	RQ( parm_type( pl) == tt_str || parm_type( pl) == tt_end);
+	PRE( pl != NULL);
+	PRE( parm_type( pl) == tt_str || parm_type( pl) == tt_end);
 	
 	if (level == 0)
 		d = NULL;
@@ -627,8 +627,8 @@ generator_devname( parm_link_s *pl, const void *data, int level)
 	const char *s;
 	static device_s *d;
 
-	RQ( pl != NULL);
-	RQ( parm_type( pl) == tt_str || parm_type( pl) == tt_end);
+	PRE( pl != NULL);
+	PRE( parm_type( pl) == tt_str || parm_type( pl) == tt_end);
 	
 	if (level == 0)
 		d = NULL;
@@ -678,8 +678,8 @@ system_add_find_generator( parm_link_s **pl, const cmd_s *cmd,
 		gen_f *generator, const void **data)
 
 {
-	RQ( pl != NULL, data != NULL, generator != NULL, cmd != NULL);
-	RQ( *generator == NULL, *pl != NULL, *data == NULL);
+	PRE( pl != NULL, data != NULL, generator != NULL, cmd != NULL);
+	PRE( *generator == NULL, *pl != NULL, *data == NULL);
 
 	if (parm_type( *pl) == tt_str
 			&& dev_by_partial_typename( parm_str( *pl), NULL)
@@ -697,8 +697,8 @@ system_set_find_generator( parm_link_s **pl, const cmd_s *cmd,
 {
 	int res;
 
-	RQ( pl != NULL, data != NULL, generator != NULL, cmd != NULL);
-	RQ( *generator == NULL, *pl != NULL, *data == NULL);
+	PRE( pl != NULL, data != NULL, generator != NULL, cmd != NULL);
+	PRE( *generator == NULL, *pl != NULL, *data == NULL);
 
 	if (parm_type( *pl) == tt_str)
 	{
@@ -761,8 +761,8 @@ find_system_generator( parm_link_s **pl,
 	const cmd_s *cmd;
 	parm_link_s *plx;
 
-	RQ( pl != NULL, generator != NULL, data != NULL);
-	RQ( *pl != NULL, *generator == NULL, *data == NULL);
+	PRE( pl != NULL, generator != NULL, data != NULL);
+	PRE( *pl != NULL, *generator == NULL, *data == NULL);
 
 	if (parm_type( *pl) == tt_end)
 	{

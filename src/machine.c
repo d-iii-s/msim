@@ -122,12 +122,6 @@ init_machine( void)
 	input_init();
 	input_shadow();
 	register_sigint();
-
-#ifdef _HAVE_READLINE_OK_
-	/* readline init */
-	rl_readline_name = "msim";
-	rl_attempted_completion_function = msim_completion;
-#endif
 }
 
 

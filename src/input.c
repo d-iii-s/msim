@@ -43,10 +43,13 @@ struct termios tio_inter;
 struct termios tio_old;
 
 
+/** Terminal and readline init.
+ */
 void
 input_init( void)
 
 {
+	/* terminal init */
 	input_term = !!isatty( 0);
 	
 	if (!input_term)
@@ -69,6 +72,12 @@ input_init( void)
 #endif
 	tio_inter.c_cc[ VMIN] = 1;
 	tio_inter.c_cc[ VTIME] = 0;
+
+#ifdef _HAVE_READLINE_OK_
+	/* readline init */
+	rl_readline_name = "msim";
+	rl_attempted_completion_function = msim_completion;
+#endif
 }
 
 
@@ -139,7 +148,7 @@ msim_completion( const char *text, int start, int end)
 {
 	char **result;
 
-//	printf( "\ncompletion: test: %s, start: %d, end: %d, line_buffer: %s\n", text, start, end, rl_line_buffer);
+	//printf( "\ncompletion: test: %s, start: %d, end: %d, line_buffer: %s\n", text, start, end, rl_line_buffer);
 
 	par_text = (char *)xmalloc( end+1);
 	strncpy( par_text, rl_line_buffer, end);

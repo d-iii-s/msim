@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2002-2004 Viliam Holub
+ * Copyright (c) 2002-2005 Viliam Holub
  */
 
 #include <sys/types.h>
@@ -175,25 +175,8 @@ conf_error( const char *msg, int lineno)
 }
 
 
-/*
- * a parse error message
+/** Searchies for device type and allocs device structure.
  */
-/*
-XXX
-static void
-parse_error( const struct token_struct *t, int lineno)
-
-{
-	if (lineno == -1)
-		error( "error: parser: %s", token_overview[ t->ttype]);
-	else
-		error( "error(%d): parser: %s", lineno,
-				token_overview[ t->ttype]);
-}
-*/
-
-
-/* search for device type and alloc device structure */
 static device_s *
 alloc_device( const char *dtype, const char *dname)
 

@@ -1,6 +1,7 @@
+opravit - podivna hodnota v ireg - adresa???
 opravit dprintf_btag - nl je vetsi nez obrazovka
+zjistit velikost obrazovky
 opravit stat
-apply student patch
 proklestit headery do vicero -> split parser & sets
 otestovat realne uzivani headeru
 ddisk texts - some are incomplete

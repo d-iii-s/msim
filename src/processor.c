@@ -1,7 +1,7 @@
 /*
  * A MIPS R4000 processor simulation
  * 
- * Copyright (c) 2000-2004 Viliam Holub 
+ * Copyright (c) 2000-2005 Viliam Holub 
  */
 
 #include <stdlib.h>
@@ -42,7 +42,7 @@ processor_s *pr;
 
 
 
-/** processor_init - Initialize simulation environment.
+/** Initializes simulation environment.
  */
 void
 processor_init( int procno)
@@ -104,7 +104,7 @@ processor_init( int procno)
 }
 
 
-/** set_general_reg - Writes a value into the register in the actual context.
+/** Writes a value into the register in the actual context.
  *
  * Used mainly from external modules.
  */
@@ -117,7 +117,7 @@ set_general_reg( int regno, int value)
 }
 
 
-/** set_pc_reg - Sets the PC register in the actual context.
+/** Sets the PC register in the actual context.
  */
 void
 set_pc_reg( int value)
@@ -137,7 +137,7 @@ enum tlb_look_e
 };
 
 
-/** tlb_look - Address TLB traslation.
+/** Address traslation through the TLB table.
  *
  * R	see tlbl_look_e definition
  */
@@ -195,7 +195,7 @@ tlb_look( uint32_t *addr, bool wr)
 }
 
 
-/** fill_tlb_error - Fills cp0 registers with specified address.
+/** Fills up cp0 registers with specified address.
  */
 static void
 fill_tlb_error( uint32_t addr)
@@ -209,7 +209,7 @@ fill_tlb_error( uint32_t addr)
 }
 
 
-/** tlb_hit - Looks for TLB and generates apropriate exception.
+/** Searches through TLB and generates apropriate exception.
  */
 static enum exc
 tlb_hit( uint32_t *addr, bool wr, bool h)
@@ -246,7 +246,7 @@ tlb_hit( uint32_t *addr, bool wr, bool h)
 }
 
 
-/** convert_addr_user - The user mode address conversion.
+/** The user mode address conversion.
  */
 static enum exc
 convert_addr_user( uint32_t *addr, bool wr, bool h)
@@ -260,7 +260,7 @@ convert_addr_user( uint32_t *addr, bool wr, bool h)
 }
 
 
-/** convert_addr_supervisor - The supervisor mode address conversion.
+/** The supervisor mode address conversion.
  */
 static enum exc
 convert_addr_supervisor( uint32_t *addr, bool wr, bool h)
@@ -278,7 +278,7 @@ convert_addr_supervisor( uint32_t *addr, bool wr, bool h)
 }
 
 
-/** convert_addr_kernel - The kernel mode address conversion.
+/** The kernel mode address conversion.
  */
 static enum exc
 convert_addr_kernel( uint32_t *addr, bool wr, bool h)
@@ -300,7 +300,7 @@ convert_addr_kernel( uint32_t *addr, bool wr, bool h)
 }
 
 
-/** convert_addr - The conversion of virtual addresses.
+/** The conversion of virtual addresses.
  */
 enum exc
 convert_addr( uint32_t *addr, bool wr, bool h)
@@ -317,7 +317,7 @@ convert_addr( uint32_t *addr, bool wr, bool h)
 }
 
 
-/** mem_align_test - Tests for correct align and fills BadVAddr if bad.
+/** Tests for correct align and fills BadVAddr if bad.
  */
 static enum exc
 mem_align_test( uint32_t addr, int size)
@@ -332,7 +332,7 @@ mem_align_test( uint32_t addr, int size)
 }
 	
 
-/** acc_mem - Access the virtual memory.
+/** Accesses the virtual memory.
  *
  * The operation (read/write) is specified via the wr parameter. This routine
  * does not specify the exception type.
@@ -366,7 +366,7 @@ acc_mem( bool wr, uint32_t addr, int size, uint32_t *value, bool h)
 }
 
 
-/** read_proc_mem - Preforms the read access from the virtual memory.
+/** Preforms the read access from the virtual memory.
  */
 enum exc
 read_proc_mem( uint32_t addr, int size, uint32_t *value, bool h)
@@ -388,7 +388,7 @@ read_proc_mem( uint32_t addr, int size, uint32_t *value, bool h)
 }
 
 
-/** write_proc_mem - Performs the write operation to the virtual memory.
+/** Performs the write operation to the virtual memory.
  */
 enum exc
 write_proc_mem( uint32_t addr, int size, uint32_t value, bool h)
@@ -408,7 +408,7 @@ write_proc_mem( uint32_t addr, int size, uint32_t value, bool h)
 }
 
 
-/** read_proc_ins - Reads an instruction.
+/** Reads an instruction.
  */
 enum exc
 read_proc_ins( uint32_t addr, uint32_t *value, bool h)
@@ -424,7 +424,7 @@ read_proc_ins( uint32_t addr, uint32_t *value, bool h)
 }
 
 
-/** proc_interrupt_up - Asserts the specified interrupt.
+/** Asserts the specified interrupt.
  */
 void
 proc_interrupt_up( int no)
@@ -438,7 +438,7 @@ proc_interrupt_up( int no)
 }
 
 
-/* proc_interrupt_doen - Deasserts the specified interrupt.
+/* Deasserts the specified interrupt.
  */
 void
 proc_interrupt_down( int no)
@@ -449,7 +449,7 @@ proc_interrupt_down( int no)
 }
 
 
-/** update_deb - Updates the copy of registers.
+/** Updates the copy of registers.
  */
 void
 update_deb( void)
@@ -465,7 +465,7 @@ update_deb( void)
 }
 
 
-/** multiply - A multiplication of two integers.
+/** Performs the multiplication of two integers.
  */
 static void
 Multiply( uint32_t a, uint32_t b, bool sig)
@@ -500,7 +500,7 @@ Multiply( uint32_t a, uint32_t b, bool sig)
 }
 
 
-/** TLBW - Writes a new entry into the TLB.
+/** Writes a new entry into the TLB.
  */
 static void
 TLBW( int reg, enum exc *res)
@@ -543,7 +543,9 @@ TLBW( int reg, enum exc *res)
 
 
 
-/** execute - Execute an instruction specified by opcode.
+/** Executes the instruction specified by the opcode.
+ *
+ * A really huge one, isn't it.
  */
 static enum exc
 execute( TInstrInfo *ii2)
@@ -1496,9 +1498,10 @@ execute( TInstrInfo *ii2)
 }
 
 
-/* exception control */
+/** Changes the processor state according to the exception type.
+ */
 static void
-exception_handle( enum exc res)
+handle_exception( enum exc res)
 
 {
 	bool tlb_refill = false;
@@ -1552,9 +1555,8 @@ exception_handle( enum exc res)
 }
 
 
-/** manage - Processor management.
- *
- * Reacts on interrupt requests, updates internal timer, random register etc.
+/** Reacts on interrupt requests, updates internal timer, random register
+ * etc.
  */
 static void
 manage( enum exc res)
@@ -1568,7 +1570,7 @@ manage( enum exc res)
 	
 	/* exception control */
 	if (res != excNone)
-		exception_handle( res);
+		handle_exception( res);
 
 	/* increase counter */
 	cp0_count_count++;
@@ -1586,10 +1588,10 @@ manage( enum exc res)
 }
 
 
-/* instruction - Tries to simulate one instruction.
+/* Simulates just one instruction.
  *
- * The are three main parts to simulate the instruction: read the instruction
- * opcore, decode, execute and perform debug output.
+ * The are three main parts: instruction reading, decoding and performing
+ * debug output.
  */
 static void
 instruction( enum exc *res)
@@ -1623,11 +1625,12 @@ instruction( enum exc *res)
 }
 
 
-/* step - Simulates one step of the processor.
+/* Simulates one step of the processor.
  *
- * This is often one instruction.
+ * This is just one instruction.
  */
-void step() 
+void
+step()
 
 {
 	enum exc res = excNone;

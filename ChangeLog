@@ -1,0 +1,48 @@
+#
+# MSIM Changelog
+#
+
+	* minor changes
+	* the first version of TAB completion
+	* all system and device command are now defined via structures
+	* malloc and strdup safe
+
+2004-03-23	Viliam Holub <holub@nenya.ms.mff.cuni.cz>
+	Version 1.2.12
+	
+	* device command are now generic
+	* generic context help
+
+2003-12-18	Viliam Holub <holub@nenya.ms.mff.cuni.cz>
+	Version 1.2.4
+
+	* code clean-up
+
+2003-12-17	Viliam Holub <holub@nenya.ms.mff.cuni.cz>
+	Version 1.2.3
+
+	* cycle counter size increased to long long
+	* non-POSIX terminal attributes are now checked
+	* code cleanup (comments, read/write functions)
+	* Changelog cleanup
+	* (dcpu.c) md command fix
+	* endians checked via autoconf
+
+
+2003-12-01	Viliam Holub <holub@nenya.ms.mff.cuni.cz>
+	Version 1.2.2
+	
+	* TLB dirty mask fix (read-only pages were writable)
+
+
+2003-11-28	Viliam Holub <holub@nenya.ms.mff.cuni.cz>
+	Version 1.2.1
+	
+	* MTLO and MTHI fix
+
+
+2003-11-24	Viliam Holub <holub@nenya.ms.mff.cuni.cz>
+	Version 1.2
+	
+	* debug messages fix
+	* added dtime

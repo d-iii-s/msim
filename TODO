@@ -1,0 +1,22 @@
+opravit dprintf_btag - nl je vetsi nez obrazovka
+opravit stat
+apply student patch
+proklestit headery do vicero -> split parser & sets
+otestovat realne uzivani headeru
+ddisk texts - some are incomplete
+TAB completion
+	- the set command
+input module - move all about input into this module
+intelligent output (fit to the screen) - & test it
+fix parsing errors (number of line)
+add debug features - memory allocation
+	- first and last block check,
+	- show all allocated memory blocks
+	- check for unallocated memory at the end of the program or at the free function call
+	- allocation information - function, file and the line number
+stat
+msd, infodev - opravit
+gdb remote debugging
+serial line
+network
+nonword write via read/write

@@ -507,6 +507,9 @@ enum ECP0Regs
 #define cp0_lladdr	(pr->cp0[ CP0_LLAddr])
 #define cp0_watchlo	(pr->cp0[ CP0_WatchLo])
 #define cp0_watchhi	(pr->cp0[ CP0_WatchHi])
+#define cp0_ecc		(pr->cp0[ CP0_ECC])
+#define cp0_taglo	(pr->cp0[ CP0_TagLo])
+#define cp0_taghi	(pr->cp0[ CP0_TagHi])
 /*
 #define cp0__W	M
 */

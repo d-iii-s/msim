@@ -1527,7 +1527,7 @@ execute( TInstrInfo *ii2)
 					break;
 				case CP0_ECC:
 					/* ignored for simulation */
-					cp0_ecc = rrt & 0xff;
+					cp0_ecc = (rrt & cp0_ecc_ecc_mask) << cp0_ecc_ecc_shift;
 					break;
 				case CP0_CacheErr:
 					/* ignored, read-only */

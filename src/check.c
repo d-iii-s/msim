@@ -4,11 +4,10 @@
  *
  * See the header file check.h for additional infomation.
  *
- * Implementation of the auxiliary function for condition checking
- * and displaying error messages. Regarding to the specified parameter
- * the program may by halted as well.
+ * The auxiliary function checking conditions and displaying error messages.
+ * Regarding to the specified parameter the program may be halted.
  *
- * Feel free to modify this code for your needs.
+ * Feel free to modify this code to fulfill your needs.
  */
 
 #include <stdio.h>

@@ -48,20 +48,16 @@ typedef struct device_s device_s;
  * 		conflict detection, allocation memory etc. Returns
  * 		error string while fail.
  * done		Disposes internal data
- * parm		Called for every parameter on configuration line. Returns
- * 		string in the case of failure. 
  * step		Called every machine cycle.
  * read		Called while memory read command is out of memory. Device
  * 		shuld test addr if it is relevat.
  * write	Called when write memory command is out of memory. Device
  * 		should test addr param.
- * info		Prints small configuration info - intno, address, etc.
- * stat		Prints statistics
  * cmds		An array of commands supportred by the device. Have a look
  * 		at the device_cmd_struct structure for more information.
  * 		The last command should be the LAST_CMS macro.
  *
- * NULL value means "not implemented" and of course are not called.
+ * NULL value means "not implemented".
  */
 
 struct device_type_s
@@ -79,7 +75,7 @@ struct device_type_s
 };
 
 /*
- * LAST_CMD is used in deicve sources to determine the last command. That's
+ * LAST_CMD is used in device sources to determine the last command. That's
  * only a null-command with all NULL parameters.
  */
 #define LAST_CMD	{}
@@ -88,7 +84,6 @@ struct device_type_s
 /*
  * Device list is an array of all device types within sources.
  */
-
 extern const device_type_s *device_types[];
 
 /*
@@ -104,7 +99,6 @@ extern const char *txt_pub[];
  * optionally arguments as for printf().
  * INFO_SPC is a string constant useful for multi-line infos.
  */
-
 void info_printf( const char *fmt, ...);
 #define INFO_SPC "                      "
 
@@ -116,13 +110,14 @@ int devs_by_partial_name( const char *name, device_s **d);
 device_s *dev_by_name( const char *s);
 bool dev_map( void *data, bool (*f)(void *, device_s *));
 bool dev_next( device_s **d);
-int dev_cmd_find( const token_s *t, const char *cmds[]);
 void cpr_num( char *s, uint32_t i);
 
 void dev_add( device_s *d);
 void dev_remove( device_s *d);
 
 bool dev_generic_help( parm_link_s *parm, device_s *dev);
+void find_dev_gen( parm_link_s **pl, const device_s *d,
+		gen_f *generator, const void **data);
 
 
 #endif /* _DEVICE_H_ */

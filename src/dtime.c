@@ -1,5 +1,4 @@
 /*
- * dtime.c
  * Simple host time device
  * Copyright (c) 2003,2004 Viliam Holub
  */
@@ -21,6 +20,7 @@
 
 static bool dtime_init( parm_link_s *parm, device_s *dev);
 static bool dtime_info( parm_link_s *parm, device_s *dev);
+static bool dtime_stat( parm_link_s *parm, device_s *dev);
 
 cmd_s dtime_cmds[] =
 {
@@ -42,6 +42,12 @@ cmd_s dtime_cmds[] =
 		DEFAULT,
 		"Configuration informations",
 		"Configuration informations",
+		NOCMD},
+	{ "stat", (cmd_f)dtime_stat,
+		DEFAULT,
+		DEFAULT,
+		"Statictics",
+		"Statictics",
 		NOCMD},
 	LAST_CMD
 };
@@ -83,9 +89,7 @@ struct dtime_data_struct
 
 
 /** Init command implementation
- *
  */
-
 static bool
 dtime_init( parm_link_s *parm, device_s *dev)
 
@@ -108,7 +112,7 @@ dtime_init( parm_link_s *parm, device_s *dev)
 	/* check */
 	if (td->addr & 0x3)
 	{
-		dprintf( "Disk adress must be on 4-byte aligned.\n");
+		dprintf( "Dtime address must be 4-byte aligned.\n");
 		return false;
 	}
 	
@@ -117,17 +121,26 @@ dtime_init( parm_link_s *parm, device_s *dev)
 
 
 /** Info command implementation
- *
  */
-
 static bool
 dtime_info( parm_link_s *parm, device_s *dev)
 
 {
 	struct dtime_data_struct *td = dev->data;
 	
-	info_printf( "address:0x%08x", td->addr);
+	dprintf_btag( INFO_SPC, "address:0x%08x", td->addr);
 	
+	return true;
+}
+
+
+/** Stat command implementation
+ */
+static bool
+dtime_stat( parm_link_s *parm, device_s *dev)
+
+{
+	dprintf_btag( INFO_SPC, "no statistics\n");
 	return true;
 }
 
@@ -138,7 +151,6 @@ dtime_info( parm_link_s *parm, device_s *dev)
  * Implicit commands
  *
  */
-
 static void
 dtime_done( device_s *d)
 

@@ -1377,8 +1377,8 @@ execute( TInstrInfo *ii2)
 			break;
 
 		case opcERET:
-			if (cp0_status_cu0 || !cp0_status_ksu || !cp0_status_exl ||
-				!cp0_status_erl)
+			if (cp0_status_cu0 || !cp0_status_ksu || cp0_status_exl ||
+				cp0_status_erl)
 
 			{
 				/* ll-break */
@@ -1387,10 +1387,8 @@ execute( TInstrInfo *ii2)
 				UnregisterLL();
 				
 				/* delay slot test */
-				if (pr->branch)
-				{
-					if (errors) dprintf( "\nError: ERET in a delay slot\n\n");
-				}
+				if (pr->branch && errors)
+					dprintf( "\nError: ERET in a delay slot\n\n");
 			
 				if (cp0_status_erl)
 				{
@@ -1441,38 +1439,39 @@ execute( TInstrInfo *ii2)
 			break;
 
 		case opcMTC0:
-			if ((cp0_status_cu0 == 1)||
-				 ((cp0_status_ksu == 0)||(cp0_status_exl == 1)||(cp0_status_erl == 1)))
+			if ((cp0_status_cu0 == 1) ||
+				 ((cp0_status_ksu == 0) || cp0_status_exl || 
+				  cp0_status_erl))
 			switch (ii.rd)
 			{
 				/* 0 */
 				case CP0_Index:
-					pr->cp0[ CP0_Index] = rrt & 0x3f;
+					cp0_index = rrt & 0x3f;
 					break;
 				case CP0_Random:
 					/* ignored, read-only */
 					break;
 				case CP0_EntryLo0:
-					pr->cp0[ CP0_EntryLo0] = rrt & 0x3fffffff;
+					cp0_entrylo0 = rrt & 0x3fffffff;
 					break;
 				case CP0_EntryLo1:
-					pr->cp0[ CP0_EntryLo1] = rrt & 0x3fffffff;
+					cp0_entrylo1 = rrt & 0x3fffffff;
 					break;
 				case CP0_Context:
-					pr->cp0[ CP0_Context] = rrt & 0xfffffff0;
+					cp0_context = rrt & 0xfffffff0;
 					break;
 				case CP0_PageMask:
-					pr->cp0[ CP0_PageMask] = 0;
+					cp0_pagemask = 0;
 					if ((rrt == 0x0)|(rrt == 0x6000)|(rrt == 0x1e000)|(rrt == 0x7e000)|
 						(rrt == 0x1fe000)|(rrt == 0x7fe000)|(rrt == 0x1ffe000))
-						pr->cp0[ CP0_PageMask] = rrt & cp0_pagemask_mask_mask;
+						cp0_pagemask = rrt & cp0_pagemask_mask_mask;
 					else if (errors) 
 						dprintf( "\nMTC0: Invalid value for PageMask\n");
 					break;
 				case CP0_Wired:
-					pr->cp0[ CP0_Random] = 47;
-					pr->cp0[ CP0_Wired] = rrt & 0x3f;
-					if (pr->cp0[ CP0_Wired] > 47) 
+					cp0_random = 47;
+					cp0_wired = rrt & 0x3f;
+					if (cp0_wired > 47) 
 						dprintf( "\nMTC0: Invalid value for Wired\n");
 					break;
 				case CP0_Res1:
@@ -1483,25 +1482,24 @@ execute( TInstrInfo *ii2)
 					/* ignored, read-only */
 					break;
 				case CP0_Count:
-					pr->cp0[ CP0_Count] = rrt;
+					cp0_count = rrt;
 					break;
 				case CP0_EntryHi:
-					pr->cp0[ CP0_EntryHi] = rrt & 0xfffff0ff;
+					cp0_entryhi = rrt & 0xfffff0ff;
 					break;
 				case CP0_Compare:
-					pr->cp0[ CP0_Compare] = rrt;
-					pr->cp0[ CP0_Cause] &= ~(1 << cp0_cause_ip7_shift);
+					cp0_compare = rrt;
+					cp0_cause &= ~(1 << cp0_cause_ip7_shift);
 					break;
 				case CP0_Status:
-					pr->cp0[ CP0_Status] = rrt & 0xff77ff1f;
+					cp0_status = rrt & 0xff77ff1f;
 					break;
 				case CP0_Cause:
-					pr->cp0[ CP0_Cause] &= ~(cp0_cause_ip0_mask | cp0_cause_ip1_mask);
-					pr->cp0[ CP0_Cause] |= rrt & (cp0_cause_ip0_mask | cp0_cause_ip1_mask);
+					cp0_cause &= ~(cp0_cause_ip0_mask | cp0_cause_ip1_mask);
+					cp0_cause |= rrt & (cp0_cause_ip0_mask | cp0_cause_ip1_mask);
 					break;
 				case CP0_EPC:
-					if ((pr->cp0[ CP0_Status] & CP0_SR_EXLMask) == 0)
-						pr->cp0[ CP0_EPC] = rrt;
+					cp0_epc = rrt;
 					break;
 				case CP0_PRId:
 					/* ignored, read-only */
@@ -1509,10 +1507,10 @@ execute( TInstrInfo *ii2)
 				/* 16 */
 				case CP0_Config:
 					/* ignore for simulation */
-					pr->cp0[ CP0_Config] = rrt & 0xffffefff;
+					cp0_config = rrt & 0xffffefff;
 					break;
 				case CP0_LLAddr:
-					pr->cp0[ CP0_LLAddr] = rrt;
+					cp0_lladdr = rrt;
 					break;
 				case CP0_WatchLo:
 				case CP0_WatchHi:
@@ -1529,18 +1527,18 @@ execute( TInstrInfo *ii2)
 					break;
 				case CP0_ECC:
 					/* ignored for simulation */
-					pr->cp0[ CP0_ECC] = rrt & 0xff;
+					cp0_ecc = rrt & 0xff;
 					break;
 				case CP0_CacheErr:
 					/* ignored, read-only */
 					break;
 				case CP0_TagLo:
-					pr->cp0[ CP0_TagLo] = rrt;
+					cp0_taglo = rrt;
 				case CP0_TagHi:
-					pr->cp0[ CP0_TagHi] = rrt;
+					cp0_taghi = rrt;
 					break;
 				case CP0_ErrorEPC:
-					pr->cp0[ CP0_ErrorEPC] = rrt;
+					cp0_errorepc = rrt;
 					break;
 				case CP0_Res7:
 					/* ignored */
@@ -1550,7 +1548,7 @@ execute( TInstrInfo *ii2)
 			{
 				/* coprocessor unusable */
 				res = excCpU;
-				pr->cp0[ CP0_Cause] &= ~cp0_cause_ce_mask;
+				cp0_cause &= ~cp0_cause_ce_mask;
 			}
 			break;
 
@@ -1893,7 +1891,7 @@ instruction( enum exc *res)
 		
 		/* view changes */
 		if (totrace && iregch)
-			modified_regs_dump( modif_regs);
+			modified_regs_dump( 1024, modif_regs);
 		else
 			modif_regs[ 0] = 0;
 		

@@ -76,6 +76,11 @@ extern processor_s *focus;
 extern mem_element_s *memlist;
 extern LLList_s *ll_list;
 
+extern bool tobreak;  /* for readline*/
+extern bool reenter; // for readline
+
+bool reenter;
+
 void input_back( void);
 
 /* basic machine functions */

@@ -1,5 +1,4 @@
 /*
- * ddisk.c
  * Disk with DMA implementation
  * Copyright (c) 2002-2004 Viliam Holub
  *
@@ -31,7 +30,6 @@
 /*
  * Device commands
  */
-
 static bool ddisk_init( parm_link_s *parm, device_s *dev);
 static bool ddisk_info( parm_link_s *parm, device_s *dev);
 static bool ddisk_stat( parm_link_s *parm, device_s *dev);
@@ -118,7 +116,7 @@ device_type_s DDisk =
 	"Disk simulation",
 	
 	/* full description */
-	"xxx", //XXX
+	"Implementation of a simple disk with DMA.",
 	
 	/* functions */
 	ddisk_done,	/* done */
@@ -281,9 +279,7 @@ ddisk_try_malloc( disk_data_s *dd)
 
 
 /** Init command implementation
- *
  */
-
 static bool
 ddisk_init( parm_link_s *parm, device_s *dev)
 
@@ -321,7 +317,7 @@ ddisk_init( parm_link_s *parm, device_s *dev)
 	/* checks */
 	if (dd->addr & 0x3)
 	{
-		dprintf( "Disk adress must 4-byte aligned.\n");
+		dprintf( "Disk address must be 4-byte aligned.\n");
 		return false;
 	}
 	if (dd->intno > 6)
@@ -340,9 +336,7 @@ ddisk_init( parm_link_s *parm, device_s *dev)
 
 
 /** Info command implementation
- *
  */
-
 static bool
 ddisk_info( parm_link_s *parm, device_s *dev)
 
@@ -367,9 +361,9 @@ ddisk_info( parm_link_s *parm, device_s *dev)
 			break;
 	}
 	
-	info_printf( "address:0x%08x intno:%d size:%s type:%s "
-			"regs(mem:0x%08x secno:%d status:0x%x "
-			"ig:%d)\n",
+	dprintf_btag( INFO_SPC, "address:0x%08x " TBRK "intno:%d " TBRK "size:%s " TBRK
+			"type:%s " TBRK "regs(mem:0x%08x " TBRK
+			"secno:%d " TBRK "status:0x%x " TBRK "ig:%d)\n",
 			dd->addr, dd->intno, s, st,
 			dd->disk_wptr, dd->disk_secno, dd->disk_status,
 			dd->ig);
@@ -378,11 +372,30 @@ ddisk_info( parm_link_s *parm, device_s *dev)
 }
 
 
-/** Geneneric command implementation
- *
- * Makes the disk mapped to a memory block
+/** Stat command implementation.
+ */
+static bool
+ddisk_stat( parm_link_s *parm, device_s *dev)
+
+{
+	disk_data_s *dd = dev->data;
+
+	dprintf_btag( INFO_SPC, "intrc:%d " TBRK
+			"cmds total:%lld " TBRK
+			"read:%lld " TBRK "write:%lld " TBRK "error:%lld\n",
+			dd->intrcount,
+			dd->cmds_read +dd->cmds_write +dd->cmds_error,
+			dd->cmds_read, dd->cmds_write, dd->cmds_error);
+
+	return true;
+}
+
+
+/** Geneneric command implementations
  */
 
+/* Makes the disk mapped to a memory block
+ */
 static bool
 ddisk_generic( parm_link_s *parm, device_s *dev)
 	
@@ -425,7 +438,6 @@ ddisk_generic( parm_link_s *parm, device_s *dev)
  * Maps the disk to a file. The allocated memory block is disposed. When the file
  * size is less than the memory block size, the disk size it is enlarged.
  */
-
 static bool
 ddisk_fmap( parm_link_s *parm, device_s *dev)
 
@@ -521,9 +533,8 @@ ddisk_fmap( parm_link_s *parm, device_s *dev)
 
 /** Fill command implementation
  *
- * Dills the disk image with a specified char.
+ * Fills the disk image with a specified char.
  */
-
 static bool
 ddisk_fill( parm_link_s *parm, device_s *dev)
 
@@ -557,32 +568,10 @@ ddisk_fill( parm_link_s *parm, device_s *dev)
 }
 
 
-/** Stat command implementation
- *
- */
-
-static bool
-ddisk_stat( parm_link_s *parm, device_s *dev)
-
-{
-	disk_data_s *dd = dev->data;
-
-	info_printf( "intrc:%d "
-			"cmds total:%lld "
-			"read:%lld write:%lld error:%lld\n",
-			dd->intrcount,
-			dd->cmds_read +dd->cmds_write +dd->cmds_error,
-			dd->cmds_read, dd->cmds_write, dd->cmds_error);
-
-	return true;
-}
-
-
-/** Load command implementation
+/** Load command implementation.
  *
  * Loads the contents of the file "filename" to the disk image.
  */
-
 static bool
 ddisk_load( parm_link_s *parm, device_s *dev)
 
@@ -630,7 +619,6 @@ ddisk_load( parm_link_s *parm, device_s *dev)
  *
  * Saves the disk content to the file specified.
  */
-
 static bool
 ddisk_save( parm_link_s *parm, device_s *dev)
 

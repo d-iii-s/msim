@@ -336,26 +336,30 @@ iview( uint32_t addr, TInstrInfo *ii, bool procdep, char *regch)
 		case ifIMMS:
 			sprintf( s_parm, "%s, %s, 0x%x", rtn,
 				rsn, imm);
-			sprintf( s_cmt, "0x%x=%d", imm, imm);
+			if (imm > 9)
+				sprintf( s_cmt, "0x%x=%d", imm, imm);
 			break;
 			
 		case ifIMMU:
 			sprintf( s_parm, "%s, %s, 0x%x", rtn, rsn,
 					(unsigned)(imm & 0xffff));
-			sprintf( (char *)s_cmt, "0x%x=%u", imm,
-						(unsigned)(imm & 0xffff));
+			if (imm > 9)
+				sprintf( (char *)s_cmt, "0x%x=%u", imm,
+							(unsigned)(imm & 0xffff));
 			break;
 			
 		case ifIMMUX:
 			sprintf( s_parm, "%s, %s, 0x%04x", rtn, rsn,
 					(unsigned)(imm & 0xffff));
-			sprintf( (char *)s_cmt, "0x%xh=%u", imm,
-						(unsigned)(imm & 0xffff));
+			if (imm > 9)
+				sprintf( (char *)s_cmt, "0x%xh=%u", imm,
+							(unsigned)(imm & 0xffff));
 			break;
 				
 		case ifOFF:
 			sprintf( s_parm, "0x%x", imm);
-			sprintf( (char *)s_cmt, "0x%x=%u", imm, imm);
+			if (imm > 9)
+				sprintf( (char *)s_cmt, "0x%x=%u", imm, imm);
 			break;
 			
 		case ifCND:
@@ -363,13 +367,15 @@ iview( uint32_t addr, TInstrInfo *ii, bool procdep, char *regch)
 				sprintf( s_parm, "%s, %s, 0x%x", rsn, rtn, imm);
 			else
 				sprintf( s_parm, "%s, %s, -0x%x", rsn, rtn, -imm);
-			sprintf( (char *)s_cmt, "0x%x=%u", imm, imm);
+			if (imm > 9)
+				sprintf( (char *)s_cmt, "0x%x=%u", imm, imm);
 			break;
 			
 		case ifDTS:
 			sprintf( s_parm, "%s, %s, 0x%02x", rdn, rtn, ii->shift);
-			sprintf( (char *)s_cmt, "0x%x=%u", ii->shift,
-					ii->shift);
+			if (ii->shift > 9)
+				sprintf( (char *)s_cmt, "0x%x=%u", ii->shift,
+						ii->shift);
 			break;
 			
 		case ifRO:
@@ -377,7 +383,8 @@ iview( uint32_t addr, TInstrInfo *ii, bool procdep, char *regch)
 				sprintf( s_parm, "%s, 0x%x", rsn, imm);
 			else
 				sprintf( s_parm, "%s, -0x%x", rsn, -imm);
-			sprintf( (char *)s_cmt, "0x%x=%u", imm, imm);
+			if (imm > 9)
+				sprintf( (char *)s_cmt, "0x%x=%u", imm, imm);
 			break;
 			
 		case ifTD:
@@ -410,7 +417,8 @@ iview( uint32_t addr, TInstrInfo *ii, bool procdep, char *regch)
 			
 		case ifJ:
 			sprintf( s_parm, "+0x%x", ii->imm);
-			sprintf( (char *)s_cmt, "0x%x=%d", ii->imm, ii->imm);
+			if (ii->imm > 9)
+				sprintf( (char *)s_cmt, "0x%x=%d", ii->imm, ii->imm);
 			break;
 			
 		case ifDS:
@@ -426,13 +434,15 @@ iview( uint32_t addr, TInstrInfo *ii, bool procdep, char *regch)
 				sprintf( s_parm, "%s, 0x%x(%s)", rtn, imm, rsn);
 			else
 				sprintf( s_parm, "%s, (%s)", rtn, rsn);
-			sprintf( (char *)s_cmt, "0x%x=%d", imm, imm);
+			if (imm > 9)
+				sprintf( (char *)s_cmt, "0x%x=%d", imm, imm);
 			break;
 			
 		case ifRIW:
 			sprintf( s_parm, "%s, 0x%04x", rtn, imm & 0xffff);
-			sprintf( (char *)s_cmt, "0x%x=%d", imm & 0xffff,
-						imm & 0xffff);
+			if ((imm & 0xffff) > 9)
+				sprintf( (char *)s_cmt, "0x%x=%d", imm & 0xffff,
+							imm & 0xffff);
 			break;
 			
 		case ifD:
@@ -441,22 +451,25 @@ iview( uint32_t addr, TInstrInfo *ii, bool procdep, char *regch)
 			
 		case ifSI:
 			sprintf( s_parm, "%s, 0x%x", rsn, imm);
-			sprintf( (char *)s_cmt, "0x%x=%d", imm, imm);
+			if (imm > 9)
+				sprintf( (char *)s_cmt, "0x%x=%d", imm, imm);
 			break;
 	
 				
 		case ifSIW:
 			sprintf( s_parm, "%s, 0x%x [%u]", rsn, imm,
 				(unsigned int) imm);
-			sprintf( (char *)s_cmt, "0x%x=%u", imm,
-					(unsigned)imm);
+			if (imm > 9)
+				sprintf( (char *)s_cmt, "0x%x=%u", imm,
+						(unsigned)imm);
 			break;
 		
 		case ifSYSCALL:
 			sprintf( s_parm, "0x%x", (ii->icode>>6) & 0xfffff);
-			sprintf( (char *)s_cmt, "0x%x=%d",
-					(ii->icode>>6) & 0xfffff,
-					(ii->icode>>6) & 0xfffff);
+			if (ii->icode>>6 > 9)
+				sprintf( (char *)s_cmt, "0x%x=%d",
+						(ii->icode>>6) & 0xfffff,
+						(ii->icode>>6) & 0xfffff);
 			break;
 
 		case ifX:
@@ -479,43 +492,42 @@ iview( uint32_t addr, TInstrInfo *ii, bool procdep, char *regch)
 	if (s_cmt[ 0] && regch[ 0])
 		s_cmtx = ", ";
 
-	dprintf_btag( "%-4s%s%s  %-6s%-18s%-2s%s%s%s\n", s_proc, s_addr, s_iopc, 
-			InstrNamesAcronym[ ii->opcode].InstrText,
-			s_parm,
-			s_hash,
-			s_cmt,
-			s_cmtx,
-			regch
-			);
+	dprintf_btag( "\t\t\t\t\t# ", "%-4s%s%s  %-6s%-18s%-2s%s%s" TBRK "%s\n",
+			s_proc, s_addr, s_iopc, 
+			InstrNamesAcronym[ ii->opcode].InstrText, s_parm,
+			s_hash, s_cmt, s_cmtx, regch);
 }
 
+#define REG_BUF	1024
 
-
-/* debug info - register modified */
+/** Writes info about changed registers.
+ *
+ * Each modified register is included in the output
+ **/
 void
-modified_regs_dump( char *sx)
+modified_regs_dump( size_t siz, char *sx)
 
 {
 	int i;
 	char *s1, *s2, *s3;
-	char sc1[ 1024], sc2[ 1024]; 
+	char sc1[ REG_BUF], sc2[ REG_BUF]; 
 
 	sc1[ 0] = 0;
 	sc2[ 0] = 0;
 	s1 = sc1;
 	s2 = sc2;
+
+	if (siz > REG_BUF)
+		siz = REG_BUF;
 	
 	/* test for general registers */
 	for (i=0; i<32; i++)
 		if (pr->regs[ i] != pr->old_regs[ i])
 		{
-			sprintf( s1, "%s, %s: 0x%x->0x%x", s2, regname[ i],
+			snprintf( s1, siz, "%s, " TBRK "%s: 0x%x->0x%x", s2, regname[ i],
 				pr->old_regs[ i], pr->regs[ i]);
 			
-			s3 = s1;
-			s1 = s2;
-			s2 = s3;
-			
+			s3 = s1; s1 = s2; s2 = s3;
 			pr->old_regs[ i] = pr->regs[ i];
 		}
 		
@@ -524,40 +536,33 @@ modified_regs_dump( char *sx)
 		if ((pr->cp0[ i] != pr->old_cp0[ i]) && (i != CP0_Random) && (i != CP0_Count))
 		{
 			if (cp0name == cp0_name[ 2])
-				sprintf( s1, "%s, cp0_%s: 0x%08x->0x%08x", s2,
+				snprintf( s1, siz, "%s, " TBRK "cp0_%s: 0x%08x->0x%08x", s2,
 						cp0name[ i], pr->old_cp0[ i], pr->cp0[ i]);
 			else
-				sprintf( s1, "%s, cp0[ %d]: 0x%08x->0x%08x", s2,
+				snprintf( s1, siz, "%s, " TBRK "cp0[ %d]: 0x%08x->0x%08x", s2,
 						i, pr->old_cp0[ i], pr->cp0[ i]);
 			
-			s3 = s1;
-			s1 = s2;
-			s2 = s3;
-			
+			s3 = s1; s1 = s2; s2 = s3;
 			pr->old_cp0[ i] = pr->cp0[ i];
 		}
 
 	/* test for loreg */
 	if (pr->loreg != pr->old_loreg)
 	{
-		sprintf( s1, "%s, loreg: 0x%x->0x%x", s2, pr->old_loreg, pr->loreg);
+		snprintf( s1, siz, "%s, " TBRK "loreg: 0x%x->0x%x",
+				s2, pr->old_loreg, pr->loreg);
 			
-		s3 = s1;
-		s1 = s2;
-		s2 = s3;
-			
+		s3 = s1; s1 = s2; s2 = s3;
 		pr->old_loreg = pr->loreg;
 	}
 
 	/* test for hireg */
 	if (pr->hireg != pr->old_hireg)
 	{
-		sprintf( s1, "%s, hireg: 0x%x->0x%x", s2, pr->old_hireg, pr->hireg);
+		snprintf( s1, siz, "%s, " TBRK "hireg: 0x%x->0x%x",
+				s2, pr->old_hireg, pr->hireg);
 		
-		s3 = s1;
-		s1 = s2;
-		s2 = s3;
-		
+		s3 = s1; s1 = s2; s2 = s3;
 		pr->old_hireg = pr->hireg;
 	}
 
@@ -565,6 +570,15 @@ modified_regs_dump( char *sx)
 		*sx = 0;
 	else
 		strcpy( sx, s2+2);
+}
+
+
+static void
+dbg_dev_infodev( device_s *d)
+
+{
+	dprintf_btag( NULL, "%-10s %-10s ", d->name, d->type->name);
+	cmd_run_by_name( "info", &pars_end, d->type->cmds, d);
 }
 
 
@@ -582,33 +596,11 @@ dbg_msd_dump()
 		do {
 			if ((d->type->name == id_rom) ||
 					(d->type->name == id_rwm))
-			{
-				printf( "%-10s %-10s ", d->name, d->type->name);
-		
-				//XXX
-//				if (d->type->info)
-//					d->type->info( d);
-				
-				printf( "\n");
-			}
+				dbg_dev_infodev( d);
 		} while (dev_next( &d));
 	}
 	else
 		printf( "-- no memory --\n");
-}
-
-
-void
-dbg_dev_infodev( device_s *d)
-
-{
-	printf( "%-10s %-10s ", d->name, d->type->name);
-
-//XXX
-//	if (d->type->info)
-//		d->type->info( d);
-	
-	printf( "\n");
 }
 
 
@@ -617,7 +609,7 @@ void
 dbg_dev_dump()
 
 {
-	device_s *d = 0;
+	device_s *d = NULL;
 	
 	printf( "[  name  ] [  type  ] [ parameters...\n");
 
@@ -632,35 +624,31 @@ dbg_dev_dump()
 }
 
 
-void
+/** Shows statistics for specified device.
+ */
+static void
 dbg_dev_statdev( device_s *d)
 
 {
-	printf( "%-10s %-10s ", d->name, d->type->name);
-
-//XXX
-//	if (d->type->stat)
-//		d->type->stat( d);
-	
-	printf( "\n");
+	dprintf_btag( NULL, "%-10s %-10s ", d->name, d->type->name);
+	cmd_run_by_name( "stat", &pars_end, d->type->cmds, d);
 }
 
 
-/* statistics */
+/** Shows statistics for all devices.
+ */ 
 void
 dbg_dev_stat()
 
 {
-	device_s *d = 0;
+	device_s *d = NULL;
 	
-	printf( "[  name  ] [  type  ] [ statistics...\n");
+	dprintf( "[  name  ] [  type  ] [ statistics...\n");
 	
 	if (dev_next( &d))
-	{
 		do {
 			dbg_dev_statdev( d);
 		} while (dev_next( &d));
-	}
 	else
 		printf( "-- no devices --\n");
 }

@@ -1,5 +1,4 @@
 /*
- * mem.h
  * Memory device
  * Copyright (c) 2003,2004 Viliam Holub
  */
@@ -31,6 +30,7 @@
 
 static bool mem_init( parm_link_s *parm, device_s *dev);
 static bool mem_info( parm_link_s *parm, device_s *dev);
+static bool mem_stat( parm_link_s *parm, device_s *dev);
 static bool mem_generic( parm_link_s *parm, device_s *dev);
 static bool mem_fmap( parm_link_s *parm, device_s *dev);
 static bool mem_fill( parm_link_s *parm, device_s *dev);
@@ -58,6 +58,12 @@ cmd_s dmem_cmds[] =
 		DEFAULT,
 		"Configuration informtions",
 		"Configuration informtions",
+		NOCMD},
+	{ "stat", (cmd_f)mem_stat,
+		DEFAULT,
+		DEFAULT,
+		"Statistics",
+		"Statistics",
 		NOCMD},
 	{ "generic", (cmd_f)mem_generic,
 		DEFAULT,
@@ -388,10 +394,8 @@ mem_init( parm_link_s *parm, device_s *dev)
 static void try_munmap( void *s, size_t l);
 
 
-/** Info command implementation
- *
+/** Info command implementation.
  */
-
 static bool
 mem_info( parm_link_s *parm, device_s *dev)
 
@@ -400,9 +404,21 @@ mem_info( parm_link_s *parm, device_s *dev)
 	char s[ 8];
 	
 	cpr_num( s, md->size);
-	dprintf( "start:0x%08x size:%s type:%s\n", md->start, s,
+	dprintf_btag( INFO_SPC, "start:0x%08x " TBRK "size:%s " TBRK
+			"type:%s\n", md->start, s,
 			txt_mem_type[ md->mem_type]);
 
+	return true;
+}
+
+
+/** Stat comman implementation.
+ */
+static bool
+mem_stat( parm_link_s *parm, device_s *dev)
+
+{
+	dprintf_btag( INFO_SPC, "no statistics\n");
 	return true;
 }
 
@@ -411,7 +427,6 @@ mem_info( parm_link_s *parm, device_s *dev)
  *
  * Loads the contents of the file specified to the memory block.
  */
-
 static bool
 mem_load( parm_link_s *parm, device_s *dev)
 
@@ -447,7 +462,6 @@ mem_load( parm_link_s *parm, device_s *dev)
  *
  * Fills the memory with a specified character.
  */
-
 static bool
 mem_fill( parm_link_s *parm, device_s *dev)
 

@@ -30,10 +30,6 @@
 #define SETUP_BUF_SIZE		65536
 
 
-//XXX
-int lineno=0;
-
-
 /*
  * System functions
  */
@@ -484,18 +480,18 @@ system_help( parm_link_s *pl, void *data)
 }
 
 
-/*
- * interprets command line
- * line is terminated by '\0' or by '\n'
+/* Interprets the command line.
+ *
+ * Line is terminated by '\0' or '\n'.
  */
 bool
-interpret( const char *s, int lineno)
+interpret( const char *s)
 
 {
 	bool b;
 	parm_link_s *pl;
 	device_s *dev;
-	
+
 	/* parse input */
 	pl = parm_parse( s);
 	if (!pl)
@@ -533,12 +529,14 @@ static bool
 setup_apply( const char *buf)
 
 {
-	int lineno = 1;
+	lineno = 1;
 	
 	while ((*buf) && !tohalt)
 	{
-		if (!interpret( buf, lineno++) && halt_on_error)
+		if (!interpret( buf) && halt_on_error)
 				die( ERR_INIT, 0);
+
+		lineno++;
 		
 		/* move to the next line */
 		while (*buf && (*buf != '\n'))
@@ -546,6 +544,8 @@ setup_apply( const char *buf)
 		if (buf)
 			buf++;
 	}
+
+	lineno = -1;
 	
 	return true;
 }

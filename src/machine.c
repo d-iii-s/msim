@@ -7,20 +7,11 @@
 
 #include "../config.h"
 
-#if defined HAVE_LIBREADLINE && defined HAVE_READLINE_READLINE_H && defined HAVE_READLINE_HISTORY_H
-#	define _HAVE_READLINE_OK_
-#endif
-
 #include <stdio.h>
 #include <signal.h>
 #include <stdlib.h>
-#include <termios.h>
 #include <string.h>
 #include <unistd.h>
-#ifdef _HAVE_READLINE_OK_
-#	include <readline/readline.h>
-#	include <readline/history.h>
-#endif
 
 #include "text.h"
 #include "machine.h"
@@ -29,6 +20,7 @@
 #include "mtypes.h"
 #include "debug.h"
 #include "cmd.h"
+#include "input.h"
 #include "output.h"
 #include "gdb.h"
 #include "env.h"
@@ -72,68 +64,11 @@ LLList_s *ll_list;
 long long msteps;
 bool tobreak = false;  /* user break indicator */
 
-bool input_term;
-struct termios tio;
-struct termios tio_inter;
-struct termios tio_old;
 
 
 
-static void
-input_init( void)
-
-{
-	input_term = !!isatty( 0);
-	
-	if (!input_term)
-		return;
-	
-	tcgetattr( 0, &tio);
-	 
-	tio_old = tio;
-	tio_inter = tio;
-	tio.c_lflag &= ~(ECHO | INLCR | ICANON | ECHOE | ONLCR);
-#ifdef IUCLC
-	tio.c_lflag &= ~(IUCLC);
-#endif
-	tio.c_cc[ VMIN] = 1;
-	tio.c_cc[ VTIME] = 0;
-	
-	tio_inter.c_lflag &= ~(ECHO | INLCR | ICANON | ECHOE | ONLCR);
-#ifdef IUCLC
-	tio_inter.c_lflag &= ~(IUCLC);
-#endif
-	tio_inter.c_cc[ VMIN] = 1;
-	tio_inter.c_cc[ VTIME] = 0;
-}
 
 
-
-static void
-input_inter( void)
-
-{
-	if (input_term)
-		tcsetattr( 0, TCSANOW, &tio_inter);
-}
-
-
-static void
-input_shadow( void)
-
-{
-	if (input_term)
-		tcsetattr( 0, TCSANOW, &tio);
-}
-
-
-void
-input_back( void)
-
-{
-	if (input_term)
-		tcsetattr( 0, TCSANOW, &tio_old);
-}
 
 
 static void
@@ -165,65 +100,6 @@ register_sigint( void)
 	act.sa_flags = 0;
 	sigaction( SIGINT, &act, 0);
 } 
-
-
-/*
- * A shared variable for tab completion.
- */
-char *par_text;
-
-
-/** hint_generator - Generates all possible words suitable for completion.
- */
-static char *
-hint_generator( const char *input, int level)
-
-{
-	char *s;
-	const void *data = NULL;
-	static parm_link_s *pl = NULL;
-	static gen_f generator;
-
-	if (level == 0)
-	{
-		parm_delete( pl);
-		pl = parm_parse( par_text);
-		if (!pl)
-			return NULL;
-		parm_check_end( pl, par_text);
-		generator = NULL;
-
-		find_system_generator( &pl, &generator, &data);
-
-		if (!generator)
-			return NULL;
-	}
-
-	s = generator( pl, data, level);
-
-	return s;
-}
-
-
-/** msim_completion -- Tries to complete the user input.
- */
-static char **
-msim_completion( const char *text, int start, int end)
-
-{
-	char **result;
-
-//	printf( "\ncompletion: test: %s, start: %d, end: %d, line_buffer: %s\n", text, start, end, rl_line_buffer);
-
-	par_text = (char *)xmalloc( end+1);
-	strncpy( par_text, rl_line_buffer, end);
-	par_text[ end] = '\0';
-
-	result = rl_completion_matches( /*par_text*/"", hint_generator);
-	free( par_text);
-
-	return result;
-}
 
 
 void
@@ -279,102 +155,6 @@ done_machine( void)
 	print_statistics();
 }
 
-#ifndef _HAVE_READLINE_OK_
-
-char *readline( char *s)
-
-{
-	char cmml_buf[ 256];
-	int i=0;
-	int c;
-
-	input_inter();
-
-	printf( "%s", s);
-	s = (char *) cmml_buf;
-
-	do {
-		c = fgetc( stdin);
-		s[ i] = c;
-
-		if ((c == 127) || (c == '\b'))
-		{
-			if (i != 0)
-			{
-				i--;
-				printf( "\b \b");
-				fflush( stdout);
-			}
-			continue;
-		}
-		
-		fputc( c, stdout);
-		fflush( stdout);
-		
-		if (i<254)
-			i++;
-	} while (c != '\n');
-
-	s[ i] = 0;
-
-	input_shadow();
-
-	return xstrdup( cmml_buf);
-}
-#endif
-
-
-/* interactive mode control */
-void
-interactive_control( void)
-
-{
-	char *commline;
-	
-	//input_back();
-	//input_inter();
-
-	tobreak = false;
-
-	if (reenter)
-	{
-		printf( "\n");
-		reenter = false;
-	}
-
-	stepping = 0;
-	
-	while (interactive)
-	{
-#ifdef _HAVE_READLINE_OK_
-		input_back();
-		commline = readline( "[msim] ");
-		input_shadow();
-
-		if (!commline)
-		{
-			// user break in readline
-			dprintf( "Quit\n");
-			input_back();
-			exit( 1);
-		}
-		
-		if (*commline)
-			add_history( commline);
-#else
-		commline = readline( "[msim] ");
-#endif
-		
-		if (*commline)
-			interpret( commline, -1);
-		else
-			interpret( "s", -1);
-
-		free( commline);
-	}
-		
-	//input_shadow();
-}
 
 
 /* one machine cycle */

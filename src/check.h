@@ -4,19 +4,19 @@
  *
  * Usage: {RQ,PRE,POST}( condition1, condition2, condition3, ...);
  *
- * In the developing stage RQ checks all conditions and diplays a warning
+ * In the developing stage RQ checks all conditions and displays a warning
  * message about those which does not hold. PRE is used usually at
- * the beginnig of functions to check input parameters, where it is doing
- * a very similar job as the "pre-conditions" statements in some programming
- * languages. RQ may be used almost everywhere, with similar behavior as
- * a "more intelligent" assert.
+ * the beginning of functions to check input parameters, where it is doing
+ * a very similar job as the "pre-conditions" statements known from some
+ * programming languages. RQ may be used almost everywhere, with similar
+ * behavior as a "more intelligent" assert.
  * In release stage RQ, PRE and POST are removed by the preprocessor.
  *
  * Feel free to modify this code for your needs.
  *
  * 
  * ISO9899 C99 standard brings the feature of variable number of arguments
- * in macro definitions. Writting more than one pre-condition is than far
+ * in macro definitions. Writing more than one pre-condition is than far
  * more comfortable. GCC supports this quite a long time but with different
  * syntax. We try to check the C version (this makes the code less readable).
  */
@@ -33,7 +33,7 @@
 /*
  * PARAMETER 2 - The fatality
  * Enable the RQ_FATAL to break the program on error. The value specifies
- * the exit code.
+ * an exit code.
  */
 #define RQ_FATAL -1
 

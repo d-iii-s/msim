@@ -2,9 +2,9 @@
  * Pre/post conditions
  * 2004 Viliam Holub
  *
- * See the header file check.h for additional infomation.
+ * See the header file check.h for additional information.
  *
- * The auxiliary function checking conditions and displaying error messages.
+ * The auxiliary function checks conditions and displays an error message.
  * Regarding to the specified parameter the program may be halted.
  *
  * Feel free to modify this code to fulfill your needs.

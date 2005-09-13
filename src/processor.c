@@ -693,7 +693,7 @@ execute( TInstrInfo *ii2)
 			{
 				/* coprocessor unusable */
 				res = excCpU;
-				pr->cp0[ CP0_Cause] &= ~cp0_cause_ce_mask;
+				cp0_cause &= ~cp0_cause_ce_mask;
 			}
 			break;
 
@@ -711,7 +711,7 @@ execute( TInstrInfo *ii2)
 			{
 				/* coprocessor unusable */
 				res = excCpU;
-				pr->cp0[ CP0_Cause] &= ~cp0_cause_ce_mask;
+				cp0_cause &= ~cp0_cause_ce_mask;
 			}
 			break;
 
@@ -731,7 +731,7 @@ execute( TInstrInfo *ii2)
 			{
 				/* coprocessor unusable */
 				res = excCpU;
-				pr->cp0[ CP0_Cause] &= ~cp0_cause_ce_mask;
+				cp0_cause &= ~cp0_cause_ce_mask;
 			}
 			break;
 
@@ -751,7 +751,7 @@ execute( TInstrInfo *ii2)
 			{
 				/* coprocessor unusable */
 				res = excCpU;
-				pr->cp0[ CP0_Cause] &= ~cp0_cause_ce_mask;
+				cp0_cause &= ~cp0_cause_ce_mask;
 			}
 			break;
 
@@ -979,10 +979,10 @@ execute( TInstrInfo *ii2)
 		case opcLWL: 
 			{
 				static struct {int a, s;} tab[] = {
-					{ 0x00000000, 0},
-					{ 0x000000ff, 8},
+					{ 0x00ffffff, 24},
 					{ 0x0000ffff, 16},
-					{ 0x00ffffff, 24}
+					{ 0x000000ff,  8},
+					{ 0x00000000,  0}
 				};
 				uint32_t val;
 				uint32_t oaddr = rrs +ii.imm;
@@ -1001,10 +1001,10 @@ execute( TInstrInfo *ii2)
 		case opcLWR:
 			{
 				static struct {int a, s;} tab[] = {
-					{ 0xffffff00, 24},
-					{ 0xffff0000, 16},
+					{ 0x00000000, 0},
 					{ 0xff000000, 8},
-					{ 0x00000000, 0}
+					{ 0xffff0000, 16},
+					{ 0xffffff00, 24}
 				};
 				uint32_t val;
 				uint32_t oaddr = rrs +ii.imm;
@@ -1016,7 +1016,9 @@ execute( TInstrInfo *ii2)
 					int index = oaddr & 0x3;
 
 					pr->regs[ ii.rt] &= tab[ index].a;
-					pr->regs[ ii.rt] |= (val >> tab[ index].s) & ~tab[ index].a;
+					pr->regs[ ii.rt] |=
+						(val >> tab[ index].s) &
+						~tab[ index].a;
 				}
 			}
 			break;
@@ -1062,10 +1064,10 @@ execute( TInstrInfo *ii2)
 		case opcSWL:
 			{
 				static struct {int a, s;} tab[] = {
-					{ 0x00000000, 0},
-					{ 0xff000000, 8},
+					{ 0xffffff00, 24},
 					{ 0xffff0000, 16},
-					{ 0xffffff00, 24}
+					{ 0xff000000, 8},
+					{ 0x00000000, 0}
 				};
 				uint32_t val;
 				uint32_t oaddr = rrs +ii.imm;
@@ -1077,19 +1079,22 @@ execute( TInstrInfo *ii2)
 					int index = oaddr & 0x3;
 
 					val &= tab[ index].a;
-					val |= (pr->regs[ ii.rt] >> tab[ index].s) & ~tab[ index].a;
+					val |= (pr->regs[ ii.rt] >>
+							tab[ index].s) &
+							~tab[ index].a;
 					
 					res = write_proc_mem( addr, INT32, val, true);
 				}
 			}
 			break;
+			
 		case opcSWR:
 			{
 				static struct {int a, s;} tab[] = {
-					{ 0x00ffffff, 24},
-					{ 0x0000ffff, 16},
+					{ 0x00000000, 0},
 					{ 0x000000ff, 8},
-					{ 0x00000000, 0}
+					{ 0x0000ffff, 16},
+					{ 0x00ffffff, 24}
 				};
 				uint32_t val;
 				uint32_t oaddr = rrs +ii.imm;
@@ -1139,8 +1144,8 @@ execute( TInstrInfo *ii2)
 			{
 				/* coprocessor unusable */
 				res = excCpU;
-				pr->cp0[ CP0_Cause] &= ~cp0_cause_ce_mask;
-				pr->cp0[ CP0_Cause] |= cp0_cause_ce_cu1;
+				cp0_cause &= ~cp0_cause_ce_mask;
+				cp0_cause |= cp0_cause_ce_cu1;
 			}
 			break;
 
@@ -1151,8 +1156,8 @@ execute( TInstrInfo *ii2)
 			{
 				/* coprocessor unusable */
 				res = excCpU;
-				pr->cp0[ CP0_Cause] &= ~cp0_cause_ce_mask;
-				pr->cp0[ CP0_Cause] |= cp0_cause_ce_cu2;
+				cp0_cause &= ~cp0_cause_ce_mask;
+				cp0_cause |= cp0_cause_ce_cu2;
 			}
 			break;
 
@@ -1163,8 +1168,8 @@ execute( TInstrInfo *ii2)
 			{
 				/* coprocessor unusable */
 				res = excCpU;
-				pr->cp0[ CP0_Cause] &= ~cp0_cause_ce_mask;
-				pr->cp0[ CP0_Cause] |= cp0_cause_ce_cu3;
+				cp0_cause &= ~cp0_cause_ce_mask;
+				cp0_cause |= cp0_cause_ce_cu3;
 			}
 			break;
 
@@ -1177,8 +1182,8 @@ execute( TInstrInfo *ii2)
 			{
 				/* coprocessor unusable */
 				res = excCpU;
-				pr->cp0[ CP0_Cause] &= ~cp0_cause_ce_mask;
-				pr->cp0[ CP0_Cause] |= cp0_cause_ce_cu1;
+				cp0_cause &= ~cp0_cause_ce_mask;
+				cp0_cause |= cp0_cause_ce_cu1;
 			}
 			break;
 
@@ -1189,8 +1194,8 @@ execute( TInstrInfo *ii2)
 			{
 				/* coprocessor unusable */
 				res = excCpU;
-				pr->cp0[ CP0_Cause] &= ~cp0_cause_ce_mask;
-				pr->cp0[ CP0_Cause] |= cp0_cause_ce_cu2;
+				cp0_cause &= ~cp0_cause_ce_mask;
+				cp0_cause |= cp0_cause_ce_cu2;
 			}
 			break;
 
@@ -1201,8 +1206,8 @@ execute( TInstrInfo *ii2)
 			{
 				/* coprocessor unusable */
 				res = excCpU;
-				pr->cp0[ CP0_Cause] &= ~cp0_cause_ce_mask;
-				pr->cp0[ CP0_Cause] |= cp0_cause_ce_cu3;
+				cp0_cause &= ~cp0_cause_ce_mask;
+				cp0_cause |= cp0_cause_ce_cu3;
 			}
 			break;
 
@@ -1252,7 +1257,7 @@ execute( TInstrInfo *ii2)
 			{
 				/* coprocessor unusable */
 				res = excCpU;
-				pr->cp0[ CP0_Cause] &= ~cp0_cause_ce_mask;
+				cp0_cause &= ~cp0_cause_ce_mask;
 			}
 			break;
 		case opcMFHI:	pr->regs[ ii.rd] = pr->hireg;						break;
@@ -1336,8 +1341,8 @@ execute( TInstrInfo *ii2)
 			{
 				/* coprocessor unusable */
 				res = excCpU;
-				pr->cp0[ CP0_Cause] &= ~cp0_cause_ce_mask;
-				pr->cp0[ CP0_Cause] |= cp0_cause_ce_cu1;
+				cp0_cause &= ~cp0_cause_ce_mask;
+				cp0_cause |= cp0_cause_ce_cu1;
 			}
 			break;
 
@@ -1348,8 +1353,8 @@ execute( TInstrInfo *ii2)
 			{
 				/* coprocessor unusable */
 				res = excCpU;
-				pr->cp0[ CP0_Cause] &= ~cp0_cause_ce_mask;
-				pr->cp0[ CP0_Cause] |= cp0_cause_ce_cu2;
+				cp0_cause &= ~cp0_cause_ce_mask;
+				cp0_cause |= cp0_cause_ce_cu2;
 			}
 			break;
 		case opcMTC3:
@@ -1359,8 +1364,8 @@ execute( TInstrInfo *ii2)
 			{
 				/* coprocessor unusable */
 				res = excCpU;
-				pr->cp0[ CP0_Cause] &= ~cp0_cause_ce_mask;
-				pr->cp0[ CP0_Cause] |= cp0_cause_ce_cu3;
+				cp0_cause &= ~cp0_cause_ce_mask;
+				cp0_cause |= cp0_cause_ce_cu3;
 			}
 			break;
 		case opcDMTC1:	/* 64-bit instructions */ res = excRI;	break;
@@ -1397,7 +1402,7 @@ execute( TInstrInfo *ii2)
 			{
 				/* coprocessor unusable */
 				res = excCpU;
-				pr->cp0[ CP0_Cause] &= ~cp0_cause_ce_mask;
+				cp0_cause &= ~cp0_cause_ce_mask;
 			}
 			break;
 			
@@ -1412,8 +1417,8 @@ execute( TInstrInfo *ii2)
 				if (i > 47)
 				{
 					dprintf( "\nTLBR: Invalid value in Index\n");
-					pr->cp0[ CP0_PageMask] = 0; pr->cp0[ CP0_EntryHi]	= 0;
-					pr->cp0[ CP0_EntryLo0] = 0; pr->cp0[ CP0_EntryLo1] = 0;
+					cp0_pagemask = 0; cp0_entryhi = 0;
+					cp0_entrylo0 = 0; cp0_entrylo1 = 0;
 				}
 				else
 				{
@@ -1435,7 +1440,7 @@ execute( TInstrInfo *ii2)
 			{
 				/* coprocessor unusable */
 				res = excCpU;
-				pr->cp0[ CP0_Cause] &= ~cp0_cause_ce_mask;
+				cp0_cause &= ~cp0_cause_ce_mask;
 			}
 			break;
 		case opcTLBWI:	TLBW( CP0_Index, &res);			break;
@@ -1536,8 +1541,12 @@ handle_exception( enum exc res)
 	cp0_cause &= ~cp0_cause_bd_mask;
 	if (pr->branch == 1) cp0_cause |= cp0_cause_bd_mask;
 
-	cp0_epc = pr->excaddr;
-	if ((res == excInt) && (pr->branch != 2)) cp0_epc = pr->pcreg;
+	if (!cp0_status_exl)
+	{
+		cp0_epc = pr->excaddr;
+		if ((res == excInt) && (pr->branch != 2))
+			cp0_epc = pr->pcreg;
+	}
 		
 	/* exception vector base address */
 	if (cp0_status_bev)

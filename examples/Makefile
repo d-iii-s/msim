@@ -66,7 +66,7 @@ LNK = ld
 LTLIB = @LTLIB@
 MAKEINFO = makeinfo
 PACKAGE = msim
-VERSION = 
+VERSION = 1.2.18
 
 pkgdata_DATA = kernel.bin loader.bin msim.conf
 EXTRA_DIST = $(pkgdata_DATA)

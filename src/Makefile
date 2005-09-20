@@ -66,7 +66,7 @@ LNK = ld
 LTLIB = @LTLIB@
 MAKEINFO = makeinfo
 PACKAGE = msim
-VERSION = 
+VERSION = 1.2.18
 
 bin_PROGRAMS = msim
 msim_SOURCES =  	cmd.c 	cmd.h 	debug.c 	debug.h 	device.c 	device.h 	endi.h 	fault.c 	fault.h 	gdb.c 	gdb.h 	instr.c 	instr.h 	machine.c 	machine.h 	main.c 	mcons.h 	mtypes.h 	input.c 	input.h 	output.c 	output.h 	parser.c 	parser.h 	processor.c 	processor.h 	text.c 	text.h 	dcpu.c 	dcpu.h 	ddisk.c 	ddisk.h 	dkeyboard.c 	dkeyboard.h 	dorder.c 	dorder.h 	dprinter.c 	dprinter.h 	dtime.c 	dtime.h 	mem.c 	mem.h 	env.c 	env.h 	check.c 	check.h 	utils.c 	utils.h

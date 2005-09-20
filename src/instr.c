@@ -43,7 +43,7 @@ static TInstrForm InstrTable[ 64] = {
 	{ opcDADDIU,	ifIMM},
 	{ opcLDL,	ifIMM},
 	{ opcLDR,	ifIMM},
-	{ opcRES,	ifIMM},
+	{ opcSPECIAL2,	ifREG},
 	{ opcRES,	ifIMM},
 	{ opcRES,	ifIMM},
 	{ opcRES,	ifIMM},
@@ -95,7 +95,7 @@ static int TSpecInstrTable[ 64] =
 	/* 0x00 */
 	opcSLL,		opcRES,		opcSRL,		opcSRA,
 	opcSLLV,	opcRES,		opcSRLV,	opcSRAV,
-	opcJR,		opcJALR,	opcRES,		opcRES,
+	opcJR,		opcJALR,	opcMOVZ,	opcMOVN,
 	opcSYSCALL,	opcBREAK,	opcRES,		opcSYNC,
 	/* 0x10 */
 	opcMFHI,	opcMTHI,	opcMFLO,	opcMTLO,
@@ -103,15 +103,40 @@ static int TSpecInstrTable[ 64] =
 	opcMULT,	opcMULTU,	opcDIV,		opcDIVU,
 	opcDMULT,	opcDMULTU,	opcDDIV,	opcDDIVU,
 	/* 0x20 */
-	opcADD,		opcADDU,	opcSUB,		opcSUBU,		
+	opcADD,		opcADDU,	opcSUB,		opcSUBU,
 	opcAND,		opcOR,		opcXOR,		opcNOR,
-	opcDHLT,	opcDINT,	opcSLT,		opcSLTU,		
-	opcDADD,	opcDADDU,	opcDSUB,	opcDSUBU,		 
+	opcDHLT,	opcDINT,	opcSLT,		opcSLTU,
+	opcDADD,	opcDADDU,	opcDSUB,	opcDSUBU, 
 	/* 0x30 */
-	opcTGE,		opcTGEU,	opcTLT,		opcTLTU,		 
+	opcTGE,		opcTGEU,	opcTLT,		opcTLTU, 
 	opcTEQ,		opcDVAL,	opcTNE,		opcDRV,
 	opcDSLL,	opcDTRC,	opcDSRL,	opcDSRA, 
 	opcDSLL32,	opcDTRO,	opcDSRL32,	opcDSRA32
+};
+
+/* sub-codes for SPECIAL2 code */
+static int TSpec2InstrTable[ 64] = 
+{
+	/* 0x00 */
+	opcMADD,	opcMADDU,	opcMUL,		opcRES, 
+	opcMSUB,	opcMSUBU,	opcRES,		opcRES,
+	opcRES,		opcRES,		opcRES,		opcRES,
+	opcRES,		opcRES,		opcRES,		opcRES,
+	/* 0x10 */
+	opcRES,		opcRES,		opcRES,		opcRES, 
+	opcRES,		opcRES,		opcRES,		opcRES,
+	opcRES,		opcRES,		opcRES,		opcRES,
+	opcRES,		opcRES,		opcRES,		opcRES,
+	/* 0x20 */
+	opcCLZ,		opcCLO,		opcRES,		opcRES,
+	opcRES,		opcRES,		opcRES,		opcRES,
+	opcRES,		opcRES,		opcRES,		opcRES,
+	opcRES,		opcRES,		opcRES,		opcRES,
+        /* 0x30 */
+	opcRES,		opcRES,		opcRES,		opcRES,
+	opcRES,		opcRES,		opcRES,		opcRES,
+	opcRES,		opcRES,		opcRES,		opcRES,
+	opcRES,		opcRES,		opcRES,		opcRES,
 };
 
 /* sub-codes for COPz */
@@ -282,6 +307,7 @@ instr_text_s InstrNamesAcronym[] =
 
 	{ "_spec",	ifNONE},
 	{ "_brach",	ifNONE},
+	{ "_spec2",     ifNONE},
 	
 	/* real instructions */
 	
@@ -332,6 +358,8 @@ instr_text_s InstrNamesAcronym[] =
 	{ "cfc1",	ifTD},
 	{ "cfc2",	ifTD},
 	{ "cfc3",	ifTD},
+	{ "clo",        ifDS},
+	{ "clz",        ifDS},
 	{ "cop0",	ifOP},
 	{ "cop1",	ifOP},
 	{ "cop2",	ifOP},
@@ -397,18 +425,25 @@ instr_text_s InstrNamesAcronym[] =
 	{ "lwr",	ifTOB},
 	{ "lwu",	ifTOB},
 
+	{ "madd",       ifST},
+	{ "maddu",      ifST},
 	{ "mfc0",	ifTDX0},
 	{ "mfc1",	ifTDX1},
 	{ "mfc2",	ifTDX2},
 	{ "mfc3",	ifTDX3},
 	{ "mfhi",	ifD},
 	{ "mflo",	ifD},
+	{ "movn",       ifREG},
+	{ "movz",       ifREG},
+	{ "msub",       ifST},
+	{ "msubu",      ifST},
 	{ "mtc0",	ifTDX0},
 	{ "mtc1",	ifTDX1},
 	{ "mtc2",	ifTDX2},
 	{ "mtc3",	ifTDX3},
 	{ "mthi",	ifS},
 	{ "mtlo",	ifS},
+	{ "mul",        ifREG},
 	{ "mult",	ifST},
 	{ "multu",	ifST},
 	
@@ -639,6 +674,11 @@ decode_instr( TInstrInfo *ii)
 		case opcSPECIAL:
 			ii->opcode = TSpecInstrTable[ ii->icode & FUNCTION_MASK];
 			if (ii->icode == 0) ii->opcode = opcNOP;
+			ii->shift = (ii->icode >> 6) & 0x1f;
+			break;
+
+	        case opcSPECIAL2:
+			ii->opcode = TSpec2InstrTable[ ii->icode & FUNCTION_MASK];
 			ii->shift = (ii->icode >> 6) & 0x1f;
 			break;
 	

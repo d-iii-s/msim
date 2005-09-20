@@ -2,6 +2,12 @@
 # MSIM Changelog
 #
 
+2005-09-20	Viliam Holub <holub@nenya.ms.mff.cuni.cz>
+
+	* applied path by Ondrej Palkovsky to add 4kc support
+
+2005-09-13	Viliam Holub <holub@nenya.ms.mff.cuni.cz>
+	* LWL, LWR, SWL, SWR byte counting fix by Ondrej Palkovsky
 
 2005-03-03	Viliam Holub <holub@nenya.ms.mff.cuni.cz>
 

@@ -488,7 +488,7 @@ s,@INSTALL_PROGRAM@,${INSTALL},;t t
 s,@INSTALL_SCRIPT@,${INSTALL},;t t
 s,@INSTALL_DATA@,${INSTALL} -m 644,;t t
 s,@PACKAGE@,msim,;t t
-s,@VERSION@,,;t t
+s,@VERSION@,1.2.18,;t t
 s,@ACLOCAL@,aclocal-1.4,;t t
 s,@AUTOCONF@,autoconf,;t t
 s,@AUTOMAKE@,automake-1.4,;t t
@@ -822,7 +822,7 @@ ${ac_dA}PACKAGE_VERSION${ac_dB}PACKAGE_VERSION${ac_dC}""${ac_dD}
 ${ac_dA}PACKAGE_STRING${ac_dB}PACKAGE_STRING${ac_dC}""${ac_dD}
 ${ac_dA}PACKAGE_BUGREPORT${ac_dB}PACKAGE_BUGREPORT${ac_dC}""${ac_dD}
 ${ac_dA}PACKAGE${ac_dB}PACKAGE${ac_dC}"msim"${ac_dD}
-${ac_dA}VERSION${ac_dB}VERSION${ac_dC}""${ac_dD}
+${ac_dA}VERSION${ac_dB}VERSION${ac_dC}"1.2.18"${ac_dD}
 ${ac_dA}HAVE_LIBREADLINE${ac_dB}HAVE_LIBREADLINE${ac_dC}1${ac_dD}
 ${ac_dA}HAVE_LIBNSL${ac_dB}HAVE_LIBNSL${ac_dC}1${ac_dD}
 ${ac_dA}HAVE_LIBCURSES${ac_dB}HAVE_LIBCURSES${ac_dC}1${ac_dD}
@@ -872,7 +872,7 @@ ${ac_uA}PACKAGE_VERSION${ac_uB}PACKAGE_VERSION${ac_uC}""${ac_uD}
 ${ac_uA}PACKAGE_STRING${ac_uB}PACKAGE_STRING${ac_uC}""${ac_uD}
 ${ac_uA}PACKAGE_BUGREPORT${ac_uB}PACKAGE_BUGREPORT${ac_uC}""${ac_uD}
 ${ac_uA}PACKAGE${ac_uB}PACKAGE${ac_uC}"msim"${ac_uD}
-${ac_uA}VERSION${ac_uB}VERSION${ac_uC}""${ac_uD}
+${ac_uA}VERSION${ac_uB}VERSION${ac_uC}"1.2.18"${ac_uD}
 ${ac_uA}HAVE_LIBREADLINE${ac_uB}HAVE_LIBREADLINE${ac_uC}1${ac_uD}
 ${ac_uA}HAVE_LIBNSL${ac_uB}HAVE_LIBNSL${ac_uC}1${ac_uD}
 ${ac_uA}HAVE_LIBCURSES${ac_uB}HAVE_LIBCURSES${ac_uC}1${ac_uD}

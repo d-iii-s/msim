@@ -66,7 +66,7 @@ LNK = ld
 LTLIB = @LTLIB@
 MAKEINFO = makeinfo
 PACKAGE = msim
-VERSION = 
+VERSION = 1.2.18
 
 SUBDIRS = src examples
 ACLOCAL_M4 = $(top_srcdir)/aclocal.m4

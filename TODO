@@ -7,6 +7,7 @@ otestovat realne uzivani headeru
 ddisk texts - some are incomplete
 TAB completion
 	- the set command
+	- unset command
 input module - move all about input into this module
 intelligent output (fit to the screen) - & test it
 fix parsing errors (number of line)

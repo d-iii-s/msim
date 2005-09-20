@@ -600,6 +600,33 @@ execute( TInstrInfo *ii2)
 		case opcADDU:	pr->regs[ ii.rd] = rrs + rrt;				break;
 		case opcAND:	pr->regs[ ii.rd] = rrs & rrt;				break;
 		case opcANDI:	pr->regs[ ii.rt] = rrs & (ii.imm & 0xffff);		break;
+		case opcCLO: {
+			int32_t i = 0;
+			uint32_t tmp = rrs;
+
+			while ((tmp & 0x80000000u) && i < 32)
+			{
+				i++;
+				tmp <<= 1;
+			}
+
+			pr->regs[ ii.rd] = i;
+			break;
+		}
+
+		case opcCLZ: {
+			int32_t i = 0;
+			uint32_t tmp = rrs;
+			
+			while (!(tmp & 0x80000000u) && i < 32)
+			{
+				i++;
+				tmp <<= 1;
+			}
+
+			pr->regs[ ii.rd] = i;
+			break;
+		}
 		case opcDADD:	/* 64-bit instructions */ res = excRI;			break;
 		case opcDADDI:	/* 64-bit instructions */ res = excRI;			break;
 		case opcDADDIU:	/* 64-bit instructions */ res = excRI;			break;
@@ -642,6 +669,65 @@ execute( TInstrInfo *ii2)
 		case opcDSRL32:	/* 64-bit instructions */ res = excRI;			break;
 		case opcDSUB:	/* 64-bit instructions */ res = excRI;			break;
 		case opcDSUBU:	/* 64-bit instructions */ res = excRI;			break;
+		case opcMADD:
+			{
+				uint64_t old = ((uint64_t)pr->hireg << 32) | pr->loreg;
+				uint64_t new;
+
+				Multiply( rrs, rrt, true); 
+				old += ((uint64_t)pr->hireg << 32) | pr->loreg;
+				pr->hireg = old >> 32;
+				pr->loreg = old & 0xffffffff;
+			}
+			break;
+
+		case opcMADDU:
+			{
+				uint64_t old = ((uint64_t)pr->hireg << 32) | pr->loreg;
+				uint64_t new;
+
+				Multiply( rrs, rrt, false); 
+				old += ((uint64_t)pr->hireg << 32) | pr->loreg;
+				pr->hireg = old >> 32;
+				pr->loreg = old & 0xffffffff;
+			}
+			break;
+
+		case opcMSUB:
+			{
+				uint64_t old = ((uint64_t)pr->hireg << 32) | pr->loreg;
+				uint64_t new;
+
+				Multiply( rrs, rrt, true); 
+				old -= ((uint64_t)pr->hireg << 32) | pr->loreg;
+				pr->hireg = old >> 32;
+				pr->loreg = old & 0xffffffff;
+			}
+			break;
+
+		case opcMSUBU:
+			{
+				uint64_t old = ((uint64_t)pr->hireg << 32) | pr->loreg;
+				uint64_t new;
+
+				Multiply( rrs, rrt, false); 
+				old -= ((uint64_t)pr->hireg << 32) | pr->loreg;
+				pr->hireg = old >> 32;
+				pr->loreg = old & 0xffffffff;
+			}
+			break;
+
+		case opcMUL:
+			{
+				uint64_t res;
+
+				res = rrs * rrt;
+				pr->regs[ ii.rd] = res & 0xffffffff;
+			}
+			break;
+
+		case opcMOVN:	if (rrt != 0) pr->regs[ ii.rd] = rrs;			break;
+		case opcMOVZ:	if (rrt == 0) pr->regs[ ii.rd] = rrs;			break;
 		case opcMULT:	Multiply( rrs, rrt, true);				break;
 		case opcMULTU:	Multiply( rrs, rrt, false);				break;
 		case opcNOR:	pr->regs[ ii.rd] = ~(rrs | rrt);			break;

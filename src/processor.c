@@ -409,8 +409,12 @@ write_proc_mem( uint32_t addr, int size, uint32_t value, bool h)
 			return excTLBS;
 		case excTLBR:
 			return excTLBSR;
-		default:
+		case excMod:
+			return excMod;
+		case excNone:
 			return excNone;
+		default:
+			die( "Internal error at %s(%d)", __FILE__, __LINE__);
 	}
 }
 

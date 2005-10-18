@@ -7,6 +7,8 @@
 #ifndef _INSTR_H_
 #define _INSTR_H_
 
+#include <stdint.h>
+
 #include "mtypes.h"
 
 /* sign bit */

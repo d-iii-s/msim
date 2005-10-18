@@ -8,14 +8,9 @@
 #ifndef _MTYPES_H_
 #define _MTYPES_H_
 
-#include <stdint.h>
-#include <stdbool.h>
-
 /* errors */
 #define FE_OPEN_SETUP	1
 #define FE_READ_SETUP	2
-
-#define xfree( x)	{ free( x); x = 0; }
 
 /* argument length */
 #define	INT8	1

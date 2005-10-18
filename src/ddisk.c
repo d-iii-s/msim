@@ -5,6 +5,9 @@
  * A disk with DMA implementation.
  */
 
+#ifdef HAVE_CONFIG_H
+#	include "../config.h"
+#endif
 
 #include <stdlib.h>
 #include <fcntl.h>
@@ -16,9 +19,6 @@
 
 #include "ddisk.h"
 
-#include "mtypes.h"
-#include "device.h"
-#include "parser.h"
 #include "machine.h"
 #include "fault.h"
 #include "dcpu.h"
@@ -58,8 +58,8 @@ cmd_s ddisk_cmds[] =
 	{ "info", (cmd_f)ddisk_info,
 		DEFAULT,
 		DEFAULT,
-		"Configuration informations",
-		"Configuration informations",
+		"Configuration information",
+		"Configuration information",
 		NOCMD},
 	{ "stat", (cmd_f)ddisk_stat,
 		DEFAULT,
@@ -76,26 +76,26 @@ cmd_s ddisk_cmds[] =
 	{ "fmap", (cmd_f)ddisk_fmap,
 		DEFAULT,
 		DEFAULT,
-		"Map the memory into the file.",
-		"Map the memory into the file.",
+		"Map the memory as the file specified.",
+		"Map the memory as the file specified.",
 		REQ STR "fname/file name" END},
 	{ "fill", (cmd_f)ddisk_fill,
 		DEFAULT,
 		DEFAULT,
-		"Fill the memory with specified character",
-		"Fill the memory with specified character",
+		"Fill the memory with specified character.",
+		"Fill the memory with specified character.",
 		OPT INT "value" END},
 	{ "load", (cmd_f)ddisk_load,
 		DEFAULT,
 		DEFAULT,
-		"Load the file into the memory",
-		"Load the file into the memory",
+		"Load the memory image from the file secified.",
+		"Load the memory image from the file secified.",
 		REQ STR "fname/file name" END},
 	{ "save", (cmd_f)ddisk_save,
 		DEFAULT,
 		DEFAULT,
-		"Save the memory content into the file specified.",
-		"Save the memory content into the file specified.",
+		"Save the memory image into the file specified.",
+		"Save the memory image into the file specified.",
 		REQ STR "fname/file name" END},
 	LAST_CMD
 };
@@ -689,8 +689,8 @@ ddisk_done( device_s *d)
 			break;
 	}
 	
-	xfree( d->name);
-	free( d->data);
+	XFREE( d->name);
+	XFREE( d->data);
 }
 	
 

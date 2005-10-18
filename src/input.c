@@ -4,10 +4,13 @@
  * Copyright (c) 2004 Viliam Holub
  */
 
-#include "../config.h"
+#ifdef HAVE_CONFIG_H
+#	include "../config.h"
+#endif
 
-#include <termios.h>
 #include <unistd.h>
+#include <termios.h>
+#include <stdbool.h>
 
 #include "parser.h"
 // for tobreak and reenter variable

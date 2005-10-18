@@ -4,6 +4,10 @@
  * Copyright 2001, 2002, 2003 Viliam Holub
  */
 
+#ifdef HAVE_CONFIG_H
+#	include "../config.h"
+#endif
+
 #include "instr.h"
 
 static TInstrForm InstrTable[ 64] = {
@@ -306,7 +310,7 @@ instr_text_s InstrNamesAcronym[] =
 	/* special names for blocks of instructions */
 
 	{ "_spec",	ifNONE},
-	{ "_brach",	ifNONE},
+	{ "_branch",	ifNONE},
 	{ "_spec2",     ifNONE},
 	
 	/* real instructions */

@@ -7,6 +7,8 @@
 #ifndef _PROCESSOR_H_
 #define _PROCESSOR_H_
 
+#include <stdint.h>
+#include <stdbool.h>
 
 #include "mtypes.h"
 #include "instr.h"

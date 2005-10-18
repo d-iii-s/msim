@@ -10,6 +10,8 @@
 #include <stdlib.h>
 #include <stdbool.h>
 
+#define XFREE( x)	{ free( x); x=NULL; }
+
 void *xmalloc( size_t s);
 char *xstrdup( const char *s);
 bool prefix( const char *pref, const char *str);

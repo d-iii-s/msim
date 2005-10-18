@@ -4,9 +4,13 @@
  * Copyright (c) 2002-2004 Viliam Holub
  */
 
+#ifdef HAVE_CONFIG_H
+#	include "../config.h"
+#endif
 
 #include <stdlib.h>
 #include <string.h>
+#include <stdbool.h>
 
 #include "dorder.h"
 
@@ -15,6 +19,7 @@
 #include "dcpu.h"
 #include "output.h"
 #include "parser.h"
+#include "utils.h"
 
 
 /*
@@ -223,8 +228,8 @@ static void
 dorder_done( device_s *d)
 
 {
-	xfree( d->name);
-	xfree( d->data);
+	XFREE( d->name);
+	XFREE( d->data);
 }
 
 

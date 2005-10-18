@@ -4,8 +4,13 @@
  * Copyright (c) 2002-2004 Viliam Holub 
  */
 
+#ifdef HAVE_CONFIG_H
+#	include "../config.h"
+#endif
+
 #include <stdlib.h>
 #include <string.h>
+#include <stdbool.h>
 
 #include "env.h"
 
@@ -42,18 +47,17 @@ bool totrace	= false;
 char **regname;
 
 
-
-
 /*
- * Variable types
+ * Boolean constants
  */
-enum var_type_e
-{
-	vt_int,
-	vt_str,
-	vt_bool
-};
-typedef enum var_type_e var_type_e;
+const char *t_bool[] =
+	{ "on", "true", "yes", "off", "false", "no", NULL};
+const char *t_true_all[] =
+	{ "on", "t", "tr", "tru", "true", "y", "ye", "yes", NULL};
+const char *t_false_all[] =
+	{ "off", "f", "fa", "fal", "fals", "false", "n", "no", NULL};
+
+
 
 
 /*
@@ -146,7 +150,7 @@ const set_s env_set[] =
 			"assembler. Finally there is a textual naming convention based on "
 			"a register usage (at, t4, s2, etc.)." ,
 		vt_int,
-		&iregch,
+		&ireg,
 		change_ireg},
 	
 { "debugging",
@@ -186,7 +190,7 @@ change_ireg( int i)
 }
 
 
-/** print_all_variables - Prints all variables and its states.
+/** Prints all variables and its states.
  */
 static void
 print_all_variables( void)
@@ -228,11 +232,11 @@ print_all_variables( void)
 }
 
 
-/** Checks whether the named variable exists.
+/** Checks whether the variable exists.
  *
  */
 bool
-env_check_varname( const char *name)
+env_check_varname( const char *name, var_type_e *type)
 
 {
 	const set_s *s;
@@ -243,7 +247,36 @@ env_check_varname( const char *name)
 
 	for (s = env_set; s->name; s++)
 		if (s->val && !strcmp( name, s->name))
+		{
 			b = true;
+			if (type)
+				*type = s->type;
+			break;
+		}
+		
+	return b;
+}
+
+
+/** Checks whether the variable is boolean.
+ *
+ */
+bool
+env_bool_type( const char *name)
+
+{
+	const set_s *s;
+	bool b = false;
+
+	if (!name)
+		name = "";
+
+	for (s = env_set; s->name; s++)
+		if (s->val && !strcmp( name, s->name))
+		{
+			b = s->type == vt_bool;
+			break;
+		}
 		
 	return b;
 }
@@ -415,16 +448,12 @@ static bool
 bool_sanitize( parm_link_s *parm)
 
 {
-	const char *t_true[] =
-		{ "on", "t", "tr", "tru", "true", "y", "ye", "yes", NULL};
-	const char *t_false[] =
-		{ "off", "f", "fa", "fal", "fals", "false", "n", "no", NULL};
 	const char **s;
 
 	if (parm->token.ttype == tt_str)
 	{
 		/* test for true */
-		for (s=t_true; *s; s++)
+		for (s=t_true_all; *s; s++)
 			if (!strcmp( parm_str( parm), *s))
 				break;
 		if (*s)
@@ -434,7 +463,7 @@ bool_sanitize( parm_link_s *parm)
 		}
 
 		/* test for false */
-		for (s=t_false; *s; s++)
+		for (s=t_false_all; *s; s++)
 			if (!strcmp( parm_str( parm), *s))
 				break;
 		if (*s)
@@ -546,7 +575,7 @@ env_cmd_unset( parm_link_s *pl)
 /** Generates a list of environment variables.
  */
 char *
-generator_envname( parm_link_s *pl, const void *data, int level)
+generator_env_name( parm_link_s *pl, const void *data, int level)
 
 {
 	bool b;
@@ -562,6 +591,61 @@ generator_envname( parm_link_s *pl, const void *data, int level)
 	// find next suitable entry
 	b = env_by_partial_varname(
 			(parm_type( pl) == tt_str) ? parm_str( pl) : "", &d);
+	
+	return b ? xstrdup( d->name) : NULL;
+}
+
+
+/** Generates a list of boolean constants.
+ */
+char *
+generator_env_booltype( parm_link_s *pl, const void *data, int level)
+
+{
+	static const char **d;
+
+	PRE( pl != NULL);
+	PRE( parm_type( pl) == tt_str || parm_type( pl) == tt_end);
+	
+	// iterator initialization
+	if (level == 0)
+		d = t_bool;
+	else
+		d++;
+
+	// find next suitable entry
+	while (*d)
+	{
+		if (prefix( parm_str( pl), *d))
+			break;
+		d++;
+	}
+
+	return *d ? xstrdup( *d) : NULL;
+}
+
+
+/** Generates a list of boolean environment variables.
+ */
+char *
+generator_bool_envname( parm_link_s *pl, const void *data, int level)
+
+{
+	bool b;
+	static const set_s *d;
+
+	PRE( pl != NULL);
+	PRE( parm_type( pl) == tt_str || parm_type( pl) == tt_end);
+	
+	// iterator initialization
+	if (level == 0)
+		d = NULL;
+	
+	// find next suitable entry
+	do {
+		b = env_by_partial_varname(
+				(parm_type( pl) == tt_str) ? parm_str( pl) : "", &d);
+	} while (b && d->type != vt_bool);
 	
 	return b ? xstrdup( d->name) : NULL;
 }

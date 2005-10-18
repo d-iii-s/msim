@@ -4,10 +4,13 @@
  * Copyright (c) 2002-2004 Viliam Holub
  */
 
+#ifdef HAVE_CONFIG_H
+#	include "../config.h"
+#endif
+
 #include <errno.h>
 #include <string.h>
 
-#include "../config.h"
 #include "text.h"
 
 

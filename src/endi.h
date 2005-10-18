@@ -1,14 +1,18 @@
 /*
  * endi.h
  * checking endian
- * Copyright (c) 2001, 2002, 2003 Viliam Holub
+ * Copyright (c) 2001-2005 Viliam Holub
  */
 
 
 #ifndef _ENDI_H_
 #define _ENDI_H_
 
-#include "../config.h"
+#ifdef HAVE_CONFIG_H
+#	include "../config.h"
+#endif
+
+#include <stdbool.h>
 
 #include "mtypes.h"
 

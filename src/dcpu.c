@@ -6,17 +6,20 @@
  * the encappsulation of the processor
  */
 
+#ifdef HAVE_CONFIG_H
+#	include "../config.h"
+#endif
 
 #include <stdlib.h>
 #include <string.h>
+#include <stdbool.h>
 
 #include "mcons.h"
 #include "device.h"
 #include "processor.h"
 #include "debug.h"
 #include "output.h"
-#include "instr.h"
-#include "parser.h"
+#include "utils.h"
 
 #include "dcpu.h"
 
@@ -52,8 +55,8 @@ cmd_s dcpu_cmds[] =
 	{ "info", (cmd_f)dcpu_info,
 		DEFAULT,
 		DEFAULT,
-		"Displays configuration informations",
-		"Displays configuration informations",
+		"Displays configuration information",
+		"Displays configuration information",
 		NOCMD},
 	{ "stat", (cmd_f)dcpu_stat,
 		DEFAULT,
@@ -139,7 +142,7 @@ const char *txt_cpu[] =
 /* 0 */
 	"Maximum CPU count exceeded (31).",
 	"Integer or '*' expected.",
-	"Out of range (0..31).",
+	"Out of range (0..31).\n",
 	"Address expected.",
 	"Count expected."
 };
@@ -403,10 +406,10 @@ static void
 dcpu_done( device_s *dev)
 
 {
-	xfree( dev->name);
+	XFREE( dev->name);
 	if (dev->data)
-		xfree( ((cpu_data_s *)dev->data)->proc);
-	xfree( dev->data);
+		XFREE( ((cpu_data_s *)dev->data)->proc);
+	XFREE( dev->data);
 	R4000_cnt--;
 }
 

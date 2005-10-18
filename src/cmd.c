@@ -2,6 +2,10 @@
  * Copyright (c) 2002-2005 Viliam Holub
  */
 
+#ifdef HAVE_CONFIG_H
+#	include "../config.h"
+#endif
+
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <fcntl.h>
@@ -15,19 +19,15 @@
 
 #include "check.h"
 #include "mcons.h"
-#include "mtypes.h"
-#include "parser.h"
 #include "device.h"
 #include "machine.h"
 #include "debug.h"
-#include "text.h"
 #include "fault.h"
 #include "output.h"
-#include "env.h"
 #include "utils.h"
+#include "env.h"
+#include "cline.h"
 
-
-#define SETUP_BUF_SIZE		65536
 
 
 /*
@@ -53,6 +53,8 @@ static bool system_help( parm_link_s *pl, void *data);
 static void system_add_find_generator( parm_link_s **pl, const cmd_s *cmd,
 		gen_f *generator, const void **data);
 static void system_set_find_generator( parm_link_s **pl, const cmd_s *cmd,
+		gen_f *generator, const void **data);
+static void system_unset_find_generator( parm_link_s **pl, const cmd_s *cmd,
 		gen_f *generator, const void **data);
 
 /*
@@ -147,7 +149,7 @@ cmd_s system_cmds[] =
 		OPT CON "=" NEXT
 		REQ VAR "val/value" END},
 	{ "unset", system_unset,
-		DEFAULT,
+		system_unset_find_generator,
 		DEFAULT,
 		"Unsets enviroment variables.",
 		"Unsets environment variables.",
@@ -161,19 +163,6 @@ cmd_s system_cmds[] =
 
 	LAST_CMD
 };
-
-
-/* config error */
-static void
-conf_error( const char *msg, int lineno)
-
-{
-	if (lineno == -1)
-		error( "error: %s", msg);
-	else
-		error( "error(%d): %s", lineno, msg);
-}
-
 
 /** Searchies for device type and allocs device structure.
  */
@@ -191,7 +180,7 @@ alloc_device( const char *dtype, const char *dname)
 
 	if (!*dt)
 	{
-		conf_error( "Unknown device type", -1);
+		intr_error( "Unknown device type");
 		return NULL;
 	}
 
@@ -199,7 +188,7 @@ alloc_device( const char *dtype, const char *dname)
 	d = (device_s *)malloc( sizeof( *d));
 	if (!d)
 	{
-		conf_error( "Not enough memory", -1);
+		intr_error( "Not enough memory");
 		return NULL;
 	}
 
@@ -212,7 +201,7 @@ alloc_device( const char *dtype, const char *dname)
 	if (!d->name)
 	{
 		free( d);
-		conf_error( "Not enough memory", -1);
+		intr_error( "Not enough memory");
 		return NULL;
 	}
 	
@@ -479,7 +468,7 @@ interpret( const char *s)
 	pl = parm_parse( s);
 	if (!pl)
 	{
-		conf_error( "Not enough memory.", lineno);
+		intr_error( "Not enough memory.");
 		return false;
 	}
 
@@ -516,7 +505,7 @@ setup_apply( const char *buf)
 	
 	while ((*buf) && !tohalt)
 	{
-		if (!interpret( buf) && halt_on_error)
+		if (!interpret( buf) && script_stage)
 				die( ERR_INIT, 0);
 
 		lineno++;
@@ -527,8 +516,6 @@ setup_apply( const char *buf)
 		if (buf)
 			buf++;
 	}
-
-	lineno = -1;
 	
 	return true;
 }
@@ -536,7 +523,7 @@ setup_apply( const char *buf)
 
 /* interprets configuration file */
 void
-script()
+script( void)
 
 {
 	int fd, readed;
@@ -583,14 +570,13 @@ script()
 		if (close( fd))
 			io_die( ERR_IO, config_file);
 		
-		script_stat = true;
+		set_script_stage( config_file);
 		setup_apply( buf);
-		script_stat = false;
+		unset_script_stage();
 	}
  	
 	free( buf);
 }
-
 
 
 /** generator_devtype - Generates a list of device types.
@@ -648,7 +634,7 @@ char *
 generator_system( parm_link_s *pl, const void *data, int level)
 
 {
-	const char *s;
+	const char *s = NULL;
 	static enum {command_name, device_name} gen_type;
 
 	if (level == 0)
@@ -702,19 +688,27 @@ system_set_find_generator( parm_link_s **pl, const cmd_s *cmd,
 
 	if (parm_type( *pl) == tt_str)
 	{
-		// look up for variable name
-		res = env_cnt_partial_varname( parm_str( *pl));
+		// look up for a variable name
+		if (parm_type( (*pl)->next) == tt_end)
+			// there is a completion possible
+			res = env_cnt_partial_varname( parm_str( *pl));
+		else
+			// exactly one match is allowed
+			res = 1;
+
 		if (res == 0)
 			return; // error
 		if (res == 1)
 		{
 			// variable fit by partial name
 			if (parm_type( (*pl)->next) == tt_end)
-					*generator = generator_envname;
+					*generator = generator_env_name;
 			else
 			{
+				var_type_e type;
+
 				// continue
-				if (env_check_varname( parm_str( *pl)))
+				if (env_check_varname( parm_str( *pl), &type))
 				{
 					parm_next( pl);
 					if (parm_type( *pl) == tt_str)
@@ -722,27 +716,65 @@ system_set_find_generator( parm_link_s **pl, const cmd_s *cmd,
 						if (!strcmp( parm_str( *pl), "="))
 						{
 							// search for value
-							// XXX
+							parm_next( pl);
+
+							if (parm_type( *pl) == tt_str && type == vt_bool)
+							{
+								if (parm_type( (*pl)->next) == tt_end)
+									*generator = generator_env_booltype;
+							}
+							else
+								; // not interesting
 						}
 						else if (!parm_str( *pl)[ 0])
 							*generator = generator_equal_char;
 						else
-							; // error
+							; // not interesting
 					}
 					else
-						; // error
+						; // not interesting
 				}
 				else
-					; // error
+					; // not interesting
 			}
 		}
 		else
 		{
 			// multiple hit
 			if (parm_type( (*pl)->next) == tt_end)
-				*generator = generator_envname; 
+				*generator = generator_env_name; 
 			else
-				; // error
+				; // not interesting
+		}
+	}
+}
+
+
+/** system_unset_find_generator
+ *
+ */
+static void
+system_unset_find_generator( parm_link_s **pl, const cmd_s *cmd,
+		gen_f *generator, const void **data)
+
+{
+	int res;
+
+	PRE( pl != NULL, data != NULL, generator != NULL, cmd != NULL);
+	PRE( *generator == NULL, *pl != NULL, *data == NULL);
+
+	if (parm_type( *pl) == tt_str)
+	{
+		// look up for a variable name
+		res = env_cnt_partial_varname( parm_str( *pl));
+
+		if (res == 0)
+			return; // error
+		else
+		{
+			// partially fit by partial name
+			if (parm_type( (*pl)->next) == tt_end)
+					*generator = generator_bool_envname;
 		}
 	}
 }

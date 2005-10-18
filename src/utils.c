@@ -4,24 +4,34 @@
  * Copyright (c) 2004 Viliam Holub
  */
 
+#ifdef HAVE_CONFIG_H
+#	include "../config.h"
+#endif
+
 #include <stdlib.h>
 #include <string.h>
 
 #include "utils.h"
 #include "fault.h"
 #include "check.h"
+#include "mcons.h"
 
+
+/** Safe memory allocation.
+ */
 void *
 xmalloc( size_t s)
 
 {
 	void *v = malloc( s);
 	if (!v)
-		die( FAULT_NOMEM, "Not enough memory");
+		die( ERR_MEM, "Not enough memory");
 	return v;
 }
 
 
+/** Makes a copy of a string.
+ */
 char *
 xstrdup( const char *s)
 
@@ -32,7 +42,7 @@ xstrdup( const char *s)
 	
 	sx = strdup( s);
 	if (!sx)
-		die( FAULT_NOMEM, "Not enough memory");
+		die( ERR_MEM, "Not enough memory");
 	return sx;
 }
 

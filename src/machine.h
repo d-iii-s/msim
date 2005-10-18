@@ -60,7 +60,6 @@ extern bool interactive;
 extern bool errors;
 extern bool breakpoint;
 extern bool script_stat;
-extern bool halt_on_error;
 
 extern bool remote_gdb;
 extern int remote_gdb_port;

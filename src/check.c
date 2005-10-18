@@ -10,16 +10,17 @@
  * Feel free to modify this code to fulfill your needs.
  */
 
+#include "check.h"
+
 #include <stdio.h>
 #include <stdarg.h>
+#include <stdlib.h>
 #ifdef RQ_COLOR
 #	include <unistd.h>
 #endif
 #ifdef RQ_FATAL
 #	include <stdlib.h>
 #endif
-
-#include "check.h"
 
 #define COL_FILENAME		0
 #define COL_LINENO		1
@@ -30,13 +31,13 @@
 #define COL_CONDNO		6
 #define COL_END			7
 char *colors[ COL_END][ 2] = {
-	"", "\x1b\x5b\x31\x3b\x33\x36\x6d",
-	"", "\x1b\x5b\x33\x34\x6d",
-	"", "\x1b\x5b\x31\x3b\x33\x31\x6d",
-	"", "\x1b\x5b\x30\x6d",
-	"", "\x1b\x5b\x31\x3b\x33\x31\x6d",
-	"", "\x1b\x5b\x30\x6d",
-	"", "\x1b\x5b\x31\x3b\x33\x31\x6d",
+	{ "", "\x1b\x5b\x31\x3b\x33\x36\x6d"},
+	{ "", "\x1b\x5b\x33\x34\x6d"},
+	{ "", "\x1b\x5b\x31\x3b\x33\x31\x6d"},
+	{ "", "\x1b\x5b\x30\x6d"},
+	{ "", "\x1b\x5b\x31\x3b\x33\x31\x6d"},
+	{ "", "\x1b\x5b\x30\x6d"},
+	{ "", "\x1b\x5b\x31\x3b\x33\x31\x6d"}
 };
 
 

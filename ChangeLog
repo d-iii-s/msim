@@ -2,12 +2,15 @@
 # MSIM Changelog
 #
 
+2005-10-18	Viliam Holub <holub@nenya.ms.mff.cuni.cz>
+	* several small fixes
+	* error messages cleanup
+
 2005-10-10	Jakub Jermar <jermar@itbs.cz>
 	* TLB Modification exception fix
 
-2005-09-20	Viliam Holub <holub@nenya.ms.mff.cuni.cz>
-
-	* applied path by Ondrej Palkovsky to add 4kc support
+2005-09-20	Ondrej Palkovsky
+	* add 4kc support
 
 2005-09-13	Viliam Holub <holub@nenya.ms.mff.cuni.cz>
 	* LWL, LWR, SWL, SWR byte counting fix by Ondrej Palkovsky

@@ -4,6 +4,9 @@
  * Copyright (c) 2001-2004 Viliam Holub
  */
 
+#ifdef HAVE_CONFIG_H
+#	include "../config.h"
+#endif
 
 #include <string.h>
 #include <stdlib.h>
@@ -17,13 +20,10 @@
 #include "check.h"
 #include "utils.h"
 #include "device.h"
+#include "cline.h"
 
 
 #define SNAME_SIZE	32
-
-
-// Line number
-int lineno = -1;
 
 
 struct g_token_s
@@ -1008,7 +1008,7 @@ cmd_run_by_spec( const cmd_s *cmd, parm_link_s *parm,
 	 */
 	if (!cmd->func)
 	{
-		dprintf_err( "Command not implemented.\n");
+		intr_error( "Command not implemented.\n");
 		return false;
 	}
 	
@@ -1034,10 +1034,10 @@ cmd_run_by_name( const char *cmd_name, parm_link_s *parm,
 	switch (cmd_find( cmd_name, cmds, &cmd))
 	{
 		case CMP_NH:
-			dprintf_err( "Unknown command: %s\n", cmd_name);
+			intr_error( "Unknown command: %s", cmd_name);
 			return false;
 		case CMP_MHIT:
-			dprintf_err( "Ambiguous command: %s\n", cmd_name);
+			intr_error( "Ambiguous command: %s", cmd_name);
 			return false;
 	}
 	
@@ -1059,7 +1059,7 @@ cmd_run_by_parm( parm_link_s *pl, const cmd_s *cmds,
 	/* check whether the first token is a string */
 	if (pl->token.ttype != tt_str)
 	{
-		dprintf_err( "Command name expected.\n");
+		intr_error( "Command name expected.");
 		return false;
 	}
 	
@@ -1206,10 +1206,10 @@ cmd_print_extended_help( parm_link_s *parm,
 	switch (cmd_find( cmd_name, cmds, &cmd))
 	{
 		case CMP_NH:
-			dprintf( "Unknown command: %s\n", cmd_name);
+			intr_error( "Unknown command: %s", cmd_name);
 			return;
 		case CMP_MHIT:
-			dprintf( "Ambiguous command: %s\n", cmd_name);
+			intr_error( "Ambiguous command: %s", cmd_name);
 			return;
 	}
 	

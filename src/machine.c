@@ -5,27 +5,26 @@
  * Copyright (c) 2000-2004 Viliam Holub
  */
 
-#include "../config.h"
+#ifdef HAVE_CONFIG_H
+#	include "../config.h"
+#endif
 
 #include <stdio.h>
 #include <signal.h>
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
+#include <stdint.h>
+#include <stdbool.h>
 
-#include "text.h"
 #include "machine.h"
+
 #include "processor.h"
-#include "mcons.h"
-#include "mtypes.h"
-#include "debug.h"
-#include "cmd.h"
 #include "input.h"
 #include "output.h"
 #include "gdb.h"
 #include "env.h"
 #include "check.h"
-#include "parser.h"
 #include "utils.h"
 
 
@@ -43,8 +42,6 @@ bool change			= true;
 bool interactive		= false;
 bool errors			= true;
 bool breakpoint;
-bool script_stat;
-bool halt_on_error		= false;
 
 bool version			= false;
 

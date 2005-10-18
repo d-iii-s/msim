@@ -2,6 +2,9 @@
  * Copyright (c) 2001-2004 Viliam Holub
  */
 
+#ifdef HAVE_CONFIG_H
+#	include "../config.h"
+#endif
 
 #include <stdio.h>
 #include <unistd.h>
@@ -9,6 +12,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <stdarg.h>
+#include <stdbool.h>
 
 #include "device.h"
 
@@ -234,7 +238,7 @@ dev_remove( device_s *d)
 		devl = d->next;
 	else
 	{
-		for (g=devl; g && (g != d); g = g->next)
+		for (g=devl, gx=NULL; g && (g != d); g = g->next)
 			gx = g;
 
 		if (g)

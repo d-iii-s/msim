@@ -3,6 +3,10 @@
  * Copyright (c) 2003,2004 Viliam Holub
  */
 
+#ifdef HAVE_CONFIG_H
+#	include "../config.h"
+#endif
+
 #include <stdlib.h>
 #include <fcntl.h>
 #include <stdio.h>
@@ -468,12 +472,12 @@ mem_fill( parm_link_s *parm, device_s *dev)
 {
 	mem_data_s *md = dev->data;
 	const char *s;
-	char c;
+	char c = '\0';
 
 	switch (parm_type( parm))
 	{
 		case tt_end:
-			c = '\0';
+			/* default '\0' */
 			break;
 		case tt_str:
 			s = parm_str( parm);
@@ -708,6 +712,6 @@ mem_done( device_s *d)
 			break;
 	}
 	
-	xfree( d->name);
-	free( d->data);
+	XFREE( d->name);
+	XFREE( d->data);
 }

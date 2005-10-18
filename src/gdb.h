@@ -8,6 +8,8 @@
 #ifndef _GDB_H_
 #define _GDB_H_
 
+#include <stdbool.h>
+
 #include "mtypes.h"
 
 bool gdb_remote_init( void);

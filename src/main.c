@@ -5,7 +5,9 @@
  */
 
 
-#include "../config.h"
+#ifdef HAVE_CONFIG_H
+#	include "../config.h"
+#endif
 
 #include <stdlib.h>
 #include <stdio.h>
@@ -59,10 +61,10 @@ conf_remote_gdb( const char *opt)
 	
 	port_no = strtol( opt, &endp, 0);
 	if (!endp)
-		die( 3, "Port number expected.");
+		die( ERR_PARM, "Port number expected.");
 	
 	if (port_no < 0 || port_no > 65534)
-		die( 3, "Invalid port number.");
+		die( ERR_PARM, "Invalid port number.");
 	
 	remote_gdb = true;
 	remote_gdb_port = port_no;
@@ -122,16 +124,16 @@ parse_cmdline( int argc, char *args[])
 				break;
 				
 			case '?':
-				die( 3, "Unknown parameter or argument required.\n");
+				die( ERR_PARM, "Unknown parameter or argument required.\n");
 				
 			default:
-				die( 3, "Unknown parameter "
+				die( ERR_PARM, "Unknown parameter "
 					"'%c'.\n", optopt);
 		}
 	}
 	
 	if (optind < argc)
-		die( 3, "Unexpected arguments.\n");
+		die( ERR_PARM, "Unexpected arguments.\n");
 }
 
 

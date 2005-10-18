@@ -1,11 +1,16 @@
 /*
  * debug.c
  * useful debugging features
- * Copyright (c) 2002-2004 Viliam Holub
+ * Copyright (c) 2002-2005 Viliam Holub
  */
+
+#ifdef HAVE_CONFIG_H
+#	include "../config.h"
+#endif
 
 #include <stdio.h>
 #include <string.h>
+#include <stdbool.h>
 
 #include "mtypes.h"
 #include "instr.h"
@@ -636,6 +641,8 @@ dbg_dev_statdev( device_s *d)
 
 
 /** Shows statistics for all devices.
+ *
+ * Implementation of the "stat" command.
  */ 
 void
 dbg_dev_stat()

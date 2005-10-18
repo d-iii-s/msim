@@ -4,15 +4,18 @@
  * Copyright (c) 2003 Viliam Holub
  */
 
-#include "../config.h"
+#ifdef HAVE_CONFIG_H
+#	include "../config.h"
+#endif
 
+#include <stdio.h>
+#include <errno.h>
+#include <string.h>
+#include <unistd.h>
+#include <stdbool.h>
 #include <sys/types.h>
 #include <sys/socket.h>
 #include <netinet/in.h>
-#include <string.h>
-#include <unistd.h>
-#include <stdio.h>
-#include <errno.h>
 
 #include "gdb.h"
 #include "text.h"

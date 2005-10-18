@@ -3,15 +3,20 @@
  * Copyright (c) 2003,2004 Viliam Holub
  */
 
+#ifdef HAVE_CONFIG_H
+#	include "../config.h"
+#endif
 
+#include <time.h>
 #include <stdlib.h>
 #include <string.h>
-#include <time.h>
+#include <stdbool.h>
 
 #include "dtime.h"
 
 #include "device.h"
 #include "output.h"
+#include "utils.h"
 
 
 /*
@@ -40,8 +45,8 @@ cmd_s dtime_cmds[] =
 	{ "info", (cmd_f)dtime_info,
 		DEFAULT,
 		DEFAULT,
-		"Configuration informations",
-		"Configuration informations",
+		"Configuration information",
+		"Configuration information",
 		NOCMD},
 	{ "stat", (cmd_f)dtime_stat,
 		DEFAULT,
@@ -155,8 +160,8 @@ static void
 dtime_done( device_s *d)
 
 {
-	xfree( d->name);
-	xfree( d->data);
+	XFREE( d->name);
+	XFREE( d->data);
 }
 
 

@@ -4,11 +4,16 @@
  * Copyright (c) 2000-2005 Viliam Holub 
  */
 
+#ifdef HAVE_CONFIG_H
+#	include "../config.h"
+#endif
+
 #include <stdlib.h>
 #include <stdio.h>
 
 #include "check.h"
 
+#include "mcons.h"
 #include "mtypes.h"
 #include "endi.h"
 #include "processor.h"
@@ -18,6 +23,7 @@
 #include "output.h"
 #include "gdb.h"
 #include "env.h"
+#include "fault.h"
 
 
 
@@ -414,8 +420,11 @@ write_proc_mem( uint32_t addr, int size, uint32_t value, bool h)
 		case excNone:
 			return excNone;
 		default:
-			die( "Internal error at %s(%d)", __FILE__, __LINE__);
+			die( ERR_INTERN, "Internal error at %s(%d)", __FILE__, __LINE__);
 	}
+	
+	/* unreachable */
+	return excNone;
 }
 
 
@@ -676,7 +685,6 @@ execute( TInstrInfo *ii2)
 		case opcMADD:
 			{
 				uint64_t old = ((uint64_t)pr->hireg << 32) | pr->loreg;
-				uint64_t new;
 
 				Multiply( rrs, rrt, true); 
 				old += ((uint64_t)pr->hireg << 32) | pr->loreg;
@@ -688,7 +696,6 @@ execute( TInstrInfo *ii2)
 		case opcMADDU:
 			{
 				uint64_t old = ((uint64_t)pr->hireg << 32) | pr->loreg;
-				uint64_t new;
 
 				Multiply( rrs, rrt, false); 
 				old += ((uint64_t)pr->hireg << 32) | pr->loreg;
@@ -700,7 +707,6 @@ execute( TInstrInfo *ii2)
 		case opcMSUB:
 			{
 				uint64_t old = ((uint64_t)pr->hireg << 32) | pr->loreg;
-				uint64_t new;
 
 				Multiply( rrs, rrt, true); 
 				old -= ((uint64_t)pr->hireg << 32) | pr->loreg;
@@ -712,7 +718,6 @@ execute( TInstrInfo *ii2)
 		case opcMSUBU:
 			{
 				uint64_t old = ((uint64_t)pr->hireg << 32) | pr->loreg;
-				uint64_t new;
 
 				Multiply( rrs, rrt, false); 
 				old -= ((uint64_t)pr->hireg << 32) | pr->loreg;

@@ -69,7 +69,7 @@ PACKAGE = @PACKAGE@
 VERSION = @VERSION@
 
 bin_PROGRAMS = msim
-msim_SOURCES =  	cmd.c 	cmd.h 	debug.c 	debug.h 	device.c 	device.h 	endi.h 	fault.c 	fault.h 	gdb.c 	gdb.h 	instr.c 	instr.h 	machine.c 	machine.h 	main.c 	mcons.h 	mtypes.h 	input.c 	input.h 	output.c 	output.h 	parser.c 	parser.h 	processor.c 	processor.h 	text.c 	text.h 	dcpu.c 	dcpu.h 	ddisk.c 	ddisk.h 	dkeyboard.c 	dkeyboard.h 	dorder.c 	dorder.h 	dprinter.c 	dprinter.h 	dtime.c 	dtime.h 	mem.c 	mem.h 	env.c 	env.h 	check.c 	check.h 	utils.c 	utils.h
+msim_SOURCES =  	cmd.c 	cmd.h 	debug.c 	debug.h 	device.c 	device.h 	endi.h 	fault.c 	fault.h 	gdb.c 	gdb.h 	instr.c 	instr.h 	machine.c 	machine.h 	main.c 	mcons.h 	mtypes.h 	input.c 	input.h 	output.c 	output.h 	parser.c 	parser.h 	processor.c 	processor.h 	text.c 	text.h 	dcpu.c 	dcpu.h 	ddisk.c 	ddisk.h 	dkeyboard.c 	dkeyboard.h 	dorder.c 	dorder.h 	dprinter.c 	dprinter.h 	dtime.c 	dtime.h 	mem.c 	mem.h 	env.c 	env.h 	check.c 	check.h 	utils.c 	utils.h 	cline.c 	cline.h
 
 mkinstalldirs = $(SHELL) $(top_srcdir)/mkinstalldirs
 CONFIG_HEADER = ../config.h
@@ -83,7 +83,8 @@ LDFLAGS = @LDFLAGS@
 LIBS = @LIBS@
 msim_OBJECTS =  cmd.o debug.o device.o fault.o gdb.o instr.o machine.o \
 main.o input.o output.o parser.o processor.o text.o dcpu.o ddisk.o \
-dkeyboard.o dorder.o dprinter.o dtime.o mem.o env.o check.o utils.o
+dkeyboard.o dorder.o dprinter.o dtime.o mem.o env.o check.o utils.o \
+cline.o
 msim_LDADD = $(LDADD)
 msim_DEPENDENCIES = 
 msim_LDFLAGS = 
@@ -98,12 +99,12 @@ DISTFILES = $(DIST_COMMON) $(SOURCES) $(HEADERS) $(TEXINFOS) $(EXTRA_DIST)
 
 TAR = tar
 GZIP_ENV = --best
-DEP_FILES =  .deps/check.P .deps/cmd.P .deps/dcpu.P .deps/ddisk.P \
-.deps/debug.P .deps/device.P .deps/dkeyboard.P .deps/dorder.P \
-.deps/dprinter.P .deps/dtime.P .deps/env.P .deps/fault.P .deps/gdb.P \
-.deps/input.P .deps/instr.P .deps/machine.P .deps/main.P .deps/mem.P \
-.deps/output.P .deps/parser.P .deps/processor.P .deps/text.P \
-.deps/utils.P
+DEP_FILES =  .deps/check.P .deps/cline.P .deps/cmd.P .deps/dcpu.P \
+.deps/ddisk.P .deps/debug.P .deps/device.P .deps/dkeyboard.P \
+.deps/dorder.P .deps/dprinter.P .deps/dtime.P .deps/env.P .deps/fault.P \
+.deps/gdb.P .deps/input.P .deps/instr.P .deps/machine.P .deps/main.P \
+.deps/mem.P .deps/output.P .deps/parser.P .deps/processor.P \
+.deps/text.P .deps/utils.P
 SOURCES = $(msim_SOURCES)
 OBJECTS = $(msim_OBJECTS)
 

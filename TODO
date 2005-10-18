@@ -1,23 +1,13 @@
-opravit - podivna hodnota v ireg - adresa???
-opravit dprintf_btag - nl je vetsi nez obrazovka
-zjistit velikost obrazovky
-opravit stat
-proklestit headery do vicero -> split parser & sets
-otestovat realne uzivani headeru
-ddisk texts - some are incomplete
-TAB completion
-	- the set command
-	- unset command
+headers usage test, optimizations
+detect screen width - intelligent output (fit to the screen) - & test it
 input module - move all about input into this module
-intelligent output (fit to the screen) - & test it
-fix parsing errors (number of line)
 add debug features - memory allocation
 	- first and last block check,
 	- show all allocated memory blocks
 	- check for unallocated memory at the end of the program or at the free function call
 	- allocation information - function, file and the line number
 stat
-msd, infodev - opravit
+msd, infodev - fix
 gdb remote debugging
 serial line
 network

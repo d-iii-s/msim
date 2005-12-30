@@ -2,6 +2,10 @@
 # MSIM Changelog
 #
 
+2005-12-30	Ondrej Palkovsky <ondrap@penguin.cz>
+	* keybord keycode register is cleared after read operation; this
+	  allows to read new keycodes even with disabled interrupts
+
 2005-10-18	Viliam Holub <holub@nenya.ms.mff.cuni.cz>
 	Version 1.3
 

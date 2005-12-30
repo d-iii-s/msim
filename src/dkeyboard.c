@@ -276,6 +276,7 @@ keyboard_read( device_s *d, uint32_t addr, uint32_t *val)
 	if (addr == kd->addr)
 	{
 		*val = kd->incomming;
+		kd->incomming = 0;
 		if (kd->ig)
 		{
 			kd->ig = false;

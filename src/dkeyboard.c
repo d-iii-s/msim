@@ -105,7 +105,7 @@ struct keyboard_data_s
 	char incomming;
 	
 	bool ig;
-	u_int64_t intrcount, keycount, overrun;
+	uint64_t intrcount, keycount, overrun;
 	
 	int par;
 };

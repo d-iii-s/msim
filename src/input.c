@@ -11,6 +11,7 @@
 #include <unistd.h>
 #include <termios.h>
 #include <stdbool.h>
+#include <stdio.h>
 
 #include "parser.h"
 // for tobreak and reenter variable

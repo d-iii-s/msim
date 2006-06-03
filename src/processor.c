@@ -502,7 +502,7 @@ Multiply( uint32_t a, uint32_t b, bool sig)
 	if (sig)
 	{
 		/* signed multiplication */
-		int64_t r = (int64_t)a * (int64_t)b;
+		int64_t r = (int64_t)(int32_t)a * (int64_t)(int32_t)b;
 		
 		/* result */
 		pr->loreg = r & 0xffffffff;

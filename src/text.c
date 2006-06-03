@@ -63,7 +63,7 @@ const char txt_linehelp[] =
 		"  q                 quit\n";
 
 const char txt_version[] =
-		PACKAGE " version " VERSION " Copyright (c) 2000-2004 Viliam Holub\n";
+		PACKAGE " version " VERSION " Copyright (c) 2000-2006 Viliam Holub\n";
 		
 const char txt_help[] =
 		"  -V, --version            display version info\n"

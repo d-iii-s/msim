@@ -58,7 +58,6 @@ extern char **cp3name;
 extern bool change;
 extern bool interactive;
 extern bool errors;
-extern bool breakpoint;
 extern bool script_stat;
 
 extern bool remote_gdb;
@@ -69,7 +68,6 @@ extern bool remote_gdb_one_step;
 
 extern bool version;
 
-extern int breakpointaddr;
 extern uint32_t stepping;
 extern processor_s *focus;
 extern mem_element_s *memlist;

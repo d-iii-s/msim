@@ -41,7 +41,6 @@ char **cp3name;
 bool change			= true;
 bool interactive		= false;
 bool errors			= true;
-bool breakpoint;
 
 bool version			= false;
 
@@ -53,7 +52,6 @@ bool remote_gdb_one_step	= false;
 
 bool reenter;
 
-int breakpointaddr;
 uint32_t stepping;
 processor_s *focus;
 mem_element_s *memlist;

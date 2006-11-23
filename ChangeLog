@@ -9,6 +9,7 @@
 	* dprintf renamed to mprintf to avoid conflicts with libc (Martin
 	  Decky <decky@nenya.ms.mff.cuni.cz>
 	* minor fixes
+	* goto has been renamed to continue
 
 2005-12-30	Ondrej Palkovsky <ondrap@penguin.cz>
 	* keybord keycode register is cleared after read operation; this

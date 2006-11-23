@@ -41,7 +41,7 @@ static bool system_dd( parm_link_s *pl, void *data);
 static bool system_mbd( parm_link_s *pl, void *data);
 static bool system_stat( parm_link_s *pl, void *data);
 static bool system_echo( parm_link_s *pl, void *data);
-static bool system_goto( parm_link_s *pl, void *data);
+static bool system_continue( parm_link_s *pl, void *data);
 static bool system_step( parm_link_s *pl, void *data);
 static bool system_set( parm_link_s *pl, void *data);
 static bool system_unset( parm_link_s *pl, void *data);
@@ -127,12 +127,12 @@ cmd_s system_cmds[] =
 		"Prints user message.",
 		"Prints user message.",
 		OPT STR "text" END},
-	{ "goto", system_goto,
+	{ "continue", system_continue,
 		DEFAULT,
 		DEFAULT,
-		"Go to the specified address or continue.",
-		"Go to the specified address or continue.",
-		OPT STR "addr" END},
+		"Continue simulation.",
+		"Continue simulation.",
+		NOCMD},
 	{ "step/s", system_step,
 		DEFAULT,
 		DEFAULT,
@@ -257,20 +257,13 @@ system_add( parm_link_s *pl, void *data)
 
 
 /*
- * the goto command implementation
+ * the continue command implementation
  */
 static bool
-system_goto( parm_link_s *pl, void *data)
+system_continue( parm_link_s *pl, void *data)
 
 {
-	if (pl->token.ttype == tt_end)
-		interactive = false;
-	else
-	{
-		breakpoint = true;
-		breakpointaddr = pl->token.tval.i & ~0x3;
-	}
-
+	interactive = false;
 	return true;
 }
 

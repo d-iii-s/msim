@@ -67,9 +67,9 @@
 void RQ_test( const char *pre, const char *filename, int lineno,
 		const char *func, const char *term, ...);
 #else
-#	define RQ( ...)		((void *)0)
-#	define PRE( ...)	((void *)0)
-#	define POST( ...)	((void *)0)
+#	define RQ( ...)		
+#	define PRE( ...)	
+#	define POST( ...)	
 #endif
 
 #endif /* _CHECK_H_ */

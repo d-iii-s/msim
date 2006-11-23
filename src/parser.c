@@ -1214,6 +1214,7 @@ cmd_print_extended_help( parm_link_s *parm,
 	}
 	
 	mprintf_text( "%s", cmd->descf);
+	dprintf( "\n");
 	
 	/* print parameters */
 	opt = 0;
@@ -1267,5 +1268,7 @@ cmd_print_extended_help( parm_link_s *parm,
 					mprintf( "\t<%s> %s\n", buf, find_lname( s));
 				}
 		}
+		else
+			dprintf( "\n");
 	}
 }

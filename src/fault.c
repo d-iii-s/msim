@@ -40,7 +40,7 @@ error( const char *fmt, ...)
 }
 
 
-/* prints message to stderr and exit */
+/* prints message to stderr and exits */
 void
 die( int ex, const char *fmt, ...)
 

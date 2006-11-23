@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2002-2005 Viliam Holub
+ * Copyright (c) 2002-2006 Viliam Holub
  */
 
 #ifdef HAVE_CONFIG_H
@@ -76,8 +76,7 @@ cmd_s system_cmds[] =
 		"Adds a new device into the system.",
 		"Adds a new device into the system.",
 		REQ STR "type/Device type" NEXT
-		REQ STR "name/Device name which is not in conflict with any "
-			"system command or already installed device." CONT},
+		REQ STR "name/Device name" CONT},
 	{ "rm", NULL,
 		DEFAULT,
 		DEFAULT,

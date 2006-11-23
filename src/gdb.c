@@ -225,7 +225,7 @@ gdb_safe_write( char c)
 {
 	size_t written;
 
-	dprintf( "%c", c);
+	mprintf( "%c", c);
 
 	written = write( gdbd, &c, 1);
 	if (written == -1)
@@ -273,7 +273,7 @@ gdb_get_message( char *bufx)
 		if (*buf != '#')
 		{
 			/* hmmm - buffer overflow */
-			dprintf( "<buffer overflow>\n");
+			mprintf( "<buffer overflow>\n");
 			return false;
 		}
 	
@@ -331,7 +331,7 @@ gdb_send_message( char *buf)
     
 	do {
 		//XXX
-		dprintf( "->");
+		mprintf( "->");
 		
 		if (!gdb_safe_write( '$'))
 			return false;
@@ -358,7 +358,7 @@ gdb_send_message( char *buf)
 			return false;
 
 		//XXX
-		dprintf( "\n");
+		mprintf( "\n");
 	} while (c != '+');
 
 	return true;
@@ -659,7 +659,7 @@ gdb_session( int event)
 			return;
 		}
 
-		dprintf( "<- %s\n", buf);
+		mprintf( "<- %s\n", buf);
 
 		switch (buf[ 0])
 		{
@@ -703,7 +703,7 @@ gdb_session( int event)
 				return;
 			
 			case 'D':
-				dprintf( "detach...\n");
+				mprintf( "detach...\n");
 				gdb_remote_done( false, true);
 				return;
 
@@ -749,7 +749,7 @@ gdb_remote_init( void)
 
 	if (R4000_cnt != 1)
 	{
-		dprintf( PACKAGE ": gdb: exactly one processor allowed\n");
+		mprintf( PACKAGE ": gdb: exactly one processor allowed\n");
 		return false;
 	}
 
@@ -784,19 +784,19 @@ gdb_remote_init( void)
 		return false;
 	}
     
-	dprintf( "Waiting for GDB response on %d...\n", remote_gdb_port);    
+	mprintf( "Waiting for GDB response on %d...\n", remote_gdb_port);    
 	
 	gdbd = accept( gdbd, (struct sockaddr *)&sa_gdb, &addrlen);
 	if (gdbd < 0)
 	{
 		if (errno == EINTR)
-			dprintf( "...interrupted.\n");
+			mprintf( "...interrupted.\n");
 		else
 			io_error( "accept");
 		return false;
 	}
 
-	dprintf( "...done\n");
+	mprintf( "...done\n");
 
 	gdb_pr = cpu_find_no( 0);
     

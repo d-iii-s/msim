@@ -934,7 +934,7 @@ cmd_run_by_spec( const cmd_s *cmd, parm_link_s *parm,
 		/* check the first quantifier */
 		if (*s != OPTC && *s != REQC)
 		{
-			dprintf_err( "Internal error: invalid parameter quantifier: \"%s\".\n",
+			mprintf_err( "Internal error: invalid parameter quantifier: \"%s\".\n",
 					s);
 			return false;
 		}
@@ -944,7 +944,7 @@ cmd_run_by_spec( const cmd_s *cmd, parm_link_s *parm,
 		else
 		if (*s == REQC && p->token.ttype == tt_end)
 		{
-			dprintf_err( "Missing parameter <%s>\n",
+			mprintf_err( "Missing parameter <%s>\n",
 					find_lname( s));
 
 			return false;
@@ -956,7 +956,7 @@ cmd_run_by_spec( const cmd_s *cmd, parm_link_s *parm,
 			case INTC:
 				if (p->token.ttype != tt_int)
 				{
-					dprintf_err( "Invalid argument, integer <%s> required.\n",
+					mprintf_err( "Invalid argument, integer <%s> required.\n",
 							find_lname( s));
 					return false;
 				}
@@ -964,7 +964,7 @@ cmd_run_by_spec( const cmd_s *cmd, parm_link_s *parm,
 			case STRC:
 				if (p->token.ttype != tt_str)
 				{
-					dprintf_err( "Invalid argument, string <%s> required.\n",
+					mprintf_err( "Invalid argument, string <%s> required.\n",
 							find_lname( s));
 					return false;
 				}
@@ -972,7 +972,7 @@ cmd_run_by_spec( const cmd_s *cmd, parm_link_s *parm,
 			case VARC:
 				if (p->token.ttype != tt_int && p->token.ttype != tt_str)
 				{
-					dprintf_err( "Invalid argument, string or integer <%s> required.\n",
+					mprintf_err( "Invalid argument, string or integer <%s> required.\n",
 							find_lname( s));
 					return false;
 				}
@@ -981,13 +981,13 @@ cmd_run_by_spec( const cmd_s *cmd, parm_link_s *parm,
 				if (p->token.ttype != tt_str ||
 					strcmp( parm_skipq( s), p->token.tval.s))
 				{
-					dprintf_err( "Invalid argument, string \"%s\" required.\n",
+					mprintf_err( "Invalid argument, string \"%s\" required.\n",
 							find_lname( s));
 					return false;
 				}
 				break;
 			default:
-				dprintf_err( "Internall error: Invalid parameter type.\n");
+				mprintf_err( "Internall error: Invalid parameter type.\n");
 				return false;
 		}
 		
@@ -997,7 +997,7 @@ cmd_run_by_spec( const cmd_s *cmd, parm_link_s *parm,
 
 	if (*s == ENDC && p->token.ttype != tt_end)
 	{
-		dprintf_err( "Too many parameters.\n");
+		mprintf_err( "Too many parameters.\n");
 		return false;
 	}
 
@@ -1140,7 +1140,7 @@ cmd_print_help( const cmd_s *cmds)
 
 	cmds++;
 
-	dprintf( "List of available commands:\n");
+	mprintf( "List of available commands:\n");
 
 	while (cmds->name)
 	{
@@ -1172,7 +1172,7 @@ cmd_print_help( const cmd_s *cmds)
 		for (; opt; opt--)
 			cat_parm( spars, "]", SNAME_SIZE);
 		
-		dprintf( "%-20s %s\n", spars, cmds->desc);
+		mprintf( "%-20s %s\n", spars, cmds->desc);
 		
 		cmds++;
 	}
@@ -1213,7 +1213,7 @@ cmd_print_extended_help( parm_link_s *parm,
 			return;
 	}
 	
-	dprintf_text( "%s", cmd->descf);
+	mprintf_text( "%s", cmd->descf);
 	
 	/* print parameters */
 	opt = 0;
@@ -1221,29 +1221,29 @@ cmd_print_extended_help( parm_link_s *parm,
 	s = cmd->pars;
 	if (*s != ENDC && *s != CONTC)
 	{
-		dprintf( "Syntax: %s", cmd->name);
+		mprintf( "Syntax: %s", cmd->name);
 		
 		while (*s != ENDC && *s != CONTC)
 		{
 			/* append a space */
-			dprintf( " ");
+			mprintf( " ");
 			
 			/* check optional */
 			if (*s == OPTC)
 			{
-				dprintf( "[");
+				mprintf( "[");
 				opt++;
 			}
 			
 			/* print short parameter name */
 			if (*(s+1) != CONC)
 			{
-				dprintf( "<");
-				dprintf_n( find_sname_len( s), "%s", s+2);
-				dprintf( ">");
+				mprintf( "<");
+				mprintf_n( find_sname_len( s), "%s", s+2);
+				mprintf( ">");
 			}
 			else
-				dprintf( "%s", parm_skipq( s));
+				mprintf( "%s", parm_skipq( s));
 			
 			par++;
 			s = find_next_parm( s);
@@ -1251,11 +1251,11 @@ cmd_print_extended_help( parm_link_s *parm,
 		
 		/* close brackets */
 		for (; opt; opt--)
-			dprintf( "]");
+			mprintf( "]");
 		
 		if (par)
 		{
-			dprintf( "\nwhere:\n");
+			mprintf( "\nwhere:\n");
 			
 			for (s = cmd->pars; *s != ENDC && *s != CONTC; s = find_next_parm( s))
 				if (*(s+1) != CONC)
@@ -1264,7 +1264,7 @@ cmd_print_extended_help( parm_link_s *parm,
 					
 					/* print long parameter description */
 					snprintf( buf, find_sname_len( s)+1, "%s", parm_skipq( s));
-					dprintf( "\t<%s> %s\n", buf, find_lname( s));
+					mprintf( "\t<%s> %s\n", buf, find_lname( s));
 				}
 		}
 	}

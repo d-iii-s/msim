@@ -105,7 +105,7 @@ dtime_init( parm_link_s *parm, device_s *dev)
 	td = malloc( sizeof( struct dtime_data_struct));
 	if (!td)
 	{
-		dprintf( txt_pub[ 5]);
+		mprintf( txt_pub[ 5]);
 		return false;
 	}
 	dev->data = td;
@@ -117,7 +117,7 @@ dtime_init( parm_link_s *parm, device_s *dev)
 	/* check */
 	if (td->addr & 0x3)
 	{
-		dprintf( "Dtime address must be 4-byte aligned.\n");
+		mprintf( "Dtime address must be 4-byte aligned.\n");
 		return false;
 	}
 	
@@ -133,7 +133,7 @@ dtime_info( parm_link_s *parm, device_s *dev)
 {
 	struct dtime_data_struct *td = dev->data;
 	
-	dprintf_btag( INFO_SPC, "address:0x%08x", td->addr);
+	mprintf_btag( INFO_SPC, "address:0x%08x", td->addr);
 	
 	return true;
 }
@@ -145,7 +145,7 @@ static bool
 dtime_stat( parm_link_s *parm, device_s *dev)
 
 {
-	dprintf_btag( INFO_SPC, "no statistics\n");
+	mprintf_btag( INFO_SPC, "no statistics\n");
 	return true;
 }
 

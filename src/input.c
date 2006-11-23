@@ -246,7 +246,7 @@ interactive_control( void)
 		if (!commline)
 		{
 			// user break in readline
-			dprintf( "Quit\n");
+			mprintf( "Quit\n");
 			input_back();
 			exit( 1);
 		}

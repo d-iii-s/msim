@@ -90,12 +90,12 @@ reg_view( void)
 {
 	int i;
 
-	dprintf( "processor p%i\n", pr->procno);
+	mprintf( "processor p%i\n", pr->procno);
 	
 	for (i=0; i<30; i+=5)
 	
 	{
-		dprintf( " %3s %08X  %3s %08X  %3s %08X  %3s %08X  %3s %08X\n", 
+		mprintf( " %3s %08X  %3s %08X  %3s %08X  %3s %08X  %3s %08X\n", 
 			regname[ i  ], pr->regs[ i  ], 
 			regname[ i+1], pr->regs[ i+1], 
 			regname[ i+2], pr->regs[ i+2],
@@ -104,7 +104,7 @@ reg_view( void)
 		 );
 	}
 	 
-	dprintf( " %3s %08X  %3s %08X   pc %08X   lo %08X   hi %08X\n",
+	mprintf( " %3s %08X  %3s %08X   pc %08X   lo %08X   hi %08X\n",
 		regname[ i  ], pr->regs[ i  ], 
 		regname[ i+1], pr->regs[ i+1],
 		pr->pcreg, pr->loreg, pr->hireg);
@@ -133,7 +133,7 @@ tlb_dump()
 	int i;
 	struct TLBEnt *e;
 
-	dprintf( " [             general             ][    subp 0    ][    subp 1    ]\n"
+	mprintf( " [             general             ][    subp 0    ][    subp 1    ]\n"
 		"  no    vpn      mask        g asid  v d   pfn    c  v d   pfn    c\n");
 
 	for (i=0; i<48; i++)
@@ -141,7 +141,7 @@ tlb_dump()
 		e = &(pr->tlb[ i]);
 //		if (!e->pg[ 0].valid && !e->pg[ 1].valid) continue;
 		
-		dprintf( "  %02x  %08X %08X:%-4s %d  %02x   %d %d %08X %x  %d %d %08X %1x\n",
+		mprintf( "  %02x  %08X %08X:%-4s %d  %02x   %d %d %08X %x  %d %d %08X %1x\n",
 			i,
 			e->vpn2, e->mask,
 			get_pagemask_name( 
@@ -167,55 +167,55 @@ CP0Dump_reg( int reg)
 		
 	switch (reg)
 	{
-		case CP0_Index:	dprintf( s,
+		case CP0_Index:	mprintf( s,
 			cp0_index,
 			cp0_index_index, cp0_index_res, cp0_index_p
 			); break;
-		case CP0_Random: dprintf( s,
+		case CP0_Random: mprintf( s,
 			cp0_random, cp0_random_random, cp0_random_res
 			); break;
-		case CP0_EntryLo0: dprintf( s,
+		case CP0_EntryLo0: mprintf( s,
 			cp0_entrylo0, 
 			cp0_entrylo0_g,	cp0_entrylo0_v,
 			cp0_entrylo0_d,	cp0_entrylo0_c,
 			cp0_entrylo0_pfn, cp0_entrylo0_res1
 			); break;
-		case CP0_EntryLo1: dprintf( s,
+		case CP0_EntryLo1: mprintf( s,
 			cp0_entrylo1, 
 			cp0_entrylo1_g,	cp0_entrylo1_v,
 			cp0_entrylo1_d,	cp0_entrylo1_c,
 			cp0_entrylo1_pfn, cp0_entrylo1_res1
 			); break;
-		case CP0_Context: dprintf( s,
+		case CP0_Context: mprintf( s,
 			cp0_context,
 			cp0_context_res1,
 			cp0_context_badvpn2,
 			cp0_context_ptebase
 			);
 			break;
-		case CP0_PageMask: dprintf( s,
+		case CP0_PageMask: mprintf( s,
 			cp0_pagemask,
 			cp0_pagemask_res1,
 			cp0_pagemask_mask,
 			get_pagemask_name( cp0_pagemask_mask),
 			cp0_pagemask_res2
 			); break;
-		case CP0_Wired: dprintf( s,
+		case CP0_Wired: mprintf( s,
 			cp0_wired, cp0_wired_w,	cp0_wired_res1
 			); break;
-		case CP0_BadVAddr: dprintf( s,
+		case CP0_BadVAddr: mprintf( s,
 			cp0_badvaddr, cp0_badvaddr_badvaddr
 			); break;
-		case CP0_Count: dprintf( s,
+		case CP0_Count: mprintf( s,
 			cp0_count, cp0_count_count
 			); break;
-		case CP0_EntryHi: dprintf( s,
+		case CP0_EntryHi: mprintf( s,
 			cp0_entryhi, cp0_entryhi_asid, cp0_entryhi_res1, cp0_entryhi_vpn2
 			); break;
-		case CP0_Compare: dprintf( s,
+		case CP0_Compare: mprintf( s,
 			cp0_compare, cp0_compare_compare
 			 ); break;
-		case CP0_Status: dprintf( s,
+		case CP0_Status: mprintf( s,
 			cp0_status,
 			cp0_status_ie, cp0_status_exl, cp0_status_erl,
 			cp0_status_ksu,	cp0_status_ux, cp0_status_sx,
@@ -225,18 +225,18 @@ CP0Dump_reg( int reg)
 			cp0_status_res2, cp0_status_re, cp0_status_fr,
 			cp0_status_rp, cp0_status_cu
 			); break;
-		case CP0_Cause: dprintf( s,
+		case CP0_Cause: mprintf( s,
 			cp0_cause, cp0_cause_res1, cp0_cause_exccode,
 			cp0_cause_res2, cp0_cause_ip, cp0_cause_res3,
 			cp0_cause_ce, cp0_cause_res4, cp0_cause_bd
 			); break;
-		case CP0_EPC: dprintf( s,
+		case CP0_EPC: mprintf( s,
 			cp0_epc, cp0_epc_epc
 			); break;
-		case CP0_PRId: dprintf( s,
+		case CP0_PRId: mprintf( s,
 			cp0_prid, cp0_prid_rev, cp0_prid_imp, cp0_prid_res
 			); break;
-		case CP0_Config: dprintf( s,
+		case CP0_Config: mprintf( s,
 			cp0_config, cp0_config_k0, cp0_config_cu,
 			cp0_config_db, cp0_config_b, cp0_config_dc,
 			cp0_config_ic, cp0_config_res, cp0_config_eb,
@@ -245,21 +245,21 @@ CP0Dump_reg( int reg)
 			cp0_config_ss, cp0_config_sb, cp0_config_ep,
 			cp0_config_ec, cp0_config_cm
 			); break;
-		case CP0_LLAddr: dprintf( s,
+		case CP0_LLAddr: mprintf( s,
 			cp0_lladdr, cp0_lladdr_lladdr
 			); break;
-		case CP0_WatchLo: dprintf( s,
+		case CP0_WatchLo: mprintf( s,
 			cp0_watchlo, cp0_watchlo_w, cp0_watchlo_r,
 			cp0_watchlo_res, cp0_watchlo_paddr0
 			); break;
-		case CP0_WatchHi: dprintf( s,
+		case CP0_WatchHi: mprintf( s,
 			cp0_watchhi, cp0_watchhi_paddr1, cp0_watchhi_res
 			); break;
-		case CP0_ErrorEPC: dprintf(  s,
+		case CP0_ErrorEPC: mprintf(  s,
 			cp0_errorepc, cp0_errorepc
 			); break;
 		default:
-			dprintf( s);
+			mprintf( s);
 			break;
 	}
 }
@@ -275,7 +275,7 @@ CP0Dump( int reg)
 		{ 0, 1, 2, 3, 4, 5, 6, 8, 9, 10, 11,
 		12, 13, 14, 15, 16, 17, 18, 19, 20, 30, -1};
 
-	dprintf( "  no name       hex dump  readable dump\n");
+	mprintf( "  no name       hex dump  readable dump\n");
 	if (reg == -1)
 		for (i=&vals[ 0]; *i!=-1; i++)
 			CP0Dump_reg( *i);
@@ -497,7 +497,7 @@ iview( uint32_t addr, TInstrInfo *ii, bool procdep, char *regch)
 	if (s_cmt[ 0] && regch[ 0])
 		s_cmtx = ", ";
 
-	dprintf_btag( "\t\t\t\t\t# ", "%-4s%s%s  %-6s%-18s%-2s%s%s" TBRK "%s\n",
+	mprintf_btag( "\t\t\t\t\t# ", "%-4s%s%s  %-6s%-18s%-2s%s%s" TBRK "%s\n",
 			s_proc, s_addr, s_iopc, 
 			InstrNamesAcronym[ ii->opcode].InstrText, s_parm,
 			s_hash, s_cmt, s_cmtx, regch);
@@ -582,7 +582,7 @@ static void
 dbg_dev_infodev( device_s *d)
 
 {
-	dprintf_btag( NULL, "%-10s %-10s ", d->name, d->type->name);
+	mprintf_btag( NULL, "%-10s %-10s ", d->name, d->type->name);
 	cmd_run_by_name( "info", &pars_end, d->type->cmds, d);
 }
 
@@ -635,7 +635,7 @@ static void
 dbg_dev_statdev( device_s *d)
 
 {
-	dprintf_btag( NULL, "%-10s %-10s ", d->name, d->type->name);
+	mprintf_btag( NULL, "%-10s %-10s ", d->name, d->type->name);
 	cmd_run_by_name( "stat", &pars_end, d->type->cmds, d);
 }
 
@@ -650,7 +650,7 @@ dbg_dev_stat()
 {
 	device_s *d = NULL;
 	
-	dprintf( "[  name  ] [  type  ] [ statistics...\n");
+	mprintf( "[  name  ] [  type  ] [ statistics...\n");
 	
 	if (dev_next( &d))
 		do {

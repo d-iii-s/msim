@@ -129,7 +129,7 @@ dprinter_init( parm_link_s *parm, device_s *dev)
 	pd = malloc( sizeof( printer_data_s));
 	if (!pd)
 	{
-		dprintf( txt_pub[ 5]);
+		mprintf( txt_pub[ 5]);
 		return false;
 	}
 	else
@@ -147,7 +147,7 @@ dprinter_init( parm_link_s *parm, device_s *dev)
 	/* check */
 	if (pd->addr & 3)
 	{
-		dprintf( "Printer address must be in the 4-byte boundary.\n");
+		mprintf( "Printer address must be in the 4-byte boundary.\n");
 		return false;
 	}
 	
@@ -169,7 +169,7 @@ dprinter_redir( parm_link_s *parm, device_s *dev)
 	if (!new_file)
 	{
 		io_error( filename);
-		dprintf( txt_pub[ 8]);
+		mprintf( txt_pub[ 8]);
 		
 		return false;
 	}
@@ -220,7 +220,7 @@ dprinter_info( parm_link_s *parm, device_s *dev)
 {
 	printer_data_s *pd = dev->data;
 	
-	dprintf_btag( INFO_SPC, "address:0x%08x\n", pd->addr);
+	mprintf_btag( INFO_SPC, "address:0x%08x\n", pd->addr);
 	
 	return true;
 }
@@ -234,7 +234,7 @@ dprinter_stat( parm_link_s *parm, device_s *dev)
 {
 	printer_data_s *pd = dev->data;
 	
-	dprintf_btag( INFO_SPC, "count:%lld\n", pd->count);
+	mprintf_btag( INFO_SPC, "count:%lld\n", pd->count);
 
 	return true;
 }

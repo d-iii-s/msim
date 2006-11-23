@@ -151,7 +151,7 @@ dkeyboard_init( parm_link_s *parm, device_s *dev)
 	kd = malloc( sizeof( *kd));
 	if (!kd)
 	{
-		dprintf( "%s\n", txt_pub[ 5]);
+		mprintf( "%s\n", txt_pub[ 5]);
 		return false;
 	}
 	else
@@ -172,12 +172,12 @@ dkeyboard_init( parm_link_s *parm, device_s *dev)
 	/* checks */
 	if (kd->addr & 3)
 	{
-		dprintf( "Keyboard address must be on 4-byte aligned.\n");
+		mprintf( "Keyboard address must be on 4-byte aligned.\n");
 		return false;
 	}
 	if (kd->intno > 6)
 	{
-		dprintf( "Interrupt number must be within 0..6.\n");
+		mprintf( "Interrupt number must be within 0..6.\n");
 		return false;
 	}
 
@@ -193,7 +193,7 @@ dkeyboard_info( parm_link_s *parm, device_s *dev)
 {
 	keyboard_data_s *kd = dev->data;
 	
-	dprintf_btag( INFO_SPC, "address:0x%08x " TBRK "intno:%d " TBRK
+	mprintf_btag( INFO_SPC, "address:0x%08x " TBRK "intno:%d " TBRK
 			"regs(key:0x%02x " TBRK " ig:%d)\n",
 			kd->addr, kd->intno, kd->incomming, kd->ig);
 	
@@ -209,7 +209,7 @@ dkeyboard_stat( parm_link_s *parm, device_s *dev)
 {
 	keyboard_data_s *kd = dev->data;
 	
-	dprintf_btag( INFO_SPC, "intrc:%lld " TBRK "keycount:%lld " TBRK
+	mprintf_btag( INFO_SPC, "intrc:%lld " TBRK "keycount:%lld " TBRK
 			"overrun:%lld\n",
 			kd->intrcount, kd->keycount, kd->overrun);
 	
@@ -231,7 +231,7 @@ dkeyboard_gen( parm_link_s *parm, device_s *dev)
 
 		if (!c || parm->token.tval.s[ 1])
 		{
-			dprintf( "Invalid key (must be exactly one character).\n");
+			mprintf( "Invalid key (must be exactly one character).\n");
 			return false;
 		}
 	}
@@ -241,7 +241,7 @@ dkeyboard_gen( parm_link_s *parm, device_s *dev)
 
 		if (parm->token.tval.i > 255)
 		{
-			dprintf( "Invalid key (must be within 0..255).\n");
+			mprintf( "Invalid key (must be within 0..255).\n");
 			return false;
 		}
 	}

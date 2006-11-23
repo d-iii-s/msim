@@ -142,7 +142,7 @@ dorder_init( parm_link_s *parm, device_s *dev)
 	od = malloc( sizeof( struct dorder_data_struct));
 	if (!od)
 	{
-		dprintf( txt_pub[ 5]);
+		mprintf( txt_pub[ 5]);
 		return false;
 	}
 	else
@@ -157,12 +157,12 @@ dorder_init( parm_link_s *parm, device_s *dev)
 	/* checks */
 	if (od->addr & 3)
 	{
-		dprintf( "Dorder address must be 4-byte aligned.\n");
+		mprintf( "Dorder address must be 4-byte aligned.\n");
 		return false;
 	}
 	if (od->intno > 6)
 	{
-		dprintf( "Interrupt number must be within 0..6.\n");
+		mprintf( "Interrupt number must be within 0..6.\n");
 		return false;
 	}
 	

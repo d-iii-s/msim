@@ -10,10 +10,10 @@
 #define TBRK_C	'\001'
 
 void output_init( void);
-void dprintf( const char *fmt, ...);
-void dprintf_btag( const char *nl, const char *fmt, ...);
-void dprintf_n( int n, const char *fmt, ...);
-void dprintf_text( const char *in, const char *fmt, ...);
-void dprintf_err( const char *fmt, ...);
+void mprintf( const char *fmt, ...);
+void mprintf_btag( const char *nl, const char *fmt, ...);
+void mprintf_n( int n, const char *fmt, ...);
+void mprintf_text( const char *in, const char *fmt, ...);
+void mprintf_err( const char *fmt, ...);
 
 #endif /* _OUTPUT_H_ */

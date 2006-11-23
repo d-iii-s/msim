@@ -174,7 +174,7 @@ dcpu_init( parm_link_s *parm, device_s *dev)
 	
 	if (!(cd = malloc( sizeof( cpu_data_s))))
 	{
-		dprintf( txt_pub[ 5]);
+		mprintf( txt_pub[ 5]);
 		return false;
 	}
 	else
@@ -183,7 +183,7 @@ dcpu_init( parm_link_s *parm, device_s *dev)
 	if (!(cd->proc = malloc( sizeof( processor_s))))
 	{
 		free( cd);
-		dprintf( txt_pub[ 0]);
+		mprintf( txt_pub[ 0]);
 		
 		return false;
 	}
@@ -191,7 +191,7 @@ dcpu_init( parm_link_s *parm, device_s *dev)
 	cd->cpuno = cpu_get_free_id();
 	if (cd->cpuno == -1)
 	{
-		dprintf( txt_cpu[ 0]);
+		mprintf( txt_cpu[ 0]);
 		return false;
 	}
 	
@@ -210,7 +210,7 @@ static bool
 dcpu_info( parm_link_s *parm, device_s *dev)
 
 {
-	dprintf_btag( INFO_SPC, "type:R4000.32\n");
+	mprintf_btag( INFO_SPC, "type:R4000.32\n");
 	return true;
 }
 
@@ -224,7 +224,7 @@ dcpu_stat( parm_link_s *parm, device_s *dev)
 	cpu_data_s *cd = dev->data;
 	processor_s *p = cd->proc;
 	
-        dprintf_btag( INFO_SPC, "cycles total:%lld " TBRK
+        mprintf_btag( INFO_SPC, "cycles total:%lld " TBRK
 			"in kernel:%lld " TBRK "in user:%lld " TBRK
 			"in stdby:%lld " TBRK 
 			"tlb refill:%lld " TBRK "invalid: %lld " TBRK
@@ -261,7 +261,7 @@ dcpu_cp0d( parm_link_s *parm, device_s *dev)
 		no = parm->token.tval.i;
 		if (no > 31)
 		{
-			dprintf_btag( INFO_SPC, txt_cpu[ 2]);
+			mprintf_btag( INFO_SPC, txt_cpu[ 2]);
 			return false;
 		}
 	}
@@ -306,22 +306,22 @@ dcpu_md( parm_link_s *parm, device_s *dev)
 	for (j=0; siz; siz--, addr+=4, j++)
 	{
 		if (!(j&0x3))
-			dprintf( "  %08x    ", addr);
+			mprintf( "  %08x    ", addr);
 		
 		res = read_proc_mem( addr, 4, &val, false);
-		dprintf( "res: %d\n", res);
+		mprintf( "res: %d\n", res);
 		
 		if (res == excNone)
-			dprintf( "%08x  ", val);
+			mprintf( "%08x  ", val);
 		else
-			dprintf( "xxxxxxxx  ");
+			mprintf( "xxxxxxxx  ");
 		
 		if ((j&0x3) == 3)
-			dprintf( "\n");
+			mprintf( "\n");
 	}
 
 	if (j)  
-		dprintf( "\n");
+		mprintf( "\n");
 
 	return true;
 }

@@ -288,7 +288,7 @@ ddisk_init( parm_link_s *parm, device_s *dev)
 	
 	if (dev->data)
 	{
-		dprintf( "Reinicialization is not allowed.\n");
+		mprintf( "Reinicialization is not allowed.\n");
 		return false;
 	}
 	
@@ -317,17 +317,17 @@ ddisk_init( parm_link_s *parm, device_s *dev)
 	/* checks */
 	if (dd->addr & 0x3)
 	{
-		dprintf( "Disk address must be 4-byte aligned.\n");
+		mprintf( "Disk address must be 4-byte aligned.\n");
 		return false;
 	}
 	if (dd->intno > 6)
 	{
-		dprintf( txt_pub[ 3]);
+		mprintf( txt_pub[ 3]);
 		return false;
 	}
 	if (dd->size & 0x1ff)
 	{
-		dprintf( txt_ddisk[ 1]);
+		mprintf( txt_ddisk[ 1]);
 		return false;
 	}
 	
@@ -361,7 +361,7 @@ ddisk_info( parm_link_s *parm, device_s *dev)
 			break;
 	}
 	
-	dprintf_btag( INFO_SPC, "address:0x%08x " TBRK "intno:%d " TBRK "size:%s " TBRK
+	mprintf_btag( INFO_SPC, "address:0x%08x " TBRK "intno:%d " TBRK "size:%s " TBRK
 			"type:%s " TBRK "regs(mem:0x%08x " TBRK
 			"secno:%d " TBRK "status:0x%x " TBRK "ig:%d)\n",
 			dd->addr, dd->intno, s, st,
@@ -380,7 +380,7 @@ ddisk_stat( parm_link_s *parm, device_s *dev)
 {
 	disk_data_s *dd = dev->data;
 
-	dprintf_btag( INFO_SPC, "intrc:%d " TBRK
+	mprintf_btag( INFO_SPC, "intrc:%d " TBRK
 			"cmds total:%lld " TBRK
 			"read:%lld " TBRK "write:%lld " TBRK "error:%lld\n",
 			dd->intrcount,
@@ -408,7 +408,7 @@ ddisk_generic( parm_link_s *parm, device_s *dev)
 		case DISKT_NONE:
 			if (!ddisk_try_malloc( dd))
 			{
-				dprintf( txt_ddisk[ 11]);
+				mprintf( txt_ddisk[ 11]);
 				return false;
 			}
 		
@@ -422,7 +422,7 @@ ddisk_generic( parm_link_s *parm, device_s *dev)
 				try_munmap( ximg, dd->size);
 			else
 			{
-				dprintf( txt_ddisk[ 11]);
+				mprintf( txt_ddisk[ 11]);
 				return false;
 			}
 			
@@ -454,7 +454,7 @@ ddisk_fmap( parm_link_s *parm, device_s *dev)
 	if (fd == -1)
 	{
 		io_error( filename);
-		dprintf( txt_pub[ 8]);
+		mprintf( txt_pub[ 8]);
 		return false;
 	}
 
@@ -462,7 +462,7 @@ ddisk_fmap( parm_link_s *parm, device_s *dev)
 	offset = 0;
 	if (!try_lseek( fd, &offset, SEEK_END, filename))
 	{
-		dprintf( txt_ddisk[ 7]);
+		mprintf( txt_ddisk[ 7]);
 		return false;
 	}
 	
@@ -473,7 +473,7 @@ ddisk_fmap( parm_link_s *parm, device_s *dev)
 		offset = dd->size-1;
 		if (!try_lseek( fd, &offset, SEEK_SET, filename))
 		{
-			dprintf( txt_ddisk[ 7]);
+			mprintf( txt_ddisk[ 7]);
 			return false;
 		}
 	
@@ -484,7 +484,7 @@ ddisk_fmap( parm_link_s *parm, device_s *dev)
 			io_error( filename);
 			try_soft_close( fd, filename);
 
-			dprintf( txt_ddisk[ 8]);
+			mprintf( txt_ddisk[ 8]);
 
 			return false;
 		}
@@ -498,7 +498,7 @@ ddisk_fmap( parm_link_s *parm, device_s *dev)
 		io_error( filename);
 		try_soft_close( fd, filename);
 
-		dprintf( txt_ddisk[ 9]);
+		mprintf( txt_ddisk[ 9]);
 
 		return false;
 	}
@@ -506,7 +506,7 @@ ddisk_fmap( parm_link_s *parm, device_s *dev)
 	/* closing file */
 	if (!try_close( fd, filename))
 	{
-		dprintf( txt_pub[ 11]);
+		mprintf( txt_pub[ 11]);
 		return false;
 	}
 
@@ -546,7 +546,7 @@ ddisk_fill( parm_link_s *parm, device_s *dev)
 	{
 		if (!parm->token.tval.s[ 0] || parm->token.tval.s[ 1])
 		{
-			dprintf( "Invalid character\n");
+			mprintf( "Invalid character\n");
 			return false;
 		}
 
@@ -556,7 +556,7 @@ ddisk_fill( parm_link_s *parm, device_s *dev)
 	{
 		if (parm->token.tval.i > 255)
 		{
-			dprintf( "integer constant out of ramge 0..255\n");
+			mprintf( "integer constant out of ramge 0..255\n");
 			return false;
 		}
 
@@ -591,7 +591,7 @@ ddisk_load( parm_link_s *parm, device_s *dev)
 	
 	if (!try_open( &fd, O_RDONLY, filename))
 	{
-		dprintf( txt_pub[ 8]);
+		mprintf( txt_pub[ 8]);
 		return false;
 	}
 	
@@ -601,13 +601,13 @@ ddisk_load( parm_link_s *parm, device_s *dev)
 		io_error( filename);
 		try_soft_close( fd, filename);
 		
-		dprintf( txt_pub[ 10]);
+		mprintf( txt_pub[ 10]);
 		return false;
 	}
 	
 	if (!try_close( fd, filename))
 	{
-		dprintf( txt_pub[ 11]);
+		mprintf( txt_pub[ 11]);
 		return false;
 	}
 	
@@ -632,7 +632,7 @@ ddisk_save( parm_link_s *parm, device_s *dev)
 	if (fd == -1)
 	{
 		io_error( filename);
-		dprintf( txt_pub[ 13]);
+		mprintf( txt_pub[ 13]);
 		return true;
 	}
 	
@@ -640,7 +640,7 @@ ddisk_save( parm_link_s *parm, device_s *dev)
 	if (dd->disk_type == DISKT_NONE)
 	{
 		if (!try_close( fd, filename))
-			dprintf( txt_pub[ 11]);
+			mprintf( txt_pub[ 11]);
 
 		return true;
 	}
@@ -652,14 +652,14 @@ ddisk_save( parm_link_s *parm, device_s *dev)
 		io_error( filename);
 		try_soft_close( fd, filename);
 
-		dprintf( txt_pub[ 14]);
+		mprintf( txt_pub[ 14]);
 
 		return false;
 	}
 	
 	if (!try_close( fd, filename))
 	{
-		dprintf( txt_pub[ 11]);
+		mprintf( txt_pub[ 11]);
 		return false;
 	}
 	

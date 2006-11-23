@@ -74,7 +74,7 @@ machine_user_break( int par)
 {
 	if (tobreak || interactive)
 	{
-		dprintf( "Quit\n");
+		mprintf( "Quit\n");
 		input_back();
 		exit( 1);
 	}

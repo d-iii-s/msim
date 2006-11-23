@@ -88,7 +88,7 @@ cline.o
 msim_LDADD = $(LDADD)
 msim_DEPENDENCIES = 
 msim_LDFLAGS = 
-CFLAGS = -Wall -O0
+CFLAGS = -g -O2
 COMPILE = $(CC) $(DEFS) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS)
 CCLD = $(CC)
 LINK = $(CCLD) $(AM_CFLAGS) $(CFLAGS) $(LDFLAGS) -o $@

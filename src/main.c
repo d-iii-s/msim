@@ -100,7 +100,7 @@ parse_cmdline( int argc, char *args[])
 				break;
 				
 			case 'V':
-				dprintf( txt_version);
+				mprintf( txt_version);
 				exit( 0);
 				
 			case 'i':
@@ -114,8 +114,8 @@ parse_cmdline( int argc, char *args[])
 				break;
 				
 			case 'h':
-				dprintf( txt_version);
-				dprintf( txt_help);
+				mprintf( txt_version);
+				mprintf( txt_help);
 				done_machine();
 				exit( 0);
 				

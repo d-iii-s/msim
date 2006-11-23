@@ -227,13 +227,13 @@ system_add( parm_link_s *pl, void *data)
 	/* check for conflicts between the device name and a command name */
 	if (cmd_find( parm_str( pl), system_cmds, NULL) == CMP_HIT)
 	{
-		dprintf( "Device name '%s' is in conflict with a command name.\n",
+		mprintf( "Device name '%s' is in conflict with a command name.\n",
 				parm_str( pl));
 		return false;
 	}
 	if (dev_by_name( parm_str( pl)))
 	{
-		dprintf( "Device name duplicity\n");
+		mprintf( "Device name duplicity\n");
 		return false;
 	}
 	
@@ -393,18 +393,18 @@ system_md( parm_link_s *pl, void *data)
 	for (j=0; j<p2; j++, p1+=4)
 	{
 		if (!(j&0x3))
-			dprintf( "  %08x    ", p1);
+			mprintf( "  %08x    ", p1);
 		
 		val = mem_read( p1);
 		
-		dprintf( "%08x  ", val);
+		mprintf( "%08x  ", val);
 	
 		if ((j&0x3) == 3)
-			dprintf( "\n");
+			mprintf( "\n");
 	}
 	
 	if (j)
-		dprintf( "\n");
+		mprintf( "\n");
 	
 	return true;
 }
@@ -434,7 +434,7 @@ static bool
 system_echo( parm_link_s *pl, void *data)
 
 {
-	dprintf( "%s\n", (pl->token.ttype==tt_str) ? pl->token.tval.s : "\n");
+	mprintf( "%s\n", (pl->token.ttype==tt_str) ? pl->token.tval.s : "\n");
 	return true;
 }
 
@@ -477,7 +477,7 @@ interpret( const char *s)
 
 	if (pl->token.ttype != tt_str)
 	{
-		dprintf( "Command name expected.\n");
+		mprintf( "Command name expected.\n");
 		return true;
 	}
 

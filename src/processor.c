@@ -533,7 +533,7 @@ TLBW( int reg, enum exc *res)
 		TLBEnt *t = &pr->tlb[ i];
 
 		if (i > 47)
-			dprintf( "\nTLBWI: Invalid value in Index\n");
+			mprintf( "\nTLBWI: Invalid value in Index\n");
 		else
 		{
 			/* tlb filling */
@@ -1318,7 +1318,7 @@ execute( TInstrInfo *ii2)
 				
 				/* delay slot test */
 				if (pr->branch && errors)
-					dprintf( "\nError: ERET in a delay slot\n\n");
+					mprintf( "\nError: ERET in a delay slot\n\n");
 			
 				if (cp0_status_erl)
 				{
@@ -1375,13 +1375,13 @@ execute( TInstrInfo *ii2)
 						(rrt == 0x1fe000)|(rrt == 0x7fe000)|(rrt == 0x1ffe000))
 						cp0_pagemask = rrt & cp0_pagemask_mask_mask;
 					else if (errors) 
-						dprintf( "\nMTC0: Invalid value for PageMask\n");
+						mprintf( "\nMTC0: Invalid value for PageMask\n");
 													break;
 				case CP0_Wired:
 					cp0_random = 47;
 					cp0_wired = rrt & 0x3f;
 					if (cp0_wired > 47) 
-						dprintf( "\nMTC0: Invalid value for Wired\n");
+						mprintf( "\nMTC0: Invalid value for Wired\n");
 													break;
 				case CP0_Res1:		/* ignored, reserved */				break;
 				/* 8 */
@@ -1511,7 +1511,7 @@ execute( TInstrInfo *ii2)
 
 				if (i > 47)
 				{
-					dprintf( "\nTLBR: Invalid value in Index\n");
+					mprintf( "\nTLBR: Invalid value in Index\n");
 					cp0_pagemask = 0; cp0_entryhi = 0;
 					cp0_entrylo0 = 0; cp0_entrylo1 = 0;
 				}
@@ -1556,14 +1556,14 @@ execute( TInstrInfo *ii2)
 		 */
 
 		case opcDVAL:
-			dprintf( "\nDebug: value %Xh (%dd)\n\n", pr->regs[ 4], pr->regs[ 4]);
+			mprintf( "\nDebug: value %Xh (%dd)\n\n", pr->regs[ 4], pr->regs[ 4]);
 			break;
 			
 		case opcDTRC:
 			if (!totrace) 
 			{
 				reg_view();
-				dprintf( "\n");
+				mprintf( "\n");
 			}
 			update_deb();
 			totrace = true;
@@ -1574,13 +1574,13 @@ execute( TInstrInfo *ii2)
 			break;
 			
 		case opcDRV:
-			dprintf( "\nDebug: register view\n");
+			mprintf( "\nDebug: register view\n");
 			reg_view();
-			dprintf( "\n");
+			mprintf( "\n");
 			break;
 			
 		case opcDHLT:
-			if (totrace) dprintf( "\nMachine halt.\n\n");
+			if (totrace) mprintf( "\nMachine halt.\n\n");
 			tohalt = true;
 			break;
 
@@ -1628,7 +1628,7 @@ handle_exception( enum exc res)
 	
 	/* user info and register filling */
 	if (totrace)
-		dprintf( "\nRaised exception: %s\n\n", excText[ res]);
+		mprintf( "\nRaised exception: %s\n\n", excText[ res]);
 	cp0_cause &= ~cp0_cause_exccode_mask;
 	cp0_cause |= res << cp0_cause_exccode_shift;
 		

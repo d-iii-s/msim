@@ -77,7 +77,7 @@ output_init( void)
 /** Prints the message on the screen.
  */
 void
-dprintf( const char *fmt, ...)
+mprintf( const char *fmt, ...)
 
 {
 	va_list ap;
@@ -99,7 +99,7 @@ dprintf( const char *fmt, ...)
  * The cursor pointer is not modified.
  */
 void
-dprintf2( const char *fmt, ...)
+mprintf2( const char *fmt, ...)
 
 {
 	va_list ap;
@@ -148,7 +148,7 @@ string_space( const char *str)
  * fmt	a printf-like text format
  */
 void
-dprintf_btag( const char *nl, const char *fmt, ...)
+mprintf_btag( const char *nl, const char *fmt, ...)
 
 {
 	va_list ap;
@@ -172,7 +172,7 @@ dprintf_btag( const char *nl, const char *fmt, ...)
 	// line break test
 	if (scr_cur > sw-1)
 	{
-		dprintf2( "\n%s", nl);
+		mprintf2( "\n%s", nl);
 		scr_cur = ncur;
 		next_line = true;
 	}
@@ -199,7 +199,7 @@ dprintf_btag( const char *nl, const char *fmt, ...)
 		// line break test
 		if (scr_cur > sw-1 && !next_line)
 		{
-			dprintf2( "\n%s", nl);
+			mprintf2( "\n%s", nl);
 			scr_cur = ncur +acur;
 			next_line = true;
 		}
@@ -207,10 +207,10 @@ dprintf_btag( const char *nl, const char *fmt, ...)
 		
 		// print the substring
 		if (x)
-			dprintf2( "%s", so);
+			mprintf2( "%s", so);
 		else
 		{
-			dprintf2( "%s", so);
+			mprintf2( "%s", so);
 
 			if (*(s-1) == '\n')
 				scr_cur = 0;
@@ -220,12 +220,12 @@ dprintf_btag( const char *nl, const char *fmt, ...)
 }
 
 
-/** Aka dprintf but with limited output length.
+/** Aka mprintf but with limited output length.
  *
  * Maximum string length is 256.
  */
 void
-dprintf_n( int n, const char *fmt, ...)
+mprintf_n( int n, const char *fmt, ...)
 
 {
 	char buf[ 256];
@@ -250,7 +250,7 @@ dprintf_n( int n, const char *fmt, ...)
 /** Prints the text.
  */
 void
-dprintf_text( const char *nl, const char *fmt, ...)
+mprintf_text( const char *nl, const char *fmt, ...)
 
 {
 	char buf[ BUF_SIZ];
@@ -281,14 +281,14 @@ dprintf_text( const char *nl, const char *fmt, ...)
 	}
 	*s2 = '\0';
 
-	dprintf_btag( nl, "%s", buf2);
+	mprintf_btag( nl, "%s", buf2);
 }
 
 
 /** Prints the error message
  */
 void
-dprintf_err( const char *fmt, ...)
+mprintf_err( const char *fmt, ...)
 
 {
 	char buf[ BUF_SIZ];
@@ -307,5 +307,5 @@ dprintf_err( const char *fmt, ...)
 	vsnprintf( buf+len, BUF_SIZ-len, fmt, ap);
 	va_end( ap);
 
-	dprintf_text( NULL, "%s", buf);
+	mprintf_text( NULL, "%s", buf);
 }

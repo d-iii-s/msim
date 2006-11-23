@@ -252,7 +252,7 @@ mem_struct( mem_data_s *md, bool alloc)
 		{
 			free( e);
 			md->me = 0;
-			dprintf( txt_mem[ 2]);
+			mprintf( txt_mem[ 2]);
 
 			return false;
 		}
@@ -370,24 +370,24 @@ mem_init( parm_link_s *parm, device_s *dev)
 	/* checks */
 	if (md->start & 0x3)
 	{
-		dprintf( "Memory address must by 4-byte aligned.\n");
+		mprintf( "Memory address must by 4-byte aligned.\n");
 		return false;
 	}
 	if (md->size & 0x3)
 	{
-		dprintf( "Memory size must be 4-byte aligned.\n");
+		mprintf( "Memory size must be 4-byte aligned.\n");
 		return false;
 	}
 	if (md->size == 0)
 	{
-		dprintf( "Memory size is illegal.\n");
+		mprintf( "Memory size is illegal.\n");
 		return false;
 	}
 
 	/* alloc memory */
 	if ((long long)md->start +(long long)md->size > 0x100000000ull)
 	{
-		dprintf( "memory exceeded 4GB limit.\n");
+		mprintf( "memory exceeded 4GB limit.\n");
 		return false;
 	}
 
@@ -408,7 +408,7 @@ mem_info( parm_link_s *parm, device_s *dev)
 	char s[ 8];
 	
 	cpr_num( s, md->size);
-	dprintf_btag( INFO_SPC, "start:0x%08x " TBRK "size:%s " TBRK
+	mprintf_btag( INFO_SPC, "start:0x%08x " TBRK "size:%s " TBRK
 			"type:%s\n", md->start, s,
 			txt_mem_type[ md->mem_type]);
 
@@ -422,7 +422,7 @@ static bool
 mem_stat( parm_link_s *parm, device_s *dev)
 
 {
-	dprintf_btag( INFO_SPC, "no statistics\n");
+	mprintf_btag( INFO_SPC, "no statistics\n");
 	return true;
 }
 
@@ -484,14 +484,14 @@ mem_fill( parm_link_s *parm, device_s *dev)
 			c = s[ 0];
 			if (!c || s[ 1])
 			{
-				dprintf( "Invalid character.\n");
+				mprintf( "Invalid character.\n");
 				return false;
 			}
 			break;
 		case tt_int:
 			if (parm_int( parm) > 255)
 			{
-				dprintf( "Integer out of range 0..255\n");
+				mprintf( "Integer out of range 0..255\n");
 				return false;
 			}
 			c = parm_int( parm);

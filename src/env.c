@@ -179,7 +179,7 @@ change_ireg( int i)
 {
 	if (i > 2)
 	{
-		dprintf( "Index out of range 0..2.\n");
+		mprintf( "Index out of range 0..2.\n");
 		return false;
 	}
 	
@@ -198,24 +198,24 @@ print_all_variables( void)
 {
 	const set_s *s = env_set;
 
-	dprintf( "List of all variables:\n");
+	mprintf( "List of all variables:\n");
 	
 	while (s->name)
 	{
 		if (s->val)
 		{
 			/* variable */
-			dprintf( "\t%s = ", s->name);
+			mprintf( "\t%s = ", s->name);
 			switch (s->type)
 			{
 				case vt_int:
-					dprintf( "%d", *(int *)s->val);
+					mprintf( "%d", *(int *)s->val);
 					break;
 				case vt_str:
-					dprintf( "%s", *(const char *)s->val);
+					mprintf( "%s", *(const char *)s->val);
 					break;
 				case vt_bool:
-					dprintf( "%s", *( bool *)s->val ?
+					mprintf( "%s", *( bool *)s->val ?
 							"on" : "off");
 					break;
 			}
@@ -223,9 +223,9 @@ print_all_variables( void)
 		else
 		{
 			/* label */
-			dprintf( "%s", s->desc);
+			mprintf( "%s", s->desc);
 		}
-		dprintf( "\n");
+		mprintf( "\n");
 
 		s++;
 	}
@@ -340,7 +340,7 @@ search_variable( const char *var_name)
 	
 	if (!s->name)
 	{
-		dprintf( "Unknown variable %s.\n", var_name);
+		mprintf( "Unknown variable %s.\n", var_name);
 		return NULL;
 	}
 
@@ -367,18 +367,18 @@ show_help( parm_link_s *parm)
 		{
 			if (s->val)
 				/* variable */
-				dprintf( "\t%s  %s", s->name, s->desc);
+				mprintf( "\t%s  %s", s->name, s->desc);
 			else
 				/* label */
-				dprintf( "%s", s->desc);
-			dprintf( "\n");
+				mprintf( "%s", s->desc);
+			mprintf( "\n");
 		}
 	else
 	{
 		s = search_variable( parm_str( parm->next));
 		if (s)
 		{
-			dprintf( "%s\n", s->descf);
+			mprintf( "%s\n", s->descf);
 		}
 	}
 }
@@ -431,7 +431,7 @@ set_str( const set_s *s, parm_link_s *parm)
 		char *sx = xstrdup( parm->token.tval.s);
 		if (!sx)
 		{
-			dprintf( "Not enough memory\n");
+			mprintf( "Not enough memory\n");
 			return false;
 		}
 		free( s->val);
@@ -498,7 +498,7 @@ set_variable( parm_link_s *parm)
 		case vt_bool:
 			if (!bool_sanitize( parm))
 			{
-				dprintf( "Boolean parameter expected.\n");
+				mprintf( "Boolean parameter expected.\n");
 				return false;
 			}
 			return set_bool( s, parm);

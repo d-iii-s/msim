@@ -3,13 +3,12 @@
 #
 
 2006-11-23	Viliam Holub <holub@nenya.ms.mff.cuni.cz>
-	* dprintf renamed to mprintf to avoid conflicts with libc (Martin
-	  Decky <decky@nenya.ms.mff.cuni.cz>
-
-2006-06-03	Viliam Holub <holub@nenya.ms.mff.cuni.cz>
 	* missing stdio.h in input.c fixed
 	* MULT fix (thx Ondrej Palkovsky <ondrap@penguin.cz>)
 	* u_int64_t -> uint_64 fix
+	* dprintf renamed to mprintf to avoid conflicts with libc (Martin
+	  Decky <decky@nenya.ms.mff.cuni.cz>
+	* minor fixes
 
 2005-12-30	Ondrej Palkovsky <ondrap@penguin.cz>
 	* keybord keycode register is cleared after read operation; this

@@ -119,7 +119,7 @@ hint_generator( const char *input, int level)
 
 {
 	char *s;
-	const void *data = NULL;
+	static const void *data;
 	static parm_link_s *pl = NULL;
 	static gen_f generator;
 
@@ -132,6 +132,7 @@ hint_generator( const char *input, int level)
 		parm_check_end( pl, par_text);
 		generator = NULL;
 
+		data = NULL;
 		find_system_generator( &pl, &generator, &data);
 
 		if (!generator)

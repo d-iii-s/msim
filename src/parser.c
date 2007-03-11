@@ -1067,11 +1067,10 @@ cmd_run_by_parm( parm_link_s *pl, const cmd_s *cmds,
 }
 
 
-/**
+/** Command tab completion generator.
  * 
- * IN level	The call number. It is only necessary that the first call has
- * 		a number 0.
- * IN pl	type tt_str
+ * @parm level	The call index number. Used only for the first call when eq to
+ * 		0.
  */
 char *
 generator_cmd( parm_link_s *pl, const void *data, int level)

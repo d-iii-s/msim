@@ -1069,7 +1069,7 @@ execute( TInstrInfo *ii2)
 		case opcLLD:	res = excRI;						break;
 		case opcLUI:	pr->regs[ ii.rt] = ii.imm << 16;			break;
 		case opcLW:
-			res = read_proc_mem( rrs +ii.imm, INT32, &pr->regs[ ii.rt], true);
+			res = read_proc_mem( rrs +ii.imm, INT32, (uint32_t *)&pr->regs[ ii.rt], true);
 			break;
 		case opcLWL: 
 			{

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2002-2006 Viliam Holub
+ * Copyright (c) 2002-2007 Viliam Holub
  */
 
 #ifdef HAVE_CONFIG_H

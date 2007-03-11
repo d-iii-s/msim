@@ -60,8 +60,8 @@ cmd_s dmem_cmds[] =
 	{ "info", (cmd_f)mem_info,
 		DEFAULT,
 		DEFAULT,
-		"Configuration informtion",
-		"Configuration informtion",
+		"Configuration information",
+		"Configuration information",
 		NOCMD},
 	{ "stat", (cmd_f)mem_stat,
 		DEFAULT,
@@ -222,7 +222,7 @@ mem_alloc_block( mem_data_s *md)
 	void *mx = xmalloc( md->size);
 	
 	memset( mx, 0, md->size);
-	md->me->mem = (char *)mx;
+	md->me->mem = (unsigned char *)mx;
 	md->mem_type = MEMT_MEM;
 	
 	return true;
@@ -619,7 +619,7 @@ mem_generic( parm_link_s *parm, device_s *dev)
 
 {
 	mem_data_s *md = dev->data;
-	char *mx;
+	unsigned char *mx;
 	
 	switch (md->mem_type)
 	{

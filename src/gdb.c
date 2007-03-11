@@ -414,7 +414,7 @@ gdb_mem_upload( const char *buf, char *mem, int count)
  * return true if there is any number
  */
 static bool
-gdb_read_hexnum( char **s, int *i)
+gdb_read_hexnum( char **s, unsigned int *i)
 {
 	int i2;
     

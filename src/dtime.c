@@ -34,25 +34,25 @@ cmd_s dtime_cmds[] =
 		DEFAULT,
 		"Inicialization",
 		"Inicialization",
-		REQ STR "Timer name" NEXT
-		REQ INT "Timer register address" END},
+		REQ STR "time/timer name" NEXT
+		REQ INT "arrd/timer register address" END},
 	{ "help", (cmd_f)dev_generic_help,
 		DEFAULT,
 		DEFAULT,
-		"Help",
-		"Help",
+		"Displays help",
+		"Displays help",
 		OPT STR "cmd/command name" END},
 	{ "info", (cmd_f)dtime_info,
 		DEFAULT,
 		DEFAULT,
-		"Configuration information",
-		"Configuration information",
+		"Displays device configuration",
+		"Displays device configuration",
 		NOCMD},
 	{ "stat", (cmd_f)dtime_stat,
 		DEFAULT,
 		DEFAULT,
-		"Statictics",
-		"Statictics",
+		"Displays device statictics",
+		"displays device statictics",
 		NOCMD},
 	LAST_CMD
 };
@@ -118,10 +118,11 @@ dtime_init( parm_link_s *parm, device_s *dev)
 	if (td->addr & 0x3)
 	{
 		mprintf( "Dtime address must be 4-byte aligned.\n");
+		free( td);
 		return false;
 	}
 	
-	return 0;
+	return true;
 }
 
 
@@ -133,7 +134,7 @@ dtime_info( parm_link_s *parm, device_s *dev)
 {
 	struct dtime_data_struct *td = dev->data;
 	
-	mprintf_btag( INFO_SPC, "address:0x%08x", td->addr);
+	mprintf_btag( INFO_SPC, "address:0x%08x\n", td->addr);
 	
 	return true;
 }

@@ -334,7 +334,7 @@ system_id( parm_link_s *pl, void *data)
 			
 		ii.icode = mem_read( p1);
 		decode_instr( &ii);
-		iview( p1, &ii, true, 0);
+		iview( p1, &ii, false, 0);
 	}
 	
 	return true;

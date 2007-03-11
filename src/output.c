@@ -180,11 +180,11 @@ mprintf_btag( const char *nl, const char *fmt, ...)
 	s = dbuf;
 	for (x=*s; x; s++)
 	{
-		char *so = s; // keeps the substring start
-
 		// remove TBRK prefix
 		while (*s && *s == TBRK_C)
 			s++;
+
+		char *so = s; // keeps the substring start
 
 		// find the end of the substring
 		for (; *s && *s!=TBRK_C; s++) ;
@@ -194,6 +194,10 @@ mprintf_btag( const char *nl, const char *fmt, ...)
 
 		// calculate the substring length
 		acur = string_space( so);
+
+		if (acur == 0)
+			continue;
+
 		scr_cur += acur;
 
 		// line break test

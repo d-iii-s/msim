@@ -132,8 +132,7 @@ dprinter_init( parm_link_s *parm, device_s *dev)
 		mprintf( txt_pub[ 5]);
 		return false;
 	}
-	else
-		dev->data = pd;
+	dev->data = pd;
 	
 	/* inicialization */
 	parm_next( &parm);
@@ -148,6 +147,7 @@ dprinter_init( parm_link_s *parm, device_s *dev)
 	if (pd->addr & 3)
 	{
 		mprintf( "Printer address must be in the 4-byte boundary.\n");
+		free( pd);
 		return false;
 	}
 	
@@ -219,9 +219,7 @@ dprinter_info( parm_link_s *parm, device_s *dev)
 
 {
 	printer_data_s *pd = dev->data;
-	
 	mprintf_btag( INFO_SPC, "address:0x%08x\n", pd->addr);
-	
 	return true;
 }
 
@@ -233,9 +231,7 @@ dprinter_stat( parm_link_s *parm, device_s *dev)
 
 {
 	printer_data_s *pd = dev->data;
-	
 	mprintf_btag( INFO_SPC, "count:%lld\n", pd->count);
-
 	return true;
 }
 

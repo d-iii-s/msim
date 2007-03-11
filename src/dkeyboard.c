@@ -173,11 +173,13 @@ dkeyboard_init( parm_link_s *parm, device_s *dev)
 	if (kd->addr & 3)
 	{
 		mprintf( "Keyboard address must be on 4-byte aligned.\n");
+		free( kd);
 		return false;
 	}
 	if (kd->intno > 6)
 	{
 		mprintf( "Interrupt number must be within 0..6.\n");
+		free( kd);
 		return false;
 	}
 
@@ -194,7 +196,7 @@ dkeyboard_info( parm_link_s *parm, device_s *dev)
 	keyboard_data_s *kd = dev->data;
 	
 	mprintf_btag( INFO_SPC, "address:0x%08x " TBRK "intno:%d " TBRK
-			"regs(key:0x%02x " TBRK " ig:%d)\n",
+			"regs(key:0x%02x " TBRK "ig:%d)\n",
 			kd->addr, kd->intno, kd->incomming, kd->ig);
 	
 	return true;

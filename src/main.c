@@ -46,7 +46,7 @@ static struct option long_options[] =
 	{ "interactive",	no_argument,		0, 'i'},
 	{ "config",		required_argument,	0, 'c'},
 	{ "help", 		no_argument,		0, 'h'},
-	{ "remote-gdb",		required_argument,	0, 'r'},
+	{ "remote-gdb",		required_argument,	0, 'g'},
 	{}
 };
 #endif
@@ -76,23 +76,23 @@ parse_cmdline( int argc, char *args[])
 
 {
 	int c;
-	
+
 	opterr = 0;
-	
+
 	while (1)
 	{
 		int option_index = 0;
-		
+	
 #ifdef HAVE_GETOPT_LONG
 		c = getopt_long( argc, args, "tVic:hg:",
 				long_options, &option_index);
 #else
 		c = getopt( argc, args, "tVic:hg:");
 #endif
-		
+	
 		if (c == -1)
 			break;
-		
+
 		switch (c)
 		{
 			case 't':
@@ -101,6 +101,7 @@ parse_cmdline( int argc, char *args[])
 				
 			case 'V':
 				mprintf( txt_version);
+				done_machine();
 				exit( 0);
 				
 			case 'i':

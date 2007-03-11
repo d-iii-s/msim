@@ -44,14 +44,14 @@ cmd_s dorder_cmds[] =
 	{ "help", (cmd_f)dev_generic_help,
 		DEFAULT,
 		DEFAULT,
-		"Displays this help text",
-		"Displays this help text",
+		"Displays help",
+		"Displays help",
 		OPT STR "cmd/command name" END},
 	{ "info", (cmd_f)dorder_info,
 		DEFAULT,
 		DEFAULT,
-		"Displays device state and configuration",
-		"Displays device state and configuration",
+		"Displays device state",
+		"Displays device state",
 		NOCMD},
 	{ "stat", (cmd_f)dorder_stat,
 		DEFAULT,
@@ -84,7 +84,9 @@ device_type_s DOrder =
 	"Synchronization device",
 	
 	/* full description */
-	"xxx",
+	"The order device allows to acquire a unique processor number (i.e."
+	"a serial number) and assert an interrupt to the specified processor"
+	"in the multiprocessor machine.",
 	
 	/* functions */
 	dorder_done,	/* done */
@@ -145,8 +147,7 @@ dorder_init( parm_link_s *parm, device_s *dev)
 		mprintf( txt_pub[ 5]);
 		return false;
 	}
-	else
-		dev->data = od;
+	dev->data = od;
 	
 	/* initialize */
 	parm_next( &parm);
@@ -158,11 +159,13 @@ dorder_init( parm_link_s *parm, device_s *dev)
 	if (od->addr & 3)
 	{
 		mprintf( "Dorder address must be 4-byte aligned.\n");
+		free( od);
 		return false;
 	}
 	if (od->intno > 6)
 	{
 		mprintf( "Interrupt number must be within 0..6.\n");
+		free( od);
 		return false;
 	}
 	

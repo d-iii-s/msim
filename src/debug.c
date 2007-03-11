@@ -283,17 +283,17 @@ CP0Dump( int reg)
 }
 
 
-/*
- * converts opcode to text 
- * procdep defines processor-dependent dump (cases to dump processor number)
+/** Converts an opcode to text.
+ *
+ * \param procdep defines processor-dependent dump (cases to dump processor number)
  */
 void
 iview( uint32_t addr, TInstrInfo *ii, bool procdep, char *regch)
 
 {
-	char s_proc[ 5];
-	char s_iopc[ 10];
-	char s_addr[ 10];
+	char s_proc[ 16];
+	char s_iopc[ 16];
+	char s_addr[ 16];
 	char s_parm[ 32];
 	char *s_hash;
 	char s_cmt[ 32];
@@ -304,21 +304,24 @@ iview( uint32_t addr, TInstrInfo *ii, bool procdep, char *regch)
 	const char *rsn = regname[ ii->rs];
 	const char *rdn = regname[ ii->rd];
 
-	s_proc[ 0] = 0;
-	if (!procdep && !(R4000_cnt <= 1))
+	if (procdep && R4000_cnt > 1)
 		sprintf( (char *)s_proc, "%2d  ", pr->procno);
+	else
+		s_proc[ 0] = '\0';
 	
-	s_addr[ 0] = 0;
 	if (iaddr)
 		sprintf( (char *)s_addr, "%08X  ", addr);
+	else
+		s_addr[ 0] = '\0';
 
-	s_iopc[ 0] = 0;
 	if (iopc)
 		sprintf( (char *)s_iopc, "%08X  ", ii->icode);
+	else
+		s_iopc[ 0] = '\0';
 
 
-	s_parm[ 0] = 0;
-	s_cmt[ 0] = 0;
+	s_parm[ 0] = '\0';
+	s_cmt[ 0] = '\0';
 	
 	switch (InstrNamesAcronym[ ii->opcode].itype)
 	{
@@ -507,7 +510,7 @@ iview( uint32_t addr, TInstrInfo *ii, bool procdep, char *regch)
 
 /** Writes info about changed registers.
  *
- * Each modified register is included in the output
+ * Each modified register is included to the output.
  **/
 void
 modified_regs_dump( size_t siz, char *sx)

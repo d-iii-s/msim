@@ -749,7 +749,7 @@ gdb_remote_init( void)
 
 	if (R4000_cnt != 1)
 	{
-		mprintf( PACKAGE ": gdb: exactly one processor allowed\n");
+		mprintf( PACKAGE ": Error - only one processor allowed in the gdb mode\n");
 		return false;
 	}
 

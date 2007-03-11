@@ -182,9 +182,8 @@ dcpu_init( parm_link_s *parm, device_s *dev)
 	
 	if (!(cd->proc = malloc( sizeof( processor_s))))
 	{
-		free( cd);
 		mprintf( txt_pub[ 0]);
-		
+		free( cd);
 		return false;
 	}
 
@@ -192,6 +191,7 @@ dcpu_init( parm_link_s *parm, device_s *dev)
 	if (cd->cpuno == -1)
 	{
 		mprintf( txt_cpu[ 0]);
+		free( cd);
 		return false;
 	}
 	
@@ -432,7 +432,8 @@ static int
 cpu_get_free_id( void)
 
 {
-	int c, id_mask = 0;
+	int c;
+	unsigned id_mask = 0;
 	device_s *d = 0;
 
 	while (dev_next( &d))
@@ -440,7 +441,7 @@ cpu_get_free_id( void)
 			id_mask |= 1 << ((cpu_data_s *)
 					d->data)->cpuno;
 	
-	for (c=0; c<MAXPROC; c++,id_mask<<=1)
+	for (c=0; c<MAXPROC; c++,id_mask>>=1)
 		if (!(id_mask & 1))
 			return c;
 

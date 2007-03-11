@@ -318,16 +318,19 @@ ddisk_init( parm_link_s *parm, device_s *dev)
 	if (dd->addr & 0x3)
 	{
 		mprintf( "Disk address must be 4-byte aligned.\n");
+		free( dd);
 		return false;
 	}
 	if (dd->intno > 6)
 	{
 		mprintf( txt_pub[ 3]);
+		free( dd);
 		return false;
 	}
 	if (dd->size & 0x1ff)
 	{
 		mprintf( txt_ddisk[ 1]);
+		free( dd);
 		return false;
 	}
 	

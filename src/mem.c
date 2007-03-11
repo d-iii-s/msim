@@ -60,8 +60,8 @@ cmd_s dmem_cmds[] =
 	{ "info", (cmd_f)mem_info,
 		DEFAULT,
 		DEFAULT,
-		"Configuration informtions",
-		"Configuration informtions",
+		"Configuration informtion",
+		"Configuration informtion",
 		NOCMD},
 	{ "stat", (cmd_f)mem_stat,
 		DEFAULT,
@@ -371,16 +371,19 @@ mem_init( parm_link_s *parm, device_s *dev)
 	if (md->start & 0x3)
 	{
 		mprintf( "Memory address must by 4-byte aligned.\n");
+		free( md);
 		return false;
 	}
 	if (md->size & 0x3)
 	{
 		mprintf( "Memory size must be 4-byte aligned.\n");
+		free( md);
 		return false;
 	}
 	if (md->size == 0)
 	{
 		mprintf( "Memory size is illegal.\n");
+		free( md);
 		return false;
 	}
 
@@ -388,6 +391,7 @@ mem_init( parm_link_s *parm, device_s *dev)
 	if ((long long)md->start +(long long)md->size > 0x100000000ull)
 	{
 		mprintf( "memory exceeded 4GB limit.\n");
+		free( md);
 		return false;
 	}
 

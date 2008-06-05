@@ -393,7 +393,7 @@ set_int( const set_s *s, parm_link_s *parm)
 	if (s->func)
 		((set_int_f)s->func)( parm_int( parm));
 	else
-		*(uint32_t *)s->val = parm->token.tval.i;
+		*(uint32_t *)s->val = parm_int( parm);
 		
 	return true;
 }
@@ -407,12 +407,12 @@ static bool
 set_bool( const set_s *s, parm_link_s *parm)
 
 {
-	parm->token.tval.i = !!parm->token.tval.i;
+	parm->token.tval.i = !!parm_int( parm);
 	
 	if (s->func)
 		((set_bool_f)s->func)( parm_int( parm));
 	else
-		*(bool *)s->val = !!parm->token.tval.i;
+		*(bool *)s->val = !!parm_int( parm);
 		
 	return true;
 }
@@ -428,7 +428,7 @@ set_str( const set_s *s, parm_link_s *parm)
 		((set_str_f)s->func)( parm_str( parm));
 	else
 	{
-		char *sx = xstrdup( parm->token.tval.s);
+		char *sx = xstrdup( parm_str( parm));
 		if (!sx)
 		{
 			mprintf( "Not enough memory\n");
@@ -450,7 +450,7 @@ bool_sanitize( parm_link_s *parm)
 {
 	const char **s;
 
-	if (parm->token.ttype == tt_str)
+	if (parm_type( parm) == tt_str)
 	{
 		/* test for true */
 		for (s=t_true_all; *s; s++)

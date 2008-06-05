@@ -1,6 +1,6 @@
 /*
  * Memory device
- * Copyright (c) 2003,2004 Viliam Holub
+ * Copyright (c) 2003-2007 Viliam Holub
  */
 
 #ifdef HAVE_CONFIG_H
@@ -49,8 +49,7 @@ cmd_s dmem_cmds[] =
 		"Inicialization",
 		"Inicialization",
 		REQ STR "memory name" NEXT
-		REQ INT "memory start address" NEXT
-		REQ INT "memory size" END},
+		REQ INT "memory start address" END},
 	{ "help", (cmd_f)dev_generic_help,
 		DEFAULT,
 		DEFAULT,
@@ -111,77 +110,39 @@ static void mem_done( device_s *d);
 
 device_type_s DROM =
 {
-	/* type name */
-	id_rom,
-
-	/* brief description */
-	"Read/write memory",
+	/* Type name and description */
+	.name = id_rom,
+	.brief = "Read only memory",
+	.full = "Read only memory",
 	
-	/* full description */
-	"xxx",
-	
-	/* functions */
-	mem_done,	/* done */
-	NULL,		/* step */
-	NULL,		/* read */
-	NULL,		/* write */
+	/* Functions */
+	.done = mem_done,
 
-	/* commands */
-	dmem_cmds
+	/* Commands */
+	.cmds = dmem_cmds
 };
 
 device_type_s DRWM =
 {
-	/* type name */
-	id_rwm,
-
-	/* brief description */
-	"Read/write memory",
+	/* Type name and description */
+	.name = id_rwm,
+	.brief = "Read/write memory",
+	.full = "Read/write memory",
 	
-	/* full description */
-	"xxx",
-	
-	/* functions */
-	mem_done,	/* done */
-	NULL,		/* step */
-	NULL,		/* read */
-	NULL,		/* write */
+	/* Functions */
+	.done = mem_done,
 
-	/* commands */
-	dmem_cmds
+	/* Commands */
+	.cmds = dmem_cmds
 };
 
 
 /*
- * string constants
- * take care for position
+ * String constants
  */
 
-const char *txt_mem[] =
-{
-/* 0 */
-	"Memory starting address expected.",
-	"Memory size expected.",
-	"",
-	"Memory position error (4b align expected).",
-	"Memory size error (4b align expected).",
-/* 5 */
-	"Memory name expected.",
-	"File size test fail",
-	"File name expected.",
-	"Integer expected.",
-	"Memory name redefinition.",
-/* 10 */
-	"Illegal memory size",
-	"File enlarging error",
-	"Fill constant out of range (0..255).",
-	"Memory exceed 4GB limit.",
-	"File map fail",
-/* 15 */
-	"File unmap fail",
-	"Unable to enlarge file to rom size"
-};
-
+const char txt_file_map_fail[] = "File map fail";
+const char txt_file_unmap_fail[] = "File unmap fail";
 
 const char *txt_mem_type[] =
 {
@@ -190,84 +151,76 @@ const char *txt_mem_type[] =
 	"fmap"
 };
 
+/*
+ * Memory types
+ */
 
-#define MEMT_NONE	0
-#define MEMT_MEM	1
-#define MEMT_FMAP	2
+#define MEMT_NONE	0	/* Uninitialized */
+#define MEMT_MEM	1	/* Memory */
+#define MEMT_FMAP	2	/* File mapped */
 
 
 /*
- * mem data structure
+ * Memory device data structure
  */
 struct mem_data_s
 {
-	uint32_t start;
-	uint32_t size;
-	bool writeable;
-	int mem_type;
+	uint32_t start;		/* Memory position */
+	uint32_t size;		/* Memory size in bytes */
+	bool writeable;		/* Write-able flag */
+	int mem_type;		/* Memory type (NONE, MEM, FMAP) */
 	
-	mem_element_s *me;
-	
-	int par;
+	mem_element_s *me;	/* Memory list element */
 };
 typedef struct mem_data_s mem_data_s;
 
 
 
-/* allocs memory block and clears it */
-static bool
+/** Allocs memory block and clears it.
+ */
+static void
 mem_alloc_block( mem_data_s *md)
-
 {
 	void *mx = xmalloc( md->size);
-	
 	memset( mx, 0, md->size);
 	md->me->mem = (unsigned char *)mx;
 	md->mem_type = MEMT_MEM;
-	
-	return true;
 }
 
 
-static bool
+/** Creates memory element.
+ *
+ * Memory blocks are organized in list.
+ */
+static void
 mem_struct( mem_data_s *md, bool alloc)
-
 {
 	mem_element_s *e;
 	
-	/* adding memory */
+	/* Adding memory element. */
 	e = (mem_element_s *)
 		xmalloc( sizeof( mem_element_s));
 	
 	md->me = e;
 	
-	/* inicializing */
+	/* Inicializing. */
 	e->start = md->start;
 	e->size = md->size;
 	e->writ = md->writeable;
 	e->mem = 0;
 	
 	if (alloc)
-		if (!mem_alloc_block( md))
-		{
-			free( e);
-			md->me = 0;
-			mprintf( txt_mem[ 2]);
-
-			return false;
-		}
+		mem_alloc_block( md);
 		
 	
-	/* linking */
+	/* Linking. */
 	mem_link( e);
-
-	return true;
 }
 
 
-/*
- * Called to close given file descriptor when io error occures.
- * Does not break program, just only write error message.
+/** Close file safely.
+ *
+ * On error, writes error message and exits.
  */
 static void
 try_soft_close( int fd, const char *filename)
@@ -276,12 +229,13 @@ try_soft_close( int fd, const char *filename)
 	if (close( fd))
 	{
 		io_error( filename);
-		error( txt_pub[ 11]);
+		error( txt_file_close_err);
 	}
 }
 
 
-/* safe file descriptor close */
+/** Safe file descriptor close.
+ */
 static bool
 try_close( int fd, const char *filename)
 
@@ -296,10 +250,10 @@ try_close( int fd, const char *filename)
 }
 
 
-/* safe opening file */
+/** Safe opening file.
+ */
 static bool
 try_open( int *fd, int flags, const char *filename)
-
 {
 	*fd = open( filename, flags);
 	if (*fd == -1)
@@ -312,10 +266,10 @@ try_open( int *fd, int flags, const char *filename)
 }
 
 
-/* safe lseek call */
+/** Safe lseek call.
+ */
 static bool
 try_lseek( int fd, off_t *offset, int whence, const char *filename)
-
 {
 	*offset = lseek( fd, *offset, whence);
 	if (*offset == (off_t)-1)
@@ -330,68 +284,75 @@ try_lseek( int fd, off_t *offset, int whence, const char *filename)
 }
 
 
-/* safe munmap call; result is not relevant */
+/** Safe munmap call.
+ */
 static void
 try_munmap( void *s, size_t l)
-
 {
 	if (munmap( s, l) == -1)
 	{
 		/* huh? */
 		io_error( 0);
-		error( txt_mem[ 15]);
+		error( txt_file_unmap_fail);
 	}
 }
 
 
-/** Init command implementation
+/** Clean up the memory.
+ */
+static void
+mem_clean_up( mem_data_s *md)
+{
+	switch (md->mem_type)
+	{
+		case MEMT_NONE:
+			/* Nothing to do. */
+			break;
+
+		case MEMT_MEM:
+			/* Free old memory block. */
+			mem_unlink( md->me);
+			XFREE( md->me->mem);
+			XFREE( md->me);
+			break;
+			
+		case MEMT_FMAP:
+			mem_unlink( md->me);
+			try_munmap( md->me->mem, md->size);
+			XFREE( md->me);
+			break;
+	}
+
+	md->mem_type = MEMT_NONE;
+	md->size = 0;
+}
+
+
+/** Init command implementation.
  *
  * Inits memory structure.
  */
-
 static bool
 mem_init( parm_link_s *parm, device_s *dev)
-
 {
 	mem_data_s *md;
 
-	/* alloc memory structure */
+	/* Alloc memory structure. */
 	dev->data = md = xmalloc( sizeof( *md));
 
-	/* initialize */
+	/* Initialize. */
 	parm_next( &parm);
-	md->par = 0;
 	md->me = 0;
 	md->mem_type = MEMT_NONE;
 	md->start = parm_next_int( &parm);
-	md->size = parm_next_int( &parm);
+	md->size = 0;
 	md->writeable = dev->type->name == id_rwm;
 
-	/* checks */
-	if (md->start & 0x3)
+	/* Checks. */
+	if (!addr_word_aligned( md->start))
 	{
 		mprintf( "Memory address must by 4-byte aligned.\n");
-		free( md);
-		return false;
-	}
-	if (md->size & 0x3)
-	{
-		mprintf( "Memory size must be 4-byte aligned.\n");
-		free( md);
-		return false;
-	}
-	if (md->size == 0)
-	{
-		mprintf( "Memory size is illegal.\n");
-		free( md);
-		return false;
-	}
-
-	/* alloc memory */
-	if ((long long)md->start +(long long)md->size > 0x100000000ull)
-	{
-		mprintf( "memory exceeded 4GB limit.\n");
-		free( md);
+		XFREE( md);
 		return false;
 	}
 
@@ -420,7 +381,7 @@ mem_info( parm_link_s *parm, device_s *dev)
 }
 
 
-/** Stat comman implementation.
+/** Stat command implementation.
  */
 static bool
 mem_stat( parm_link_s *parm, device_s *dev)
@@ -431,7 +392,7 @@ mem_stat( parm_link_s *parm, device_s *dev)
 }
 
 
-/** Load command implementation
+/** Load command implementation.
  *
  * Loads the contents of the file specified to the memory block.
  */
@@ -445,28 +406,37 @@ mem_load( parm_link_s *parm, device_s *dev)
 	size_t readed;
 
 	if (md->mem_type == MEMT_NONE)
-		if (!mem_generic( parm, dev))
-			return false;
+	{
+		/* Illegal. */
+		return false;
+	}
 	
 	if (!try_open( &fd, O_RDONLY, filename))
-		return txt_pub[ 8];
+	{
+		mprintf( "%s\n", txt_file_open_err);
+		return false;
+	}
 	
 	readed = read( fd, md->me->mem, md->size);
 	if (readed == -1)
 	{
 		io_error( filename);
 		try_soft_close( fd, filename);
-		return txt_pub[ 10];
+		mprintf( "%s\n", txt_file_read_err);
+		return false;
 	}
 	
 	if (!try_close( fd, filename))
-		return txt_pub[ 11];
+	{
+		mprintf( "%s\n", txt_file_close_err);
+		return false;
+	}
 	
 	return true;
 }
 
 
-/** Fill command implementation
+/** Fill command implementation.
  *
  * Fills the memory with a specified character.
  */
@@ -511,7 +481,7 @@ mem_fill( parm_link_s *parm, device_s *dev)
 }
 
 
-/** Fmap command implementation
+/** Fmap command implementation.
  *
  * Mapping memory to a file. Allocated memory block is disposed. When the file
  * size is less than memory size it is enlarged.
@@ -525,9 +495,8 @@ mem_fmap( parm_link_s *parm, device_s *dev)
 	int fd;
 	void *mx;
 	off_t offset;
-	ssize_t written;
-	
-	/* opening the file */
+
+	/* Opening the file */
 	if (md->writeable)
 		fd = open( filename, O_RDWR);
 	else
@@ -536,81 +505,65 @@ mem_fmap( parm_link_s *parm, device_s *dev)
 	if (fd == -1)
 	{
 		io_error( filename);
-		return txt_pub[ 8];
+		mprintf( "%s\n", txt_file_open_err);
+		return false;
 	}
 
-	/* seeking to the end of the file to test we need to enlarge */
+	/* File size test. */
 	offset = 0;
 	if (!try_lseek( fd, &offset, SEEK_END, filename))
-		return txt_mem[ 6];
-	
-	if (offset+1 < md->size)
 	{
-		/* we need to enlarge file */
-		if (!md->writeable)
-		{
-			try_soft_close( fd, filename);
-			return txt_mem[ 16];
-		}
-		
-		/* seeking to specified memory size */
-		offset = md->size-1;
-		if (!try_lseek( fd, &offset, SEEK_SET, filename))
-			return txt_mem[ 6];
-	
-		/* enlarging */
-		written = write( fd, "", 1);
-		if (written == -1)
-		{
-			io_error( filename);
-			try_soft_close( fd, filename);
-
-			return txt_mem[ 11];
-		}
+		mprintf( "%s\n", txt_file_seek_err);
+		try_soft_close( fd, filename);
+		return false;
+	}
+	if (offset == 0)
+	{
+		mprintf( "Empty file.\n");
+		try_soft_close( fd, filename);
+		return false;
+	}
+	if ((long long)md->start +(long long)offset > 0x100000000ull)
+	{
+		mprintf( "registers would exceed the 4GB limit.\n");
+		try_soft_close( fd, filename);
+		return false;
 	}
 
-	/* file mapping */
+	/* File mapping */
 	if (md->writeable)
-		mx = mmap( 0, md->size, PROT_READ|PROT_WRITE, MAP_SHARED, fd, 0);
+		mx = mmap( 0, offset, PROT_READ|PROT_WRITE, MAP_SHARED, fd, 0);
 	else
-		mx = mmap( 0, md->size, PROT_READ, MAP_SHARED, fd, 0);
+		mx = mmap( 0, offset, PROT_READ, MAP_SHARED, fd, 0);
 
 	if (mx == MAP_FAILED)
 	{
 		io_error( filename);
 		try_soft_close( fd, filename);
-
-		return txt_mem[ 14];
+		
+		mprintf( "%s\n", txt_file_map_fail);
+		return false;
 	}
 
-	/* closing file */
+	/* Closing file */
 	if (!try_close( fd, filename))
-		return txt_pub[ 11];
-
-	/* upgrading structures and disposing previous memory block */
-	switch (md->mem_type)
 	{
-		case MEMT_NONE:
-			if (!mem_struct( md, false))
-				return false;
-			break;
-			
-		case MEMT_MEM:
-			free( md->me->mem);
-			break;
-			
-		case MEMT_FMAP:
-			try_munmap( md->me->mem, md->size);
-			break;
+		mprintf( "%s\n", txt_file_close_err);
+		return false;
 	}
+
+	/* Upgrading structures and disposing previous memory block */
+	mem_clean_up( md);
 	md->mem_type = MEMT_FMAP;
+	md->size = offset;
+	mem_struct( md, false);
 	md->me->mem = mx;
 	
-	return 0;
+	return true;
 }
 
 
-/** Generic command implementation
+/** Generic command implementation.
  *
  * Generic command makes memory device a standard memory.
  */
@@ -619,34 +572,37 @@ mem_generic( parm_link_s *parm, device_s *dev)
 
 {
 	mem_data_s *md = dev->data;
-	unsigned char *mx;
-	
-	switch (md->mem_type)
+	uint32_t size = parm_int( parm);
+
+	/* Test parameter. */
+	if (size & 0x3)
 	{
-		case MEMT_NONE:
-			return mem_struct( md, true);
-
-		case MEMT_MEM:
-			memset( md->me->mem, 0, md->size);
-			break;
-
-		case MEMT_FMAP:
-			mx = md->me->mem;
-			if (mem_alloc_block( md))
-			{
-				try_munmap( mx, md->size);
-			}
-			else
-				return txt_mem[ 2];
-			
-			break;
+		mprintf( "Memory size must be 4-byte aligned.\n");
+		return false;
 	}
+	if (size == 0)
+	{
+		mprintf( "Memory size is illegal.\n");
+		return false;
+	}
+	if ((long long)md->start +(long long)size > 0x100000000ull)
+	{
+		mprintf( "memory would exceed the 4GB limit.\n");
+		return false;
+	}
+	
+	/* Clear old configuration. */
+	mem_clean_up( md);
 
-	return 0;
+	md->mem_type = MEMT_MEM;
+	md->size = size;
+	mem_struct( md, true);
+
+	return true;
 }
 
 
-/** Save command implementation
+/** Save command implementation.
  *
  * Saves the content of the memory to the file specified.
  */
@@ -663,16 +619,20 @@ mem_save( parm_link_s *parm, device_s *dev)
 	if (fd == -1)
 	{
 		io_error( filename);
-		return txt_pub[ 13];
+		mprintf( "%s\n", txt_file_create_err);
+		return false;
 	}
 	
-	/* do not write anything when the memory is not inicialized */
+	/* Do not write anything when the memory is not inicialized. */
 	if (md->mem_type == MEMT_NONE)
 	{
 		if (!try_close( fd, filename))
-			return txt_pub[ 11];
+		{
+			mprintf( "%s\n", txt_file_close_err);
+			return false;
+		}
 
-		return 0;
+		return true;
 	}
 	
 	written = write( fd, md->me->mem, md->size);
@@ -681,40 +641,29 @@ mem_save( parm_link_s *parm, device_s *dev)
 	{
 		io_error( filename);
 		try_soft_close( fd, filename);
-		return txt_pub[ 14];
+		mprintf( "%s\n", txt_file_write_err);
+		return false;
 	}
 	
 	if (!try_close( fd, filename))
-		return txt_pub[ 11];
+	{
+		mprintf( "%s\n", txt_file_close_err);
+		return false;
+	}
 	
-	return 0;
+	return true;
 }
 
 	
-/* disposes memory device - structures, memory blocks, unmap, etc. */
+/** Disposes memory device - structures, memory blocks, unmap, etc.
+ */
 static void
 mem_done( device_s *d)
 
 {
 	mem_data_s *md = d->data;
 
-	switch (md->mem_type)
-	{
-		case MEMT_NONE:
-			break;
-			
-		case MEMT_MEM:
-			mem_unlink( md->me);
-			free( md->me->mem);
-			free( md->me);
-			break;
-			
-		case MEMT_FMAP:
-			mem_unlink( md->me);
-			try_munmap( md->me->mem, md->size);
-			free( md->me);
-			break;
-	}
+	mem_clean_up( md);
 	
 	XFREE( d->name);
 	XFREE( d->data);

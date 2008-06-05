@@ -2,7 +2,7 @@
 /*
  * Machine
  *
- * Copyright (c) 2000-2004 Viliam Holub
+ * Copyright (c) 2000-2008 Viliam Holub
  */
 
 #ifdef HAVE_CONFIG_H
@@ -151,13 +151,24 @@ void
 machine_step( void)
 
 {
-	device_s *dev = 0;
+	device_s *dev;
 
+	/* Increase machine cycle counter */
 	msteps++;
 	
-	while (dev_next( &dev))
-		if (dev->type->step)
-			dev->type->step( dev);
+	/* First traverse all the devices which requires processing time every
+	 * step. */
+	dev = NULL;
+	while (dev_next_in_step( &dev))
+		dev->type->step( dev);
+	
+	/* Then, every 4096th cycle traverse all the devices implementing step4
+	 * function. */
+	if (msteps % 4096 == 0) {
+		dev = NULL;
+		while (dev_next_in_step4( &dev))
+			dev->type->step4( dev);
+	}
 }
 
 
@@ -201,10 +212,7 @@ go_machine( void)
 }
 
 
-
-/* 
- * registering ll
- * default parameter is pr from processor
+/** Registering current processor for LL-SC tracking.
  */
 void
 RegisterLL( void)
@@ -212,10 +220,12 @@ RegisterLL( void)
 {
 	LLList_s *l;
 				
-	if (ll_list != 0)
+	/* Ignore if already registered. */
+	if (ll_list != NULL)
 		for (l=ll_list; l; l=l->next)
 			if (l->p == pr) return;
 
+	/* Add processor to the link. */
 	l = (LLList_s *) xmalloc( sizeof( LLList_s));
 	l->p = pr;
 	l->next = ll_list;
@@ -223,25 +233,28 @@ RegisterLL( void)
 }
 
 
+/** Remove current processor from the LL-SC tracking list.
+ */
 void
 UnregisterLL( void)
 
 {
-	LLList_s *l, *lo=0;
-	
-	if (ll_list != 0)
-		for (l=ll_list; l; lo=l, l=l->next)
-			if (l->p == pr)
-			{
-				if (lo) 
-					lo->next = l->next;
-				else
-					ll_list = l->next;
+	LLList_s *l, *lo = NULL;
 
-				free( l);
-				return;
-				
-			}
+	if (ll_list == NULL)
+		return;
+
+	for (l=ll_list; l; lo=l, l=l->next)
+		if (l->p == pr)
+		{
+			if (lo) 
+				lo->next = l->next;
+			else
+				ll_list = l->next;
+
+			free( l);
+			break;
+		}
 }
 
 

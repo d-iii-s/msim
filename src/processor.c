@@ -1,7 +1,7 @@
 /*
  * A MIPS R4000 processor simulation
  * 
- * Copyright (c) 2000-2005 Viliam Holub 
+ * Copyright (c) 2000-2007 Viliam Holub 
  */
 
 #ifdef HAVE_CONFIG_H
@@ -32,7 +32,7 @@
  */
 #define	HARD_RESET_STATUS		(cp0_status_erl_mask|cp0_status_bev_mask)
 #define	HARD_RESET_START_ADDRESS	0xbfc00000
-#define HARD_RESET_PROC_ID		0x00000200
+#define HARD_RESET_PROC_ID		0x00000400
 #define HARD_RESET_CAUSE		0
 #define HARD_RESET_WATCHLO		0
 #define HARD_RESET_WATCHHI		0
@@ -49,12 +49,10 @@
 processor_s *pr;
 
 
-
 /** Initializes simulation environment.
  */
 void
 processor_init( int procno)
-
 {
 	int i;
  
@@ -68,26 +66,26 @@ processor_init( int procno)
 	pr->tlb_invalid = 0;
 	pr->tlb_modified = 0;
 	
-	/* inicializing general registers */
+	/* Inicializing general registers */
 	for (i=0; i<32; i++) pr->regs[ i] = pr->fpregs[ i] = 0;
 
-	/* inicializing registers */
+	/* Inicializing other registers */
 	pr->loreg = pr->hireg = 0;
 	pr->pcreg = HARD_RESET_START_ADDRESS;
 	pr->pcnextreg = pr->pcreg + 4;
 	pr->branch = 0;
 
-	/* inicializing internal variables */
+	/* Inicializing internal variables */
 	pr->lladdr = (uint32_t) -1;
 	pr->llval = false;
 
-	/* inicializing cp0 registers */
+	/* Inicializing cp0 registers */
 	pr->cp0[ CP0_Config] = HARD_RESET_CONFIG;
 	pr->cp0[ CP0_Random] = HARD_RESET_RANDOM;
 	pr->cp0[ CP0_Wired] = HARD_RESET_WIRED;
 	pr->cp0[ CP0_PRId] = HARD_RESET_PROC_ID;
 	
-	/* initial status value */
+	/* Initial status value */
 	pr->cp0[ CP0_Status] = HARD_RESET_STATUS; 
 	
 	pr->cp0[ CP0_Cause] = HARD_RESET_CAUSE;
@@ -97,14 +95,14 @@ processor_init( int procno)
 	for (i=0;i<8;i++)
 		pr->intr[ i] = 0;
 	
-	/* inicializing registers for debug */
+	/* Inicializing registers for debugging */
 	for (i=0; i<32; i++)
 		pr->old_regs[ i] = 0;
 	for (i=0; i<32; i++)
 		pr->old_cp0[ i] = pr->cp0[ i];
 	pr->old_loreg = pr->loreg; pr->old_hireg = pr->hireg;
 
-	/* setting up list of tlb entries */
+	/* Setting up list of tlb entries */
 	pr->tlblist = &pr->tlb[ 47];
 	for (i=47; i; i--)
 		pr->tlb[ i].next = &pr->tlb[ i-1];
@@ -118,7 +116,6 @@ processor_init( int procno)
  */
 void
 set_general_reg( int regno, int value)
-		
 { 
 	if (regno != 0)
 		pr->regs[ regno] = value;
@@ -129,7 +126,6 @@ set_general_reg( int regno, int value)
  */
 void
 set_pc_reg( int value)
-
 {
 	pr->pcreg = value;
 	pr->pcnextreg = value +4;
@@ -151,16 +147,15 @@ enum tlb_look_e
  */
 static enum tlb_look_e
 tlb_look( uint32_t *addr, bool wr)
-
 {
 	TLBEnt *e, *prev;
 	uint32_t a = *addr;
 
-	/* ignore TLB test */
+	/* Ignore TLB test */
 	if (cp0_status_ts == 1)
 		return tlbl_ok;
 
-	/* looking for the TBL hit */
+	/* Looking for the TBL hit */
 	for (prev=0, e=pr->tlblist; e; prev=e, e=e->next)
 	{
 		/* TLB hit?  */
@@ -169,25 +164,25 @@ tlb_look( uint32_t *addr, bool wr)
 		{
 			int smask, subpageno;
 
-			/* testing asid */
+			/* Testing asid */
 			if (!e->global && (e->asid != cp0_entryhi_asid))
 				continue;
 
-			/* count sub-page */
+			/* Count sub-page */
 			smask = (e->mask >> 1) | SBIT; 
 			subpageno = ((a & e->mask) < (a & smask)) ? 1 : 0;
 
-			/* testing valid & dirty */
+			/* Testing valid & dirty */
 			if (!e->pg[ subpageno].valid)
 				return tlbl_invalid; 
 			if (wr && !e->pg[ subpageno].dirty)
 				return tlbl_modified; 
 
-			/* making address */
+			/* Making address */
 			a &= ~smask;
 			*addr = a | (e->pg[ subpageno].pfn & smask);
 
-			/* ok, now optimizing the list */
+			/* Ok, now optimizing the list */
 			if (prev)
 			{
 				prev->next = e->next;
@@ -207,7 +202,6 @@ tlb_look( uint32_t *addr, bool wr)
  */
 static void
 fill_tlb_error( uint32_t addr)
-
 {
 	cp0_badvaddr = addr;
 	cp0_context &= cp0_context_ptebase_mask;
@@ -217,31 +211,43 @@ fill_tlb_error( uint32_t addr)
 }
 
 
+/** Fills registers as the Address error exception occures.
+ */
+static void
+fill_addr_error( uint32_t addr, bool h)
+{
+	if (h) {
+		cp0_badvaddr = addr;
+		cp0_context &= ~cp0_context_badvpn2_mask; /* Undefined */
+		cp0_entryhi &= ~cp0_entryhi_vpn2_mask; /* Undefined */
+	}
+}
+
+
 /** Searches through TLB and generates apropriate exception.
  */
 static enum exc
 tlb_hit( uint32_t *addr, bool wr, bool h)
-
 {
 	switch (tlb_look( addr, wr))
 	{
-		case 0: /* ok */
+		case 0: /* Ok */
 			break;
-		case 1: /* refill */
+		case 1: /* Refill */
 			if (h)
 			{
 				pr->tlb_refill++;
 				fill_tlb_error( *addr);
 			}
 			return excTLBR;
-		case 2: /* invalid */
+		case 2: /* Invalid */
 			if (h)
 			{
 				pr->tlb_invalid++;
 				fill_tlb_error( *addr);
 			}
 			return excTLB;
-		case 3: /* modified */
+		case 3: /* Modified */
 			if (h)
 			{
 				pr->tlb_modified++;
@@ -258,11 +264,12 @@ tlb_hit( uint32_t *addr, bool wr, bool h)
  */
 static enum exc
 convert_addr_user( uint32_t *addr, bool wr, bool h)
-
 {
-	/* testing 31 bit or looking to TLB */
-	if ((*addr & SBIT) != 0)
+	/* Testing 31 bit or looking to TLB */
+	if ((*addr & SBIT) != 0) {
+		fill_addr_error( *addr, h);
 		return excAddrError;
+	}
 	
 	return tlb_hit( addr, wr, h); /* useg */
 }
@@ -272,17 +279,20 @@ convert_addr_user( uint32_t *addr, bool wr, bool h)
  */
 static enum exc
 convert_addr_supervisor( uint32_t *addr, bool wr, bool h)
-
 {
 
 	if (*addr < 0x80000000) /* suseg */
 		return tlb_hit( addr, wr, h);
-	else if (*addr < 0xc0000000)
+	else if (*addr < 0xc0000000) {
+		fill_addr_error( *addr, h);
 		return excAddrError;
+	}
 	else if (*addr < 0xe0000000)
 		return tlb_hit( addr, wr, h);  /* ssseg */
-	else /* *addr > 0xe0000000 */
+	else { /* *addr > 0xe0000000 */
+		fill_addr_error( *addr, h);
 		return excAddrError;
+	}
 }
 
 
@@ -290,7 +300,6 @@ convert_addr_supervisor( uint32_t *addr, bool wr, bool h)
  */
 static enum exc
 convert_addr_kernel( uint32_t *addr, bool wr, bool h)
-
 {
 	if (*addr < 0x80000000) /* kuseg */
 	{
@@ -309,12 +318,13 @@ convert_addr_kernel( uint32_t *addr, bool wr, bool h)
 
 
 /** The conversion of virtual addresses.
+ * \param wr	attempt to write
+ * \param h	fill apropriate processor registers if the address is incorrect
  */
 enum exc
 convert_addr( uint32_t *addr, bool wr, bool h)
-
 {
-	/* testing type of translation */
+	/* Testing type of translation */
 	if ((cp0_status_ksu == 2) && !cp0_status_exl && !cp0_status_erl)
 		return convert_addr_user( addr, wr, h);
 	else
@@ -328,17 +338,15 @@ convert_addr( uint32_t *addr, bool wr, bool h)
 /** Tests for correct align and fills BadVAddr if bad.
  */
 static enum exc
-mem_align_test( uint32_t addr, int size)
-
+mem_align_test( uint32_t addr, int size, bool h)
 {
-	if (((size == 2) && (addr & 1)) || ((size == 4) && (addr & 3)))
-		{ 
-			cp0_badvaddr = addr;
-			return excAddrError; 
-		}
+	if (((size == 2) && (addr & 1)) || ((size == 4) && (addr & 3))) { 
+		fill_addr_error( addr, h);
+		return excAddrError; 
+	}
 	return excNone;
 }
-	
+
 
 /** Accesses the virtual memory.
  *
@@ -355,11 +363,10 @@ mem_align_test( uint32_t addr, int size)
  */
 static enum exc
 acc_mem( bool wr, uint32_t addr, int size, uint32_t *value, bool h)
-
 {
 	enum exc res;
 	
-	res = mem_align_test( addr, size);
+	res = mem_align_test( addr, size, h);
 	if (res == excNone)
 	{
 		res = convert_addr( &addr, wr, h);
@@ -383,7 +390,6 @@ acc_mem( bool wr, uint32_t addr, int size, uint32_t *value, bool h)
  */
 enum exc
 read_proc_mem( uint32_t addr, int size, uint32_t *value, bool h)
-
 {
 	switch (acc_mem( false, addr, size, value, h))
 	{
@@ -405,7 +411,6 @@ read_proc_mem( uint32_t addr, int size, uint32_t *value, bool h)
  */
 enum exc
 write_proc_mem( uint32_t addr, int size, uint32_t value, bool h)
-
 { 
 	switch (acc_mem( true, addr, size, &value, h))
 	{
@@ -432,7 +437,6 @@ write_proc_mem( uint32_t addr, int size, uint32_t value, bool h)
  */
 enum exc
 read_proc_ins( uint32_t addr, uint32_t *value, bool h)
-
 {
 	enum exc res;
 
@@ -448,7 +452,6 @@ read_proc_ins( uint32_t addr, uint32_t *value, bool h)
  */
 void
 proc_interrupt_up( int no)
-
 {
 	if (no >= 0 && no <= 6)
 	{
@@ -462,7 +465,6 @@ proc_interrupt_up( int no)
  */
 void
 proc_interrupt_down( int no)
-
 {
 	if (no >= 0 && no <= 6)
 		cp0_cause &= ~(1 << (cp0_cause_ip0_shift +no));
@@ -473,7 +475,6 @@ proc_interrupt_down( int no)
  */
 void
 update_deb( void)
-
 {
 	int i;
 	for (i=0; i<32; i++)
@@ -488,8 +489,7 @@ update_deb( void)
 /** Performs the multiplication of two integers.
  */
 static void
-Multiply( uint32_t a, uint32_t b, bool sig)
-
+multiply( uint32_t a, uint32_t b, bool sig)
 {
 	/* quick test */
 	if ((a == 0) || (b == 0))
@@ -524,7 +524,6 @@ Multiply( uint32_t a, uint32_t b, bool sig)
  */
 static void
 TLBW( int reg, enum exc *res)
-
 {
 	if ((cp0_status_cu0 == 1)||
 		 ((cp0_status_ksu == 0)||(cp0_status_exl == 1)||(cp0_status_erl == 1)))
@@ -569,7 +568,6 @@ TLBW( int reg, enum exc *res)
  */
 static enum exc
 execute( TInstrInfo *ii2)
-
 {
 	TInstrInfo ii = *ii2;
 	enum exc res = excNone;
@@ -686,7 +684,7 @@ execute( TInstrInfo *ii2)
 			{
 				uint64_t old = ((uint64_t)pr->hireg << 32) | pr->loreg;
 
-				Multiply( rrs, rrt, true); 
+				multiply( rrs, rrt, true); 
 				old += ((uint64_t)pr->hireg << 32) | pr->loreg;
 				pr->hireg = old >> 32;
 				pr->loreg = old & 0xffffffff;
@@ -697,7 +695,7 @@ execute( TInstrInfo *ii2)
 			{
 				uint64_t old = ((uint64_t)pr->hireg << 32) | pr->loreg;
 
-				Multiply( rrs, rrt, false); 
+				multiply( rrs, rrt, false); 
 				old += ((uint64_t)pr->hireg << 32) | pr->loreg;
 				pr->hireg = old >> 32;
 				pr->loreg = old & 0xffffffff;
@@ -708,7 +706,7 @@ execute( TInstrInfo *ii2)
 			{
 				uint64_t old = ((uint64_t)pr->hireg << 32) | pr->loreg;
 
-				Multiply( rrs, rrt, true); 
+				multiply( rrs, rrt, true); 
 				old -= ((uint64_t)pr->hireg << 32) | pr->loreg;
 				pr->hireg = old >> 32;
 				pr->loreg = old & 0xffffffff;
@@ -719,7 +717,7 @@ execute( TInstrInfo *ii2)
 			{
 				uint64_t old = ((uint64_t)pr->hireg << 32) | pr->loreg;
 
-				Multiply( rrs, rrt, false); 
+				multiply( rrs, rrt, false); 
 				old -= ((uint64_t)pr->hireg << 32) | pr->loreg;
 				pr->hireg = old >> 32;
 				pr->loreg = old & 0xffffffff;
@@ -737,8 +735,8 @@ execute( TInstrInfo *ii2)
 
 		case opcMOVN:	if (rrt != 0) pr->regs[ ii.rd] = rrs;			break;
 		case opcMOVZ:	if (rrt == 0) pr->regs[ ii.rd] = rrs;			break;
-		case opcMULT:	Multiply( rrs, rrt, true);				break;
-		case opcMULTU:	Multiply( rrs, rrt, false);				break;
+		case opcMULT:	multiply( rrs, rrt, true);				break;
+		case opcMULTU:	multiply( rrs, rrt, false);				break;
 		case opcNOR:	pr->regs[ ii.rd] = ~(rrs | rrt);			break;
 		case opcOR:	pr->regs[ ii.rd] = rrs | rrt;				break;
 		case opcORI:	pr->regs[ ii.rt] = rrs | ( ii.imm & 0xffff);		break;
@@ -1051,19 +1049,32 @@ execute( TInstrInfo *ii2)
 			
 		case opcLL:
 			{
-				uint32_t llvalx;
+				uint32_t ll_addr; /* Target LL address */
+				uint32_t ll_val; /* Value of the addressed mem */
 
-				pr->lladdr = rrs +ii.imm;
-				res = read_proc_mem( pr->lladdr, INT32, &llvalx, true);
+				/* Compute virtual target address and issue read operation. */
+				ll_addr = rrs +ii.imm; 
+				res = read_proc_mem( ll_addr, INT32, &ll_val, true);
+
 				if (res == excNone)
 				{
-					pr->regs[ ii.rt] = llvalx;
-					res = convert_addr( &pr->lladdr, false, true);
+					/* If the read operation has been successful. */
+					pr->regs[ ii.rt] = ll_val; /* Store the value */
+
+					/* Since we need physical address to track, issue the
+					 * address conversion. It can't fail now. */
+					convert_addr( &ll_addr, false, false);
+
+					/* Register address for tracking. */
 					RegisterLL();
 					pr->llval = true;
-				}
-				else
+					pr->lladdr = ll_addr;
+				} else {
+					/* Invalid address; Cancel the address tracking. */
+					UnregisterLL();
+					pr->llval = false;
 					pr->lladdr = (uint32_t) -1;
+				}
 			}
 			break;
 		case opcLLD:	res = excRI;						break;
@@ -1123,27 +1134,43 @@ execute( TInstrInfo *ii2)
 			res = write_proc_mem( rrs +ii.imm, INT8, pr->regs[ ii.rt], true);
 			break;
 		case opcSC:
-			UnregisterLL();
-			if (!pr->llval)
+			if (!pr->llval) {
+				/* If we are not tracking LL-SC, then SC has to fail. */
 				pr->regs[ ii.rt] = 0;
+			}
 			else
 			{
-				uint32_t tmp, dw2;
-				pr->llval = false;
-				tmp = dw2 = rrs +ii.imm;
+				/* We do track LL-SC address. */
 
-				res = convert_addr( &tmp, false, true);
-				if (res == excNone)
-				{
-					if (tmp != pr->lladdr)
-						pr->regs[ ii.rt] = 0; /* this is undefined */
-					else
-					{
-						res = write_proc_mem( dw2, INT32, pr->regs[ ii.rt], true);
-						if (res == excNone)
-							pr->regs[ ii.rt] = 1;
-					}
+				/* Compute trarget address. */
+				uint32_t sc_addr = rrs +ii.imm;
+
+				/* Perform the write operation. */
+				res = write_proc_mem( sc_addr, INT32, pr->regs[ ii.rt], true);
+				if (res == excNone) {
+					/* The operation has been successful, write the result,
+					 * but... */
+					pr->regs[ ii.rt] = 1;
+
+					/* ...we are too polite if LL and SC addresses differ.
+					 * In such a case, the behaviour of SC is undefined.
+					 * Let's check that. */
+					 enum exc res2 = convert_addr( &sc_addr, false, false);
+
+					 /* sc_addr now contains physical target address. */
+					 if (sc_addr != pr->lladdr) {
+						/* LL and SC addresses do not match ;( */
+						if (errors)
+							mprintf( "\nError: LL-SC addresses do not match\n\n");
+					 }
+				} else {
+					/* Error writing the target. */
 				}
+
+				/* SC always stops LL-SC address tracking. */
+				UnregisterLL();
+				pr->llval = false;
+				pr->lladdr = (uint32_t) -1;
 			}
 			break;
 		case opcSCD:	res = excRI;					break;
@@ -1311,12 +1338,12 @@ execute( TInstrInfo *ii2)
 				cp0_status_erl)
 
 			{
-				/* ll-break */
-				pr->lladdr = (uint32_t) -1;
+				/* ERET breaks LL-SC address tracking. */
 				pr->llval = false;
+				pr->lladdr = (uint32_t) -1;
 				UnregisterLL();
 				
-				/* delay slot test */
+				/* Delay slot test */
 				if (pr->branch && errors)
 					mprintf( "\nError: ERET in a delay slot\n\n");
 			
@@ -1610,7 +1637,6 @@ execute( TInstrInfo *ii2)
  */
 static void
 handle_exception( enum exc res)
-
 {
 	bool tlb_refill = false;
 
@@ -1672,30 +1698,29 @@ handle_exception( enum exc res)
  */
 static void
 manage( enum exc res)
-
 {
-	/* test for interrupt request */
+	/* Test for interrupt request */
 	if (	(res == excNone) &&
 		!cp0_status_exl && !cp0_status_erl && cp0_status_ie &&
 		((cp0_cause & cp0_status) & cp0_cause_ip_mask) != 0)
 		res = excInt;
 	
-	/* exception control */
+	/* Exception control */
 	if (res != excNone)
 		handle_exception( res);
 
-	/* increase counter */
+	/* Increase counter */
 	cp0_count_count++;
 
-	/* decrease random register */
+	/* Decrease random register */
 	if (cp0_random-- == 0)
 		cp0_random = 47;
 	if (cp0_random < cp0_wired)
 		cp0_random = 47;
 
-	/* timer control */
+	/* Timer control */
 	if (cp0_count_count == cp0_compare_compare)
-		/* generating interrupt request */
+		/* Generating interrupt request */
 		cp0_cause |= 1 << cp0_cause_ip7_shift;
 }
 
@@ -1707,30 +1732,29 @@ manage( enum exc res)
  */
 static void
 instruction( enum exc *res)
-
 {
 	TInstrInfo ii;
 
-	/* reading instruction code */
+	/* Reading instruction code */
 	*res = read_proc_ins( pr->pcreg, &ii.icode, true);
 	if (*res == excNone)
 	{
 		char modif_regs[ 1024];
 		uint32_t old_pcreg = pr->pcreg;
 		
-		/* decoding instruction code */
+		/* Decoding instruction code */
 		decode_instr( &ii);
 		
-		/* executing instruction */
+		/* Executing instruction */
 		*res = execute( &ii);
 		
-		/* view changes */
+		/* View changes */
 		if (totrace && iregch)
 			modified_regs_dump( 1024, modif_regs);
 		else
 			modif_regs[ 0] = 0;
 		
-		/* instruction disassembling */
+		/* Instruction disassembling */
 		if (totrace)
 			iview( old_pcreg, &ii, true, modif_regs);
 	}
@@ -1742,18 +1766,17 @@ instruction( enum exc *res)
  * This is just one instruction.
  */
 void
-step()
-
+step( void)
 {
 	enum exc res = excNone;
-	
-	/* instruction execute */
+
+	/* Instruction execute */
 	if (!pr->stdby)
 		instruction( &res);
-	
-	/* processor control */
+
+	/* Processor control */
 	manage( res);
-	
+
 	if (pr->stdby)
 		pr->w_cycles++;
 	else
@@ -1764,7 +1787,7 @@ step()
 		else
 			pr->u_cycles++;
 	}
-	
+
 	if (pr->branch != 0)
 		pr->branch--;
 }

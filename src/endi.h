@@ -24,10 +24,10 @@ bool test_type( void);
 #ifdef WORDS_BIGENDIAN
 # define convert_uint8_t_endian( b)	(b)
 # define convert_uint16_t_endian( h)	\
-		( (((w) << 8) & 0xff00U) | (((w) >> 8) & 0x00ffU) )
-# define convert_uint32_t_endian( d)	\
-		( (((d)&0xffU)<<24) | (((d)&0xff00U)<<8) | \
-	 	(((d)&0xff0000U)>>8) | (((d)&0xff000000U)>>24) );
+		( (((h) << 8) & 0xff00U) | (((h) >> 8) & 0x00ffU) )
+# define convert_uint32_t_endian( w)	\
+		( (((w)&0xffU)<<24) | (((w)&0xff00U)<<8) | \
+		(((w)&0xff0000U)>>8) | (((w)&0xff000000U)>>24) );
 #else
 # define convert_uint8_t_endian( b)	(b)
 # define convert_uint16_t_endian( h)	(h)

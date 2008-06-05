@@ -12,6 +12,7 @@
 #include <termios.h>
 #include <stdbool.h>
 #include <stdio.h>
+#include <string.h>
 
 #include "parser.h"
 // for tobreak and reenter variable
@@ -145,6 +146,8 @@ hint_generator( const char *input, int level)
 }
 
 
+#ifdef _HAVE_READLINE_OK_
+
 /** msim_completion -- Tries to complete the user input.
  */
 char **
@@ -168,6 +171,7 @@ msim_completion( const char *text, int start, int end)
 
 	return result;
 }
+#endif
 
 
 #ifndef _HAVE_READLINE_OK_

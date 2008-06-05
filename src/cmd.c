@@ -223,7 +223,7 @@ system_add( parm_link_s *pl, void *data)
 {
 	device_s *d;
 
-	/* check for conflicts between the device name and a command name */
+	/* Check for conflicts between the device name and a command name */
 	if (cmd_find( parm_str( pl), system_cmds, NULL) == CMP_HIT)
 	{
 		mprintf( "Device name '%s' is in conflict with a command name.\n",
@@ -236,12 +236,12 @@ system_add( parm_link_s *pl, void *data)
 		return false;
 	}
 	
-	/* alloc device */
+	/* Alloc device */
 	d = alloc_device( pl->token.tval.s, pl->next->token.tval.s);
 	if (!d)
 		return false;
 	
-	/* call device inicialization */
+	/* Call device inicialization */
 	if (!cmd_run_by_name( "init", pl->next, d->type->cmds, d))
 	{
 		free( d->name);
@@ -249,7 +249,7 @@ system_add( parm_link_s *pl, void *data)
 		return false;
 	}
 
-	/* add into the device list */
+	/* Add into the device list */
 	dev_add( d);
 	
 	return true;

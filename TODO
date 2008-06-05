@@ -1,7 +1,8 @@
 
+randomization
+add the cycle device
 system command rm
 
-headers usage test, optimizations
 detect screen width - intelligent output (fit to the screen) - & test it
 input module - move all about input into this module
 add debug features - memory allocation
@@ -9,7 +10,7 @@ add debug features - memory allocation
 	- show all allocated memory blocks
 	- check for unallocated memory at the end of the program or at the free function call
 	- allocation information - function, file and the line number
-db remote debugging
+gdb remote debugging
 serial line
 network
 nonword write via read/write

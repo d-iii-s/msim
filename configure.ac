@@ -1,7 +1,6 @@
 AC_INIT
 AC_CONFIG_SRCDIR([src/main.c])
-AM_INIT_AUTOMAKE(msim, 1.3.2.1)
-AC_PREFIX_DEFAULT(/usr/local)
+AM_INIT_AUTOMAKE(msim, 1.3.4rc2)
 
 AC_PROG_MAKE_SET
 AC_PROG_CC
@@ -29,6 +28,6 @@ AM_PROG_CC_STDC([])
 
 AM_CONFIG_HEADER(config.h)
 
-AC_CONFIG_FILES([Makefile src/Makefile examples/Makefile])
+AC_CONFIG_FILES([Makefile src/Makefile examples/Makefile doc/Makefile])
 
 AC_OUTPUT

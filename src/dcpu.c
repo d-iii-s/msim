@@ -123,28 +123,14 @@ device_type_s DCPU =
 	"with no fpu.",
 	
 	/* functions */
-	dcpu_done,	/* done */
-	dcpu_step,	/* step */
-	NULL,		/* read */
-	NULL,		/* write */
+	.done  = dcpu_done,	/* done */
+	.step  = dcpu_step,	/* step */
+	.step4 = NULL, 		/* step4 */
+	.read  = NULL,		/* read */
+	.write = NULL,		/* write */
 
 	/* commands */
 	dcpu_cmds
-};
-
-
-/*
- * string constants for cpu device
- * take care for position
- */
-const char *txt_cpu[] =
-{
-/* 0 */
-	"Maximum CPU count exceeded (31).",
-	"Integer or '*' expected.",
-	"Out of range (0..31).\n",
-	"Address expected.",
-	"Count expected."
 };
 
 int R4000_cnt = 0;
@@ -172,25 +158,15 @@ dcpu_init( parm_link_s *parm, device_s *dev)
 {
 	cpu_data_s *cd;
 	
-	if (!(cd = malloc( sizeof( cpu_data_s))))
-	{
-		mprintf( txt_pub[ 5]);
-		return false;
-	}
-	else
-		dev->data = cd;
+	cd = XXMALLOC( cpu_data_s);
+	dev->data = cd;
 	
-	if (!(cd->proc = malloc( sizeof( processor_s))))
-	{
-		mprintf( txt_pub[ 0]);
-		free( cd);
-		return false;
-	}
+	cd->proc = XXMALLOC( processor_s);
 
 	cd->cpuno = cpu_get_free_id();
 	if (cd->cpuno == -1)
 	{
-		mprintf( txt_cpu[ 0]);
+		mprintf( "Maximum CPU count exceeded (31).");
 		free( cd);
 		return false;
 	}
@@ -261,7 +237,7 @@ dcpu_cp0d( parm_link_s *parm, device_s *dev)
 		no = parm->token.tval.i;
 		if (no > 31)
 		{
-			mprintf_btag( INFO_SPC, txt_cpu[ 2]);
+			mprintf_btag( INFO_SPC, "Out of range (0..31).");
 			return false;
 		}
 	}
@@ -468,11 +444,15 @@ void
 dcpu_interrupt_up( int cpuno, int no)
 
 {
+	processor_s *px;
+
 	if (cpuno == -1)
 		cpuno = 0;
 	
+	px = pr;
 	if ((pr = cpu_find_no( cpuno)))
 		proc_interrupt_up( no);
+	pr = px;
 }
 
 
@@ -480,9 +460,13 @@ void
 dcpu_interrupt_down( int cpuno, int no)
 
 {
+	processor_s *px;
+
 	if (cpuno == -1)
 		cpuno = 0;
 	
+	px = pr;
 	if ((pr = cpu_find_no( cpuno)))
 		proc_interrupt_down( no);
+	pr = px;
 }

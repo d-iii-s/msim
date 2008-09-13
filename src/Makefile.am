@@ -47,4 +47,6 @@ msim_SOURCES= \
 	check.c\
 	check.h\
 	utils.c\
-	utils.h
+	utils.h\
+	cline.c\
+	cline.h

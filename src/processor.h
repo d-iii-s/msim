@@ -1,12 +1,14 @@
 /*
  * Processor simulation
- * Copyright (c) 2000-2004 Viliam Holub
-*/
+ * Copyright (c) 2000-2008 Viliam Holub
+ */
 
 
 #ifndef _PROCESSOR_H_
 #define _PROCESSOR_H_
 
+#include <stdint.h>
+#include <stdbool.h>
 
 #include "mtypes.h"
 #include "instr.h"
@@ -507,6 +509,9 @@ enum ECP0Regs
 #define cp0_lladdr	(pr->cp0[ CP0_LLAddr])
 #define cp0_watchlo	(pr->cp0[ CP0_WatchLo])
 #define cp0_watchhi	(pr->cp0[ CP0_WatchHi])
+#define cp0_ecc		(pr->cp0[ CP0_ECC])
+#define cp0_taglo	(pr->cp0[ CP0_TagLo])
+#define cp0_taghi	(pr->cp0[ CP0_TagHi])
 /*
 #define cp0__W	M
 */
@@ -563,9 +568,9 @@ struct processor_s
 	uint32_t excaddr;
 	int branch;
 	
-	/* ll and sc support */
-	uint32_t lladdr;
-	bool llval;
+	/* LL and SC track support */
+	bool llval;		/* Track the address flag. */
+	uint32_t lladdr;	/* Physical tracked address. */
 	
 	/* statistics */
 	long long k_cycles, u_cycles, w_cycles;
@@ -582,7 +587,7 @@ extern processor_s *pr;
 /* base */
 void processor_init( int procno);
 	
-void step();
+void step( void);
 		
 /* first settings */
 void set_general_reg( int regno, int value);

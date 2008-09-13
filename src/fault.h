@@ -7,8 +7,6 @@
 #ifndef _FAULT_H_
 #define _FAULT_H_
 
-#define FAULT_NOMEM	1
-
 /* prints error message to stderr */
 void error( const char *fmt, ...);
 

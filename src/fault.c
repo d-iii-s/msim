@@ -4,13 +4,16 @@
  * Copyright (c) 2003 Viliam Holub
  */
 
-#include <stdarg.h>
+#ifdef HAVE_CONFIG_H
+#	include "../config.h"
+#endif
+
 #include <stdio.h>
-#include <stdlib.h>
 #include <errno.h>
+#include <stdarg.h>
+#include <stdlib.h>
 #include <string.h>
 
-#include "../config.h"
 #include "machine.h"
 #include "fault.h"
 
@@ -37,7 +40,7 @@ error( const char *fmt, ...)
 }
 
 
-/* prints message to stderr and exit */
+/* prints message to stderr and exits */
 void
 die( int ex, const char *fmt, ...)
 

@@ -4,10 +4,13 @@
  * Copyright (c) 2002-2004 Viliam Holub
  */
 
+#ifdef HAVE_CONFIG_H
+#	include "../config.h"
+#endif
+
 #include <errno.h>
 #include <string.h>
 
-#include "../config.h"
 #include "text.h"
 
 
@@ -60,13 +63,13 @@ const char txt_linehelp[] =
 		"  q                 quit\n";
 
 const char txt_version[] =
-		PACKAGE " version " VERSION " Copyright (c) 2000-2004 Viliam Holub\n";
+		PACKAGE " version " VERSION " Copyright (c) 2000-2007 Viliam Holub\n";
 		
 const char txt_help[] =
 		"  -V, --version            display version info\n"
 		"  -c, --config=file_name   configuration file name\n"
 		"  -i, --interactive        enter interactive mode\n"
 		"  -t, --trace              enter trace mode\n"
-		"  --remote-gdb port        enter gdb mode\n";
+		"  -g, --remote-gdb=port    enter gdb mode\n";
 		
 const char hexchar[] = "0123456789abcdef";

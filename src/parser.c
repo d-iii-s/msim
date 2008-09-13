@@ -4,6 +4,9 @@
  * Copyright (c) 2001-2004 Viliam Holub
  */
 
+#ifdef HAVE_CONFIG_H
+#	include "../config.h"
+#endif
 
 #include <string.h>
 #include <stdlib.h>
@@ -17,13 +20,10 @@
 #include "check.h"
 #include "utils.h"
 #include "device.h"
+#include "cline.h"
 
 
 #define SNAME_SIZE	32
-
-
-// Line number
-int lineno = -1;
 
 
 struct g_token_s
@@ -138,8 +138,8 @@ skip_white_chars( const char **s)
 {
 	const char *c = *s;
 	
-	REQUIRED( s != NULL);
-	REQUIRED( *s != NULL);
+	PRE( s != NULL);
+	PRE( *s != NULL);
 
 	do {
 		// skip white chars
@@ -190,8 +190,8 @@ read_number( const char **s, g_token_s *t)
 	uint32_t i;
 	volatile uint32_t oi, oi2;
 
-	REQUIRED( s != NULL, t != NULL);
-	REQUIRED( *s != NULL);
+	PRE( s != NULL, t != NULL);
+	PRE( *s != NULL);
 
 	oi = 0;
 	i = 0;
@@ -264,8 +264,8 @@ read_string( const char **s, g_token_s *t)
 	char *c2 = t->s;
 	char cx;
 
-	REQUIRED( s != NULL, t != NULL);
-	REQUIRED( *s != NULL);
+	PRE( s != NULL, t != NULL);
+	PRE( *s != NULL);
 
 	if ((*c == '"') || (*c == '\''))
 	
@@ -335,8 +335,8 @@ read_token( const char **s, g_token_s *t)
 {
 	const char *c = *s;
 
-	REQUIRED( s != NULL, t != NULL);
-	REQUIRED( *s != NULL);
+	PRE( s != NULL, t != NULL);
+	PRE( *s != NULL);
 	
 	/* end ? */
 	if ((*c == 0) || (*c == '\n'))
@@ -364,8 +364,8 @@ void
 parse_g_next( const char **s, g_token_s *t)
 
 {
-	REQUIRED( s != NULL, t != NULL);
-	REQUIRED( *s != NULL);
+	PRE( s != NULL, t != NULL);
+	PRE( *s != NULL);
 
 	skip_white_chars( s);
 	read_token( s, t);
@@ -389,8 +389,8 @@ parse_next( const char **s, token_s *t)
 {
 	g_token_s gt;
 
-	REQUIRED( s != NULL, t != NULL);
-	REQUIRED( *s != NULL);
+	PRE( s != NULL, t != NULL);
+	PRE( *s != NULL);
 	
 	parse_g_next( s, &gt);
 
@@ -421,7 +421,7 @@ strndup( const char *s, size_t max)
 	int len;
 	char *r;
 
-	REQUIRED( s != NULL);
+	PRE( s != NULL);
 
 	for (len=0; s[ len] && len<max; len++) ;
 	
@@ -470,7 +470,7 @@ parm_parse( const char *s)
 	parm_link_s *pl, **p = &pl;
 	g_token_s gt;
 
-	REQUIRED( s != NULL);
+	PRE( s != NULL);
 	
 	do {
 		/* parse next token */
@@ -521,7 +521,7 @@ void parm_check_end( parm_link_s *pl, const char *input)
 	parm_link_s *plo;
 	size_t sl;
 
-	REQUIRED( pl != NULL);
+	PRE( pl != NULL);
 	
 	if (parm_type( pl) == tt_end)
 		return;
@@ -554,7 +554,7 @@ find_lname( const char *s)
 {
 	const char *s2;
 
-	REQUIRED( s != NULL);
+	PRE( s != NULL);
 	
 	/* seach for a separator */
 	s += 2;
@@ -578,7 +578,7 @@ find_sname_len( const char *s)
 {
 	const char *s2;
 
-	REQUIRED( s != NULL);
+	PRE( s != NULL);
 	
 	/* seach for a separator */
 	s += 2;
@@ -598,7 +598,7 @@ const char *
 find_next_parm( const char *s)
 
 {
-	REQUIRED( s != NULL);
+	PRE( s != NULL);
 
 	while (*s++) ;
 	return s;
@@ -616,8 +616,8 @@ dup_lname( const char *lname)
 {
 	int len;
 
-	REQUIRED( lname);
-	REQUIRED( *lname != '\0', *lname != '/');
+	PRE( lname);
+	PRE( *lname != '\0', *lname != '/');
 
 	for (len=0; lname[ len] && lname[ len] != '/'; len++) ;
 
@@ -642,7 +642,7 @@ cmdcmp( const char *s, const char *cmd)
 	int phit = 0;
 	const char *s2;
 
-	REQUIRED( s != NULL, cmd != NULL);
+	PRE( s != NULL, cmd != NULL);
 
 	do {
 		if (*cmd == '/')
@@ -678,8 +678,8 @@ cmd_lprefix( const char *par_name, const cmd_s *cmd)
 	const char *s;
 	const char *s2;
 
-	REQUIRED( par_name != NULL, cmd != NULL);
-	REQUIRED( *par_name != '/');
+	PRE( par_name != NULL, cmd != NULL);
+	PRE( *par_name != '/');
 
 	// compare strings
 	s = par_name;
@@ -700,8 +700,8 @@ parm_link_s *
 parm_next( parm_link_s **pl)
 
 {
-	REQUIRED( pl != NULL);
-	REQUIRED( *pl != NULL);
+	PRE( pl != NULL);
+	PRE( *pl != NULL);
 
 	return *pl = (*pl)->next;
 }
@@ -713,7 +713,7 @@ int
 parm_type( parm_link_s *parm)
 
 {
-	REQUIRED( parm != NULL);
+	PRE( parm != NULL);
 	return parm->token.ttype;
 }
 
@@ -724,7 +724,7 @@ uint32_t
 parm_int( parm_link_s *parm)
 
 {
-	REQUIRED( parm != NULL);
+	PRE( parm != NULL);
 	return parm->token.tval.i;
 }
 
@@ -735,7 +735,7 @@ char *
 parm_str( parm_link_s *parm)
 
 {
-	REQUIRED( parm != NULL);
+	PRE( parm != NULL);
 	return parm->token.tval.s;
 }
 
@@ -748,7 +748,7 @@ parm_next_int( parm_link_s **parm)
 {
 	uint32_t u;
 
-	REQUIRED( parm != NULL); REQUIRED( *parm != NULL);
+	PRE( parm != NULL); PRE( *parm != NULL);
 	
 	u = (*parm)->token.tval.i;
 	*parm = (*parm)->next;
@@ -765,7 +765,7 @@ parm_next_str( parm_link_s **parm)
 {
 	char *s;
 
-	REQUIRED( parm != NULL); REQUIRED( *parm != NULL);
+	PRE( parm != NULL); PRE( *parm != NULL);
 
 	s = (*parm)->token.tval.s;
 	*parm = (*parm)->next;
@@ -784,7 +784,7 @@ parm_insert_int( parm_link_s *pl, uint32_t val)
 {
 	parm_link_s *p;
 
-	REQUIRED( pl != NULL);
+	PRE( pl != NULL);
 
 	p = xmalloc( sizeof( token_s));
 
@@ -807,7 +807,7 @@ parm_insert_str( parm_link_s *pl, char *s)
 {
 	parm_link_s *p;
 	
-	REQUIRED( pl != NULL, s != NULL);
+	PRE( pl != NULL, s != NULL);
 
 	p = xmalloc( sizeof( token_s));
 
@@ -826,7 +826,7 @@ void
 parm_change_int( parm_link_s *parm, uint32_t val)
 
 {
-	REQUIRED( parm != NULL);
+	PRE( parm != NULL);
 
 	if (parm->token.ttype == tt_str)
 		free( parm->token.tval.s);
@@ -843,7 +843,7 @@ void
 parm_set_str( parm_link_s *pl, const char *s)
 
 {
-	REQUIRED( pl != NULL, s != NULL);
+	PRE( pl != NULL, s != NULL);
 
 	pl->token.ttype = tt_str;
 	strcpy( pl->token.tval.s, s);
@@ -856,7 +856,7 @@ const char *
 parm_skipq( const char *s)
 
 {
-	REQUIRED( s != NULL);
+	PRE( s != NULL);
 
 	return s+2;
 }
@@ -878,7 +878,7 @@ cmd_find( const char *cmd_name, const cmd_s *cmds,
 {
 	int phit;
 
-	REQUIRED( cmd_name != NULL, cmds != NULL);
+	PRE( cmd_name != NULL, cmds != NULL);
 
 	/* find fine command */
 	for (phit = 0; phit != -1 && cmds->name; cmds++)
@@ -923,7 +923,7 @@ cmd_run_by_spec( const cmd_s *cmd, parm_link_s *parm,
 	const char *s;
 	parm_link_s *p = parm;
 
-	REQUIRED( cmd != NULL, parm != NULL);
+	PRE( cmd != NULL, parm != NULL);
 
 	/*
 	 * Now we have to go over all parameters and check them.
@@ -934,7 +934,7 @@ cmd_run_by_spec( const cmd_s *cmd, parm_link_s *parm,
 		/* check the first quantifier */
 		if (*s != OPTC && *s != REQC)
 		{
-			dprintf_err( "Internal error: invalid parameter quantifier: \"%s\".\n",
+			mprintf_err( "Internal error: invalid parameter quantifier: \"%s\".\n",
 					s);
 			return false;
 		}
@@ -944,7 +944,7 @@ cmd_run_by_spec( const cmd_s *cmd, parm_link_s *parm,
 		else
 		if (*s == REQC && p->token.ttype == tt_end)
 		{
-			dprintf_err( "Missing parameter <%s>\n",
+			mprintf_err( "Missing parameter <%s>\n",
 					find_lname( s));
 
 			return false;
@@ -956,7 +956,7 @@ cmd_run_by_spec( const cmd_s *cmd, parm_link_s *parm,
 			case INTC:
 				if (p->token.ttype != tt_int)
 				{
-					dprintf_err( "Invalid argument, integer <%s> required.\n",
+					mprintf_err( "Invalid argument, integer <%s> required.\n",
 							find_lname( s));
 					return false;
 				}
@@ -964,7 +964,7 @@ cmd_run_by_spec( const cmd_s *cmd, parm_link_s *parm,
 			case STRC:
 				if (p->token.ttype != tt_str)
 				{
-					dprintf_err( "Invalid argument, string <%s> required.\n",
+					mprintf_err( "Invalid argument, string <%s> required.\n",
 							find_lname( s));
 					return false;
 				}
@@ -972,7 +972,7 @@ cmd_run_by_spec( const cmd_s *cmd, parm_link_s *parm,
 			case VARC:
 				if (p->token.ttype != tt_int && p->token.ttype != tt_str)
 				{
-					dprintf_err( "Invalid argument, string or integer <%s> required.\n",
+					mprintf_err( "Invalid argument, string or integer <%s> required.\n",
 							find_lname( s));
 					return false;
 				}
@@ -981,13 +981,13 @@ cmd_run_by_spec( const cmd_s *cmd, parm_link_s *parm,
 				if (p->token.ttype != tt_str ||
 					strcmp( parm_skipq( s), p->token.tval.s))
 				{
-					dprintf_err( "Invalid argument, string \"%s\" required.\n",
+					mprintf_err( "Invalid argument, string \"%s\" required.\n",
 							find_lname( s));
 					return false;
 				}
 				break;
 			default:
-				dprintf_err( "Internall error: Invalid parameter type.\n");
+				mprintf_err( "Internall error: Invalid parameter type.\n");
 				return false;
 		}
 		
@@ -997,7 +997,7 @@ cmd_run_by_spec( const cmd_s *cmd, parm_link_s *parm,
 
 	if (*s == ENDC && p->token.ttype != tt_end)
 	{
-		dprintf_err( "Too many parameters.\n");
+		mprintf_err( "Too many parameters.\n");
 		return false;
 	}
 
@@ -1008,7 +1008,7 @@ cmd_run_by_spec( const cmd_s *cmd, parm_link_s *parm,
 	 */
 	if (!cmd->func)
 	{
-		dprintf_err( "Command not implemented.\n");
+		intr_error( "Command not implemented.\n");
 		return false;
 	}
 	
@@ -1028,16 +1028,16 @@ cmd_run_by_name( const char *cmd_name, parm_link_s *parm,
 {
 	const cmd_s *cmd;
 
-	REQUIRED( cmd_name != NULL, parm != NULL, cmds != NULL);
+	PRE( cmd_name != NULL, parm != NULL, cmds != NULL);
 
 	/* find fine command */
 	switch (cmd_find( cmd_name, cmds, &cmd))
 	{
 		case CMP_NH:
-			dprintf_err( "Unknown command: %s\n", cmd_name);
+			intr_error( "Unknown command: %s", cmd_name);
 			return false;
 		case CMP_MHIT:
-			dprintf_err( "Ambiguous command: %s\n", cmd_name);
+			intr_error( "Ambiguous command: %s", cmd_name);
 			return false;
 	}
 	
@@ -1054,12 +1054,12 @@ cmd_run_by_parm( parm_link_s *pl, const cmd_s *cmds,
 		void *data)
 
 {
-	REQUIRED( pl != NULL, cmds != NULL);
+	PRE( pl != NULL, cmds != NULL);
 
 	/* check whether the first token is a string */
 	if (pl->token.ttype != tt_str)
 	{
-		dprintf_err( "Command name expected.\n");
+		intr_error( "Command name expected.");
 		return false;
 	}
 	
@@ -1067,11 +1067,10 @@ cmd_run_by_parm( parm_link_s *pl, const cmd_s *cmds,
 }
 
 
-/**
+/** Command tab completion generator.
  * 
- * IN level	The call number. It is only necessary that the first call has
- * 		a number 0.
- * IN pl	type tt_str
+ * @parm level	The call index number. Used only for the first call when eq to
+ * 		0.
  */
 char *
 generator_cmd( parm_link_s *pl, const void *data, int level)
@@ -1080,8 +1079,8 @@ generator_cmd( parm_link_s *pl, const void *data, int level)
 	const char *cmd_pre;
 	static const cmd_s *cmd_p;
 
-	REQUIRED( data != NULL, pl != NULL);
-	REQUIRED( parm_type( pl) == tt_str || parm_type( pl) == tt_end);
+	PRE( data != NULL, pl != NULL);
+	PRE( parm_type( pl) == tt_str || parm_type( pl) == tt_end);
 
 	if (level == 0)
 		cmd_p = (cmd_s *)data;
@@ -1113,7 +1112,7 @@ cat_parm( char *dest, const char *par, int max_char)
 	size_t t;
 	int i;
 
-	REQUIRED( dest != NULL, par != NULL);
+	PRE( dest != NULL, par != NULL);
 
 	t = strlen( dest);
 	
@@ -1136,11 +1135,11 @@ cmd_print_help( const cmd_s *cmds)
 {
 	const char *s;
 
-	REQUIRED( cmds != NULL);
+	PRE( cmds != NULL);
 
 	cmds++;
 
-	dprintf( "List of available commands:\n");
+	mprintf( "List of available commands:\n");
 
 	while (cmds->name)
 	{
@@ -1172,7 +1171,7 @@ cmd_print_help( const cmd_s *cmds)
 		for (; opt; opt--)
 			cat_parm( spars, "]", SNAME_SIZE);
 		
-		dprintf( "%-20s %s\n", spars, cmds->desc);
+		mprintf( "%-20s %s\n", spars, cmds->desc);
 		
 		cmds++;
 	}
@@ -1194,7 +1193,7 @@ cmd_print_extended_help( parm_link_s *parm,
 	const char *s;
 	int opt, par;
 
-	REQUIRED( parm != NULL, cmds != NULL);
+	PRE( parm != NULL, cmds != NULL);
 	
 	if (parm_type( parm) == tt_end)
 	{
@@ -1206,14 +1205,15 @@ cmd_print_extended_help( parm_link_s *parm,
 	switch (cmd_find( cmd_name, cmds, &cmd))
 	{
 		case CMP_NH:
-			dprintf( "Unknown command: %s\n", cmd_name);
+			intr_error( "Unknown command: %s", cmd_name);
 			return;
 		case CMP_MHIT:
-			dprintf( "Ambiguous command: %s\n", cmd_name);
+			intr_error( "Ambiguous command: %s", cmd_name);
 			return;
 	}
 	
-	dprintf_text( "%s", cmd->descf);
+	mprintf_text( "%s", cmd->descf);
+	mprintf( "\n");
 	
 	/* print parameters */
 	opt = 0;
@@ -1221,29 +1221,29 @@ cmd_print_extended_help( parm_link_s *parm,
 	s = cmd->pars;
 	if (*s != ENDC && *s != CONTC)
 	{
-		dprintf( "Syntax: %s", cmd->name);
+		mprintf( "Syntax: %s", cmd->name);
 		
 		while (*s != ENDC && *s != CONTC)
 		{
 			/* append a space */
-			dprintf( " ");
+			mprintf( " ");
 			
 			/* check optional */
 			if (*s == OPTC)
 			{
-				dprintf( "[");
+				mprintf( "[");
 				opt++;
 			}
 			
 			/* print short parameter name */
 			if (*(s+1) != CONC)
 			{
-				dprintf( "<");
-				dprintf_n( find_sname_len( s), "%s", s+2);
-				dprintf( ">");
+				mprintf( "<");
+				mprintf_n( find_sname_len( s), "%s", s+2);
+				mprintf( ">");
 			}
 			else
-				dprintf( "%s", parm_skipq( s));
+				mprintf( "%s", parm_skipq( s));
 			
 			par++;
 			s = find_next_parm( s);
@@ -1251,11 +1251,11 @@ cmd_print_extended_help( parm_link_s *parm,
 		
 		/* close brackets */
 		for (; opt; opt--)
-			dprintf( "]");
+			mprintf( "]");
 		
 		if (par)
 		{
-			dprintf( "\nwhere:\n");
+			mprintf( "\nwhere:\n");
 			
 			for (s = cmd->pars; *s != ENDC && *s != CONTC; s = find_next_parm( s))
 				if (*(s+1) != CONC)
@@ -1264,8 +1264,10 @@ cmd_print_extended_help( parm_link_s *parm,
 					
 					/* print long parameter description */
 					snprintf( buf, find_sname_len( s)+1, "%s", parm_skipq( s));
-					dprintf( "\t<%s> %s\n", buf, find_lname( s));
+					mprintf( "\t<%s> %s\n", buf, find_lname( s));
 				}
 		}
+		else
+			mprintf( "\n");
 	}
 }

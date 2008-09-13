@@ -7,6 +7,8 @@
 #ifndef _INSTR_H_
 #define _INSTR_H_
 
+#include <stdint.h>
+
 #include "mtypes.h"
 
 /* sign bit */
@@ -21,6 +23,7 @@ enum InstrNames
 
 	opcSPECIAL,
 	opcBCOND,
+	opcSPECIAL2,
 	
 	/* real instructions */
 	
@@ -71,6 +74,8 @@ enum InstrNames
 	opcCFC1,
 	opcCFC2,
 	opcCFC3,
+	opcCLO,
+	opcCLZ,
 	opcCOP0,
 	opcCOP1,
 	opcCOP2,
@@ -136,18 +141,25 @@ enum InstrNames
 	opcLWR,
 	opcLWU,
 
+	opcMADD,
+	opcMADDU,
 	opcMFC0,
 	opcMFC1,
 	opcMFC2,
 	opcMFC3,
 	opcMFHI,
 	opcMFLO,
+	opcMOVN,
+	opcMOVZ,
+	opcMSUB,
+	opcMSUBU,
 	opcMTC0,
 	opcMTC1,
 	opcMTC2,
 	opcMTC3,
 	opcMTHI,
 	opcMTLO,
+	opcMUL,
 	opcMULT,
 	opcMULTU,
 	

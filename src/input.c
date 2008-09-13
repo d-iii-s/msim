@@ -4,10 +4,15 @@
  * Copyright (c) 2004 Viliam Holub
  */
 
-#include "../config.h"
+#ifdef HAVE_CONFIG_H
+#	include "../config.h"
+#endif
 
-#include <termios.h>
 #include <unistd.h>
+#include <termios.h>
+#include <stdbool.h>
+#include <stdio.h>
+#include <string.h>
 
 #include "parser.h"
 // for tobreak and reenter variable
@@ -43,10 +48,13 @@ struct termios tio_inter;
 struct termios tio_old;
 
 
+/** Terminal and readline init.
+ */
 void
 input_init( void)
 
 {
+	/* terminal init */
 	input_term = !!isatty( 0);
 	
 	if (!input_term)
@@ -69,6 +77,12 @@ input_init( void)
 #endif
 	tio_inter.c_cc[ VMIN] = 1;
 	tio_inter.c_cc[ VTIME] = 0;
+
+#ifdef _HAVE_READLINE_OK_
+	/* readline init */
+	rl_readline_name = "msim";
+	rl_attempted_completion_function = msim_completion;
+#endif
 }
 
 
@@ -106,7 +120,7 @@ hint_generator( const char *input, int level)
 
 {
 	char *s;
-	const void *data = NULL;
+	static const void *data;
 	static parm_link_s *pl = NULL;
 	static gen_f generator;
 
@@ -119,6 +133,7 @@ hint_generator( const char *input, int level)
 		parm_check_end( pl, par_text);
 		generator = NULL;
 
+		data = NULL;
 		find_system_generator( &pl, &generator, &data);
 
 		if (!generator)
@@ -131,6 +146,8 @@ hint_generator( const char *input, int level)
 }
 
 
+#ifdef _HAVE_READLINE_OK_
+
 /** msim_completion -- Tries to complete the user input.
  */
 char **
@@ -139,7 +156,7 @@ msim_completion( const char *text, int start, int end)
 {
 	char **result;
 
-//	printf( "\ncompletion: test: %s, start: %d, end: %d, line_buffer: %s\n", text, start, end, rl_line_buffer);
+	//printf( "\ncompletion: test: %s, start: %d, end: %d, line_buffer: %s\n", text, start, end, rl_line_buffer);
 
 	par_text = (char *)xmalloc( end+1);
 	strncpy( par_text, rl_line_buffer, end);
@@ -154,6 +171,7 @@ msim_completion( const char *text, int start, int end)
 
 	return result;
 }
+#endif
 
 
 #ifndef _HAVE_READLINE_OK_
@@ -233,7 +251,7 @@ interactive_control( void)
 		if (!commline)
 		{
 			// user break in readline
-			dprintf( "Quit\n");
+			mprintf( "Quit\n");
 			input_back();
 			exit( 1);
 		}

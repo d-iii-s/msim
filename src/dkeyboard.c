@@ -1,20 +1,31 @@
 /*
  * Keyboard device
- * Copyright (c) 2002-2004 Viliam Holub
+ * Copyright (c) 2002-2007 Viliam Holub
  */
 
+#ifdef HAVE_CONFIG_H
+#	include "../config.h"
+#endif
 
 #include <stdlib.h>
 #include <unistd.h>
 #include <string.h>
 #include <sys/time.h>
+#include <stdbool.h>
 
 #include "dkeyboard.h"
 
 #include "device.h"
 #include "dcpu.h"
 #include "output.h"
+#include "utils.h"
 
+/* Register offsets */
+#define REGISTER_CHAR	0
+#define REGISTER_LIMIT	4
+
+/* Step skip constant */
+#define CYCLE_SKIP	4096
 
 /*
  * Device commands
@@ -65,51 +76,48 @@ cmd_s keyboard_cmds[] =
 const char id_keyboard[] = "dkeyboard";
 
 static void keyboard_done( device_s *d);
-static void keyboard_step( device_s *d);
+static void keyboard_step4( device_s *d);
 static void keyboard_read( device_s *d, uint32_t addr, uint32_t *val);
 
 device_type_s DKeyboard =
 {
-	/* device type */
-	id_keyboard,
-	
-	/* brief description*/
-	"Keyboard simulation",
-	
-	/* full description */
-	"Device reads key codes from the specified input and sends them to "
+	/* Type name and description */
+	.name = id_keyboard,
+	.brief = "Keyboard simulation",
+	.full = "Device reads key codes from the specified input and sends them to "
 		"the system via the interrrupt assert and a memory-mapped "
 		"register containing a key code.",
 	
-	/* functions */
-	keyboard_done,	/* done */
-	keyboard_step,	/* step */
-	keyboard_read,	/* read */
-	NULL,		/* write */
+	/* Functions */
+	.done = keyboard_done,
+	.step4 = keyboard_step4,
+	.read = keyboard_read,
 
-	/* commands */
-	keyboard_cmds
+	/* Commands */
+	.cmds = keyboard_cmds
 };
 
 
 struct keyboard_data_s
 {
-	uint32_t addr;
-	int intno;
-	int kcounter;
-	char incomming;
+	uint32_t addr;		/* Dkeyboard register address. */
+	int intno;		/* Interrupt number */
+	char incomming;		/* Character buffer */
 	
-	bool ig;
-	u_int64_t intrcount, keycount, overrun;
-	
-	int par;
+	bool ig;		/* Interrupt pending flag */
+	long intrcount;		/* Number of interrupts asserted */
+	long keycount;		/* Number of keys acquired */
+	long overrun;		/* Number of overwritten characters in the buffer. */
 };
 typedef struct keyboard_data_s keyboard_data_s;
 
 
+/** Generates a key press.
+ *
+ * An interrupt is asserted.
+ */
 static void
 gen_key( device_s *dev, char k)
-
 {
 	keyboard_data_s *kd = dev->data;
 
@@ -123,6 +131,7 @@ gen_key( device_s *dev, char k)
 		dcpu_interrupt_up( -1, kd->intno);
 	}
 	else
+		/* Increase the number of overrun characters. */
 		kd->overrun++;
 
 }
@@ -138,41 +147,38 @@ gen_key( device_s *dev, char k)
  */
 static bool
 dkeyboard_init( parm_link_s *parm, device_s *dev)
-
 {
 	keyboard_data_s *kd;
 	
-	/* alloc structure */
-	kd = malloc( sizeof( *kd));
-	if (!kd)
-	{
-		dprintf( "%s\n", txt_pub[ 5]);
-		return false;
-	}
-	else
-		dev->data = kd;
+	/* Alloc structure */
+	kd = XXMALLOC( keyboard_data_s);
+	dev->data = kd;
 	
-	/* initialization */
+	/* Initialization */
 	parm_next( &parm);
 	kd->addr = parm_next_int( &parm);
 	kd->intno = parm_next_int( &parm);
-	kd->kcounter = 0;
-	kd->par = 0;
 	
 	kd->ig = false;
 	kd->intrcount = 0;
 	kd->keycount = 0;
 	kd->overrun = 0;
 
-	/* checks */
-	if (kd->addr & 3)
+	/* Checks */
+
+	/* Address alignment */
+	if (!addr_word_aligned( kd->addr))
 	{
-		dprintf( "Keyboard address must be on 4-byte aligned.\n");
+		mprintf( "Keyboard address must be on 4-byte aligned.\n");
+		free( kd);
 		return false;
 	}
+
+	/* Interrupt no */
 	if (kd->intno > 6)
 	{
-		dprintf( "Interrupt number must be within 0..6.\n");
+		mprintf( "Interrupt number must be within 0..6.\n");
+		free( kd);
 		return false;
 	}
 
@@ -180,65 +186,66 @@ dkeyboard_init( parm_link_s *parm, device_s *dev)
 }
 
 
-/** Info command implementation
+/** Info command implementation.
  */
 static bool
 dkeyboard_info( parm_link_s *parm, device_s *dev)
-
 {
 	keyboard_data_s *kd = dev->data;
 	
-	dprintf_btag( INFO_SPC, "address:0x%08x " TBRK "intno:%d " TBRK
-			"regs(key:0x%02x " TBRK " ig:%d)\n",
+	mprintf_btag( INFO_SPC, "address:0x%08x " TBRK "intno:%d " TBRK
+			"regs(key:0x%02x " TBRK "ig:%d)\n",
 			kd->addr, kd->intno, kd->incomming, kd->ig);
 	
 	return true;
 }
 
 
-/** Stat command implementation
+/** Stat command implementation.
  */
 static bool
 dkeyboard_stat( parm_link_s *parm, device_s *dev)
-
 {
 	keyboard_data_s *kd = dev->data;
 	
-	dprintf_btag( INFO_SPC, "intrc:%lld " TBRK "keycount:%lld " TBRK
-			"overrun:%lld\n",
+	mprintf_btag( INFO_SPC, "intrc:%ld " TBRK "keycount:%ld " TBRK
+			"overrun:%ld\n",
 			kd->intrcount, kd->keycount, kd->overrun);
 	
 	return true;
 }
 
 
-/** Gen command implementation
+/** Gen command implementation.
+ *
+ * The gen command allows two types of the argument - a character or an integer.
  */
 static bool
 dkeyboard_gen( parm_link_s *parm, device_s *dev)
-
 {
 	unsigned char c;
 
-	if (parm->token.ttype == tt_str)
+	/* Parameter is string - take the first character. */
+	if (parm_type( parm) == tt_str)
 	{
-		c = parm->token.tval.s[ 0];
+		c = parm_str( parm)[ 0];
 
-		if (!c || parm->token.tval.s[ 1])
+		if (!c || parm_str( parm)[ 1])
 		{
-			dprintf( "Invalid key (must be exactly one character).\n");
+			mprintf( "Invalid key (must be exactly one character).\n");
 			return false;
 		}
 	}
-	else /* tt_int */;
+	/* Parameter is integer - interpret is as ASCII value. */
+	else
 	{
-		c = parm->token.tval.i;
-
-		if (parm->token.tval.i > 255)
+		if (parm_int( parm) > 255)
 		{
-			dprintf( "Invalid key (must be within 0..255).\n");
+			mprintf( "Invalid key (must be within 0..255).\n");
 			return false;
 		}
+
+		c = parm_int( parm);
 	}
 
 	gen_key( dev, c);
@@ -253,24 +260,30 @@ dkeyboard_gen( parm_link_s *parm, device_s *dev)
  */
 
 
+/** Cleans up the device.
+ */
 static void
 keyboard_done( device_s *d)
-
 {
-	xfree( d->name);
-	xfree( d->data);
+	XFREE( d->name);
+	XFREE( d->data);
 }
 	
 
+/** Read implementation.
+ *
+ * The read command returns a character in the buffer. Any pending interrupt is
+ * deasserted.
+ */
 static void
 keyboard_read( device_s *d, uint32_t addr, uint32_t *val)
-	
 {
 	keyboard_data_s *kd = d->data;
 	
-	if (addr == kd->addr)
+	if (addr == kd->addr +REGISTER_CHAR)
 	{
 		*val = kd->incomming;
+		kd->incomming = 0;
 		if (kd->ig)
 		{
 			kd->ig = false;
@@ -280,34 +293,31 @@ keyboard_read( device_s *d, uint32_t addr, uint32_t *val)
 }
 
 
+/** One step4 implementation.
+ */
 static void
-keyboard_step( device_s *dev)
-
+keyboard_step4( device_s *dev)
 {
 	keyboard_data_s *kd = dev->data;
 
-	if (kd->kcounter++ >= 4096)
+	/* Check new character. */
+	fd_set rfds;
+	struct timeval tv;
+	int retval;
+	char buf;
+
+	/* Watch stdin */
+	FD_ZERO( &rfds);
+	FD_SET( 0, &rfds);
+
+	tv.tv_sec = 0; tv.tv_usec = 0;
+
+	retval = select( 1, &rfds, NULL, NULL, &tv);
+
+	if (retval == 1)
 	{
-		/* test for a new char */
-		fd_set rfds;
-		struct timeval tv;
-		int retval;
-		char buf;
-
-		kd->kcounter = 0;
-
-		/* watch stdin */
-		FD_ZERO( &rfds);
-		FD_SET( 0, &rfds);
-
-		tv.tv_sec = 0; tv.tv_usec = 0;
-
-		retval = select( 1, &rfds, NULL, NULL, &tv);
-
-		if (retval == 1)
-		{
-			read( 0, &buf, 1);
-			gen_key( dev, buf);
-		}
+		/* There is a new character. */
+		read( 0, &buf, 1);
+		gen_key( dev, buf);
 	}
 }

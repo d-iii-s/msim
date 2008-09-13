@@ -3,10 +3,14 @@
  * Copyright (c) 2002-2004 Viliam Holub
  */
 
+#ifdef HAVE_CONFIG_H
+#	include "../config.h"
+#endif
 
-#include <string.h>
-#include <stdlib.h>
 #include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <stdbool.h>
 
 #include "dprinter.h"
 
@@ -14,6 +18,11 @@
 #include "device.h"
 #include "fault.h"
 #include "output.h"
+#include "utils.h"
+
+/* Registers */
+#define REGISTER_CHAR	0	/* Outpu character */
+#define REGISTER_LIMIT	4	/* Size of the register block */
 
 
 /*
@@ -71,42 +80,36 @@ cmd_s printer_cmds[] =
 const char id_printer[] = "dprinter";
 
 static void printer_done( device_s *d);
-static void printer_step( device_s *d);
+static void printer_step4( device_s *d);
 static void printer_write( device_s *d, uint32_t addr, uint32_t val);
 
 device_type_s DPrinter =
 {
-	/* device type */
-	id_printer,
-	
-	/* brief description */
-	"Printer simulation",
-	
-	/* full description */
-	"Printer device represents a simple character output device. Via "
+	/* Type name and description */
+	.name = id_printer,
+	.brief = "Printer simulation",
+	.full = "Printer device represents a simple character output device. Via "
 		"memory-mapped register system can write character to the "
 		"specified output like screen, file or another terminal.",
 	
-	/* functions */
-	printer_done,	/* done */
-	printer_step,	/* step */
-	NULL,		/* read */
-	printer_write,	/* write */
+	/* Functions */
+	.done = printer_done,
+	.step4 = printer_step4,
+	.write = printer_write,
 	
-	/* commands */
+	/* Commands */
 	printer_cmds
 };
 
 
 struct printer_data_s
 {
-	uint32_t addr;
-	int step;
-	bool flush;
+	uint32_t addr;		/* Printer register address */
+	bool flush;		/* Flush-the-output flag (flush is necessary and it slow) */
 	
-	FILE *output_file;
+	FILE *output_file;	/* Output file */
 	
-	uint64_t count;
+	uint64_t count;		/* Number of output characters */
 };
 typedef struct printer_data_s printer_data_s;
 
@@ -116,33 +119,26 @@ typedef struct printer_data_s printer_data_s;
  */
 static bool
 dprinter_init( parm_link_s *parm, device_s *dev)
-
 {
 	printer_data_s *pd;
 	
-	/* the printer structure allocation */
-	pd = malloc( sizeof( printer_data_s));
-	if (!pd)
-	{
-		dprintf( txt_pub[ 5]);
-		return false;
-	}
-	else
-		dev->data = pd;
+	/* The printer structure allocation */
+	pd = XXMALLOC( printer_data_s);
+	dev->data = pd;
 	
-	/* inicialization */
+	/* Inicialization */
 	parm_next( &parm);
 	pd->addr = parm_next_int( &parm);
-	pd->step = 0;
 	pd->flush = false;
 	pd->output_file = stdout;
 	
 	pd->count = 0;
 	
-	/* check */
-	if (pd->addr & 3)
+	/* Check address alignment */
+	if (!addr_word_aligned( pd->addr))
 	{
-		dprintf( "Printer address must be in the 4-byte boundary.\n");
+		mprintf( "Printer address must be in the 4-byte boundary.\n");
+		free( pd);
 		return false;
 	}
 	
@@ -154,50 +150,52 @@ dprinter_init( parm_link_s *parm, device_s *dev)
  */
 static bool
 dprinter_redir( parm_link_s *parm, device_s *dev)
-
 {
 	printer_data_s *pd = dev->data;
 	const char *const filename = parm_str( parm);
 	FILE *new_file;
 	
+	/* Open the file */
 	new_file = fopen( filename, "w");
 	if (!new_file)
 	{
 		io_error( filename);
-		dprintf( txt_pub[ 8]);
+		mprintf( txt_file_open_err);
 		
 		return false;
 	}
 	
+	/* Close old output file */
 	if (pd->output_file != stdout)
 	{
 		if (!fclose( pd->output_file))
 		{
 			io_error( 0);
-			error( txt_pub[ 15]);
+			error( txt_file_close_err);
 			return false;
 		}
 	}
 	
+	/* Set new output file */
 	pd->output_file = new_file;
 	return true;
 }
 
 
-/** Stdout command implementation
+/** Stdout command implementation.
  */
 static bool
 dprinter_stdout( parm_link_s *parm, device_s *dev)
-
 {
 	printer_data_s *pd = dev->data;
 
+	/* Close old ouput file if it is not stdout already */
 	if (pd->output_file != stdout)
 	{
 		if (!fclose( pd->output_file))
 		{
 			io_error( 0);
-			return txt_pub[ 15];
+			return txt_file_close_err;
 		}
 
 		pd->output_file = stdout;
@@ -207,16 +205,13 @@ dprinter_stdout( parm_link_s *parm, device_s *dev)
 }
 
 
-/** Info command implementation
+/** Info command implementation.
  */
 static bool
 dprinter_info( parm_link_s *parm, device_s *dev)
-
 {
 	printer_data_s *pd = dev->data;
-	
-	dprintf_btag( INFO_SPC, "address:0x%08x\n", pd->addr);
-	
+	mprintf_btag( INFO_SPC, "address:0x%08x\n", pd->addr);
 	return true;
 }
 
@@ -225,12 +220,9 @@ dprinter_info( parm_link_s *parm, device_s *dev)
  */
 static bool
 dprinter_stat( parm_link_s *parm, device_s *dev)
-
 {
 	printer_data_s *pd = dev->data;
-	
-	dprintf_btag( INFO_SPC, "count:%lld\n", pd->count);
-
+	mprintf_btag( INFO_SPC, "count:%lld\n", pd->count);
 	return true;
 }
 
@@ -242,48 +234,53 @@ dprinter_stat( parm_link_s *parm, device_s *dev)
  * Implicit commands
  */
 
+/** Cleans up the device.
+ */
 static void
 printer_done( device_s *d)
 
 {
 	printer_data_s *pd = d->data;
 
+	/* Close output file if ti is not stdout. */
 	if (pd->output_file != stdout)
 	{
 		if (!fclose( pd->output_file))
 		{
 			io_error( 0);
-			error( txt_pub[ 15]);
+			error( txt_file_close_err);
 		}
 	}
 
-	xfree( d->name);
-	xfree( d->data);
+	XFREE( d->name);
+	XFREE( d->data);
 }
 
 
+/** One step4 implementation.
+ */
 static void
-printer_step( device_s *d)
-
+printer_step4( device_s *d)
 {
 	printer_data_s *pd = d->data;
 	
-	if (pd->flush && (++pd->step >= 1024))
+	/* Check if flush is necesary. */
+	if (pd->flush)
 	{
-		pd->step = 0;
 		pd->flush = false;
 		fflush( pd->output_file);
 	}
 }
 
 
+/** Write command implementation.
+ */
 static void
 printer_write( device_s *d, uint32_t addr, uint32_t val)
-
 {
 	printer_data_s *pd = d->data;
 
-	if (addr == pd->addr) 
+	if (addr == pd->addr +REGISTER_CHAR) 
 
 	{
 		fprintf( pd->output_file, "%c", (char) val);

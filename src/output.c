@@ -1,7 +1,7 @@
 /*
  * MSIM Output management
  * 
- * Copyright (c) 2003,2004 Viliam Holub
+ * Copyright (c) 2003-2005 Viliam Holub
  *
  *
  * We must take a special care with output messages. Some types of messages
@@ -19,6 +19,9 @@
  * XXX
  */
 
+#ifdef HAVE_CONFIG_H
+#	include "../config.h"
+#endif
 
 #include <stdarg.h>
 #include <unistd.h>
@@ -31,6 +34,7 @@
 
 #include "check.h"
 #include "parser.h"
+#include "cline.h"
 
 /*
  * The output buffer size
@@ -73,13 +77,13 @@ output_init( void)
 /** Prints the message on the screen.
  */
 void
-dprintf( const char *fmt, ...)
+mprintf( const char *fmt, ...)
 
 {
 	va_list ap;
 	char dbuf[ DBUF_SIZE];
 
-	REQUIRED( fmt != NULL);
+	PRE( fmt != NULL);
 
 	va_start( ap, fmt);
 	vsnprintf( dbuf, DBUF_SIZE, fmt, ap);
@@ -95,13 +99,13 @@ dprintf( const char *fmt, ...)
  * The cursor pointer is not modified.
  */
 void
-dprintf2( const char *fmt, ...)
+mprintf2( const char *fmt, ...)
 
 {
 	va_list ap;
 	char dbuf[ DBUF_SIZE];
 
-	REQUIRED( fmt != NULL);
+	PRE( fmt != NULL);
 
 	va_start( ap, fmt);
 	vsnprintf( dbuf, DBUF_SIZE, fmt, ap);
@@ -111,14 +115,17 @@ dprintf2( const char *fmt, ...)
 }
 
 
-/** Counts occupation space of the string.
+/** Counts a string space occupation on the screen.
  *
+ * The only interesting character is '\t' which has to be counted carefully.
  */
 int
 string_space( const char *str)
 
 {
 	int r;
+
+	PRE( str != NULL);
 
 	for (r=0; *str; r++, str++)
 		if (*str == '\t')
@@ -130,21 +137,29 @@ string_space( const char *str)
 
 /** Prints the message with breaking tags. 
  *
+ * The function prints the formatted text specified. Additionally, it breaks
+ * the line on a special character BTAG, if the text could exceed the screen
+ * width. On a new line, string "nl" is printed.
+ *
+ * There should not be the end-of-line '\n' character except the end of fmt
+ * string.
+ *
  * nl	string which will be displayed on new lines
+ * fmt	a printf-like text format
  */
 void
-dprintf_btag( const char *nl, const char *fmt, ...)
+mprintf_btag( const char *nl, const char *fmt, ...)
 
 {
 	va_list ap;
 	char dbuf[ DBUF_SIZE];
 	int ncur, acur;
-	char *s, *so;
+	char *s;
 	char x;
 	int sw = screen_width;
-	bool newl = false;
+	bool next_line = false;
 
-	REQUIRED( fmt != NULL);
+	PRE( fmt != NULL);
 
 	if (!nl)
 		nl = "";
@@ -154,41 +169,73 @@ dprintf_btag( const char *nl, const char *fmt, ...)
 	vsnprintf( dbuf, DBUF_SIZE, fmt, ap);
 	va_end( ap);
 
+	// line break test
+	if (scr_cur > sw-1)
+	{
+		mprintf2( "\n%s", nl);
+		scr_cur = ncur;
+		next_line = true;
+	}
+
 	s = dbuf;
 	for (x=*s; x; s++)
 	{
-		so = s;
+		// remove TBRK prefix
+		while (*s && *s == TBRK_C)
+			s++;
+
+		char *so = s; // keeps the substring start
+
+		// find the end of the substring
 		for (; *s && *s!=TBRK_C; s++) ;
 
+		// save the "type" of the end, set the string terminator
 		x = *s; *s = 0;
 
+		// calculate the substring length
 		acur = string_space( so);
+
+		if (acur == 0)
+			continue;
+
 		scr_cur += acur;
-		if (newl && scr_cur > sw-1)
+
+		// line break test
+		if (scr_cur > sw-1 && !next_line)
 		{
-			dprintf2( "\n%s", nl);
+			mprintf2( "\n%s", nl);
 			scr_cur = ncur +acur;
+			next_line = true;
 		}
+		next_line = false;
 		
-		dprintf2( "%s", so);
-		if (*so)
-			if (so[ strlen( so)-1] == '\n')
+		// print the substring
+		if (x)
+			mprintf2( "%s", so);
+		else
+		{
+			mprintf2( "%s", so);
+
+			if (*(s-1) == '\n')
 				scr_cur = 0;
-		newl = true;
+		}
+
 	}
 }
 
 
-/** dprintf_n - Aka dprintf but with limited output length.
+/** Aka mprintf but with limited output length.
+ *
+ * Maximum string length is 256.
  */
 void
-dprintf_n( int n, const char *fmt, ...)
+mprintf_n( int n, const char *fmt, ...)
 
 {
 	char buf[ 256];
 	va_list ap;
 
-	REQUIRED( fmt != NULL);
+	PRE( fmt != NULL);
 
 	if (n > 255)
 		n = 255;
@@ -207,7 +254,7 @@ dprintf_n( int n, const char *fmt, ...)
 /** Prints the text.
  */
 void
-dprintf_text( const char *nl, const char *fmt, ...)
+mprintf_text( const char *nl, const char *fmt, ...)
 
 {
 	char buf[ BUF_SIZ];
@@ -215,7 +262,7 @@ dprintf_text( const char *nl, const char *fmt, ...)
 	va_list ap;
 	char *s, *s2;
 
-	REQUIRED( fmt != NULL);
+	PRE( fmt != NULL);
 
 	va_start( ap, fmt);
 	vsnprintf( buf, BUF_SIZ, fmt, ap);
@@ -238,21 +285,21 @@ dprintf_text( const char *nl, const char *fmt, ...)
 	}
 	*s2 = '\0';
 
-	dprintf_btag( nl, "%s", buf2);
+	mprintf_btag( nl, "%s", buf2);
 }
 
 
 /** Prints the error message
  */
 void
-dprintf_err( const char *fmt, ...)
+mprintf_err( const char *fmt, ...)
 
 {
 	char buf[ BUF_SIZ];
 	va_list ap;
 	size_t len;
 
-	REQUIRED( fmt != NULL);
+	PRE( fmt != NULL);
 
 	if (lineno != -1)
 		len = sprintf( buf, "%d: ", lineno);
@@ -264,5 +311,5 @@ dprintf_err( const char *fmt, ...)
 	vsnprintf( buf+len, BUF_SIZ-len, fmt, ap);
 	va_end( ap);
 
-	dprintf_text( NULL, "%s", buf);
+	mprintf_text( NULL, "%s", buf);
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2001-2004 Viliam Holub
+ * Copyright (c) 2001-2007 Viliam Holub
  */
 
 
@@ -32,6 +32,8 @@ struct device_s
 	void *data;
 
 	struct device_s *next;
+	struct device_s *next_in_step;
+	struct device_s *next_in_step4;
 };
 typedef struct device_s device_s;
 
@@ -39,7 +41,7 @@ typedef struct device_s device_s;
 /*
  * device_type_s
  *
- * This structure describes functions which device can use.
+ * This structure describes functions device can use.
  *
  * name		String constant - device type name (i82xx etc.)
  * desc_brief	A brief decription of the device type.
@@ -49,6 +51,7 @@ typedef struct device_s device_s;
  * 		error string while fail.
  * done		Disposes internal data
  * step		Called every machine cycle.
+ * step4	Called every 4096th machine cycle.
  * read		Called while memory read command is out of memory. Device
  * 		shuld test addr if it is relevat.
  * write	Called when write memory command is out of memory. Device
@@ -63,13 +66,14 @@ typedef struct device_s device_s;
 struct device_type_s
 {
 	const char *const name;
-	const char *const desc_brief;
-	const char *const desc_full;
+	const char *const brief;
+	const char *const full;
 	
-	void		(*done) ( device_s *d);
-	void		(*step) ( device_s *d);
-	void		(*read) ( device_s *d, uint32_t addr, uint32_t *val);
-	void		(*write)( device_s *d, uint32_t addr, uint32_t val);
+	void		(*done)  ( device_s *d);
+	void		(*step)  ( device_s *d);
+	void		(*step4) ( device_s *d);
+	void		(*read)  ( device_s *d, uint32_t addr, uint32_t *val);
+	void		(*write) ( device_s *d, uint32_t addr, uint32_t val);
 
 	const cmd_s *const cmds;
 };
@@ -87,11 +91,26 @@ struct device_type_s
 extern const device_type_s *device_types[];
 
 /*
- * This string array has the most frequently messages for user.
- * Device implementation should preferable these.
+ * The most frequently messages for user.
+ * Device implementation should prefer these.
  */
-
-extern const char *txt_pub[];
+static const char *const txt_devname_expected	= "Device name expected";
+static const char *const txt_duplicate_devname	= "Duplicate device name";
+static const char *const txt_devaddr_expected	= "Device address expected";
+static const char *const txt_devaddr_error	= "Device address error (4b align expected)";
+static const char *const txt_no_more_parms	= "No more parameters allowed";
+static const char *const txt_not_en_mem		= "Not enough memory for device inicialization";
+static const char *const txt_intnum_expected	= "Interrupt number expected";
+static const char *const txt_intnum_range	= "Interrupt number out of range 0..6";
+static const char *const txt_file_open_err	= "Could not open file";
+static const char *const txt_cmd_expected	= "Command expected";
+static const char *const txt_file_read_err	= "Could not read file";
+static const char *const txt_file_close_err	= "Could not close file";
+static const char *const txt_filename_expected	= "File name expected";
+static const char *const txt_file_create_err	= "Could not create file";
+static const char *const txt_file_write_err	= "Could not write to file";
+static const char *const txt_unknown_cmd	= "Unknown command";
+static const char *const txt_file_seek_err	= "Could not seek in the file";
 
 /*
  * For info and stat output, please use info_printf at all times.
@@ -102,6 +121,9 @@ extern const char *txt_pub[];
 void info_printf( const char *fmt, ...);
 #define INFO_SPC "                      "
 
+/* 
+ * Functions on device structures
+ */
 device_s *dev_by_name( const char *s);
 const char *dev_by_partial_typename( const char *name,
 		const device_type_s ***dt);
@@ -110,14 +132,26 @@ int devs_by_partial_name( const char *name, device_s **d);
 device_s *dev_by_name( const char *s);
 bool dev_map( void *data, bool (*f)(void *, device_s *));
 bool dev_next( device_s **d);
+bool dev_next_in_step( device_s **d);
+bool dev_next_in_step4( device_s **d);
 void cpr_num( char *s, uint32_t i);
 
+/*
+ * Link/unlink device functions
+ */
 void dev_add( device_s *d);
 void dev_remove( device_s *d);
 
+/*
+ * General utils
+ */
 bool dev_generic_help( parm_link_s *parm, device_s *dev);
 void find_dev_gen( parm_link_s **pl, const device_s *d,
 		gen_f *generator, const void **data);
 
+/*
+ * Often used tests
+ */
+bool addr_word_aligned( uint32_t addr);
 
 #endif /* _DEVICE_H_ */

@@ -6,17 +6,20 @@
  * the encappsulation of the processor
  */
 
+#ifdef HAVE_CONFIG_H
+#	include "../config.h"
+#endif
 
 #include <stdlib.h>
 #include <string.h>
+#include <stdbool.h>
 
 #include "mcons.h"
 #include "device.h"
 #include "processor.h"
 #include "debug.h"
 #include "output.h"
-#include "instr.h"
-#include "parser.h"
+#include "utils.h"
 
 #include "dcpu.h"
 
@@ -52,8 +55,8 @@ cmd_s dcpu_cmds[] =
 	{ "info", (cmd_f)dcpu_info,
 		DEFAULT,
 		DEFAULT,
-		"Displays configuration informations",
-		"Displays configuration informations",
+		"Displays configuration information",
+		"Displays configuration information",
 		NOCMD},
 	{ "stat", (cmd_f)dcpu_stat,
 		DEFAULT,
@@ -120,28 +123,14 @@ device_type_s DCPU =
 	"with no fpu.",
 	
 	/* functions */
-	dcpu_done,	/* done */
-	dcpu_step,	/* step */
-	NULL,		/* read */
-	NULL,		/* write */
+	.done  = dcpu_done,	/* done */
+	.step  = dcpu_step,	/* step */
+	.step4 = NULL, 		/* step4 */
+	.read  = NULL,		/* read */
+	.write = NULL,		/* write */
 
 	/* commands */
 	dcpu_cmds
-};
-
-
-/*
- * string constants for cpu device
- * take care for position
- */
-const char *txt_cpu[] =
-{
-/* 0 */
-	"Maximum CPU count exceeded (31).",
-	"Integer or '*' expected.",
-	"Out of range (0..31).",
-	"Address expected.",
-	"Count expected."
 };
 
 int R4000_cnt = 0;
@@ -169,26 +158,16 @@ dcpu_init( parm_link_s *parm, device_s *dev)
 {
 	cpu_data_s *cd;
 	
-	if (!(cd = malloc( sizeof( cpu_data_s))))
-	{
-		dprintf( txt_pub[ 5]);
-		return false;
-	}
-	else
-		dev->data = cd;
+	cd = XXMALLOC( cpu_data_s);
+	dev->data = cd;
 	
-	if (!(cd->proc = malloc( sizeof( processor_s))))
-	{
-		free( cd);
-		dprintf( txt_pub[ 0]);
-		
-		return false;
-	}
+	cd->proc = XXMALLOC( processor_s);
 
 	cd->cpuno = cpu_get_free_id();
 	if (cd->cpuno == -1)
 	{
-		dprintf( txt_cpu[ 0]);
+		mprintf( "Maximum CPU count exceeded (31).");
+		free( cd);
 		return false;
 	}
 	
@@ -207,7 +186,7 @@ static bool
 dcpu_info( parm_link_s *parm, device_s *dev)
 
 {
-	dprintf_btag( INFO_SPC, "type:R4000.32\n");
+	mprintf_btag( INFO_SPC, "type:R4000.32\n");
 	return true;
 }
 
@@ -221,7 +200,7 @@ dcpu_stat( parm_link_s *parm, device_s *dev)
 	cpu_data_s *cd = dev->data;
 	processor_s *p = cd->proc;
 	
-        dprintf_btag( INFO_SPC, "cycles total:%lld " TBRK
+        mprintf_btag( INFO_SPC, "cycles total:%lld " TBRK
 			"in kernel:%lld " TBRK "in user:%lld " TBRK
 			"in stdby:%lld " TBRK 
 			"tlb refill:%lld " TBRK "invalid: %lld " TBRK
@@ -258,7 +237,7 @@ dcpu_cp0d( parm_link_s *parm, device_s *dev)
 		no = parm->token.tval.i;
 		if (no > 31)
 		{
-			dprintf_btag( INFO_SPC, txt_cpu[ 2]);
+			mprintf_btag( INFO_SPC, "Out of range (0..31).");
 			return false;
 		}
 	}
@@ -303,23 +282,22 @@ dcpu_md( parm_link_s *parm, device_s *dev)
 	for (j=0; siz; siz--, addr+=4, j++)
 	{
 		if (!(j&0x3))
-			dprintf( "  %08x    ", addr);
+			mprintf( "  %08x    ", addr);
 		
-		res = excNone;
 		res = read_proc_mem( addr, 4, &val, false);
-		dprintf( "res: %d\n", res);
+		mprintf( "res: %d\n", res);
 		
 		if (res == excNone)
-			dprintf( "%08x  ", val);
+			mprintf( "%08x  ", val);
 		else
-			dprintf( "xxxxxxxx  ");
+			mprintf( "xxxxxxxx  ");
 		
 		if ((j&0x3) == 3)
-			dprintf( "\n");
+			mprintf( "\n");
 	}
 
 	if (j)  
-		dprintf( "\n");
+		mprintf( "\n");
 
 	return true;
 }
@@ -344,7 +322,6 @@ dcpu_id( parm_link_s *parm, device_s *dev)
 	for (; siz; siz--, addr+=4)
 	{
 
-		res = excNone;
 		res = read_proc_ins( addr, &ii.icode, false);
 		
 		if (res != excNone)
@@ -354,6 +331,7 @@ dcpu_id( parm_link_s *parm, device_s *dev)
 		}
 		else
 			decode_instr( &ii);
+
 		iview( addr, &ii, true, 0);
 	}
 
@@ -404,10 +382,10 @@ static void
 dcpu_done( device_s *dev)
 
 {
-	xfree( dev->name);
+	XFREE( dev->name);
 	if (dev->data)
-		xfree( ((cpu_data_s *)dev->data)->proc);
-	xfree( dev->data);
+		XFREE( ((cpu_data_s *)dev->data)->proc);
+	XFREE( dev->data);
 	R4000_cnt--;
 }
 
@@ -430,7 +408,8 @@ static int
 cpu_get_free_id( void)
 
 {
-	int c, id_mask = 0;
+	int c;
+	unsigned id_mask = 0;
 	device_s *d = 0;
 
 	while (dev_next( &d))
@@ -438,7 +417,7 @@ cpu_get_free_id( void)
 			id_mask |= 1 << ((cpu_data_s *)
 					d->data)->cpuno;
 	
-	for (c=0; c<MAXPROC; c++,id_mask<<=1)
+	for (c=0; c<MAXPROC; c++,id_mask>>=1)
 		if (!(id_mask & 1))
 			return c;
 
@@ -465,11 +444,15 @@ void
 dcpu_interrupt_up( int cpuno, int no)
 
 {
+	processor_s *px;
+
 	if (cpuno == -1)
 		cpuno = 0;
 	
+	px = pr;
 	if ((pr = cpu_find_no( cpuno)))
 		proc_interrupt_up( no);
+	pr = px;
 }
 
 
@@ -477,9 +460,13 @@ void
 dcpu_interrupt_down( int cpuno, int no)
 
 {
+	processor_s *px;
+
 	if (cpuno == -1)
 		cpuno = 0;
 	
+	px = pr;
 	if ((pr = cpu_find_no( cpuno)))
 		proc_interrupt_down( no);
+	pr = px;
 }

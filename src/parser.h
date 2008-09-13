@@ -6,14 +6,13 @@
 #ifndef _PARSER_H_
 #define _PARSER_H_
 
-
-#define PARSER_MAX_STR	256
+#include <stdbool.h>
+#include <stdint.h>
 
 #include "mtypes.h"
 
+#define PARSER_MAX_STR	256
 
-// Line number
-extern int lineno;
 
 /* careful
  * note to add overview to token_overview

@@ -1,7 +1,10 @@
 /*
- * Copyright (c) 2001-2004 Viliam Holub
+ * Copyright (c) 2001-2007 Viliam Holub
  */
 
+#ifdef HAVE_CONFIG_H
+#	include "../config.h"
+#endif
 
 #include <stdio.h>
 #include <unistd.h>
@@ -9,6 +12,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <stdarg.h>
+#include <stdbool.h>
 
 #include "device.h"
 
@@ -38,34 +42,13 @@ const device_type_s *device_types[] =
 	0
 };
 
-device_s *devl = 0;
 
-
-
-const char *txt_pub[] =
-{
-/* 0 */
-	"Device name expected",
-	"Duplicate device name",
-	"Device address expected",
-	"Device address error (4b align expected)",
-	"No more parameters allowed",
-/* 5 */
-	"Not enough memory for device inicialization",
-	"Interrupt number expected",
-	"Interrupt number out of range 0..6",
-	"Could not open a file",
-	"Command expected",
-/* 10 */
-	"Could not read a file",
-	"Could not close a file",
-	"File name expected",
-	"Could not create a file",
-	"Could not write to a file",
-/* 15 */
-	"Unknown command"
-};
-
+/* List of all devices */
+device_s *device_list = NULL;
+/* List of all devices implement step command */
+device_s *device_step_list = NULL;
+/* List of all devices implement step command */
+device_s *device_step4_list = NULL;
 
 void
 info_printf( const char *fmt, ...)
@@ -83,12 +66,30 @@ info_printf( const char *fmt, ...)
 }
 
 
+/** Iterates over the list of all devices.
+ */
 bool
 dev_next( device_s **d)
-
 {
-	*d = *d ? (*d)->next : devl;
+	*d = *d ? (*d)->next : device_list;
+	return !!*d;
+}
 
+/** Iterates over the list of all devices which implements step.
+ */
+bool
+dev_next_in_step( device_s **d)
+{
+	*d = *d ? (*d)->next_in_step : device_step_list;
+	return !!*d;
+}
+
+/** Iterates over the list of all devices which implements step4.
+ */
+bool
+dev_next_in_step4( device_s **d)
+{
+	*d = *d ? (*d)->next_in_step4 : device_step4_list;
 	return !!*d;
 }
 
@@ -123,7 +124,7 @@ const char *
 dev_by_partial_name( const char *name, device_s **d)
 
 {
-	REQUIRED( d != NULL);
+	PRE( d != NULL);
 
 	if (!name)
 		name = "";
@@ -148,7 +149,7 @@ devs_by_partial_name( const char *name, device_s **d)
 	int cnt = 0;
 	device_s *dx = NULL;
 
-	REQUIRED( name != NULL, d != NULL);
+	PRE( name != NULL, d != NULL);
 
 	while (dev_next( &dx))
 		if (prefix( name, dx->name))
@@ -215,26 +216,51 @@ cpr_num( char *s, uint32_t i)
 }
 
 
+/** Add a new device into the list of devices.
+ *
+ * TODO
+ * 	- rather add a device at the end of the list
+ */
 void
 dev_add( device_s *d)
-
 {
-	d->next = devl;
-	devl = d;
+	/* Add to the list of all devices */
+	d->next = device_list;
+	device_list = d;
+
+	/* If the step function is implemented, add the device to the list of
+	 * step. */
+	if (d->type->step) {
+		d->next_in_step = device_step_list;
+		device_step_list = d;
+	}
+
+	/* If the step4 function is implemented, add the device to the list of
+	 * step4. */
+	if (d->type->step4) {
+		d->next_in_step4 = device_step4_list;
+		device_step4_list = d;
+	}
 }
 
 
+/** Removes a device from the machine.
+ *
+ * TODO
+ * 	- check if it is correct
+ * 	- remove from the list of steps as well
+ */
 void
 dev_remove( device_s *d)
 
 {
 	device_s *g, *gx;
 
-	if (d == devl)
-		devl = d->next;
+	if (d == device_list)
+		device_list = d->next;
 	else
 	{
-		for (g=devl; g && (g != d); g = g->next)
+		for (g=device_list, gx=NULL; g && (g != d); g = g->next)
 			gx = g;
 
 		if (g)
@@ -267,9 +293,9 @@ find_dev_gen( parm_link_s **pl, const struct device_struct *d,
 		gen_f *generator, void **data)
 
 {
-	REQUIRED( pl != NULL, data != NULL, generator != NULL, d != NULL);
-	REQUIRED( *generator == NULL, *pl != NULL, *data == NULL);
-	REQUIRED( parm_type( *pl) != tt_end);
+	PRE( pl != NULL, data != NULL, generator != NULL, d != NULL);
+	PRE( *generator == NULL, *pl != NULL, *data == NULL);
+	PRE( parm_type( *pl) != tt_end);
 
 	if (parm_type( *pl) != tt_str)
 	{
@@ -358,4 +384,12 @@ find_dev_gen( parm_link_s **pl, const device_s *d,
 			}
 			break;
 	}
+}
+
+/** Tests whether the address is word-aligned.
+ */
+bool
+addr_word_aligned( uint32_t addr)
+{
+	return (addr&0x3) == 0;
 }

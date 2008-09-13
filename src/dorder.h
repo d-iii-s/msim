@@ -1,5 +1,4 @@
 /*
- * dorder.h
  * Simple synchronisation device
  * Copyright (c) 2002-2004 Viliam Holub
  */

@@ -2,30 +2,29 @@
 /*
  * Machine
  *
- * Copyright (c) 2000-2004 Viliam Holub
+ * Copyright (c) 2000-2008 Viliam Holub
  */
 
-#include "../config.h"
+#ifdef HAVE_CONFIG_H
+#	include "../config.h"
+#endif
 
 #include <stdio.h>
 #include <signal.h>
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
+#include <stdint.h>
+#include <stdbool.h>
 
-#include "text.h"
 #include "machine.h"
+
 #include "processor.h"
-#include "mcons.h"
-#include "mtypes.h"
-#include "debug.h"
-#include "cmd.h"
 #include "input.h"
 #include "output.h"
 #include "gdb.h"
 #include "env.h"
 #include "check.h"
-#include "parser.h"
 #include "utils.h"
 
 
@@ -39,24 +38,20 @@ char **cp0name;
 char **cp1name;
 char **cp2name;
 char **cp3name;
-bool change	= true;
-bool interactive= false;
-bool errors	= true;
-bool breakpoint;
-bool script_stat;
-bool halt_on_error	= false;
+bool change			= true;
+bool interactive		= false;
+bool errors			= true;
 
-bool version	= false;
+bool version			= false;
 
-bool remote_gdb		= false;
-int remote_gdb_port	= 0;
-bool remote_gdb_conn	= false;
-bool remote_gdb_step	= false;
+bool remote_gdb			= false;
+int remote_gdb_port		= 0;
+bool remote_gdb_conn		= false;
+bool remote_gdb_step		= false;
 bool remote_gdb_one_step	= false;
 
 bool reenter;
 
-int breakpointaddr;
 uint32_t stepping;
 processor_s *focus;
 mem_element_s *memlist;
@@ -77,7 +72,7 @@ machine_user_break( int par)
 {
 	if (tobreak || interactive)
 	{
-		dprintf( "Quit\n");
+		mprintf( "Quit\n");
 		input_back();
 		exit( 1);
 	}
@@ -122,12 +117,6 @@ init_machine( void)
 	input_init();
 	input_shadow();
 	register_sigint();
-
-#ifdef _HAVE_READLINE_OK_
-	/* readline init */
-	rl_readline_name = "msim";
-	rl_attempted_completion_function = msim_completion;
-#endif
 }
 
 
@@ -162,13 +151,24 @@ void
 machine_step( void)
 
 {
-	device_s *dev = 0;
+	device_s *dev;
 
+	/* Increase machine cycle counter */
 	msteps++;
 	
-	while (dev_next( &dev))
-		if (dev->type->step)
-			dev->type->step( dev);
+	/* First traverse all the devices which requires processing time every
+	 * step. */
+	dev = NULL;
+	while (dev_next_in_step( &dev))
+		dev->type->step( dev);
+	
+	/* Then, every 4096th cycle traverse all the devices implementing step4
+	 * function. */
+	if (msteps % 4096 == 0) {
+		dev = NULL;
+		while (dev_next_in_step4( &dev))
+			dev->type->step4( dev);
+	}
 }
 
 
@@ -212,10 +212,7 @@ go_machine( void)
 }
 
 
-
-/* 
- * registering ll
- * default parameter is pr from processor
+/** Registering current processor for LL-SC tracking.
  */
 void
 RegisterLL( void)
@@ -223,10 +220,12 @@ RegisterLL( void)
 {
 	LLList_s *l;
 				
-	if (ll_list != 0)
+	/* Ignore if already registered. */
+	if (ll_list != NULL)
 		for (l=ll_list; l; l=l->next)
 			if (l->p == pr) return;
 
+	/* Add processor to the link. */
 	l = (LLList_s *) xmalloc( sizeof( LLList_s));
 	l->p = pr;
 	l->next = ll_list;
@@ -234,25 +233,28 @@ RegisterLL( void)
 }
 
 
+/** Remove current processor from the LL-SC tracking list.
+ */
 void
 UnregisterLL( void)
 
 {
-	LLList_s *l, *lo=0;
-	
-	if (ll_list != 0)
-		for (l=ll_list; l; lo=l, l=l->next)
-			if (l->p == pr)
-			{
-				if (lo) 
-					lo->next = l->next;
-				else
-					ll_list = l->next;
+	LLList_s *l, *lo = NULL;
 
-				free( l);
-				return;
-				
-			}
+	if (ll_list == NULL)
+		return;
+
+	for (l=ll_list; l; lo=l, l=l->next)
+		if (l->p == pr)
+		{
+			if (lo) 
+				lo->next = l->next;
+			else
+				ll_list = l->next;
+
+			free( l);
+			break;
+		}
 }
 
 
@@ -398,7 +400,7 @@ void
 mem_link( mem_element_s *e)
 
 {
-	REQUIRED( e != NULL);
+	PRE( e != NULL);
 	
 	e->next = memlist;
 	memlist = e;
@@ -412,7 +414,7 @@ mem_unlink( mem_element_s *e)
 {
 	mem_element_s *ex = memlist, *ex2=0;
 
-	REQUIRED( e != NULL);
+	PRE( e != NULL);
 	
 	while (ex && (ex != e))
 	{

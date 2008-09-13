@@ -5,7 +5,9 @@
  */
 
 
-#include "../config.h"
+#ifdef HAVE_CONFIG_H
+#	include "../config.h"
+#endif
 
 #include <stdlib.h>
 #include <stdio.h>
@@ -44,7 +46,7 @@ static struct option long_options[] =
 	{ "interactive",	no_argument,		0, 'i'},
 	{ "config",		required_argument,	0, 'c'},
 	{ "help", 		no_argument,		0, 'h'},
-	{ "remote-gdb",		required_argument,	0, 'r'},
+	{ "remote-gdb",		required_argument,	0, 'g'},
 	{}
 };
 #endif
@@ -59,10 +61,10 @@ conf_remote_gdb( const char *opt)
 	
 	port_no = strtol( opt, &endp, 0);
 	if (!endp)
-		die( 3, "Port number expected.");
+		die( ERR_PARM, "Port number expected.");
 	
 	if (port_no < 0 || port_no > 65534)
-		die( 3, "Invalid port number.");
+		die( ERR_PARM, "Invalid port number.");
 	
 	remote_gdb = true;
 	remote_gdb_port = port_no;
@@ -74,23 +76,23 @@ parse_cmdline( int argc, char *args[])
 
 {
 	int c;
-	
+
 	opterr = 0;
-	
+
 	while (1)
 	{
 		int option_index = 0;
-		
+	
 #ifdef HAVE_GETOPT_LONG
 		c = getopt_long( argc, args, "tVic:hg:",
 				long_options, &option_index);
 #else
 		c = getopt( argc, args, "tVic:hg:");
 #endif
-		
+	
 		if (c == -1)
 			break;
-		
+
 		switch (c)
 		{
 			case 't':
@@ -98,7 +100,8 @@ parse_cmdline( int argc, char *args[])
 				break;
 				
 			case 'V':
-				dprintf( txt_version);
+				mprintf( txt_version);
+				done_machine();
 				exit( 0);
 				
 			case 'i':
@@ -112,8 +115,8 @@ parse_cmdline( int argc, char *args[])
 				break;
 				
 			case 'h':
-				dprintf( txt_version);
-				dprintf( txt_help);
+				mprintf( txt_version);
+				mprintf( txt_help);
 				done_machine();
 				exit( 0);
 				
@@ -122,16 +125,16 @@ parse_cmdline( int argc, char *args[])
 				break;
 				
 			case '?':
-				die( 3, "Unknown parameter or argument required.\n");
+				die( ERR_PARM, "Unknown parameter or argument required.\n");
 				
 			default:
-				die( 3, "Unknown parameter "
+				die( ERR_PARM, "Unknown parameter "
 					"'%c'.\n", optopt);
 		}
 	}
 	
 	if (optind < argc)
-		die( 3, "Unexpected arguments.\n");
+		die( ERR_PARM, "Unexpected arguments.\n");
 }
 
 

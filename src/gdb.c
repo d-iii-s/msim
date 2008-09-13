@@ -4,15 +4,18 @@
  * Copyright (c) 2003 Viliam Holub
  */
 
-#include "../config.h"
+#ifdef HAVE_CONFIG_H
+#	include "../config.h"
+#endif
 
+#include <stdio.h>
+#include <errno.h>
+#include <string.h>
+#include <unistd.h>
+#include <stdbool.h>
 #include <sys/types.h>
 #include <sys/socket.h>
 #include <netinet/in.h>
-#include <string.h>
-#include <unistd.h>
-#include <stdio.h>
-#include <errno.h>
 
 #include "gdb.h"
 #include "text.h"
@@ -222,7 +225,7 @@ gdb_safe_write( char c)
 {
 	size_t written;
 
-	dprintf( "%c", c);
+	mprintf( "%c", c);
 
 	written = write( gdbd, &c, 1);
 	if (written == -1)
@@ -270,7 +273,7 @@ gdb_get_message( char *bufx)
 		if (*buf != '#')
 		{
 			/* hmmm - buffer overflow */
-			dprintf( "<buffer overflow>\n");
+			mprintf( "<buffer overflow>\n");
 			return false;
 		}
 	
@@ -328,7 +331,7 @@ gdb_send_message( char *buf)
     
 	do {
 		//XXX
-		dprintf( "->");
+		mprintf( "->");
 		
 		if (!gdb_safe_write( '$'))
 			return false;
@@ -355,7 +358,7 @@ gdb_send_message( char *buf)
 			return false;
 
 		//XXX
-		dprintf( "\n");
+		mprintf( "\n");
 	} while (c != '+');
 
 	return true;
@@ -411,7 +414,7 @@ gdb_mem_upload( const char *buf, char *mem, int count)
  * return true if there is any number
  */
 static bool
-gdb_read_hexnum( char **s, int *i)
+gdb_read_hexnum( char **s, unsigned int *i)
 {
 	int i2;
     
@@ -656,7 +659,7 @@ gdb_session( int event)
 			return;
 		}
 
-		dprintf( "<- %s\n", buf);
+		mprintf( "<- %s\n", buf);
 
 		switch (buf[ 0])
 		{
@@ -700,7 +703,7 @@ gdb_session( int event)
 				return;
 			
 			case 'D':
-				dprintf( "detach...\n");
+				mprintf( "detach...\n");
 				gdb_remote_done( false, true);
 				return;
 
@@ -746,7 +749,7 @@ gdb_remote_init( void)
 
 	if (R4000_cnt != 1)
 	{
-		dprintf( PACKAGE ": gdb: exactly one processor allowed\n");
+		mprintf( PACKAGE ": Error - only one processor allowed in the gdb mode\n");
 		return false;
 	}
 
@@ -781,19 +784,19 @@ gdb_remote_init( void)
 		return false;
 	}
     
-	dprintf( "Waiting for GDB response on %d...\n", remote_gdb_port);    
+	mprintf( "Waiting for GDB response on %d...\n", remote_gdb_port);    
 	
 	gdbd = accept( gdbd, (struct sockaddr *)&sa_gdb, &addrlen);
 	if (gdbd < 0)
 	{
 		if (errno == EINTR)
-			dprintf( "...interrupted.\n");
+			mprintf( "...interrupted.\n");
 		else
 			io_error( "accept");
 		return false;
 	}
 
-	dprintf( "...done\n");
+	mprintf( "...done\n");
 
 	gdb_pr = cpu_find_no( 0);
     

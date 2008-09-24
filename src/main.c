@@ -32,11 +32,8 @@
 #include "utils.h"
 
 
-bool remote_gdb_flag = false;
-
 /**< Command line options */
-static struct option long_options[] = 
-{
+static struct option long_options[] = {
 	{
 		"trace",
 		no_argument,
@@ -94,7 +91,7 @@ static void conf_remote_gdb(const char *opt)
 }
 
 
-void parse_cmdline(int argc, char *args[])
+static void parse_cmdline(int argc, char *args[])
 {
 	int c;
 

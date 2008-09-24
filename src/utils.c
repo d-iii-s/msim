@@ -1,12 +1,13 @@
 /*
- * Small useful routines
+ * Copyright (c) 2004-2007 Viliam Holub
+ * All rights reserved.
  *
- * Copyright (c) 2004 Viliam Holub
+ * Distributed under the terms of GPL.
+ *
+ *
+ *  Small useful routines
+ *
  */
-
-#ifdef HAVE_CONFIG_H
-#	include "../config.h"
-#endif
 
 #include <stdlib.h>
 #include <string.h>
@@ -17,45 +18,42 @@
 #include "mcons.h"
 
 
-/** Safe memory allocation.
+/** Safe memory allocation
+ *
  */
-void *
-xmalloc( size_t s)
-
+void *xmalloc(size_t size)
 {
-	void *v = malloc( s);
-	if (!v)
-		die( ERR_MEM, "Not enough memory");
-	return v;
+	void *ptr = malloc(size);
+	if (!ptr)
+		die(ERR_MEM, "Not enough memory");
+	return ptr;
 }
 
 
-/** Makes a copy of a string.
+/** Make a copy of a string
+ *
  */
-char *
-xstrdup( const char *s)
-
+char * xstrdup(const char *str)
 {
 	char *sx;
 	
-	PRE( s);
+	PRE(str);
 	
-	sx = strdup( s);
+	sx = strdup(str);
 	if (!sx)
-		die( ERR_MEM, "Not enough memory");
+		die(ERR_MEM, "Not enough memory");
 	return sx;
 }
 
 
-/** Tests the correctness of the prefix.
+/** Test the correctness of the prefix
+ *
  */
-bool
-prefix( const char *pref, const char *str)
-
+bool prefix(const char *pref, const char *str)
 {
-	PRE( pref != NULL, str != NULL);
-
-	for (; *pref && *pref == *str; pref++, str++) ;
-
-	return *pref == '\0';
+	PRE(pref != NULL, str != NULL);
+	
+	for (; (*pref) && (*pref == *str); pref++, str++);
+	
+	return (*pref == '\0');
 }

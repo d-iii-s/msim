@@ -1,22 +1,30 @@
 /*
- * Small useful routines
- *
  * Copyright (c) 2004-2007 Viliam Holub
+ * All rights reserved.
+ *
+ * Distributed under the terms of GPL.
+ *
+ *
+ *  Small useful routines
+ *
  */
 
-#ifndef _UTILS_H_
-#define _UTILS_H_
+#ifndef UTILS_H_
+#define UTILS_H_
 
 #include <stdlib.h>
 #include <stdbool.h>
 
-#define XFREE( x)	{ free( x); x=NULL; }
+#define XFREE(x) { \
+	free(x); \
+	x = NULL; \
+}
 
-#define XXMALLOC( type)		(xmalloc( sizeof( type)))
-#define XCMALLOC( type, count)	(xmalloc( sizeof( type)*count))
+#define XXMALLOC(type) (xmalloc(sizeof(type)))
+#define XCMALLOC(type, count) (xmalloc(sizeof(type) * count))
 
-void *xmalloc( size_t s);
-char *xstrdup( const char *s);
-bool prefix( const char *pref, const char *str);
+extern void *xmalloc(size_t size);
+extern char *xstrdup(const char *str);
+extern bool prefix(const char *pref, const char *str);
 
-#endif /* _UTILS_H_ */
+#endif /* UTILS_H_ */

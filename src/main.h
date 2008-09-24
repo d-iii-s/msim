@@ -12,4 +12,6 @@
 #define PACKAGE "msim"
 #define VERSION "1.3.4.rc3"
 
+#define ALIGN_DOWN(addr, align) ((addr) & ~((align) - 1))
+
 #endif /* MAIN_H_ */

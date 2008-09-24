@@ -53,8 +53,8 @@ static char *colors[COL_END][2] = {
 void RQ_test(const char *pre, const char *filename, int lineno,
 	const char *func, const char *term, ...)
 {
-	int i = 0;
-	int cnt = 0;
+	unsigned int i = 0;
+	unsigned int cnt = 0;
 	int cond;
 	va_list va;
 
@@ -68,7 +68,7 @@ void RQ_test(const char *pre, const char *filename, int lineno,
 	
 	/* If there is one which does not hold */
 	if (cond != RQ_PARM_BRK) {
-		int color = 0;
+		unsigned int color = 0;
 		char cond_no[RQ_COND_NO_SIZE];
 
 		fflush(stdout);

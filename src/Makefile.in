@@ -6,7 +6,7 @@
 #
 
 CC = @CC@
-CFLAGS = @CFLAGS@
+CFLAGS = @CFLAGS@ -Wall
 LIBS = @LIBS@
 
 SOURCES = \

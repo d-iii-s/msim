@@ -14,11 +14,11 @@
  *
  */
 
-#include "check.h"
-
 #include <stdio.h>
 #include <stdarg.h>
 #include <stdlib.h>
+
+#include "check.h"
 
 #ifdef RQ_COLOR
 	#include <unistd.h>

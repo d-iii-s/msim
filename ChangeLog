@@ -1,11 +1,8 @@
-#
-# MSIM Changelog
-#
-
 2008-09-24 Martin Decky <decky@dsrg.mff.cuni.cz>
 	Version 1.3.4rc3
 	* simplify build system
 	* split sources into multiple directories
+	* add GPL license
 
 2008-06-05 Viliam Holub <holub@dsrg.mff.cuni.cz>
 	Version 1.3.4rc2

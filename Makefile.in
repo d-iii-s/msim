@@ -1,3 +1,10 @@
+#
+# Copyright (c) 2008 Martin Decky
+# All rights reserved.
+#
+# Distributed under the terms of GPL.
+#
+
 INSTALL = @INSTALL@
 STRIP = @STRIP@
 PREFIX = @prefix@

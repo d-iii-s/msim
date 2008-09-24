@@ -22,7 +22,7 @@
 #include "cmd.h"
 #include "check.h"
 #include "mcons.h"
-#include "devices/device.h"
+#include "device/device.h"
 #include "machine.h"
 #include "debug/debug.h"
 #include "fault.h"

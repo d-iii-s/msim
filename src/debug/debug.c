@@ -23,7 +23,7 @@
 #include "../output.h"
 #include "../env.h"
 
-#include "../devices/dcpu.h"
+#include "../device/dcpu.h"
 #include "../mem.h"
 
 

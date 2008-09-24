@@ -19,7 +19,7 @@
 #include "output.h"
 #include "check.h"
 #include "utils.h"
-#include "devices/device.h"
+#include "device/device.h"
 #include "cline.h"
 
 

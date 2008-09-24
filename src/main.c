@@ -20,7 +20,7 @@
 
 #include "text.h"
 #include "mtypes.h"
-#include "devices/device.h"
+#include "device/device.h"
 #include "processor.h"
 #include "machine.h"
 #include "parser.h"

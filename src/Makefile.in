@@ -27,13 +27,13 @@ SOURCES = \
 	gdb.c \
 	parser.c \
 	debug/debug.c \
-	devices/ddisk.c \
-	devices/dcpu.c \
-	devices/dkeyboard.c \
-	devices/dorder.c \
-	devices/dprinter.c \
-	devices/dtime.c \
-	devices/device.c
+	device/ddisk.c \
+	device/dcpu.c \
+	device/dkeyboard.c \
+	device/dorder.c \
+	device/dprinter.c \
+	device/dtime.c \
+	device/device.c
 
 OBJECTS := $(addsuffix .o,$(basename $(SOURCES)))
 

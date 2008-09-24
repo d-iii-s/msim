@@ -28,7 +28,7 @@
 #include "parser.h"
 #include "processor.h"
 
-#include "devices/dcpu.h"
+#include "device/dcpu.h"
 
 
 /*

@@ -24,7 +24,7 @@
 #include "mcons.h"
 #include "devices/device.h"
 #include "machine.h"
-#include "debug.h"
+#include "debug/debug.h"
 #include "fault.h"
 #include "output.h"
 #include "utils.h"
@@ -62,7 +62,7 @@ static void system_unset_find_generator(parm_link_s **pl, const cmd_s *cmd,
  * All system commands are defined here.
  *
  */
-cmd_s system_cmds[] = {
+static cmd_s system_cmds[] = {
 	{
 		"init",
 		NULL,    /* hardwired */

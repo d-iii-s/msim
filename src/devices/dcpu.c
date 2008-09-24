@@ -17,7 +17,7 @@
 #include "../mcons.h"
 #include "device.h"
 #include "../processor.h"
-#include "../debug.h"
+#include "../debug/debug.h"
 #include "../output.h"
 #include "../utils.h"
 
@@ -243,7 +243,7 @@ dcpu_cp0d( parm_link_s *parm, device_s *dev)
 	}
 	
 	pr = cd->proc;
-	CP0Dump( no);
+	cp0_dump(no);
 	
 	return true;
 }

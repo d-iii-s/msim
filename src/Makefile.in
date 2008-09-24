@@ -17,7 +17,6 @@ SOURCES = \
 	fault.c \
 	processor.c \
 	text.c \
-	debug.c \
 	env.c \
 	cline.c \
 	input.c \
@@ -27,6 +26,7 @@ SOURCES = \
 	main.c \
 	gdb.c \
 	parser.c \
+	debug/debug.c \
 	devices/ddisk.c \
 	devices/dcpu.c \
 	devices/dkeyboard.c \

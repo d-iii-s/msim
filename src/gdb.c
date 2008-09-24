@@ -17,6 +17,7 @@
 #include <sys/socket.h>
 #include <netinet/in.h>
 
+#include "main.h"
 #include "gdb.h"
 #include "text.h"
 #include "mtypes.h"
@@ -27,7 +28,7 @@
 #include "parser.h"
 #include "processor.h"
 
-#include "dcpu.h"
+#include "devices/dcpu.h"
 
 
 /*

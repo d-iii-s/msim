@@ -19,11 +19,11 @@
 #include "dorder.h"
 
 #include "device.h"
-#include "machine.h"
+#include "../machine.h"
 #include "dcpu.h"
-#include "output.h"
-#include "parser.h"
-#include "utils.h"
+#include "../output.h"
+#include "../parser.h"
+#include "../utils.h"
 
 /** \{ \name  Registers */
 #define REGISTER_INT_UP		0	/**< Assert interrupts */

@@ -21,8 +21,8 @@
 #include "dtime.h"
 
 #include "device.h"
-#include "output.h"
-#include "utils.h"
+#include "../output.h"
+#include "../utils.h"
 
 /** \{ \name Register offsets */
 #define REGISTER_SEC	0

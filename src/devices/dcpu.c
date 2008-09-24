@@ -14,12 +14,12 @@
 #include <string.h>
 #include <stdbool.h>
 
-#include "mcons.h"
+#include "../mcons.h"
 #include "device.h"
-#include "processor.h"
-#include "debug.h"
-#include "output.h"
-#include "utils.h"
+#include "../processor.h"
+#include "../debug.h"
+#include "../output.h"
+#include "../utils.h"
 
 #include "dcpu.h"
 

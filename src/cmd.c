@@ -19,7 +19,7 @@
 
 #include "check.h"
 #include "mcons.h"
-#include "device.h"
+#include "devices/device.h"
 #include "machine.h"
 #include "debug.h"
 #include "fault.h"

@@ -25,11 +25,11 @@
 
 #include "ddisk.h"
 
-#include "machine.h"
-#include "fault.h"
+#include "../machine.h"
+#include "../fault.h"
 #include "dcpu.h"
-#include "output.h"
-#include "utils.h"
+#include "../output.h"
+#include "../utils.h"
 
 
 /** Actions the disk is performing */

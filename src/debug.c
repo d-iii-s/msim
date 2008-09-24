@@ -12,6 +12,7 @@
 #include <string.h>
 #include <stdbool.h>
 
+#include "main.h"
 #include "mtypes.h"
 #include "instr.h"
 #include "processor.h"
@@ -19,7 +20,7 @@
 #include "output.h"
 #include "env.h"
 
-#include "dcpu.h"
+#include "devices/dcpu.h"
 #include "mem.h"
 
 #include "debug.h"

@@ -14,11 +14,11 @@
 
 #include "dprinter.h"
 
-#include "mtypes.h"
+#include "../mtypes.h"
 #include "device.h"
-#include "fault.h"
-#include "output.h"
-#include "utils.h"
+#include "../fault.h"
+#include "../output.h"
+#include "../utils.h"
 
 /* Registers */
 #define REGISTER_CHAR	0	/* Outpu character */

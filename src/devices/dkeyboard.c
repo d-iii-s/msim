@@ -17,8 +17,8 @@
 
 #include "device.h"
 #include "dcpu.h"
-#include "output.h"
-#include "utils.h"
+#include "../output.h"
+#include "../utils.h"
 
 /* Register offsets */
 #define REGISTER_CHAR	0

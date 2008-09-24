@@ -12,6 +12,7 @@
 #include <string.h>
 
 #include "text.h"
+#include "main.h"
 
 
 const char *text[] =

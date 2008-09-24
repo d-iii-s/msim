@@ -2,11 +2,16 @@
 # MSIM Changelog
 #
 
-2008-06-05	Viliam Holub <holub@dsrg.mff.cuni.cz>
+2008-09-24 Martin Decky <decky@dsrg.mff.cuni.cz>
+	Version 1.3.4rc3
+	* simplify build system
+	* split sources into multiple directories
+
+2008-06-05 Viliam Holub <holub@dsrg.mff.cuni.cz>
 	Version 1.3.4rc2
 	* LL-SC tracking fix (thx Jiri Svoboda)
 
-2007-12-17	Viliam Holub <holub@dsrg.mff.cuni.cz>
+2007-12-17 Viliam Holub <holub@dsrg.mff.cuni.cz>
 	Version 1.3.4rc1
 	* dorder sychdown command fix (thx Andrej Krutak)
 	* ddisk and mem clean-up (thx Milan Burda)
@@ -14,24 +19,24 @@
 	* minor performance improvements
 	* badvaddr not set for all exceptions, fixed
 
-2007-11-30	Viliam Holub <holub@dsrg.mff.cuni.cz>
+2007-11-30 Viliam Holub <holub@dsrg.mff.cuni.cz>
 	Version 1.3.3
 	* two-register dorder
 	* error messages fix
 	* cpu number fix
 
-2007-11-24	Viliam Holub <holub@dsrg.mff.cuni.cz>
+2007-11-24 Viliam Holub <holub@dsrg.mff.cuni.cz>
 	* dorder has two registers now - enable/disable interrupt pending
 
-2007-11-23	Viliam Holub <holub@dsrg.mff.cuni.cz>
+2007-11-23 Viliam Holub <holub@dsrg.mff.cuni.cz>
 	Version 1.3.2.3
 	* dorder infinite loop fix (thx David Matousek)
 
-2007-11-21	Viliam Holub <holub@dsrg.mff.cuni.cz>
+2007-11-21 Viliam Holub <holub@dsrg.mff.cuni.cz>
 	Version 1.3.2.2
 	* applied patch by Martin Decky, several small fixes 
 
-2007-03-11	Viliam Holub <holub@nenya.ms.mff.cuni.cz>
+2007-03-11 Viliam Holub <holub@nenya.ms.mff.cuni.cz>
 	Version 1.3.2.1
 	* missing stdio.h in input.c fixed
 	* MULT fix (thx Ondrej Palkovsky <ondrap@penguin.cz>)
@@ -42,62 +47,55 @@
 	* goto has been renamed to continue
 	* autogen.sh added
 
-2006-10-09	Viliam Holub <holub@nenya.ms.mff.cuni.cz>
+2006-10-09 Viliam Holub <holub@nenya.ms.mff.cuni.cz>
 	Version 1.3.1
-
 	* dprintf* functions have been renamed to mprintf* to avoid conflicts
 	  with libc on some systems (thx to Martin Decky)
 
-2005-12-30	Ondrej Palkovsky <ondrap@penguin.cz>
+2005-12-30 Ondrej Palkovsky <ondrap@penguin.cz>
 	* keybord keycode register is cleared after read operation; this
 	  allows to read new keycodes even with disabled interrupts
 
-2005-10-18	Viliam Holub <holub@nenya.ms.mff.cuni.cz>
+2005-10-18 Viliam Holub <holub@nenya.ms.mff.cuni.cz>
 	Version 1.3
-
 	* several small fixes
 	* error messages cleanup
 
-2005-10-10	Jakub Jermar <jermar@itbs.cz>
+2005-10-10 Jakub Jermar <jermar@itbs.cz>
 	* TLB Modification exception fix
 
-2005-09-20	Ondrej Palkovsky
+2005-09-20 Ondrej Palkovsky <ondrap@penguin.cz>
 	* add 4kc support
 
-2005-09-13	Viliam Holub <holub@nenya.ms.mff.cuni.cz>
+2005-09-13 Viliam Holub <holub@nenya.ms.mff.cuni.cz>
 	* LWL, LWR, SWL, SWR byte counting fix by Ondrej Palkovsky
 
-2005-03-03	Viliam Holub <holub@nenya.ms.mff.cuni.cz>
-
+2005-03-03 Viliam Holub <holub@nenya.ms.mff.cuni.cz>
 	* MTC0 fix (thx Ondrej Palkovsky)
 	* applied fixes by Lubo
 	* code polishing
 	* polishing of check RQ
 
-2005-01-08	Viliam Holub <holub@nenya.ms.mff.cuni.cz>
+2005-01-08 Viliam Holub <holub@nenya.ms.mff.cuni.cz>
 	Version 1.2.18
-
 	* minor changes
 	* the first version of TAB completion
 	* all system and device command are now defined via structures
 	* malloc and strdup safe
 	* ERET fix, LBU fix, epc rewrite fix (thx Matej Pivoluska, Martin
-	  Horváth, Jakub Kotrla)
+	  Horvath, Jakub Kotrla)
 	* code polishing
 
-2004-03-23	Viliam Holub <holub@nenya.ms.mff.cuni.cz>
+2004-03-23 Viliam Holub <holub@nenya.ms.mff.cuni.cz>
 	Version 1.2.12
-	
 	* device command are now generic
 	* generic context help
 
-2003-12-18	Viliam Holub <holub@nenya.ms.mff.cuni.cz>
-
+2003-12-18 Viliam Holub <holub@nenya.ms.mff.cuni.cz>
 	* code clean-up
 
-2003-12-17	Viliam Holub <holub@nenya.ms.mff.cuni.cz>
+2003-12-17 Viliam Holub <holub@nenya.ms.mff.cuni.cz>
 	Version 1.2.3
-
 	* cycle counter size increased to long long
 	* non-POSIX terminal attributes are now checked
 	* code cleanup (comments, read/write functions)
@@ -105,21 +103,15 @@
 	* (dcpu.c) md command fix
 	* endians checked via autoconf
 
-
-2003-12-01	Viliam Holub <holub@nenya.ms.mff.cuni.cz>
+2003-12-01 Viliam Holub <holub@nenya.ms.mff.cuni.cz>
 	Version 1.2.2
-	
 	* TLB dirty mask fix (read-only pages were writable)
 
-
-2003-11-28	Viliam Holub <holub@nenya.ms.mff.cuni.cz>
+2003-11-28 Viliam Holub <holub@nenya.ms.mff.cuni.cz>
 	Version 1.2.1
-	
 	* MTLO and MTHI fix
 
-
-2003-11-24	Viliam Holub <holub@nenya.ms.mff.cuni.cz>
+2003-11-24 Viliam Holub <holub@nenya.ms.mff.cuni.cz>
 	Version 1.2
-	
 	* debug messages fix
 	* added dtime

@@ -14,6 +14,7 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include "main.h"
 #include "machine.h"
 #include "fault.h"
 

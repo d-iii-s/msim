@@ -8,8 +8,8 @@
 
 #include <stdint.h>
 
-#include "mtypes.h"
-#include "parser.h"
+#include "../mtypes.h"
+#include "../parser.h"
 
 struct device_type_s;
 typedef struct device_type_s device_type_s;

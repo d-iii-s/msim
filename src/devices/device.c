@@ -16,15 +16,15 @@
 
 #include "device.h"
 
-#include "mem.h"
+#include "../mem.h"
 #include "dcpu.h"
 #include "dkeyboard.h"
 #include "dorder.h"
 #include "ddisk.h"
 #include "dprinter.h"
 #include "dtime.h"
-#include "check.h"
-#include "utils.h"
+#include "../check.h"
+#include "../utils.h"
 
 
 

@@ -1,8 +1,7 @@
-
 MIPS system simulator
-32bit variant of R4400
+32bit variant of R4000
 
-Actual version:	http://nenya.ms.mff.cuni.cz/~holub/msim/
+Actual version:	http://dsrg.mff.cuni.cz/~holub/msim/
 
 to compile and install type:
 ./configure && make install

@@ -13,7 +13,7 @@
 #include "processor.h"
 #include "parser.h"
 #include "endi.h"
-#include "device.h"
+#include "devices/device.h"
 
 
 enum TMemoryType_enum { mtRWM, mtROM, mtEXC };

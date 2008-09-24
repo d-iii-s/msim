@@ -20,7 +20,7 @@
 #include "mem.h"
 
 #include "parser.h"
-#include "device.h"
+#include "devices/device.h"
 #include "machine.h"
 #include "fault.h"
 #include "text.h"

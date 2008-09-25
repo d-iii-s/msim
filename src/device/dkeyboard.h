@@ -1,14 +1,19 @@
 /*
- * dkeyboard.h
- * Keyboard device
- * Copyright (c) 2002, 2003 Viliam Holub
+ * Copyright (c) 2002-2007 Viliam Holub
+ * All rights reserved.
+ *
+ * Distributed under the terms of GPL.
+ *
+ *
+ *  Keyboard device
+ *
  */
 
-#ifndef _DKEYBOARD_H_
-#define _DKEYBOARD_H_
+#ifndef DKEYBOARD_H_
+#define DKEYBOARD_H_
 
 #include "device.h"
 
 extern device_type_s DKeyboard;
 
-#endif /* _DKEYBOARD_H_ */
+#endif /* DKEYBOARD_H_ */

@@ -1,10 +1,16 @@
 /*
  * Copyright (c) 2001-2007 Viliam Holub
+ * All rights reserved.
+ *
+ * Distributed under the terms of GPL.
+ *
+ *
+ *  Device infrastructure
+ *
  */
 
-
-#ifndef _DEVICE_H_
-#define _DEVICE_H_
+#ifndef DEVICE_H_
+#define DEVICE_H_
 
 #include <stdint.h>
 
@@ -25,8 +31,7 @@ typedef struct device_type_s device_type_s;
  * next		A pointer to the next instance. NULL at the end.
  */
 
-struct device_s
-{
+struct device_s {
 	const device_type_s *type;
 	char *name;
 	void *data;
@@ -63,17 +68,16 @@ typedef struct device_s device_s;
  * NULL value means "not implemented".
  */
 
-struct device_type_s
-{
+struct device_type_s {
 	const char *const name;
 	const char *const brief;
 	const char *const full;
 	
-	void		(*done)  ( device_s *d);
-	void		(*step)  ( device_s *d);
-	void		(*step4) ( device_s *d);
-	void		(*read)  ( device_s *d, uint32_t addr, uint32_t *val);
-	void		(*write) ( device_s *d, uint32_t addr, uint32_t val);
+	void (*done)(device_s *d);
+	void (*step)(device_s *d);
+	void (*step4)(device_s *d);
+	void (*read)(device_s *d, uint32_t addr, uint32_t *val);
+	void (*write)(device_s *d, uint32_t addr, uint32_t val);
 
 	const cmd_s *const cmds;
 };
@@ -82,7 +86,7 @@ struct device_type_s
  * LAST_CMD is used in device sources to determine the last command. That's
  * only a null-command with all NULL parameters.
  */
-#define LAST_CMD	{}
+#define LAST_CMD {}
 
 
 /*
@@ -118,40 +122,40 @@ static const char *const txt_file_seek_err	= "Could not seek in the file";
  * optionally arguments as for printf().
  * INFO_SPC is a string constant useful for multi-line infos.
  */
-void info_printf( const char *fmt, ...);
+extern void info_printf(const char *fmt, ...);
 #define INFO_SPC "                      "
 
 /* 
  * Functions on device structures
  */
-device_s *dev_by_name( const char *s);
-const char *dev_by_partial_typename( const char *name,
-		const device_type_s ***dt);
-const char *dev_by_partial_name( const char *name, device_s **d);
-int devs_by_partial_name( const char *name, device_s **d);
-device_s *dev_by_name( const char *s);
-bool dev_map( void *data, bool (*f)(void *, device_s *));
-bool dev_next( device_s **d);
-bool dev_next_in_step( device_s **d);
-bool dev_next_in_step4( device_s **d);
-void cpr_num( char *s, uint32_t i);
+extern device_s *dev_by_name(const char *s);
+extern const char *dev_by_partial_typename(const char *name,
+	const device_type_s ***dt);
+extern const char *dev_by_partial_name(const char *name, device_s **d);
+extern int devs_by_partial_name(const char *name, device_s **d);
+extern device_s *dev_by_name(const char *s);
+extern bool dev_map(void *data, bool (*f)(void *, device_s *));
+extern bool dev_next(device_s **d);
+extern bool dev_next_in_step(device_s **d);
+extern bool dev_next_in_step4(device_s **d);
+extern void cpr_num(char *s, uint32_t i);
 
 /*
  * Link/unlink device functions
  */
-void dev_add( device_s *d);
-void dev_remove( device_s *d);
+extern void dev_add(device_s *d);
+extern void dev_remove(device_s *d);
 
 /*
  * General utils
  */
-bool dev_generic_help( parm_link_s *parm, device_s *dev);
-void find_dev_gen( parm_link_s **pl, const device_s *d,
-		gen_f *generator, const void **data);
+extern bool dev_generic_help(parm_link_s *parm, device_s *dev);
+extern void find_dev_gen(parm_link_s **pl, const device_s *d,
+	gen_f *generator, const void **data);
 
 /*
  * Often used tests
  */
-bool addr_word_aligned( uint32_t addr);
+extern bool addr_word_aligned(uint32_t addr);
 
-#endif /* _DEVICE_H_ */
+#endif /* DEVICE_H_ */

@@ -1359,367 +1359,432 @@ static enum exc execute(TInstrInfo *ii2)
 			cp0_cause |= cp0_cause_ce_cu2;
 		}
 		break;
-
-		case opcCFC3:
-			if (cp0_status_cu3 == 1)
-				/* ignored */;
-			else
-			{
-				/* coprocessor unusable */
-				res = excCpU;
-				cp0_cause &= ~cp0_cause_ce_mask;
-				cp0_cause |= cp0_cause_ce_cu3;
-			}
-			break;
-
-		case opcCTC0:	/* this instruction is not valid */			break;
-
-		case opcCTC1:
-			if (cp0_status_cu1 == 1)
-				/* ignored */;
-			else
-			{
-				/* coprocessor unusable */
-				res = excCpU;
-				cp0_cause &= ~cp0_cause_ce_mask;
-				cp0_cause |= cp0_cause_ce_cu1;
-			}
-			break;
-
-		case opcCTC2:
-			if (cp0_status_cu2 == 1)
-				/* ignored */;
-			else
-			{
-				/* coprocessor unusable */
-				res = excCpU;
-				cp0_cause &= ~cp0_cause_ce_mask;
-				cp0_cause |= cp0_cause_ce_cu2;
-			}
-			break;
-
-		case opcCTC3:
-			if (cp0_status_cu3)
-				/* ignored */;
-			else
-			{
-				/* coprocessor unusable */
-				res = excCpU;
-				cp0_cause &= ~cp0_cause_ce_mask;
-				cp0_cause |= cp0_cause_ce_cu3;
-			}
-			break;
-
-		case opcERET:
-			if (cp0_status_cu0 || !cp0_status_ksu || cp0_status_exl ||
-				cp0_status_erl)
-
-			{
-				/* ERET breaks LL-SC address tracking. */
-				pr->llval = false;
-				pr->lladdr = (uint32_t) -1;
-				UnregisterLL();
-				
-				/* Delay slot test */
-				if (pr->branch && errors)
-					mprintf( "\nError: ERET in a delay slot\n\n");
+	case opcCFC3:
+		if (cp0_status_cu3 == 1) {
+			/* Ignored */
+		} else {
+			/* Coprocessor unusable */
+			res = excCpU;
+			cp0_cause &= ~cp0_cause_ce_mask;
+			cp0_cause |= cp0_cause_ce_cu3;
+		}
+		break;
+	case opcCTC0:
+		/* This instruction is not valid */
+		break;
+	case opcCTC1:
+		if (cp0_status_cu1 == 1) {
+			/* Ignored */
+		} else {
+			/* Coprocessor unusable */
+			res = excCpU;
+			cp0_cause &= ~cp0_cause_ce_mask;
+			cp0_cause |= cp0_cause_ce_cu1;
+		}
+		break;
+	case opcCTC2:
+		if (cp0_status_cu2 == 1) {
+			/* Ignored */
+		} else {
+			/* Coprocessor unusable */
+			res = excCpU;
+			cp0_cause &= ~cp0_cause_ce_mask;
+			cp0_cause |= cp0_cause_ce_cu2;
+		}
+		break;
+	case opcCTC3:
+		if (cp0_status_cu3) {
+			/* Ignored */
+		} else {
+			/* Coprocessor unusable */
+			res = excCpU;
+			cp0_cause &= ~cp0_cause_ce_mask;
+			cp0_cause |= cp0_cause_ce_cu3;
+		}
+		break;
+	case opcERET:
+		if ((cp0_status_cu0)
+			|| (!cp0_status_ksu)
+			|| (cp0_status_exl)
+			|| (cp0_status_erl)) {
+			/* ERET breaks LL-SC address tracking */
+			pr->llval = false;
+			pr->lladdr = (uint32_t) -1;
+			UnregisterLL();
 			
-				if (cp0_status_erl)
-				{
-					/* error level */
-					pr->pcnextreg = cp0_errorepc;
-					pca = pr->pcnextreg +4;
-					cp0_status &= ~cp0_status_erl_mask;
-				}
-				else
-				{
-					/* exception level */
-					pr->pcnextreg = cp0_epc;
-					pca = pr->pcnextreg +4;
-					cp0_status &= ~cp0_status_exl_mask;
-				}
+			/* Delay slot test */
+			if ((pr->branch) && (errors))
+				mprintf("\nError: ERET in a delay slot\n\n");
+			
+			if (cp0_status_erl) {
+				/* Error level */
+				pr->pcnextreg = cp0_errorepc;
+				pca = pr->pcnextreg + 4;
+				cp0_status &= ~cp0_status_erl_mask;
+			} else {
+				/* Exception level */
+				pr->pcnextreg = cp0_epc;
+				pca = pr->pcnextreg + 4;
+				cp0_status &= ~cp0_status_exl_mask;
 			}
-			else
-			{
-				/* coprocessor unusable */
+		} else {
+			/* Coprocessor unusable */
+			res = excCpU;
+			cp0_cause &= ~cp0_cause_ce_mask;
+		}	
+		break;
+	case opcDMFC0:
+		res = excRI;
+		break;
+	case opcDMTC0:
+		res = excRI;
+		break;
+	case opcMFC0:
+		if ((cp0_status_cu0 == 1)
+			|| ((cp0_status_ksu == 0)
+			|| (cp0_status_exl == 1)
+			|| (cp0_status_erl == 1)))
+			pr->regs[ii.rt] = pr->cp0[ii.rd];
+		else {
+			/* Coprocessor unusable */
+			res = excCpU;
+			cp0_cause &= ~cp0_cause_ce_mask;
+		}
+		break;
+	case opcMFHI:
+		pr->regs[ii.rd] = pr->hireg;
+		break;
+	case opcMFLO:
+		pr->regs[ii.rd] = pr->loreg;
+		break;
+	case opcMTC0:
+		if ((cp0_status_cu0 == 1)
+			|| ((cp0_status_ksu == 0)
+			|| (cp0_status_exl)
+			|| (cp0_status_erl)))
+			switch (ii.rd) {
+			/* 0 */
+			case CP0_Index:
+				cp0_index = rrt & 0x3f;
+				break;
+			case CP0_Random:
+				/* Ignored, read-only */
+				break;
+			case CP0_EntryLo0:
+				cp0_entrylo0 = rrt & 0x3fffffff;
+				break;
+			case CP0_EntryLo1:
+				cp0_entrylo1 = rrt & 0x3fffffff;
+				break;
+			case CP0_Context:
+				cp0_context = rrt & 0xfffffff0;
+				break;
+			case CP0_PageMask:
+				cp0_pagemask = 0;
+				if ((rrt == 0x0)
+					| (rrt == 0x6000)
+					| (rrt == 0x1e000)
+					| (rrt == 0x7e000)
+					| (rrt == 0x1fe000)
+					| (rrt == 0x7fe000)
+					| (rrt == 0x1ffe000))
+					cp0_pagemask = rrt & cp0_pagemask_mask_mask;
+				else if (errors) 
+					mprintf("\nMTC0: Invalid value for PageMask\n");
+				break;
+			case CP0_Wired:
+				cp0_random = 47;
+				cp0_wired = rrt & 0x3f;
+				if (cp0_wired > 47) 
+					mprintf("\nMTC0: Invalid value for Wired\n");
+				break;
+			case CP0_Res1:
+				/* Ignored, reserved */
+				break;
+			/* 8 */
+			case CP0_BadVAddr:
+				/* Ignored, read-only */
+				break;
+			case CP0_Count:
+				cp0_count = rrt;
+				break;
+			case CP0_EntryHi:
+				cp0_entryhi = rrt & 0xfffff0ff;
+				break;
+			case CP0_Compare:
+				cp0_compare = rrt;
+				cp0_cause &= ~(1 << cp0_cause_ip7_shift);
+				break;
+			case CP0_Status:
+				cp0_status = rrt & 0xff77ff1f;
+				break;
+			case CP0_Cause:
+				cp0_cause &= ~(cp0_cause_ip0_mask | cp0_cause_ip1_mask);
+				cp0_cause |= rrt & (cp0_cause_ip0_mask | cp0_cause_ip1_mask);
+				break;
+			case CP0_EPC:
+				cp0_epc = rrt;
+				break;
+			case CP0_PRId:
+				/* Ignored, read-only */
+				break;
+			/* 16 */
+			case CP0_Config:
+				/* Ignored for simulation */
+				cp0_config = rrt & 0xffffefff;
+				break;
+			case CP0_LLAddr:
+				cp0_lladdr = rrt;
+				break;
+			case CP0_WatchLo:
+				/* Ignored ? in 32bit MIPS */
+				break;
+			case CP0_WatchHi:
+				/* Ignored ? in 32bit MIPS */
+				break;
+			case CP0_XContext:
+				/* Ignored ? in 32bit MIPS */
+				break;
+			case CP0_Res2:
+				/* Ignored, reserved */
+				break;
+			case CP0_Res3:
+				/* Ignored, reserved */
+				break;
+			case CP0_Res4:
+				/* Ignored, reserved */
+				break;
+			/* 24 */
+			case CP0_Res5:
+				/* Ignored, reserved */
+				break;
+			case CP0_Res6:
+				/* Ignored, reserved */
+				break;
+			case CP0_ECC:
+				/* Ignored for simulation */
+				cp0_ecc = (rrt & cp0_ecc_ecc_mask) << cp0_ecc_ecc_shift;
+				break;
+			case CP0_CacheErr:
+				/* Ignored, read-only */
+				break;
+			case CP0_TagLo:
+				cp0_taglo = rrt;
+				break;
+			case CP0_TagHi:
+				cp0_taghi = rrt;
+				break;
+			case CP0_ErrorEPC:
+				cp0_errorepc = rrt;
+				break;
+			case CP0_Res7:
+				/* Ignored */
+				break;
+			} else {
+				/* Coprocessor unusable */
 				res = excCpU;
 				cp0_cause &= ~cp0_cause_ce_mask;
-			}	
-			break;
-		case opcDMFC0:	res = excRI;								break;
-		case opcDMTC0:	res = excRI;								break;
-		case opcMFC0:
-			if ((cp0_status_cu0 == 1)||
-				 ((cp0_status_ksu == 0)||(cp0_status_exl == 1)||(cp0_status_erl == 1)))
-				pr->regs[ ii.rt] = pr->cp0[ ii.rd];
-			else
-			{
-				/* coprocessor unusable */
-				res = excCpU;
-				cp0_cause &= ~cp0_cause_ce_mask;
 			}
-			break;
-		case opcMFHI:	pr->regs[ ii.rd] = pr->hireg;						break;
-		case opcMFLO:	pr->regs[ ii.rd] = pr->loreg;						break;
-		case opcMTC0:
-			if ((cp0_status_cu0 == 1) ||
-				 ((cp0_status_ksu == 0) || cp0_status_exl || 
-				  cp0_status_erl))
-			switch (ii.rd)
-			{
-				/* 0 */
-				case CP0_Index:		cp0_index = rrt & 0x3f;				break;
-				case CP0_Random:	/* ignored, read-only */			break;
-				case CP0_EntryLo0:	cp0_entrylo0 = rrt & 0x3fffffff;		break;
-				case CP0_EntryLo1:	cp0_entrylo1 = rrt & 0x3fffffff;		break;
-				case CP0_Context:	cp0_context = rrt & 0xfffffff0;			break;
-				case CP0_PageMask:
-					cp0_pagemask = 0;
-					if ((rrt == 0x0)|(rrt == 0x6000)|(rrt == 0x1e000)|(rrt == 0x7e000)|
-						(rrt == 0x1fe000)|(rrt == 0x7fe000)|(rrt == 0x1ffe000))
-						cp0_pagemask = rrt & cp0_pagemask_mask_mask;
-					else if (errors) 
-						mprintf( "\nMTC0: Invalid value for PageMask\n");
-													break;
-				case CP0_Wired:
-					cp0_random = 47;
-					cp0_wired = rrt & 0x3f;
-					if (cp0_wired > 47) 
-						mprintf( "\nMTC0: Invalid value for Wired\n");
-													break;
-				case CP0_Res1:		/* ignored, reserved */				break;
-				/* 8 */
-				case CP0_BadVAddr:	/* ignored, read-only */			break;
-				case CP0_Count:		cp0_count = rrt;				break;
-				case CP0_EntryHi:	cp0_entryhi = rrt & 0xfffff0ff;			break;
-				case CP0_Compare:
-					cp0_compare = rrt;
-					cp0_cause &= ~(1 << cp0_cause_ip7_shift);
-													break;
-				case CP0_Status:	cp0_status = rrt & 0xff77ff1f;			break;
-				case CP0_Cause:
-					cp0_cause &= ~(cp0_cause_ip0_mask | cp0_cause_ip1_mask);
-					cp0_cause |= rrt & (cp0_cause_ip0_mask | cp0_cause_ip1_mask);
-													break;
-				case CP0_EPC:		cp0_epc = rrt;					break;
-				case CP0_PRId:		/* ignored, read-only */			break;
-				/* 16 */
-				case CP0_Config:	/* ignored for simulation*/
-							cp0_config = rrt & 0xffffefff;			break;
-				case CP0_LLAddr:	cp0_lladdr = rrt;				break;
-				case CP0_WatchLo:	/* ignored ? in 32bit MIPS */			break;
-				case CP0_WatchHi:	/* ignored ? in 32bit MIPS */			break;
-				case CP0_XContext:	/* ignored ? in 32bit MIPS */			break;
-				case CP0_Res2:		/* ignored, reserved */				break;
-				case CP0_Res3:		/* ignored, reserved */				break;
-				case CP0_Res4:		/* ignored, reserved */				break;
-				/* 24 */
-				case CP0_Res5:		/* ignored, reserved */				break;
-				case CP0_Res6:		/* ignored, reserved */				break;
-				case CP0_ECC:		/* ignored for simulation */
-							cp0_ecc = (rrt & cp0_ecc_ecc_mask) << cp0_ecc_ecc_shift;
-													break;
-				case CP0_CacheErr:	/* ignored, read-only */			break;
-				case CP0_TagLo:		cp0_taglo = rrt;				break;
-				case CP0_TagHi:		cp0_taghi = rrt;				break;
-				case CP0_ErrorEPC:	cp0_errorepc = rrt;				break;
-				case CP0_Res7:		/* ignored */					break;
-			}
-			else
-			{
-				/* coprocessor unusable */
-				res = excCpU;
-				cp0_cause &= ~cp0_cause_ce_mask;
-			}
-			break;
-
-		case opcMTC1:
-			if (cp0_status_cu1 == 1)
-				/* ignored */;
-			else
-			{
-				/* coprocessor unusable */
-				res = excCpU;
-				cp0_cause &= ~cp0_cause_ce_mask;
-				cp0_cause |= cp0_cause_ce_cu1;
-			}
-			break;
-
-		case opcMTC2:
-			if (cp0_status_cu2 == 1)
-				/* ignored */;
-			else
-			{
-				/* coprocessor unusable */
-				res = excCpU;
-				cp0_cause &= ~cp0_cause_ce_mask;
-				cp0_cause |= cp0_cause_ce_cu2;
-			}
-			break;
-		case opcMTC3:
-			if (cp0_status_cu3 == 1)
-				/* ignored */;
-			else
-			{
-				/* coprocessor unusable */
-				res = excCpU;
-				cp0_cause &= ~cp0_cause_ce_mask;
-				cp0_cause |= cp0_cause_ce_cu3;
-			}
-			break;
-		case opcDMTC1:	/* 64-bit instructions */ res = excRI;	break;
-		case opcDMTC2:	/* 64-bit instructions */ res = excRI;	break;
-		case opcDMTC3:	/* 64-bit instructions */ res = excRI;	break;
-		case opcSDC1:	/* 64-bit instructions */ res = excRI;	break;
-		case opcSDC2:	/* 64-bit instructions */ res = excRI;	break;
-		case opcMTHI:	pr->hireg = rrs;			break;
-		case opcMTLO:	pr->loreg = rrs;			break;
-		case opcSYNC:	/* no synchronisation is needed */	break;
-		case opcSYSCALL:res = excSys;				break;
-		case opcRES:	res = excRI;				break;
-		case opcQRES:	/* quiet reserved */			break;
-		case opcTLBP:
-			if ((cp0_status_cu0 == 1) || (cp0_status_ksu == 0) ||
-				(cp0_status_exl == 1) || (cp0_status_erl == 1))
-			{
-				uint32_t xvpn2, xasid;
-				int i;
-
-				cp0_index = 1 << cp0_index_p_shift;
-
-				xvpn2 = cp0_entryhi & cp0_entryhi_vpn2_mask;
-				xasid = cp0_entryhi & cp0_entryhi_asid_mask;
-				for (i=0; i<48; i++)
-				if ( (pr->tlb[ i].vpn2 == xvpn2) &&
-					(pr->tlb[ i].global || (pr->tlb[ i].asid == xasid)))
-				{
+		break;
+	case opcMTC1:
+		if (cp0_status_cu1 == 1) {
+			/* Ignored */
+		} else {
+			/* Coprocessor unusable */
+			res = excCpU;
+			cp0_cause &= ~cp0_cause_ce_mask;
+			cp0_cause |= cp0_cause_ce_cu1;
+		}
+		break;
+	case opcMTC2:
+		if (cp0_status_cu2 == 1) {
+			/* Ignored */
+		} else {
+			/* Coprocessor unusable */
+			res = excCpU;
+			cp0_cause &= ~cp0_cause_ce_mask;
+			cp0_cause |= cp0_cause_ce_cu2;
+		}
+		break;
+	case opcMTC3:
+		if (cp0_status_cu3 == 1) {
+			/* Ignored */
+		} else {
+			/* Coprocessor unusable */
+			res = excCpU;
+			cp0_cause &= ~cp0_cause_ce_mask;
+			cp0_cause |= cp0_cause_ce_cu3;
+		}
+		break;
+	case opcDMTC1:
+		/* 64-bit instructions */
+		res = excRI;
+		break;
+	case opcDMTC2:
+		/* 64-bit instructions */
+		res = excRI;
+		break;
+	case opcDMTC3:
+		/* 64-bit instructions */
+		res = excRI;
+		break;
+	case opcSDC1:
+		/* 64-bit instructions */
+		res = excRI;
+		break;
+	case opcSDC2:
+		/* 64-bit instructions */
+		res = excRI;
+		break;
+	case opcMTHI:
+		pr->hireg = rrs;
+		break;
+	case opcMTLO:
+		pr->loreg = rrs;
+		break;
+	case opcSYNC:
+		/* No synchronisation is needed */
+		break;
+	case opcSYSCALL:
+		res = excSys;
+		break;
+	case opcRES:
+		res = excRI;
+		break;
+	case opcQRES:
+		/* Quiet reserved */
+		break;
+	case opcTLBP:
+		if ((cp0_status_cu0 == 1) || (cp0_status_ksu == 0) ||
+			(cp0_status_exl == 1) || (cp0_status_erl == 1)) {
+			uint32_t xvpn2, xasid;
+			unsigned int i;
+			
+			cp0_index = 1 << cp0_index_p_shift;
+			
+			xvpn2 = cp0_entryhi & cp0_entryhi_vpn2_mask;
+			xasid = cp0_entryhi & cp0_entryhi_asid_mask;
+			for (i = 0; i < 48; i++)
+				if ((pr->tlb[i].vpn2 == xvpn2) &&
+					(pr->tlb[i].global || (pr->tlb[i].asid == xasid))) {
 					cp0_index = i;
 					break;
 				}
-			}
-			else
-			{
-				/* coprocessor unusable */
-				res = excCpU;
-				cp0_cause &= ~cp0_cause_ce_mask;
-			}
-			break;
+		} else {
+			/* Coprocessor unusable */
+			res = excCpU;
+			cp0_cause &= ~cp0_cause_ce_mask;
+		}
+		break;
+	case opcTLBR:
+		if ((cp0_status_cu0 == 1) ||
+			 (cp0_status_ksu == 0) || (cp0_status_exl == 1) ||
+			 (cp0_status_erl == 1)) {
+			int i = cp0_index_index;
 			
-		case opcTLBR:
-			if ((cp0_status_cu0 == 1) ||
-				 (cp0_status_ksu == 0) || (cp0_status_exl == 1) ||
-				 (cp0_status_erl == 1))
-			{
-				int i;
-				i = cp0_index_index;
-
-				if (i > 47)
-				{
-					mprintf( "\nTLBR: Invalid value in Index\n");
-					cp0_pagemask = 0; cp0_entryhi = 0;
-					cp0_entrylo0 = 0; cp0_entrylo1 = 0;
-				}
-				else
-				{
-					cp0_pagemask = (~pr->tlb[ i].mask) & 0x01ffe000;
-					cp0_entryhi = pr->tlb[ i].vpn2 | pr->tlb[ i].asid;
-					cp0_entrylo0 = (pr->tlb[ i].pg[ 0].pfn >> 6)| 
-						 (pr->tlb[ i].pg[ 0].cohh << 3) |
-						 ((pr->tlb[ i].pg[ 0].dirty ? 1 : 0) << 2) |
-						 ((pr->tlb[ i].pg[ 0].valid ? 1 : 0) << 1) |
-						 (pr->tlb[ i].global ? 1 : 0);
-					cp0_entrylo1 = (pr->tlb[ i].pg[ 1].pfn >> 6) | 
-						 (pr->tlb[ i].pg[ 1].cohh << 3) |
-						 ((pr->tlb[ i].pg[ 1].dirty ? 1 : 0) << 2) |
-						 ((pr->tlb[ i].pg[ 1].valid ? 1 : 0) << 1) |
-						 (pr->tlb[ i].global ? 1 : 0);
-				}
+			if (i > 47) {
+				mprintf("\nTLBR: Invalid value in Index\n");
+				cp0_pagemask = 0;
+				cp0_entryhi = 0;
+				cp0_entrylo0 = 0;
+				cp0_entrylo1 = 0;
+			} else {
+				cp0_pagemask = (~pr->tlb[i].mask) & 0x01ffe000;
+				cp0_entryhi = pr->tlb[i].vpn2 | pr->tlb[i].asid;
+				
+				cp0_entrylo0 = (pr->tlb[i].pg[0].pfn >> 6)
+					| (pr->tlb[i].pg[0].cohh << 3)
+					| ((pr->tlb[i].pg[0].dirty ? 1 : 0) << 2)
+					| ((pr->tlb[i].pg[0].valid ? 1 : 0) << 1)
+					| (pr->tlb[i].global ? 1 : 0);
+				
+				cp0_entrylo1 = (pr->tlb[i].pg[1].pfn >> 6)
+					| (pr->tlb[i].pg[1].cohh << 3)
+					| ((pr->tlb[i].pg[1].dirty ? 1 : 0) << 2)
+					| ((pr->tlb[i].pg[1].valid ? 1 : 0) << 1)
+					| (pr->tlb[i].global ? 1 : 0);
 			}
-			else
-			{
-				/* coprocessor unusable */
-				res = excCpU;
-				cp0_cause &= ~cp0_cause_ce_mask;
-			}
-			break;
-		case opcTLBWI:	TLBW( CP0_Index, &res);			break;
-		case opcTLBWR:	TLBW( CP0_Random, &res);		break;
-		case opcBREAK:
-			if (remote_gdb_conn)
-				gdb_handle_event( 8);
-			else
-				res = excBp;
-			break;
-		case opcWAIT:
-			pr->pcnextreg = pr->pcreg;
-			pr->stdby = true;
-			break;
-
-		/*
-		 * Machine debugging instructions
-		 */
-
-		case opcDVAL:
-			mprintf( "\nDebug: value %Xh (%dd)\n\n", pr->regs[ 4], pr->regs[ 4]);
-			break;
-			
-		case opcDTRC:
-			if (!totrace) 
-			{
-				reg_view();
-				mprintf( "\n");
-			}
-			update_deb();
-			totrace = true;
-			break;
-			
-		case opcDTRO:
-			totrace = false;
-			break;
-			
-		case opcDRV:
-			mprintf( "\nDebug: register view\n");
-			reg_view();
-			mprintf( "\n");
-			break;
-			
-		case opcDHLT:
-			if (totrace) mprintf( "\nMachine halt.\n\n");
-			tohalt = true;
-			break;
-
-		case opcDINT:
-			interactive = true;
-			break;
-	}
-
-	/* branch test */
-	if ((pr->branch == 2)||(pr->branch == 0)) pr->excaddr = pr->pcreg;
+		} else {
+			/* Coprocessor unusable */
+			res = excCpU;
+			cp0_cause &= ~cp0_cause_ce_mask;
+		}
+		break;
+	case opcTLBWI:
+		TLBW(CP0_Index, &res);
+		break;
+	case opcTLBWR:
+		TLBW(CP0_Random, &res);
+		break;
+	case opcBREAK:
+		if (remote_gdb_conn)
+			gdb_handle_event(8);
+		else
+			res = excBp;
+		break;
+	case opcWAIT:
+		pr->pcnextreg = pr->pcreg;
+		pr->stdby = true;
+		break;
 	
-	/* pc update  */
-	if (res == excNone)
-	{
+	/*
+	 * machine debugging instructions
+	 */
+	case opcDVAL:
+		mprintf("\nDebug: value %Xh (%dd)\n\n", pr->regs[4], pr->regs[4]);
+		break;
+	case opcDTRC:
+		if (!totrace) {
+			reg_view();
+			mprintf("\n");
+		}
+		update_deb();
+		totrace = true;
+		break;
+	case opcDTRO:
+		totrace = false;
+		break;
+	case opcDRV:
+		mprintf("\nDebug: register view\n");
+		reg_view();
+		mprintf("\n");
+		break;
+	case opcDHLT:
+		if (totrace)
+			mprintf("\nMachine halt.\n\n");
+		tohalt = true;
+		break;
+	case opcDINT:
+		interactive = true;
+		break;
+	}
+	
+	/* Branch test */
+	if ((pr->branch == 2) || (pr->branch == 0))
+		pr->excaddr = pr->pcreg;
+	
+	/* PC update */
+	if (res == excNone) {
 		pr->pcreg = pr->pcnextreg;
 		pr->pcnextreg = pca;
 	}
 	
 	/* reg0 control */
-	pr->regs[ 0] = 0;
+	pr->regs[0] = 0;
 
 	return res;
 }
 
 
-/** Changes the processor state according to the exception type.
+/** Change the processor state according to the exception type
+ *
  */
-static void
-handle_exception( enum exc res)
+static void handle_exception(enum exc res)
 {
 	bool tlb_refill = false;
-
-	/* convert TLB Refill exceptions */
-	if ((res == excTLBLR) || (res == excTLBSR))
-	{
+	
+	/* Convert TLB Refill exceptions */
+	if ((res == excTLBLR) || (res == excTLBSR)) {
 		tlb_refill = true;
 		if (res == excTLBLR)
 			res = excTLBL;
@@ -1729,62 +1794,66 @@ handle_exception( enum exc res)
 	
 	pr->stdby = false;
 	
-	/* user info and register filling */
+	/* User info and register filling */
 	if (totrace)
-		mprintf( "\nRaised exception: %s\n\n", excText[ res]);
+		mprintf("\nRaised exception: %s\n\n", excText[res]);
+	
 	cp0_cause &= ~cp0_cause_exccode_mask;
 	cp0_cause |= res << cp0_cause_exccode_shift;
 		
-	/* exception branch control */
+	/* Exception branch control */
 	cp0_cause &= ~cp0_cause_bd_mask;
-	if (pr->branch == 1) cp0_cause |= cp0_cause_bd_mask;
+	if (pr->branch == 1)
+		cp0_cause |= cp0_cause_bd_mask;
 
-	if (!cp0_status_exl)
-	{
+	if (!cp0_status_exl) {
 		cp0_epc = pr->excaddr;
 		if ((res == excInt) && (pr->branch != 2))
 			cp0_epc = pr->pcreg;
 	}
 		
-	/* exception vector base address */
-	if (cp0_status_bev)
-	{
-		/* booting time */
-		if (res != excReset) pr->pcreg = 0xbfc00200;
-		else pr->pcreg = 0xbfc00000;
-	}
-	else
-	{
-		/* normal time */
-		if (res != excReset) pr->pcreg = 0x80000000;
-		else pr->pcreg = 0xbfc00000;
+	/* Exception vector base address */
+	if (cp0_status_bev) {
+		/* Booting time */
+		if (res != excReset)
+			pr->pcreg = 0xbfc00200;
+		else
+			pr->pcreg = 0xbfc00000;
+	} else {
+		/* Normal time */
+		if (res != excReset)
+			pr->pcreg = 0x80000000;
+		else
+			pr->pcreg = 0xbfc00000;
 	}
 	
-	/* exception vector offsets */
-	if (cp0_status_exl || !tlb_refill)
+	/* Exception vector offsets */
+	if ((cp0_status_exl) || (!tlb_refill))
 		pr->pcreg += EXCEPTION_OFFSET;
-	pr->pcnextreg = pr->pcreg +4;
+	
+	pr->pcnextreg = pr->pcreg + 4;
 		
-	/* turn to kernel mode */
+	/* Turn to kernel mode */
 	cp0_status |= cp0_status_exl_mask;
 }
 
 
-/** Reacts on interrupt requests, updates internal timer, random register
- * etc.
+/** React on interrupt requests, updates internal timer, random register
+ *
  */
-static void
-manage( enum exc res)
+static void manage(enum exc res)
 {
 	/* Test for interrupt request */
-	if (	(res == excNone) &&
-		!cp0_status_exl && !cp0_status_erl && cp0_status_ie &&
-		((cp0_cause & cp0_status) & cp0_cause_ip_mask) != 0)
+	if ((res == excNone)
+		&& (!cp0_status_exl)
+		&& (!cp0_status_erl)
+		&& (cp0_status_ie)
+		&& ((cp0_cause & cp0_status) & cp0_cause_ip_mask) != 0)
 		res = excInt;
 	
 	/* Exception control */
 	if (res != excNone)
-		handle_exception( res);
+		handle_exception(res);
 
 	/* Increase counter */
 	cp0_count_count++;
@@ -1792,6 +1861,7 @@ manage( enum exc res)
 	/* Decrease random register */
 	if (cp0_random-- == 0)
 		cp0_random = 47;
+	
 	if (cp0_random < cp0_wired)
 		cp0_random = 47;
 
@@ -1802,64 +1872,63 @@ manage( enum exc res)
 }
 
 
-/* Simulates just one instruction.
+/* Simulate just one instruction
  *
  * The are three main parts: instruction reading, decoding and performing
  * debug output.
+ *
  */
-static void
-instruction( enum exc *res)
+static void instruction(enum exc *res)
 {
 	TInstrInfo ii;
 
 	/* Reading instruction code */
-	*res = read_proc_ins( pr->pcreg, &ii.icode, true);
-	if (*res == excNone)
-	{
-		char modif_regs[ 1024];
+	*res = read_proc_ins(pr->pcreg, &ii.icode, true);
+	if (*res == excNone) {
+		char modif_regs[1024];
 		uint32_t old_pcreg = pr->pcreg;
 		
 		/* Decoding instruction code */
-		decode_instr( &ii);
+		decode_instr(&ii);
 		
 		/* Executing instruction */
-		*res = execute( &ii);
+		*res = execute(&ii);
 		
 		/* View changes */
-		if (totrace && iregch)
-			modified_regs_dump( 1024, modif_regs);
+		if ((totrace) && (iregch))
+			modified_regs_dump(1024, modif_regs);
 		else
-			modif_regs[ 0] = 0;
+			modif_regs[0] = 0;
 		
 		/* Instruction disassembling */
 		if (totrace)
-			iview( old_pcreg, &ii, true, modif_regs);
+			iview(old_pcreg, &ii, true, modif_regs);
 	}
 }
 
 
-/* Simulates one step of the processor.
+/* Simulate one step of the processor
  *
  * This is just one instruction.
+ *
  */
-void
-step( void)
+void step(void)
 {
 	enum exc res = excNone;
 
 	/* Instruction execute */
 	if (!pr->stdby)
-		instruction( &res);
+		instruction(&res);
 
 	/* Processor control */
-	manage( res);
+	manage(res);
 
 	if (pr->stdby)
 		pr->w_cycles++;
-	else
-	{
-		if ((cp0_status_ksu == 0)||(cp0_status_exl == 1)||
-				(cp0_status_erl == 1))
+	else {
+		if ((cp0_status_ksu == 0)
+			|| (cp0_status_exl == 1)
+			|| (cp0_status_erl == 1))
 			pr->k_cycles++;
 		else
 			pr->u_cycles++;

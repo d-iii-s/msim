@@ -1,14 +1,19 @@
 /*
- * ddisk.h
- * Disk with DMA implementation
- * Copyright (c) 2002, 2003 Viliam Holub
+ * Copyright (c) 2002-2007 Viliam Holub
+ * All rights reserved.
+ *
+ * Distributed under the terms of GPL.
+ *
+ *
+ *  Disk with DMA
+ *
  */
 
-#ifndef _DDISK_H_
-#define _DDISK_H_
+#ifndef DDISK_H_
+#define DDISK_H_
 
 #include "device.h"
 
 extern device_type_s DDisk;
 
-#endif /* _DDISK_H_ */
+#endif /* DDISK_H_ */

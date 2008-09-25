@@ -1,15 +1,19 @@
 /*
- * dprinter.h
- * Simple printer device
- * Copyright (c) 2002, 2003 Viliam Holub
+ * Copyright (c) 2002-2004 Viliam Holub
+ * All rights reserved.
+ *
+ * Distributed under the terms of GPL.
+ *
+ *
+ *  Printer device
+ *
  */
 
-
-#ifndef _DPRINTER_H_
-#define _DPRINTER_H_
+#ifndef DPRINTER_H_
+#define DPRINTER_H_
 
 #include "device.h"
 
 device_type_s DPrinter;
 
-#endif /* _DPRINTER_H_ */
+#endif /* DPRINTER_H_ */

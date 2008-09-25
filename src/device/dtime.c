@@ -1,16 +1,13 @@
 /*
- * Simple host time device
  * Copyright (c) 2003-2007 Viliam Holub
- */
-
-/** \file dtime.c
+ * All rights reserved.
  *
- * Device: Host time
+ * Distributed under the terms of GPL.
+ *
+ *
+ *  Time device
+ *
  */
-
-#ifdef HAVE_CONFIG_H
-#	include "../config.h"
-#endif
 
 #include <time.h>
 #include <stdlib.h>
@@ -25,60 +22,69 @@
 #include "../utils.h"
 
 /** \{ \name Register offsets */
-#define REGISTER_SEC	0
-#define REGISTER_USEC	4
-#define REGISTER_LIMIT	8
+#define REGISTER_SEC   0
+#define REGISTER_USEC  4
+#define REGISTER_LIMIT 8
 /* \} */
 
 
 /*
  * Device commands
-*/
+ */
 
-static bool dtime_init( parm_link_s *parm, device_s *dev);
-static bool dtime_info( parm_link_s *parm, device_s *dev);
-static bool dtime_stat( parm_link_s *parm, device_s *dev);
+static bool dtime_init(parm_link_s *parm, device_s *dev);
+static bool dtime_info(parm_link_s *parm, device_s *dev);
+static bool dtime_stat(parm_link_s *parm, device_s *dev);
 
-/** Dtime command-line commands and parameters. */
-cmd_s dtime_cmds[] =
-{
-	{ "init", (cmd_f)dtime_init,
+cmd_s dtime_cmds[] = {
+	{
+		"init",
+		(cmd_f) dtime_init,
 		DEFAULT,
 		DEFAULT,
-		"Inicialization",
-		"Inicialization",
+		"Initialization",
+		"Initialization",
 		REQ STR "time/timer name" NEXT
-		REQ INT "arrd/timer register address" END},
-	{ "help", (cmd_f)dev_generic_help,
+		REQ INT "arrd/timer register address" END
+	},
+	{
+		"help",
+		(cmd_f) dev_generic_help,
 		DEFAULT,
 		DEFAULT,
-		"Displays help",
-		"Displays help",
-		OPT STR "cmd/command name" END},
-	{ "info", (cmd_f)dtime_info,
+		"Display help",
+		"Display help",
+		OPT STR "cmd/command name" END
+	},
+	{
+		"info",
+		(cmd_f) dtime_info,
 		DEFAULT,
 		DEFAULT,
-		"Displays device configuration",
-		"Displays device configuration",
-		NOCMD},
-	{ "stat", (cmd_f)dtime_stat,
+		"Display device configuration",
+		"Display device configuration",
+		NOCMD
+	},
+	{
+		"stat",
+		(cmd_f) dtime_stat,
 		DEFAULT,
 		DEFAULT,
-		"Displays device statictics",
-		"displays device statictics",
-		NOCMD},
+		"Display device statictics",
+		"display device statictics",
+		NOCMD
+	},
 	LAST_CMD
 };
 
 /** Name of the dtime as presented to the user */
 const char id_dtime[] = "dtime";
 
-static void dtime_done( device_s *d);
-static void dtime_read( device_s *d, uint32_t addr, uint32_t *val);
+static void dtime_done(device_s *d);
+static void dtime_read(device_s *d, uint32_t addr, uint32_t *val);
 
 /** Dtime object structure */
-device_type_s DTime =
-{
+device_type_s DTime = {
 	/* Type name and description */
 	.name = id_dtime,
 	.brief = "Real time",
@@ -97,45 +103,42 @@ device_type_s DTime =
 
 
 /** Dtime instance data structure */
-struct dtime_data_struct
-{
+struct dtime_data_struct {
 	uint32_t addr;	/**< Dtime memory location */
 };
 
 
-/** Init command implementation.
+/** Init command implementation
  *
- * \param parm	Command-line parameters
- * \param dev	Device instance structure
- * \return True if successful
+ * @param parm Command-line parameters
+ * @param dev  Device instance structure
+ * @return true if successful
+ *
  */
-static bool
-dtime_init( parm_link_s *parm, device_s *dev)
+static bool dtime_init(parm_link_s *parm, device_s *dev)
 {
 	struct dtime_data_struct *td;
 	
 	/* Alloc the dtime structure. */
-	td = XXMALLOC( struct dtime_data_struct);
+	td = XXMALLOC(struct dtime_data_struct);
 	dev->data = td;
 	
 	/* Inicialization */
-	parm_next( &parm);
-	td->addr = parm_next_int( &parm);
+	parm_next(&parm);
+	td->addr = parm_next_int(&parm);
 	
-	/* Check */
+	/* Checks */
 
 	/* Address alignment */
-	if (!addr_word_aligned( td->addr))
-	{
-		mprintf( "Dtime address must be 4-byte aligned.\n");
-		free( td);
+	if (!addr_word_aligned(td->addr)) {
+		mprintf("Dtime address must be 4-byte aligned.\n");
+		free(td);
 		return false;
 	}
 
 	/* Address limit */
-	if ((long long)td->addr +(long long)REGISTER_LIMIT > 0x100000000ull)
-	{
-		mprintf( "Invalid address; registers would exceed the 4GB limit.\n");
+	if ((long long) td->addr + (long long) REGISTER_LIMIT > 0x100000000ull) {
+		mprintf("Invalid address; registers would exceed the 4GB limit.\n");
 		return false;
 	}
 
@@ -146,16 +149,16 @@ dtime_init( parm_link_s *parm, device_s *dev)
 
 /** Info command implementation
  *
- * \param parm	Command-line parameters
- * \param dev	Device instance structure
- * \return True; always successful
+ * @param parm Command-line parameters
+ * @param dev  Device instance structure
+ * @return true; always successful
+ *
  */
-static bool
-dtime_info( parm_link_s *parm, device_s *dev)
+static bool dtime_info(parm_link_s *parm, device_s *dev)
 {
 	struct dtime_data_struct *td = dev->data;
 	
-	mprintf_btag( INFO_SPC, "address:0x%08x\n", td->addr);
+	mprintf_btag(INFO_SPC, "address:0x%08x\n", td->addr);
 	
 	return true;
 }
@@ -163,55 +166,47 @@ dtime_info( parm_link_s *parm, device_s *dev)
 
 /** Stat command implementation
  *
- * \param parm	Command-line parameters
- * \param dev	Device instance structure
- * \return True; always successful
+ * @param parm Command-line parameters
+ * @param dev  Device instance structure
+ * @return true; always successful
+ *
  */
-static bool
-dtime_stat( parm_link_s *parm, device_s *dev)
+static bool dtime_stat(parm_link_s *parm, device_s *dev)
 {
-	mprintf_btag( INFO_SPC, "no statistics\n");
+	mprintf_btag(INFO_SPC, "no statistics\n");
 	return true;
 }
 
 
-
-/*
+/** Dispose dtime
  *
- * Implicit commands
+ * @param d Device pointer
  *
  */
-
-/** Disposing dtime.
- *
- * \param d	Device pointer
- */
-static void
-dtime_done( device_s *d)
+static void dtime_done(device_s *d)
 {
-	XFREE( d->name);
-	XFREE( d->data);
+	XFREE(d->name);
+	XFREE(d->data);
 }
 
 
-/** Read command implementation.
+/** Read command implementation
  *
- * Reads host time via gettimeofday().
+ * Read host time via gettimeofday().
  *
- * \param d	Ddisk device pointer
- * \param addr	Address of the read operation
- * \param val	Readed (returned) value
+ * @param d    Ddisk device pointer
+ * @param addr Address of the read operation
+ * @param val  Readed (returned) value
+ *
  */
-static void
-dtime_read( device_s *d, uint32_t addr, uint32_t *val)
+static void dtime_read(device_s *d, uint32_t addr, uint32_t *val)
 {
 	struct dtime_data_struct *od = d->data;
 	
-	if (addr == od->addr +REGISTER_SEC || addr == od->addr +REGISTER_USEC)
-	{
+	if ((addr == od->addr + REGISTER_SEC) || (addr == od->addr + REGISTER_USEC)) {
 		/* Get actual time. */
 		struct timeval t;
 		gettimeofday( &t, NULL);
-		*val = (addr == od->addr) ? (uint32_t)t.tv_sec : (uint32_t)t.tv_usec;
+		*val = (addr == od->addr) ? (uint32_t) t.tv_sec : (uint32_t) t.tv_usec;
 	}
 }

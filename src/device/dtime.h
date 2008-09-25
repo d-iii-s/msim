@@ -1,15 +1,19 @@
 /*
- * dtime.h
- * Simple time device
- * Copyright (c) 2003,2004 Viliam Holub
+ * Copyright (c) 2003-2007 Viliam Holub
+ * All rights reserved.
+ *
+ * Distributed under the terms of GPL.
+ *
+ *
+ *  Time device
+ *
  */
 
-
-#ifndef _DTIME_H_
-#define _DTIME_H_
+#ifndef DTIME_H_
+#define DTIME_H_
 
 #include "device.h"
 
 device_type_s DTime;
 
-#endif /* _DTIME_h_ */
+#endif /* DTIME_H_ */

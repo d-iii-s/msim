@@ -49,7 +49,7 @@ depend:
 $(OBJECTS): %.o: %.c
 	$(CC) -c $(CFLAGS) -o $@ $<
 
-msim: $(OBJECTS) depend
+msim: depend $(OBJECTS)
 	$(CC) $(CFLAGS) $(LIBS) -o $@ $(OBJECTS)
 
 clean:

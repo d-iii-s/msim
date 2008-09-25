@@ -8,7 +8,7 @@
 #define _DCPU_H_
 
 #include "device.h"
-#include "../processor.h"
+#include "../cpu/processor.h"
 
 extern device_type_s DCPU;
 extern int R4000_cnt;

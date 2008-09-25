@@ -10,7 +10,7 @@
 
 #include "mtypes.h"
 #include "mcons.h"
-#include "processor.h"
+#include "cpu/processor.h"
 #include "parser.h"
 #include "endi.h"
 #include "device/device.h"

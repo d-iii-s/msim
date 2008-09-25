@@ -26,7 +26,7 @@
 #include "output.h"
 #include "machine.h"
 #include "parser.h"
-#include "processor.h"
+#include "cpu/processor.h"
 
 #include "device/dcpu.h"
 

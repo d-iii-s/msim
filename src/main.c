@@ -21,7 +21,7 @@
 #include "text.h"
 #include "mtypes.h"
 #include "device/device.h"
-#include "processor.h"
+#include "cpu/processor.h"
 #include "machine.h"
 #include "parser.h"
 #include "endi.h"

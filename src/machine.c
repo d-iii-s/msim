@@ -19,7 +19,7 @@
 
 #include "machine.h"
 
-#include "processor.h"
+#include "cpu/processor.h"
 #include "input.h"
 #include "output.h"
 #include "gdb.h"

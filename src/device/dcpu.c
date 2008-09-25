@@ -16,7 +16,7 @@
 
 #include "../mcons.h"
 #include "device.h"
-#include "../processor.h"
+#include "../cpu/processor.h"
 #include "../debug/debug.h"
 #include "../output.h"
 #include "../utils.h"

@@ -18,7 +18,7 @@
 #include "../main.h"
 #include "../mtypes.h"
 #include "../instr.h"
-#include "../processor.h"
+#include "../cpu/processor.h"
 #include "../machine.h"
 #include "../output.h"
 #include "../env.h"

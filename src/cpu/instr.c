@@ -1,17 +1,17 @@
 /*
- * instr.c
- * Instruction decode rutines
- * Copyright 2001, 2002, 2003 Viliam Holub
+ * Copyright (c) 2001-2003 Viliam Holub
+ * All rights reserved.
+ *
+ * Distributed under the terms of GPL.
+ *
+ *
+ *  Instruction decoding
+ *
  */
-
-#ifdef HAVE_CONFIG_H
-#	include "../config.h"
-#endif
 
 #include "instr.h"
 
-static TInstrForm InstrTable[ 64] = {
-
+static TInstrForm InstrTable[64] = {
 	/* 0x00 */
 	{ opcSPECIAL,	ifREG},
 	{ opcBCOND,	ifIMM},
@@ -22,7 +22,7 @@ static TInstrForm InstrTable[ 64] = {
 	{ opcBLEZ,	ifIMM},
 	{ opcBGTZ,	ifIMM},
 	
-	/*0x08 */
+	/* 0x08 */
 	{ opcADDI,	ifIMM},
 	{ opcADDIU,	ifIMM},
 	{ opcSLTI,	ifIMM},
@@ -42,7 +42,7 @@ static TInstrForm InstrTable[ 64] = {
 	{ opcBLEZL,	ifIMM},
 	{ opcBGTZL,	ifIMM},
 	
-	/*0x18 */
+	/* 0x18 */
 	{ opcDADDI,	ifIMM},
 	{ opcDADDIU,	ifIMM},
 	{ opcLDL,	ifIMM},
@@ -93,24 +93,26 @@ static TInstrForm InstrTable[ 64] = {
 	{ opcSD,	ifIMM}
 };
 
-/* sub-codes for SPECIAL code, all of there are ifREG */
-static int TSpecInstrTable[ 64] = 
-{					 
+/**< Sub-codes for SPECIAL code, all of there are ifREG */
+static int TSpecInstrTable[64] = {					 
 	/* 0x00 */
 	opcSLL,		opcRES,		opcSRL,		opcSRA,
 	opcSLLV,	opcRES,		opcSRLV,	opcSRAV,
 	opcJR,		opcJALR,	opcMOVZ,	opcMOVN,
 	opcSYSCALL,	opcBREAK,	opcRES,		opcSYNC,
+	
 	/* 0x10 */
 	opcMFHI,	opcMTHI,	opcMFLO,	opcMTLO,
 	opcDSLLV,	opcRES,		opcDSRLV,	opcDSRAV,
 	opcMULT,	opcMULTU,	opcDIV,		opcDIVU,
 	opcDMULT,	opcDMULTU,	opcDDIV,	opcDDIVU,
+	
 	/* 0x20 */
 	opcADD,		opcADDU,	opcSUB,		opcSUBU,
 	opcAND,		opcOR,		opcXOR,		opcNOR,
 	opcDHLT,	opcDINT,	opcSLT,		opcSLTU,
 	opcDADD,	opcDADDU,	opcDSUB,	opcDSUBU, 
+	
 	/* 0x30 */
 	opcTGE,		opcTGEU,	opcTLT,		opcTLTU, 
 	opcTEQ,		opcDVAL,	opcTNE,		opcDRV,
@@ -118,81 +120,82 @@ static int TSpecInstrTable[ 64] =
 	opcDSLL32,	opcDTRO,	opcDSRL32,	opcDSRA32
 };
 
-/* sub-codes for SPECIAL2 code */
-static int TSpec2InstrTable[ 64] = 
-{
+/**< Sub-codes for SPECIAL2 code */
+static int TSpec2InstrTable[64] = {
 	/* 0x00 */
 	opcMADD,	opcMADDU,	opcMUL,		opcRES, 
 	opcMSUB,	opcMSUBU,	opcRES,		opcRES,
 	opcRES,		opcRES,		opcRES,		opcRES,
 	opcRES,		opcRES,		opcRES,		opcRES,
+	
 	/* 0x10 */
 	opcRES,		opcRES,		opcRES,		opcRES, 
 	opcRES,		opcRES,		opcRES,		opcRES,
 	opcRES,		opcRES,		opcRES,		opcRES,
 	opcRES,		opcRES,		opcRES,		opcRES,
+	
 	/* 0x20 */
 	opcCLZ,		opcCLO,		opcRES,		opcRES,
 	opcRES,		opcRES,		opcRES,		opcRES,
 	opcRES,		opcRES,		opcRES,		opcRES,
 	opcRES,		opcRES,		opcRES,		opcRES,
-        /* 0x30 */
+	
+	/* 0x30 */
 	opcRES,		opcRES,		opcRES,		opcRES,
 	opcRES,		opcRES,		opcRES,		opcRES,
 	opcRES,		opcRES,		opcRES,		opcRES,
 	opcRES,		opcRES,		opcRES,		opcRES,
 };
 
-/* sub-codes for COPz */
-static int TCOPzSpec[ 4][ 32] =
-{
-	{					 
+/**< Sub-codes for COPz */
+static int TCOPzSpec[4][32] = {
+	{
 		/* 0x00 */
 		opcMFC0, 	opcDMFC0,	opcCFC0,	opcRES,	
 		opcMTC0, 	opcDMTC0,	opcCTC0,	opcRES,
 		opcBC,	 	opcRES,		opcRES,		opcRES,
 		opcRES,		opcRES,		opcRES,		opcRES,
 		
-		/* 0x10	 */
+		/* 0x10	*/
 		opcC0,		opcC0,		opcC0,		opcC0,	
 		opcC0,		opcC0,		opcC0,		opcC0,
 		opcC0,		opcC0,		opcC0,		opcC0,
 		opcC0,		opcC0,		opcC0,		opcC0
 	},
-	{					 
+	{
 		/* 0x00 */
 		opcMFC1,	opcDMFC1,	opcCFC1,	opcRES,
 		opcMTC1,	opcDMTC1,	opcCTC1,	opcRES,
 		opcBC,		opcRES,		opcRES,		opcRES,
 		opcRES,		opcRES,		opcRES,		opcRES,
 		
-		/* 0x10	 */
+		/* 0x10	*/
 		opcC0,		opcC0,		opcC0,		opcC0,
 		opcC0,		opcC0,		opcC0,		opcC0,
 		opcC0,		opcC0,		opcC0,		opcC0,
 		opcC0,		opcC0,		opcC0,		opcC0
 	},
-	{					 
+	{
 		/* 0x00 */
 		opcMFC2,	opcDMFC2,	opcCFC2,	opcRES,
 		opcMTC2,	opcDMTC2,	opcCTC2,	opcRES,
 		opcBC,		opcRES,		opcRES,		opcRES,
 		opcRES,		opcRES,		opcRES,		opcRES,
 		
-		/* 0x10	 */
+		/* 0x10	*/
 		opcC0,		opcC0,		opcC0,		opcC0,
 		opcC0,		opcC0,		opcC0,		opcC0,
 		opcC0,		opcC0,		opcC0,		opcC0,
 		opcC0,		opcC0,		opcC0,		opcC0
 	},
-	{					 
+	{
 		/* 0x00 */
 		opcMFC3,	opcDMFC3,	opcCFC3,	opcRES,
 		opcMTC3,	opcDMTC3,	opcCTC3,	opcRES,
 		opcBC,		opcRES,		opcRES,		opcRES,
 		opcRES,		opcRES,		opcRES,		opcRES,
 		
-		/* 0x10	 */
+		/* 0x10	*/
 		opcC0,		opcC0,		opcC0,		opcC0,
 		opcC0,		opcC0,		opcC0,		opcC0,
 		opcC0,		opcC0,		opcC0,		opcC0,
@@ -200,18 +203,16 @@ static int TCOPzSpec[ 4][ 32] =
 	}
 };
 
-
-/* sub-codes for BCx */
-static int TBCzSpec[ 4][ 32] =
-{
-	{					 
+/**< Sub-codes for BCx */
+static int TBCzSpec[4][32] = {
+	{
 		/* 0x00 */
 		opcBC0F,	opcBC0T,	opcBC0FL,	opcBC0TL,
 		opcRES,	 	opcRES,		opcRES,		opcRES,
 		opcRES,	 	opcRES,		opcRES,		opcRES,	
 		opcRES,	 	opcRES,		opcRES,		opcRES,
 		
-		/* 0x10  */
+		/* 0x10 */
 		opcRES,		opcRES,		opcRES,		opcRES,
 		opcRES,		opcRES,		opcRES,		opcRES,
 		opcRES,		opcRES,		opcRES,		opcRES,
@@ -224,7 +225,7 @@ static int TBCzSpec[ 4][ 32] =
 		opcRES,		opcRES,		opcRES,		opcRES,	
 		opcRES,		opcRES,		opcRES,		opcRES,
 		
-		/* 0x10  */
+		/* 0x10 */
 		opcRES,		opcRES,		opcRES,		opcRES,
 		opcRES,		opcRES,		opcRES,		opcRES,
 		opcRES,		opcRES,		opcRES,		opcRES,
@@ -237,20 +238,20 @@ static int TBCzSpec[ 4][ 32] =
 		opcRES,		opcRES,		opcRES,		opcRES,	
 		opcRES,		opcRES,		opcRES,		opcRES,
 		
-		/* 0x10  */
+		/* 0x10 */
 		opcRES,		opcRES,		opcRES,		opcRES,
 		opcRES,		opcRES,		opcRES,		opcRES,
 		opcRES,		opcRES,		opcRES,		opcRES,
 		opcRES,		opcRES,		opcRES,		opcRES
 	},
-	{					 
+	{
 		/* 0x00 */
 		opcBC3F,	opcBC3T,	opcBC3FL,	opcBC3TL,	
 		opcRES,		opcRES,		opcRES,		opcRES,
 		opcRES,		opcRES,		opcRES,		opcRES,	
 		opcRES,		opcRES,		opcRES,		opcRES,
 		
-		/* 0x10  */
+		/* 0x10 */
 		opcRES,		opcRES,		opcRES,		opcRES,
 		opcRES,		opcRES,		opcRES,		opcRES,
 		opcRES,		opcRES,		opcRES,		opcRES,
@@ -258,29 +259,27 @@ static int TBCzSpec[ 4][ 32] =
 	}
 };
 
-
-/* sub-codes for C0 */
-static int TC0Spec[ 64] =
-{					 
+/**< Sub-codes for C0 */
+static int TC0Spec[64] = {					 
 	/* 0x00 */
 	opcQRES,	opcTLBR,	opcTLBWI,	opcQRES,
 	opcQRES,	opcQRES,	opcTLBWR,	opcQRES,
 	opcTLBP,	opcQRES,	opcQRES,	opcQRES,	
 	opcQRES,	opcQRES,	opcQRES,	opcQRES,
 	
-	/* 0x10  */
+	/* 0x10 */
 	opcQRES,	opcQRES,	opcQRES,	opcQRES,
 	opcQRES,	opcQRES,	opcQRES,	opcQRES,
 	opcERET,	opcQRES,	opcQRES,	opcQRES,
 	opcQRES,	opcQRES,	opcQRES,	opcQRES,
 	
-	/* 0x20  */
+	/* 0x20 */
 	opcWAIT,	opcQRES,	opcQRES,	opcQRES,
 	opcQRES,	opcQRES,	opcQRES,	opcQRES,
 	opcQRES,	opcQRES,	opcQRES,	opcQRES,
 	opcQRES,	opcQRES,	opcQRES,	opcQRES,
 	
-	/* 0x30  */
+	/* 0x30 */
 	opcQRES,	opcQRES,	opcQRES,	opcQRES,
 	opcQRES,	opcQRES,	opcQRES,	opcQRES,
 	opcQRES,	opcQRES,	opcQRES,	opcQRES,
@@ -288,9 +287,8 @@ static int TC0Spec[ 64] =
 };
 
 
-/* codes for regimm */
-static int TRegImmInstrTable[ 32] = 
-{					 
+/**< Codes for regimm */
+static int TRegImmInstrTable[32] = {					 
 	/* 0x00 */
 	opcBLTZ,	opcBGEZ,	opcBLTZL,	opcBGEZL,
 	opcRES,		opcRES,		opcRES,		opcRES,
@@ -304,17 +302,14 @@ static int TRegImmInstrTable[ 32] =
 	opcRES,		opcRES,		opcRES,		opcRES,
 };
 
-/* instruction names */
-instr_text_s InstrNamesAcronym[] =
-{
-	/* special names for blocks of instructions */
-
+/* Instruction names */
+instr_text_s InstrNamesAcronym[] = {
+	/* Special names for blocks of instructions */
 	{ "_spec",	ifNONE},
 	{ "_branch",	ifNONE},
 	{ "_spec2",     ifNONE},
 	
-	/* real instructions */
-	
+	/* Real instructions */
 	{ "add",	ifREG}, 
 	{ "addi",	ifIMMS},
 	{ "addiu",	ifIMMU},
@@ -523,206 +518,193 @@ instr_text_s InstrNamesAcronym[] =
 	{ "---", 	ifERR}
 };
 
+char *RegName[][32] = {
+	{
+		"r0",  "r1",  "r2",  "r3",  "r4",  "r5",  "r6",  "r7",  "r8",  "r9",
+		"r10", "r11", "r12", "r13", "r14", "r15", "r16", "r17", "r18", "r19", 
+		"r20", "r21", "r22", "r23", "r24", "r25", "r26", "r27", "r28", "r29",
+		"r30", "r31"
+	},
+	{
+		"$0",  "$1",  "$2",  "$3",  "$4",  "$5",  "$6",  "$7",  "$8",  "$9",
+		"$10", "$11", "$12", "$13", "$14", "$15", "$16", "$17", "$18", "$19",
+		"$20", "$21", "$22", "$23", "$24", "$25", "$26", "$27", "$28", "$29",
+		"$30", "$31"
+	},
+	{
+		"0",  "at", "v0", "v1", "a0", "a1", "a2", "a3", "t0", "t1",
+		"t2", "t3", "t4", "t5", "t6", "t7", "s0", "s1", "s2", "s3", 
+		"s4", "s5", "s6", "s7", "t8", "t9", "k0", "k1", "gp", "sp",
+		"fp", "ra"
+	}
+};
 
-char *RegName[][ 32] = {
+char *cp0_name[][32] = {
 	{
-	"r0",  "r1",  "r2",  "r3",  "r4",  "r5",  "r6",  "r7",  "r8",  "r9",
-	"r10", "r11", "r12", "r13", "r14", "r15", "r16", "r17", "r18", "r19", 
-	"r20", "r21", "r22", "r23", "r24", "r25", "r26", "r27", "r28", "r29",
-	"r30", "r31"
+		"0",  "1",  "2",  "3",  "4",  "5",  "6",  "7",  "8",  "9",
+		"10", "11", "12", "13", "14", "15", "16", "17", "18", "19", 
+		"20", "21", "22", "23", "24", "25", "26", "27", "28", "29",
+		"30", "31"
 	},
 	{
-	"$0",  "$1",  "$2",  "$3",  "$4",  "$5",  "$6",  "$7",  "$8",  "$9",
-	"$10", "$11", "$12", "$13", "$14", "$15", "$16", "$17", "$18", "$19",
-	"$20", "$21", "$22", "$23", "$24", "$25", "$26", "$27", "$28", "$29",
-	"$30", "$31"
+		"$0",  "$1",  "$2",  "$3",  "$4",  "$5",  "$6",  "$7",  "$8",  "$9",
+		"$10", "$11", "$12", "$13", "$14", "$15", "$16", "$17", "$18", "$19",
+		"$20", "$21", "$22", "$23", "$24", "$25", "$26", "$27", "$28", "$29",
+		"$30", "$31"
 	},
 	{
-	"0",  "at", "v0", "v1", "a0", "a1", "a2", "a3", "t0", "t1",
-	"t2", "t3", "t4", "t5", "t6", "t7", "s0", "s1", "s2", "s3", 
-	"s4", "s5", "s6", "s7", "t8", "t9", "k0", "k1", "gp", "sp",
-	"fp", "ra"
+		"index",	"random",	"entrylo0",	"entrylo1",
+		"context",	"pagemask",	"wired",	"res_7",
+		"badvaddr",	"count",	"entryhi",	"compare",
+		"status",	"cause",	"epc",		"prid",
+		"config",	"lladdr",	"watchlo",	"watchhi",
+		"xcontext",	"res_21",	"res_22",	"res_23",
+		"res_24",	"res_25",	"res_26",	"res_27",
+		"res_28",	"res_29",	"errorepc",	"res_31"
+	}
+};
+
+char *cp1_name[][32] = {
+	{
+		"0",  "1",  "2",  "3",  "4",  "5",  "6",  "7",  "8",  "9",
+		"10", "11", "12", "13", "14", "15", "16", "17", "18", "19", 
+		"20", "21", "22", "23", "24", "25", "26", "27", "28", "29",
+		"30", "31"
+	},
+	{
+		"$0",  "$1",  "$2",  "$3",  "$4",  "$5",  "$6",  "$7",  "$8",  "$9",
+		"$10", "$11", "$12", "$13", "$14", "$15", "$16", "$17", "$18", "$19",
+		"$20", "$21", "$22", "$23", "$24", "$25", "$26", "$27", "$28", "$29",
+		"$30", "$31"
+	},
+	{
+		"cp1_0",  "cp1_1",  "cp1_2",  "cp1_3",  "cp1_4",  "cp1_5",  "cp1_6",
+		"cp1_7",  "cp1_8",  "cp1_9",  "cp1_10", "cp1_11", "cp1_12", "cp1_13",
+		"cp1_14", "cp1_15", "cp1_16", "cp1_17", "cp1_18", "cp1_19", "cp1_20",
+		"cp1_21", "cp1_22", "cp1_23", "cp1_24", "cp1_25", "cp1_26", "cp1_27",
+		"cp1_28", "cp1_29", "cp1_30", "cp1_31"
+	}
+};
+
+char *cp2_name[][32] = {
+	{
+		"0",  "1",  "2",  "3",  "4",  "5",  "6",  "7",  "8",  "9",
+		"10", "11", "12", "13", "14", "15", "16", "17", "18", "19", 
+		"20", "21", "22", "23", "24", "25", "26", "27", "28", "29",
+		"30", "31"
+	},
+	{
+		"$0",  "$1",  "$2",  "$3",  "$4",  "$5",  "$6",  "$7",  "$8",  "$9",
+		"$10", "$11", "$12", "$13", "$14", "$15", "$16", "$17", "$18", "$19",
+		"$20", "$21", "$22", "$23", "$24", "$25", "$26", "$27", "$28", "$29",
+		"$30", "$31"
+	},
+	{
+		"cp2_0",  "cp2_1",  "cp2_2",  "cp2_3",  "cp2_4",  "cp2_5",  "cp2_6",
+		"cp2_7",  "cp2_8",  "cp2_9",  "cp2_10", "cp2_11", "cp2_12", "cp2_13",
+		"cp2_14", "cp2_15", "cp2_16", "cp2_17", "cp2_18", "cp2_19", "cp2_20",
+		"cp2_21", "cp2_22", "cp2_23", "cp2_24", "cp2_25", "cp2_26", "cp2_27",
+		"cp2_28", "cp2_29", "cp2_30", "cp2_31"
+	}
+};
+
+char *cp3_name[][32] = {
+	{
+		"0",  "1",  "2",  "3",  "4",  "5",  "6",  "7",  "8",  "9",
+		"10", "11", "12", "13", "14", "15", "16", "17", "18", "19", 
+		"20", "21", "22", "23", "24", "25", "26", "27", "28", "29",
+		"30", "31"
+	},
+	{
+		"$0",  "$1",  "$2",  "$3",  "$4",  "$5",  "$6",  "$7",  "$8",  "$9",
+		"$10", "$11", "$12", "$13", "$14", "$15", "$16", "$17", "$18", "$19",
+		"$20", "$21", "$22", "$23", "$24", "$25", "$26", "$27", "$28", "$29",
+		"$30", "$31"
+	},
+	{
+		"cp3_0",  "cp3_1",  "cp3_2",  "cp3_3",  "cp3_4",  "cp3_5",  "cp3_6",
+		"cp3_7",  "cp3_8",  "cp3_9",  "cp3_10", "cp3_11", "cp3_12", "cp3_13",
+		"cp3_14", "cp3_15", "cp3_16", "cp3_17", "cp3_18", "cp3_19", "cp3_20",
+		"cp3_21", "cp3_22", "cp3_23", "cp3_24", "cp3_25", "cp3_26", "cp3_27",
+		"cp3_28", "cp3_29", "cp3_30", "cp3_31"
 	}
 };
 
 
-char *cp0_name[][ 32] = {
-	{
-	"0",  "1",  "2",  "3",  "4",  "5",  "6",  "7",  "8",  "9",
-	"10", "11", "12", "13", "14", "15", "16", "17", "18", "19", 
-	"20", "21", "22", "23", "24", "25", "26", "27", "28", "29",
-	"30", "31"
-	},
-	{
-	"$0",  "$1",  "$2",  "$3",  "$4",  "$5",  "$6",  "$7",  "$8",  "$9",
-	"$10", "$11", "$12", "$13", "$14", "$15", "$16", "$17", "$18", "$19",
-	"$20", "$21", "$22", "$23", "$24", "$25", "$26", "$27", "$28", "$29",
-	"$30", "$31"
-	},
-	{
-	"index",	"random",	"entrylo0",	"entrylo1",
-	"context",	"pagemask",	"wired",	"res_7",
-	"badvaddr",	"count",	"entryhi",	"compare",
-	"status",	"cause",	"epc",		"prid",
-	"config",	"lladdr",	"watchlo",	"watchhi",
-	"xcontext",	"res_21",	"res_22",	"res_23",
-	"res_24",	"res_25",	"res_26",	"res_27",
-	"res_28",	"res_29",	"errorepc",	"res_31"
-	}
-};
-
-
-char *cp1_name[][ 32] = {
-	{
-	"0",  "1",  "2",  "3",  "4",  "5",  "6",  "7",  "8",  "9",
-	"10", "11", "12", "13", "14", "15", "16", "17", "18", "19", 
-	"20", "21", "22", "23", "24", "25", "26", "27", "28", "29",
-	"30", "31"
-	},
-	{
-	"$0",  "$1",  "$2",  "$3",  "$4",  "$5",  "$6",  "$7",  "$8",  "$9",
-	"$10", "$11", "$12", "$13", "$14", "$15", "$16", "$17", "$18", "$19",
-	"$20", "$21", "$22", "$23", "$24", "$25", "$26", "$27", "$28", "$29",
-	"$30", "$31"
-	},
-	{
-	"cp1_0",  "cp1_1",  "cp1_2",  "cp1_3",  "cp1_4",  "cp1_5",  "cp1_6",
-	"cp1_7",  "cp1_8",  "cp1_9",  "cp1_10", "cp1_11", "cp1_12", "cp1_13",
-	"cp1_14", "cp1_15", "cp1_16", "cp1_17", "cp1_18", "cp1_19", "cp1_20",
-	"cp1_21", "cp1_22", "cp1_23", "cp1_24", "cp1_25", "cp1_26", "cp1_27",
-	"cp1_28", "cp1_29", "cp1_30", "cp1_31"
-	}
-};
-
-
-char *cp2_name[][ 32] = {
-	{
-	"0",  "1",  "2",  "3",  "4",  "5",  "6",  "7",  "8",  "9",
-	"10", "11", "12", "13", "14", "15", "16", "17", "18", "19", 
-	"20", "21", "22", "23", "24", "25", "26", "27", "28", "29",
-	"30", "31"
-	},
-	{
-	"$0",  "$1",  "$2",  "$3",  "$4",  "$5",  "$6",  "$7",  "$8",  "$9",
-	"$10", "$11", "$12", "$13", "$14", "$15", "$16", "$17", "$18", "$19",
-	"$20", "$21", "$22", "$23", "$24", "$25", "$26", "$27", "$28", "$29",
-	"$30", "$31"
-	},
-	{
-	"cp2_0",  "cp2_1",  "cp2_2",  "cp2_3",  "cp2_4",  "cp2_5",  "cp2_6",
-	"cp2_7",  "cp2_8",  "cp2_9",  "cp2_10", "cp2_11", "cp2_12", "cp2_13",
-	"cp2_14", "cp2_15", "cp2_16", "cp2_17", "cp2_18", "cp2_19", "cp2_20",
-	"cp2_21", "cp2_22", "cp2_23", "cp2_24", "cp2_25", "cp2_26", "cp2_27",
-	"cp2_28", "cp2_29", "cp2_30", "cp2_31"
-	}
-};
-
-
-char *cp3_name[][ 32] = {
-	{
-	"0",  "1",  "2",  "3",  "4",  "5",  "6",  "7",  "8",  "9",
-	"10", "11", "12", "13", "14", "15", "16", "17", "18", "19", 
-	"20", "21", "22", "23", "24", "25", "26", "27", "28", "29",
-	"30", "31"
-	},
-	{
-	"$0",  "$1",  "$2",  "$3",  "$4",  "$5",  "$6",  "$7",  "$8",  "$9",
-	"$10", "$11", "$12", "$13", "$14", "$15", "$16", "$17", "$18", "$19",
-	"$20", "$21", "$22", "$23", "$24", "$25", "$26", "$27", "$28", "$29",
-	"$30", "$31"
-	},
-	{
-	"cp3_0",  "cp3_1",  "cp3_2",  "cp3_3",  "cp3_4",  "cp3_5",  "cp3_6",
-	"cp3_7",  "cp3_8",  "cp3_9",  "cp3_10", "cp3_11", "cp3_12", "cp3_13",
-	"cp3_14", "cp3_15", "cp3_16", "cp3_17", "cp3_18", "cp3_19", "cp3_20",
-	"cp3_21", "cp3_22", "cp3_23", "cp3_24", "cp3_25", "cp3_26", "cp3_27",
-	"cp3_28", "cp3_29", "cp3_30", "cp3_31"
-	}
-};
-
-
-static int
-opcode_COPx( int opc, int c)
-
+static int opcode_COPx(int opc, int c)
 {
 	int o;
-	o = TCOPzSpec[ opc -opcCOP0][ (c & RS_MASK) >> RS_SHIFT];
+	o = TCOPzSpec[opc -opcCOP0][(c & RS_MASK) >> RS_SHIFT];
 
-	switch (o)
-	{
-		case opcBC:
-			o = TBCzSpec[ opc -opcCOP0]
-				[ (c & RT_MASK) >> RT_SHIFT];
-			break;
-		case opcC0:
-			o = TC0Spec[ c & 0x3f];
-			break;
+	switch (o) {
+	case opcBC:
+		o = TBCzSpec[opc -opcCOP0][(c & RT_MASK) >> RT_SHIFT];
+		break;
+	case opcC0:
+		o = TC0Spec[c & 0x3f];
+		break;
 	}
 
 	return o;
 }
 
 
-/* makes basic info about instruction */
-void
-decode_instr( TInstrInfo *ii)
-
+/** Make basic info about instruction
+ *
+ */
+void decode_instr(TInstrInfo *ii)
 {
-	/* instruction name and type */
-	TInstrForm *opc = &InstrTable[ (ii->icode >> 26) & 0x3f];
+	/* Instruction name and type */
+	TInstrForm *opc = &InstrTable[(ii->icode >> 26) & 0x3f];
 	ii->opcode = opc->opcode;
 
-
-	switch (opc->opcode)
-	{
-		case opcSPECIAL:
-			ii->opcode = TSpecInstrTable[ ii->icode & FUNCTION_MASK];
-			if (ii->icode == 0) ii->opcode = opcNOP;
-			ii->shift = (ii->icode >> 6) & 0x1f;
-			break;
-
-	        case opcSPECIAL2:
-			ii->opcode = TSpec2InstrTable[ ii->icode & FUNCTION_MASK];
-			ii->shift = (ii->icode >> 6) & 0x1f;
-			break;
-	
-		case opcBCOND:
-			ii->opcode = TRegImmInstrTable[ (ii->icode >> 16) & 0x1f];
-			break;
-
-		case opcCOP0:
-		case opcCOP1:
-		case opcCOP2:
-		case opcCOP3:
-			ii->opcode = opcode_COPx( ii->opcode, ii->icode);
-			break;
+	switch (opc->opcode) {
+	case opcSPECIAL:
+		ii->opcode = TSpecInstrTable[ii->icode & FUNCTION_MASK];
+		if (ii->icode == 0)
+			ii->opcode = opcNOP;
+		ii->shift = (ii->icode >> 6) & 0x1f;
+		break;
+	case opcSPECIAL2:
+		ii->opcode = TSpec2InstrTable[ii->icode & FUNCTION_MASK];
+		ii->shift = (ii->icode >> 6) & 0x1f;
+		break;
+	case opcBCOND:
+		ii->opcode = TRegImmInstrTable[(ii->icode >> 16) & 0x1f];
+		break;
+	case opcCOP0:
+	case opcCOP1:
+	case opcCOP2:
+	case opcCOP3:
+		ii->opcode = opcode_COPx(ii->opcode, ii->icode);
+		break;
 	}
 		
-	/* parsing parameters */
-	switch (opc->format)
-	{
-		case ifIMM:
-			/* registers */
-			ii->rs = (ii->icode & RS_MASK) >> RS_SHIFT;
-			ii->rt = (ii->icode & RT_MASK) >> RT_SHIFT;
-			ii->rd = 0;
-		
-			/* immediate */
-			ii->imm = ii->icode & IMM_MASK;
-			if (ii->imm & IMM_SIGN_BIT)
-				ii->imm |= ~(uint32_t)(IMM_MASK);
-			break;
-		case ifJ:
-			ii->imm = (ii->icode & TARGET_MASK) << TARGET_SHIFT;
-			ii->rt = 0; ii->rs = 0; ii->rd = 0;
-			break;
-		case ifREG:
-			/* registers */
-			ii->rs = (ii->icode & RS_MASK) >> RS_SHIFT;
-			ii->rt = (ii->icode & RT_MASK) >> RT_SHIFT;
-			ii->rd = (ii->icode & RD_MASK) >> RD_SHIFT;
-			ii->sa = (ii->icode & SA_MASK) >> SA_SHIFT;
-			ii->function = (ii->icode & FUNCTION_MASK);
+	/* Parse parameters */
+	switch (opc->format) {
+	case ifIMM:
+		/* Registers */
+		ii->rs = (ii->icode & RS_MASK) >> RS_SHIFT;
+		ii->rt = (ii->icode & RT_MASK) >> RT_SHIFT;
+		ii->rd = 0;
+	
+		/* Immediate */
+		ii->imm = ii->icode & IMM_MASK;
+		if (ii->imm & IMM_SIGN_BIT)
+			ii->imm |= ~(uint32_t) (IMM_MASK);
+		break;
+	case ifJ:
+		ii->imm = (ii->icode & TARGET_MASK) << TARGET_SHIFT;
+		ii->rt = 0;
+		ii->rs = 0;
+		ii->rd = 0;
+		break;
+	case ifREG:
+		/* Registers */
+		ii->rs = (ii->icode & RS_MASK) >> RS_SHIFT;
+		ii->rt = (ii->icode & RT_MASK) >> RT_SHIFT;
+		ii->rd = (ii->icode & RD_MASK) >> RD_SHIFT;
+		ii->sa = (ii->icode & SA_MASK) >> SA_SHIFT;
+		ii->function = (ii->icode & FUNCTION_MASK);
 	}
 }
-

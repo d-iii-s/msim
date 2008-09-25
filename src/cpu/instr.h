@@ -1,32 +1,38 @@
 /*
- * instr.h
- * some stuff for instruction decoding
- * Copyright (c) 2001, 2002, 2003 Viliam Holub
+ * Copyright (c) 2001-2003 Viliam Holub
+ * All rights reserved.
+ *
+ * Distributed under the terms of GPL.
+ *
+ *
+ *  Instruction decoding
+ *
  */
 
-#ifndef _INSTR_H_
-#define _INSTR_H_
+#ifndef INSTR_H_
+#define INSTR_H_
 
 #include <stdint.h>
 
-#include "mtypes.h"
+#include "../mtypes.h"
 
-/* sign bit */
-#define SBIT	0x80000000 
-#define NSBIT	0x7fffffff
+/**< Sign bit */
+#define SBIT  0x80000000 
+#define NSBIT 0x7fffffff
 
-/* opcode numbers */
-/* !! do NOT change order */
-enum InstrNames
-{
-	/* special names for blocks of instructions */
-
+/*
+ * Opcode numbers
+ *
+ * Warning: Do NOT change the order
+ *
+ */
+enum InstrNames {
+	/* Special names for blocks of instructions */
 	opcSPECIAL,
 	opcBCOND,
 	opcSPECIAL2,
 	
-	/* real instructions */
-	
+	/* Real instructions */
 	opcADD,
 	opcADDI,
 	opcADDIU,
@@ -226,7 +232,7 @@ enum InstrNames
 	opcRES,
 	opcQRES,
 	
-	/* debugging features */
+	/* Debugging features */
 	opcDVAL,
 	opcDTRC,
 	opcDTRO,
@@ -236,34 +242,33 @@ enum InstrNames
 
 	opcIllegal,
 	
-	/* for decoding */
+	/* For decoding */
 	opcBC,
 	opcC0
 };
 typedef enum InstrNames InstrNames;
 
-/* instruction formats */
-enum BasicInstructionFormat
-{
-	ifX,	/* undefined */
-	ifNONE,	/* no parameters */
-	ifERR,	/* invalid */
-	ifR4,	/* not implemented */
-	ifIMM,	/* immediate */
-	ifIMMS, /* immediate signed */
-	ifIMMU, /* immediate unsigned */
+/**< Instruction formats */
+enum BasicInstructionFormat {
+	ifX,     /* undefined */
+	ifNONE,  /* no parameters */
+	ifERR,   /* invalid */
+	ifR4,    /* not implemented */
+	ifIMM,   /* immediate */
+	ifIMMS,  /* immediate signed */
+	ifIMMU,  /* immediate unsigned */
 	ifIMMUX, /* immediate unsigned, hex 4 */
 	
-	ifJ,	/* jump */
-	ifREG,	/* register */
-	ifOFF,	/* offset */
-	ifCND,	/* COND */
-	ifRO,	/* reg + off */
-	ifTD,	/* rt, rd */
-	ifTDX0,	/* rt, rd as number cp0 */
-	ifTDX1,	/* rt, rd as number cp1 */
-	ifTDX2,	/* rt, rd as number cp2 */
-	ifTDX3,	/* rt, rd as number cp3 */
+	ifJ,     /* jump */
+	ifREG,   /* register */
+	ifOFF,   /* offset */
+	ifCND,   /* cond */
+	ifRO,    /* reg + off */
+	ifTD,    /* rt, rd */
+	ifTDX0,  /* rt, rd as number cp0 */
+	ifTDX1,  /* rt, rd as number cp1 */
+	ifTDX2,  /* rt, rd as number cp2 */
+	ifTDX3,  /* rt, rd as number cp3 */
 	ifOP,
 	ifST,
 	ifDS,
@@ -285,66 +290,68 @@ struct TInstrForm {
 typedef struct TInstrForm TInstrForm;
 
 
-/* various mask and shift settings */
+/**< Various mask and shift settings */
+#define TARGET_MASK   0x3ffffff
+#define TARGET_SHIFT  2
+#define TARGET_COMB   0xf0000000
+#define FUNCTION_MASK 0x3f
 
-#define TARGET_MASK	0x3ffffff
-#define TARGET_SHIFT	2
-#define TARGET_COMB	0xf0000000
-#define FUNCTION_MASK	0x3f
-#define SA_MASK		0x7c0
-#define SA_SHIFT	6
-#define RD_MASK		0x0000f800
-#define RD_SHIFT	11
-#define RT_MASK		0x001f0000
-#define RT_SHIFT	16
-#define RS_MASK		0x03e00000
-#define RS_SHIFT	21
-#define OP_MASK		0xfc000000
-#define OP_SHIFT	26
-#define IMM_MASK	0xffff
-#define IMM_SIGN_BIT	0x8000
+#define SA_MASK  0x7c0
+#define SA_SHIFT 6
+#define RD_MASK  0x0000f800
+#define RD_SHIFT 11
+#define RT_MASK  0x001f0000
+#define RT_SHIFT 16
+#define RS_MASK  0x03e00000
+#define RS_SHIFT 21
+#define OP_MASK  0xfc000000
+#define OP_SHIFT 26
 
-struct TInstrInfo
-{
-	/* instruction */
+#define IMM_MASK     0xffff
+#define IMM_SIGN_BIT 0x8000
+
+struct TInstrInfo {
+	/* Instruction */
 	uint32_t icode;
 	int opcode;
 	
-	/* parameters */
+	/* Parameters */
 	
-	/* function */
+	/* Function */
 	unsigned char function;
 	
-	/* registers */
-	uint32_t rs, rt, rd, sa;
+	/* Registers */
+	uint32_t rs;
+	uint32_t rt;
+	uint32_t rd;
+	uint32_t sa;
 	
-	/* others */
-	int imm, jimm, shift;
+	/* Others */
+	int imm;
+	int jimm;
+	int shift;
 };
 typedef struct TInstrInfo TInstrInfo;
 
 
-struct instr_text_s
-{
+struct instr_text_s {
 	char *InstrText;
 	BasicInstructionFormat itype;
 };
 typedef struct instr_text_s instr_text_s;
 
 
-
 extern instr_text_s InstrNamesAcronym[];
 
-/* register and coprocessor names */
-extern char *RegName[][ 32];
-extern char *cp0_name[][ 32];
-extern char *cp1_name[][ 32];
-extern char *cp2_name[][ 32];
-extern char *cp3_name[][ 32];
+/**< Register and coprocessor names */
+extern char *RegName[][32];
+extern char *cp0_name[][32];
+extern char *cp1_name[][32];
+extern char *cp2_name[][32];
+extern char *cp3_name[][32];
 
 
-/* convert opcode to instruction description */
-void decode_instr( TInstrInfo *ii);
+/**< Convert opcode to instruction description */
+extern void decode_instr(TInstrInfo *ii);
 
-
-#endif /* _INSTR_H_ */
+#endif /* INSTR_H_ */

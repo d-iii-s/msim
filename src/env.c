@@ -18,7 +18,7 @@
 #include "mtypes.h"
 #include "parser.h"
 #include "output.h"
-#include "instr.h"
+#include "cpu/instr.h"
 #include "check.h"
 #include "utils.h"
 

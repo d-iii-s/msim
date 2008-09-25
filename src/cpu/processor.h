@@ -16,7 +16,7 @@
 #include <stdbool.h>
 
 #include "../mtypes.h"
-#include "../instr.h"
+#include "instr.h"
 
 
 /* cp0 registers */

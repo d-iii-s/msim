@@ -10,7 +10,6 @@ CFLAGS = @CFLAGS@ -Wall
 LIBS = @LIBS@
 
 SOURCES = \
-	instr.c \
 	output.c \
 	utils.c \
 	machine.c \
@@ -25,6 +24,7 @@ SOURCES = \
 	main.c \
 	parser.c \
 	cpu/processor.c \
+	cpu/instr.c \
 	debug/debug.c \
 	debug/gdb.c \
 	device/ddisk.c \

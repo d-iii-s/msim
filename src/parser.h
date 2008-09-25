@@ -1,24 +1,30 @@
 /*
- * Command line parser
- * Copyright (c) 2002-2004 Viliam Holub
+ * Copyright (c) 2001-2004 Viliam Holub
+ * All rights reserved.
+ *
+ * Distributed under the terms of GPL.
+ *
+ *
+ *  Command line parser
+ *
  */
 
-#ifndef _PARSER_H_
-#define _PARSER_H_
+#ifndef PARSER_H_
+#define PARSER_H_
 
 #include <stdbool.h>
 #include <stdint.h>
 
 #include "mtypes.h"
 
-#define PARSER_MAX_STR	256
+#define PARSER_MAX_STR 256
 
 
-/* careful
- * note to add overview to token_overview
+/*
+ * NB: add overview to token_overview
+ *
  */
-enum token_enum
-{
+enum token_enum {
 	tt_end,
 	tt_int,
 	tt_str,
@@ -30,9 +36,7 @@ enum token_enum
 	tt_err_overflow
 };
 
-
-struct token_s
-{
+struct token_s {
 	enum token_enum ttype;
 
 	union {
@@ -62,44 +66,40 @@ typedef struct token_s token_s;
  * be included at the end of a parameter list.
  */
 
-#define REQ	"r"	/* parameter is required */
-#define REQC	'r'
-#define OPT	"o"	/* parameter is optional */
-#define OPTC	'o'
+#define REQ  "r"      /**< Parameter is required */
+#define REQC 'r'
+#define OPT  "o"      /**< Parameter is optional */
+#define OPTC 'o'
 
-#define INT	"i"	/* integer */
-#define INTC	'i'
-#define STR	"s"	/* string */
-#define STRC	's'
-#define VAR	"v"	/* any */
-#define VARC	'v'
-#define CON	"c"	/* constant required */
-#define CONC	'c'
+#define INT  "i"      /**< Integer */
+#define INTC 'i'
+#define STR  "s"      /**< String */
+#define STRC 's'
+#define VAR  "v"      /**< Any */
+#define VARC 'v'
+#define CON  "c"      /**< Constant required */
+#define CONC 'c'
 
-#define NEXT	"\0"	/* mark the next parameter */
+#define NEXT "\0"     /**< Mark the next parameter */
 
-#define NOCMD	"e"	/* no command */
-#define NOCMDC	'e'
-#define CONT	"\0n"	/* do not check other params */
-#define CONTC	'n'
-#define END	"\0e"	/* no more parameter */
-#define ENDC	'e'
+#define NOCMD  "e"    /**< No command */
+#define NOCMDC 'e'
+#define CONT   "\0n"  /**< Do not check other params */
+#define CONTC  'n'
+#define END	   "\0e"  /**< Mo more parameter */
+#define ENDC   'e'
 
-#define DEFAULT	NULL
+#define DEFAULT NULL
 
 
-/*
- * cmd_find return values
- */
-#define CMP_NH		0	/* no hit */
-#define CMP_HIT		1	/* hit */
-#define CMP_PHIT	2	/* partial hit */
-#define CMP_MHIT	3	/* multi-hit */
+/**< cmd_find return values */
+#define CMP_NH   0  /**< No hit */
+#define CMP_HIT  1	/**< Hit */
+#define CMP_PHIT 2	/**< Partial hit */
+#define CMP_MHIT 3	/**< Multi-hit */
 
-struct parm_link_s
-{
+struct parm_link_s {
 	token_s token;
-	
 	struct parm_link_s *next;
 };
 typedef struct parm_link_s parm_link_s;
@@ -111,60 +111,55 @@ extern const char *token_overview[];
 struct cmd_s;
 typedef struct cmd_s cmd_s;
 
-typedef bool (*cmd_f)( parm_link_s *parm, void *data);
-typedef char *(*gen_f)( parm_link_s *pl, const void *data,
-		int level);
-typedef void (*fgen_f)( parm_link_s **pl, const cmd_s *cmd,
-		gen_f *generator, const void **data);
+typedef bool (*cmd_f)(parm_link_s *parm, void *data);
+typedef char *(*gen_f)(parm_link_s *pl, const void *data, int level);
+typedef void (*fgen_f)(parm_link_s **pl, const cmd_s *cmd, gen_f *generator,
+	const void **data);
 
 
-/*
- * Device command list
- */
-struct cmd_s
-{
-	const char *name;	/* command name */
-	cmd_f func;		/* function which implements command */
-	fgen_f find_gen;	/* finds the completion function */
-	cmd_f help;		/* displays help */
-	const char *desc;	/* short description */
-	const char *descf;	/* full description */
-	const char *pars;	/* parameters and description */
+/**< Device command list */
+struct cmd_s {
+	const char *name;   /* command name */
+	cmd_f func;         /* function which implements command */
+	fgen_f find_gen;    /* finds the completion function */
+	cmd_f help;         /* displays help */
+	const char *desc;   /* short description */
+	const char *descf;  /* full description */
+	const char *pars;   /* parameters and description */
 };
 
-bool hexadecimal( char c);
-int hex2int( char c);
-bool numeric_hex_char( char c);
+extern bool hexadecimal(char c);
+extern int hex2int(char c);
+extern bool numeric_hex_char(char c);
 
-parm_link_s *parm_parse( const char *s);
-void parm_delete( parm_link_s *pl);
-void parm_set_str( parm_link_s *pl, const char *s);
+extern parm_link_s *parm_parse(const char *s);
+extern void parm_delete(parm_link_s *pl);
+extern void parm_set_str(parm_link_s *pl, const char *s);
 
-int cmd_find( const char *cmd_name, const cmd_s *cmds,
-		const cmd_s **cmd);
-parm_link_s *parm_next( parm_link_s **pl);
-void parm_check_end( parm_link_s *pl, const char *input);
+extern int cmd_find(const char *cmd_name, const cmd_s *cmds,
+	const cmd_s **cmd);
+extern parm_link_s *parm_next(parm_link_s **pl);
+extern void parm_check_end(parm_link_s *pl, const char *input);
 
-int parm_type( parm_link_s *parm);
-uint32_t parm_int( parm_link_s *parm);
-char *parm_str( parm_link_s *parm);
-uint32_t parm_next_int( parm_link_s **parm);
-char *parm_next_str( parm_link_s **parm);
+extern int parm_type(parm_link_s *parm);
+extern uint32_t parm_int(parm_link_s *parm);
+extern char *parm_str(parm_link_s *parm);
+extern uint32_t parm_next_int(parm_link_s **parm);
+extern char *parm_next_str(parm_link_s **parm);
 
-bool parm_insert_int( parm_link_s *parm, uint32_t val);
-bool parm_insert_str( parm_link_s *parm, char *s);
+extern bool parm_insert_int(parm_link_s *parm, uint32_t val);
+extern bool parm_insert_str(parm_link_s *parm, char *s);
 
-void parm_change_int( parm_link_s *parm, uint32_t val);
+extern void parm_change_int(parm_link_s *parm, uint32_t val);
 
-bool cmd_run_by_spec( const cmd_s *cmd, parm_link_s *parm, void *data);
-bool cmd_run_by_name( const char *cmd, parm_link_s *parm, const cmd_s *cmds,
-		void *data);
-bool cmd_run_by_parm( parm_link_s *pl, const cmd_s *cmds, void *data);
+extern bool cmd_run_by_spec(const cmd_s *cmd, parm_link_s *parm, void *data);
+extern bool cmd_run_by_name(const char *cmd, parm_link_s *parm,
+	const cmd_s *cmds, void *data);
+extern bool cmd_run_by_parm(parm_link_s *pl, const cmd_s *cmds, void *data);
 
-char *generator_cmd( parm_link_s *pl, const void *data, int level);
+extern char *generator_cmd(parm_link_s *pl, const void *data, int level);
 
-void cmd_print_help( const cmd_s *cmds);
-void cmd_print_extended_help( parm_link_s *parm,
-		const cmd_s *cmds);
+extern void cmd_print_help(const cmd_s *cmds);
+extern void cmd_print_extended_help(parm_link_s *parm, const cmd_s *cmds);
 
-#endif /* _PARSER_H_ */
+#endif /* PARSER_H_ */

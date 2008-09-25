@@ -1,11 +1,16 @@
 /*
- * mem.h
- * Memory device
- * Copyright (c) 2003,2004 Viliam Holub
+ * Copyright (c) 2003-2004 Viliam Holub
+ * All rights reserved.
+ *
+ * Distributed under the terms of GPL.
+ *
+ *
+ *  Memory device
+ *
  */
 
-#ifndef _MEM_H_
-#define _MEM_H_
+#ifndef MEM_H_
+#define MEM_H_
 
 #include "device.h"
 
@@ -15,4 +20,4 @@ extern const char id_rwm[];
 extern device_type_s DROM;
 extern device_type_s DRWM;
 
-#endif /* _MEM_H_ */
+#endif /* MEM_H_ */

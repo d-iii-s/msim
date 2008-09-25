@@ -19,12 +19,12 @@
 #include "../mtypes.h"
 #include "../cpu/instr.h"
 #include "../cpu/processor.h"
-#include "../machine.h"
+#include "../device/machine.h"
 #include "../output.h"
 #include "../env.h"
 
 #include "../device/dcpu.h"
-#include "../mem.h"
+#include "../device/mem.h"
 
 
 #define CP0_PM_ITEMS 7

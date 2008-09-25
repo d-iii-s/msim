@@ -12,7 +12,6 @@ LIBS = @LIBS@
 SOURCES = \
 	output.c \
 	utils.c \
-	machine.c \
 	fault.c \
 	text.c \
 	env.c \
@@ -20,13 +19,14 @@ SOURCES = \
 	input.c \
 	cmd.c \
 	check.c \
-	mem.c \
 	main.c \
 	parser.c \
 	cpu/processor.c \
 	cpu/instr.c \
 	debug/debug.c \
 	debug/gdb.c \
+	device/machine.c \
+	device/mem.c \
 	device/ddisk.c \
 	device/dcpu.c \
 	device/dkeyboard.c \

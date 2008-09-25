@@ -22,7 +22,7 @@
 #include "mtypes.h"
 #include "device/device.h"
 #include "cpu/processor.h"
-#include "machine.h"
+#include "device/machine.h"
 #include "parser.h"
 #include "endi.h"
 #include "cmd.h"

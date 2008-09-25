@@ -23,7 +23,7 @@
 #include "check.h"
 #include "mcons.h"
 #include "device/device.h"
-#include "machine.h"
+#include "device/machine.h"
 #include "debug/debug.h"
 #include "fault.h"
 #include "output.h"

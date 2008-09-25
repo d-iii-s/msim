@@ -496,11 +496,11 @@ s,@psdir@,|#_!!_#|${docdir},g
 s,@libdir@,|#_!!_#|${exec_prefix}/lib,g
 s,@localedir@,|#_!!_#|${datarootdir}/locale,g
 s,@mandir@,|#_!!_#|${datarootdir}/man,g
-s,@DEFS@,|#_!!_#|-DPACKAGE_NAME=\\"\\" -DPACKAGE_TARNAME=\\"\\" -DPACKAGE_VERSION=\\"\\" -DPACKAGE_STRING=\\"\\" -DPACKAGE_BUGREPORT=\\"\\" -DINSTALL_PREFIX=\\"/usr/local\\" -DSTDC_HEADERS=1 -DHAVE_SYS_TYPES_H=1 -DHAVE_SYS_STAT_H=1 -DHAVE_STDLIB_H=1 -DHAVE_STRING_H=1 -DHAVE_MEMORY_H=1 -DHAVE_STRINGS_H=1 -DHAVE_INTTYPES_H=1 -DHAVE_STDINT_H=1 -DHAVE_UNISTD_H=1,g
+s,@DEFS@,|#_!!_#|-DPACKAGE_NAME=\\"\\" -DPACKAGE_TARNAME=\\"\\" -DPACKAGE_VERSION=\\"\\" -DPACKAGE_STRING=\\"\\" -DPACKAGE_BUGREPORT=\\"\\" -DHAVE_LIBREADLINE=1 -DHAVE_LIBNSL=1 -DHAVE_LIBCURSES=1 -DSTDC_HEADERS=1 -DHAVE_SYS_TYPES_H=1 -DHAVE_SYS_STAT_H=1 -DHAVE_STDLIB_H=1 -DHAVE_STRING_H=1 -DHAVE_MEMORY_H=1 -DHAVE_STRINGS_H=1 -DHAVE_INTTYPES_H=1 -DHAVE_STDINT_H=1 -DHAVE_UNISTD_H=1 -DHAVE_ERRNO_H=1 -DHAVE_WAIT_H=1 -DHAVE_SIGNAL_H=1 -DHAVE_SYSLOG_H=1 -DHAVE_TIME_H=1 -DHAVE_SYS_STAT_H=1 -DHAVE_SYS_IOCTL_H=1 -DHAVE_SYS_TIME_H=1 -DHAVE_SYS_TYPES_H=1 -DHAVE_SYS_TERMIOS_H=1 -DHAVE_FCNTL_H=1 -DHAVE_GETOPT_H=1 -DHAVE_STDINT_H=1 -DHAVE_STDBOOL_H=1 -DHAVE_READLINE_READLINE_H=1 -DHAVE_READLINE_HISTORY_H=1 -DHAVE_SOCKLEN_T=1 -DHAVE_GETOPT_LONG=1 -DINSTALL_PREFIX=\\"/usr/local\\",g
 s,@ECHO_C@,|#_!!_#|,g
 s,@ECHO_N@,|#_!!_#|-n,g
 s,@ECHO_T@,|#_!!_#|,g
-s,@LIBS@,|#_!!_#|,g
+s,@LIBS@,|#_!!_#|-lcurses -lnsl -lreadline ,g
 s,@build_alias@,|#_!!_#|,g
 s,@host_alias@,|#_!!_#|,g
 s,@target_alias@,|#_!!_#|,g
@@ -515,12 +515,12 @@ s,@INSTALL_PROGRAM@,|#_!!_#|${INSTALL},g
 s,@INSTALL_SCRIPT@,|#_!!_#|${INSTALL},g
 s,@INSTALL_DATA@,|#_!!_#|${INSTALL} -m 644,g
 s,@STRIP@,|#_!!_#|/usr/bin/strip,g
-s,@BUILDLIBS@,|#_!!_#|,g
-s,@AFTERBUILD@,|#_!!_#|,g
-s,@INSTALL_PREFIX@,|#_!!_#|,g
 s,@CPP@,|#_!!_#|gcc -E,g
 s,@GREP@,|#_!!_#|/bin/grep,g
 s,@EGREP@,|#_!!_#|/bin/grep -E,g
+s,@BUILDLIBS@,|#_!!_#|,g
+s,@AFTERBUILD@,|#_!!_#|,g
+s,@INSTALL_PREFIX@,|#_!!_#|,g
 s,@LIBOBJS@,|#_!!_#|,g
 s,@LTLIBOBJS@,|#_!!_#|,g
 :end

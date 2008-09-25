@@ -8,12 +8,12 @@
 #define _MACHINE_H_
 
 
-#include "mtypes.h"
-#include "mcons.h"
-#include "cpu/processor.h"
-#include "parser.h"
-#include "endi.h"
-#include "device/device.h"
+#include "../mtypes.h"
+#include "../mcons.h"
+#include "../cpu/processor.h"
+#include "../parser.h"
+#include "../endi.h"
+#include "device.h"
 
 
 enum TMemoryType_enum { mtRWM, mtROM, mtEXC };

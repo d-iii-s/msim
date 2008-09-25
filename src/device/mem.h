@@ -7,7 +7,7 @@
 #ifndef _MEM_H_
 #define _MEM_H_
 
-#include "device/device.h"
+#include "device.h"
 
 extern const char id_rom[];
 extern const char id_rwm[];

@@ -19,13 +19,13 @@
 
 #include "mem.h"
 
-#include "parser.h"
-#include "device/device.h"
+#include "../parser.h"
+#include "device.h"
 #include "machine.h"
-#include "fault.h"
-#include "text.h"
-#include "output.h"
-#include "utils.h"
+#include "../fault.h"
+#include "../text.h"
+#include "../output.h"
+#include "../utils.h"
 
 
 /*

@@ -18,7 +18,7 @@
 #include "../mtypes.h"
 #include "../endi.h"
 #include "processor.h"
-#include "../machine.h"
+#include "../device/machine.h"
 #include "../debug/debug.h"
 #include "../text.h"
 #include "../output.h"

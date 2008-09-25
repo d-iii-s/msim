@@ -16,7 +16,7 @@
 
 #include "device.h"
 
-#include "../mem.h"
+#include "mem.h"
 #include "dcpu.h"
 #include "dkeyboard.h"
 #include "dorder.h"

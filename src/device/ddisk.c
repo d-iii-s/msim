@@ -25,7 +25,7 @@
 
 #include "ddisk.h"
 
-#include "../machine.h"
+#include "machine.h"
 #include "../fault.h"
 #include "dcpu.h"
 #include "../output.h"

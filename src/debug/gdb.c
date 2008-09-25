@@ -25,7 +25,7 @@
 #include "../mcons.h"
 #include "../fault.h"
 #include "../output.h"
-#include "../machine.h"
+#include "../device/machine.h"
 #include "../parser.h"
 #include "../cpu/processor.h"
 

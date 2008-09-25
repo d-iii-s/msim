@@ -19,13 +19,13 @@
 
 #include "machine.h"
 
-#include "cpu/processor.h"
-#include "input.h"
-#include "output.h"
-#include "debug/gdb.h"
-#include "env.h"
-#include "check.h"
-#include "utils.h"
+#include "../cpu/processor.h"
+#include "../input.h"
+#include "../output.h"
+#include "../debug/gdb.h"
+#include "../env.h"
+#include "../check.h"
+#include "../utils.h"
 
 
 /* common variables */

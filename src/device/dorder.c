@@ -19,7 +19,7 @@
 #include "dorder.h"
 
 #include "device.h"
-#include "../machine.h"
+#include "machine.h"
 #include "dcpu.h"
 #include "../output.h"
 #include "../parser.h"

@@ -16,7 +16,7 @@
 #include <string.h>
 
 #include "main.h"
-#include "machine.h"
+#include "device/machine.h"
 #include "fault.h"
 
 

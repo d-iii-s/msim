@@ -1,18 +1,23 @@
 /*
- * Input routines
- *
  * Copyright (c) 2004 Viliam Holub
+ * All rights reserved.
+ *
+ * Distributed under the terms of GPL.
+ *
+ *
+ *  Input routines
+ *
  */
 
-#ifndef _INPUT_H_
-#define _INPUT_H_
+#ifndef INPUT_H_
+#define INPUT_H_
 
-void input_init( void);
-void input_inter( void);
-void input_shadow( void);
-void input_back( void);
-char *hint_generator( const char *input, int level);
-char **msim_completion( const char *text, int start, int end);
-void interactive_control( void);
+extern void input_init(void);
+extern void input_inter(void);
+extern void input_shadow(void);
+extern void input_back(void);
+extern char *hint_generator(const char *input, int level);
+extern char **msim_completion(const char *text, int start, int end);
+extern void interactive_control(void);
 
-#endif // _INPUT_H_
+#endif /* INPUT_H_ */

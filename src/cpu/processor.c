@@ -22,7 +22,7 @@
 #include "../debug/debug.h"
 #include "../text.h"
 #include "../output.h"
-#include "../gdb.h"
+#include "../debug/gdb.h"
 #include "../env.h"
 #include "../fault.h"
 

@@ -23,10 +23,10 @@ SOURCES = \
 	check.c \
 	mem.c \
 	main.c \
-	gdb.c \
 	parser.c \
 	cpu/processor.c \
 	debug/debug.c \
+	debug/gdb.c \
 	device/ddisk.c \
 	device/dcpu.c \
 	device/dkeyboard.c \

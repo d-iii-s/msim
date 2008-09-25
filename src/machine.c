@@ -22,7 +22,7 @@
 #include "cpu/processor.h"
 #include "input.h"
 #include "output.h"
-#include "gdb.h"
+#include "debug/gdb.h"
 #include "env.h"
 #include "check.h"
 #include "utils.h"

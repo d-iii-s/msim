@@ -27,7 +27,7 @@
 #include "endi.h"
 #include "cmd.h"
 #include "output.h"
-#include "gdb.h"
+#include "debug/gdb.h"
 #include "fault.h"
 #include "utils.h"
 

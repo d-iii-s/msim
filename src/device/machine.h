@@ -1,11 +1,13 @@
 /*
- * machine.h
  * Copyright (c) 2000-2003 Viliam Holub
-*/
+ * All rights reserved.
+ *
+ * Distributed under the terms of GPL.
+ *
+ */
 
-
-#ifndef _MACHINE_H_
-#define _MACHINE_H_
+#ifndef MACHINE_H_
+#define MACHINE_H_
 
 
 #include "../mtypes.h"
@@ -16,41 +18,44 @@
 #include "device.h"
 
 
-enum TMemoryType_enum { mtRWM, mtROM, mtEXC };
+enum TMemoryType_enum {
+	mtRWM,
+	mtROM,
+	mtEXC
+};
 
 typedef struct mem_element_s mem_element_s;
-struct mem_element_s
-{
-	/* memory region type */
+struct mem_element_s {
+	/* Memory region type */
 	bool writ;
 
-	/* basic specification - position and size */
+	/* Basic specification - position and size */
 	uint32_t start;
 	uint32_t size;
 	
-	/* block of memory */
+	/* Block of memory */
 	unsigned char *mem;
 
-	/* next element in the list */
+	/* Next element in the list */
 	mem_element_s *next;
 };
 
+
 typedef struct LLList_s LLList_s;
-struct LLList_s
-{
+struct LLList_s {
 	processor_s *p;
 	LLList_s *next;
 };
 
 
-/* common variables */
+/**< Common variables */
 extern bool totrace;
 extern bool tohalt;
 extern int procno;
 
 extern char *config_file;
 
-/* debug features */
+/**< Debug features */
 extern char **cp0name;
 extern char **cp1name;
 extern char **cp2name;
@@ -73,35 +78,31 @@ extern processor_s *focus;
 extern mem_element_s *memlist;
 extern LLList_s *ll_list;
 
-extern bool tobreak;  /* for readline*/
-extern bool reenter; // for readline
+extern bool tobreak;
+extern bool reenter;
 
-bool reenter;
+extern void input_back(void);
 
-void input_back( void);
 
-/* basic machine functions */
-void init_machine( void);
-void done_machine( void);
-void go_machine( void);
-void machine_step( void);
+/*
+ * Basic machine functions
+ */
 
-/* debug mode */
-void InteractiveControl();
+extern void init_machine(void);
+extern void done_machine(void);
+extern void go_machine(void);
+extern void machine_step(void);
+
+/**< ll and sc control */
+extern void RegisterLL();
+extern void UnregisterLL();
 	
-/* debug output */
-void dprint( const char *s);
-	
-/* ll and sc control */
-void RegisterLL();
-void UnregisterLL();
-	
-/* access memory */
-void mem_write( uint32_t addr, uint32_t val, int size);
-uint32_t mem_read( uint32_t addr);
+/**< Memory access */
+extern void mem_write(uint32_t addr, uint32_t val, int size);
+extern uint32_t mem_read(uint32_t addr);
 
-/* memory control */
-void mem_link( mem_element_s *e);
-void mem_unlink( mem_element_s *e);
+/**< Memory control */
+extern void mem_link(mem_element_s *e);
+extern void mem_unlink(mem_element_s *e);
 
-#endif /* _MACHINE_H_ */
+#endif /* MACHINE_H_ */

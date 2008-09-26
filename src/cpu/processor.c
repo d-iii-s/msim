@@ -1198,6 +1198,11 @@ static enum exc execute(TInstrInfo *ii2)
 				/* The operation has been successful,
 				   write the result, but... */
 				pr->regs[ii.rt] = 1;
+				
+				/* ...we are too polite if LL and SC addresses differ.
+				   In such a case, the behaviour of SC is undefined.
+				   Let's check that. */
+				convert_addr(&sc_addr, false, false);
 								
 				/* sc_addr now contains physical target address */
 				if (sc_addr != pr->lladdr) {

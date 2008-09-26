@@ -98,9 +98,9 @@ cmd_s printer_cmds[] = {
 
 const char id_printer[] = "dprinter";
 
-static void printer_done(device_s *d);
-static void printer_step4(device_s *d);
-static void printer_write(device_s *d, uint32_t addr, uint32_t val);
+static void printer_done(device_s *dev);
+static void printer_step4(device_s *dev);
+static void printer_write(processor_t *pr, device_s *dev, uint32_t addr, uint32_t val);
 
 device_type_s DPrinter = {
 	/* Type name and description */
@@ -276,9 +276,9 @@ static void printer_step4(device_s *d)
 /** Write command implementation
  *
  */
-static void printer_write(device_s *d, uint32_t addr, uint32_t val)
+static void printer_write(processor_t *pr, device_s *dev, addr_t addr, uint32_t val)
 {
-	printer_data_s *pd = d->data;
+	printer_data_s *pd = dev->data;
 
 	if (addr == pd->addr + REGISTER_CHAR) {
 		fprintf(pd->output_file, "%c", (char) val);

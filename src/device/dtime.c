@@ -80,8 +80,8 @@ cmd_s dtime_cmds[] = {
 /** Name of the dtime as presented to the user */
 const char id_dtime[] = "dtime";
 
-static void dtime_done(device_s *d);
-static void dtime_read(device_s *d, uint32_t addr, uint32_t *val);
+static void dtime_done(device_s *dev);
+static void dtime_read(processor_t *pr, device_s *dev, addr_t addr, uint32_t *val);
 
 /** Dtime object structure */
 device_type_s DTime = {
@@ -199,9 +199,9 @@ static void dtime_done(device_s *d)
  * @param val  Readed (returned) value
  *
  */
-static void dtime_read(device_s *d, uint32_t addr, uint32_t *val)
+static void dtime_read(processor_t *pr, device_s *dev, addr_t addr, uint32_t *val)
 {
-	struct dtime_data_struct *od = d->data;
+	struct dtime_data_struct *od = dev->data;
 	
 	if ((addr == od->addr + REGISTER_SEC) || (addr == od->addr + REGISTER_USEC)) {
 		/* Get actual time */

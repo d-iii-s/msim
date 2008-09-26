@@ -91,9 +91,9 @@ cmd_s keyboard_cmds[] = {
 
 const char id_keyboard[] = "dkeyboard";
 
-static void keyboard_done(device_s *d);
-static void keyboard_step4(device_s *d);
-static void keyboard_read(device_s *d, uint32_t addr, uint32_t *val);
+static void keyboard_done(device_s *dev);
+static void keyboard_step4(device_s *dev);
+static void keyboard_read(processor_t *pr, device_s *dev, addr_t addr, uint32_t *val);
 
 device_type_s DKeyboard = {
 	/* Type name and description */
@@ -268,9 +268,9 @@ static void keyboard_done(device_s *d)
  * deasserted.
  *
  */
-static void keyboard_read(device_s *d, uint32_t addr, uint32_t *val)
+static void keyboard_read(processor_t *pr, device_s *dev, addr_t addr, uint32_t *val)
 {
-	keyboard_data_s *kd = d->data;
+	keyboard_data_s *kd = dev->data;
 	
 	if (addr == kd->addr + REGISTER_CHAR) {
 		*val = kd->incomming;

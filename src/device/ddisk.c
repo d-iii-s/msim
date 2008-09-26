@@ -161,10 +161,10 @@ cmd_s ddisk_cmds[] = {
 /**< Name of the disk device as presented to the user */
 const char id_ddisk[] = "ddisk";
 
-static void ddisk_done(device_s *d);
-static void ddisk_step(device_s *d);
-static void ddisk_read(device_s *d, uint32_t addr, uint32_t *val);
-static void ddisk_write(device_s *d, uint32_t addr, uint32_t val);
+static void ddisk_done(device_s *dev);
+static void ddisk_step(device_s *dev);
+static void ddisk_read(processor_t *pr, device_s *dev, addr_t addr, uint32_t *val);
+static void ddisk_write(processor_t *pr, device_s *dev, addr_t addr, uint32_t val);
 
 /**< Ddisk object structure */
 device_type_s DDisk = {
@@ -780,9 +780,9 @@ static void ddisk_done(device_s *d) {
  * @param val  Readed (returned) value
  *
  */
-static void ddisk_read(device_s *d, uint32_t addr, uint32_t *val)
+static void ddisk_read(processor_t *pr, device_s *dev, addr_t addr, uint32_t *val)
 {
-	disk_data_s *dd = (disk_data_s *) d->data;
+	disk_data_s *dd = (disk_data_s *) dev->data;
 
 	/* Do nothing if the disk is not initialized. */
 	if (dd->disk_type == DISKT_NONE)
@@ -807,9 +807,9 @@ static void ddisk_read(device_s *d, uint32_t addr, uint32_t *val)
  * @param val  Value to write
  *
  */
-static void ddisk_write(device_s *d, uint32_t addr, uint32_t val)
+static void ddisk_write(processor_t *pr, device_s *dev, addr_t addr, uint32_t val)
 {
-	disk_data_s *dd = d->data;
+	disk_data_s *dd = dev->data;
 	
 	/* Ignore if the disk is not initialized */
 	if (dd->disk_type == DISKT_NONE)
@@ -891,7 +891,7 @@ static void ddisk_step(device_s *d)
 	/* Reading */
 	if (dd->action == ACTION_READ) {
 		uint32_t val = dd->img[dd->secno * 128 + dd->cnt];
-		mem_write(dd->disk_wptr, val, INT32);
+		mem_write(NULL, dd->disk_wptr, val, INT32);
 		dd->disk_wptr += 4; /* Next word */
 		dd->cnt++;
 		
@@ -904,7 +904,7 @@ static void ddisk_step(device_s *d)
 		}
 	} else if (dd->action == ACTION_WRITE) { /* Writting */
 		uint32_t val;
-		val = mem_read(dd->disk_wptr);
+		val = mem_read(NULL, dd->disk_wptr);
 		dd->img[dd->secno * 128 + dd->cnt] = val;
 		
 		dd->disk_wptr += 4; /* Next word */

@@ -367,9 +367,9 @@ static enum exc acc_mem(processor_t *pr, bool wr, addr_t addr, len_t size, uint3
 
 		if (res == excNone) {
 			if (wr)
-				mem_write(addr, *value, size);
+				mem_write(pr, addr, *value, size);
 			else
-				*value = mem_read(addr);
+				*value = mem_read(pr, addr);
 		}
 	}
 	

@@ -227,7 +227,7 @@ void unregister_ll(processor_t *pr)
 /** Memory read
  *
  */
-uint32_t mem_read(uint32_t addr)
+uint32_t mem_read(processor_t *pr, uint32_t addr)
 {
 	device_s *dev;
 
@@ -253,7 +253,7 @@ uint32_t mem_read(uint32_t addr)
 		dev = 0;
 		while (dev_next(&dev))
 			if (dev->type->read)
-				dev->type->read(dev, addr, &val);
+				dev->type->read(pr, dev, addr, &val);
 		
 		return val;
 	}
@@ -266,7 +266,7 @@ uint32_t mem_read(uint32_t addr)
 /** Memory write
  *
  */
-void mem_write(uint32_t addr, uint32_t val, int size)
+void mem_write(processor_t *pr, uint32_t addr, uint32_t val, int size)
 {
 	device_s *dev;
 
@@ -291,7 +291,7 @@ void mem_write(uint32_t addr, uint32_t val, int size)
 		dev = 0;
 		while (dev_next(&dev))
 			if (dev->type->write) 
-				dev->type->write(dev, addr, val);
+				dev->type->write(pr, dev, addr, val);
 		
 		return;
 	}

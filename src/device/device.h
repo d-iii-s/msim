@@ -16,6 +16,7 @@
 
 #include "../mtypes.h"
 #include "../parser.h"
+#include "../cpu/processor.h"
 
 struct device_type_s;
 typedef struct device_type_s device_type_s;
@@ -73,11 +74,11 @@ struct device_type_s {
 	const char *const brief;
 	const char *const full;
 	
-	void (*done)(device_s *d);
-	void (*step)(device_s *d);
-	void (*step4)(device_s *d);
-	void (*read)(device_s *d, uint32_t addr, uint32_t *val);
-	void (*write)(device_s *d, uint32_t addr, uint32_t val);
+	void (*done)(device_s *dev);
+	void (*step)(device_s *dev);
+	void (*step4)(device_s *dev);
+	void (*read)(processor_t *pr, device_s *dev, addr_t addr, uint32_t *val);
+	void (*write)(processor_t *pr, device_s *dev, addr_t addr, uint32_t val);
 
 	const cmd_s *const cmds;
 };

@@ -353,7 +353,7 @@ static bool system_id(parm_link_s *pl, void *data)
 	
 	for (; cnt > 0; addr += 4, cnt--) {
 		instr_info ii;
-		ii.icode = mem_read(addr);
+		ii.icode = mem_read(NULL, addr);
 		decode_instr(&ii);
 		iview(NULL, addr, &ii, 0);
 	}
@@ -413,7 +413,7 @@ static bool system_md(parm_link_s *pl, void *data)
 		if ((i & 0x3) == 0)
 			mprintf("  %08x    ", addr);
 		
-		uint32_t val = mem_read(addr);
+		uint32_t val = mem_read(NULL, addr);
 		mprintf("%08x  ", val);
 		
 		if ((i & 0x3) == 3)

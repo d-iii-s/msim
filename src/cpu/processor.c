@@ -1789,7 +1789,7 @@ static void handle_exception(processor_t *pr, enum exc res)
 	
 	/* User info and register filling */
 	if (totrace)
-		mprintf("\nRaised exception: %s\n\n", excText[res]);
+		mprintf("\nRaised exception: %s\n\n", exc_text[res]);
 	
 	cp0_cause &= ~cp0_cause_exccode_mask;
 	cp0_cause |= res << cp0_cause_exccode_shift;

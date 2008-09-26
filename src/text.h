@@ -12,11 +12,9 @@
 #ifndef TEXT_H_
 #define TEXT_H_
 
-extern const char *text[];
-extern const char *excText[];
+extern const char *exc_text[];
 
 extern const char txt_version[];
-extern const char txt_linehelp[];
 extern const char txt_help[];
 
 extern const char hexchar[];

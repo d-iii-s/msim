@@ -76,8 +76,8 @@ static cmd_s system_cmds[] = {
 		system_add,
 		system_add_find_generator,
 		DEFAULT,
-		"Add a new device into the system.",
-		"Add a new device into the system.",
+		"Add a new device into the system",
+		"Add a new device into the system",
 		REQ STR "type/Device type" NEXT
 		REQ STR "name/Device name" CONT
 	},
@@ -86,8 +86,8 @@ static cmd_s system_cmds[] = {
 		system_quit,
 		DEFAULT,
 		DEFAULT,
-		"Exit msim.",
-		"Exit msim.",
+		"Exit msim",
+		"Exit msim",
 		NOCMD
 	},
 	{
@@ -95,8 +95,8 @@ static cmd_s system_cmds[] = {
 		system_md,
 		DEFAULT,
 		DEFAULT,
-		"Dump words from unmapped memory.",
-		"Dump words from unmapped memory.",
+		"Dump words from unmapped memory",
+		"Dump words from unmapped memory",
 		REQ INT "addr/memory address" NEXT
 		REQ INT "cnt/count" END
 	},
@@ -105,8 +105,8 @@ static cmd_s system_cmds[] = {
 		system_id,
 		DEFAULT,
 		DEFAULT,
-		"Dump instructions from unmapped memory.",
-		"Dump instructions from unmapped memory.",
+		"Dump instructions from unmapped memory",
+		"Dump instructions from unmapped memory",
 		REQ INT "addr/memory address" NEXT
 		REQ INT "cnt/count" END
 	},
@@ -115,8 +115,8 @@ static cmd_s system_cmds[] = {
 		system_dd,
 		DEFAULT,
 		DEFAULT,
-		"Dump all installed devices.",
-		"Dump all installed devices.",
+		"Dump all installed devices",
+		"Dump all installed devices",
 		NOCMD
 	},
 	{
@@ -124,8 +124,8 @@ static cmd_s system_cmds[] = {
 		system_mbd,
 		DEFAULT,
 		DEFAULT,
-		"Dump all installed memory blocks.",
-		"Dump all installed memory blocks.",
+		"Dump all installed memory blocks",
+		"Dump all installed memory blocks",
 		NOCMD
 	},
 	{
@@ -133,8 +133,8 @@ static cmd_s system_cmds[] = {
 		system_stat,
 		DEFAULT,
 		DEFAULT,
-		"Dump available statistic information.",
-		"Dump available statistic information.",
+		"Dump available statistic information",
+		"Dump available statistic information",
 		NOCMD
 	},
 	{
@@ -142,8 +142,8 @@ static cmd_s system_cmds[] = {
 		system_echo,
 		DEFAULT,
 		DEFAULT,
-		"Print user message.",
-		"Print user message.",
+		"Print user message",
+		"Print user message",
 		OPT STR "text" END
 	},
 	{
@@ -151,8 +151,8 @@ static cmd_s system_cmds[] = {
 		system_continue,
 		DEFAULT,
 		DEFAULT,
-		"Continue simulation.",
-		"Continue simulation.",
+		"Continue simulation",
+		"Continue simulation",
 		NOCMD
 	},
 	{
@@ -160,8 +160,8 @@ static cmd_s system_cmds[] = {
 		system_step,
 		DEFAULT,
 		DEFAULT,
-		"Simulate one or a specified number of instructions.",
-		"Simulate one or a specified number of instructions.",
+		"Simulate one or a specified number of instructions",
+		"Simulate one or a specified number of instructions",
 		OPT INT "cnt/intruction count" END
 	},
 	{
@@ -169,8 +169,8 @@ static cmd_s system_cmds[] = {
 		system_set,
 		system_set_find_generator,
 		DEFAULT,
-		"Set enviroment variables.",
-		"Set configuration variables.",
+		"Set enviroment variables",
+		"Set configuration variables",
 		OPT STR "name/variable name" NEXT
 		OPT CON "=" NEXT
 		REQ VAR "val/value" END
@@ -180,8 +180,8 @@ static cmd_s system_cmds[] = {
 		system_unset,
 		system_unset_find_generator,
 		DEFAULT,
-		"Unset enviroment variables.",
-		"Unset environment variables.",
+		"Unset environment variables",
+		"Unset environment variables",
 		REQ STR "name/variable name" END
 	},
 	{
@@ -189,8 +189,8 @@ static cmd_s system_cmds[] = {
 		system_help,
 		DEFAULT,
 		DEFAULT,
-		"Display a help text.",
-		"Display a help text.",
+		"Display a help text",
+		"Display a help text",
 		OPT STR "cmd/command name" END
 	},
 	LAST_CMD

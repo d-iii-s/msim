@@ -558,10 +558,10 @@ static bool mem_fmap(parm_link_s *parm, device_s *dev)
  * Generic command makes memory device a standard memory.
  *
  */
-static bool mem_generic( parm_link_s *parm, device_s *dev)
+static bool mem_generic(parm_link_s *parm, device_s *dev)
 {
 	mem_data_s *md = dev->data;
-	uint32_t size = parm_int( parm);
+	uint32_t size = parm_int(parm);
 
 	/* Test parameter */
 	if (size & 0x3) {
@@ -574,7 +574,7 @@ static bool mem_generic( parm_link_s *parm, device_s *dev)
 		return false;
 	}
 	
-	if ((long long) md->start + (long long) size > 0x100000000ull)
+	if ((unsigned long long) md->start + (unsigned long long) size > 0x100000000ull)
 	{
 		mprintf("Memory would exceed the 4GB limit.\n");
 		return false;
@@ -596,7 +596,7 @@ static bool mem_generic( parm_link_s *parm, device_s *dev)
  * Save the content of the memory to the file specified.
  *
  */
-static bool mem_save( parm_link_s *parm, device_s *dev)
+static bool mem_save(parm_link_s *parm, device_s *dev)
 {
 	mem_data_s *md = dev->data;
 	const char *const filename = parm_str(parm);

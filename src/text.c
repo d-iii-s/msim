@@ -16,13 +16,7 @@
 #include "main.h"
 
 
-//const char *text[] = {
-//	"msim - machine simulator\n",
-//	"Error: Memory dump allowed only for focused processor.\n"
-//};
-
-
-const char *excText[] = {
+const char *exc_text[] = {
 	/* 0 */
 	"Interrupt",
 	"TLB modification",
@@ -59,21 +53,6 @@ const char *excText[] = {
 	"",
 	"Virtual Coherency data"
 };
-
-
-const char txt_linehelp[] =
-	"[command]           [description]\n"
-	"  add dev name ...  add device\n"
-	"  s [cnt]           step one/cnt instructions\n"
-	"  g [addr]          go to address addr/continue\n"
-	"  md addr cnt       dump memory from addr cnt words\n"
-	"  id addr cnt       dump cnt instructions from addr\n"
-	"  dd                dump all installed devices\n"
-	"  msd               memory structure dump\n"
-	"  stat              print several statistics\n"
-	"  set [arg val]     set variable\n"
-	"  h                 help\n"
-	"  q                 quit\n";
 
 
 const char txt_version[] =

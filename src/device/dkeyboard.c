@@ -288,8 +288,6 @@ static void keyboard_read(device_s *d, uint32_t addr, uint32_t *val)
  */
 static void keyboard_step4(device_s *dev)
 {
-	keyboard_data_s *kd = dev->data;
-
 	/* Check new character */
 	fd_set rfds;
 	struct timeval tv;

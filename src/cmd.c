@@ -312,6 +312,8 @@ static bool system_step(parm_link_s *pl, void *data)
 		stepping = pl->token.tval.i;
 		interactive = false;
 		break;
+	default:
+		return false;
 	}
 
 	return true;

@@ -561,9 +561,9 @@ static void TLBW(int reg, enum exc *res)
  * A really huge one, isn't it.
  *
  */
-static enum exc execute(TInstrInfo *ii2)
+static enum exc execute(instr_info *ii2)
 {
-	TInstrInfo ii = *ii2;
+	instr_info ii = *ii2;
 	enum exc res = excNone;
 	uint32_t pca = pr->pcnextreg + 4;
 	int rrs = pr->regs[ii.rs];
@@ -1880,7 +1880,7 @@ static void manage(enum exc res)
  */
 static void instruction(enum exc *res)
 {
-	TInstrInfo ii;
+	instr_info ii;
 
 	/* Reading instruction code */
 	*res = read_proc_ins(pr->pcreg, &ii.icode, true);

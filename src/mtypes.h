@@ -43,9 +43,9 @@ enum exc {
 	excVCED	 = 31,
 
 	/* Special exception types */
-	excTLBR		= 64,
-	excTLBLR	= 65,
-	excTLBSR	= 66,
+	excTLBR  = 64,
+	excTLBLR = 65,
+	excTLBSR = 66,
 	
 	/* For us */
 	excNone	= 100,

@@ -26,7 +26,7 @@
  * Warning: Do NOT change the order
  *
  */
-enum InstrNames {
+typedef enum {
 	/* Special names for blocks of instructions */
 	opcSPECIAL,
 	opcBCOND,
@@ -245,11 +245,10 @@ enum InstrNames {
 	/* For decoding */
 	opcBC,
 	opcC0
-};
-typedef enum InstrNames InstrNames;
+} instr_names;
 
 /**< Instruction formats */
-enum BasicInstructionFormat {
+typedef enum {
 	ifX,     /* undefined */
 	ifNONE,  /* no parameters */
 	ifERR,   /* invalid */
@@ -280,14 +279,12 @@ enum BasicInstructionFormat {
 	ifSIW,
 	ifDTS,
 	ifSYSCALL /* syscall */
-};
-typedef enum BasicInstructionFormat BasicInstructionFormat;
+} basic_instruction_format;
 
-struct TInstrForm {
+typedef struct {
 	int opcode;		
 	int format;
-};
-typedef struct TInstrForm TInstrForm;
+} instr_form;
 
 
 /**< Various mask and shift settings */
@@ -310,7 +307,7 @@ typedef struct TInstrForm TInstrForm;
 #define IMM_MASK     0xffff
 #define IMM_SIGN_BIT 0x8000
 
-struct TInstrInfo {
+typedef struct {
 	/* Instruction */
 	uint32_t icode;
 	int opcode;
@@ -330,21 +327,19 @@ struct TInstrInfo {
 	int imm;
 	int jimm;
 	int shift;
-};
-typedef struct TInstrInfo TInstrInfo;
+} instr_info;
 
 
-struct instr_text_s {
-	char *InstrText;
-	BasicInstructionFormat itype;
-};
-typedef struct instr_text_s instr_text_s;
+typedef struct instr_text {
+	char *instr_text;
+	basic_instruction_format itype;
+} instr_text;
 
 
-extern instr_text_s InstrNamesAcronym[];
+extern instr_text instr_names_acronym[];
 
 /**< Register and coprocessor names */
-extern char *RegName[][32];
+extern char *reg_name[][32];
 extern char *cp0_name[][32];
 extern char *cp1_name[][32];
 extern char *cp2_name[][32];
@@ -352,6 +347,6 @@ extern char *cp3_name[][32];
 
 
 /**< Convert opcode to instruction description */
-extern void decode_instr(TInstrInfo *ii);
+extern void decode_instr(instr_info *ii);
 
 #endif /* INSTR_H_ */

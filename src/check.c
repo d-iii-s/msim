@@ -50,7 +50,7 @@ static char *colors[COL_END][2] = {
 	{"", "\x1b\x5b\x31\x3b\x33\x31\x6d"}
 };
 
-void RQ_test(const char *pre, const char *filename, int lineno,
+void rq_test(const char *pre, const char *filename, int lineno,
 	const char *func, const char *term, ...)
 {
 	unsigned int i = 0;

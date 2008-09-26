@@ -24,7 +24,7 @@ extern bool dump_inum;
 extern void reg_view(void);
 extern void tlb_dump(void);
 extern void cp0_dump(int reg);
-extern void iview(uint32_t addr, TInstrInfo *ii, bool procdep, char *regch);
+extern void iview(uint32_t addr, instr_info *ii, bool procdep, char *regch);
 extern void modified_regs_dump(size_t size, char *sx);
 
 extern void dbg_dev_dump(void);

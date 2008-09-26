@@ -325,7 +325,7 @@ static bool dcpu_id(parm_link_s *parm, device_s *dev)
 {
 	cpu_data_s *cd = dev->data;
 	enum exc res;
-	TInstrInfo ii;
+	instr_info ii;
 	uint32_t addr, siz;
 	
 	pr = cd->proc;

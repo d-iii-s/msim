@@ -87,7 +87,7 @@ static void register_sigint(void)
 void init_machine(void)
 {
 	memlist = 0;
-	regname = RegName[ireg];
+	regname = reg_name[ireg];
 	cp0name = cp0_name[ireg];
 	cp1name = cp1_name[ireg];
 	cp2name = cp2_name[ireg];

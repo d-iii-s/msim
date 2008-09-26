@@ -210,7 +210,7 @@ static bool change_ireg(int i)
 	}
 	
 	ireg = i;
-	regname = RegName[i];
+	regname = reg_name[i];
 	
 	return true;
 }

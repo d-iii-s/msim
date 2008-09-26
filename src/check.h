@@ -48,9 +48,9 @@
 
 #ifdef RQ_DEBUG
 	#define RQ_PARM_BRK -314
-	#define RQ(...)   RQ_test("", __FILE__, __LINE__, __FUNCTION__, #__VA_ARGS__, __VA_ARGS__, RQ_PARM_BRK)
-	#define PRE(...)  RQ_test("pre", __FILE__, __LINE__, __FUNCTION__, #__VA_ARGS__, __VA_ARGS__, RQ_PARM_BRK)
-	#define POST(...) RQ_test("post", __FILE__, __LINE__, __FUNCTION__, #__VA_ARGS__, __VA_ARGS__, RQ_PARM_BRK)
+	#define RQ(...)   rq_test("", __FILE__, __LINE__, __FUNCTION__, #__VA_ARGS__, __VA_ARGS__, RQ_PARM_BRK)
+	#define PRE(...)  rq_test("pre", __FILE__, __LINE__, __FUNCTION__, #__VA_ARGS__, __VA_ARGS__, RQ_PARM_BRK)
+	#define POST(...) rq_test("post", __FILE__, __LINE__, __FUNCTION__, #__VA_ARGS__, __VA_ARGS__, RQ_PARM_BRK)
 #else
 	#define RQ(...)		
 	#define PRE(...)	
@@ -58,7 +58,7 @@
 #endif
 
 
-extern void RQ_test(const char *pre, const char *filename, int lineno,
+extern void rq_test(const char *pre, const char *filename, int lineno,
 	const char *func, const char *term, ...);
 
 

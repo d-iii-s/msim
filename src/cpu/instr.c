@@ -11,7 +11,7 @@
 
 #include "instr.h"
 
-static TInstrForm InstrTable[64] = {
+static instr_form instr_table[64] = {
 	/* 0x00 */
 	{ opcSPECIAL,	ifREG},
 	{ opcBCOND,	ifIMM},
@@ -94,7 +94,7 @@ static TInstrForm InstrTable[64] = {
 };
 
 /**< Sub-codes for SPECIAL code, all of there are ifREG */
-static int TSpecInstrTable[64] = {					 
+static int SPEC_instr_table[64] = {					 
 	/* 0x00 */
 	opcSLL,		opcRES,		opcSRL,		opcSRA,
 	opcSLLV,	opcRES,		opcSRLV,	opcSRAV,
@@ -121,7 +121,7 @@ static int TSpecInstrTable[64] = {
 };
 
 /**< Sub-codes for SPECIAL2 code */
-static int TSpec2InstrTable[64] = {
+static int SPEC2_instr_table[64] = {
 	/* 0x00 */
 	opcMADD,	opcMADDU,	opcMUL,		opcRES, 
 	opcMSUB,	opcMSUBU,	opcRES,		opcRES,
@@ -148,7 +148,7 @@ static int TSpec2InstrTable[64] = {
 };
 
 /**< Sub-codes for COPz */
-static int TCOPzSpec[4][32] = {
+static int COPz_spec[4][32] = {
 	{
 		/* 0x00 */
 		opcMFC0, 	opcDMFC0,	opcCFC0,	opcRES,	
@@ -204,7 +204,7 @@ static int TCOPzSpec[4][32] = {
 };
 
 /**< Sub-codes for BCx */
-static int TBCzSpec[4][32] = {
+static int BCx_spec[4][32] = {
 	{
 		/* 0x00 */
 		opcBC0F,	opcBC0T,	opcBC0FL,	opcBC0TL,
@@ -260,7 +260,7 @@ static int TBCzSpec[4][32] = {
 };
 
 /**< Sub-codes for C0 */
-static int TC0Spec[64] = {					 
+static int CO_spec[64] = {					 
 	/* 0x00 */
 	opcQRES,	opcTLBR,	opcTLBWI,	opcQRES,
 	opcQRES,	opcQRES,	opcTLBWR,	opcQRES,
@@ -288,7 +288,7 @@ static int TC0Spec[64] = {
 
 
 /**< Codes for regimm */
-static int TRegImmInstrTable[32] = {					 
+static int reg_imm_instr_table[32] = {					 
 	/* 0x00 */
 	opcBLTZ,	opcBGEZ,	opcBLTZL,	opcBGEZL,
 	opcRES,		opcRES,		opcRES,		opcRES,
@@ -303,7 +303,7 @@ static int TRegImmInstrTable[32] = {
 };
 
 /* Instruction names */
-instr_text_s InstrNamesAcronym[] = {
+instr_text instr_names_acronym[] = {
 	/* Special names for blocks of instructions */
 	{ "_spec",	ifNONE},
 	{ "_branch",	ifNONE},
@@ -518,7 +518,7 @@ instr_text_s InstrNamesAcronym[] = {
 	{ "---", 	ifERR}
 };
 
-char *RegName[][32] = {
+char *reg_name[][32] = {
 	{
 		"r0",  "r1",  "r2",  "r3",  "r4",  "r5",  "r6",  "r7",  "r8",  "r9",
 		"r10", "r11", "r12", "r13", "r14", "r15", "r16", "r17", "r18", "r19", 
@@ -634,14 +634,14 @@ char *cp3_name[][32] = {
 static int opcode_COPx(int opc, int c)
 {
 	int o;
-	o = TCOPzSpec[opc -opcCOP0][(c & RS_MASK) >> RS_SHIFT];
+	o = COPz_spec[opc - opcCOP0][(c & RS_MASK) >> RS_SHIFT];
 
 	switch (o) {
 	case opcBC:
-		o = TBCzSpec[opc -opcCOP0][(c & RT_MASK) >> RT_SHIFT];
+		o = BCx_spec[opc - opcCOP0][(c & RT_MASK) >> RT_SHIFT];
 		break;
 	case opcC0:
-		o = TC0Spec[c & 0x3f];
+		o = CO_spec[c & 0x3f];
 		break;
 	}
 
@@ -652,25 +652,25 @@ static int opcode_COPx(int opc, int c)
 /** Make basic info about instruction
  *
  */
-void decode_instr(TInstrInfo *ii)
+void decode_instr(instr_info *ii)
 {
 	/* Instruction name and type */
-	TInstrForm *opc = &InstrTable[(ii->icode >> 26) & 0x3f];
+	instr_form *opc = &instr_table[(ii->icode >> 26) & 0x3f];
 	ii->opcode = opc->opcode;
 
 	switch (opc->opcode) {
 	case opcSPECIAL:
-		ii->opcode = TSpecInstrTable[ii->icode & FUNCTION_MASK];
+		ii->opcode = SPEC_instr_table[ii->icode & FUNCTION_MASK];
 		if (ii->icode == 0)
 			ii->opcode = opcNOP;
 		ii->shift = (ii->icode >> 6) & 0x1f;
 		break;
 	case opcSPECIAL2:
-		ii->opcode = TSpec2InstrTable[ii->icode & FUNCTION_MASK];
+		ii->opcode = SPEC2_instr_table[ii->icode & FUNCTION_MASK];
 		ii->shift = (ii->icode >> 6) & 0x1f;
 		break;
 	case opcBCOND:
-		ii->opcode = TRegImmInstrTable[(ii->icode >> 16) & 0x1f];
+		ii->opcode = reg_imm_instr_table[(ii->icode >> 16) & 0x1f];
 		break;
 	case opcCOP0:
 	case opcCOP1:

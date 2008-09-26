@@ -353,7 +353,7 @@ static bool system_id(parm_link_s *pl, void *data)
 	unsigned int cnt = pl->next->token.tval.i;
 	
 	for (; cnt > 0; addr += 4, cnt--) {
-		TInstrInfo ii;
+		instr_info ii;
 		ii.icode = mem_read(addr);
 		decode_instr(&ii);
 		iview(addr, &ii, false, 0);

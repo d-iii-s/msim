@@ -291,7 +291,7 @@ void cp0_dump(int reg)
  *                (dump processor number)
  *
  */
-void iview(uint32_t addr, TInstrInfo *ii, bool procdep, char *regch)
+void iview(uint32_t addr, instr_info *ii, bool procdep, char *regch)
 {
 	char s_proc[16];
 	char s_iopc[16];
@@ -324,7 +324,7 @@ void iview(uint32_t addr, TInstrInfo *ii, bool procdep, char *regch)
 	s_parm[0] = '\0';
 	s_cmt[0] = '\0';
 	
-	switch (InstrNamesAcronym[ii->opcode].itype) {
+	switch (instr_names_acronym[ii->opcode].itype) {
 	case ifNONE:
 		break;
 	case ifR4:
@@ -464,7 +464,7 @@ void iview(uint32_t addr, TInstrInfo *ii, bool procdep, char *regch)
 	
 	mprintf_btag("\t\t\t\t\t# ", "%-4s%s%s  %-6s%-18s%-2s%s%s" TBRK "%s\n",
 		s_proc, s_addr, s_iopc, 
-		InstrNamesAcronym[ii->opcode].InstrText, s_parm,
+		instr_names_acronym[ii->opcode].instr_text, s_parm,
 		s_hash, s_cmt, s_cmtx, regch);
 }
 

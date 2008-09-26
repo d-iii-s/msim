@@ -86,7 +86,7 @@ struct device_type_s {
  * LAST_CMD is used in device sources to determine the last command. That's
  * only a null-command with all NULL parameters.
  */
-#define LAST_CMD {}
+#define LAST_CMD { NULL, NULL, NULL, 0, NULL, NULL, NULL }
 
 
 /*

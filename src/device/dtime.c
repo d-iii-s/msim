@@ -137,7 +137,7 @@ static bool dtime_init(parm_link_s *parm, device_s *dev)
 	}
 
 	/* Address limit */
-	if ((long long) td->addr + (long long) REGISTER_LIMIT > 0x100000000ull) {
+	if ((unsigned long long) td->addr + (unsigned long long) REGISTER_LIMIT > 0x100000000ull) {
 		mprintf("Invalid address; registers would exceed the 4GB limit.\n");
 		return false;
 	}
@@ -204,7 +204,7 @@ static void dtime_read(device_s *d, uint32_t addr, uint32_t *val)
 	struct dtime_data_struct *od = d->data;
 	
 	if ((addr == od->addr + REGISTER_SEC) || (addr == od->addr + REGISTER_USEC)) {
-		/* Get actual time. */
+		/* Get actual time */
 		struct timeval t;
 		gettimeofday( &t, NULL);
 		*val = (addr == od->addr) ? (uint32_t) t.tv_sec : (uint32_t) t.tv_usec;

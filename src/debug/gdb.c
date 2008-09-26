@@ -22,7 +22,6 @@
 #include "gdb.h"
 #include "../text.h"
 #include "../mtypes.h"
-#include "../mcons.h"
 #include "../fault.h"
 #include "../output.h"
 #include "../device/machine.h"
@@ -41,7 +40,7 @@
 
 int gdbd;
 
-processor_s *gdb_pr;
+processor_t *gdb_pr;
 
 
 /** Write a byte c in hex form to *buf and increase the buf pointer
@@ -142,7 +141,7 @@ static bool gdb_write_mem(uint32_t addr, int length, char *buf)
 		val <<= 8;
 		val |= read_byte(&buf);
 
-		if (val == -1)
+		if (val == (uint32_t) -1)
 			return false;
 
 		val = ntohl(val);
@@ -154,7 +153,7 @@ static bool gdb_write_mem(uint32_t addr, int length, char *buf)
 		val <<= 8;
 		val |= read_byte(&buf);
 
-		if (val == -1)
+		if (val == (uint32_t) -1)
 			return false;
 
 		mem_write(addr, val, INT16);
@@ -165,7 +164,7 @@ static bool gdb_write_mem(uint32_t addr, int length, char *buf)
 	if (length) {
 		val = read_byte(&buf);
 		
-		if (val == -1)
+		if (val == (uint32_t) -1)
 			return false;
 
 		mem_write(addr, val, INT8);
@@ -182,9 +181,7 @@ static bool gdb_write_mem(uint32_t addr, int length, char *buf)
  */
 static bool gdb_safe_read(char *c)
 {
-	size_t readed;
-
-	readed = read(gdbd, c, 1);
+	ssize_t readed = read(gdbd, c, 1);
 	if (readed == -1) {
 		io_error("gdb");
 		return false;
@@ -204,11 +201,9 @@ static bool gdb_safe_read(char *c)
  */
 static bool gdb_safe_write(char c)
 {
-	size_t written;
-
 	mprintf("%c", c);
 
-	written = write(gdbd, &c, 1);
+	ssize_t written = write(gdbd, &c, 1);
 	if (written == -1) {
 		io_error("gdb");
 		return false;
@@ -427,7 +422,7 @@ void gdb_handle_event(int event)
 	int sigval;
 	uint32_t x;
 	
-	pr = cpu_find_no(0);
+	processor_t *pr = cpu_find_no(0);
 	
 	sigval = gdb_convert_event(event);
 
@@ -439,7 +434,7 @@ void gdb_handle_event(int event)
 	*(buf++) = hexchar[37 & 0xf];
 	*(buf++) = ':';
 	
-	x = pr->pcreg & 0x7fffffff;
+	x = pr->pc & 0x7fffffff;
 	write_byte(&buf, x & 0xff);
 	write_byte(&buf, (x >> 8) & 0xff);
 	write_byte(&buf, (x >> 16) & 0xff);
@@ -481,25 +476,25 @@ void gdb_handle_event(int event)
  */
 static void gdb_read_registers(char *buf)
 {
-	pr = cpu_find_no(0);
+	processor_t *pr = cpu_find_no(0);
 	
 	buf = gdb_mem_dump((char *) pr->regs, buf, 32 * sizeof(uint32_t));
 	buf = gdb_mem_dump((char *) &pr->loreg, buf, sizeof(uint32_t));
 	buf = gdb_mem_dump((char *) &pr->hireg, buf, sizeof(uint32_t));
 	buf = gdb_mem_dump((char *) &cp0_badvaddr, buf, sizeof(uint32_t));
-	buf = gdb_mem_dump((char *) &pr->pcreg, buf, sizeof(uint32_t));
+	buf = gdb_mem_dump((char *) &pr->pc, buf, sizeof(uint32_t));
 }
 
 
 static void gdb_write_registers(char *buf)
 {
-	pr = cpu_find_no(0);
+	processor_t *pr = cpu_find_no(0);
 	
 	buf = gdb_mem_upload(buf, (char *) pr->regs, 32 * sizeof(uint32_t));
 	buf = gdb_mem_upload(buf, (char *) &pr->loreg, sizeof(uint32_t));
 	buf = gdb_mem_upload(buf, (char *) &pr->hireg, sizeof(uint32_t));
 	buf = gdb_mem_upload(buf, (char *) &cp0_badvaddr, sizeof(uint32_t));
-	buf = gdb_mem_upload(buf, (char *) &pr->pcreg, sizeof(uint32_t));
+	buf = gdb_mem_upload(buf, (char *) &pr->pc, sizeof(uint32_t));
 }
 
 
@@ -559,8 +554,8 @@ static void gdb_cmd_step(char *buf, bool cont)
 	buf++;
 	
 	if (gdb_read_hexnum(&buf, &addr)) {
-		pr = cpu_find_no(0);
-		pr->pcreg = addr;
+		processor_t *pr = cpu_find_no(0);
+		pr->pc = addr;
 	}
 
 	remote_gdb_one_step = !cont;
@@ -654,11 +649,6 @@ bool gdb_remote_init(void)
 	struct sockaddr_in sa_gdb;
 	struct sockaddr_in sa_srv;
 	socklen_t addrlen = sizeof(sa_gdb);
-
-	if (R4000_cnt != 1) {
-		mprintf(PACKAGE ": Error - only one processor allowed in the gdb mode\n");
-		return false;
-	}
 
 	gdbd = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
 	if (gdbd < 0) {

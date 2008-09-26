@@ -434,7 +434,7 @@ static bool ddisk_init(parm_link_s *parm, device_s *dev)
 	}
 
 	/* Address limit */
-	if ((long long) dd->addr + (long long) REGISTER_LIMIT > 0x100000000ull) {
+	if ((unsigned long long) dd->addr + (unsigned long long) REGISTER_LIMIT > 0x100000000ull) {
 		mprintf("Invalid address; registers would exceed the 4GB limit.\n");
 		return false;
 	}
@@ -676,7 +676,6 @@ static bool ddisk_load(parm_link_s *parm, device_s *dev)
 	disk_data_s *dd = dev->data;
 	const char * const filename = parm_str(parm);
 	int fd;
-	size_t readed;
 	
 	if (dd->disk_type == DISKT_NONE) 
 		/* Illegal */
@@ -689,7 +688,7 @@ static bool ddisk_load(parm_link_s *parm, device_s *dev)
 	}
 	
 	/* Read the file directly */
-	readed = read(fd, dd->img, dd->size);
+	ssize_t readed = read(fd, dd->img, dd->size);
 	if (readed == -1) {
 		io_error(filename);
 		try_soft_close(fd, filename);

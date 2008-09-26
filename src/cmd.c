@@ -21,7 +21,6 @@
 #include "main.h"
 #include "cmd.h"
 #include "check.h"
-#include "mcons.h"
 #include "device/device.h"
 #include "device/machine.h"
 #include "debug/debug.h"
@@ -356,7 +355,7 @@ static bool system_id(parm_link_s *pl, void *data)
 		instr_info ii;
 		ii.icode = mem_read(addr);
 		decode_instr(&ii);
-		iview(addr, &ii, false, 0);
+		iview(NULL, addr, &ii, 0);
 	}
 	
 	return true;
@@ -588,7 +587,7 @@ void script(void)
 static char *generator_devtype(parm_link_s *pl, const void *data, int level)
 {
 	const char *str;
-	const static device_type_s **type;
+	static const device_type_s **type;
 
 	PRE(pl != NULL);
 	PRE((parm_type(pl) == tt_str) || (parm_type(pl) == tt_end));

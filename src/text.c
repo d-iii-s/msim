@@ -16,10 +16,10 @@
 #include "main.h"
 
 
-const char *text[] = {
-	"msim - machine simulator\n",
-	"Error: Memory dump allowed only for focused processor.\n"
-};
+//const char *text[] = {
+//	"msim - machine simulator\n",
+//	"Error: Memory dump allowed only for focused processor.\n"
+//};
 
 
 const char *excText[] = {

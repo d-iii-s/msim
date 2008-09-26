@@ -49,9 +49,8 @@ bool remote_gdb_one_step = false;
 bool reenter;
 
 uint32_t stepping;
-processor_s *focus;
 mem_element_s *memlist;
-LLList_s *ll_list;
+llist_t *ll_list;
 long long msteps;
 
 /**< User break indicator */
@@ -93,8 +92,7 @@ void init_machine(void)
 	cp2name = cp2_name[ireg];
 	cp3name	= cp3_name[ireg];
 	stepping = 0;
-	focus = 0;
-	ll_list = 0;
+	ll_list = NULL;
 	msteps = 0;
 	
 	reenter = false;
@@ -185,9 +183,9 @@ void go_machine(void)
 /** Register current processor in LL-SC tracking list
  *
  */
-void RegisterLL(void)
+void register_ll(processor_t *pr)
 {
-	LLList_s *l;
+	llist_t *l;
 					
 	/* Ignore if already registered. */
 	if (ll_list != NULL)
@@ -196,7 +194,7 @@ void RegisterLL(void)
 				return;
 
 	/* Add processor to the list */
-	l = (LLList_s *) xmalloc(sizeof(LLList_s));
+	l = (llist_t *) xmalloc(sizeof(llist_t));
 	l->p = pr;
 	l->next = ll_list;
 	ll_list = l;
@@ -206,9 +204,9 @@ void RegisterLL(void)
 /** Remove current processor from the LL-SC tracking list
  *
  */
-void UnregisterLL(void)
+void unregister_ll(processor_t *pr)
 {
-	LLList_s *l, *lo = NULL;
+	llist_t *l, *lo = NULL;
 
 	if (ll_list == NULL)
 		return;
@@ -306,7 +304,7 @@ void mem_write(uint32_t addr, uint32_t val, int size)
 
 	/* ll control */
 	if (ll_list != 0) {
-		LLList_s *l, *l2, *lo = 0;
+		llist_t *l, *l2, *lo = 0;
 		
 		for (l = ll_list; l;) {
 			if (l->p->lladdr == addr) {

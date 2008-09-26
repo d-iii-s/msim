@@ -146,7 +146,7 @@ struct dorder_data_struct {
  */
 static void sync_up_write(struct dorder_data_struct *od, uint32_t val)
 {
-	int i;
+	unsigned int i;
 
 	od->cmds++;
 
@@ -164,7 +164,7 @@ static void sync_up_write(struct dorder_data_struct *od, uint32_t val)
  */
 static void sync_down_write(struct dorder_data_struct *od, uint32_t val)
 {
-	int i;
+	unsigned int i;
 
 	od->cmds++;
 
@@ -205,7 +205,7 @@ static bool dorder_init(parm_link_s *parm, device_s *dev)
 	}
 
 	/* Address limit */
-	if ((long long) od->addr + (long long) REGISTER_LIMIT > 0x100000000ull) {
+	if ((unsigned long long) od->addr + (unsigned long long) REGISTER_LIMIT > 0x100000000ull) {
 		mprintf("Invalid address; registers would exceed the 4GB limit.\n");
 		return false;
 	}
@@ -302,14 +302,14 @@ static void dorder_done(device_s *d)
  * @param val  Readed (returned) value
  *
  */
-static void dorder_read(device_s *d, uint32_t addr, uint32_t *val)
+static void dorder_read(device_s *dev, addr_t addr, uint32_t *val)
 {
-	struct dorder_data_struct *od = d->data;
+	struct dorder_data_struct *od = dev->data;
 	
-	if (addr == od->addr + REGISTER_INT_PEND)
-		*val = pr->procno;
-	else if (addr == od->addr + REGISTER_INT_DOWN)
-		*val = 0;
+//	if (addr == od->addr + REGISTER_INT_PEND)
+//		*val = pr->procno;
+//	else if (addr == od->addr + REGISTER_INT_DOWN)
+//		*val = 0;
 }
 
 

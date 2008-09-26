@@ -140,7 +140,7 @@ static void gen_key(device_s *dev, char k)
 	if (!kd->ig) {
 		kd->ig = true;
 		kd->intrcount++;
-		dcpu_interrupt_up(-1, kd->intno);
+		dcpu_interrupt_up(0, kd->intno);
 	} else
 		/* Increase the number of overrun characters */
 		kd->overrun++;
@@ -277,7 +277,7 @@ static void keyboard_read(device_s *d, uint32_t addr, uint32_t *val)
 		kd->incomming = 0;
 		if (kd->ig) {
 			kd->ig = false;
-			dcpu_interrupt_down(-1, kd->intno);
+			dcpu_interrupt_down(0, kd->intno);
 		}
 	}
 }

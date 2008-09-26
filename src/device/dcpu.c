@@ -13,7 +13,7 @@
 #include <string.h>
 #include <stdbool.h>
 
-#include "../mcons.h"
+#include "../main.h"
 #include "device.h"
 #include "../cpu/processor.h"
 #include "../debug/debug.h"
@@ -145,8 +145,7 @@ device_type_s DCPU = {
 	"MIPS R4000 processor",
 
 	/* Full description */
-	"Implementation of the MIPS R4000 processor restricted to 32bits "
-		"with no fpu.",
+	"MIPS R4000 processor restricted to 32 bits without FPU ",
 	
 	/* Functions */
 	.done  = dcpu_done,	/* done */
@@ -159,20 +158,31 @@ device_type_s DCPU = {
 	dcpu_cmds
 };
 
-int R4000_cnt = 0;
 
-struct cpu_data_s {
-	int cpuno;
-	processor_s *proc;
-};
-typedef struct cpu_data_s cpu_data_s;
+/** Get first available CPU id
+ *
+ * @return First available CPU id or MAX_CPU if no
+ *         more CPU slots available.
+ *
+ */
+static unsigned int cpu_get_free_id(void)
+{
+	unsigned int c;
+	unsigned int id_mask = 0;
+	device_s *dev = NULL;
+
+	while (dev_next(&dev))
+		if (dev->type->name == id_dcpu)
+			id_mask |= 1 << ((processor_t *) dev->data)->procno;
+	
+	for (c = 0; c < MAX_CPU; c++, id_mask >>= 1)
+		if (!(id_mask & 1))
+			return c;
+
+	return MAX_CPU;
+}
 
 	
-/*
- * Forward declarations
- */
-static int cpu_get_free_id(void);
-
 
 
 /** Initialization
@@ -180,25 +190,18 @@ static int cpu_get_free_id(void);
  */
 static bool dcpu_init(parm_link_s *parm, device_s *dev)
 {
-	cpu_data_s *cd;
+	unsigned int id = cpu_get_free_id();
 	
-	cd = XXMALLOC(cpu_data_s);
-	dev->data = cd;
-	
-	cd->proc = XXMALLOC(processor_s);
-
-	cd->cpuno = cpu_get_free_id();
-	if (cd->cpuno == -1) {
-		mprintf("Maximum CPU count exceeded (31).");
-		free(cd);
+	if (id == MAX_CPU) {
+		mprintf("Maximum CPU count exceeded (%u).", MAX_CPU);
 		return false;
 	}
 	
-	pr = cd->proc;
-	processor_init(cd->cpuno);
+	processor_t *cpu = XXMALLOC(processor_t);
+	processor_init(cpu, id);
 	
-	R4000_cnt++;
-
+	dev->data = cpu;
+	
 	return true;
 }
 
@@ -218,27 +221,25 @@ static bool dcpu_info(parm_link_s *parm, device_s *dev)
  */
 static bool dcpu_stat(parm_link_s *parm, device_s *dev)
 {
-	cpu_data_s *cd = dev->data;
-	processor_s *p = cd->proc;
+	processor_t *p = dev->data;
 	
-	mprintf_btag(INFO_SPC, "cycles total:%lld " TBRK
-			"in kernel:%lld " TBRK "in user:%lld " TBRK
-			"in stdby:%lld " TBRK 
-			"tlb refill:%lld " TBRK "invalid: %lld " TBRK
-			"modified:%lld " TBRK
-			"interrupts 0:%lld 1:%lld 2:%lld 3:%lld 4:%lld 5:%lld"
-			" 6:%lld 7:%lld\n",
-			(long long) p->k_cycles + p->u_cycles + p->w_cycles,
-			(long long) p->k_cycles,
-			(long long) p->u_cycles,
-			(long long) p->w_cycles,
-			(long long) p->tlb_refill,
-			(long long) p->tlb_invalid,
-			(long long) p->tlb_modified,
-			(long long) p->intr[0], (long long) p->intr[1],
-			(long long) p->intr[2], (long long) p->intr[3],
-			(long long) p->intr[4], (long long) p->intr[5],
-			(long long) p->intr[6], (long long) p->intr[7]);
+	mprintf_btag(INFO_SPC, "cycles total:%llu " TBRK
+			"in kernel:%llu " TBRK "in user:%llu " TBRK
+			"in stdby:%llu " TBRK 
+			"tlb refill:%llu " TBRK "invalid: %llu " TBRK
+			"modified:%llu " TBRK
+			"interrupts 0:%llu 1:%llu 2:%llu 3:%llu 4:%llu 5:%llu 6:%llu 7:%llu\n",
+			(unsigned long long) p->k_cycles + p->u_cycles + p->w_cycles,
+			(unsigned long long) p->k_cycles,
+			(unsigned long long) p->u_cycles,
+			(unsigned long long) p->w_cycles,
+			(unsigned long long) p->tlb_refill,
+			(unsigned long long) p->tlb_invalid,
+			(unsigned long long) p->tlb_modified,
+			(unsigned long long) p->intr[0], (unsigned long long) p->intr[1],
+			(unsigned long long) p->intr[2], (unsigned long long) p->intr[3],
+			(unsigned long long) p->intr[4], (unsigned long long) p->intr[5],
+			(unsigned long long) p->intr[6], (unsigned long long) p->intr[7]);
 	
 	return true;
 }
@@ -249,19 +250,17 @@ static bool dcpu_stat(parm_link_s *parm, device_s *dev)
  */
 static bool dcpu_cp0d(parm_link_s *parm, device_s *dev)
 {
-	cpu_data_s *cd = dev->data;
 	int no = -1;
 	
 	if (parm->token.ttype == tt_int) {
 		no = parm->token.tval.i;
-		if (no > 31) {
+		if ((no < 0) || (no > 31)) {
 			mprintf_btag(INFO_SPC, "Out of range (0..31).");
 			return false;
 		}
 	}
 	
-	pr = cd->proc;
-	cp0_dump(no);
+	cp0_dump((processor_t *) dev->data, no);
 	
 	return true;
 }
@@ -272,10 +271,7 @@ static bool dcpu_cp0d(parm_link_s *parm, device_s *dev)
  */
 static bool dcpu_tlbd(parm_link_s *parm, device_s *dev)
 {
-	cpu_data_s *cd = dev->data;
-
-	pr = cd->proc;
-	tlb_dump();
+	tlb_dump((processor_t *) dev->data);
 
 	return true;
 }
@@ -286,12 +282,10 @@ static bool dcpu_tlbd(parm_link_s *parm, device_s *dev)
  */
 static bool dcpu_md(parm_link_s *parm, device_s *dev)
 {
-	cpu_data_s *cd = dev->data;
 	int j;
 	uint32_t val, addr, siz;
 	enum exc res;
 	
-	pr = cd->proc;
 	addr = parm->token.tval.i & ~0x3;
 	siz = parm->next->token.tval.i;
 	
@@ -299,7 +293,7 @@ static bool dcpu_md(parm_link_s *parm, device_s *dev)
 		if (!(j & 0x3))
 			mprintf("  %08x    ", addr);
 		
-		res = read_proc_mem(addr, 4, &val, false);
+		res = read_proc_mem((processor_t *) dev->data, addr, 4, &val, false);
 		mprintf("res: %d\n", res);
 		
 		if (res == excNone)
@@ -323,12 +317,10 @@ static bool dcpu_md(parm_link_s *parm, device_s *dev)
  */
 static bool dcpu_id(parm_link_s *parm, device_s *dev)
 {
-	cpu_data_s *cd = dev->data;
 	enum exc res;
 	instr_info ii;
 	uint32_t addr, siz;
 	
-	pr = cd->proc;
 	addr = parm->token.tval.i & ~0x3;
 	siz = parm->next->token.tval.i;
 	ii.rt = 0;
@@ -336,7 +328,7 @@ static bool dcpu_id(parm_link_s *parm, device_s *dev)
 	ii.rs = 0;
 	
 	for (; siz; siz--, addr += 4) {
-		res = read_proc_ins(addr, &ii.icode, false);
+		res = read_proc_ins((processor_t *) dev->data, addr, &ii.icode, false);
 		
 		if (res != excNone) {
 			ii.icode = 0;
@@ -344,7 +336,7 @@ static bool dcpu_id(parm_link_s *parm, device_s *dev)
 		} else
 			decode_instr(&ii);
 
-		iview(addr, &ii, true, 0);
+		iview((processor_t *) dev->data, addr, &ii, 0);
 	}
 
 	return true;
@@ -356,10 +348,7 @@ static bool dcpu_id(parm_link_s *parm, device_s *dev)
  */
 static bool dcpu_rd(parm_link_s *parm, device_s *dev)
 {
-	cpu_data_s *cd = dev->data;
-	
-	pr = cd->proc;
-	reg_view();
+	reg_view((processor_t *) dev->data);
 	
 	return true;
 }
@@ -370,11 +359,11 @@ static bool dcpu_rd(parm_link_s *parm, device_s *dev)
  */
 static bool dcpu_goto(parm_link_s *parm, device_s *dev)
 {
-	cpu_data_s *cd = dev->data;
-	uint32_t addr = parm->token.tval.i;
+	processor_t *pr = dev->data;
+	addr_t addr = parm->token.tval.i;
 	
-	cd->proc->pcreg = addr;
-	cd->proc->pcnextreg = addr + 4;
+	pr->pc = addr;
+	pr->pc_next = addr + 4;
 	
 	return true;
 }
@@ -384,13 +373,9 @@ static bool dcpu_goto(parm_link_s *parm, device_s *dev)
  *
  */
 static void dcpu_done(device_s *dev)
-
 {
 	XFREE(dev->name);
-	if (dev->data)
-		XFREE(((cpu_data_s *) dev->data)->proc);
 	XFREE(dev->data);
-	R4000_cnt--;
 }
 
 
@@ -399,66 +384,34 @@ static void dcpu_done(device_s *dev)
  */
 static void dcpu_step(device_s *dev)
 {
-	cpu_data_s *cd = dev->data;
+	step((processor_t *) dev->data);
+}
+
+processor_t *cpu_find_no(unsigned int no)
+{
+	device_s *dev = NULL;
+
+	while (dev_next(&dev))
+		if (dev->type->name == id_dcpu)
+			if (((processor_t *) dev->data)->procno == no)
+				return ((processor_t *) dev->data);
 	
-	pr = cd->proc;
-	step();
+	return NULL;
+}
+
+void dcpu_interrupt_up(unsigned int cpuno, unsigned int no)
+{
+	processor_t *pr = cpu_find_no(cpuno);
+	
+	if (pr != NULL)
+		proc_interrupt_up(pr, no);
 }
 
 
-static int cpu_get_free_id(void)
+void dcpu_interrupt_down(unsigned int cpuno, unsigned int no)
 {
-	int c;
-	unsigned id_mask = 0;
-	device_s *d = 0;
-
-	while (dev_next(&d))
-		if (d->type->name == id_dcpu)
-			id_mask |= 1 << ((cpu_data_s *)	d->data)->cpuno;
+	processor_t *pr = cpu_find_no(cpuno);
 	
-	for (c = 0; c < MAXPROC; c++, id_mask >>= 1)
-		if (!(id_mask & 1))
-			return c;
-
-	return -1;
-}
-
-
-processor_s *cpu_find_no(int no)
-{
-	device_s *d = 0;
-
-	while (dev_next(&d))
-		if (d->type->name == id_dcpu)
-			if (((cpu_data_s *) d->data)->cpuno == no)
-				return ((cpu_data_s *) d->data)->proc;
-	
-	return 0;
-}
-
-void dcpu_interrupt_up(int cpuno, int no)
-{
-	processor_s *px;
-
-	if (cpuno == -1)
-		cpuno = 0;
-	
-	px = pr;
-	if ((pr = cpu_find_no(cpuno)))
-		proc_interrupt_up(no);
-	pr = px;
-}
-
-
-void dcpu_interrupt_down(int cpuno, int no)
-{
-	processor_s *px;
-
-	if (cpuno == -1)
-		cpuno = 0;
-	
-	px = pr;
-	if ((pr = cpu_find_no(cpuno)))
-		proc_interrupt_down(no);
-	pr = px;
+	if (pr != NULL)
+		proc_interrupt_down(pr, no);
 }

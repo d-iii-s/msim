@@ -406,7 +406,6 @@ static bool mem_load(parm_link_s *parm, device_s *dev)
 	mem_data_s *md = dev->data;
 	const char *const filename = parm_str(parm);
 	int fd;
-	size_t readed;
 
 	if (md->mem_type == MEMT_NONE) {
 		/* Illegal. */
@@ -418,7 +417,7 @@ static bool mem_load(parm_link_s *parm, device_s *dev)
 		return false;
 	}
 	
-	readed = read(fd, md->me->mem, md->size);
+	ssize_t readed = read(fd, md->me->mem, md->size);
 	if (readed == -1) {
 		io_error(filename);
 		try_soft_close(fd, filename);
@@ -516,7 +515,7 @@ static bool mem_fmap(parm_link_s *parm, device_s *dev)
 		return false;
 	}
 	
-	if ((long long) md->start + (long long) offset > 0x100000000ull) {
+	if ((unsigned long long) md->start + (unsigned long long) offset > 0x100000000ull) {
 		mprintf("Mapped file exceeds the 4GB limit.\n");
 		try_soft_close(fd, filename);
 		return false;

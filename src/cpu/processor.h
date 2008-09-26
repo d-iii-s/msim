@@ -20,43 +20,43 @@
 
 
 /* cp0 registers */
-enum ECP0Regs {
+enum cp0_regs {
 	/* 0 */
-	CP0_Index,
-	CP0_Random,
-	CP0_EntryLo0,
-	CP0_EntryLo1,
-	CP0_Context,
-	CP0_PageMask,
-	CP0_Wired,
-	CP0_Res1,
+	cp0_Index,
+	cp0_Random,
+	cp0_EntryLo0,
+	cp0_EntryLo1,
+	cp0_Context,
+	cp0_PageMask,
+	cp0_Wired,
+	cp0_Res1,
 	/* 8 */
-	CP0_BadVAddr,
-	CP0_Count,
-	CP0_EntryHi,
-	CP0_Compare,
-	CP0_Status,
-	CP0_Cause,
-	CP0_EPC,
-	CP0_PRId,
+	cp0_BadVAddr,
+	cp0_Count,
+	cp0_EntryHi,
+	cp0_Compare,
+	cp0_Status,
+	cp0_Cause,
+	cp0_EPC,
+	cp0_PRId,
 	/* 16 */
-	CP0_Config,
-	CP0_LLAddr,
-	CP0_WatchLo,
-	CP0_WatchHi,
-	CP0_XContext,
-	CP0_Res2, 
-	CP0_Res3,
-	CP0_Res4,
+	cp0_Config,
+	cp0_LLAddr,
+	cp0_WatchLo,
+	cp0_WatchHi,
+	cp0_XContext,
+	cp0_Res2, 
+	cp0_Res3,
+	cp0_Res4,
 	/* 24 */
-	CP0_Res5,
-	CP0_Res6,
-	CP0_ECC,
-	CP0_CacheErr,
-	CP0_TagLo,
-	CP0_TagHi,
-	CP0_ErrorEPC,
-	CP0_Res7
+	cp0_Res5,
+	cp0_Res6,
+	cp0_ECC,
+	cp0_CacheErr,
+	cp0_TagLo,
+	cp0_TagHi,
+	cp0_ErrorEPC,
+	cp0_Res7
 };
 
 
@@ -69,13 +69,13 @@ enum ECP0Regs {
 #define cp0_index_p_shift     31
 
 #define cp0_index_index \
-	((pr->cp0[CP0_Index] \
+	((pr->cp0[cp0_Index] \
 	& cp0_index_index_mask) >> cp0_index_index_shift)
 #define cp0_index_res \
-	((pr->cp0[CP0_Index] \
+	((pr->cp0[cp0_Index] \
 	& cp0_index_res_mask) >> cp0_index_res_shift)
 #define cp0_index_p \
-	((pr->cp0[CP0_Index] \
+	((pr->cp0[cp0_Index] \
 	& cp0_index_p_mask) >> cp0_index_p_shift)
 
 
@@ -86,10 +86,10 @@ enum ECP0Regs {
 #define cp0_random_res_shift    6
 
 #define cp0_random_random \
-	((pr->cp0[ CP0_Random] \
+	((pr->cp0[ cp0_Random] \
 	& cp0_random_random_mask) >> cp0_random_random_shift)
 #define cp0_random_res \
-	((pr->cp0[ CP0_Random] \
+	((pr->cp0[ cp0_Random] \
 	& cp0_random_res_mask) >> cp0_random_res_shift)
 
 
@@ -143,30 +143,30 @@ enum ECP0Regs {
 #define cp0_status_cu3_shift  31
 #define cp0_status_cu_shift   28
 
-#define cp0_status_ie   ((pr->cp0[CP0_Status] & cp0_status_ie_mask) >> 0)
-#define cp0_status_exl  ((pr->cp0[CP0_Status] & cp0_status_exl_mask) >> 1)
-#define cp0_status_erl  ((pr->cp0[CP0_Status] & cp0_status_erl_mask) >> 2)
-#define cp0_status_ksu  ((pr->cp0[CP0_Status] & cp0_status_ksu_mask) >> 3)
-#define cp0_status_ux   ((pr->cp0[CP0_Status] & cp0_status_ux_mask) >> 5)
-#define cp0_status_sx   ((pr->cp0[CP0_Status] & cp0_status_sx_mask) >> 6)
-#define cp0_status_kx   ((pr->cp0[CP0_Status] & cp0_status_kx_mask) >> 7)
-#define cp0_status_im   ((pr->cp0[CP0_Status] & cp0_status_im_mask) >> 8)
-#define cp0_status_de   ((pr->cp0[CP0_Status] & cp0_status_de_mask) >> 16)
-#define cp0_status_ce   ((pr->cp0[CP0_Status] & cp0_status_ce_mask) >> 17)
-#define cp0_status_ch   ((pr->cp0[CP0_Status] & cp0_status_ch_mask) >> 18)
-#define cp0_status_res1 ((pr->cp0[CP0_Status] & cp0_status_res1_mask) >> 19)
-#define cp0_status_sr   ((pr->cp0[CP0_Status] & cp0_status_sr_mask) >> 20)
-#define cp0_status_ts   ((pr->cp0[CP0_Status] & cp0_status_ts_mask) >> 21)
-#define cp0_status_bev  ((pr->cp0[CP0_Status] & cp0_status_bev_mask) >> 22)
-#define cp0_status_res2 ((pr->cp0[CP0_Status] & cp0_status_res2_mask) >> 23)
-#define cp0_status_re   ((pr->cp0[CP0_Status] & cp0_status_re_mask) >> 25)
-#define cp0_status_fr   ((pr->cp0[CP0_Status] & cp0_status_fr_mask) >> 26)
-#define cp0_status_rp   ((pr->cp0[CP0_Status] & cp0_status_rp_mask) >> 27)
-#define cp0_status_cu0  ((pr->cp0[CP0_Status] & cp0_status_cu0_mask) >> 28)
-#define cp0_status_cu1  ((pr->cp0[CP0_Status] & cp0_status_cu1_mask) >> 29)
-#define cp0_status_cu2  ((pr->cp0[CP0_Status] & cp0_status_cu2_mask) >> 30)
-#define cp0_status_cu3  ((pr->cp0[CP0_Status] & cp0_status_cu3_mask) >> 31)
-#define cp0_status_cu   ((pr->cp0[CP0_Status] & cp0_status_cu_mask) >> 28)
+#define cp0_status_ie   ((pr->cp0[cp0_Status] & cp0_status_ie_mask) >> 0)
+#define cp0_status_exl  ((pr->cp0[cp0_Status] & cp0_status_exl_mask) >> 1)
+#define cp0_status_erl  ((pr->cp0[cp0_Status] & cp0_status_erl_mask) >> 2)
+#define cp0_status_ksu  ((pr->cp0[cp0_Status] & cp0_status_ksu_mask) >> 3)
+#define cp0_status_ux   ((pr->cp0[cp0_Status] & cp0_status_ux_mask) >> 5)
+#define cp0_status_sx   ((pr->cp0[cp0_Status] & cp0_status_sx_mask) >> 6)
+#define cp0_status_kx   ((pr->cp0[cp0_Status] & cp0_status_kx_mask) >> 7)
+#define cp0_status_im   ((pr->cp0[cp0_Status] & cp0_status_im_mask) >> 8)
+#define cp0_status_de   ((pr->cp0[cp0_Status] & cp0_status_de_mask) >> 16)
+#define cp0_status_ce   ((pr->cp0[cp0_Status] & cp0_status_ce_mask) >> 17)
+#define cp0_status_ch   ((pr->cp0[cp0_Status] & cp0_status_ch_mask) >> 18)
+#define cp0_status_res1 ((pr->cp0[cp0_Status] & cp0_status_res1_mask) >> 19)
+#define cp0_status_sr   ((pr->cp0[cp0_Status] & cp0_status_sr_mask) >> 20)
+#define cp0_status_ts   ((pr->cp0[cp0_Status] & cp0_status_ts_mask) >> 21)
+#define cp0_status_bev  ((pr->cp0[cp0_Status] & cp0_status_bev_mask) >> 22)
+#define cp0_status_res2 ((pr->cp0[cp0_Status] & cp0_status_res2_mask) >> 23)
+#define cp0_status_re   ((pr->cp0[cp0_Status] & cp0_status_re_mask) >> 25)
+#define cp0_status_fr   ((pr->cp0[cp0_Status] & cp0_status_fr_mask) >> 26)
+#define cp0_status_rp   ((pr->cp0[cp0_Status] & cp0_status_rp_mask) >> 27)
+#define cp0_status_cu0  ((pr->cp0[cp0_Status] & cp0_status_cu0_mask) >> 28)
+#define cp0_status_cu1  ((pr->cp0[cp0_Status] & cp0_status_cu1_mask) >> 29)
+#define cp0_status_cu2  ((pr->cp0[cp0_Status] & cp0_status_cu2_mask) >> 30)
+#define cp0_status_cu3  ((pr->cp0[cp0_Status] & cp0_status_cu3_mask) >> 31)
+#define cp0_status_cu   ((pr->cp0[cp0_Status] & cp0_status_cu_mask) >> 28)
 
 #define cp0_entryhi_asid_mask 0x000000ffU
 #define cp0_entryhi_res1_mask 0x00001f00U
@@ -176,9 +176,9 @@ enum ECP0Regs {
 #define cp0_entryhi_res1_shift 8
 #define cp0_entryhi_vpn2_shift 13
 	
-#define cp0_entryhi_asid ((pr->cp0[CP0_EntryHi] & cp0_entryhi_asid_mask) >> 0)
-#define cp0_entryhi_res1 ((pr->cp0[CP0_EntryHi] & cp0_entryhi_res1_shift) >> 8)
-#define cp0_entryhi_vpn2 ((pr->cp0[CP0_EntryHi] & cp0_entryhi_vpn2_shift) >> 13)
+#define cp0_entryhi_asid ((pr->cp0[cp0_EntryHi] & cp0_entryhi_asid_mask) >> 0)
+#define cp0_entryhi_res1 ((pr->cp0[cp0_EntryHi] & cp0_entryhi_res1_shift) >> 8)
+#define cp0_entryhi_vpn2 ((pr->cp0[cp0_EntryHi] & cp0_entryhi_vpn2_shift) >> 13)
 
 #define cp0_entrylo_g_mask    0x00000001U
 #define cp0_entrylo_v_mask    0x00000002U
@@ -195,41 +195,41 @@ enum ECP0Regs {
 #define cp0_entrylo_res1_shift 30
 
 #define cp0_entrylo0_g \
-	((pr->cp0[CP0_EntryLo0] \
+	((pr->cp0[cp0_EntryLo0] \
 	& cp0_entrylo_g_mask) >> cp0_entrylo_g_shift)
 #define cp0_entrylo0_v \
-	((pr->cp0[CP0_EntryLo0] \
+	((pr->cp0[cp0_EntryLo0] \
 	& cp0_entrylo_v_mask) >> cp0_entrylo_v_shift)
 #define cp0_entrylo0_d \
-	((pr->cp0[CP0_EntryLo0] \
+	((pr->cp0[cp0_EntryLo0] \
 	& cp0_entrylo_d_mask) >> cp0_entrylo_d_shift)
 #define cp0_entrylo0_c \
-	((pr->cp0[CP0_EntryLo0] \
+	((pr->cp0[cp0_EntryLo0] \
 	& cp0_entrylo_c_mask) >> cp0_entrylo_c_shift)
 #define cp0_entrylo0_pfn \
-	((pr->cp0[CP0_EntryLo0] \
+	((pr->cp0[cp0_EntryLo0] \
 	& cp0_entrylo_pfn_mask) >> cp0_entrylo_pfn_shift)
 #define cp0_entrylo0_res1 \
-	((pr->cp0[CP0_EntryLo0] \
+	((pr->cp0[cp0_EntryLo0] \
 	& cp0_entrylo_res1_mask) >> cp0_entrylo_res1_shift)
 
 #define cp0_entrylo1_g \
-	((pr->cp0[CP0_EntryLo1] \
+	((pr->cp0[cp0_EntryLo1] \
 	& cp0_entrylo_g_mask) >> cp0_entrylo_g_shift)
 #define cp0_entrylo1_v \
-	((pr->cp0[CP0_EntryLo1] \
+	((pr->cp0[cp0_EntryLo1] \
 	& cp0_entrylo_v_mask) >> cp0_entrylo_v_shift)
 #define cp0_entrylo1_d \
-	((pr->cp0[CP0_EntryLo1] \
+	((pr->cp0[cp0_EntryLo1] \
 	& cp0_entrylo_d_mask) >> cp0_entrylo_d_shift)
 #define cp0_entrylo1_c \
-	((pr->cp0[CP0_EntryLo1] \
+	((pr->cp0[cp0_EntryLo1] \
 	& cp0_entrylo_c_mask) >> cp0_entrylo_c_shift)
 #define cp0_entrylo1_pfn \
-	((pr->cp0[CP0_EntryLo1] \
+	((pr->cp0[cp0_EntryLo1] \
 	& cp0_entrylo_pfn_mask) >> cp0_entrylo_pfn_shift)
 #define cp0_entrylo1_res1 \
-	((pr->cp0[CP0_EntryLo1] \
+	((pr->cp0[cp0_EntryLo1] \
 	& cp0_entrylo_res1_mask) >> cp0_entrylo_res1_shift)
 
 #define cp0_wired_w_mask    0x0000001fU
@@ -239,10 +239,10 @@ enum ECP0Regs {
 #define cp0_wired_res1_shift 6
 
 #define cp0_wired_w \
-	((pr->cp0[CP0_Wired] & \
+	((pr->cp0[cp0_Wired] & \
 	cp0_wired_w_mask) >> cp0_wired_w_shift)
 #define cp0_wired_res1 \
-	((pr->cp0[CP0_Wired] & \
+	((pr->cp0[cp0_Wired] & \
 	cp0_wired_res1_mask) >> cp0_wired_res1_shift)
 
 #define cp0_context_res1_mask    0x0000000fU
@@ -255,13 +255,13 @@ enum ECP0Regs {
 #define cp0_context_addr_shift    9
 
 #define cp0_context_res1 \
-	((pr->cp0[CP0_Context] \
+	((pr->cp0[cp0_Context] \
 	& cp0_context_res1_mask) >> cp0_context_res1_shift)
 #define cp0_context_badvpn2 \
-	((pr->cp0[CP0_Context] \
+	((pr->cp0[cp0_Context] \
 	& cp0_context_badvpn2_mask) >> cp0_context_badvpn2_shift)
 #define cp0_context_ptebase \
-	((pr->cp0[CP0_Context] \
+	((pr->cp0[cp0_Context] \
 	& cp0_context_ptebase_mask) >> cp0_context_ptebase_shift)
 	
 #define cp0_pagemask_res1_mask 0x00001fffU
@@ -273,13 +273,13 @@ enum ECP0Regs {
 #define cp0_pagemask_res2_shift 25
 
 #define cp0_pagemask_res1 \
-	((pr->cp0[CP0_PageMask] \
+	((pr->cp0[cp0_PageMask] \
 	& cp0_pagemask_res1_mask) >> cp0_pagemask_res1_shift)
 #define cp0_pagemask_mask \
-	((pr->cp0[CP0_PageMask] \
+	((pr->cp0[cp0_PageMask] \
 	& cp0_pagemask_mask_mask) >> cp0_pagemask_mask_shift)
 #define cp0_pagemask_res2 \
-	((pr->cp0[CP0_PageMask] \
+	((pr->cp0[cp0_PageMask] \
 	& cp0_pagemask_res2_mask) >> cp0_pagemask_res2_shift)
 
 #define cp0_badvaddr_badvaddr cp0_badvaddr
@@ -320,27 +320,27 @@ enum ECP0Regs {
 #define cp0_cause_bd_shift      31
 
 #define cp0_cause_res1 \
-	((pr->cp0[CP0_Cause] \
+	((pr->cp0[cp0_Cause] \
 	& cp0_cause_res1_mask) >> cp0_cause_res1_shift)
 #define cp0_cause_exccode \
-	((pr->cp0[CP0_Cause] \
+	((pr->cp0[cp0_Cause] \
 	& cp0_cause_exccode_mask) >> cp0_cause_exccode_shift)
 #define cp0_cause_res2 \
-	((pr->cp0[CP0_Cause] \
+	((pr->cp0[cp0_Cause] \
 	& cp0_cause_res2_mask) >> cp0_cause_res2_shift)
 #define cp0_cause_ip \
-	((pr->cp0[CP0_Cause] \
+	((pr->cp0[cp0_Cause] \
 	& cp0_cause_ip_mask) >> cp0_cause_ip_shift)
 #define cp0_cause_res3 \
-	((pr->cp0[CP0_Cause] \
+	((pr->cp0[cp0_Cause] \
 	& cp0_cause_res3_mask) >> cp0_cause_res3_shift)
 #define cp0_cause_ce \
-	((pr->cp0[CP0_Cause] \
+	((pr->cp0[cp0_Cause] \
 	& cp0_cause_ce_mask) >> cp0_cause_ce_shift)
 #define cp0_cause_res4 \
-	((pr->cp0[CP0_Cause] & cp0_cause_res4_mask) >> cp0_cause_res4_shift)
+	((pr->cp0[cp0_Cause] & cp0_cause_res4_mask) >> cp0_cause_res4_shift)
 #define cp0_cause_bd \
-	((pr->cp0[CP0_Cause] \
+	((pr->cp0[cp0_Cause] \
 	& cp0_cause_bd_mask) >> cp0_cause_bd_shift)
 
 #define cp0_prid_rev_mask 0x000000ffU
@@ -352,13 +352,13 @@ enum ECP0Regs {
 #define cp0_prid_res_shift 16
 
 #define cp0_prid_rev \
-	((pr->cp0[CP0_PRId] \
+	((pr->cp0[cp0_PRId] \
 	& cp0_prid_rev_mask) >> cp0_prid_rev_shift)
 #define cp0_prid_imp \
-	((pr->cp0[CP0_PRId] \
+	((pr->cp0[cp0_PRId] \
 	& cp0_prid_imp_mask) >> cp0_prid_imp_shift)
 #define cp0_prid_res \
-	((pr->cp0[CP0_PRId] \
+	((pr->cp0[cp0_PRId] \
 	& cp0_prid_res_mask) >> cp0_prid_res_shift)
 
 #define cp0_config_k0_mask  0x00000007U
@@ -402,61 +402,61 @@ enum ECP0Regs {
 #define cp0_config_cm_shift  31
 
 #define cp0_config_k0 \
-	((pr->cp0[CP0_Config] \
+	((pr->cp0[cp0_Config] \
 	& cp0_config_k0_mask) >> cp0_config_k0_shift)
 #define cp0_config_cu \
-	((pr->cp0[CP0_Config] \
+	((pr->cp0[cp0_Config] \
 	& cp0_config_cu_mask) >> cp0_config_cu_shift)
 #define cp0_config_db \
-	((pr->cp0[CP0_Config] \
+	((pr->cp0[cp0_Config] \
 	& cp0_config_db_mask) >> cp0_config_db_shift)
 #define cp0_config_b \
-	((pr->cp0[CP0_Config] \
+	((pr->cp0[cp0_Config] \
 	& cp0_config_b_mask) >> cp0_config_b_shift)
 #define cp0_config_dc \
-	((pr->cp0[CP0_Config] \
+	((pr->cp0[cp0_Config] \
 	& cp0_config_dc_mask) >> cp0_config_dc_shift)
 #define cp0_config_ic \
-	((pr->cp0[CP0_Config] \
+	((pr->cp0[cp0_Config] \
 	& cp0_config_ic_mask) >> cp0_config_ic_shift)
 #define cp0_config_res \
-	((pr->cp0[CP0_Config] \
+	((pr->cp0[cp0_Config] \
 	& cp0_config_res_mask) >>cp0_config_res_shift)
 #define cp0_config_eb \
-	((pr->cp0[CP0_Config] \
+	((pr->cp0[cp0_Config] \
 	& cp0_config_eb_mask) >> cp0_config_eb_shift)
 #define cp0_config_em \
-	((pr->cp0[CP0_Config] \
+	((pr->cp0[cp0_Config] \
 	& cp0_config_em_mask) >> cp0_config_em_shift)
 #define cp0_config_be \
-	((pr->cp0[CP0_Config] \
+	((pr->cp0[cp0_Config] \
 	& cp0_config_be_mask) >> cp0_config_be_shift)
 #define cp0_config_sm \
-	((pr->cp0[CP0_Config] \
+	((pr->cp0[cp0_Config] \
 	& cp0_config_sm_mask) >> cp0_config_sm_shift)
 #define cp0_config_sc \
-	((pr->cp0[CP0_Config] \
+	((pr->cp0[cp0_Config] \
 	& cp0_config_sc_mask) >> cp0_config_sc_shift)
 #define cp0_config_ew \
-	((pr->cp0[CP0_Config] \
+	((pr->cp0[cp0_Config] \
 	& cp0_config_ew_mask) >> cp0_config_ew_shift)
 #define cp0_config_sw \
-	((pr->cp0[CP0_Config] \
+	((pr->cp0[cp0_Config] \
 	& cp0_config_sw_mask) >> cp0_config_sw_shift)
 #define cp0_config_ss \
-	((pr->cp0[CP0_Config] \
+	((pr->cp0[cp0_Config] \
 	& cp0_config_ss_mask) >> cp0_config_ss_shift)
 #define cp0_config_sb \
-	((pr->cp0[CP0_Config] \
+	((pr->cp0[cp0_Config] \
 	& cp0_config_sb_mask) >> cp0_config_sb_shift)
 #define cp0_config_ep \
-	((pr->cp0[CP0_Config] \
+	((pr->cp0[cp0_Config] \
 	& cp0_config_ep_mask) >> cp0_config_ep_shift)
 #define cp0_config_ec \
-	((pr->cp0[CP0_Config] \
+	((pr->cp0[cp0_Config] \
 	& cp0_config_ec_mask) >> cp0_config_ec_shift)
 #define cp0_config_cm \
-	((pr->cp0[CP0_Config] \
+	((pr->cp0[cp0_Config] \
 	& cp0_config_cm_mask) >> cp0_config_cm_shift)
 
 #define cp0_lladdr_lladdr cp0_lladdr
@@ -472,16 +472,16 @@ enum ECP0Regs {
 #define cp0_watchlo_paddr0_shift 3
 
 #define cp0_watchlo_w \
-	((pr->cp0[CP0_WatchLo] \
+	((pr->cp0[cp0_WatchLo] \
 	& cp0_watchlo_w_mask) >> cp0_watchlo_w_shift)
 #define cp0_watchlo_r \
-	((pr->cp0[CP0_WatchLo] \
+	((pr->cp0[cp0_WatchLo] \
 	& cp0_watchlo_r_mask) >> cp0_watchlo_r_shift)
 #define cp0_watchlo_res \
-	((pr->cp0[CP0_WatchLo] \
+	((pr->cp0[cp0_WatchLo] \
 	& cp0_watchlo_res_mask) >> cp0_watchlo_res_shift)
 #define cp0_watchlo_paddr0 \
-	((pr->cp0[CP0_WatchLo] \
+	((pr->cp0[cp0_WatchLo] \
 	& cp0_watchlo_paddr0_mask) >> cp0_watchlo_paddr0_shift)
 
 #define cp0_watchhi_paddr1_mask 0x0000000fU
@@ -491,10 +491,10 @@ enum ECP0Regs {
 #define cp0_watchhi_res_shift    4
 
 #define cp0_watchhi_paddr1 \
-	((pr->cp0[CP0_WatchHi] \
+	((pr->cp0[cp0_WatchHi] \
 	& cp0_watchhi_paddr1_mask) >> cp0_watchhi_paddr1_shift)
 #define cp0_watchhi_res	\
-	((pr->cp0[CP0_WatchHi] \
+	((pr->cp0[cp0_WatchHi] \
 	& cp0_watchhi_res_mask) >> cp0_watchhi_res_shift)
 
 #define cp0_ecc_ecc_mask 0x000000ffU
@@ -504,10 +504,10 @@ enum ECP0Regs {
 #define cp0_ecc_res_shift 8
 
 #define cp0_ecc_ecc \
-	((pr->cp0[CP0_ECC] \
+	((pr->cp0[cp0_ECC] \
 	& cp0_ecc_ecc_mask) >> cp0_ecc_ecc_shift)
 #define cp0_ecc_res \
-	((pr->cp0[CP0_ECC] \
+	((pr->cp0[cp0_ECC] \
 	& cp0_ecc_res_mask) >> cp0_ecc_res_shift)
 
 #define cp0_xcontext_res1_mask    0x0000000fU
@@ -521,71 +521,70 @@ enum ECP0Regs {
 #define cp0_xcontext_ptebase_shift 33
 
 #define cp0_xcontext_res1 \
-	((pr->cp0[CP0_XContext] \
+	((pr->cp0[cp0_XContext] \
 	& cp0_xcontext_res1_mask) >> cp0_xcontext_res1_shift)
 #define cp0_xcontext_badvpn2 \
-	((pr->cp0[CP0_XContext] \
+	((pr->cp0[cp0_XContext] \
 	& cp0_xcontext_badvpn2_mask) >> cp0_xcontext_badvpn2_shift)
 #define cp0_xcontext_r \
-	((pr->cp0[CP0_XContext] \
+	((pr->cp0[cp0_XContext] \
 	& cp0_xcontext_r_mask) >> cp0_xcontext_r_shift)
 #define cp0_xcontext_ptebase \
-	((pr->cp0[CP0_XContext] \
+	((pr->cp0[cp0_XContext] \
 	& cp0_xcontext_ptebase_mask) >> cp0_xcontext_ptebase_shift)
 
-#define cp0_errorepc (pr->cp0[CP0_ErrorEPC])
+#define cp0_errorepc (pr->cp0[cp0_ErrorEPC])
 	
-#define cp0_index    (pr->cp0[CP0_Index])
-#define cp0_random   (pr->cp0[CP0_Random])
-#define cp0_entrylo0 (pr->cp0[CP0_EntryLo0])
-#define cp0_entrylo1 (pr->cp0[CP0_EntryLo1])
-#define cp0_context  (pr->cp0[CP0_Context])
-#define cp0_pagemask (pr->cp0[CP0_PageMask])
-#define cp0_wired    (pr->cp0[CP0_Wired])
-#define cp0_badvaddr (pr->cp0[CP0_BadVAddr])
-#define cp0_count    (pr->cp0[CP0_Count])
-#define cp0_entryhi  (pr->cp0[CP0_EntryHi])
-#define cp0_compare  (pr->cp0[CP0_Compare])
-#define cp0_cause    (pr->cp0[CP0_Cause])
-#define cp0_config   (pr->cp0[CP0_Config])
-#define cp0_prid     (pr->cp0[CP0_PRId])
-#define cp0_status   (pr->cp0[CP0_Status])
-#define cp0_epc      (pr->cp0[CP0_EPC])
-#define cp0_lladdr   (pr->cp0[CP0_LLAddr])
-#define cp0_watchlo  (pr->cp0[CP0_WatchLo])
-#define cp0_watchhi  (pr->cp0[CP0_WatchHi])
-#define cp0_ecc      (pr->cp0[CP0_ECC])
-#define cp0_taglo    (pr->cp0[CP0_TagLo])
-#define cp0_taghi    (pr->cp0[CP0_TagHi])
+#define cp0_index    (pr->cp0[cp0_Index])
+#define cp0_random   (pr->cp0[cp0_Random])
+#define cp0_entrylo0 (pr->cp0[cp0_EntryLo0])
+#define cp0_entrylo1 (pr->cp0[cp0_EntryLo1])
+#define cp0_context  (pr->cp0[cp0_Context])
+#define cp0_pagemask (pr->cp0[cp0_PageMask])
+#define cp0_wired    (pr->cp0[cp0_Wired])
+#define cp0_badvaddr (pr->cp0[cp0_BadVAddr])
+#define cp0_count    (pr->cp0[cp0_Count])
+#define cp0_entryhi  (pr->cp0[cp0_EntryHi])
+#define cp0_compare  (pr->cp0[cp0_Compare])
+#define cp0_cause    (pr->cp0[cp0_Cause])
+#define cp0_config   (pr->cp0[cp0_Config])
+#define cp0_prid     (pr->cp0[cp0_PRId])
+#define cp0_status   (pr->cp0[cp0_Status])
+#define cp0_epc      (pr->cp0[cp0_EPC])
+#define cp0_lladdr   (pr->cp0[cp0_LLAddr])
+#define cp0_watchlo  (pr->cp0[cp0_WatchLo])
+#define cp0_watchhi  (pr->cp0[cp0_WatchHi])
+#define cp0_ecc      (pr->cp0[cp0_ECC])
+#define cp0_taglo    (pr->cp0[cp0_TagLo])
+#define cp0_taghi    (pr->cp0[cp0_TagHi])
 
 
-/**< CP0 Masks */
-#define CP0_SR_EXLMask 0x00000002U
+/**< cp0 Masks */
+#define cp0_SR_EXLMask 0x00000002U
 	
 
 /**< TLB entity definition */
-struct TLBEntV {
-	int pfn;    /* physical page no - shifted */
-	int cohh;   /* coherency number */
-	bool dirty; /* dirty */
-	bool valid; /* valid */
-};
-typedef struct TLBEntV TLBEntV;
+typedef struct {
+	uint32_t pfn;     /* physical page no (shifted << 12) */
+	uint8_t cohh;     /* coherency number */
+	bool dirty;       /* dirty */
+	bool valid;       /* valid */
+} tlb_ent_v;
 
-struct TLBEnt {
-	struct TLBEnt *next;
-	uint32_t mask;       /* enhanced mask */
-	int vpn2;            /* vitrual page no - shifted << 7*/
-	bool global;         /* global bit */
-	int asid;            /* address id */
-	TLBEntV pg[2];       /* sub - pages */
-};
-typedef struct TLBEnt TLBEnt;
+typedef struct tlb_ent {
+	uint32_t mask;    /* enhanced mask */
+	uint32_t vpn2;    /* vitrual page no (shifted << 7) */
+	bool global;      /* global bit */
+	uint8_t asid;     /* address id */
+	tlb_ent_v pg[2];  /* sub - pages */
+	
+	struct tlb_ent *next;
+} tlb_ent;
 
 
 /**< Main processor structure */
-struct processor_s {
-	int procno;
+typedef struct {
+	unsigned int procno;
 
 	bool stdby;
 	
@@ -593,58 +592,56 @@ struct processor_s {
 	int32_t regs[32];
 	int32_t cp0[32];
 	uint64_t fpregs[32];
-	int32_t pcreg;
-	int32_t pcnextreg;
-	int32_t loreg;
-	int32_t hireg;
+	uint32_t loreg;
+	uint32_t hireg;
 	
+	/* program counter */
+	addr_t pc;
+	addr_t pc_next;
+		
 	/* TLB structures */
-	TLBEnt tlb[48];
-	TLBEnt *tlblist; /* for faster access */
+	tlb_ent tlb[48];
+	tlb_ent *tlblist; /* for faster access */
 	
 	/* old registers (for debug info) */
-	int old_regs[32];
-	int old_cp0[32];
-	int old_loreg;
-	int old_hireg;
+	int32_t old_regs[32];
+	int32_t old_cp0[32];
+	uint32_t old_loreg;
+	uint32_t old_hireg;
 	
 	uint32_t excaddr;
-	int branch;
+	unsigned int branch;
 	
 	/* LL and SC track support */
 	bool llval;      /* Track the address flag. */
 	uint32_t lladdr; /* Physical tracked address. */
 	
 	/* statistics */
-	long long k_cycles;
-	long long u_cycles;
-	long long w_cycles;
+	unsigned long long k_cycles;
+	unsigned long long u_cycles;
+	unsigned long long w_cycles;
 	
-	long long tlb_refill;
-	long long tlb_invalid;
-	long long tlb_modified;
-	long long intr[8];
-};
-typedef struct processor_s processor_s;
-
-/**< Actual processor */
-extern processor_s *pr;
+	unsigned long long tlb_refill;
+	unsigned long long tlb_invalid;
+	unsigned long long tlb_modified;
+	unsigned long long intr[8];
+} processor_t;
 
 /**< Base */
-extern void processor_init(int procno);
-extern void step(void);
+extern void processor_init(processor_t *pr, unsigned int procno);
+extern void step(processor_t *pr);
 		
 /**< First settings */
-extern void set_general_reg(int regno, int value);
-extern void set_pc_reg(int value);
-extern void update_deb(void);
+extern void set_general_reg(processor_t *pr, unsigned int regno, int32_t value);
+extern void set_pc(processor_t *pr, addr_t addr);
+extern void update_deb(processor_t *pr);
 	
 /**< Reading memory */
-extern enum exc read_proc_mem(uint32_t addr, int size, uint32_t *value, bool h);
-extern enum exc read_proc_ins(uint32_t addr, uint32_t *value, bool h);
+extern enum exc read_proc_mem(processor_t *pr, addr_t addr, len_t size, uint32_t *value, bool h);
+extern enum exc read_proc_ins(processor_t *pr, addr_t addr, uint32_t *value, bool h);
 
 /* interrupts - cause */
-extern void proc_interrupt_up(int no);
-extern void proc_interrupt_down(int no);
+extern void proc_interrupt_up(processor_t *pr, unsigned int no);
+extern void proc_interrupt_down(processor_t *pr, unsigned int no);
 	
 #endif /* PROCESSOR_H_ */

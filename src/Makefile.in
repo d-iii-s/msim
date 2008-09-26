@@ -6,7 +6,7 @@
 #
 
 CC = @CC@
-CFLAGS = @CFLAGS@ -Wall
+CFLAGS = @CFLAGS@ -Wall -Wextra -Wno-unused-parameter -Wmissing-prototypes
 LIBS = @LIBS@
 
 SOURCES = \

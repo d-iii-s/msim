@@ -32,7 +32,7 @@
 
 
 static struct {
-	int no;
+	uint32_t no;
 	char *s;
 } pagemask_name[CP0_PM_ITEMS + 1] = {
 	{ 0x0U,   "4k" },
@@ -88,7 +88,7 @@ static char *cp0_dump_str[] = {
 };
 
 
-void reg_view(void)
+void reg_view(processor_t *pr)
 {
 	unsigned int i;
 
@@ -106,11 +106,11 @@ void reg_view(void)
 	mprintf(" %3s %08X  %3s %08X   pc %08X   lo %08X   hi %08X\n",
 		regname[i],     pr->regs[i], 
 		regname[i + 1], pr->regs[i + 1],
-		pr->pcreg, pr->loreg, pr->hireg);
+		pr->pc, pr->loreg, pr->hireg);
 }
 
 
-const char *get_pagemask_name(int pm)
+static const char *get_pagemask_name(unsigned int pm)
 {
 	unsigned int i;
 	for (i = 0; i < CP0_PM_ITEMS; i++)
@@ -122,16 +122,16 @@ const char *get_pagemask_name(int pm)
 }
 
 
-void tlb_dump()
+void tlb_dump(processor_t *pr)
 {
 	unsigned int i;
-	struct TLBEnt *e;
+	struct tlb_ent *e;
 
 	mprintf( " [             general             ][    subp 0    ][    subp 1    ]\n"
 		"  no    vpn      mask        g asid  v d   pfn    c  v d   pfn    c\n");
 
 	for (i = 0; i < 48; i++) {
-		e = &(pr->tlb[ i]);
+		e = &(pr->tlb[i]);
 
 		mprintf( "  %02x  %08X %08X:%-4s %d  %02x   %d %d %08X %x  %d %d %08X %1x\n",
 			i,
@@ -147,42 +147,42 @@ void tlb_dump()
 	}
 }
 
-static void cp0_dump_reg(int reg)
+static void cp0_dump_reg(processor_t *pr, unsigned int reg)
 {
 	const char *s = cp0_dump_str[reg];
 		
 	switch (reg) {
-	case CP0_Index:
+	case cp0_Index:
 		mprintf(s,
 			cp0_index,
 			cp0_index_index, cp0_index_res, cp0_index_p);
 		break;
-	case CP0_Random:
+	case cp0_Random:
 		mprintf(s,
 			cp0_random, cp0_random_random, cp0_random_res);
 		break;
-	case CP0_EntryLo0:
+	case cp0_EntryLo0:
 		mprintf(s,
 			cp0_entrylo0, 
 			cp0_entrylo0_g,	cp0_entrylo0_v,
 			cp0_entrylo0_d,	cp0_entrylo0_c,
 			cp0_entrylo0_pfn, cp0_entrylo0_res1);
 		break;
-	case CP0_EntryLo1:
+	case cp0_EntryLo1:
 		mprintf(s,
 			cp0_entrylo1, 
 			cp0_entrylo1_g,	cp0_entrylo1_v,
 			cp0_entrylo1_d,	cp0_entrylo1_c,
 			cp0_entrylo1_pfn, cp0_entrylo1_res1);
 		break;
-	case CP0_Context:
+	case cp0_Context:
 		mprintf(s,
 			cp0_context,
 			cp0_context_res1,
 			cp0_context_badvpn2,
 			cp0_context_ptebase);
 		break;
-	case CP0_PageMask:
+	case cp0_PageMask:
 		mprintf(s,
 			cp0_pagemask,
 			cp0_pagemask_res1,
@@ -190,27 +190,27 @@ static void cp0_dump_reg(int reg)
 			get_pagemask_name( cp0_pagemask_mask),
 			cp0_pagemask_res2);
 		break;
-	case CP0_Wired:
+	case cp0_Wired:
 		mprintf(s,
 			cp0_wired, cp0_wired_w,	cp0_wired_res1);
 		break;
-	case CP0_BadVAddr:
+	case cp0_BadVAddr:
 		mprintf(s,
 			cp0_badvaddr, cp0_badvaddr_badvaddr);
 		break;
-	case CP0_Count:
+	case cp0_Count:
 		mprintf(s,
 			cp0_count, cp0_count_count);
 		break;
-	case CP0_EntryHi:
+	case cp0_EntryHi:
 		mprintf(s,
 			cp0_entryhi, cp0_entryhi_asid, cp0_entryhi_res1, cp0_entryhi_vpn2);
 		break;
-	case CP0_Compare:
+	case cp0_Compare:
 		mprintf(s,
 			cp0_compare, cp0_compare_compare);
 		break;
-	case CP0_Status:
+	case cp0_Status:
 		mprintf(s,
 			cp0_status,
 			cp0_status_ie, cp0_status_exl, cp0_status_erl,
@@ -221,21 +221,21 @@ static void cp0_dump_reg(int reg)
 			cp0_status_res2, cp0_status_re, cp0_status_fr,
 			cp0_status_rp, cp0_status_cu);
 		break;
-	case CP0_Cause:
+	case cp0_Cause:
 		mprintf(s,
 			cp0_cause, cp0_cause_res1, cp0_cause_exccode,
 			cp0_cause_res2, cp0_cause_ip, cp0_cause_res3,
 			cp0_cause_ce, cp0_cause_res4, cp0_cause_bd);
 		break;
-	case CP0_EPC:
+	case cp0_EPC:
 		mprintf(s,
 			cp0_epc, cp0_epc_epc);
 		break;
-	case CP0_PRId:
+	case cp0_PRId:
 		mprintf(s,
 			cp0_prid, cp0_prid_rev, cp0_prid_imp, cp0_prid_res);
 		break;
-	case CP0_Config:
+	case cp0_Config:
 		mprintf(s,
 			cp0_config, cp0_config_k0, cp0_config_cu,
 			cp0_config_db, cp0_config_b, cp0_config_dc,
@@ -245,20 +245,20 @@ static void cp0_dump_reg(int reg)
 			cp0_config_ss, cp0_config_sb, cp0_config_ep,
 			cp0_config_ec, cp0_config_cm);
 		break;
-	case CP0_LLAddr:
+	case cp0_LLAddr:
 		mprintf(s,
 			cp0_lladdr, cp0_lladdr_lladdr);
 		break;
-	case CP0_WatchLo:
+	case cp0_WatchLo:
 		mprintf(s,
 			cp0_watchlo, cp0_watchlo_w, cp0_watchlo_r,
 			cp0_watchlo_res, cp0_watchlo_paddr0);
 		break;
-	case CP0_WatchHi:
+	case cp0_WatchHi:
 		mprintf(s,
 			cp0_watchhi, cp0_watchhi_paddr1, cp0_watchhi_res);
 		break;
-	case CP0_ErrorEPC:
+	case cp0_ErrorEPC:
 		mprintf(s,
 			cp0_errorepc, cp0_errorepc);
 		break;
@@ -269,7 +269,7 @@ static void cp0_dump_reg(int reg)
 }
 
 
-void cp0_dump(int reg)
+void cp0_dump(processor_t *pr, int reg)
 {
 	const int *i;
 	const int vals[] =
@@ -279,19 +279,19 @@ void cp0_dump(int reg)
 	mprintf("  no name       hex dump  readable dump\n");
 	if (reg == -1)
 		for (i = &vals[0]; *i != -1; i++)
-			cp0_dump_reg(*i);
+			cp0_dump_reg(pr, *i);
 	else
-		cp0_dump_reg(reg);
+		cp0_dump_reg(pr, reg);
 }
 
 
 /** Convert an opcode to text
  *
- * @param procdep Processor-dependent dump
- *                (dump processor number)
+ * @param pr If not NULL then the dump is
+ *           processor-dependent (with processor number)
  *
  */
-void iview(uint32_t addr, instr_info *ii, bool procdep, char *regch)
+void iview(processor_t *pr, uint32_t addr, instr_info *ii, char *regch)
 {
 	char s_proc[16];
 	char s_iopc[16];
@@ -306,7 +306,7 @@ void iview(uint32_t addr, instr_info *ii, bool procdep, char *regch)
 	const char *rsn = regname[ii->rs];
 	const char *rdn = regname[ii->rd];
 
-	if ((procdep) && (R4000_cnt > 1))
+	if (pr != NULL)
 		sprintf((char *) s_proc, "%2d  ", pr->procno);
 	else
 		s_proc[0] = '\0';
@@ -474,7 +474,7 @@ void iview(uint32_t addr, instr_info *ii, bool procdep, char *regch)
  * Each modified register is included to the output.
  *
  */
-void modified_regs_dump(size_t size, char *sx)
+void modified_regs_dump(processor_t *pr, size_t size, char *sx)
 {
 	unsigned int i;
 	char *s1;
@@ -505,7 +505,7 @@ void modified_regs_dump(size_t size, char *sx)
 		
 	/* Test for cp0 */
 	for (i = 0; i < 32; i++)
-		if ((pr->cp0[i] != pr->old_cp0[i]) && (i != CP0_Random) && (i != CP0_Count)) {
+		if ((pr->cp0[i] != pr->old_cp0[i]) && (i != cp0_Random) && (i != cp0_Count)) {
 			if (cp0name == cp0_name[2])
 				snprintf(s1, size, "%s, " TBRK "cp0_%s: 0x%08x->0x%08x", s2,
 					cp0name[i], pr->old_cp0[i], pr->cp0[i]);

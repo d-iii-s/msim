@@ -49,7 +49,10 @@ const char *token_overview[] = {
 
 parm_link_s pars_end = {
 	{
-		tt_end
+		tt_end,
+		{
+			0
+		}
 	},
 	NULL
 };
@@ -173,7 +176,7 @@ int hex2int(char c)
 /** Convert the text number into the integer
  *
  */
-void read_number(const char **s, g_token_s *t)
+static void read_number(const char **s, g_token_s *t)
 {
 	const char *c = *s;
 	uint32_t i;
@@ -338,7 +341,7 @@ static void read_token(const char **s, g_token_s *t)
  * @param t Output token
  *
  */
-void parse_g_next(const char **s, g_token_s *t)
+static void parse_g_next(const char **s, g_token_s *t)
 {
 	PRE(s != NULL, t != NULL);
 	PRE(*s != NULL);
@@ -348,50 +351,14 @@ void parse_g_next(const char **s, g_token_s *t)
 }
 
 
-/** Upload next token (external version)
- * 
- * The external token is different from the internal parser token -
- * the external string tokens are stored in the heap and have
- * to be disposed by the callie.
- *
- * SE The position pointer is moved to the character next to the token.
- *
- * @param s A pointer to the current position
- * @param t A token structure to store the next token
- *
- */
-void parse_next(const char **s, token_s *t)
-{
-	g_token_s gt;
-
-	PRE(s != NULL, t != NULL);
-	PRE(*s != NULL);
-	
-	parse_g_next(s, &gt);
-
-	t->ttype = gt.ttype;
-	switch (gt.ttype) {
-	case tt_int:
-		t->tval.i = gt.i;
-		break;
-	case tt_str:
-		t->tval.s = xstrdup(gt.s);
-		break;
-	default:
-		/* nothing else */
-		break;
-	}
-}
-
-
 /** Make a string duplicate up to the speficied size
  *
  * It is similar to the GNU extension variant.
  *
  */
-char *strndup(const char *s, size_t max)
+static char *strndup(const char *s, size_t max)
 {
-	int len;
+	size_t len;
 	char *r;
 
 	PRE(s != NULL);
@@ -513,7 +480,7 @@ void parm_check_end(parm_link_s *pl, const char *input)
  * @param s Input string. The format is "short_name/long_name".
  *
  */
-const char *find_lname(const char *s)
+static const char *find_lname(const char *s)
 {
 	const char *s2;
 
@@ -536,7 +503,7 @@ const char *find_lname(const char *s)
  * @return Size of the name.
  *
  */
-int find_sname_len(const char *s)
+static int find_sname_len(const char *s)
 {
 	const char *s2;
 
@@ -557,7 +524,7 @@ int find_sname_len(const char *s)
  * @param s The input string. The format is "text\0another text".
  *
  */
-const char *find_next_parm(const char *s)
+static const char *find_next_parm(const char *s)
 {
 	PRE(s != NULL);
 
@@ -573,7 +540,7 @@ const char *find_next_parm(const char *s)
  *              the long string.
  *
  */
-char *dup_lname(const char *lname)
+static char *dup_lname(const char *lname)
 {
 	int len;
 
@@ -599,7 +566,7 @@ char *dup_lname(const char *lname)
  *         CMP_HIT - full hit
  *
  */
-int cmdcmp(const char *s, const char *cmd)
+static int cmdcmp(const char *s, const char *cmd)
 {
 	int phit = 0;
 	const char *s2;
@@ -632,7 +599,7 @@ int cmdcmp(const char *s, const char *cmd)
 /** Compare the parial name with the long command name
  *
  */
-bool cmd_lprefix(const char *par_name, const cmd_s *cmd)
+static bool cmd_lprefix(const char *par_name, const cmd_s *cmd)
 {
 	const char *s;
 	const char *s2;
@@ -806,11 +773,11 @@ void parm_set_str(parm_link_s *pl, const char *s)
 /** Skip qualifiers from a parameter description
  *
  */
-const char *parm_skipq(const char *s)
+static const char *parm_skipq(const char *s)
 {
 	PRE(s != NULL);
 
-	return s + 2;
+	return (s + 2);
 }
 
 
@@ -1024,14 +991,12 @@ char *generator_cmd(parm_link_s *pl, const void *data, int level)
  * @param max_char The maximum of characters dest can have.
  *
  */
-void cat_parm(char *dest, const char *par, int max_char)
+static void cat_parm(char *dest, const char *par, size_t max_char)
 {
-	size_t t;
-	int i;
-
 	PRE(dest != NULL, par != NULL);
 
-	t = strlen(dest);
+	size_t t = strlen(dest);
+	size_t i;
 	
 	for (i = 0; (par[i]) && (par[i] != '/') && (t < max_char); i++, t++)
 		dest[t] = par[i];

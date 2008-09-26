@@ -25,7 +25,7 @@ enum {
 };
 
 extern bool interpret(const char *str);
-extern void script();
+extern void script(void);
 extern void find_system_generator(parm_link_s **pl, gen_f *generator,
 	const void **data);
 

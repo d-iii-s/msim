@@ -11,7 +11,7 @@
 
 
 #include "../mtypes.h"
-#include "../mcons.h"
+#include "../main.h"
 #include "../cpu/processor.h"
 #include "../parser.h"
 #include "../endi.h"
@@ -41,11 +41,10 @@ struct mem_element_s {
 };
 
 
-typedef struct LLList_s LLList_s;
-struct LLList_s {
-	processor_s *p;
-	LLList_s *next;
-};
+typedef struct llist {
+	processor_t *p;
+	struct llist *next;
+} llist_t;
 
 
 /**< Common variables */
@@ -74,9 +73,8 @@ extern bool remote_gdb_one_step;
 extern bool version;
 
 extern uint32_t stepping;
-extern processor_s *focus;
 extern mem_element_s *memlist;
-extern LLList_s *ll_list;
+extern llist_t *ll_list;
 
 extern bool tobreak;
 extern bool reenter;
@@ -94,8 +92,8 @@ extern void go_machine(void);
 extern void machine_step(void);
 
 /**< ll and sc control */
-extern void RegisterLL();
-extern void UnregisterLL();
+extern void register_ll(processor_t *pr);
+extern void unregister_ll(processor_t *pr);
 	
 /**< Memory access */
 extern void mem_write(uint32_t addr, uint32_t val, int size);

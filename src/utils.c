@@ -15,7 +15,7 @@
 #include "utils.h"
 #include "fault.h"
 #include "check.h"
-#include "mcons.h"
+#include "main.h"
 
 
 /** Safe memory allocation

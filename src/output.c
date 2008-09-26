@@ -38,21 +38,17 @@
 #include "cline.h"
 
 
-/**< The output buffer size */
-#define OUTPUT_BUF_SIZE 256
-#define DBUF_SIZE       4096
-#define BUF_SIZ         256
+#define DBUF_SIZE 4096
+#define BUF_SIZ   256
 
 
 /**< Output file descriptor */
-FILE *output;
+static FILE *output;
 
+static volatile unsigned int screen_width;
+static int buf_end;
 
-volatile int screen_width;
-int buf_end;
-char output_buf[OUTPUT_BUF_SIZE];
-
-int scr_cur;
+static unsigned int scr_cur;
 
 
 /** Initialize the output management
@@ -95,7 +91,7 @@ void mprintf(const char *fmt, ...)
  * The cursor pointer is not modified
  *
  */
-void mprintf2(const char *fmt, ...)
+static void mprintf2(const char *fmt, ...)
 {
 	va_list ap;
 	char dbuf[DBUF_SIZE];
@@ -115,9 +111,9 @@ void mprintf2(const char *fmt, ...)
  * The only interesting character is '\t' which has to be counted carefully.
  *
  */
-int string_space(const char *str)
+static unsigned int string_space(const char *str)
 {
-	int r;
+	unsigned int r;
 
 	PRE(str != NULL);
 
@@ -146,17 +142,17 @@ void mprintf_btag(const char *nl, const char *fmt, ...)
 {
 	va_list ap;
 	char dbuf[DBUF_SIZE];
-	int ncur, acur;
+	unsigned int acur;
 	char *s;
 	char x;
-	int sw = screen_width;
+	unsigned int sw = screen_width;
 	bool next_line = false;
 
 	PRE(fmt != NULL);
 
 	if (!nl)
 		nl = "";
-	ncur = string_space(nl);
+	unsigned int ncur = string_space(nl);
 
 	va_start(ap, fmt);
 	vsnprintf(dbuf, DBUF_SIZE, fmt, ap);

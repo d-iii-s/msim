@@ -70,7 +70,7 @@ static struct option long_options[] = {
 		0,
 		'g'
 	},
-	{}
+	{ NULL, 0, NULL, 0 }
 };
 
 

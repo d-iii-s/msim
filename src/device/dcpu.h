@@ -16,10 +16,9 @@
 #include "../cpu/processor.h"
 
 extern device_type_s DCPU;
-extern int R4000_cnt;
 
-extern processor_s *cpu_find_no(int no);
-extern void dcpu_interrupt_up(int cpuno, int no);
-extern void dcpu_interrupt_down(int cpuno, int no);
+extern processor_t *cpu_find_no(unsigned int no);
+extern void dcpu_interrupt_up(unsigned int cpuno, unsigned int no);
+extern void dcpu_interrupt_down(unsigned int cpuno, unsigned int no);
 
 #endif /* DCPU_H_ */

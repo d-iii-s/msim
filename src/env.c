@@ -99,15 +99,16 @@ const char *t_false_all[] = {
  * func != NULL means that a func function have to be called instead direct
  * 	write to the variable
  */
-struct set_s {
+typedef struct {
 	const char *const name;  /* name of the variable */
 	const char *const desc;  /* brief textual description */
 	const char *const descf; /* full textual description */
 	var_type_e type;         /* variable type */
 	void *val;               /* where to store a value */
 	void *const func;        /* function to be called */
-};
-typedef struct set_s set_s;
+} set_t;
+
+#define LAST_ENV { NULL, NULL, NULL, 0, NULL, NULL }
 
 
 typedef bool (*set_int_f)(int);
@@ -121,10 +122,14 @@ static bool change_ireg(int i);
 /*
  * Description of variables
  */
-const set_s env_set[] =	{
+const set_t env_set[] =	{
 	{
 		"disassembling",
-		"Disassembling features"
+		"Disassembling features",
+		NULL,
+		0,
+		NULL,
+		NULL
 	},
 	{
 		"iaddr",
@@ -182,7 +187,11 @@ const set_s env_set[] =	{
 	
 	{
 		"debugging",
-		"Debugging features"
+		"Debugging features",
+		NULL,
+		0,
+		NULL,
+		NULL
 	},
 	{
 		"trace",
@@ -193,7 +202,7 @@ const set_s env_set[] =	{
 		&totrace,
 		NULL
 	},
-	{}
+	LAST_ENV
 };
 
 
@@ -221,7 +230,7 @@ static bool change_ireg(int i)
  */
 static void print_all_variables(void)
 {
-	const set_s *s = env_set;
+	const set_t *s = env_set;
 
 	mprintf("List of all variables:\n");
 	
@@ -256,7 +265,7 @@ static void print_all_variables(void)
  */
 bool env_check_varname(const char *name, var_type_e *type)
 {
-	const set_s *s;
+	const set_t *s;
 	bool ret = false;
 
 	if (!name)
@@ -279,7 +288,7 @@ bool env_check_varname(const char *name, var_type_e *type)
  */
 bool env_bool_type(const char *name)
 {
-	const set_s *s;
+	const set_t *s;
 	bool ret = false;
 
 	if (!name)
@@ -297,7 +306,7 @@ bool env_bool_type(const char *name)
 
 int env_cnt_partial_varname(const char *name)
 {
-	const set_s *s;
+	const set_t *s;
 	int cnt = 0;
 
 	if (!name)
@@ -311,9 +320,9 @@ int env_cnt_partial_varname(const char *name)
 }
 
 
-bool env_by_partial_varname(const char *name, const set_s **sx)
+static bool env_by_partial_varname(const char *name, const set_t **sx)
 {
-	const set_s *s = (sx && *sx) ? *sx + 1 : env_set;
+	const set_t *s = (sx && *sx) ? *sx + 1 : env_set;
 
 	if (!name)
 		name = "";
@@ -338,9 +347,9 @@ bool env_by_partial_varname(const char *name, const set_s **sx)
  * @return Variable descripion
  *
  */
-static const set_s *search_variable(const char *var_name)
+static const set_t *search_variable(const char *var_name)
 {
-	const set_s *s;
+	const set_t *s;
 	
 	for (s = env_set; s->name; s++)
 		if ((s->val) && (!strcmp(var_name, s->name)))
@@ -365,7 +374,7 @@ static const set_s *search_variable(const char *var_name)
  */
 static void show_help(parm_link_s *parm)
 {
-	const set_s *s;
+	const set_t *s;
 
 	if (parm_type(parm) == tt_end)
 		for (s = env_set; s->name; s++) {
@@ -388,7 +397,7 @@ static void show_help(parm_link_s *parm)
 /** Set an integer variable
  *
  */
-static bool set_int(const set_s *s, parm_link_s *parm)
+static bool set_int(const set_t *s, parm_link_s *parm)
 {
 	if (s->func)
 		((set_int_f) s->func)(parm_int(parm));
@@ -402,7 +411,7 @@ static bool set_int(const set_s *s, parm_link_s *parm)
 /** Set a boolean variable
  *
  */
-static bool set_bool(const set_s *s, parm_link_s *parm)
+static bool set_bool(const set_t *s, parm_link_s *parm)
 {
 	parm->token.tval.i = !!parm_int(parm);
 	
@@ -418,7 +427,7 @@ static bool set_bool(const set_s *s, parm_link_s *parm)
 /** Set a string variable
  *
  */
-static bool set_str(const set_s *s, parm_link_s *parm)
+static bool set_str(const set_t *s, parm_link_s *parm)
 {
 	if (s->func)
 		((set_str_f) s->func)(parm_str(parm));
@@ -474,7 +483,7 @@ static bool bool_sanitize(parm_link_s *parm)
  */
 static bool set_variable(parm_link_s *parm)
 {
-	const set_s *s = search_variable(parm_str(parm));
+	const set_t *s = search_variable(parm_str(parm));
 	
 	if (!s)
 		return false;
@@ -512,7 +521,7 @@ static bool set_bool_variable(bool su, parm_link_s *parm)
 		NULL
 	};
 	
-	const set_s *s = search_variable(parm_str(parm));
+	const set_t *s = search_variable(parm_str(parm));
 
 	return (s ? set_bool(s, &p) : false);
 }
@@ -561,7 +570,7 @@ bool env_cmd_unset(parm_link_s *pl)
 char *generator_env_name(parm_link_s *pl, const void *data, int level)
 {
 	bool b;
-	static const set_s *d;
+	static const set_t *d;
 
 	PRE(pl != NULL);
 	PRE((parm_type(pl) == tt_str) || (parm_type(pl) == tt_end));
@@ -615,7 +624,7 @@ char *generator_env_booltype(parm_link_s *pl, const void *data, int level)
 char *generator_bool_envname(parm_link_s *pl, const void *data, int level)
 {
 	bool b;
-	static const set_s *d;
+	static const set_t *d;
 
 	PRE(pl != NULL);
 	PRE((parm_type(pl) == tt_str) || parm_type( pl) == tt_end);

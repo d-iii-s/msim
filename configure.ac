@@ -36,7 +36,6 @@ AC_C_BIGENDIAN
 AC_C_CONST
 AC_TYPE_SIZE_T
 
-AC_CHECK_TYPES([socklen_t],, [AC_MSG_FAILURE(Type socklen_t not defined.)])
 AC_CHECK_FUNCS([getopt_long],, [AC_MSG_FAILURE(Function getopt_long not defined.)])
 
 AC_SUBST(BUILDLIBS)

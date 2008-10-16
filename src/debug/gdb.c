@@ -15,9 +15,8 @@
 #include <unistd.h>
 #include <stdbool.h>
 #include <sys/types.h>
-#include <sys/socket.h>
-#include <netinet/in.h>
 
+#include "../include/network.h"
 #include "../main.h"
 #include "gdb.h"
 #include "../text.h"

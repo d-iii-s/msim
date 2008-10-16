@@ -16,7 +16,6 @@ AC_CHECK_HEADERS([ \
 	errno.h \
 	fcntl.h \
 	getopt.h \
-	netinet/in.h \
 	readline/history.h \
 	readline/readline.h \
 	signal.h \
@@ -27,7 +26,6 @@ AC_CHECK_HEADERS([ \
 	stdlib.h \
 	string.h \
 	sys/mman.h \
-	sys/socket.h \
 	sys/stat.h \
 	sys/time.h \
 	sys/types.h \

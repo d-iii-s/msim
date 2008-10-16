@@ -6,15 +6,15 @@
  *
  */
 
-#ifndef MMAP_H_
-#define MMAP_H_
+#ifndef CONSOLE_H_
+#define CONSOLE_H_
 
 #ifdef MINGW
 
 #else
 
-	#include <sys/mman.h>
+	#include <termios.h>
 
 #endif /* MINGW */
 
-#endif /* MMAP_H_ */
+#endif /* CONSOLE_H_ */

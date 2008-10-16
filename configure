@@ -3489,7 +3489,6 @@ done
 
 
 
-
 for ac_header in  \
 	ctype.h \
 	errno.h \
@@ -3507,7 +3506,6 @@ for ac_header in  \
 	sys/stat.h \
 	sys/time.h \
 	sys/types.h \
-	termios.h \
 	time.h \
 	unistd.h \
 

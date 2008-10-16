@@ -28,7 +28,6 @@ AC_CHECK_HEADERS([ \
 	sys/stat.h \
 	sys/time.h \
 	sys/types.h \
-	termios.h \
 	time.h \
 	unistd.h \
 ],, [AC_MSG_FAILURE(Standard header not found.)])

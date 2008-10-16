@@ -7,7 +7,6 @@
  */
 
 #include <stdio.h>
-#include <signal.h>
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
@@ -16,6 +15,7 @@
 
 #include "machine.h"
 
+#include "../include/signal.h"
 #include "../cpu/processor.h"
 #include "../input.h"
 #include "../output.h"
@@ -26,7 +26,7 @@
 
 
 /**< Common variables */
-bool tohalt	= false;
+bool tohalt = false;
 char *config_file = 0;
 
 /**< Debug features */

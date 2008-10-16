@@ -9,12 +9,24 @@
 #ifndef MMAP_H_
 #define MMAP_H_
 
-#ifdef MINGW
+#ifdef __WIN32__
+
+/**
+ *
+ * Dummy definitions for compatibility
+ * with sys/mman.h.
+ *
+ */
+
+#define mmap(addr, length, prot, flags, fd, offset)  NULL
+#define munmap(addr, length)  0
+
+#define MAP_FAILED  ((void *) -1)
 
 #else
 
-	#include <sys/mman.h>
+#include <sys/mman.h>
 
-#endif /* MINGW */
+#endif /* __WIN32__ */
 
 #endif /* MMAP_H_ */

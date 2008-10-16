@@ -6,19 +6,13 @@
  *
  */
 
-#ifndef NETWORK_H_
-#define NETWORK_H_
+#ifndef SELECT_H_
+#define SELECT_H_
 
 #ifdef __WIN32__
 
 #include <winsock2.h>
-#include <ws2tcpip.h>
-
-#else
-
-#include <sys/socket.h>
-#include <netinet/in.h>
 
 #endif /* __WIN32__ */
 
-#endif /* NETWORK_H_ */
+#endif /* SELECT_H_ */

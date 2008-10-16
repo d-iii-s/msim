@@ -25,7 +25,6 @@ AC_CHECK_HEADERS([ \
 	stdio.h \
 	stdlib.h \
 	string.h \
-	sys/mman.h \
 	sys/stat.h \
 	sys/time.h \
 	sys/types.h \

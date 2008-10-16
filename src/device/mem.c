@@ -16,11 +16,11 @@
 #include <string.h>
 #include <sys/types.h>
 #include <sys/stat.h>
-#include <sys/mman.h>
 #include <errno.h>
 
 #include "mem.h"
 
+#include "../include/mmap.h"
 #include "../parser.h"
 #include "device.h"
 #include "machine.h"

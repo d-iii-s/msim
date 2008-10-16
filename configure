@@ -3490,7 +3490,6 @@ done
 
 
 
-
 for ac_header in  \
 	ctype.h \
 	errno.h \
@@ -3505,7 +3504,6 @@ for ac_header in  \
 	stdio.h \
 	stdlib.h \
 	string.h \
-	sys/mman.h \
 	sys/stat.h \
 	sys/time.h \
 	sys/types.h \

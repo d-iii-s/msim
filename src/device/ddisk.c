@@ -15,10 +15,10 @@
 #include <string.h>
 #include <sys/types.h>
 #include <sys/stat.h>
-#include <sys/mman.h>
 
 #include "ddisk.h"
 
+#include "../include/mmap.h"
 #include "machine.h"
 #include "dcpu.h"
 #include "../fault.h"

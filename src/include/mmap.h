@@ -6,15 +6,14 @@
  *
  */
 
-#ifndef NETWORK_H_
-#define NETWORK_H_
+#ifndef MMAP_H_
+#define MMAP_H_
 
 #ifdef MINGW
 
 #else
 
-	#include <sys/socket.h>
-	#include <netinet/in.h>
+	#include <sys/mman.h>
 
 #endif /* MINGW */
 

@@ -76,9 +76,9 @@ void processor_init(processor_t *pr, unsigned int procno)
 	pr->branch = 0;
 	
 	/* Inicializing internal variables */
-	pr->lladdr = (uint32_t) -1;
+	pr->lladdr = (addr_t) -1;
 	pr->llval = false;
-
+	
 	/* Inicializing cp0 registers */
 	pr->cp0[cp0_Config] = HARD_RESET_CONFIG;
 	pr->cp0[cp0_Random] = HARD_RESET_RANDOM;
@@ -114,7 +114,7 @@ void processor_init(processor_t *pr, unsigned int procno)
 }
 
 
-/** Write a value into the register in the actual context
+/** Write a value into the register
  *
  * Used mainly from external modules.
  *
@@ -126,7 +126,7 @@ void set_general_reg(processor_t *pr, unsigned int regno, int32_t value)
 }
 
 
-/** Set the PC register in the actual context
+/** Set the PC register
  *
  */
 void set_pc(processor_t *pr, addr_t value)

@@ -609,12 +609,12 @@ typedef struct {
 	uint32_t old_loreg;
 	uint32_t old_hireg;
 	
-	uint32_t excaddr;
+	addr_t excaddr;
 	unsigned int branch;
 	
 	/* LL and SC track support */
-	bool llval;      /* Track the address flag. */
-	uint32_t lladdr; /* Physical tracked address. */
+	bool llval;      /* Track the address flag */
+	addr_t lladdr; /* Physical tracked address */
 	
 	/* statistics */
 	unsigned long long k_cycles;

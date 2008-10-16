@@ -28,4 +28,4 @@ clean:
 
 distclean: clean
 	cd src && $(MAKE) distclean
-	rm -f Makefile config.log
+	rm -f Makefile config.log config.status

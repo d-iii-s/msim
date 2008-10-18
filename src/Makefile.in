@@ -50,7 +50,7 @@ $(OBJECTS): %.o: %.c
 	$(CC) -c $(CFLAGS) -o $@ $<
 
 msim: depend $(OBJECTS)
-	$(CC) $(CFLAGS) $(LIBS) -o $@ $(OBJECTS)
+	$(CC) $(CFLAGS) -o $@ $(OBJECTS) $(LIBS)
 
 clean:
 	rm -f msim $(OBJECTS) Makefile.depend

@@ -77,7 +77,7 @@ static void register_sigint(void)
 	struct sigaction act;
 	
 	act.sa_handler = machine_user_break;
-	sigemptyset(&act.sa_mask);
+	(void) sigemptyset(&act.sa_mask);
 	act.sa_flags = 0;
 	sigaction(SIGINT, &act, 0);
 } 

@@ -47,7 +47,7 @@ void input_init(void)
 	if (!input_term)
 		return;
 	
-	tcgetattr(0, &tio_shadow);
+	(void) tcgetattr(0, &tio_shadow);
 	 
 	tio_old = tio_shadow;
 	tio_inter = tio_shadow;
@@ -73,21 +73,21 @@ void input_init(void)
 void input_inter(void)
 {
 	if (input_term)
-		tcsetattr(0, TCSANOW, &tio_inter);
+		(void) tcsetattr(0, TCSANOW, &tio_inter);
 }
 
 
 void input_shadow( void)
 {
 	if (input_term)
-		tcsetattr(0, TCSANOW, &tio_shadow);
+		(void) tcsetattr(0, TCSANOW, &tio_shadow);
 }
 
 
 void input_back( void)
 {
 	if (input_term)
-		tcsetattr(0, TCSANOW, &tio_old);
+		(void) tcsetattr(0, TCSANOW, &tio_old);
 }
 
 

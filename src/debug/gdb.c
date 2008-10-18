@@ -655,7 +655,7 @@ bool gdb_remote_init(void)
 		return false;
 	}
 	
-	if (setsockopt(gdbd, SOL_SOCKET, SO_REUSEADDR, &yes, sizeof(yes))) {
+	if (setsockopt(gdbd, SOL_SOCKET, SO_REUSEADDR, (void *) &yes, sizeof(yes))) {
 		io_error("setsockopt");
 		return false;
 	}

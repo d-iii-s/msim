@@ -38,6 +38,9 @@ static bool system_md(parm_link_s *pl, void *data);
 static bool system_id(parm_link_s *pl, void *data);
 static bool system_dd(parm_link_s *pl, void *data);
 static bool system_mbd(parm_link_s *pl, void *data);
+static bool system_break(parm_link_s *pl, void *data);
+static bool system_bd(parm_link_s *pl, void *data);
+static bool system_br(parm_link_s *pl, void *data);
 static bool system_stat(parm_link_s *pl, void *data);
 static bool system_echo(parm_link_s *pl, void *data);
 static bool system_continue(parm_link_s *pl, void *data);
@@ -127,6 +130,34 @@ static cmd_s system_cmds[] = {
 		"Dump all installed memory blocks",
 		"Dump all installed memory blocks",
 		NOCMD
+	},
+	{
+		"break",
+		system_break,
+		DEFAULT,
+		DEFAULT,
+		"Add memory breakpoint",
+		"Add memory breakpoint",
+		REQ INT "addr/memory address" NEXT
+		REQ STR "type/Read or write breakpoint" END
+	},
+	{
+		"bd",
+		system_bd,
+		DEFAULT,
+		DEFAULT,
+		"Dump memory breakpoints",
+		"Dump memory breakpoints",
+		NOCMD
+	},
+	{
+		"br",
+		system_br,
+		DEFAULT,
+		DEFAULT,
+		"Remove memory breakpoints",
+		"Remove memory breakpoints",
+		REQ INT "addr/memory address" END
 	},
 	{
 		"stat",
@@ -259,7 +290,7 @@ static bool system_add(parm_link_s *pl, void *data)
 		return false;
 	}
 	
-	if (dev_by_name(parm_str( pl))) {
+	if (dev_by_name(parm_str(pl))) {
 		mprintf("Device name duplicity\n");
 		return false;
 	}
@@ -382,6 +413,79 @@ static bool system_dd(parm_link_s *pl, void *data)
 static bool system_mbd(parm_link_s *pl, void *data)
 {
 	dbg_msd_dump();
+	return true;
+}
+
+
+/** Break command implementation
+ *
+ */
+static bool system_break(parm_link_s *pl, void *data)
+{
+	mem_breakpoint_t *mem_bp = XXMALLOC(mem_breakpoint_t);
+	item_init(&mem_bp->item);
+	mem_bp->addr = pl->token.tval.i;
+	mem_bp->hits = 0;
+	mem_bp->rd = false;
+	mem_bp->wr = false;
+	
+	char *rw = pl->next->token.tval.s;
+	size_t i = 0;
+
+	while (rw[i] != 0) {
+		
+		if (rw[i] == 'r')
+			mem_bp->rd = true;
+		
+		if (rw[i] == 'w')
+			mem_bp->wr = true;
+		
+		i++;
+	}
+	
+	list_append(&mem_bps, &mem_bp->item);
+	
+	return true;
+}
+
+
+/** Bd command implementation
+ *
+ */
+static bool system_bd(parm_link_s *pl, void *data)
+{
+	mem_breakpoint_t *mem_bp;
+	for_each(mem_bps, mem_bp, mem_breakpoint_t)
+		mprintf("%08x: (%c%c) %llu hits\n",
+			mem_bp->addr,
+			mem_bp->rd ? 'r' : '-', mem_bp->wr ? 'w' : '-',
+			mem_bp->hits);
+	
+	return true;
+}
+
+
+/** Br command implementation
+ *
+ */
+static bool system_br(parm_link_s *pl, void *data)
+{
+	addr_t addr = pl->token.tval.i;
+	
+	bool fnd = false;
+	mem_breakpoint_t *mem_bp;
+	for_each(mem_bps, mem_bp, mem_breakpoint_t) {
+		if (mem_bp->addr == addr) {
+			list_remove(&mem_bps, &mem_bp->item);
+			XFREE(mem_bp);
+			fnd = true;
+			break;
+		}
+	}
+	
+	if (!fnd)
+		mprintf("Unknown breakpoint\n");
+	
 	return true;
 }
 

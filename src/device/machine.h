@@ -11,6 +11,7 @@
 
 
 #include "../mtypes.h"
+#include "../list.h"
 #include "../main.h"
 #include "../cpu/processor.h"
 #include "../parser.h"
@@ -45,6 +46,20 @@ typedef struct llist {
 	processor_t *p;
 	struct llist *next;
 } llist_t;
+
+
+typedef struct {
+	item_t item;
+	
+	addr_t addr;
+	unsigned long long hits;
+	bool rd;
+	bool wr;
+} mem_breakpoint_t;
+
+
+/**< Memory breakpoints */
+extern list_t mem_bps;
 
 
 /**< Common variables */

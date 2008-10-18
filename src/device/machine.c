@@ -25,6 +25,9 @@
 #include "../utils.h"
 
 
+/**< Memory breakpoints */
+list_t mem_bps;
+
 /**< Common variables */
 bool tohalt = false;
 char *config_file = 0;
@@ -100,6 +103,8 @@ void init_machine(void)
 	input_init();
 	input_shadow();
 	register_sigint();
+	
+	list_init(&mem_bps);
 }
 
 
@@ -257,6 +262,17 @@ uint32_t mem_read(processor_t *pr, uint32_t addr)
 		
 		return val;
 	}
+	
+	/* Check for memory read breakpoints */
+	mem_breakpoint_t *mem_bp;
+	for_each(mem_bps, mem_bp, mem_breakpoint_t) {
+		if ((mem_bp->addr == addr) && (mem_bp->rd)) {
+			mprintf("\nDebug: Read from address %08x\n\n", mem_bp->addr);
+			mem_bp->hits++;
+			interactive = true;
+			break;
+		}
+	}
 
 	/* Now there is correct read/write command */
 	return convert_uint32_t_endian(*((uint32_t *) &e->mem[addr - e->start]));
@@ -333,6 +349,17 @@ void mem_write(processor_t *pr, uint32_t addr, uint32_t val, int size)
 	case INT32:
 		*((uint32_t *) &e->mem[addr - e->start]) = convert_uint32_t_endian(val);
 		break;
+	}
+	
+	/* Check for memory write breakpoints */
+	mem_breakpoint_t *mem_bp;
+	for_each(mem_bps, mem_bp, mem_breakpoint_t) {
+		if ((mem_bp->addr == addr) && (mem_bp->wr)) {
+			mprintf("\nDebug: Written to address %08x\n\n", mem_bp->addr);
+			mem_bp->hits++;
+			interactive = true;
+			break;
+		}
 	}
 }
 

@@ -1936,7 +1936,7 @@ void step(processor_t *pr)
 	/* Check for code breakpoints */
 	breakpoint_t *bp;
 	for_each(pr->bps, bp, breakpoint_t) {
-		if (pr->pc == bp->pc) {
+		if (bp->pc == pr->pc) {
 			mprintf("\nDebug: Hit breakpoint at %08x\n\n", bp->pc);
 			bp->hits++;
 			interactive = true;

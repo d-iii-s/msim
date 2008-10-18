@@ -148,8 +148,8 @@ cmd_s dcpu_cmds[] = {
 		(cmd_f) dcpu_bd,
 		DEFAULT,
 		DEFAULT,
-		"Dump breakpoints",
-		"Dump breakpoints",
+		"Dump code breakpoints",
+		"Dump code breakpoints",
 		NOCMD
 	},
 	{
@@ -409,6 +409,7 @@ static bool dcpu_break(parm_link_s *parm, device_s *dev)
 	breakpoint_t *bp = XXMALLOC(breakpoint_t);
 	item_init(&bp->item);
 	bp->pc = parm->token.tval.i;
+	bp->hits = 0;
 	
 	processor_t *pr = dev->data;
 	

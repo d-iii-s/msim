@@ -37,6 +37,8 @@ static bool dcpu_id(parm_link_s *parm, device_s *dev);
 static bool dcpu_rd(parm_link_s *parm, device_s *dev);
 static bool dcpu_goto(parm_link_s *parm, device_s *dev);
 static bool dcpu_break(parm_link_s *parm, device_s *dev);
+static bool dcpu_bd(parm_link_s *parm, device_s *dev);
+static bool dcpu_br(parm_link_s *parm, device_s *dev);
 
 cmd_s dcpu_cmds[] = {
 	{
@@ -139,6 +141,24 @@ cmd_s dcpu_cmds[] = {
 		DEFAULT,
 		"Add code breakpoint",
 		"Add code breakpoint",
+		REQ INT "addr/address" END
+	},
+	{
+		"bd",
+		(cmd_f) dcpu_bd,
+		DEFAULT,
+		DEFAULT,
+		"Dump breakpoints",
+		"Dump breakpoints",
+		NOCMD
+	},
+	{
+		"br",
+		(cmd_f) dcpu_br,
+		DEFAULT,
+		DEFAULT,
+		"Remove code breakpoint",
+		"Remove code breakpoint",
 		REQ INT "addr/address" END
 	},
 	LAST_CMD
@@ -393,6 +413,46 @@ static bool dcpu_break(parm_link_s *parm, device_s *dev)
 	processor_t *pr = dev->data;
 	
 	list_append(&pr->bps, &bp->item);
+	
+	return true;
+}
+
+
+/** Bd command implementation
+ *
+ */
+static bool dcpu_bd(parm_link_s *parm, device_s *dev)
+{
+	processor_t *pr = dev->data;
+	breakpoint_t *bp;
+	for_each(pr->bps, bp, breakpoint_t)
+		mprintf("%08x: %llu hits\n", bp->pc, bp->hits);
+	
+	return true;
+}
+
+
+/** Br command implementation
+ *
+ */
+static bool dcpu_br(parm_link_s *parm, device_s *dev)
+{
+	processor_t *pr = dev->data;
+	addr_t addr = parm->token.tval.i;
+	
+	bool fnd = false;
+	breakpoint_t *bp;
+	for_each(pr->bps, bp, breakpoint_t) {
+		if (bp->pc == addr) {
+			list_remove(&pr->bps, &bp->item);
+			XFREE(bp);
+			fnd = true;
+			break;
+		}
+	}
+	
+	if (!fnd)
+		mprintf("Unknown breakpoint\n");
 	
 	return true;
 }

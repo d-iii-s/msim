@@ -587,6 +587,7 @@ typedef struct {
 	item_t item;
 	
 	addr_t pc;
+	unsigned long long hits;
 } breakpoint_t;
 
 

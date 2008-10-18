@@ -1933,11 +1933,12 @@ void step(processor_t *pr)
 	if (pr->branch != 0)
 		pr->branch--;
 	
-	/* Check for core breakpoints */
+	/* Check for code breakpoints */
 	breakpoint_t *bp;
 	for_each(pr->bps, bp, breakpoint_t) {
 		if (pr->pc == bp->pc) {
-			mprintf("\nDebug: Hit breakpoint at %x\n\n", bp->pc);
+			mprintf("\nDebug: Hit breakpoint at %08x\n\n", bp->pc);
+			bp->hits++;
 			interactive = true;
 			break;
 		}

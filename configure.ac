@@ -9,7 +9,7 @@ if [[ "$STRIP" = "no" ]] ; then
 fi
 
 AC_CHECK_LIB(readline, readline,, [AC_MSG_FAILURE(Library readline not found.)])
-AC_CHECK_LIB(wsock32, wsock32)
+AC_CHECK_LIB(wsock32, socket)
 
 AC_HEADER_STDC
 AC_CHECK_HEADERS([ \

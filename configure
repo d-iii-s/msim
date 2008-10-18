@@ -2835,9 +2835,9 @@ See \`config.log' for more details." >&2;}
 fi
 
 
-{ echo "$as_me:$LINENO: checking for wsock32 in -lwsock32" >&5
-echo $ECHO_N "checking for wsock32 in -lwsock32... $ECHO_C" >&6; }
-if test "${ac_cv_lib_wsock32_wsock32+set}" = set; then
+{ echo "$as_me:$LINENO: checking for socket in -lwsock32" >&5
+echo $ECHO_N "checking for socket in -lwsock32... $ECHO_C" >&6; }
+if test "${ac_cv_lib_wsock32_socket+set}" = set; then
   echo $ECHO_N "(cached) $ECHO_C" >&6
 else
   ac_check_lib_save_LIBS=$LIBS
@@ -2855,11 +2855,11 @@ cat >>conftest.$ac_ext <<_ACEOF
 #ifdef __cplusplus
 extern "C"
 #endif
-char wsock32 ();
+char socket ();
 int
 main ()
 {
-return wsock32 ();
+return socket ();
   ;
   return 0;
 }
@@ -2882,21 +2882,21 @@ eval "echo \"\$as_me:$LINENO: $ac_try_echo\"") >&5
 	 test ! -s conftest.err
        } && test -s conftest$ac_exeext &&
        $as_test_x conftest$ac_exeext; then
-  ac_cv_lib_wsock32_wsock32=yes
+  ac_cv_lib_wsock32_socket=yes
 else
   echo "$as_me: failed program was:" >&5
 sed 's/^/| /' conftest.$ac_ext >&5
 
-	ac_cv_lib_wsock32_wsock32=no
+	ac_cv_lib_wsock32_socket=no
 fi
 
 rm -f core conftest.err conftest.$ac_objext conftest_ipa8_conftest.oo \
       conftest$ac_exeext conftest.$ac_ext
 LIBS=$ac_check_lib_save_LIBS
 fi
-{ echo "$as_me:$LINENO: result: $ac_cv_lib_wsock32_wsock32" >&5
-echo "${ECHO_T}$ac_cv_lib_wsock32_wsock32" >&6; }
-if test $ac_cv_lib_wsock32_wsock32 = yes; then
+{ echo "$as_me:$LINENO: result: $ac_cv_lib_wsock32_socket" >&5
+echo "${ECHO_T}$ac_cv_lib_wsock32_socket" >&6; }
+if test $ac_cv_lib_wsock32_socket = yes; then
   cat >>confdefs.h <<_ACEOF
 #define HAVE_LIBWSOCK32 1
 _ACEOF

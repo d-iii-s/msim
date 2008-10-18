@@ -36,6 +36,7 @@ static bool dcpu_md(parm_link_s *parm, device_s *dev);
 static bool dcpu_id(parm_link_s *parm, device_s *dev);
 static bool dcpu_rd(parm_link_s *parm, device_s *dev);
 static bool dcpu_goto(parm_link_s *parm, device_s *dev);
+static bool dcpu_break(parm_link_s *parm, device_s *dev);
 
 cmd_s dcpu_cmds[] = {
 	{
@@ -73,7 +74,8 @@ cmd_s dcpu_cmds[] = {
 		DEFAULT,
 		"Display processor statistics",
 		"Display processor statistics",
-		NOCMD},
+		NOCMD
+	},
 	{
 		"cp0d",
 		(cmd_f) dcpu_cp0d,
@@ -109,7 +111,7 @@ cmd_s dcpu_cmds[] = {
 		DEFAULT,
 		"Dump instructions from specified TLB mapped memory",
 		"Dump instructions from specified TLB mapped memory",
-		REQ INT "sa/starting address" NEXT
+		REQ INT "saddr/starting address" NEXT
 		REQ INT "cnt/count" END
 	},
 	{
@@ -119,7 +121,8 @@ cmd_s dcpu_cmds[] = {
 		DEFAULT,
 		"Dump contents of CPU general registers",
 		"Dump contents of CPU general registers",
-		NOCMD},
+		NOCMD
+	},
 	{
 		"goto",
 		(cmd_f) dcpu_goto,
@@ -127,7 +130,16 @@ cmd_s dcpu_cmds[] = {
 		DEFAULT,
 		"Go to address",
 		"Go to address",
-		REQ INT "na/new address" END
+		REQ INT "addr/address" END
+	},
+	{
+		"break",
+		(cmd_f) dcpu_break,
+		DEFAULT,
+		DEFAULT,
+		"Add code breakpoint",
+		"Add code breakpoint",
+		REQ INT "addr/address" END
 	},
 	LAST_CMD
 };
@@ -145,7 +157,7 @@ device_type_s DCPU = {
 	"MIPS R4000 processor",
 
 	/* Full description */
-	"MIPS R4000 processor restricted to 32 bits without FPU ",
+	"MIPS R4000 processor restricted to 32 bits without FPU",
 	
 	/* Functions */
 	.done  = dcpu_done,	/* done */
@@ -364,6 +376,23 @@ static bool dcpu_goto(parm_link_s *parm, device_s *dev)
 	
 	pr->pc = addr;
 	pr->pc_next = addr + 4;
+	
+	return true;
+}
+
+
+/** Break command implementation
+ *
+ */
+static bool dcpu_break(parm_link_s *parm, device_s *dev)
+{
+	breakpoint_t *bp = XXMALLOC(breakpoint_t);
+	item_init(&bp->item);
+	bp->pc = parm->token.tval.i;
+	
+	processor_t *pr = dev->data;
+	
+	list_append(&pr->bps, &bp->item);
 	
 	return true;
 }

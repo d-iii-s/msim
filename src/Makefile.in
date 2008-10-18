@@ -21,6 +21,7 @@ SOURCES = \
 	check.c \
 	main.c \
 	parser.c \
+	list.c \
 	cpu/processor.c \
 	cpu/instr.c \
 	debug/debug.c \

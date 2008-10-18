@@ -16,6 +16,7 @@
 #include <stdbool.h>
 
 #include "../mtypes.h"
+#include "../list.h"
 #include "instr.h"
 
 
@@ -582,6 +583,13 @@ typedef struct tlb_ent {
 } tlb_ent;
 
 
+typedef struct {
+	item_t item;
+	
+	addr_t pc;
+} breakpoint_t;
+
+
 /**< Main processor structure */
 typedef struct {
 	unsigned int procno;
@@ -625,7 +633,11 @@ typedef struct {
 	unsigned long long tlb_invalid;
 	unsigned long long tlb_modified;
 	unsigned long long intr[8];
+	
+	/* breakpoints */
+	list_t bps;
 } processor_t;
+
 
 /**< Base */
 extern void processor_init(processor_t *pr, unsigned int procno);

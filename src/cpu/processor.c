@@ -111,6 +111,9 @@ void processor_init(processor_t *pr, unsigned int procno)
 		pr->tlb[i].next = &pr->tlb[i - 1];
 	
 	pr->tlb[0].next = 0;
+	
+	/* Breakpoints */
+	list_init(&pr->bps);
 }
 
 
@@ -1744,7 +1747,7 @@ static enum exc execute(processor_t *pr, instr_info *ii2)
 		break;
 	case opcDHLT:
 		if (totrace)
-			mprintf("\nMachine halt.\n\n");
+			mprintf("\nMachine halt\n\n");
 		tohalt = true;
 		break;
 	case opcDINT:
@@ -1929,4 +1932,14 @@ void step(processor_t *pr)
 
 	if (pr->branch != 0)
 		pr->branch--;
+	
+	/* Check for core breakpoints */
+	breakpoint_t *bp;
+	for_each(pr->bps, bp, breakpoint_t) {
+		if (pr->pc == bp->pc) {
+			mprintf("\nDebug: Hit breakpoint at %x\n\n", bp->pc);
+			interactive = true;
+			break;
+		}
+	}
 }

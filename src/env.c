@@ -432,7 +432,7 @@ static bool set_str(const set_t *s, parm_link_s *parm)
 	if (s->func)
 		((set_str_f) s->func)(parm_str(parm));
 	else {
-		char *sx = xstrdup(parm_str(parm));
+		char *sx = safe_strdup(parm_str(parm));
 		if (!sx) {
 			mprintf("Not enough memory\n");
 			return false;
@@ -583,7 +583,7 @@ char *generator_env_name(parm_link_s *pl, const void *data, int level)
 	b = env_by_partial_varname((parm_type(pl) == tt_str)
 		? parm_str(pl) : "", &d);
 	
-	return (b ? xstrdup(d->name) : NULL);
+	return (b ? safe_strdup(d->name) : NULL);
 }
 
 
@@ -612,7 +612,7 @@ char *generator_env_booltype(parm_link_s *pl, const void *data, int level)
 		d++;
 	}
 
-	return (*d ? xstrdup(*d) : NULL);
+	return (*d ? safe_strdup(*d) : NULL);
 }
 
 
@@ -639,7 +639,7 @@ char *generator_bool_envname(parm_link_s *pl, const void *data, int level)
 			? parm_str(pl) : "", &d);
 	} while ((b) && (d->type != vt_bool));
 	
-	return (b ? xstrdup(d->name) : NULL);
+	return (b ? safe_strdup(d->name) : NULL);
 }
 
 
@@ -651,5 +651,5 @@ char *generator_equal_char(parm_link_s *pl, const void *data, int level)
 	PRE(pl != NULL);
 	PRE((parm_type(pl) == tt_str) || (parm_type( pl) == tt_end));
 	
-	return ((level == 0) ? xstrdup( "=") : NULL);
+	return ((level == 0) ? safe_strdup( "=") : NULL);
 }

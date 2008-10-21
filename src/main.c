@@ -120,7 +120,7 @@ static void parse_cmdline(int argc, char *args[])
 		case 'c':
 			if (config_file)
 				free(config_file);
-			config_file = xstrdup(optarg);
+			config_file = safe_strdup(optarg);
 			break;
 		case 'h':
 			mprintf(txt_version);

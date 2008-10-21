@@ -129,7 +129,7 @@ char **msim_completion(const char *text, int start, int end)
 {
 	char **result;
 
-	par_text = (char *) xmalloc(end + 1);
+	par_text = (char *) safe_malloc(end + 1);
 	strncpy(par_text, rl_line_buffer, end);
 	par_text[end] = '\0';
 

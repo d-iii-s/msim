@@ -186,7 +186,7 @@ static bool dorder_init(parm_link_s *parm, device_s *dev)
 	struct dorder_data_struct *od;
 	
 	/* Allocate the dorder structure */
-	od = XXMALLOC(struct dorder_data_struct);
+	od = safe_malloc_t(struct dorder_data_struct);
 	dev->data = od;
 	
 	/* Initialize */
@@ -200,7 +200,7 @@ static bool dorder_init(parm_link_s *parm, device_s *dev)
 	/* Address alignment */
 	if (!addr_word_aligned(od->addr)) {
 		mprintf("Dorder address must be 4-byte aligned.\n");
-		XFREE(od);
+		safe_free(od);
 		return false;
 	}
 
@@ -213,7 +213,7 @@ static bool dorder_init(parm_link_s *parm, device_s *dev)
 	/* Interrupt number */
 	if ((od->intno < 0) || (od->intno > 6)) {
 		mprintf("Interrupt number must be within 0..6.\n");
-		XFREE(od);
+		safe_free(od);
 		return false;
 	}
 	
@@ -290,8 +290,8 @@ static bool dorder_synchdown(parm_link_s *parm, device_s *dev)
  */
 static void dorder_done(device_s *d)
 {
-	XFREE(d->name);
-	XFREE(d->data);
+	safe_free(d->name);
+	safe_free(d->data);
 }
 
 

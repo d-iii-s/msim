@@ -365,7 +365,7 @@ static char *strndup(const char *s, size_t max)
 
 	for (len = 0; (s[len]) && (len < max); len++);
 	
-	r = xmalloc(len + 1);
+	r = safe_malloc(len + 1);
 	memcpy(r, s, len);
 	r[len] = '\0';
 
@@ -413,7 +413,7 @@ parm_link_s *parm_parse(const char *s)
 		parse_g_next(&s, &gt);
 		
 		/* Allocate a new node */
-		*p = (parm_link_s *) xmalloc(sizeof(parm_link_s));
+		*p = (parm_link_s *) safe_malloc_t(parm_link_s);
 		
 		/* Copy parameters */
 		t = &(*p)->token;
@@ -423,7 +423,7 @@ parm_link_s *parm_parse(const char *s)
 			t->tval.i = gt.i;
 			break;
 		case tt_str:
-			t->tval.s = xstrdup(gt.s);
+			t->tval.s = safe_strdup(gt.s);
 			if (!t->tval.s) {
 				/* Memory allocation error */
 				t->ttype = tt_err;
@@ -467,7 +467,7 @@ void parm_check_end(parm_link_s *pl, const char *input)
 		while (parm_type(parm_next(&pl)) != tt_end)
 			plo = pl;
 
-		parm_insert_str(plo, xstrdup(""));
+		parm_insert_str(plo, safe_strdup(""));
 	}
 }
 
@@ -709,7 +709,7 @@ bool parm_insert_int(parm_link_s *pl, uint32_t val)
 
 	PRE(pl != NULL);
 
-	p = xmalloc(sizeof(token_s));
+	p = safe_malloc_t(token_s);
 
 	p->token.ttype = tt_int;
 	p->token.tval.i = val;
@@ -731,7 +731,7 @@ bool parm_insert_str(parm_link_s *pl, char *s)
 	
 	PRE(pl != NULL, s != NULL);
 
-	p = xmalloc(sizeof(token_s));
+	p = safe_malloc_t(token_s);
 
 	p->token.ttype = tt_str;
 	p->token.tval.s = s;

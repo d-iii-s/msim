@@ -199,7 +199,7 @@ void register_ll(processor_t *pr)
 				return;
 
 	/* Add processor to the list */
-	l = (llist_t *) xmalloc(sizeof(llist_t));
+	l = (llist_t *) safe_malloc_t(llist_t);
 	l->p = pr;
 	l->next = ll_list;
 	ll_list = l;

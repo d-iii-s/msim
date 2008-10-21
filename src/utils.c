@@ -21,11 +21,12 @@
 /** Safe memory allocation
  *
  */
-void *xmalloc(size_t size)
+void *safe_malloc(const size_t size)
 {
 	void *ptr = malloc(size);
-	if (!ptr)
+	if (ptr == NULL)
 		die(ERR_MEM, "Not enough memory");
+	
 	return ptr;
 }
 
@@ -33,7 +34,7 @@ void *xmalloc(size_t size)
 /** Make a copy of a string
  *
  */
-char * xstrdup(const char *str)
+char *safe_strdup(const char *str)
 {
 	char *sx;
 	
@@ -42,6 +43,7 @@ char * xstrdup(const char *str)
 	sx = strdup(str);
 	if (!sx)
 		die(ERR_MEM, "Not enough memory");
+	
 	return sx;
 }
 

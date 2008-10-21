@@ -140,7 +140,7 @@ static bool dprinter_init(parm_link_s *parm, device_s *dev)
 	printer_data_s *pd;
 	
 	/* The printer structure allocation */
-	pd = XXMALLOC(printer_data_s);
+	pd = safe_malloc_t(printer_data_s);
 	dev->data = pd;
 	
 	/* Inicialization */
@@ -253,8 +253,8 @@ static void printer_done(device_s *d)
 		}
 	}
 
-	XFREE(d->name);
-	XFREE(d->data);
+	safe_free(d->name);
+	safe_free(d->data);
 }
 
 

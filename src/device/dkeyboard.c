@@ -155,7 +155,7 @@ static bool dkeyboard_init(parm_link_s *parm, device_s *dev)
 	keyboard_data_s *kd;
 	
 	/* Alloc structure */
-	kd = XXMALLOC(keyboard_data_s);
+	kd = safe_malloc_t(keyboard_data_s);
 	dev->data = kd;
 	
 	/* Initialization */
@@ -257,8 +257,8 @@ static bool dkeyboard_gen(parm_link_s *parm, device_s *dev)
  */
 static void keyboard_done(device_s *d)
 {
-	XFREE(d->name);
-	XFREE(d->data);
+	safe_free(d->name);
+	safe_free(d->data);
 }
 	
 

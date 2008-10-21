@@ -255,7 +255,7 @@ static device_s *alloc_device(const char *dtype, const char *dname)
 
 	/* Inicialization */
 	dev->type = *type;
-	dev->name = xstrdup(dname);
+	dev->name = safe_strdup(dname);
 	dev->data = NULL;
 	dev->next = NULL;
 
@@ -422,7 +422,7 @@ static bool system_mbd(parm_link_s *pl, void *data)
  */
 static bool system_break(parm_link_s *pl, void *data)
 {
-	mem_breakpoint_t *mem_bp = XXMALLOC(mem_breakpoint_t);
+	mem_breakpoint_t *mem_bp = safe_malloc_t(mem_breakpoint_t);
 	item_init(&mem_bp->item);
 	mem_bp->addr = pl->token.tval.i;
 	mem_bp->hits = 0;
@@ -477,7 +477,7 @@ static bool system_br(parm_link_s *pl, void *data)
 	for_each(mem_bps, mem_bp, mem_breakpoint_t) {
 		if (mem_bp->addr == addr) {
 			list_remove(&mem_bps, &mem_bp->item);
-			XFREE(mem_bp);
+			safe_free(mem_bp);
 			fnd = true;
 			break;
 		}
@@ -704,7 +704,7 @@ static char *generator_devtype(parm_link_s *pl, const void *data, int level)
 	else
 		str = dev_by_partial_typename("", &type);
 	
-	return str ? xstrdup(str) : NULL;
+	return str ? safe_strdup(str) : NULL;
 }
 
 
@@ -727,7 +727,7 @@ static char *generator_devname(parm_link_s *pl, const void *data, int level)
 	else
 		str = dev_by_partial_name("", &dev);
 	
-	return str ? xstrdup(str) : NULL;
+	return str ? safe_strdup(str) : NULL;
 }
 
 
@@ -756,7 +756,7 @@ static char *generator_system(parm_link_s *pl, const void *data, int level)
 	if (gen_type == device_name)
 		str = generator_devname(pl, NULL, level);
 
-	return str ? xstrdup(str) : NULL;
+	return str ? safe_strdup(str) : NULL;
 }
 
 

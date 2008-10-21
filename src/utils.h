@@ -15,16 +15,16 @@
 #include <stdlib.h>
 #include <stdbool.h>
 
-#define XFREE(x) { \
-	free(x); \
-	x = NULL; \
-}
+#define safe_free(ptr) \
+	{ \
+		free(ptr); \
+		ptr = NULL; \
+	}
 
-#define XXMALLOC(type) (xmalloc(sizeof(type)))
-#define XCMALLOC(type, count) (xmalloc(sizeof(type) * count))
+#define safe_malloc_t(type) (safe_malloc(sizeof(type)))
 
-extern void *xmalloc(size_t size);
-extern char *xstrdup(const char *str);
+extern void *safe_malloc(const size_t size);
+extern char *safe_strdup(const char *str);
 extern bool prefix(const char *pref, const char *str);
 
 #endif /* UTILS_H_ */

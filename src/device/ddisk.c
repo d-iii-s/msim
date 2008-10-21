@@ -326,7 +326,7 @@ static void try_munmap(void *s, size_t l)
  */
 static void ddisk_malloc(disk_data_s *dd)
 {
-	dd->img = xmalloc(dd->size);
+	dd->img = safe_malloc(dd->size);
 	memset(dd->img, 0, dd->size);
 	dd->disk_type = DISKT_MEM;
 }
@@ -341,7 +341,7 @@ static void ddisk_free(disk_data_s *dd)
 {
 	if (dd->disk_type == DISKT_MEM) {
 		dd->size = 0;
-		XFREE(dd->img);
+		safe_free(dd->img);
 		dd->disk_type = DISKT_NONE;
 	}
 }
@@ -403,7 +403,7 @@ static bool ddisk_init(parm_link_s *parm, device_s *dev)
 	}
 	
 	/* Allocate structure */
-	dev->data = dd = XXMALLOC(disk_data_s);
+	dev->data = dd = safe_malloc_t(disk_data_s);
 	
 	/* Basic structure inicialization */
 	parm_next(&parm);
@@ -768,8 +768,8 @@ static void ddisk_done(device_s *d) {
 
 	ddisk_clean_up(dd);
 	
-	XFREE(d->name);
-	XFREE(d->data);
+	safe_free(d->name);
+	safe_free(d->data);
 }
 	
 

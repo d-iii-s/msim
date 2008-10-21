@@ -120,7 +120,7 @@ static bool dtime_init(parm_link_s *parm, device_s *dev)
 	struct dtime_data_struct *td;
 	
 	/* Alloc the dtime structure. */
-	td = XXMALLOC(struct dtime_data_struct);
+	td = safe_malloc_t(struct dtime_data_struct);
 	dev->data = td;
 	
 	/* Inicialization */
@@ -185,8 +185,8 @@ static bool dtime_stat(parm_link_s *parm, device_s *dev)
  */
 static void dtime_done(device_s *d)
 {
-	XFREE(d->name);
-	XFREE(d->data);
+	safe_free(d->name);
+	safe_free(d->data);
 }
 
 

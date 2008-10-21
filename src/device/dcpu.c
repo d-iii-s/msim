@@ -229,7 +229,7 @@ static bool dcpu_init(parm_link_s *parm, device_s *dev)
 		return false;
 	}
 	
-	processor_t *cpu = XXMALLOC(processor_t);
+	processor_t *cpu = safe_malloc_t(processor_t);
 	processor_init(cpu, id);
 	
 	dev->data = cpu;
@@ -406,7 +406,7 @@ static bool dcpu_goto(parm_link_s *parm, device_s *dev)
  */
 static bool dcpu_break(parm_link_s *parm, device_s *dev)
 {
-	breakpoint_t *bp = XXMALLOC(breakpoint_t);
+	breakpoint_t *bp = safe_malloc_t(breakpoint_t);
 	item_init(&bp->item);
 	bp->pc = parm->token.tval.i;
 	bp->hits = 0;
@@ -446,7 +446,7 @@ static bool dcpu_br(parm_link_s *parm, device_s *dev)
 	for_each(pr->bps, bp, breakpoint_t) {
 		if (bp->pc == addr) {
 			list_remove(&pr->bps, &bp->item);
-			XFREE(bp);
+			safe_free(bp);
 			fnd = true;
 			break;
 		}
@@ -464,8 +464,8 @@ static bool dcpu_br(parm_link_s *parm, device_s *dev)
  */
 static void dcpu_done(device_s *dev)
 {
-	XFREE(dev->name);
-	XFREE(dev->data);
+	safe_free(dev->name);
+	safe_free(dev->data);
 }
 
 

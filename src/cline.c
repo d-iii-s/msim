@@ -63,7 +63,7 @@ void set_script_stage(const char *sname)
 	lineno = -1;
 	script_stage = true;
 	if (sname)
-		script_name = xstrdup(sname);
+		script_name = safe_strdup(sname);
 }
 
 
@@ -72,5 +72,5 @@ void set_script_stage(const char *sname)
 void unset_script_stage(void)
 {
 	script_stage = false;
-	XFREE(script_name);
+	safe_free(script_name);
 }

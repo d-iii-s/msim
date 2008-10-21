@@ -205,7 +205,7 @@ typedef struct mem_data_s mem_data_s;
  */
 static void mem_alloc_block(mem_data_s *md)
 {
-	void *mx = xmalloc(md->size);
+	void *mx = safe_malloc(md->size);
 	memset(mx, 0, md->size);
 	md->me->mem = (unsigned char *) mx;
 	md->mem_type = MEMT_MEM;
@@ -222,7 +222,7 @@ static void mem_struct(mem_data_s *md, bool alloc)
 	mem_element_s *e;
 	
 	/* Add memory element */
-	e = (mem_element_s *) xmalloc(sizeof(mem_element_s));
+	e = (mem_element_s *) safe_malloc_t(mem_element_s);
 	
 	md->me = e;
 	
@@ -324,13 +324,13 @@ static void mem_clean_up(mem_data_s *md)
 	case MEMT_MEM:
 		/* Free old memory block. */
 		mem_unlink(md->me);
-		XFREE(md->me->mem);
-		XFREE(md->me);
+		safe_free(md->me->mem);
+		safe_free(md->me);
 		break;
 	case MEMT_FMAP:
 		mem_unlink(md->me);
 		try_munmap(md->me->mem, md->size);
-		XFREE(md->me);
+		safe_free(md->me);
 		break;
 	}
 
@@ -349,7 +349,7 @@ static bool mem_init(parm_link_s *parm, device_s *dev)
 	mem_data_s *md;
 
 	/* Allocate memory structure */
-	dev->data = md = xmalloc(sizeof(*md));
+	dev->data = md = safe_malloc_t(mem_data_s);
 
 	/* Initialize */
 	parm_next(&parm);
@@ -362,7 +362,7 @@ static bool mem_init(parm_link_s *parm, device_s *dev)
 	/* Check */
 	if (!addr_word_aligned(md->start)) {
 		mprintf("Memory address must by 4-byte aligned.\n");
-		XFREE(md);
+		safe_free(md);
 		return false;
 	}
 
@@ -642,6 +642,6 @@ static void mem_done(device_s *d)
 
 	mem_clean_up(md);
 	
-	XFREE(d->name);
-	XFREE(d->data);
+	safe_free(d->name);
+	safe_free(d->data);
 }

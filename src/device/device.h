@@ -117,15 +117,6 @@ static const char *const txt_file_write_err	= "Could not write to file";
 static const char *const txt_unknown_cmd	= "Unknown command";
 static const char *const txt_file_seek_err	= "Could not seek in the file";
 
-/*
- * For info and stat output, please use info_printf at all times.
- * First parameter is a format string and other parameters are
- * optionally arguments as for printf().
- * INFO_SPC is a string constant useful for multi-line infos.
- */
-extern void info_printf(const char *fmt, ...);
-#define INFO_SPC "                      "
-
 /* 
  * Functions on device structures
  */

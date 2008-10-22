@@ -17,11 +17,11 @@
 #include <readline/readline.h>
 #include <readline/history.h>
 
-#include "include/console.h"
-#include "parser.h"
-#include "device/machine.h"
-#include "cmd.h"
-#include "utils.h"
+#include "../include/console.h"
+#include "../parser.h"
+#include "../device/machine.h"
+#include "../cmd.h"
+#include "../utils.h"
 
 #include "input.h"
 #include "output.h"

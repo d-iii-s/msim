@@ -10,18 +10,18 @@ CFLAGS = @CFLAGS@ -Wall -Wextra -Wno-unused-parameter -Wmissing-prototypes
 LIBS = @LIBS@
 
 SOURCES = \
-	output.c \
 	utils.c \
 	fault.c \
 	text.c \
 	env.c \
 	cline.c \
-	input.c \
 	cmd.c \
 	check.c \
 	main.c \
 	parser.c \
 	list.c \
+	io/input.c \
+	io/output.c \
 	cpu/processor.c \
 	cpu/instr.c \
 	debug/debug.c \

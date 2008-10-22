@@ -1,7 +1,6 @@
 randomization
 add the cycle device
 
-detect screen width - intelligent output (fit to the screen) - & test it
 input module - move all about input into this module
 add debug features - memory allocation
 	- first and last block check,

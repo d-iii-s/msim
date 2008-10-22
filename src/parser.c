@@ -17,7 +17,7 @@
 #include "parser.h"
 
 #include "mtypes.h"
-#include "output.h"
+#include "io/output.h"
 #include "check.h"
 #include "utils.h"
 #include "device/device.h"
@@ -1086,7 +1086,7 @@ void cmd_print_extended_help(parm_link_s *parm, const cmd_s *cmds)
 		return;
 	}
 	
-	mprintf_text("%s", cmd->descf);
+	mprintf("%s", cmd->descf);
 	mprintf("\n");
 	
 	/* Print parameters */
@@ -1107,10 +1107,15 @@ void cmd_print_extended_help(parm_link_s *parm, const cmd_s *cmds)
 			}
 			
 			/* Print short parameter name */
-			if (*(s+1) != CONC) {
+			if (*(s + 1) != CONC) {
+				char *p = safe_strdup(s + 2);
+				p[find_sname_len(s)] = 0;
+				
 				mprintf("<");
-				mprintf_n(find_sname_len(s), "%s", s + 2);
+				mprintf("%s", p);
 				mprintf(">");
+				
+				safe_free(p);
 			} else 
 				mprintf("%s", parm_skipq(s));
 			

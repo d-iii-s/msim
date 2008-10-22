@@ -26,7 +26,7 @@
 #include "parser.h"
 #include "endi.h"
 #include "cmd.h"
-#include "output.h"
+#include "io/output.h"
 #include "debug/gdb.h"
 #include "fault.h"
 #include "utils.h"

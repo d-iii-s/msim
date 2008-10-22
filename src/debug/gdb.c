@@ -22,7 +22,7 @@
 #include "../text.h"
 #include "../mtypes.h"
 #include "../fault.h"
-#include "../output.h"
+#include "../io/output.h"
 #include "../device/machine.h"
 #include "../parser.h"
 #include "../cpu/processor.h"

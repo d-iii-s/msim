@@ -51,18 +51,6 @@ device_s *device_step_list = NULL;
 device_s *device_step4_list = NULL;
 
 
-void info_printf(const char *fmt, ...)
-{
-	va_list ap;
-	va_start( ap, fmt);
-	
-	if (!((!fmt) || (!*fmt)))
-		vfprintf(stdout, fmt, ap);
-	
-	va_end(ap);
-}
-
-
 /** Iterate over the list of all device
  *
  */

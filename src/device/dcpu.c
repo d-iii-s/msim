@@ -17,7 +17,7 @@
 #include "device.h"
 #include "../cpu/processor.h"
 #include "../debug/debug.h"
-#include "../output.h"
+#include "../io/output.h"
 #include "../utils.h"
 
 #include "dcpu.h"
@@ -243,7 +243,7 @@ static bool dcpu_init(parm_link_s *parm, device_s *dev)
  */
 static bool dcpu_info(parm_link_s *parm, device_s *dev)
 {
-	mprintf_btag(INFO_SPC, "type:R4000.32\n");
+	mprintf("type:R4000.32\n");
 	return true;
 }
 
@@ -255,23 +255,20 @@ static bool dcpu_stat(parm_link_s *parm, device_s *dev)
 {
 	processor_t *p = dev->data;
 	
-	mprintf_btag(INFO_SPC, "cycles total:%llu " TBRK
-			"in kernel:%llu " TBRK "in user:%llu " TBRK
-			"in stdby:%llu " TBRK 
-			"tlb refill:%llu " TBRK "invalid: %llu " TBRK
-			"modified:%llu " TBRK
-			"interrupts 0:%llu 1:%llu 2:%llu 3:%llu 4:%llu 5:%llu 6:%llu 7:%llu\n",
-			(unsigned long long) p->k_cycles + p->u_cycles + p->w_cycles,
-			(unsigned long long) p->k_cycles,
-			(unsigned long long) p->u_cycles,
-			(unsigned long long) p->w_cycles,
-			(unsigned long long) p->tlb_refill,
-			(unsigned long long) p->tlb_invalid,
-			(unsigned long long) p->tlb_modified,
-			(unsigned long long) p->intr[0], (unsigned long long) p->intr[1],
-			(unsigned long long) p->intr[2], (unsigned long long) p->intr[3],
-			(unsigned long long) p->intr[4], (unsigned long long) p->intr[5],
-			(unsigned long long) p->intr[6], (unsigned long long) p->intr[7]);
+	mprintf("cycles total:%llu in kernel:%llu in user:%llu "
+		"in stdby:%llu tlb refill:%llu invalid: %llu modified:%llu "
+		"interrupts 0:%llu 1:%llu 2:%llu 3:%llu 4:%llu 5:%llu 6:%llu 7:%llu\n",
+		(unsigned long long) p->k_cycles + p->u_cycles + p->w_cycles,
+		(unsigned long long) p->k_cycles,
+		(unsigned long long) p->u_cycles,
+		(unsigned long long) p->w_cycles,
+		(unsigned long long) p->tlb_refill,
+		(unsigned long long) p->tlb_invalid,
+		(unsigned long long) p->tlb_modified,
+		(unsigned long long) p->intr[0], (unsigned long long) p->intr[1],
+		(unsigned long long) p->intr[2], (unsigned long long) p->intr[3],
+		(unsigned long long) p->intr[4], (unsigned long long) p->intr[5],
+		(unsigned long long) p->intr[6], (unsigned long long) p->intr[7]);
 	
 	return true;
 }
@@ -287,7 +284,7 @@ static bool dcpu_cp0d(parm_link_s *parm, device_s *dev)
 	if (parm->token.ttype == tt_int) {
 		no = parm->token.tval.i;
 		if ((no < 0) || (no > 31)) {
-			mprintf_btag(INFO_SPC, "Out of range (0..31).");
+			mprintf("Out of range (0..31).");
 			return false;
 		}
 	}

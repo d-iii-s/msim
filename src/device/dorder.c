@@ -18,7 +18,7 @@
 #include "device.h"
 #include "machine.h"
 #include "dcpu.h"
-#include "../output.h"
+#include "../io/output.h"
 #include "../parser.h"
 #include "../utils.h"
 
@@ -232,7 +232,7 @@ static bool dorder_info(parm_link_s *parm, device_s *dev)
 {
 	struct dorder_data_struct *od = dev->data;
 	
-	info_printf("address:0x%08x intno:%d\n", od->addr, od->intno);
+	mprintf("address:0x%08x intno:%d\n", od->addr, od->intno);
 
 	return true;
 }
@@ -249,7 +249,7 @@ static bool dorder_stat(parm_link_s *parm, device_s *dev)
 {
 	struct dorder_data_struct *od = dev->data;
 	
-	info_printf("total cmds count:%ld\n", od->cmds);
+	mprintf("total cmds count:%ld\n", od->cmds);
 
 	return true;
 }

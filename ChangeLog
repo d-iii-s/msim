@@ -1,5 +1,7 @@
-2008-09-26 Martin Decky <decky@dsrg.mff.cuni.cz>
+2008-10-22 Martin Decky <decky@dsrg.mff.cuni.cz>
 	Version 1.3.5
+	* initial support for building in MinGW
+	* code and data breakpoints
 
 2008-09-24 Martin Decky <decky@dsrg.mff.cuni.cz>
 	Version 1.3.4

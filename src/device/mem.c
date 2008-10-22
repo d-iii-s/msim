@@ -26,7 +26,7 @@
 #include "machine.h"
 #include "../fault.h"
 #include "../text.h"
-#include "../output.h"
+#include "../io/output.h"
 #include "../utils.h"
 
 
@@ -379,8 +379,8 @@ static bool mem_info(parm_link_s *parm, device_s *dev)
 	char s[8];
 	
 	cpr_num(s, md->size);
-	mprintf_btag(INFO_SPC, "start:0x%08x " TBRK "size:%s " TBRK
-		"type:%s\n", md->start, s, txt_mem_type[md->mem_type]);
+	mprintf("start:0x%08x size:%s type:%s\n",
+		md->start, s, txt_mem_type[md->mem_type]);
 	
 	return true;
 }
@@ -391,7 +391,7 @@ static bool mem_info(parm_link_s *parm, device_s *dev)
  */
 static bool mem_stat(parm_link_s *parm, device_s *dev)
 {
-	mprintf_btag(INFO_SPC, "no statistics\n");
+	mprintf("no statistics\n");
 	return true;
 }
 

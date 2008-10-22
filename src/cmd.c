@@ -25,7 +25,7 @@
 #include "device/machine.h"
 #include "debug/debug.h"
 #include "fault.h"
-#include "output.h"
+#include "io/output.h"
 #include "utils.h"
 #include "env.h"
 #include "cline.h"

@@ -20,7 +20,7 @@
 #include "../cpu/instr.h"
 #include "../cpu/processor.h"
 #include "../device/machine.h"
-#include "../output.h"
+#include "../io/output.h"
 #include "../env.h"
 
 #include "../device/dcpu.h"
@@ -462,7 +462,7 @@ void iview(processor_t *pr, uint32_t addr, instr_info *ii, char *regch)
 	if ((s_cmt[0]) && (regch[0]))
 		s_cmtx = ", ";
 	
-	mprintf_btag("\t\t\t\t\t# ", "%-4s%s%s  %-6s%-18s%-2s%s%s" TBRK "%s\n",
+	mprintf("%-4s%s%s  %-6s%-18s%-2s%s%s%s\n",
 		s_proc, s_addr, s_iopc, 
 		instr_names_acronym[ii->opcode].instr_text, s_parm,
 		s_hash, s_cmt, s_cmtx, regch);
@@ -494,7 +494,7 @@ void modified_regs_dump(processor_t *pr, size_t size, char *sx)
 	/* Test for general registers */
 	for (i = 0; i < 32; i++)
 		if (pr->regs[i] != pr->old_regs[i]) {
-			snprintf(s1, size, "%s, " TBRK "%s: 0x%x->0x%x", s2, regname[i],
+			snprintf(s1, size, "%s, %s: 0x%x->0x%x", s2, regname[i],
 				pr->old_regs[i], pr->regs[i]);
 			
 			s3 = s1;
@@ -507,10 +507,10 @@ void modified_regs_dump(processor_t *pr, size_t size, char *sx)
 	for (i = 0; i < 32; i++)
 		if ((pr->cp0[i] != pr->old_cp0[i]) && (i != cp0_Random) && (i != cp0_Count)) {
 			if (cp0name == cp0_name[2])
-				snprintf(s1, size, "%s, " TBRK "cp0_%s: 0x%08x->0x%08x", s2,
+				snprintf(s1, size, "%s, cp0_%s: 0x%08x->0x%08x", s2,
 					cp0name[i], pr->old_cp0[i], pr->cp0[i]);
 			else
-				snprintf(s1, size, "%s, " TBRK "cp0[%d]: 0x%08x->0x%08x", s2,
+				snprintf(s1, size, "%s, cp0[%d]: 0x%08x->0x%08x", s2,
 					i, pr->old_cp0[i], pr->cp0[i]);
 			
 			s3 = s1;
@@ -521,7 +521,7 @@ void modified_regs_dump(processor_t *pr, size_t size, char *sx)
 	
 	/* Test for loreg */
 	if (pr->loreg != pr->old_loreg) {
-		snprintf(s1, size, "%s, " TBRK "loreg: 0x%x->0x%x",
+		snprintf(s1, size, "%s, loreg: 0x%x->0x%x",
 			s2, pr->old_loreg, pr->loreg);
 			
 		s3 = s1;
@@ -532,7 +532,7 @@ void modified_regs_dump(processor_t *pr, size_t size, char *sx)
 
 	/* Test for hireg */
 	if (pr->hireg != pr->old_hireg) {
-		snprintf(s1, size, "%s, " TBRK "hireg: 0x%x->0x%x",
+		snprintf(s1, size, "%s, hireg: 0x%x->0x%x",
 			s2, pr->old_hireg, pr->hireg);
 		
 		s3 = s1;
@@ -550,7 +550,7 @@ void modified_regs_dump(processor_t *pr, size_t size, char *sx)
 
 static void dbg_dev_infodev(device_s *dev)
 {
-	mprintf_btag(NULL, "%-10s %-10s ", dev->name, dev->type->name);
+	mprintf("%-10s %-10s ", dev->name, dev->type->name);
 	cmd_run_by_name("info", &pars_end, dev->type->cmds, dev);
 }
 
@@ -581,7 +581,7 @@ void dbg_dev_dump(void)
 {
 	device_s *dev = NULL;
 	
-	printf("[  name  ] [  type  ] [ parameters...\n");
+	mprintf("[  name  ] [  type  ] [ parameters...\n");
 
 	if (dev_next(&dev)) {
 		do {
@@ -597,7 +597,7 @@ void dbg_dev_dump(void)
  */
 static void dbg_dev_statdev(device_s *dev)
 {
-	mprintf_btag(NULL, "%-10s %-10s ", dev->name, dev->type->name);
+	mprintf("%-10s %-10s ", dev->name, dev->type->name);
 	cmd_run_by_name("stat", &pars_end, dev->type->cmds, dev);
 }
 

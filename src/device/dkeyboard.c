@@ -19,7 +19,7 @@
 #include "dkeyboard.h"
 #include "device.h"
 #include "dcpu.h"
-#include "../output.h"
+#include "../io/output.h"
 #include "../utils.h"
 
 /* Register offsets */
@@ -195,8 +195,7 @@ static bool dkeyboard_info(parm_link_s *parm, device_s *dev)
 {
 	keyboard_data_s *kd = dev->data;
 	
-	mprintf_btag(INFO_SPC, "address:0x%08x " TBRK "intno:%d " TBRK
-			"regs(key:0x%02x " TBRK "ig:%d)\n",
+	mprintf("address:0x%08x intno:%d regs(key:0x%02x ig:%d)\n",
 			kd->addr, kd->intno, kd->incomming, kd->ig);
 	
 	return true;
@@ -210,8 +209,7 @@ static bool dkeyboard_stat(parm_link_s *parm, device_s *dev)
 {
 	keyboard_data_s *kd = dev->data;
 	
-	mprintf_btag(INFO_SPC, "intrc:%ld " TBRK "keycount:%ld " TBRK
-			"overrun:%ld\n",
+	mprintf("intrc:%ld keycount:%ld overrun:%ld\n",
 			kd->intrcount, kd->keycount, kd->overrun);
 	
 	return true;

@@ -19,7 +19,7 @@
 #include "../mtypes.h"
 #include "device.h"
 #include "../fault.h"
-#include "../output.h"
+#include "../io/output.h"
 #include "../utils.h"
 
 /* Registers */
@@ -222,7 +222,7 @@ static bool dprinter_stdout(parm_link_s *parm, device_s *dev)
 static bool dprinter_info(parm_link_s *parm, device_s *dev)
 {
 	printer_data_s *pd = dev->data;
-	mprintf_btag(INFO_SPC, "address:0x%08x\n", pd->addr);
+	mprintf("address:0x%08x\n", pd->addr);
 	return true;
 }
 
@@ -233,7 +233,7 @@ static bool dprinter_info(parm_link_s *parm, device_s *dev)
 static bool dprinter_stat(parm_link_s *parm, device_s *dev)
 {
 	printer_data_s *pd = dev->data;
-	mprintf_btag(INFO_SPC, "count:%lld\n", pd->count);
+	mprintf("count:%lld\n", pd->count);
 	return true;
 }
 

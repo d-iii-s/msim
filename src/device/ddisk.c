@@ -23,7 +23,7 @@
 #include "dcpu.h"
 #include "../fault.h"
 #include "../main.h"
-#include "../output.h"
+#include "../io/output.h"
 #include "../utils.h"
 
 
@@ -476,16 +476,15 @@ static bool ddisk_info(parm_link_s *parm, device_s *dev)
 		break;
 	}
 	
-	mprintf_btag(INFO_SPC, "address:0x%08x " TBRK "intno:%d " TBRK "size:%s " TBRK
-			"type:%s " TBRK "regs(mem:0x%08x " TBRK
-			"secno:%d " TBRK "status:0x%x " TBRK "ig:%d)\n",
-			(unsigned) dd->addr,
-			(int) dd->intno,
-			s, st,
-			(unsigned) dd->disk_wptr,
-			(int) dd->disk_secno,
-			(unsigned) dd->disk_status,
-			(int) dd->ig);
+	mprintf("address:0x%08x intno:%d size:%s type:%s regs(mem:0x%08x "
+		"secno:%d status:0x%x ig:%d)\n",
+		(unsigned) dd->addr,
+		(int) dd->intno,
+		s, st,
+		(unsigned) dd->disk_wptr,
+		(int) dd->disk_secno,
+		(unsigned) dd->disk_status,
+		(int) dd->ig);
 
 	return true;
 }
@@ -502,14 +501,12 @@ static bool ddisk_stat(parm_link_s *parm, device_s *dev)
 {
 	disk_data_s *dd = dev->data;
 
-	mprintf_btag(INFO_SPC, "intrc:%ulld " TBRK
-			"cmds total:%ulld " TBRK
-			"read:%ulld " TBRK "write:%ulld " TBRK "error:%ulld\n",
-			dd->intrcount,
-			dd->cmds_read + dd->cmds_write + dd->cmds_error,
-			dd->cmds_read,
-			dd->cmds_write,
-			dd->cmds_error);
+	mprintf("intrc:%ulld cmds total:%ulld read:%ulld write:%ulld error:%ulld\n",
+		dd->intrcount,
+		dd->cmds_read + dd->cmds_write + dd->cmds_error,
+		dd->cmds_read,
+		dd->cmds_write,
+		dd->cmds_error);
 
 	return true;
 }

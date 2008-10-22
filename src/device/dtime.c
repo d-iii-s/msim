@@ -18,7 +18,7 @@
 #include "dtime.h"
 
 #include "device.h"
-#include "../output.h"
+#include "../io/output.h"
 #include "../utils.h"
 
 /** \{ \name Register offsets */
@@ -158,7 +158,7 @@ static bool dtime_info(parm_link_s *parm, device_s *dev)
 {
 	struct dtime_data_struct *td = dev->data;
 	
-	mprintf_btag(INFO_SPC, "address:0x%08x\n", td->addr);
+	mprintf("address:0x%08x\n", td->addr);
 	
 	return true;
 }
@@ -173,7 +173,7 @@ static bool dtime_info(parm_link_s *parm, device_s *dev)
  */
 static bool dtime_stat(parm_link_s *parm, device_s *dev)
 {
-	mprintf_btag(INFO_SPC, "no statistics\n");
+	mprintf("no statistics\n");
 	return true;
 }
 

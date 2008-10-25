@@ -34,7 +34,8 @@ SOURCES = \
 	device/dorder.c \
 	device/dprinter.c \
 	device/dtime.c \
-	device/device.c
+	device/device.c \
+	arch/win32/mmap.c
 
 OBJECTS := $(addsuffix .o,$(basename $(SOURCES)))
 

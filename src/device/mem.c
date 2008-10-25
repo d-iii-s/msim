@@ -20,7 +20,7 @@
 
 #include "mem.h"
 
-#include "../include/mmap.h"
+#include "../arch/mmap.h"
 #include "../parser.h"
 #include "device.h"
 #include "machine.h"

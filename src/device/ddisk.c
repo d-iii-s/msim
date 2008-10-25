@@ -18,7 +18,7 @@
 
 #include "ddisk.h"
 
-#include "../include/mmap.h"
+#include "../arch/mmap.h"
 #include "machine.h"
 #include "dcpu.h"
 #include "../fault.h"

@@ -17,7 +17,7 @@
 #include <readline/readline.h>
 #include <readline/history.h>
 
-#include "../include/console.h"
+#include "../arch/console.h"
 #include "../parser.h"
 #include "../device/machine.h"
 #include "../cmd.h"

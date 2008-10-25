@@ -11,17 +11,10 @@
 
 #ifdef __WIN32__
 
-/**
- *
- * Dummy definitions for compatibility
- * with sys/mman.h.
- *
- */
-
-#define mmap(addr, length, prot, flags, fd, offset)  NULL
-#define munmap(addr, length)  0
-
 #define MAP_FAILED  ((void *) -1)
+
+extern void *mmap(void *addr, size_t length, int prot, int flags, int fd, off_t offset);
+extern int munmap(void *addr, size_t length);
 
 #else
 

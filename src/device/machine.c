@@ -15,7 +15,7 @@
 
 #include "machine.h"
 
-#include "../include/signal.h"
+#include "../arch/signal.h"
 #include "../cpu/processor.h"
 #include "../io/input.h"
 #include "../io/output.h"

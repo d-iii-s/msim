@@ -15,7 +15,7 @@
 #include <sys/time.h>
 #include <stdbool.h>
 
-#include "../include/select.h"
+#include "../arch/select.h"
 #include "dkeyboard.h"
 #include "device.h"
 #include "dcpu.h"

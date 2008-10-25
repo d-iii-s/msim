@@ -16,7 +16,7 @@
 #include <stdbool.h>
 #include <sys/types.h>
 
-#include "../include/network.h"
+#include "../arch/network.h"
 #include "../main.h"
 #include "gdb.h"
 #include "../text.h"

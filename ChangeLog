@@ -1,7 +1,8 @@
-2008-10-22 Martin Decky <decky@dsrg.mff.cuni.cz>
+2008-10-26 Martin Decky <decky@dsrg.mff.cuni.cz>
 	Version 1.3.5
 	* initial support for building in MinGW
 	* code and data breakpoints
+	* support WATCH exception (thx Lubomir Bulej)
 
 2008-09-24 Martin Decky <decky@dsrg.mff.cuni.cz>
 	Version 1.3.4

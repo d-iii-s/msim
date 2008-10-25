@@ -113,7 +113,7 @@ static void print_statistics(void)
 	if (msteps == 0)
 		return;
 	
-	printf("\nCycles: %lld\n", msteps);
+	mprintf("\nCycles: %lld\n", msteps);
 }
 
 
@@ -267,7 +267,7 @@ uint32_t mem_read(processor_t *pr, uint32_t addr)
 	mem_breakpoint_t *mem_bp;
 	for_each(mem_bps, mem_bp, mem_breakpoint_t) {
 		if ((mem_bp->addr == addr) && (mem_bp->rd)) {
-			mprintf("\nDebug: Read from address %08x\n\n", mem_bp->addr);
+			mprintf("\nDebug: Read from address %#08x\n\n", mem_bp->addr);
 			mem_bp->hits++;
 			interactive = true;
 			break;
@@ -355,7 +355,7 @@ void mem_write(processor_t *pr, uint32_t addr, uint32_t val, int size)
 	mem_breakpoint_t *mem_bp;
 	for_each(mem_bps, mem_bp, mem_breakpoint_t) {
 		if ((mem_bp->addr == addr) && (mem_bp->wr)) {
-			mprintf("\nDebug: Written to address %08x\n\n", mem_bp->addr);
+			mprintf("\nDebug: Written to address %#08x\n\n", mem_bp->addr);
 			mem_bp->hits++;
 			interactive = true;
 			break;

@@ -152,7 +152,7 @@ void interactive_control(void)
 	tobreak = false;
 
 	if (reenter) {
-		printf("\n");
+		mprintf("\n");
 		reenter = false;
 	}
 

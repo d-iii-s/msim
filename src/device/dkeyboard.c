@@ -172,14 +172,14 @@ static bool dkeyboard_init(parm_link_s *parm, device_s *dev)
 
 	/* Address alignment */
 	if (!addr_word_aligned(kd->addr)) {
-		mprintf("Keyboard address must be on 4-byte aligned.\n");
+		mprintf("Keyboard address must be on 4-byte aligned\n");
 		free(kd);
 		return false;
 	}
 
 	/* Interrupt no */
 	if (kd->intno > 6) {
-		mprintf("Interrupt number must be within 0..6.\n");
+		mprintf("Interrupt number must be within 0..6\n");
 		free(kd);
 		return false;
 	}
@@ -193,10 +193,12 @@ static bool dkeyboard_init(parm_link_s *parm, device_s *dev)
  */
 static bool dkeyboard_info(parm_link_s *parm, device_s *dev)
 {
-	keyboard_data_s *kd = dev->data;
+	keyboard_data_s *kb = dev->data;
 	
-	mprintf("address:0x%08x intno:%d regs(key:0x%02x ig:%d)\n",
-			kd->addr, kd->intno, kd->incomming, kd->ig);
+	mprintf("Address    Int no Key  Ig\n");
+	mprintf("---------- ------ ---- ------\n");
+	mprintf("%#08x %-6u %#02x %u\n",
+		kb->addr, kb->intno, kb->incomming, kb->ig);
 	
 	return true;
 }
@@ -209,7 +211,9 @@ static bool dkeyboard_stat(parm_link_s *parm, device_s *dev)
 {
 	keyboard_data_s *kd = dev->data;
 	
-	mprintf("intrc:%ld keycount:%ld overrun:%ld\n",
+	mprintf("Interrupt count  Key count  Overrun\n");
+	mprintf("---------------- ---------- ---------\n");
+	mprintf("%ld %ld %ld\n",
 			kd->intrcount, kd->keycount, kd->overrun);
 	
 	return true;
@@ -231,13 +235,13 @@ static bool dkeyboard_gen(parm_link_s *parm, device_s *dev)
 		c = parm_str(parm)[ 0];
 
 		if ((!c) || (parm_str(parm)[ 1])) {
-			mprintf("Invalid key (must be exactly one character).\n");
+			mprintf("Invalid key (must be exactly one character)\n");
 			return false;
 		}
 	} else {
 		/* Parameter is integer - interpret is as ASCII value. */
 		if (parm_int(parm) > 255) {
-			mprintf("Invalid key (must be within 0..255).\n");
+			mprintf("Invalid key (must be within 0..255)\n");
 			return false;
 		}
 

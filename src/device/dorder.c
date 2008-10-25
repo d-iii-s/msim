@@ -12,6 +12,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <stdbool.h>
+#include <inttypes.h>
 
 #include "dorder.h"
 
@@ -134,7 +135,7 @@ struct dorder_data_struct {
 	uint32_t addr;		/**< Dorder address */
 	int intno;		/**< Interrupt number */
 
-	long cmds;		/**< Total number of commands */
+	uint64_t cmds;		/**< Total number of commands */
 };
 
 
@@ -199,20 +200,20 @@ static bool dorder_init(parm_link_s *parm, device_s *dev)
 
 	/* Address alignment */
 	if (!addr_word_aligned(od->addr)) {
-		mprintf("Dorder address must be 4-byte aligned.\n");
+		mprintf("Dorder address must be 4-byte aligned\n");
 		safe_free(od);
 		return false;
 	}
 
 	/* Address limit */
 	if ((unsigned long long) od->addr + (unsigned long long) REGISTER_LIMIT > 0x100000000ull) {
-		mprintf("Invalid address; registers would exceed the 4GB limit.\n");
+		mprintf("Invalid address; registers would exceed the 4 GB limit\n");
 		return false;
 	}
 
 	/* Interrupt number */
 	if ((od->intno < 0) || (od->intno > 6)) {
-		mprintf("Interrupt number must be within 0..6.\n");
+		mprintf("Interrupt number must be within 0..6\n");
 		safe_free(od);
 		return false;
 	}
@@ -232,7 +233,9 @@ static bool dorder_info(parm_link_s *parm, device_s *dev)
 {
 	struct dorder_data_struct *od = dev->data;
 	
-	mprintf("address:0x%08x intno:%d\n", od->addr, od->intno);
+	mprintf("Address    Int no\n");
+	mprintf("---------- ------\n");
+	mprintf("%#08x %d\n", od->addr, od->intno);
 
 	return true;
 }
@@ -249,7 +252,9 @@ static bool dorder_stat(parm_link_s *parm, device_s *dev)
 {
 	struct dorder_data_struct *od = dev->data;
 	
-	mprintf("total cmds count:%ld\n", od->cmds);
+	mprintf("Command count\n");
+	mprintf("--------------------\n");
+	mprintf("%" PRIu64 "\n", od->cmds);
 
 	return true;
 }

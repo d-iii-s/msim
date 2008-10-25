@@ -844,7 +844,7 @@ bool cmd_run_by_spec(const cmd_s *cmd, parm_link_s *parm, void *data)
 	while ((*s != CONTC) && (*s != ENDC)) {
 		/* Check the first quantifier */
 		if ((*s != OPTC) && (*s != REQC)) {
-			mprintf_err("Internal error: invalid parameter quantifier: \"%s\".\n", s);
+			mprintf_err("Internal error (invalid parameter quantifier \"%s\")\n", s);
 			return false;
 		}
 		
@@ -860,39 +860,39 @@ bool cmd_run_by_spec(const cmd_s *cmd, parm_link_s *parm, void *data)
 		switch (*(s + 1)) {
 		case INTC:
 			if (p->token.ttype != tt_int) {
-				mprintf_err("Invalid argument, integer <%s> required.\n", find_lname(s));
+				mprintf_err("Invalid argument (integer <%s> required)\n", find_lname(s));
 				return false;
 			}
 			break;
 		case STRC:
 			if (p->token.ttype != tt_str) {
-				mprintf_err("Invalid argument, string <%s> required.\n", find_lname(s));
+				mprintf_err("Invalid argument (string <%s> required)\n", find_lname(s));
 				return false;
 			}
 			break;
 		case VARC:
 			if ((p->token.ttype != tt_int) && (p->token.ttype != tt_str)) {
-				mprintf_err("Invalid argument, string or integer <%s> required.\n", find_lname(s));
+				mprintf_err("Invalid argument (string or integer <%s> required)\n", find_lname(s));
 				return false;
 			}
 			break;
 		case CONC:
 			if ((p->token.ttype != tt_str) || (strcmp(parm_skipq(s), p->token.tval.s))) {
-				mprintf_err("Invalid argument, string \"%s\" required.\n", find_lname(s));
+				mprintf_err("Invalid argument (string <%s> required)\n", find_lname(s));
 				return false;
 			}
 			break;
 		default:
-			mprintf_err("Internall error: Invalid parameter type.\n");
+			mprintf_err("Internal error (invalid parameter type)\n");
 			return false;
 		}
 		
 		s = find_next_parm(s);  /* Next parameter */
-		parm_next(&p);			/* Next token */
+		parm_next(&p);          /* Next token */
 	}
 
 	if ((*s == ENDC) && (p->token.ttype != tt_end)) {
-		mprintf_err("Too many parameters.\n");
+		mprintf_err("Too many parameters\n");
 		return false;
 	}
 	
@@ -1019,8 +1019,9 @@ void cmd_print_help(const cmd_s *cmds)
 	PRE(cmds != NULL);
 
 	cmds++;
-
-	mprintf("List of available commands:\n");
+	
+	mprintf("Command & arguments  Description\n");
+	mprintf("-------------------- -------------------->\n");
 
 	while (cmds->name) {
 		int opt = 0;
@@ -1086,8 +1087,7 @@ void cmd_print_extended_help(parm_link_s *parm, const cmd_s *cmds)
 		return;
 	}
 	
-	mprintf("%s", cmd->descf);
-	mprintf("\n");
+	mprintf("%s\n\n", cmd->descf);
 	
 	/* Print parameters */
 	opt = 0;
@@ -1128,7 +1128,7 @@ void cmd_print_extended_help(parm_link_s *parm, const cmd_s *cmds)
 			mprintf("]");
 		
 		if (par) {
-			mprintf("\nwhere:\n");
+			mprintf("\n\n");
 			
 			for (s = cmd->pars; (*s != ENDC) && (*s != CONTC); s = find_next_parm(s))
 				if (*(s + 1) != CONC) {

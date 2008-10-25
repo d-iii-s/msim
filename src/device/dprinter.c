@@ -13,6 +13,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <stdbool.h>
+#include <inttypes.h>
 
 #include "dprinter.h"
 
@@ -153,7 +154,7 @@ static bool dprinter_init(parm_link_s *parm, device_s *dev)
 	
 	/* Check address alignment */
 	if (!addr_word_aligned(pd->addr)) {
-		mprintf("Printer address must be in the 4-byte boundary.\n");
+		mprintf("Printer address must be in the 4-byte boundary\n");
 		free(pd);
 		return false;
 	}
@@ -222,7 +223,11 @@ static bool dprinter_stdout(parm_link_s *parm, device_s *dev)
 static bool dprinter_info(parm_link_s *parm, device_s *dev)
 {
 	printer_data_s *pd = dev->data;
-	mprintf("address:0x%08x\n", pd->addr);
+	
+	mprintf("Address\n");
+	mprintf("----------\n");
+	mprintf("%#08x\n", pd->addr);
+	
 	return true;
 }
 
@@ -233,7 +238,11 @@ static bool dprinter_info(parm_link_s *parm, device_s *dev)
 static bool dprinter_stat(parm_link_s *parm, device_s *dev)
 {
 	printer_data_s *pd = dev->data;
-	mprintf("count:%lld\n", pd->count);
+	
+	mprintf("Count\n");
+	mprintf("--------------------\n");
+	mprintf("%" PRIx64 "\n", pd->count);
+	
 	return true;
 }
 

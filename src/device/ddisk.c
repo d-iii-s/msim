@@ -398,7 +398,7 @@ static bool ddisk_init(parm_link_s *parm, device_s *dev)
 	disk_data_s *dd;
 	
 	if (dev->data) {
-		mprintf("Reinicialization is not allowed.\n");
+		mprintf("Reinicialization is not allowed\n");
 		return false;
 	}
 	
@@ -428,14 +428,14 @@ static bool ddisk_init(parm_link_s *parm, device_s *dev)
 
 	/* Address alignment */
 	if (!addr_word_aligned(dd->addr)) {
-		mprintf("Disk address must be 4-byte aligned.\n");
+		mprintf("Disk address must be 4-byte aligned\n");
 		free(dd);
 		return false;
 	}
 
 	/* Address limit */
 	if ((unsigned long long) dd->addr + (unsigned long long) REGISTER_LIMIT > 0x100000000ull) {
-		mprintf("Invalid address; registers would exceed the 4GB limit.\n");
+		mprintf("Invalid address; registers would exceed the 4GB limit\n");
 		return false;
 	}
 

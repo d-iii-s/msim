@@ -133,7 +133,7 @@ const set_t env_set[] =	{
 	},
 	{
 		"iaddr",
-		"Set whether to display instruction addresses.",
+		"Set whether to display instruction addresses",
 		"The iaddr variable sets displaying address of each disassembled "
 			"instruction. This feature is useful especially together with the trace "
 			"variable.",
@@ -143,7 +143,7 @@ const set_t env_set[] =	{
 	},
 	{
 		"iopc",
-		"Set when instruction opcodes should be displayed.",
+		"Set when instruction opcodes should be displayed",
 		"Set this variable to show instruction opcodes. Althrow an instruction "
 			"opcode is not a human friendly representation, there exists"
 			"reasons when the opcode knowledge may help (debugging random write "
@@ -154,7 +154,7 @@ const set_t env_set[] =	{
 	},
 	{
 		"icmt",
-		"Allows commants for instructions.",
+		"Allow comments for instructions",
 		"Set this variable to show information about the disassembled instruction. "
 			"Currenty this is the hex to decimal parameter conversion.",
 		vt_bool,
@@ -163,7 +163,7 @@ const set_t env_set[] =	{
 	},
 	{
 		"iregch",
-		"Set whether to display register changes.",
+		"Set whether to display register changes",
 		"This is a debugging feature - registers which has been modified during "
 			"instruction execution are displayed together with a previous and a new "
 			"value.",
@@ -173,7 +173,7 @@ const set_t env_set[] =	{
 	},
 	{
 		"ireg",
-		"Set register name mode.",
+		"Set register name mode",
 		"There are several modes how register names could be displayed. The first one "
 			"is technical - every register name consist of the 'r' prefix following "
 			"the register number (example - r0, r12, r22, etc.). The second one "
@@ -195,7 +195,7 @@ const set_t env_set[] =	{
 	},
 	{
 		"trace",
-		"Set disassembling of instructions as they are executed.",
+		"Set disassembling of instructions as they are executed",
 		"Via the trace variable you may choose whether all instructions should "
 			"be disassembled as they are executed.",
 		vt_bool,
@@ -214,7 +214,7 @@ const set_t env_set[] =	{
 static bool change_ireg(int i)
 {
 	if (i > 2) {
-		mprintf("Index out of range 0..2.\n");
+		mprintf("Index out of range 0..2\n");
 		return false;
 	}
 	
@@ -231,13 +231,14 @@ static bool change_ireg(int i)
 static void print_all_variables(void)
 {
 	const set_t *s = env_set;
-
-	mprintf("List of all variables:\n");
+	
+	mprintf("Group                  Variable   Value\n");
+	mprintf("---------------------- ---------- ----------\n");
 	
 	while (s->name) {
 		if (s->val) {
 			/* Variable */
-			mprintf("\t%s = ", s->name);
+			mprintf("                       %-10s ", s->name);
 			switch (s->type) {
 			case vt_int:
 				mprintf("%d", *(int *) s->val);
@@ -356,7 +357,7 @@ static const set_t *search_variable(const char *var_name)
 			break;
 	
 	if (!s->name) {
-		mprintf("Unknown variable %s.\n", var_name);
+		mprintf("Unknown variable \"%s\"\n", var_name);
 		return NULL;
 	}
 
@@ -367,7 +368,7 @@ static const set_t *search_variable(const char *var_name)
 /** Print help text about variables
  *
  * There are two types of help. The short one when the user typed "set help"
- * prints just all variables with a shor description. The long variant is
+ * prints just all variables with a short description. The long variant is
  * used when the user specify the variable name ("set help=var_name").
  *
  * @param parm Parameter points to the token following the "help" token.
@@ -376,17 +377,19 @@ static void show_help(parm_link_s *parm)
 {
 	const set_t *s;
 
-	if (parm_type(parm) == tt_end)
+	if (parm_type(parm) == tt_end) {
+		mprintf("Group                  Variable   Description\n");
+		mprintf("---------------------- ---------- ------------->\n");
 		for (s = env_set; s->name; s++) {
 			if (s->val)
 				/* Variable */
-				mprintf("\t%s  %s", s->name, s->desc);
+				mprintf("                       %-10s %s", s->name, s->desc);
 			else
 				/* Label */
 				mprintf("%s", s->desc);
 			mprintf("\n");
 		}
-	else {
+	} else {
 		s = search_variable(parm_str(parm->next));
 		if (s)
 			mprintf("%s\n", s->descf);
@@ -496,7 +499,7 @@ static bool set_variable(parm_link_s *parm)
 		return set_int(s, parm);
 	case vt_bool:
 		if (!bool_sanitize(parm)) {
-			mprintf("Boolean parameter expected.\n");
+			mprintf("Boolean parameter expected\n");
 			return false;
 		}
 		return set_bool(s, parm);

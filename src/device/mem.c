@@ -361,7 +361,7 @@ static bool mem_init(parm_link_s *parm, device_s *dev)
 
 	/* Check */
 	if (!addr_word_aligned(md->start)) {
-		mprintf("Memory address must by 4-byte aligned.\n");
+		mprintf("Memory address must by 4-byte aligned\n");
 		safe_free(md);
 		return false;
 	}
@@ -379,7 +379,9 @@ static bool mem_info(parm_link_s *parm, device_s *dev)
 	char s[8];
 	
 	cpr_num(s, md->size);
-	mprintf("start:0x%08x size:%s type:%s\n",
+	mprintf("Start      Size         Type\n");
+	mprintf("---------- ------------ ------\n");
+	mprintf("%#08x %-12s %s\n",
 		md->start, s, txt_mem_type[md->mem_type]);
 	
 	return true;
@@ -391,7 +393,7 @@ static bool mem_info(parm_link_s *parm, device_s *dev)
  */
 static bool mem_stat(parm_link_s *parm, device_s *dev)
 {
-	mprintf("no statistics\n");
+	mprintf("No statistics\n");
 	return true;
 }
 
@@ -453,13 +455,13 @@ static bool mem_fill(parm_link_s *parm, device_s *dev)
 		s = parm_str(parm);
 		c = s[0];
 		if ((!c) || (s[1])) {
-			mprintf("Invalid character.\n");
+			mprintf("Invalid character\n");
 			return false;
 		}
 		break;
 	case tt_int:
 		if (parm_int(parm) > 255) {
-			mprintf( "Integer out of range 0..255\n");
+			mprintf("Integer out of range 0..255\n");
 			return false;
 		}
 		c = parm_int(parm);
@@ -510,13 +512,13 @@ static bool mem_fmap(parm_link_s *parm, device_s *dev)
 	}
 	
 	if (offset == 0) {
-		mprintf("Empty file.\n");
+		mprintf("Empty file\n");
 		try_soft_close(fd, filename);
 		return false;
 	}
 	
 	if ((unsigned long long) md->start + (unsigned long long) offset > 0x100000000ull) {
-		mprintf("Mapped file exceeds the 4GB limit.\n");
+		mprintf("Mapped file exceeds the 4 GB limit\n");
 		try_soft_close(fd, filename);
 		return false;
 	}
@@ -565,18 +567,18 @@ static bool mem_generic(parm_link_s *parm, device_s *dev)
 
 	/* Test parameter */
 	if (size & 0x3) {
-		mprintf("Memory size must be 4-byte aligned.\n");
+		mprintf("Memory size must be 4-byte aligned\n");
 		return false;
 	}
 	
 	if (size == 0) {
-		mprintf("Memory size is illegal.\n");
+		mprintf("Memory size is illegal\n");
 		return false;
 	}
 	
 	if ((unsigned long long) md->start + (unsigned long long) size > 0x100000000ull)
 	{
-		mprintf("Memory would exceed the 4GB limit.\n");
+		mprintf("Memory would exceed the 4 GB limit\n");
 		return false;
 	}
 	

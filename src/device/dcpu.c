@@ -225,7 +225,7 @@ static bool dcpu_init(parm_link_s *parm, device_s *dev)
 	unsigned int id = cpu_get_free_id();
 	
 	if (id == MAX_CPU) {
-		mprintf("Maximum CPU count exceeded (%u).", MAX_CPU);
+		mprintf("Maximum CPU count exceeded (%u)", MAX_CPU);
 		return false;
 	}
 	

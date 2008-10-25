@@ -131,14 +131,14 @@ static bool dtime_init(parm_link_s *parm, device_s *dev)
 
 	/* Address alignment */
 	if (!addr_word_aligned(td->addr)) {
-		mprintf("Dtime address must be 4-byte aligned.\n");
+		mprintf("Dtime address must be 4-byte aligned\n");
 		free(td);
 		return false;
 	}
 
 	/* Address limit */
 	if ((unsigned long long) td->addr + (unsigned long long) REGISTER_LIMIT > 0x100000000ull) {
-		mprintf("Invalid address; registers would exceed the 4GB limit.\n");
+		mprintf("Invalid address; registers would exceed the 4 GB limit\n");
 		return false;
 	}
 
@@ -158,7 +158,9 @@ static bool dtime_info(parm_link_s *parm, device_s *dev)
 {
 	struct dtime_data_struct *td = dev->data;
 	
-	mprintf("address:0x%08x\n", td->addr);
+	mprintf("Address\n");
+	mprintf("----------\n");
+	mprintf("%#08x\n", td->addr);
 	
 	return true;
 }
@@ -173,7 +175,7 @@ static bool dtime_info(parm_link_s *parm, device_s *dev)
  */
 static bool dtime_stat(parm_link_s *parm, device_s *dev)
 {
-	mprintf("no statistics\n");
+	mprintf("No statistics\n");
 	return true;
 }
 

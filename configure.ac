@@ -3,11 +3,6 @@ AC_INIT
 AC_PROG_CC
 AC_PROG_INSTALL
 
-AC_PATH_PROG(STRIP, strip, no, $PATH:/sbin:/usr/sbin:/usr/local/sbin)
-if [[ "$STRIP" = "no" ]] ; then
-	AC_MSG_ERROR("Utility strip not found.")
-fi
-
 AC_CHECK_LIB(readline, readline,, [AC_MSG_FAILURE(Library readline not found.)])
 AC_CHECK_LIB(wsock32, main)
 

@@ -6,7 +6,6 @@
 #
 
 INSTALL = @INSTALL@
-STRIP = @STRIP@
 PREFIX = @prefix@
 
 .PHONY: all msim install uninstall clean distclean
@@ -16,9 +15,8 @@ msim:
 	cd src && $(MAKE)
 
 install: msim
-	$(STRIP) src/msim
 	$(INSTALL) -d $(PREFIX)/bin
-	$(INSTALL) -m 755 -o root src/msim $(PREFIX)/bin/msim
+	$(INSTALL) -s -m 755 src/msim $(PREFIX)/bin/msim
 
 uninstall:
 	rm -f $(PREFIX)/bin/msim

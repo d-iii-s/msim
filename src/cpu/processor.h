@@ -622,8 +622,13 @@ typedef struct {
 	unsigned int branch;
 	
 	/* LL and SC track support */
-	bool llval;      /* Track the address flag */
-	addr_t lladdr; /* Physical tracked address */
+	bool llval;     /* Track the address flag */
+	addr_t lladdr;  /* Physical tracked address */
+	
+	/* watch support */
+	uint64_t waddr;
+	addr_t wexcaddr;
+	bool wpending;
 	
 	/* statistics */
 	unsigned long long k_cycles;

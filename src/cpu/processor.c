@@ -45,6 +45,23 @@
 		res = excTr;
 
 
+/**< TLB lookup result */
+typedef enum {
+	TLBL_OK,
+	TLBL_REFILL,
+	TLBL_INVALID,
+	TLBL_MODIFIED
+} tlb_look_t;
+
+
+/**< Memory access mode */
+typedef enum {
+	AM_FETCH,
+	AM_READ,
+	AM_WRITE
+} acc_mode_t;
+
+
 /** Initialize simulation environment
  *
  */
@@ -112,6 +129,11 @@ void processor_init(processor_t *pr, unsigned int procno)
 	
 	pr->tlb[0].next = 0;
 	
+	/* Watches */
+	pr->waddr = 0;
+	pr->wexcaddr = 0;
+	pr->wpending = false;
+	
 	/* Breakpoints */
 	list_init(&pr->bps);
 }
@@ -139,20 +161,15 @@ void set_pc(processor_t *pr, addr_t value)
 }
 
 
-enum tlb_look_e {
-	tlbl_ok,
-	tlbl_refill,
-	tlbl_invalid,
-	tlbl_modified
-};
+
 
 
 /** Address traslation through the TLB table
  *
- * See tlbl_look_e definition
+ * See tlbl_look_t definition
  *
  */
-static enum tlb_look_e tlb_look(processor_t *pr, addr_t *addr, bool wr)
+static tlb_look_t tlb_look(processor_t *pr, addr_t *addr, bool wr)
 {
 	tlb_ent *e;
 	tlb_ent *prev;
@@ -160,7 +177,7 @@ static enum tlb_look_e tlb_look(processor_t *pr, addr_t *addr, bool wr)
 	
 	/* Ignore TLB test */
 	if (cp0_status_ts == 1)
-		return tlbl_ok;
+		return TLBL_OK;
 	
 	/* Looking for the TBL hit */
 	for (prev = 0, e = pr->tlblist; e; prev = e, e = e->next) {
@@ -176,10 +193,10 @@ static enum tlb_look_e tlb_look(processor_t *pr, addr_t *addr, bool wr)
 			
 			/* Test valid & dirty */
 			if (!e->pg[subpageno].valid)
-				return tlbl_invalid; 
+				return TLBL_INVALID;
 			
 			if ((wr) && (!e->pg[subpageno].dirty))
-				return tlbl_modified; 
+				return TLBL_MODIFIED; 
 			
 			/* Make address */
 			a &= ~smask;
@@ -192,11 +209,11 @@ static enum tlb_look_e tlb_look(processor_t *pr, addr_t *addr, bool wr)
 				pr->tlblist = e;
 			}
 			
-			return tlbl_ok;
+			return TLBL_OK;
 		}
 	}
 
-	return tlbl_refill;
+	return TLBL_REFILL;
 }
 
 
@@ -232,21 +249,21 @@ static void fill_addr_error(processor_t *pr, addr_t addr, bool h)
 static enum exc tlb_hit(processor_t *pr, addr_t *addr, bool wr, bool h)
 {
 	switch (tlb_look(pr, addr, wr)) {
-	case 0: /* OK */
+	case TLBL_OK:
 		break;
-	case 1: /* Refill */
+	case TLBL_REFILL:
 		if (h) {
 			pr->tlb_refill++;
 			fill_tlb_error(pr, *addr);
 		}
 		return excTLBR;
-	case 2: /* Invalid */
+	case TLBL_INVALID:
 		if (h) {
 			pr->tlb_invalid++;
 			fill_tlb_error(pr, *addr);
 		}
 		return excTLB;
-	case 3: /* Modified */
+	case TLBL_MODIFIED:
 		if (h) {
 			pr->tlb_modified++;
 			fill_tlb_error(pr, *addr);
@@ -353,23 +370,43 @@ static enum exc mem_align_test(processor_t *pr, addr_t addr, len_t size, bool h)
  *
  * If the exception occures, the value does not change.
  *
- * @param wr    operation type specification
- * @param addr  memory address
- * @param size  argument size in bytes - 1, 2, 4
- * @param value the value which has to be written/read to
- * @param h     generate exception in case of invalid operation
+ * @param mode  Memory access mode
+ * @param addr  Memory address
+ * @param size  Argument size in bytes - 1, 2, 4
+ * @param value The value which has to be written/read to
+ * @param h     Generate exception in case of invalid operation
  *
  */
-static enum exc acc_mem(processor_t *pr, bool wr, addr_t addr, len_t size, uint32_t *value, bool h)
+static enum exc acc_mem(processor_t *pr, acc_mode_t mode, addr_t addr, len_t size, uint32_t *value, bool h)
 {
 	enum exc res;
 	
 	res = mem_align_test(pr, addr, size, h);
 	if (res == excNone) {
-		res = convert_addr(pr, &addr, wr, h);
+		res = convert_addr(pr, &addr, mode == AM_WRITE, h);
+		
+		/* Check for watched address */
+		if ((cp0_watchlo_r && mode == AM_READ)
+			|| (cp0_watchlo_w && mode == AM_WRITE)) {
+			
+			/* The matching is done on
+			   8-byte aligned addresses */
+			
+			if (pr->waddr == (addr >> 3)) {
+				/* 
+				 * If EXL is set, the exception has to be postponed,
+				 * the memory access should (probably) proceed.
+				 */
+				if (cp0_status_exl == 1) {
+					pr->wpending = true;
+					pr->wexcaddr = pr->pc;
+				} else
+					return excWATCH;
+			}
+		}
 
 		if (res == excNone) {
-			if (wr)
+			if (mode == AM_WRITE)
 				mem_write(pr, addr, *value, size);
 			else
 				*value = mem_read(pr, addr);
@@ -382,12 +419,38 @@ static enum exc acc_mem(processor_t *pr, bool wr, addr_t addr, len_t size, uint3
 
 /** Preform the read access from the virtual memory
  *
- * Does not change the value if an exception occures.
+ * Does not change the value if an exception occurs.
  *
  */
 enum exc read_proc_mem(processor_t *pr, addr_t addr, len_t size, uint32_t *value, bool h)
 {
-	switch (acc_mem(pr, false, addr, size, value, h)) {
+	switch (acc_mem(pr, AM_READ, addr, size, value, h)) {
+	case excAddrError:
+		return excAdEL;
+	case excTLB:
+		return excTLBL;
+	case excTLBR:
+		return excTLBLR;
+	case excWATCH:
+		return excWATCH;
+	default:
+		break;
+	}
+
+	return excNone;
+}
+
+
+/** Preform the fetch access from the virtual memory
+ *
+ * Does not change the value if an exception occurs.
+ * Fetching instructions (on R4000) does not trigger
+ * the WATCH exception.
+ *
+ */
+static enum exc fetch_proc_mem(processor_t *pr, addr_t addr, len_t size, uint32_t *value, bool h)
+{
+	switch (acc_mem(pr, AM_FETCH, addr, size, value, h)) {
 	case excAddrError:
 		return excAdEL;
 	case excTLB:
@@ -407,7 +470,7 @@ enum exc read_proc_mem(processor_t *pr, addr_t addr, len_t size, uint32_t *value
  */
 static enum exc write_proc_mem(processor_t *pr, addr_t addr, len_t size, uint32_t value, bool h)
 { 
-	switch (acc_mem(pr, true, addr, size, &value, h)) {
+	switch (acc_mem(pr, AM_WRITE, addr, size, &value, h)) {
 	case excAddrError:
 		return excAdES;
 	case excTLB:
@@ -416,6 +479,8 @@ static enum exc write_proc_mem(processor_t *pr, addr_t addr, len_t size, uint32_
 		return excTLBSR;
 	case excMod:
 		return excMod;
+	case excWATCH:
+		return excWATCH;
 	case excNone:
 		return excNone;
 	default:
@@ -434,7 +499,7 @@ enum exc read_proc_ins(processor_t *pr, addr_t addr, uint32_t *value, bool h)
 {
 	enum exc res;
 
-	res = read_proc_mem(pr, addr, INT32, value, h);
+	res = fetch_proc_mem(pr, addr, INT32, value, h);
 	if (res != excNone)
 		pr->excaddr = pr->pc;
 
@@ -1533,10 +1598,16 @@ static enum exc execute(processor_t *pr, instr_info *ii2)
 				cp0_lladdr = rrt;
 				break;
 			case cp0_WatchLo:
-				/* Ignored ? in 32bit MIPS */
+				cp0_watchlo = rrt & (~cp0_watchlo_res_mask);
+				pr->waddr = cp0_watchhi_paddr1;
+				pr->waddr <<= (32 - cp0_watchlo_paddr0_shift);
+				pr->waddr |= cp0_watchlo_paddr0;
 				break;
 			case cp0_WatchHi:
-				/* Ignored ? in 32bit MIPS */
+				cp0_watchhi = rrt & (~cp0_watchhi_res_mask);
+				pr->waddr = cp0_watchhi_paddr1;
+				pr->waddr <<= (32 - cp0_watchlo_paddr0_shift);
+				pr->waddr |= cp0_watchlo_paddr0;
 				break;
 			case cp0_XContext:
 				/* Ignored ? in 32bit MIPS */

@@ -10,35 +10,37 @@
 
 #ifdef __WIN32__
 
+#include <inttypes.h>
+#include <io.h>
 #include <windows.h>
 #include <errno.h>
 
 void *mmap(void *addr, size_t length, int prot, int flags, int fd, off_t offset)
 {
-	HANDLE fh = _get_osfhandle(fd);
+	HANDLE fh = (HANDLE) _get_osfhandle(fd);
 	if (fh == INVALID_HANDLE_VALUE) {
 		errno = EBADF;
-		return MAP_FAILED
+		return MAP_FAILED;
 	}
 	
 	DWORD protect = 0;
 	DWORD access = 0;
-	if (prot & PROT_EXEC == PROT_EXEC) {
-		if (prot & PROT_READ == PROT_READ) {
-			if (prot & PROT_WRITE == PROT_WRITE) {
+	if ((prot & PROT_EXEC) == PROT_EXEC) {
+		if ((prot & PROT_READ) == PROT_READ) {
+			if ((prot & PROT_WRITE) == PROT_WRITE) {
 				protect = PAGE_EXECUTE_READWRITE;
-				access = FILE_MAP_ALL_ACCESS | FILE_MAP_EXECUTE;
+				access = FILE_MAP_ALL_ACCESS;
 			} else {
-				protect = PAGE_EXECUTE_READONLY;
-				access = FILE_MAP_READ | FILE_MAP_EXECUTE;
+				protect = PAGE_EXECUTE_READ;
+				access = FILE_MAP_READ;
 			}
 		} else {
-			if (prot & PROT_WRITE == PROT_WRITE)
-				access = FILE_MAP_WRITE | FILE_MAP_EXECUTE;
+			if ((prot & PROT_WRITE) == PROT_WRITE)
+				access = FILE_MAP_WRITE;
 		}
 	} else {
-		if (prot & PROT_READ == PROT_READ) {
-			if (prot & PROT_WRITE == PROT_WRITE) {
+		if ((prot & PROT_READ) == PROT_READ) {
+			if ((prot & PROT_WRITE) == PROT_WRITE) {
 				protect = PAGE_READWRITE;
 				access = FILE_MAP_ALL_ACCESS;
 			} else {
@@ -46,18 +48,18 @@ void *mmap(void *addr, size_t length, int prot, int flags, int fd, off_t offset)
 				access = FILE_MAP_READ;
 			}
 		} else {
-			if (prot & PROT_WRITE == PROT_WRITE)
+			if ((prot & PROT_WRITE) == PROT_WRITE)
 				access = FILE_MAP_WRITE;
 		}
 	}
 	
-	HANDLE handle = CreateFileMapping(fh, NULL, protect, length >> 32, length & 0xffffffff, NULL);
+	HANDLE handle = CreateFileMapping(fh, NULL, protect, ((uint64_t) length) >> 32, length & 0xffffffff, NULL);
 	if (handle == NULL) {
 		errno = EPERM;
 		return MAP_FAILED;
 	}
 	
-	void *map = MapViewOfFile(handle, access, offset >> 32, offset & 0xffffffff, length & 0xffffffff);
+	void *map = MapViewOfFile(handle, access, ((uint64_t) offset) >> 32, offset & 0xffffffff, length & 0xffffffff);
 	if (map == NULL) {
 		errno = ENOMEM;
 		return MAP_FAILED;

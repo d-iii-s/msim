@@ -11,6 +11,9 @@
 
 #ifdef __WIN32__
 
+#include <stddef.h>
+#include <unistd.h>
+
 #define MAP_FAILED   ((void *) -1)
 
 #define PROT_READ    0x01

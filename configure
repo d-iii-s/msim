@@ -3554,11 +3554,13 @@ done
 
 
 
+
 for ac_header in  \
 	ctype.h \
 	errno.h \
 	fcntl.h \
 	getopt.h \
+	inttypes.h \
 	readline/history.h \
 	readline/readline.h \
 	signal.h \

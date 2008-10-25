@@ -17,6 +17,7 @@ AC_CHECK_HEADERS([ \
 	errno.h \
 	fcntl.h \
 	getopt.h \
+	inttypes.h \
 	readline/history.h \
 	readline/readline.h \
 	signal.h \

@@ -157,7 +157,7 @@ device_s *dev_by_name(const char *s)
 
 bool dev_map(void *data, bool (*f)(void *, device_s *))
 {
-	device_s *d;
+	device_s *d = NULL;
 
 	while (dev_next(&d))
 		if (f(data, d))

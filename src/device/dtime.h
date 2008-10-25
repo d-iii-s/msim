@@ -14,6 +14,6 @@
 
 #include "device.h"
 
-device_type_s DTime;
+device_type_s dtime;
 
 #endif /* DTIME_H_ */

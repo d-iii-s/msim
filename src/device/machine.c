@@ -12,6 +12,7 @@
 #include <unistd.h>
 #include <stdint.h>
 #include <stdbool.h>
+#include <inttypes.h>
 
 #include "machine.h"
 
@@ -54,7 +55,7 @@ bool reenter;
 uint32_t stepping;
 mem_element_s *memlist;
 llist_t *ll_list;
-long long msteps;
+static uint64_t msteps;
 
 /**< User break indicator */
 bool tobreak = false; 
@@ -113,7 +114,7 @@ static void print_statistics(void)
 	if (msteps == 0)
 		return;
 	
-	mprintf("\nCycles: %lld\n", msteps);
+	mprintf("\nCycles: %" PRIu64 "\n", msteps);
 }
 
 
@@ -267,7 +268,7 @@ uint32_t mem_read(processor_t *pr, uint32_t addr)
 	mem_breakpoint_t *mem_bp;
 	for_each(mem_bps, mem_bp, mem_breakpoint_t) {
 		if ((mem_bp->addr == addr) && (mem_bp->rd)) {
-			mprintf("\nDebug: Read from address %#08x\n\n", mem_bp->addr);
+			mprintf("\nDebug: Read from address %#10" PRIx64 "\n\n", mem_bp->addr);
 			mem_bp->hits++;
 			interactive = true;
 			break;
@@ -355,7 +356,7 @@ void mem_write(processor_t *pr, uint32_t addr, uint32_t val, int size)
 	mem_breakpoint_t *mem_bp;
 	for_each(mem_bps, mem_bp, mem_breakpoint_t) {
 		if ((mem_bp->addr == addr) && (mem_bp->wr)) {
-			mprintf("\nDebug: Written to address %#08x\n\n", mem_bp->addr);
+			mprintf("\nDebug: Written to address %#10" PRIx64 "\n\n", mem_bp->addr);
 			mem_bp->hits++;
 			interactive = true;
 			break;

@@ -15,6 +15,7 @@
 #include <string.h>
 #include <sys/types.h>
 #include <sys/stat.h>
+#include <inttypes.h>
 
 #include "ddisk.h"
 
@@ -167,7 +168,7 @@ static void ddisk_read(processor_t *pr, device_s *dev, addr_t addr, uint32_t *va
 static void ddisk_write(processor_t *pr, device_s *dev, addr_t addr, uint32_t val);
 
 /**< Ddisk object structure */
-device_type_s DDisk = {
+device_type_s ddisk = {
 	/* Type name and description */
 	.name = id_ddisk,
 	.brief = "Disk simulation",
@@ -206,10 +207,10 @@ struct disk_data_s {
 	bool ig;			/**< Interrupt pending flag */
 
 	/* Statistics */
-	unsigned long long intrcount;	/**< Number of interrupts */
-	unsigned long long cmds_read;	/**< Number of read commands */
-	unsigned long long cmds_write;	/**< Number of write commands */
-	unsigned long long cmds_error;	/**< Number of illegal commands */
+	uint64_t intrcount;	/**< Number of interrupts */
+	uint64_t cmds_read;	/**< Number of read commands */
+	uint64_t cmds_write;	/**< Number of write commands */
+	uint64_t cmds_error;	/**< Number of illegal commands */
 };
 typedef struct disk_data_s disk_data_s;
 
@@ -434,7 +435,7 @@ static bool ddisk_init(parm_link_s *parm, device_s *dev)
 	}
 
 	/* Address limit */
-	if ((unsigned long long) dd->addr + (unsigned long long) REGISTER_LIMIT > 0x100000000ull) {
+	if ((uint64_t) dd->addr + (uint64_t) REGISTER_LIMIT > 0x100000000ull) {
 		mprintf("Invalid address; registers would exceed the 4GB limit\n");
 		return false;
 	}
@@ -500,14 +501,18 @@ static bool ddisk_info(parm_link_s *parm, device_s *dev)
 static bool ddisk_stat(parm_link_s *parm, device_s *dev)
 {
 	disk_data_s *dd = dev->data;
-
-	mprintf("intrc:%ulld cmds total:%ulld read:%ulld write:%ulld error:%ulld\n",
-		dd->intrcount,
-		dd->cmds_read + dd->cmds_write + dd->cmds_error,
-		dd->cmds_read,
-		dd->cmds_write,
-		dd->cmds_error);
-
+	
+	mprintf("Interrupt count      Commands             Reads\n");
+	mprintf("-------------------- -------------------- --------------------\n");
+	mprintf("%20" PRIu64 " %20" PRIu64 " %20" PRIu64 "\n\n",
+		dd->intrcount, dd->cmds_read + dd->cmds_write + dd->cmds_error,
+		dd->cmds_read);
+	
+	mprintf("Writes               Errors\n");
+	mprintf("-------------------- --------------------\n");
+	mprintf("%20" PRIu64 " %20" PRIu64 "\n",
+		dd->cmds_write, dd->cmds_error);
+	
 	return true;
 }
 
@@ -588,7 +593,7 @@ static bool ddisk_fmap(parm_link_s *parm, device_s *dev)
 	
 	/* Disk size test */
 	if (offset == 0) {
-		mprintf("File is too small; at least one sector (512 B) should be present.");
+		mprintf("File is too small; at least one sector (512 B) should be present");
 		try_soft_close(fd, filename);
 
 		return false;

@@ -14,6 +14,6 @@
 
 #include "device.h"
 
-device_type_s DOrder;
+device_type_s dorder;
 
 #endif /* DORDER_H_ */

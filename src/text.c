@@ -12,6 +12,7 @@
 #include <errno.h>
 #include <string.h>
 
+#include "../config.h"
 #include "text.h"
 #include "main.h"
 

@@ -17,6 +17,7 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <errno.h>
+#include <inttypes.h>
 
 #include "mem.h"
 
@@ -135,7 +136,7 @@ const char id_rwm[] = "rwm";
 
 static void mem_done(device_s *d);
 
-device_type_s DROM = {
+device_type_s drom = {
 	/* Type name and description */
 	.name = id_rom,
 	.brief = "Read-only memory",
@@ -148,7 +149,7 @@ device_type_s DROM = {
 	.cmds = dmem_cmds
 };
 
-device_type_s DRWM = {
+device_type_s drwm = {
 	/* Type name and description */
 	.name = id_rwm,
 	.brief = "Read/write memory",
@@ -381,7 +382,7 @@ static bool mem_info(parm_link_s *parm, device_s *dev)
 	cpr_num(s, md->size);
 	mprintf("Start      Size         Type\n");
 	mprintf("---------- ------------ ------\n");
-	mprintf("%#08x %-12s %s\n",
+	mprintf("%#10" PRIx32" %12s %s\n",
 		md->start, s, txt_mem_type[md->mem_type]);
 	
 	return true;
@@ -517,7 +518,7 @@ static bool mem_fmap(parm_link_s *parm, device_s *dev)
 		return false;
 	}
 	
-	if ((unsigned long long) md->start + (unsigned long long) offset > 0x100000000ull) {
+	if ((uint64_t) md->start + (uint64_t) offset > 0x100000000ull) {
 		mprintf("Mapped file exceeds the 4 GB limit\n");
 		try_soft_close(fd, filename);
 		return false;
@@ -576,7 +577,7 @@ static bool mem_generic(parm_link_s *parm, device_s *dev)
 		return false;
 	}
 	
-	if ((unsigned long long) md->start + (unsigned long long) size > 0x100000000ull)
+	if ((uint64_t) md->start + (uint64_t) size > 0x100000000ull)
 	{
 		mprintf("Memory would exceed the 4 GB limit\n");
 		return false;

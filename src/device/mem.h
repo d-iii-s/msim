@@ -17,7 +17,7 @@
 extern const char id_rom[];
 extern const char id_rwm[];
 
-extern device_type_s DROM;
-extern device_type_s DRWM;
+extern device_type_s drom;
+extern device_type_s drwm;
 
 #endif /* MEM_H_ */

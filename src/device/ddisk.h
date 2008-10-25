@@ -14,6 +14,6 @@
 
 #include "device.h"
 
-extern device_type_s DDisk;
+extern device_type_s ddisk;
 
 #endif /* DDISK_H_ */

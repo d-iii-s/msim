@@ -16,6 +16,7 @@
 #include <string.h>
 #include <stdarg.h>
 #include <stdbool.h>
+#include <inttypes.h>
 
 #include "device.h"
 
@@ -31,15 +32,15 @@
 
 /* implemented pheriperal list */
 const device_type_s *device_types[] = {
-	&DCPU,
-	&DRWM,
-	&DROM,
-	&DPrinter,
-	&DOrder,
-	&DKeyboard,
-	&DDisk,
-	&DTime,
-	0
+	&dcpu,
+	&drwm,
+	&drom,
+	&dprinter,
+	&dorder,
+	&dkeyboard,
+	&ddisk,
+	&dtime,
+	NULL
 };
 
 
@@ -173,13 +174,13 @@ void cpr_num(char *s, uint32_t i)
 		*s = '0';
 		*(s + 1) = 0;
 	} else if ((i & 0xfffff) == 0)
-		sprintf(s, "%dM", i >> 20);
+		sprintf(s, "%" PRId32 "M", i >> 20);
 	else if ((i & 0x3ff) == 0)
-		sprintf(s, "%dK", i >> 10);
+		sprintf(s, "%" PRId32 "K", i >> 10);
 	else if ((i % 1000) == 0)
-		sprintf(s, "%dk", i / 1000);
+		sprintf(s, "%" PRId32 "k", i / 1000);
 	else
-		sprintf(s, "%d", i);
+		sprintf(s, "%" PRId32, i);
 }
 
 

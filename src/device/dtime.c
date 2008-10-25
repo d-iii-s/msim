@@ -14,6 +14,7 @@
 #include <string.h>
 #include <stdbool.h>
 #include <sys/time.h>
+#include <inttypes.h>
 
 #include "dtime.h"
 
@@ -84,7 +85,7 @@ static void dtime_done(device_s *dev);
 static void dtime_read(processor_t *pr, device_s *dev, addr_t addr, uint32_t *val);
 
 /** Dtime object structure */
-device_type_s DTime = {
+device_type_s dtime = {
 	/* Type name and description */
 	.name = id_dtime,
 	.brief = "Real time",
@@ -137,7 +138,7 @@ static bool dtime_init(parm_link_s *parm, device_s *dev)
 	}
 
 	/* Address limit */
-	if ((unsigned long long) td->addr + (unsigned long long) REGISTER_LIMIT > 0x100000000ull) {
+	if ((uint64_t) td->addr + (uint64_t) REGISTER_LIMIT > 0x100000000ull) {
 		mprintf("Invalid address; registers would exceed the 4 GB limit\n");
 		return false;
 	}
@@ -160,7 +161,7 @@ static bool dtime_info(parm_link_s *parm, device_s *dev)
 	
 	mprintf("Address\n");
 	mprintf("----------\n");
-	mprintf("%#08x\n", td->addr);
+	mprintf("%#10" PRIx64 "\n", td->addr);
 	
 	return true;
 }

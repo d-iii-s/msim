@@ -103,7 +103,7 @@ static void printer_done(device_s *dev);
 static void printer_step4(device_s *dev);
 static void printer_write(processor_t *pr, device_s *dev, uint32_t addr, uint32_t val);
 
-device_type_s DPrinter = {
+device_type_s dprinter = {
 	/* Type name and description */
 	.name = id_printer,
 	.brief = "Printer simulation",
@@ -226,7 +226,7 @@ static bool dprinter_info(parm_link_s *parm, device_s *dev)
 	
 	mprintf("Address\n");
 	mprintf("----------\n");
-	mprintf("%#08x\n", pd->addr);
+	mprintf("%#10" PRIx64 "\n", pd->addr);
 	
 	return true;
 }
@@ -241,7 +241,7 @@ static bool dprinter_stat(parm_link_s *parm, device_s *dev)
 	
 	mprintf("Count\n");
 	mprintf("--------------------\n");
-	mprintf("%" PRIx64 "\n", pd->count);
+	mprintf("%20" PRIu64 "\n", pd->count);
 	
 	return true;
 }

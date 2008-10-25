@@ -9,9 +9,6 @@
 #ifndef MAIN_H_
 #define MAIN_H_
 
-#define PACKAGE "msim"
-#define VERSION "1.3.5"
-
 #define MAX_CPU 31
 
 /**< Input and output buffer size for communication with gdb */

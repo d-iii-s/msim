@@ -52,7 +52,7 @@ typedef struct {
 	item_t item;
 	
 	addr_t addr;
-	unsigned long long hits;
+	uint64_t hits;
 	bool rd;
 	bool wr;
 } mem_breakpoint_t;

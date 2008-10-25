@@ -22,6 +22,6 @@ extern void die(int ex, const char *fmt, ...);
 extern void io_error(const char *filename);
 
 /* Like io_error() but call exit */
-extern void io_die(int n, const char *filename);
+extern void io_die(int ex, const char *filename);
 
 #endif /* FAULT_H_ */

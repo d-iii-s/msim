@@ -587,7 +587,7 @@ typedef struct {
 	item_t item;
 	
 	addr_t pc;
-	unsigned long long hits;
+	uint64_t hits;
 } breakpoint_t;
 
 
@@ -631,14 +631,14 @@ typedef struct {
 	bool wpending;
 	
 	/* statistics */
-	unsigned long long k_cycles;
-	unsigned long long u_cycles;
-	unsigned long long w_cycles;
+	uint64_t k_cycles;
+	uint64_t u_cycles;
+	uint64_t w_cycles;
 	
-	unsigned long long tlb_refill;
-	unsigned long long tlb_invalid;
-	unsigned long long tlb_modified;
-	unsigned long long intr[8];
+	uint64_t tlb_refill;
+	uint64_t tlb_invalid;
+	uint64_t tlb_modified;
+	uint64_t intr[8];
 	
 	/* breakpoints */
 	list_t bps;

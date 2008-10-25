@@ -14,6 +14,6 @@
 
 #include "device.h"
 
-device_type_s DPrinter;
+device_type_s dprinter;
 
 #endif /* DPRINTER_H_ */

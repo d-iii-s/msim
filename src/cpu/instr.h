@@ -330,7 +330,7 @@ typedef struct {
 } instr_info;
 
 
-typedef struct instr_text {
+typedef struct {
 	char *instr_text;
 	basic_instruction_format itype;
 } instr_text;

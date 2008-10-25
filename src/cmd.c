@@ -17,6 +17,7 @@
 #include <string.h>
 #include <unistd.h>
 #include <errno.h>
+#include <inttypes.h>
 
 #include "main.h"
 #include "cmd.h"
@@ -285,8 +286,8 @@ static bool system_add(parm_link_s *pl, void *data)
 	/* Check for conflicts between
 	 * the device name and a command name */
 	if (cmd_find(parm_str(pl), system_cmds, NULL) == CMP_HIT) {
-		mprintf("Device name '%s' is in conflict with a command name\n",
-				parm_str(pl));
+		mprintf("Device name \"%s\" is in conflict with a command name\n",
+			parm_str(pl));
 		return false;
 	}
 	
@@ -455,8 +456,12 @@ static bool system_break(parm_link_s *pl, void *data)
 static bool system_bd(parm_link_s *pl, void *data)
 {
 	mem_breakpoint_t *mem_bp;
+	
+	mprintf("Address    Mode Hits\n");
+	mprintf("---------- ---- --------------------\n");
+	
 	for_each(mem_bps, mem_bp, mem_breakpoint_t)
-		mprintf("%08x: (%c%c) %llu hits\n",
+		mprintf("%#010" PRIx32 " %c%c   %20" PRIu64 "\n",
 			mem_bp->addr,
 			mem_bp->rd ? 'r' : '-', mem_bp->wr ? 'w' : '-',
 			mem_bp->hits);
@@ -515,10 +520,10 @@ static bool system_md(parm_link_s *pl, void *data)
 	
 	for (i = 0; i < cnt; addr += 4, i++) {
 		if ((i & 0x3) == 0)
-			mprintf("  %08x    ", addr);
+			mprintf("  %#010" PRIx32 "    ", addr);
 		
 		uint32_t val = mem_read(NULL, addr);
-		mprintf("%08x  ", val);
+		mprintf("%08" PRIx32 " ", val);
 		
 		if ((i & 0x3) == 3)
 			mprintf("\n");
@@ -579,7 +584,7 @@ bool interpret(const char *str)
 	/* Parse input */
 	parm_link_s *pl = parm_parse(str);
 	if (!pl) {
-		intr_error("Not enough memory to parse command.");
+		intr_error("Not enough memory to parse command");
 		return false;
 	}
 	
@@ -587,7 +592,7 @@ bool interpret(const char *str)
 		return true;
 	
 	if (pl->token.ttype != tt_str) {
-		mprintf("Command name expected.\n");
+		mprintf("Command name expected\n");
 		return true;
 	}
 
@@ -642,7 +647,7 @@ void script(void)
 	
 	buf = (char *) malloc(SETUP_BUF_SIZE);
 	if (!buf)
-		die(ERR_MEM, "Not enough memory for buffer.");
+		die(ERR_MEM, "Not enough memory for buffer");
 	
 	if (!config_file) {
 		/* Checking for variable MSIMCONF */

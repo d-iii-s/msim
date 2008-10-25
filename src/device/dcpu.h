@@ -15,7 +15,7 @@
 #include "device.h"
 #include "../cpu/processor.h"
 
-extern device_type_s DCPU;
+extern device_type_s dcpu;
 
 extern processor_t *cpu_find_no(unsigned int no);
 extern void dcpu_interrupt_up(unsigned int cpuno, unsigned int no);

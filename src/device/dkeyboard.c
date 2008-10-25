@@ -14,6 +14,7 @@
 #include <string.h>
 #include <sys/time.h>
 #include <stdbool.h>
+#include <inttypes.h>
 
 #include "../arch/select.h"
 #include "dkeyboard.h"
@@ -95,7 +96,7 @@ static void keyboard_done(device_s *dev);
 static void keyboard_step4(device_s *dev);
 static void keyboard_read(processor_t *pr, device_s *dev, addr_t addr, uint32_t *val);
 
-device_type_s DKeyboard = {
+device_type_s dkeyboard = {
 	/* Type name and description */
 	.name = id_keyboard,
 	.brief = "Keyboard simulation",
@@ -118,9 +119,9 @@ struct keyboard_data_s {
 	char incomming;		/* Character buffer */
 	
 	bool ig;		/* Interrupt pending flag */
-	long intrcount;		/* Number of interrupts asserted */
-	long keycount;		/* Number of keys acquired */
-	long overrun;		/* Number of overwritten characters in the buffer. */
+	uint64_t intrcount;		/* Number of interrupts asserted */
+	uint64_t keycount;		/* Number of keys acquired */
+	uint64_t overrun;		/* Number of overwritten characters in the buffer. */
 };
 typedef struct keyboard_data_s keyboard_data_s;
 
@@ -211,9 +212,9 @@ static bool dkeyboard_stat(parm_link_s *parm, device_s *dev)
 {
 	keyboard_data_s *kd = dev->data;
 	
-	mprintf("Interrupt count  Key count  Overrun\n");
-	mprintf("---------------- ---------- ---------\n");
-	mprintf("%ld %ld %ld\n",
+	mprintf("Interrupt count      Key count            Overrun\n");
+	mprintf("-------------------- -------------------- --------------------\n");
+	mprintf("%20" PRIu64 " %20" PRIu64 " %20" PRIu64 "\n",
 			kd->intrcount, kd->keycount, kd->overrun);
 	
 	return true;

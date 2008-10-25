@@ -1139,6 +1139,6 @@ void cmd_print_extended_help(parm_link_s *parm, const cmd_s *cmds)
 					mprintf("\t<%s> %s\n", buf, find_lname(s));
 				}
 		} else
-			mprintf( "\n");
+			mprintf("\n");
 	}
 }

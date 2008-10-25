@@ -12,6 +12,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <stdbool.h>
+#include <inttypes.h>
 
 #include "../main.h"
 #include "device.h"
@@ -169,7 +170,7 @@ const char id_dcpu[] = "dcpu";
 static void dcpu_done(device_s *dev);
 static void dcpu_step(device_s *dev);
 
-device_type_s DCPU = {
+device_type_s dcpu = {
 	/* Type name */
 	id_dcpu,
 
@@ -255,20 +256,31 @@ static bool dcpu_stat(parm_link_s *parm, device_s *dev)
 {
 	processor_t *p = dev->data;
 	
-	mprintf("cycles total:%llu in kernel:%llu in user:%llu "
-		"in stdby:%llu tlb refill:%llu invalid: %llu modified:%llu "
-		"interrupts 0:%llu 1:%llu 2:%llu 3:%llu 4:%llu 5:%llu 6:%llu 7:%llu\n",
-		(unsigned long long) p->k_cycles + p->u_cycles + p->w_cycles,
-		(unsigned long long) p->k_cycles,
-		(unsigned long long) p->u_cycles,
-		(unsigned long long) p->w_cycles,
-		(unsigned long long) p->tlb_refill,
-		(unsigned long long) p->tlb_invalid,
-		(unsigned long long) p->tlb_modified,
-		(unsigned long long) p->intr[0], (unsigned long long) p->intr[1],
-		(unsigned long long) p->intr[2], (unsigned long long) p->intr[3],
-		(unsigned long long) p->intr[4], (unsigned long long) p->intr[5],
-		(unsigned long long) p->intr[6], (unsigned long long) p->intr[7]);
+	mprintf("Total cycles         In kernel space      In user space\n");
+	mprintf("-------------------- -------------------- --------------------\n");
+	mprintf("%20" PRIu64 " %20" PRIu64 " %20" PRIu64 "\n\n",
+		(uint64_t) p->k_cycles + p->u_cycles + p->w_cycles,
+		p->k_cycles, p->u_cycles);
+	
+	mprintf("Wait cycles          TLB Refill exc       TLB Invalid exc\n");
+	mprintf("-------------------- -------------------- --------------------\n");
+	mprintf("%20" PRIu64 " %20" PRIu64 " %20" PRIu64 "\n\n",
+		p->w_cycles, p->tlb_refill, p->tlb_invalid);
+	
+	mprintf("TLB Modified exc     Interrupt 0          Interrupt 1\n");
+	mprintf("-------------------- -------------------- --------------------\n");
+	mprintf("%20" PRIu64 " %20" PRIu64 " %20" PRIu64 "\n\n",
+		p->tlb_modified, p->intr[0], p->intr[1]);
+	
+	mprintf("Interrupt 2          Interrupt 3          Interrupt 4\n");
+	mprintf("-------------------- -------------------- --------------------\n");
+	mprintf("%20" PRIu64 " %20" PRIu64 " %20" PRIu64 "\n\n",
+		p->intr[2], p->intr[3], p->intr[4]);
+	
+	mprintf("Interrupt 5          Interrupt 6          Interrupt 7\n");
+	mprintf("-------------------- -------------------- --------------------\n");
+	mprintf("%20" PRIu64 " %20" PRIu64 " %20" PRIu64 "\n",
+		p->intr[5], p->intr[6], p->intr[7]);
 	
 	return true;
 }
@@ -284,7 +296,7 @@ static bool dcpu_cp0d(parm_link_s *parm, device_s *dev)
 	if (parm->token.ttype == tt_int) {
 		no = parm->token.tval.i;
 		if ((no < 0) || (no > 31)) {
-			mprintf("Out of range (0..31).");
+			mprintf("Out of range (0..31)");
 			return false;
 		}
 	}
@@ -320,15 +332,15 @@ static bool dcpu_md(parm_link_s *parm, device_s *dev)
 	
 	for (j = 0; siz; siz--, addr+=4, j++) {
 		if (!(j & 0x3))
-			mprintf("  %08x    ", addr);
+			mprintf("  %#10" PRIx32 "    ", addr);
 		
 		res = read_proc_mem((processor_t *) dev->data, addr, 4, &val, false);
 		mprintf("res: %d\n", res);
 		
 		if (res == excNone)
-			mprintf("%08x  ", val);
+			mprintf("%08" PRIx32 " ", val);
 		else
-			mprintf("xxxxxxxx  ");
+			mprintf("xxxxxxxx ");
 		
 		if ((j & 0x3) == 3)
 			mprintf("\n");
@@ -423,8 +435,13 @@ static bool dcpu_bd(parm_link_s *parm, device_s *dev)
 {
 	processor_t *pr = dev->data;
 	breakpoint_t *bp;
+	
+	mprintf("Address    Hits\n");
+	mprintf("---------- --------------------\n");
+	
 	for_each(pr->bps, bp, breakpoint_t)
-		mprintf("%08x: %llu hits\n", bp->pc, bp->hits);
+		mprintf("%#010" PRIx32 " %20" PRIu64 "\n",
+			bp->pc, bp->hits);
 	
 	return true;
 }

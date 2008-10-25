@@ -112,7 +112,7 @@ static void dorder_read(processor_t *pr, device_s *dev, addr_t addr, uint32_t *v
 static void dorder_write(processor_t *pr, device_s *dev, addr_t addr, uint32_t val);
 
 /** Doder object structure */
-device_type_s DOrder = {
+device_type_s dorder = {
 	/* Type name and description */
 	.name = id_dorder,
 	.brief = "Synchronization device",
@@ -206,7 +206,7 @@ static bool dorder_init(parm_link_s *parm, device_s *dev)
 	}
 
 	/* Address limit */
-	if ((unsigned long long) od->addr + (unsigned long long) REGISTER_LIMIT > 0x100000000ull) {
+	if ((uint64_t) od->addr + (uint64_t) REGISTER_LIMIT > 0x100000000ull) {
 		mprintf("Invalid address; registers would exceed the 4 GB limit\n");
 		return false;
 	}
@@ -235,7 +235,7 @@ static bool dorder_info(parm_link_s *parm, device_s *dev)
 	
 	mprintf("Address    Int no\n");
 	mprintf("---------- ------\n");
-	mprintf("%#08x %d\n", od->addr, od->intno);
+	mprintf("%#10" PRIx64 " %d\n", od->addr, od->intno);
 
 	return true;
 }

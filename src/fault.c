@@ -75,7 +75,7 @@ void io_error(const char *filename)
 }
 		
 
-void io_die(int n, const char *filename)
+void io_die(int ex, const char *filename)
 {
-	die(n, "%s: %s", filename, strerror(errno));
+	die(ex, "%s: %s", filename, strerror(errno));
 }

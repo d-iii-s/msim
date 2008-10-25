@@ -44,13 +44,7 @@ AC_SUBST(BUILDLIBS)
 AC_SUBST(AFTERBUILD)
 AC_SUBST(INSTALL_PREFIX)
 
-AC_PREFIX_DEFAULT(/usr/local)
-if [[ $prefix = "NONE" ]] ; then
-	AC_DEFINE(INSTALL_PREFIX, "/usr/local")
-else
-	AC_DEFINE(INSTALL_PREFIX, "$prefix")
-fi
-
+AM_CONFIG_HEADER(config.h)
 AC_CONFIG_FILES([Makefile src/Makefile])
 
 AC_OUTPUT

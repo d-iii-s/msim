@@ -15,11 +15,7 @@
 #include <stdbool.h>
 
 #include "mtypes.h"
-
-extern bool little_endian;
-
-extern void checkendian(void);
-extern bool test_type(void);
+#include "../config.h"
 
 #ifdef WORDS_BIGENDIAN
 	#define convert_uint8_t_endian(b) (b)

@@ -10,8 +10,7 @@
 
 #ifdef __WIN32__
 
-#include <winbase.h>
-#include <wincon.h>
+#include <windows.h>
 
 bool stdin_poll(char *key)
 {
@@ -29,7 +28,7 @@ bool stdin_poll(char *key)
 			
 			if ((rd > 0) && (inrec.EventType == KEY_EVENT)
 				&& (inrec.Event.KeyEvent.bKeyDown)) {
-				*key = inrec.Event.KeyEvent.bKeyDown.uChar.AsciiChar;
+				*key = inrec.Event.KeyEvent.uChar.AsciiChar;
 				return true;
 			}
 		}

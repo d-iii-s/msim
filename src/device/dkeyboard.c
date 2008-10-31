@@ -16,7 +16,7 @@
 #include <stdbool.h>
 #include <inttypes.h>
 
-#include "../arch/select.h"
+#include "../arch/stdin.h"
 #include "dkeyboard.h"
 #include "device.h"
 #include "dcpu.h"
@@ -291,24 +291,8 @@ static void keyboard_read(processor_t *pr, device_s *dev, addr_t addr, uint32_t 
  */
 static void keyboard_step4(device_s *dev)
 {
-	/* Check new character */
-	fd_set rfds;
-	struct timeval tv;
-	int retval;
 	char buf;
-
-	/* Watch stdin */
-	FD_ZERO(&rfds);
-	FD_SET(0, &rfds);
-
-	tv.tv_sec = 0;
-	tv.tv_usec = 0;
-
-	retval = select(1, &rfds, NULL, NULL, &tv);
-
-	if (retval == 1) {
-		/* There is a new character. */
-		read(0, &buf, 1);
+	
+	if (stdin_poll(&buf))
 		gen_key(dev, buf);
-	}
 }

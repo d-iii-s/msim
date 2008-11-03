@@ -37,7 +37,9 @@ SOURCES = \
 	device/device.c \
 	arch/win32/mmap.c \
 	arch/win32/stdin.c \
-	arch/posix/stdin.c
+	arch/win32/signal.c \
+	arch/posix/stdin.c \
+	arch/posix/signal.c
 
 OBJECTS := $(addsuffix .o,$(basename $(SOURCES)))
 

@@ -61,32 +61,6 @@ static uint64_t msteps;
 bool tobreak = false; 
 
 
-static void machine_user_break(int par)
-{
-	if ((tobreak) || (interactive)) {
-		mprintf("Quit\n");
-		input_back();
-		exit(1);
-	}
-	
-	tobreak = true;
-	if (!interactive)
-		reenter = true;
-	interactive = true;
-}
-
-
-static void register_sigint(void)
-{
-	struct sigaction act;
-	
-	act.sa_handler = machine_user_break;
-	(void) sigemptyset(&act.sa_mask);
-	act.sa_flags = 0;
-	sigaction(SIGINT, &act, 0);
-} 
-
-
 void init_machine(void)
 {
 	memlist = 0;

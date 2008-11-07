@@ -586,7 +586,7 @@ typedef struct tlb_ent {
 typedef struct {
 	item_t item;
 	
-	addr_t pc;
+	ptr_t pc;
 	uint64_t hits;
 } breakpoint_t;
 
@@ -605,8 +605,8 @@ typedef struct {
 	uint32_t hireg;
 	
 	/* program counter */
-	addr_t pc;
-	addr_t pc_next;
+	ptr_t pc;
+	ptr_t pc_next;
 		
 	/* TLB structures */
 	tlb_ent tlb[48];
@@ -618,16 +618,16 @@ typedef struct {
 	uint32_t old_loreg;
 	uint32_t old_hireg;
 	
-	addr_t excaddr;
+	ptr_t excaddr;
 	unsigned int branch;
 	
 	/* LL and SC track support */
 	bool llval;     /* Track the address flag */
-	addr_t lladdr;  /* Physical tracked address */
+	ptr_t lladdr;  /* Physical tracked address */
 	
 	/* watch support */
 	uint64_t waddr;
-	addr_t wexcaddr;
+	ptr_t wexcaddr;
 	bool wpending;
 	
 	/* statistics */
@@ -651,12 +651,12 @@ extern void step(processor_t *pr);
 		
 /**< First settings */
 extern void set_general_reg(processor_t *pr, unsigned int regno, int32_t value);
-extern void set_pc(processor_t *pr, addr_t addr);
+extern void set_pc(processor_t *pr, ptr_t addr);
 extern void update_deb(processor_t *pr);
 	
 /**< Reading memory */
-extern enum exc read_proc_mem(processor_t *pr, addr_t addr, len_t size, uint32_t *value, bool h);
-extern enum exc read_proc_ins(processor_t *pr, addr_t addr, uint32_t *value, bool h);
+extern enum exc read_proc_mem(processor_t *pr, ptr_t addr, len_t size, uint32_t *value, bool h);
+extern enum exc read_proc_ins(processor_t *pr, ptr_t addr, uint32_t *value, bool h);
 
 /* interrupts - cause */
 extern void proc_interrupt_up(processor_t *pr, unsigned int no);

@@ -164,8 +164,8 @@ const char id_ddisk[] = "ddisk";
 
 static void ddisk_done(device_s *dev);
 static void ddisk_step(device_s *dev);
-static void ddisk_read(processor_t *pr, device_s *dev, addr_t addr, uint32_t *val);
-static void ddisk_write(processor_t *pr, device_s *dev, addr_t addr, uint32_t val);
+static void ddisk_read(processor_t *pr, device_s *dev, ptr_t addr, uint32_t *val);
+static void ddisk_write(processor_t *pr, device_s *dev, ptr_t addr, uint32_t val);
 
 /**< Ddisk object structure */
 device_type_s ddisk = {
@@ -782,7 +782,7 @@ static void ddisk_done(device_s *d) {
  * @param val  Readed (returned) value
  *
  */
-static void ddisk_read(processor_t *pr, device_s *dev, addr_t addr, uint32_t *val)
+static void ddisk_read(processor_t *pr, device_s *dev, ptr_t addr, uint32_t *val)
 {
 	disk_data_s *dd = (disk_data_s *) dev->data;
 
@@ -809,7 +809,7 @@ static void ddisk_read(processor_t *pr, device_s *dev, addr_t addr, uint32_t *va
  * @param val  Value to write
  *
  */
-static void ddisk_write(processor_t *pr, device_s *dev, addr_t addr, uint32_t val)
+static void ddisk_write(processor_t *pr, device_s *dev, ptr_t addr, uint32_t val)
 {
 	disk_data_s *dd = dev->data;
 	

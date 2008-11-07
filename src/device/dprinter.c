@@ -285,7 +285,7 @@ static void printer_step4(device_s *d)
 /** Write command implementation
  *
  */
-static void printer_write(processor_t *pr, device_s *dev, addr_t addr, uint32_t val)
+static void printer_write(processor_t *pr, device_s *dev, ptr_t addr, uint32_t val)
 {
 	printer_data_s *pd = dev->data;
 

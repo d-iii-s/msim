@@ -25,7 +25,7 @@ extern bool dump_inum;
 extern void reg_view(processor_t *pr);
 extern void tlb_dump(processor_t *pr);
 extern void cp0_dump(processor_t *pr, int reg);
-extern void iview(processor_t *pr, addr_t addr, instr_info *ii, char *regch);
+extern void iview(processor_t *pr, ptr_t addr, instr_info *ii, char *regch);
 extern void modified_regs_dump(processor_t *pr, size_t size, char *sx);
 
 extern void dbg_dev_dump(void);

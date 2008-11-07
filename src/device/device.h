@@ -77,8 +77,8 @@ struct device_type_s {
 	void (*done)(device_s *dev);
 	void (*step)(device_s *dev);
 	void (*step4)(device_s *dev);
-	void (*read)(processor_t *pr, device_s *dev, addr_t addr, uint32_t *val);
-	void (*write)(processor_t *pr, device_s *dev, addr_t addr, uint32_t val);
+	void (*read)(processor_t *pr, device_s *dev, ptr_t addr, uint32_t *val);
+	void (*write)(processor_t *pr, device_s *dev, ptr_t addr, uint32_t val);
 
 	const cmd_s *const cmds;
 };

@@ -475,7 +475,7 @@ static bool system_bd(parm_link_s *pl, void *data)
  */
 static bool system_br(parm_link_s *pl, void *data)
 {
-	addr_t addr = pl->token.tval.i;
+	ptr_t addr = pl->token.tval.i;
 	
 	bool fnd = false;
 	mem_breakpoint_t *mem_bp;

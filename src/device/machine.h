@@ -51,7 +51,7 @@ typedef struct llist {
 typedef struct {
 	item_t item;
 	
-	addr_t addr;
+	ptr_t addr;
 	uint64_t hits;
 	bool rd;
 	bool wr;

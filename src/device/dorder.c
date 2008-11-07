@@ -108,8 +108,8 @@ cmd_s dorder_cmds[] = {
 const char id_dorder[] = "dorder";
 
 static void dorder_done(device_s *dev);
-static void dorder_read(processor_t *pr, device_s *dev, addr_t addr, uint32_t *val);
-static void dorder_write(processor_t *pr, device_s *dev, addr_t addr, uint32_t val);
+static void dorder_read(processor_t *pr, device_s *dev, ptr_t addr, uint32_t *val);
+static void dorder_write(processor_t *pr, device_s *dev, ptr_t addr, uint32_t val);
 
 /** Doder object structure */
 device_type_s dorder = {
@@ -307,7 +307,7 @@ static void dorder_done(device_s *d)
  * @param val  Readed (returned) value
  *
  */
-static void dorder_read(processor_t *pr, device_s *dev, addr_t addr, uint32_t *val)
+static void dorder_read(processor_t *pr, device_s *dev, ptr_t addr, uint32_t *val)
 {
 	struct dorder_data_struct *od = dev->data;
 	
@@ -328,7 +328,7 @@ static void dorder_read(processor_t *pr, device_s *dev, addr_t addr, uint32_t *v
  * @param val  Value to write
  *
  */
-void dorder_write(processor_t *pr, device_s *dev, addr_t addr, uint32_t val)
+void dorder_write(processor_t *pr, device_s *dev, ptr_t addr, uint32_t val)
 {
 	struct dorder_data_struct *od = dev->data;
 	

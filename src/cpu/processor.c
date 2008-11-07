@@ -93,7 +93,7 @@ void processor_init(processor_t *pr, unsigned int procno)
 	pr->branch = 0;
 	
 	/* Inicializing internal variables */
-	pr->lladdr = (addr_t) -1;
+	pr->lladdr = (ptr_t) -1;
 	pr->llval = false;
 	
 	/* Inicializing cp0 registers */
@@ -154,7 +154,7 @@ void set_general_reg(processor_t *pr, unsigned int regno, int32_t value)
 /** Set the PC register
  *
  */
-void set_pc(processor_t *pr, addr_t value)
+void set_pc(processor_t *pr, ptr_t value)
 {
 	pr->pc = value;
 	pr->pc_next = value + 4;
@@ -169,11 +169,11 @@ void set_pc(processor_t *pr, addr_t value)
  * See tlbl_look_t definition
  *
  */
-static tlb_look_t tlb_look(processor_t *pr, addr_t *addr, bool wr)
+static tlb_look_t tlb_look(processor_t *pr, ptr_t *addr, bool wr)
 {
 	tlb_ent *e;
 	tlb_ent *prev;
-	addr_t a = *addr;
+	ptr_t a = *addr;
 	
 	/* Ignore TLB test */
 	if (cp0_status_ts == 1)
@@ -220,7 +220,7 @@ static tlb_look_t tlb_look(processor_t *pr, addr_t *addr, bool wr)
 /** Fill up cp0 registers with specified address
  *
  */
-static void fill_tlb_error(processor_t *pr, addr_t addr)
+static void fill_tlb_error(processor_t *pr, ptr_t addr)
 {
 	cp0_badvaddr = addr;
 	cp0_context &= cp0_context_ptebase_mask;
@@ -233,7 +233,7 @@ static void fill_tlb_error(processor_t *pr, addr_t addr)
 /** Fill registers as the Address error exception occures
  *
  */
-static void fill_addr_error(processor_t *pr, addr_t addr, bool h)
+static void fill_addr_error(processor_t *pr, ptr_t addr, bool h)
 {
 	if (h) {
 		cp0_badvaddr = addr;
@@ -246,7 +246,7 @@ static void fill_addr_error(processor_t *pr, addr_t addr, bool h)
 /** Search through TLB and generates apropriate exception
  *
  */
-static enum exc tlb_hit(processor_t *pr, addr_t *addr, bool wr, bool h)
+static enum exc tlb_hit(processor_t *pr, ptr_t *addr, bool wr, bool h)
 {
 	switch (tlb_look(pr, addr, wr)) {
 	case TLBL_OK:
@@ -279,7 +279,7 @@ static enum exc tlb_hit(processor_t *pr, addr_t *addr, bool wr, bool h)
 /** The user mode address conversion
  *
  */
-static enum exc convert_addr_user(processor_t *pr, addr_t *addr, bool wr, bool h)
+static enum exc convert_addr_user(processor_t *pr, ptr_t *addr, bool wr, bool h)
 {
 	/* Testing 31 bit or looking to TLB */
 	if ((*addr & SBIT) != 0) {
@@ -294,7 +294,7 @@ static enum exc convert_addr_user(processor_t *pr, addr_t *addr, bool wr, bool h
 /** The supervisor mode address conversion
  *
  */
-static enum exc convert_addr_supervisor(processor_t *pr, addr_t *addr, bool wr, bool h)
+static enum exc convert_addr_supervisor(processor_t *pr, ptr_t *addr, bool wr, bool h)
 {
 	if (*addr < 0x80000000) /* suseg */
 		return tlb_hit(pr, addr, wr, h);
@@ -313,7 +313,7 @@ static enum exc convert_addr_supervisor(processor_t *pr, addr_t *addr, bool wr, 
 /** The kernel mode address conversion
  *
  */
-static enum exc convert_addr_kernel(processor_t *pr, addr_t *addr, bool wr, bool h)
+static enum exc convert_addr_kernel(processor_t *pr, ptr_t *addr, bool wr, bool h)
 {
 	if (*addr < 0x80000000) { /* kuseg */
 		if (!cp0_status_erl)
@@ -338,7 +338,7 @@ static enum exc convert_addr_kernel(processor_t *pr, addr_t *addr, bool wr, bool
  *           if the address is incorrect
  *
  */
-static enum exc convert_addr(processor_t *pr, addr_t *addr, bool wr, bool h)
+static enum exc convert_addr(processor_t *pr, ptr_t *addr, bool wr, bool h)
 {
 	/* Testing type of translation */
 	if ((cp0_status_ksu == 2) && (!cp0_status_exl) && (!cp0_status_erl))
@@ -353,7 +353,7 @@ static enum exc convert_addr(processor_t *pr, addr_t *addr, bool wr, bool h)
 /** Test for correct align and fills BadVAddr if bad
  *
  */
-static enum exc mem_align_test(processor_t *pr, addr_t addr, len_t size, bool h)
+static enum exc mem_align_test(processor_t *pr, ptr_t addr, len_t size, bool h)
 {
 	if (((size == 2) && (addr & 1)) || ((size == 4) && (addr & 3))) { 
 		fill_addr_error(pr, addr, h);
@@ -377,7 +377,7 @@ static enum exc mem_align_test(processor_t *pr, addr_t addr, len_t size, bool h)
  * @param h     Generate exception in case of invalid operation
  *
  */
-static enum exc acc_mem(processor_t *pr, acc_mode_t mode, addr_t addr, len_t size, uint32_t *value, bool h)
+static enum exc acc_mem(processor_t *pr, acc_mode_t mode, ptr_t addr, len_t size, uint32_t *value, bool h)
 {
 	enum exc res;
 	
@@ -422,7 +422,7 @@ static enum exc acc_mem(processor_t *pr, acc_mode_t mode, addr_t addr, len_t siz
  * Does not change the value if an exception occurs.
  *
  */
-enum exc read_proc_mem(processor_t *pr, addr_t addr, len_t size, uint32_t *value, bool h)
+enum exc read_proc_mem(processor_t *pr, ptr_t addr, len_t size, uint32_t *value, bool h)
 {
 	switch (acc_mem(pr, AM_READ, addr, size, value, h)) {
 	case excAddrError:
@@ -448,7 +448,7 @@ enum exc read_proc_mem(processor_t *pr, addr_t addr, len_t size, uint32_t *value
  * the WATCH exception.
  *
  */
-static enum exc fetch_proc_mem(processor_t *pr, addr_t addr, len_t size, uint32_t *value, bool h)
+static enum exc fetch_proc_mem(processor_t *pr, ptr_t addr, len_t size, uint32_t *value, bool h)
 {
 	switch (acc_mem(pr, AM_FETCH, addr, size, value, h)) {
 	case excAddrError:
@@ -468,7 +468,7 @@ static enum exc fetch_proc_mem(processor_t *pr, addr_t addr, len_t size, uint32_
 /** Perform the write operation to the virtual memory
  *
  */
-static enum exc write_proc_mem(processor_t *pr, addr_t addr, len_t size, uint32_t value, bool h)
+static enum exc write_proc_mem(processor_t *pr, ptr_t addr, len_t size, uint32_t value, bool h)
 { 
 	switch (acc_mem(pr, AM_WRITE, addr, size, &value, h)) {
 	case excAddrError:
@@ -495,7 +495,7 @@ static enum exc write_proc_mem(processor_t *pr, addr_t addr, len_t size, uint32_
 /** Read an instruction
  *
  */
-enum exc read_proc_ins(processor_t *pr, addr_t addr, uint32_t *value, bool h)
+enum exc read_proc_ins(processor_t *pr, ptr_t addr, uint32_t *value, bool h)
 {
 	enum exc res;
 

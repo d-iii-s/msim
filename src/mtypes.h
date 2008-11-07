@@ -57,7 +57,7 @@ enum exc {
 };
 
 /**< Addressing and length types */
-typedef uint32_t addr_t;
+typedef uint32_t ptr_t;
 typedef uint32_t len_t;
 
 #endif /* MTYPES_H_ */

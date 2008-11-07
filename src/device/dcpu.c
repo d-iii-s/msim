@@ -401,7 +401,7 @@ static bool dcpu_rd(parm_link_s *parm, device_s *dev)
 static bool dcpu_goto(parm_link_s *parm, device_s *dev)
 {
 	processor_t *pr = dev->data;
-	addr_t addr = parm->token.tval.i;
+	ptr_t addr = parm->token.tval.i;
 	
 	pr->pc = addr;
 	pr->pc_next = addr + 4;
@@ -453,7 +453,7 @@ static bool dcpu_bd(parm_link_s *parm, device_s *dev)
 static bool dcpu_br(parm_link_s *parm, device_s *dev)
 {
 	processor_t *pr = dev->data;
-	addr_t addr = parm->token.tval.i;
+	ptr_t addr = parm->token.tval.i;
 	
 	bool fnd = false;
 	breakpoint_t *bp;

@@ -207,7 +207,7 @@ void unregister_ll(processor_t *pr)
 /** Memory read
  *
  */
-uint32_t mem_read(processor_t *pr, uint32_t addr)
+uint32_t mem_read(processor_t *pr, uint32_t addr, int size)
 {
 	device_s *dev;
 
@@ -250,7 +250,16 @@ uint32_t mem_read(processor_t *pr, uint32_t addr)
 	}
 
 	/* Now there is correct read/write command */
-	return convert_uint32_t_endian(*((uint32_t *) &e->mem[addr - e->start]));
+	switch (size) {
+	case INT8:
+		return convert_uint8_t_endian(*((uint8_t *) &e->mem[addr - e->start]));
+	case INT16:
+		return convert_uint16_t_endian(*((uint16_t *) &e->mem[addr - e->start]));
+	case INT32:
+		return convert_uint32_t_endian(*((uint32_t *) &e->mem[addr - e->start]));
+	}
+	
+	return 0;
 }
 
 

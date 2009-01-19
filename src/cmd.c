@@ -385,7 +385,7 @@ static bool system_id(parm_link_s *pl, void *data)
 	
 	for (; cnt > 0; addr += 4, cnt--) {
 		instr_info ii;
-		ii.icode = mem_read(NULL, addr);
+		ii.icode = mem_read(NULL, addr, 4);
 		decode_instr(&ii);
 		iview(NULL, addr, &ii, 0);
 	}
@@ -522,7 +522,7 @@ static bool system_md(parm_link_s *pl, void *data)
 		if ((i & 0x3) == 0)
 			mprintf("  %#010" PRIx32 "    ", addr);
 		
-		uint32_t val = mem_read(NULL, addr);
+		uint32_t val = mem_read(NULL, addr, 4);
 		mprintf("%08" PRIx32 " ", val);
 		
 		if ((i & 0x3) == 3)

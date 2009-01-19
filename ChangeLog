@@ -3,6 +3,8 @@
 	* fix compilation in Cygwin
 	* use EPC of previous branch instruction if TLB exception
 	  on code fetch happens inside a branch delay slot
+	  (thx Ondrej Cerny)
+	* fix memory access alignment
 
 2008-10-31 Martin Decky <decky@dsrg.mff.cuni.cz>
 	Version 1.3.5.1

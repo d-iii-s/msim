@@ -906,7 +906,7 @@ static void ddisk_step(device_s *d)
 		}
 	} else if (dd->action == ACTION_WRITE) { /* Writting */
 		uint32_t val;
-		val = mem_read(NULL, dd->disk_wptr);
+		val = mem_read(NULL, dd->disk_wptr, 4);
 		dd->img[dd->secno * 128 + dd->cnt] = val;
 		
 		dd->disk_wptr += 4; /* Next word */

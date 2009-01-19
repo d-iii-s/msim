@@ -112,7 +112,7 @@ extern void unregister_ll(processor_t *pr);
 	
 /**< Memory access */
 extern void mem_write(processor_t *pr, uint32_t addr, uint32_t val, int size);
-extern uint32_t mem_read(processor_t *pr, uint32_t addr);
+extern uint32_t mem_read(processor_t *pr, uint32_t addr, int size);
 
 /**< Memory control */
 extern void mem_link(mem_element_s *e);

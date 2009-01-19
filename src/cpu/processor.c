@@ -409,7 +409,7 @@ static enum exc acc_mem(processor_t *pr, acc_mode_t mode, ptr_t addr, len_t size
 			if (mode == AM_WRITE)
 				mem_write(pr, addr, *value, size);
 			else
-				*value = mem_read(pr, addr);
+				*value = mem_read(pr, addr, size);
 		}
 	}
 	

@@ -97,7 +97,7 @@ static bool gdb_read_mem(uint32_t addr, int length, char *buf)
 		return false;
 
 	for (; length > 3; length -= 4, addr += 4) {
-		x = mem_read(NULL, addr);
+		x = mem_read(NULL, addr, 4);
 		
 		write_byte(&buf, x & 0xff);
 		write_byte(&buf, (x >> 8) & 0xff);
@@ -106,7 +106,7 @@ static bool gdb_read_mem(uint32_t addr, int length, char *buf)
 	}
 
 	if (length > 1) {
-		x = mem_read(NULL, addr);
+		x = mem_read(NULL, addr, 4);
 		
 		write_byte(&buf, x & 0xff);
 		write_byte(&buf, (x >> 8) & 0xff);
@@ -115,7 +115,7 @@ static bool gdb_read_mem(uint32_t addr, int length, char *buf)
 	}
 
 	if (length) {
-		x = mem_read(NULL, addr);
+		x = mem_read(NULL, addr, 4);
 		
 		write_byte(&buf, x & 0xff);
 	}

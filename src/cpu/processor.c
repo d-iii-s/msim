@@ -500,7 +500,7 @@ enum exc read_proc_ins(processor_t *pr, ptr_t addr, uint32_t *value, bool h)
 	enum exc res;
 
 	res = fetch_proc_mem(pr, addr, INT32, value, h);
-	if (res != excNone)
+	if ((res != excNone) && (pr->branch == 0))
 		pr->excaddr = pr->pc;
 
 	return res;
@@ -1948,7 +1948,7 @@ static void manage(processor_t *pr, enum exc res)
 static void instruction(processor_t *pr, enum exc *res)
 {
 	instr_info ii;
-
+	
 	/* Reading instruction code */
 	*res = read_proc_ins(pr, pr->pc, &ii.icode, true);
 	if (*res == excNone) {

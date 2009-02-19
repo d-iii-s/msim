@@ -50,6 +50,14 @@ h3 {
 	margin: 2em 0em 0.5em 0em;
 }
 
+h4 {
+	margin: 1em 0em 0.5em 0em;
+}
+
+h4 code {
+	font-weight: normal;
+}
+
 ul#table_of_contents {
 	margin: 0;
 	padding: 0;
@@ -64,7 +72,8 @@ code {
 }
 
 code strong {
-	color: blue;
+	font-weight: bold;
+	color: #990000;
 }
 
 table {
@@ -73,27 +82,15 @@ table {
 }
 
 th {
-	border: 1px solid #000000;
+	border: 1px solid #99ffff;
+	padding: 1em;
+	background: #eeffff;
 }
 
 td {
 	border: 1px dotted #000000;
-}
-
-
-
-
-
-
-
-
-
-h4 {
-	margin: 1em 0em 0.5em 0em;
-}
-
-h4 code {
-	font-weight: normal;
+	padding: 1em;
+	vertical-align: top;
 }
 
 pre.cmd {
@@ -108,14 +105,31 @@ pre.c {
 	background-color: #f0f0ff;
 }
 
-span.mono {
-	font-family: monospace;
+pre.c .lnr {
+	color: #880;
+	background-color: #ddd;
+	border-right: 1px solid #888;
+	margin-right: 0.3em;
+}
+
+pre.c .comment {
+	color: #088;
+}
+
+pre.c .preproc {
+	color: #820;
+}
+
+pre.c .keyword {
+	color: #808;
+	font-weight: bold;
 }
 
 span.key {
 	background-color: #ffa;
 	border: thin solid #dd6;
-	margin: 0px 0.2em 0px 0.2em
+	margin: 0.2em 0.2em 0.2em 0.2em;
+	padding: 0 0.3em 0 0.3em;
 }
 
 caption {
@@ -123,36 +137,6 @@ caption {
 	font-weight: bold;
 }
 
-thead td {
-	font-weight: bold;
-}
-
-pre.c .lnr {
-	color: #880;
-	background-color: #ddd;
-	border-right: 1px solid #888;
-	margin-right:0.3em;
-}
-
-pre.c .Comment {
-	color: #088;
-}
-
-pre.c .PreProc {
-	color: #828;
-}
-
-pre.c .Number {
-	color: #833;
-}
-
-pre.c .Type {
-	color: #080;
-}
-
-pre.c .Statement {
-	color: #880;
-}
 
 emph.ax1 {
 	display: none;

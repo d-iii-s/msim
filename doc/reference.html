@@ -100,7 +100,7 @@ for <a href="http://dsrg.mff.cuni.cz/~holub/sw/msim">MSIM</a> version 1.3.7.</p>
 education and research purposes, mainly to teach the construction and
 implementation of operating systems. MSIM is distributed with source code under
 the GNU GPL license to make possible modifications for users and works on most
-POSIX-compliance environments (mainly Linux, Mac&nbsp;OS&nbsp;X, but can be
+POSIX-compliance environments (mainly GNU/Linux, Mac&nbsp;OS&nbsp;X, but can be
 also compiled in Cygwin or MinGW in Windows).</p>
 
 <p>MSIM provides following features (along others):</p>
@@ -144,61 +144,76 @@ system.</p>
 
 <table>
 	<tr><th>Type</th><th>Example</th></tr>
-<tr><td>Normal text</td><td>This is a normal text</td></tr>
-<tr><td>Block of code</td><td><pre class="cmd">Example of a code
-r1 = r2 + r3</pre></td></tr>
-<tr><td>Msim command line</td><td><pre class="cmd"><b>[MSIM]</b> command</pre></td></tr>
-<tr><td>C source code</td><td><pre class="c"><span class="lnr"> 1 </span><span class="Comment">/*</span><span class="Comment"> This is just a comment.</span>
-<span class="lnr"> 2 </span><span class="Comment"> */</span>
-<span class="lnr"> 3 </span><span class="PreProc">#define PREPROCESSOR </span><span class="Number">number</span>
+	<tr><td>Shell command line</td><td><pre class="cmd"><strong>$</strong> command</pre></td></tr>
+	<tr><td>MSIM command line</td><td><pre class="cmd"><strong>[msim]</strong> command</pre></td></tr>
+	<tr><td>Source code</td><td>
+<pre class="c"><span class="lnr"> 1 </span><span class="comment">/* This is just a comment. */</span>
+<span class="lnr"> 2 </span>
+<span class="lnr"> 3 </span><span class="preproc">#define MACRO something</span>
 <span class="lnr"> 4 </span>
-<span class="lnr"> 5 </span><span class="Type">type</span> function_name( <span class="Type">type</span> variable)
+<span class="lnr"> 5 </span><span class="keyword">int</span> fnc(<span class="keyword">int</span> variable)
 <span class="lnr"> 6 </span>{
-<span class="lnr"> 7 </span>        code;
-<span class="lnr"> 8 </span>        <span class="Statement">statement</span> (*variable)
-<span class="lnr"> 9 </span>                function_name();
-<span class="lnr">10 </span>}
-</pre></td></tr>
-<tr><td>Inline code</td><td>An example of <code>code</code> inside the text.</td></tr>
-<tr><td>Emphasized inline code</td><td>An example of an <code><b>emphasized</b> code</code> inside the text.</td></tr>
-<tr><td>Keyboard keys</td><td>When you press the Enter key, <span class="key">Enter</span> appears.</td></tr>
-<tr><td>TODO tag</td><td><p><span class="todo">TODO</span></p>
-<p>The TODO tag informs the reader, that the particular part of the manual is not complete.</p></td></tr>
-</tbody>
+<span class="lnr"> 7 </span>	<span class="keyword">if</span> (variable > 0)
+<span class="lnr"> 8 </span>		<span class="keyword">return</span> 1;
+<span class="lnr"> 9 </span>	
+<span class="lnr">10 </span>	<span class="keyword">return</span> fnc2(MACRO);
+<span class="lnr">11 </span>}</pre></td></tr>
+	<tr><td>Inline code</td><td>An example of <code>code</code> inside the text.</td></tr>
+	<tr><td>Emphasized inline code</td><td>An example of an <code><strong>emphasized</strong> code</code> inside the text.</td></tr>
+	<tr><td>Keyboard keys</td><td>When you should press the Enter key, <span class="key">Enter</span> is used.</td></tr>
 </table>
 
 <h2>2. Deployment<a name="Deployment"></a></h2>
 
-<p>POSIX environment - GNU/Linux tested under Debian Sarge and Etch, Feroda Core, Solaris, Cygwin, and Gentoo.</p>
-<p>Tools - make, cc</p>
-<p>Libraries - libc, readline</p>
+<p>A POSIX compliant environment is required for MSIM to be compiled and
+executed. It has been succesfully tested on GNU/Linux in various distributions
+(Debian, Feroda, Gentoo) and platforms (x86, AMD64, UltraSPARC, PowerPC).
+MSIM also runs in Solaris, OpenSolaris, FreeBSD and Mac&nbsp;OS&nbsp;X.</p>
 
-<p><span class="todo">TODO</span></p>
+<p>Under Windows MSIM can be compiled and executed in Cygwin or using MinGW/MSYS
+as a natine Win32 console application (although the functionality might be
+somehow limited).</p>
+
+<p>A standard toolchain of consisting of a C compiler (preferably GCC) and
+usual utilities (Bash, GNU Make) are the prerequisites for building MSIM.
+The <a href="http://tiswww.tis.case.edu/~chet/readline/rltop.html">GNU Readline</a>
+library is also required.</p>
 
 <h3>2.1. Download<a name="Download"></a></h3>
 
-<p>The MSIM can be downloaded from the <a href="http://dsrg.mff.cuni.cz/~holub/sw/msim">project pages</a>. It is distributed via a source tarball.</p>
-<pre class="cmd">wget "http://dsrg.mff.cuni.cz/~holub/sw/msim/msim-1.3.1.tar.gz"</pre>
-<p><span class="todo">TODO</span></p>
+<p>The current version of MSIM can be downloaded from the
+<a href="http://dsrg.mff.cuni.cz/~holub/sw/msim">project site</a>. It is
+distributed via a source tarball. Untar the distribution package
+and change your current directory to the directory containing a script
+called <code>configure</code>.</p>
 
 <h3>2.2. Configuration<a name="Configuration"></a></h3>
 
-<p>Parameters of the <code>configure</code> scripts.</p>
-<p><code>./configure</code></p>
-<pre class="cmd">CFLAGS="-O0 -ggdb -Wall" CC="gcc" ./configure --prefix=/opt</pre>
-<p><span class="todo">TODO</span></p>
+<p>To configure the package for compilation use the <code>configure</code>
+scripts. The script should detect all important compilation options
+and check for prerequisites.</p>
+
+<p>Specific options to the <code>configure</code> script can be used,
+e.g. <code>--prefix=</code> to set the installation prefix.</p>
+
+<pre class="cmd"><strong>$</strong> ./configure --prefix=/opt</pre>
 
 <h3>2.3. Compilation<a name="Compilation"></a></h3>
 
-<p>make</p>
-<p>Useful gcc parameters: -O0 -O3 -ggdb -Wall</p>
-<p><span class="todo">TODO</span></p>
+<p>After a succesful execution of <code>configure</code> just run
+<code>make</code> to compile the sources. No special arguments
+are usually necessary.</p>
+
+<pre class="cmd"><strong>$</strong> make</pre>
 
 <h3>2.4. Installation<a name="Installation"></a></h3>
 
-<p><code>make install</code></p>
-<p><span class="todo">TODO</span></p>
+<p>If the compilation is succesful, you can use the following command
+to install the binary and sumplementary files into the installation
+prefix. You will probably need root privileges to install MSIM
+into system-wide prefix.</p>
 
+<pre class="cmd"><strong>#</strong> make install</pre>
 
 <h2>3. Command line parameters<a name="Command_line_parameters"></a></h2>
 

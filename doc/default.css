@@ -93,6 +93,11 @@ td {
 	vertical-align: top;
 }
 
+caption {
+	font-style: italic;
+	padding: 1em;
+}
+
 pre.cmd {
 	border-left: 0.3em solid #ccf;
 	padding-left: 0.2em;
@@ -131,12 +136,6 @@ span.key {
 	margin: 0.2em 0.2em 0.2em 0.2em;
 	padding: 0 0.3em 0 0.3em;
 }
-
-caption {
-	background-color: #ffc;
-	font-weight: bold;
-}
-
 
 emph.ax1 {
 	display: none;

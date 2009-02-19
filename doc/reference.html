@@ -47,7 +47,7 @@ for <a href="http://dsrg.mff.cuni.cz/~holub/sw/msim">MSIM</a> version 1.3.7.</p>
 	</li>
 	<li><a href="#System_environment">4. System environment</a></li>
 	<li><a href="#Configuration_file">5. Configuration file</a></li>
-	<li><a href="#Environment_variables">6. Environment variables</a></li>
+	<li><a href="#Internal_variables">6. Internal variables</a></li>
 	<li><a href="#Input_command_line">7. Input command line</a></li>
 	<li><a href="#System_commands">8. System commands</a><br />
 		<ul>
@@ -154,17 +154,17 @@ keyboard input, character output, etc.</p>
 	<tr><td>Shell command line</td><td><pre class="cmd"><strong>$</strong> command</pre></td></tr>
 	<tr><td>MSIM command line</td><td><pre class="cmd"><strong>[msim]</strong> command</pre></td></tr>
 	<tr><td>Source code</td><td>
-<pre class="c"><span class="lnr"> 1 </span><span class="comment">/* This is just a comment. */</span>
-<span class="lnr"> 2 </span>
-<span class="lnr"> 3 </span><span class="preproc">#define MACRO something</span>
-<span class="lnr"> 4 </span>
-<span class="lnr"> 5 </span><span class="keyword">int</span> fnc(<span class="keyword">int</span> variable)
-<span class="lnr"> 6 </span>{
-<span class="lnr"> 7 </span>	<span class="keyword">if</span> (variable > 0)
-<span class="lnr"> 8 </span>		<span class="keyword">return</span> 1;
-<span class="lnr"> 9 </span>	
-<span class="lnr">10 </span>	<span class="keyword">return</span> fnc2(MACRO);
-<span class="lnr">11 </span>}</pre></td></tr>
+<pre class="c"><span class="lnr">  1 </span><span class="comment">/* This is just a comment. */</span>
+<span class="lnr">  2 </span>
+<span class="lnr">  3 </span><span class="preproc">#define MACRO something</span>
+<span class="lnr">  4 </span>
+<span class="lnr">  5 </span><span class="keyword">int</span> fnc(<span class="keyword">int</span> variable)
+<span class="lnr">  6 </span>{
+<span class="lnr">  7 </span>    <span class="keyword">if</span> (variable > 0)
+<span class="lnr">  8 </span>        <span class="keyword">return</span> 1;
+<span class="lnr">  9 </span>    
+<span class="lnr"> 10 </span>    <span class="keyword">return</span> fnc2(MACRO);
+<span class="lnr"> 11 </span>}</pre></td></tr>
 	<tr><td>Inline code</td><td>An example of <code>code</code> inside the text.</td></tr>
 	<tr><td>Emphasized inline code</td><td>An example of an <code><strong>emphasized</strong> code</code> inside the text.</td></tr>
 	<tr><td>Keyboard keys</td><td>When you should press the Enter key, <span class="key">Enter</span> is used.</td></tr>
@@ -291,125 +291,209 @@ MSIM for remote debugging. The GDB mode is rather experimental in version 1.3.7.
 
 <h2>4. System environment<a name="System_environment"></a></h2>
 
-<p><span class="todo">TODO</span></p>
+<p>When no configuration file <code>msim.conf</code> exists in the current
+directory (and no other configuration file is specified via the <code>-c</code>
+command line parameter), the simulator represents and &quot;empty computer&quot;
+after startup. In this case MSIM will go into interactive mode.</p>
 
+<p>By default, there are no hardware devices configured, there is no physical
+memory, there is not even a CPU for running code. Just the MSIM command line
+prompt can be seen:</p>
+
+<pre class="cmd"><strong>[msim]</strong> </pre>
+
+<p>You have to use the <a href="#System_commands">system commands</a> to
+configure the environment. Here is a reasonable minimal set of commands
+which are required to execute some MIPS code:</p>
+
+<pre class="cmd"><strong>[msim]</strong> add dcpu cpu0<span class="key">Enter</span>
+<strong>[msim]</strong> add rwm memory 0x00000000<span class="key">Enter</span>
+<strong>[msim]</strong> memory generic 16M<span class="key">Enter</span>
+<strong>[msim]</strong> add rom firmware 0x1fc00000<span class="key">Enter</span>
+<strong>[msim]</strong> firmware generic 4096k<span class="key">Enter</span>
+<strong>[msim]</strong> firmware load "firmware.img"<span class="key">Enter</span>
+<strong>[msim]</strong> </pre>
+
+<p>This will configure the environment with the following devices:</p>
+
+<ul>
+	<li>a single CPU (called <code>cpu0</code>)</li>
+	<li>a piece of read/write memory starting at the physical address 0x00000000
+		and with the size of 16&nbsp;MB (called <code>memory</code>)</li>
+	<li>a piece of read-only memory starting at the physical address 0x1fc00000
+		and with the size of 4096&nbsp;KB (called <code>firmware</code>)
+		<ul>
+			<li>this read-only memory is populated with the contents of the file
+				<code>firmware.img</code> (this file must exist it the current
+				directory of the host computer)</li>
+		</ul>
+	</li>
+</ul>
+
+<p>After this basic configuration the simulator is ready to execute the
+code (sequence of MIPS instructions) loaded from the file <code>firmware.img</code>
+and stored in the <code>firmware</code> read-only memory. The single CPU configured
+in the system (<code>cpu0</code>) will start the execution at the virtual address
+0xbfc00000, which exactly corresponds to the physical address 0x1fc00000 (i.e.
+the start of <code>firmware</code> memory).</p>
+
+<p>The executed code will be able to use the read/write memory <code>memory</code>
+located at the physical address 0x00000000. The execution environment is modeled
+strictly according to the specification of MIPS R4000 CPU (please reffer to
+<emph>MIPS R4000 Microprocessor User's Manual</emph>).</p>
+
+<p>Please reffer also to further sections of this text for details about the
+commands used in our brief example.</p>
 
 <h2>5. Configuration file<a name="Configuration_file"></a></h2>
 
-<p><span class="todo">TODO</span></p>
+<p>The configuration file of MSIM (usually called <code>msim.conf</code>)
+contains any system commands which would be otherwise typed in interactive
+mode in MSIM prompt. This allows for maximum flexibility and ease of use
+as you don't have to learn to use the set of commands for the interactive
+mode and another set of commands for the use in the configuration file.</p>
 
+<p>A typical <code>msim.conf</code> might look like this:</p>
 
-<h2>6. Environment variables<a name="Environment_variables"></a></h2>
+<pre class="c"><span class="lnr">  1 </span><span class="comment">#</span>
+<span class="lnr">  2 </span><span class="comment"># MSIM configuration script</span>
+<span class="lnr">  3 </span><span class="comment">#</span>
+<span class="lnr">  4 </span>
+<span class="lnr">  5 </span><span class="keyword">add</span> dcpu <span class="preproc">cpu0</span>
+<span class="lnr">  6 </span><span class="keyword">add</span> dcpu <span class="preproc">cpu1</span>
+<span class="lnr">  7 </span>
+<span class="lnr">  8 </span><span class="keyword">add</span> rwm <span class="preproc">mainmem</span> 0x00000000
+<span class="lnr">  9 </span><span class="preproc">mainmem</span> <span class="keyword">generic</span> 16M
+<span class="lnr"> 10 </span><span class="preproc">mainmem</span> <span class="keyword">load</span> "/dev/zero"
+<span class="lnr"> 11 </span>
+<span class="lnr"> 12 </span><span class="keyword">add</span> rom <span class="preproc">bootmem</span> 0x1fc00000
+<span class="lnr"> 13 </span><span class="preproc">bootmem</span> <span class="keyword">generic</span> 4096k
+<span class="lnr"> 14 </span><span class="preproc">bootmem</span> <span class="keyword">load</span> "image.boot"
+<span class="lnr"> 15 </span>
+<span class="lnr"> 16 </span><span class="keyword">add</span> dprinter <span class="preproc">printer</span> 0x10000000
+<span class="lnr"> 17 </span><span class="keyword">add</span> dkeyboard <span class="preproc">keyboard</span> 0x10000000 2
+<span class="lnr"> 18 </span><span class="keyword">add</span> dorder <span class="preproc">order</span> 0x10000004 5</pre>
 
-<table>
-<caption>Instruction disassembling</caption>
-<thead><tr>
-	<td></td><td>Address</td><td>Opcode</td><td>Instruction</td><td>Conversion</td><td>Changes</td>
-</tr></thead>
-<tbody>
-<tr>
-	<td>Variable</td>
-	<td><code>iaddr</code></td>
-	<td><code>iopc</code></td>
-	<td><code>ireg</code></td>
-	<td><code>icmt</code></td>
-	<td><code>iregch</code></td>
-</tr><tr>
-	<td>Example&nbsp;&nbsp;</td>
-	<td><code>80000F04</code>&nbsp;</td>
-	<td><code>24840100</code>&nbsp;&nbsp;</td>
-	<td><code>addiu a0, a0, 0x100</code>&nbsp;&nbsp;</td>
-	<td><code># 0x100=256</code></td>
-	<td><code>, a0: 0x4-&gt;0x104</code></td>
-</tr>
-</tbody>
-</table>
+<p>Similarily to shell scripts empty lines are ignored. Also any text beginning
+with the <code>#</code> character to the end of the line is considered a comment
+and is ignored.</p>
 
-<h3>6.1. List of environment variables</h3>
+<h2>6. Internal variables<a name="Internal_variables"></a></h2>
+
+<p>MSIM defines several internal variables which control its behaviour
+during execution. The variables can be set via the <a href="#Set">set</a>
+and unset via the <a href="#Unset">unset</a> commands. Following internal
+variables are available:</p>
+
 <dl>
-<dt><a href="#iaddr">iaddr</a></dt> <dd>Enables addresses in a disassembler</dd>
-<dt><a href="#iopc">iopc</a></dt> <dd>Enables opcodes in a disassembler</dd>
-<dt><a href="#icmt">icmt</a></dt> <dd>Enables additional comments, such as number conversions</dd>
-<dt><a href="#iregch">iregch</a></dt> <dd>Shows register changes</dd>
-<dt><a href="#ireg">ireg</a></dt> <dd>Sets type of register names</dd>
-<dt><a href="#trace">trace</a></dt> <dd>Enables a trace mode</dd>
+	<dt><a href="#trace">trace</a></dt>
+		<dd>Enable trace mode</dd>
+	<dt><a href="#iaddr">iaddr</a></dt>
+		<dd>Enable addresses in disassembler</dd>
+	<dt><a href="#iopc">iopc</a></dt>
+		<dd>Enable opcodes in disassembler</dd>
+	<dt><a href="#icmt">icmt</a></dt>
+		<dd>Enable additional comments (such as number conversions) in disassembler</dd>
+	<dt><a href="#iregch">iregch</a></dt>
+		<dd>Show register changes in disassembler</dd>
+	<dt><a href="#ireg">ireg</a></dt>
+		<dd>Set type of register names</dd>
 </dl>
 
-<h3>6.2. Addresses in disassembler <code>iaddr</code><a name="iaddr"></a></h3>
+<p>The following table and examples demonstrate how the various variables
+affect the fields which are printed in disassembler.</p>
 
-<p>Enables an address bar in the disassembler output.</p>
+<table>
+	<caption>Instruction disassembling overview</caption>
+	<tr>
+		<td></td>
+		<th>Address</th>
+		<th>Opcode</th>
+		<th>Instruction</th>
+		<th>Conversion</th>
+		<th>Changes</td>
+	</tr>
+	<tr>
+		<th>Variable</th>
+		<td><code>iaddr</code></td>
+		<td><code>iopc</code></td>
+		<td><code>ireg</code></td>
+		<td><code>icmt</code></td>
+		<td><code>iregch</code></td>
+	</tr>
+	<tr>
+		<th>Sample output</th>
+		<td><code>80000F04</code>&nbsp;</td>
+		<td><code>24840100</code>&nbsp;&nbsp;</td>
+		<td><code>addiu a0, a0, 0x100</code>&nbsp;&nbsp;</td>
+		<td><code># 0x100=256</code></td>
+		<td><code>, a0: 0x4-&gt;0x104</code></td>
+	</tr>
+</table>
 
-<pre class="cmd"><b>[MSIM]</b> unset iaddr<span class="key">Enter</span>
-<b>[MSIM]</b> id 0x0040121c 1<span class="key">Enter</span>
+<p>Addresses in disassebler:</p>
+
+<pre class="cmd"><strong>[msim]</strong> unset iaddr<span class="key">Enter</span>
+<strong>[msim]</strong> id 0x0040121c 1<span class="key">Enter</span>
       lw    a0, 0x1694(gp)    # 0x1694=5780
-<b>[MSIM]</b> set iaddr<span class="key">Enter</span>
-<b>[MSIM]</b> id 0x0040121c 1<span class="key">Enter</span>
+<strong>[msim]</strong> set iaddr<span class="key">Enter</span>
+<strong>[msim]</strong> id 0x0040121c 1<span class="key">Enter</span>
     0040121C    lw    a0, 0x1694(gp)    # 0x1694=5780
-<b>[MSIM]</b> </pre>
+<strong>[msim]</strong> </pre>
 
-<h3>6.3. Opcodes in disassembler <code>iopc</code><a name="iopc"></a></h3>
+<p>Opcodes in disassembler:</p>
 
-<p>Enables opcode display in the disassembled output.</p>
-
-<pre class="cmd"><b>[MSIM]</b> unset iopc<span class="key">Enter</span>
-<b>[MSIM]</b> id 0x0040121c 1<span class="key">Enter</span>
+<pre class="cmd"><strong>[msim]</strong> unset iopc<span class="key">Enter</span>
+<strong>[msim]</strong> id 0x0040121c 1<span class="key">Enter</span>
     0040121C    lw    a0, 0x1694(gp)    # 0x1694=5780
-<b>[MSIM]</b> set iopc <span class="key">Enter</span>
-<b>[MSIM]</b> id 0x0040121c 1<span class="key">Enter</span>
+<strong>[msim]</strong> set iopc<span class="key">Enter</span>
+<strong>[msim]</strong> id 0x0040121c 1<span class="key">Enter</span>
     0040121C  8F841694    lw    a0, 0x1694(gp)    # 0x1694=5780
-<b>[MSIM]</b> </pre>
+<strong>[msim]</strong> </pre>
 
-<h3>6.3. Additional comments in disassembler <code>icmt</code><a name="icmt"></a></h3>
+<p>Additional disassembler information (e.g. hex to decimal number conversions):</p>
 
-<p>Enables additional disassembler information as hex to decimal number conversions.</p>
-
-<pre class="cmd"><b>[MSIM]</b> unset icmt<span class="key">Enter</span>
-<b>[MSIM]</b> id 0x00400ef8 1<span class="key">Enter</span>
-    00400EF8    sw    a0, 0x1694(gp)      
-<b>[MSIM]</b> set icmt<span class="key">Enter</span>
-<b>[MSIM]</b> id 0x00400ef8 1<span class="key">Enter</span>
+<pre class="cmd"><strong>[msim]</strong> unset icmt<span class="key">Enter</span>
+<strong>[msim]</strong> id 0x00400ef8 1<span class="key">Enter</span>
+    00400EF8    sw    a0, 0x1694(gp)
+<strong>[msim]</strong> set icmt<span class="key">Enter</span>
+<strong>[msim]</strong> id 0x00400ef8 1<span class="key">Enter</span>
     00400EF8    sw    a0, 0x1694(gp)    # 0x1694=5780
-<b>[MSIM]</b> </pre>
+<strong>[msim]</strong> </pre>
 
-<h3>6.4. Register changes in disassembler <code>iregch</code><a name="iregch"></a></h3>
+<p>Register changes in disassembler:</p>
 
-<p>Enables register changes show in the disassembler output.</p>
-
-<pre class="cmd"><b>[MSIM]</b> unset iregch<span class="key">Enter</span>
-<b>[MSIM]</b> s 5<span class="key">Enter</span>
-    80400ECC    addu  v0, v0, a1          
-    80400ED0    sll   v0, v0, 0x06        
-    80400ED4    subu  v0, v0, a1          
-    80400ED8    sll   v1, v0, 0x02        
-    80400EDC    addu  v0, v0, v1          
-<b>[MSIM]</b> set iregch<span class="key">Enter</span>
-<b>[MSIM]</b> s 5<span class="key">Enter</span>
+<pre class="cmd"><strong>[msim]</strong> unset iregch<span class="key">Enter</span>
+<strong>[msim]</strong> s 5<span class="key">Enter</span>
+    80400ECC    addu  v0, v0, a1
+    80400ED0    sll   v0, v0, 0x06
+    80400ED4    subu  v0, v0, a1
+    80400ED8    sll   v1, v0, 0x02
+    80400EDC    addu  v0, v0, v1
+<strong>[msim]</strong> set iregch<span class="key">Enter</span>
+<strong>[msim]</strong> s 5<span class="key">Enter</span>
     80400EE0    sll   v0, v0, 0x04      # v0: 0xe12018d9-&gt;0xe83550, 
-					# v1: 0xe03fd900-&gt;0xb9c44, 
-					# a0: 0x6d9b-&gt;0xe9e3a6c0, 
-					# a1: 0xa9-&gt;0xaf, a2: 0xda-&gt;0xdb, 
-					# loreg: 0x394745fa-&gt;0x7844ddc0, 
-					# hireg: 0x7116dba5-&gt;0x7544c9eb
+                                        # v1: 0xe03fd900-&gt;0xb9c44, 
+                                        # a0: 0x6d9b-&gt;0xe9e3a6c0, 
+                                        # a1: 0xa9-&gt;0xaf, a2: 0xda-&gt;0xdb, 
+                                        # loreg: 0x394745fa-&gt;0x7844ddc0, 
+                                        # hireg: 0x7116dba5-&gt;0x7544c9eb
     80400EE4    addu  v0, v0, a1        # v0: 0xe83550-&gt;0xe835ff
     80400EE8    sll   v1, v0, 0x08      # v1: 0xb9c44-&gt;0xe835ff00
     80400EEC    addu  v0, v0, v1        # v0: 0xe835ff-&gt;0xe91e34ff
     80400EF0    subu  a0, a0, v0        # a0: 0xe9e3a6c0-&gt;0xc571c1
-<b>[MSIM]</b> </pre>
+<strong>[msim]</strong> </pre>
 
-<h3>6.5. Register names in disassembler <code>ireg</code><a name="ireg"></a></h3>
-
-<p>Selects the scheme of register names used by the disassembler:</p>
+<p>The <code>ireg</code> selects the scheme for register names used by the
+disassembler:</p>
 
 <table>
-<caption>Basic processor registers</caption>
-<thead>
+	<caption>Basic processor registers</caption>
 	<tr>
-		<td>Number</td>
-		<td>Description</td>
-		<td>List of register names</td>
+		<th><code>ireg</code></td>
+		<th>Description</th>
+		<th>List of register names</th>
 	</tr>
-</thead>
-<tbody>
 	<tr>
 		<td>0</td>
 		<td>Processor-oriented</td>
@@ -425,19 +509,15 @@ MSIM for remote debugging. The GDB mode is rather experimental in version 1.3.7.
 		<td>Compiler convention</td>
 		<td>0 at v0 v1 a0 a1 a2 a3 t0 t1 t2 t3 t4 t5 t6 t7 s0 s1 s2 s3 s4 s5 s6 s7 t8 t9 k0 k1 gp sp fp ra</td>
 	</tr>
-</tbody>
 </table>
 
 <table>
-<caption>CP0 coprocessor registers</caption>
-<thead>
+	<caption>CP0 registers</caption>
 	<tr>
-		<td>Number</td>
-		<td>Description</td>
-		<td>List of register names</td>
+		<th><code>ireg</code></td>
+		<th>Description</th>
+		<th>List of register names</th>
 	</tr>
-</thead>
-<tbody>
 	<tr>
 		<td>0</td>
 		<td>Processor-oriented</td>
@@ -453,47 +533,47 @@ MSIM for remote debugging. The GDB mode is rather experimental in version 1.3.7.
 		<td>Compiler convention</td>
 		<td>index random entrylo0 entrylo1 context pagemask wired res_7 badvaddr count entryhi compare status cause epc prid config lladdr watchlo watchhi xcontext res_21 res_22 res_23 res_24 res_25 res_26 res_27 res_28 res_29 errorepc res_31</td>
 	</tr>
-</tbody>
 </table>
 
-<pre class="cmd"><b>[MSIM]</b> set ireg=0<span class="key">Enter</span>
-<b>[MSIM]</b> id 0x00400efc 4<span class="key">Enter</span>
-    00400EFC    srl   r4, r4, 0x08        
+<p>Sample of usage:</p>
+
+<pre class="cmd"><strong>[msim]</strong> set ireg=0<span class="key">Enter</span>
+<strong>[msim]</strong> id 0x00400efc 4<span class="key">Enter</span>
+    00400EFC    srl   r4, r4, 0x08
     00400F00    andi  r4, r4, 0x000f    # 0xfh=15
     00400F04    addiu r4, r4, 0x100     # 0x100=256
-    00400F08    sltu  r4, r6, r4          
-<b>[MSIM]</b> set ireg=1<span class="key">Enter</span>
-<b>[MSIM]</b> id 0x00400efc 4<span class="key">Enter</span>
-    00400EFC    srl   $4, $4, 0x08        
+    00400F08    sltu  r4, r6, r4
+<strong>[msim]</strong> set ireg=1<span class="key">Enter</span>
+<strong>[msim]</strong> id 0x00400efc 4<span class="key">Enter</span>
+    00400EFC    srl   $4, $4, 0x08
     00400F00    andi  $4, $4, 0x000f    # 0xfh=15
     00400F04    addiu $4, $4, 0x100     # 0x100=256
-    00400F08    sltu  $4, $6, $4          
-<b>[MSIM]</b> set ireg=2<span class="key">Enter</span>
-<b>[MSIM]</b> id 0x00400efc 4<span class="key">Enter</span>
-    00400EFC    srl   a0, a0, 0x08        
+    00400F08    sltu  $4, $6, $4
+<strong>[msim]</strong> set ireg=2<span class="key">Enter</span>
+<strong>[msim]</strong> id 0x00400efc 4<span class="key">Enter</span>
+    00400EFC    srl   a0, a0, 0x08
     00400F00    andi  a0, a0, 0x000f    # 0xfh=15
     00400F04    addiu a0, a0, 0x100     # 0x100=256
-    00400F08    sltu  a0, a2, a0          
-<b>[MSIM]</b> </pre>
+    00400F08    sltu  a0, a2, a0
+<strong>[msim]</strong> </pre>
 
-<h3>6.6. Trace mode <code>trace</code><a name="trace"></a></h3>
+<p>The <code>trace</code> variable switches the simulator into the trace mode.
+In trace mode, all the executed instructions are disassembled and immediately
+displayed on the screen.</p>
 
-<p>Switches the simulator into the trace mode. In trace mode, all the executed instructions are disassembled and immediately displayed on the screen.</p>
-
-<pre class="cmd"><b>[MSIM]</b> unset trace<span class="key">Enter</span>
-<b>[MSIM]</b> s<span class="key">Enter</span>
-<b>[MSIM]</b> s<span class="key">Enter</span>
-<b>[MSIM]</b> s<span class="key">Enter</span>
-<b>[MSIM]</b> set trace<span class="key">Enter</span>
-<b>[MSIM]</b> s<span class="key">Enter</span>
+<pre class="cmd"><strong>[msim]</strong> unset trace<span class="key">Enter</span>
+<strong>[msim]</strong> s<span class="key">Enter</span>
+<strong>[msim]</strong> s<span class="key">Enter</span>
+<strong>[msim]</strong> s<span class="key">Enter</span>
+<strong>[msim]</strong> set trace<span class="key">Enter</span>
+<strong>[msim]</strong> s<span class="key">Enter</span>
     80400EC8    sll   v0, a1, 0x04      # v0: 0x1fcec0c2-&gt;0x2f0, 
-    					# a1: 0x1ffc0227-&gt;0x2f
-<b>[MSIM]</b> s<span class="key">Enter</span>
+                                        # a1: 0x1ffc0227-&gt;0x2f
+<strong>[msim]</strong> s<span class="key">Enter</span>
     80400ECC    addu  v0, v0, a1        # v0: 0x2f0-&gt;0x31f
-<b>[MSIM]</b> s<span class="key">Enter</span>
+<strong>[msim]</strong> s<span class="key">Enter</span>
     80400ED0    sll   v0, v0, 0x06      # v0: 0x31f-&gt;0xc7c0
-<b>[MSIM]</b> </pre>
-
+<strong>[msim]</strong> </pre>
 
 <h2>7. Input command line<a name="Input_command_line"></a></h2>
 
@@ -528,7 +608,7 @@ MSIM for remote debugging. The GDB mode is rather experimental in version 1.3.7.
 <h3>8.2. Add <code>add</code><a name="Add"></a></h3> 
 	<p>Adds a new device into the system under a specified name.</p>
 
-	<h4>Syntax: <code><b>add</b> device_type device_name [device_parameters...]</code></h4>
+	<h4>Syntax: <code><strong>add</strong> device_type device_name [device_parameters...]</code></h4>
 	<p>where:</p>
 	<dl>
 		<dt><code>device_type</code></dt> <dd>specifies a device type. The list of available device types is in the <a href="#Devices">Devices</a> section,</dd>
@@ -538,17 +618,17 @@ MSIM for remote debugging. The GDB mode is rather experimental in version 1.3.7.
 
 	<h4>Example</h4>
 	<p>The first example adds a new printer "p0" to the system. The printer register is located at 0x0001000.</p>
-	<pre class="cmd"><b>[MSIM]</b> add dprinter p0 0x1000<span class="key">Enter</span>
-<b>[MSIM]</b> </pre>
+	<pre class="cmd"><strong>[msim]</strong> add dprinter p0 0x1000<span class="key">Enter</span>
+<strong>[msim]</strong> </pre>
 
 	<p>The second example adds a read-only memory "m0" mapped at 0x10000. The size of the memory is 16 kilobytes.</p>
-	<pre class="cmd"><b>[MSIM]</b> add rom m0 0x10000 16k<span class="key">Enter</span>
-<b>[MSIM]</b> </pre>
+	<pre class="cmd"><strong>[msim]</strong> add rom m0 0x10000 16k<span class="key">Enter</span>
+<strong>[msim]</strong> </pre>
 
 <h3>8.3. Remove <code>rm</code><a name="Remove"></a></h3>
 	<p>Removes the specified device from the system.</p>
 
-	<h4>Syntax: <code><b>rm</b> device_name</code></h4>
+	<h4>Syntax: <code><strong>rm</strong> device_name</code></h4>
 	<p>where:</p>
 	<dl>
 		<dt><code>device_name</code></dt> <dd>is a name of the device that has to be removed.</dd>
@@ -557,18 +637,18 @@ MSIM for remote debugging. The GDB mode is rather experimental in version 1.3.7.
 	<h4>Example</h4>
 
 	<p>The following example removes a device named "Joe" from the system.</p>
-	<pre class="cmd"><b>[MSIM]</b> rm Joe<span class="key">Enter</span>
-<b>[MSIM]</b> </pre>
+	<pre class="cmd"><strong>[msim]</strong> rm Joe<span class="key">Enter</span>
+<strong>[msim]</strong> </pre>
 
 <h3>8.4. Quit <code>quit</code><a name="Quit"></a></h3> 
 	<p>Quits the simulator immediately.</p>
 
-	<h4>Syntax: <code><b>quit</b></code></h4>
+	<h4>Syntax: <code><strong>quit</strong></code></h4>
 
 <h3>8.5. Memory dump <code>md</code><a name="Memory_dump"></a></h3> 
 	<p>Prints a part of a memory from an unmapped address.</p>
 
-	<h4>Syntax: <code><b>md</b> address count</code></h4>
+	<h4>Syntax: <code><strong>md</strong> address count</code></h4>
 	<p>where:</p>
 	<dl>
 		<dt><code>address</code></dt> <dd>is the starting address of the memory block,</dd>
@@ -577,16 +657,16 @@ MSIM for remote debugging. The GDB mode is rather experimental in version 1.3.7.
 
 	<h4>Example</h4>
 	<p>The following example prints 10 words from the address 0x1240.</p>
-	<pre class="cmd"><b>[MSIM]</b> md 0x1240 10<span class="key">Enter</span>
+	<pre class="cmd"><strong>[msim]</strong> md 0x1240 10<span class="key">Enter</span>
   00001240    265a45cd  2fefe111  11deadee  30957311  
   00001250    7b218f9f  ffff2345  baba5555  deadbeaf  
   00001260    29dc9aff  1298aa23
-<b>[MSIM]</b> </pre>
+<strong>[msim]</strong> </pre>
 
 <h3>8.6. Instruction dump <code>id</code><a name="Instruction_dump"></a></h3>
 	<p>Prints instructions from the specified unmapped address.</p>
 
-	<h4>Syntax: <code><b>id</b> address count</code></h4>
+	<h4>Syntax: <code><strong>id</strong> address count</code></h4>
 	<p>where:</p>
 	<dl>
 		<dt><code>address</code></dt> <dd>is the starting address and</dd>
@@ -595,7 +675,7 @@ MSIM for remote debugging. The GDB mode is rather experimental in version 1.3.7.
 
 	<h4>Example</h4>
 	<p>The following example prints 10 instructions from the address 0x12a8.</p>
-	<pre class="cmd"><b>[MSIM]</b> id 0x12a8 10<span class="key">Enter</span>
+	<pre class="cmd"><strong>[msim]</strong> id 0x12a8 10<span class="key">Enter</span>
     000012A8    ori   s0, s0, 0x5427    # 0x5427h=21543
     000012AC    sw    s2, 0x18(sp)      # 0x18=24
     000012B0    lui   s2, 0x805a        # 0x805a=32858
@@ -606,46 +686,46 @@ MSIM for remote debugging. The GDB mode is rather experimental in version 1.3.7.
     000012C4    lw    a0, 0x1640(gp)    # 0x1640=5696
     000012C8    jal   +0x4009d4         # 0x4009d4=4196820
     000012CC    nop
-<b>[MSIM]</b> </pre>
+<strong>[msim]</strong> </pre>
 
 <h3>8.7. Device dump <code>dd</code><a name="Device_dump"></a></h3> 
 	<p>Prints a list of devices with parameters added to the system.</p>
 
-	<h4>Syntax: <code><b>dd</b></code></h4>
+	<h4>Syntax: <code><strong>dd</strong></code></h4>
 
 	<h4>Example</h4>
 	<p>The following example prints all devices in the system.</p>
-	<pre class="cmd"><b>[MSIM]</b> dd<span class="key">Enter</span>
+	<pre class="cmd"><strong>[msim]</strong> dd<span class="key">Enter</span>
 [  name  ] [  type  ] [ parameters...
 printer    dprinter   address:0x01000000
 startmem   rom        start:0x1fc00000 size:1k type:mem
 xxx        rwm        start:0x00400000 size:256k type:mem
 mainmem    rwm        start:0x00000000 size:256k type:mem
 mips1      dcpu       type:R4000.32
-<b>[MSIM]</b> </pre>
+<strong>[msim]</strong> </pre>
 
 <h3>8.8. Memory block dump <code>mbd</code><a name="Memory_block_dump"></a></h3> 
 	<p>Prints all installed memory blocks.</p>
 
-	<h4>Syntax: <code><b>mbd</b></code></h4>
+	<h4>Syntax: <code><strong>mbd</strong></code></h4>
 
 	<h4>Example</h4>
 	<p>The following example prints all installed memory blocks.</p>
-	<pre class="cmd"><b>[MSIM]</b> mbd<span class="key">Enter</span>
+	<pre class="cmd"><strong>[msim]</strong> mbd<span class="key">Enter</span>
 [  name  ] [  type  ] [ parameters...
 startmem   rom        start:0x1fc00000 size:1k type:mem
 xxx        rwm        start:0x00400000 size:256k type:mem
 mainmem    rwm        start:0x00000000 size:256k type:mem
-<b>[MSIM]</b> </pre>
+<strong>[msim]</strong> </pre>
 
 <h3>8.10. Statistics <code>stat</code><a name="Statistics"></a></h3> 
 	<p>Prints statistics of installed devices.</p>
 
-	<h4>Syntax: <code><b>stat</b></code></h4>
+	<h4>Syntax: <code><strong>stat</strong></code></h4>
 
 	<h4>Example</h4>
 	<p>The following example print the statistics of all the installed devices.</p>
-	<pre class="cmd"><b>[MSIM]</b> stat<span class="key">Enter</span>
+	<pre class="cmd"><strong>[msim]</strong> stat<span class="key">Enter</span>
 [  name  ] [  type  ] [ statistics...
 printer    dprinter   count:42248
 startmem   rom        no statistics
@@ -654,12 +734,12 @@ mainmem    rwm        no statistics
 mips1      dcpu       cycles total:1373061 in kernel:1373061 in user:0 
 		      in stdby:0 tlb refill:0 invalid: 0 modified:0 
 		      interrupts 0:0 1:0 2:0 3:0 4:0 5:0 6:0 7:0
-<b>[MSIM]</b> </pre>
+<strong>[msim]</strong> </pre>
 
 <h3>8.11. Print <code>echo</code><a name="Print"></a></h3> 
 	<p>Prints user message. The <code>echo</code> command is used for information or debugging purposes, mainly in the configuration file.</p>
 
-	<h4>Syntax: <code><b>echo</b> message</code></h4>
+	<h4>Syntax: <code><strong>echo</strong> message</code></h4>
 	<p>where:</p>
 	<dl>
 		<dt><code>message</code></dt> <dd>is a user message which will be printed.</dd>
@@ -667,14 +747,14 @@ mips1      dcpu       cycles total:1373061 in kernel:1373061 in user:0
 	
 	<h4>Example</h4>
 	<p>The following example print the message "The point A has been reached".</p>
-	<pre class="cmd"><b>[MSIM]</b> echo "The point A has been reached"<span class="key">Enter</span>
+	<pre class="cmd"><strong>[msim]</strong> echo "The point A has been reached"<span class="key">Enter</span>
 The point A has been reached
-<b>[MSIM]</b></pre>
+<strong>[msim]</strong></pre>
 
 <h3>8.12. Continue <code>continue</code><a name="Continue"></a></h3> 
 	<p>Continue in the simulation. The interactive mode is leaved.</p>
 
-	<h4>Syntax: <code><b>continue</b></code></h4>
+	<h4>Syntax: <code><strong>continue</strong></code></h4>
 
 	<h4>Example</h4>
 	<p>In the following example, the execution is terminated by pressing <span class="key">Ctrl+C</span> and restarted back by the <code>continue</code> command. The trace mode in on:</p>
@@ -682,7 +762,7 @@ The point A has been reached
 80400ED4    subu  v0, v0, a1        # v0: 0x24640-&gt;0x245b7
 80400ED8    sll   v1, v0, 0x02      # v1: 0xb71d6a00-&gt;0x916dc<span class="key">Ctrl+C</span>
 
-<b>[MSIM]</b> c
+<strong>[msim]</strong> c
 80400EDC    addu  v0, v0, v1        # v0: 0x245b7-&gt;0xb5c93
 80400EE0    sll   v0, v0, 0x04      # v0: 0xb5c93-&gt;0xb5c930
 80400EE4    addu  v0, v0, a1        # v0: 0xb5c930-&gt;0xb5c9b9
@@ -691,7 +771,7 @@ The point A has been reached
 <h3>8.13. Step <code>step</code><a name="Step"></a></h3> 
 	<p>Executes one or a specified number of cycles. The <code>step</code> command is default - it is executed if no command is specified.</p>
 
-	<h4>Snytax: <code><b>step</b> [count]</code></h4>
+	<h4>Snytax: <code><strong>step</strong> [count]</code></h4>
 	<p>where:</p>
 	<dl>
 		<dt><code>count</code></dt> <dd>is the optional number of cycles to execute.</dd>
@@ -699,31 +779,31 @@ The point A has been reached
 	
 	<h4>Example</h4>
 	<p>In the following example, the user executes 3 steps on a 2-processor machine:</p>
-	<pre class="cmd"><b>[MSIM]</b> s 3<span class="key">Enter</span>
+	<pre class="cmd"><strong>[msim]</strong> s 3<span class="key">Enter</span>
  0  80400ACC    mfc0  v0, status        # v0: 0x0-&gt;0x8001
  1  80400EC4    srl   a1, a1, 0x18      # 0x18=24, a1: 0x6538b04f-&gt;0x65
  0  80400AD0    addiu v1, 0, 0xfffe     # v1: 0x0-&gt;0xfffffffe
  1  80400EC8    sll   v0, a1, 0x04      # v0: 0x219dad69-&gt;0x650
  0  80400AD4    and   v0, v0, v1        # v0: 0x8001-&gt;0x8000
  1  80400ECC    addu  v0, v0, a1        # v0: 0x650-&gt;0x6b5
-<b>[MSIM]</b> </pre>
+<strong>[msim]</strong> </pre>
 
 <h3>8.14. Set <code>set</code><a name="Set"></a></h3> 
 	<p>Sets an environment variable on or to a specified value or prints a list of all variables..</p>
 
-	<h4>Syntax: <code><b>set</b> variable [= value]</code></h4>
+	<h4>Syntax: <code><strong>set</strong> variable [= value]</code></h4>
 	<p>where:</p>
 	<dl>
 		<dt><code>variable</code></dt> <dd>is an environment variable name to set,</dd>
 		<dt><code>value</code></dt> <dd>is an optional value to assign to the environment variable.</dd>
 	</dl>
 
-	<p>Refer to the <a href="#Environment_variables">specialized section</a> for a list and a description of available variables. If <code>value</code> is not specified, the variable is set to the logical true. Note not all variables can hold a logical value. If even <code>variable</code> is not specified, set prints the list of variables and their values.</p>
+	<p>Refer to the <a href="#Internal_variables">specialized section</a> for a list and a description of available variables. If <code>value</code> is not specified, the variable is set to the logical true. Note not all variables can hold a logical value. If even <code>variable</code> is not specified, set prints the list of variables and their values.</p>
 	<p>For boolean variables, there are available default constant for true: <code>true</code>, <code>on</code>, <code>yes</code> and for false: <code>false</code>, <code>on</code>, <code>no</code> and their prefixes.</p>
 
 	<h4>Example</h4>
 	<p>In the first example, we all the variables:</p>
-	<pre class="cmd"><b>[MSIM]</b> set<span class="key">Enter</span>
+	<pre class="cmd"><strong>[msim]</strong> set<span class="key">Enter</span>
 List of all variables:
 Disassembling features
 	iaddr = on
@@ -733,46 +813,46 @@ Disassembling features
 	ireg = 2
 Debugging features
 	trace = on
-<b>[MSIM]</b> </pre>
+<strong>[msim]</strong> </pre>
 	<p>In the second example, we set the trace mode to on:</p>
-	<pre class="cmd"><b>[MSIM]</b> s<span class="key">Enter</span>
-<b>[MSIM]</b> set trace<span class="key">Enter</span>
-<b>[MSIM]</b> s<span class="key">Enter</span>
+	<pre class="cmd"><strong>[msim]</strong> s<span class="key">Enter</span>
+<strong>[msim]</strong> set trace<span class="key">Enter</span>
+<strong>[msim]</strong> s<span class="key">Enter</span>
     80401378    addiu a0, a0, 0x40      # 0x40=64, a0: 0xb7b8-&gt;0xf8
-<b>[MSIM]</b> </pre>
+<strong>[msim]</strong> </pre>
 
 	<p>And in the third example, we set the type of register names:</p>
-	<pre class="cmd">[MSIM] set ireg = 2<span class="key">Enter</span>
-[MSIM] id 0x00401330 1<span class="key">Enter</span>
+	<pre class="cmd">[msim] set ireg = 2<span class="key">Enter</span>
+[msim] id 0x00401330 1<span class="key">Enter</span>
     00401330    srl   v0, v0, 0x01        
-[MSIM] set ireg = 0<span class="key">Enter</span>
-[MSIM] id 0x00401330 1<span class="key">Enter</span>
+[msim] set ireg = 0<span class="key">Enter</span>
+[msim] id 0x00401330 1<span class="key">Enter</span>
     00401330    srl   r2, r2, 0x01
-[MSIM] </pre>
+[msim] </pre>
 
 
 <h3>8.15. Unset <code>unset</code><a name="Unset"></a></h3> 
 	<p>Unsets a logical environment variable.</p>
 
-	<h4>Syntax: <code><b>unset</b> variable</code></h4>
+	<h4>Syntax: <code><strong>unset</strong> variable</code></h4>
 	<p>where:</p>
 	<dl>
 		<dt><code>variable</code></dt> <dd>is an environment variable name to unset.</dd>
 	</dl>
-	<p>Specified <code>variable</code> must hold a logical value. Refer to the <a href="#Environment_variables">specialized section</a> for a list and a description of available variables.</p>
+	<p>Specified <code>variable</code> must hold a logical value. Refer to the <a href="#Internal_variables">specialized section</a> for a list and a description of available variables.</p>
 
 	<h4>Example</h4>
 	<p>In the following example, the trace mode is switched off:</p>
-	<pre class="cmd"><b>[MSIM]</b> s<span class="key">Enter</span>
+	<pre class="cmd"><strong>[msim]</strong> s<span class="key">Enter</span>
     80401334    addu  r5, r5, r2        # r5: 0x6512c4be->0x9754a5b8
-<b>[MSIM]</b> unset trace<span class="key">Enter</span>
-<b>[MSIM]</b> s<span class="key">Enter</span>
-<b>[MSIM]</b> </pre>
+<strong>[msim]</strong> unset trace<span class="key">Enter</span>
+<strong>[msim]</strong> s<span class="key">Enter</span>
+<strong>[msim]</strong> </pre>
 
 
 <h3>8.16. Help <code>help</code><a name="Help"></a></h3> 
 	<p>Shows the help for the specified system command or a list of available system commands.</p>
-	<h4>Syntax: <code><b>help</b> [command]</code></h4>
+	<h4>Syntax: <code><strong>help</strong> [command]</code></h4>
 	<p>where:</p>
 	<dl>
 		<dt><code>command</code></dt> <dd>is a command name.</dd>
@@ -802,21 +882,21 @@ Debugging features
 
 <h4>Commands</h4>
 <dl>
-	<dt><code><b>help</b> [cmd]</code></dt><dd>Displays a help text for the specified command or a list of available commands.</dd>
-	<dt><code><b>info</b></code></dt> <dd>Displays the processor configuration</dd>
-	<dt><code><b>stat</b></code></dt> <dd>Displays processor statistics</dd>
-	<dt><code><b>cp0d</b> [rn]</code></dt> <dd>Dumps contents of the coprocessor 0 register(s)</dd>
-	<dt><code><b>tlbd</b></code></dt> <dd>Dumps the content of TLB</dd>
-	<dt><code><b>md</b> saddr size</code></dt> <dd>Dumps specified TLB mapped memory block</dd>
-	<dt><code><b>id</b> sa cnt</code></dt> <dd>Dumps instructions from specified TLB mapped memory</dd>
-	<dt><code><b>rd</b></code></dt> <dd>Dumps contents of CPU general registers</dd>
-	<dt><code><b>goto</b> na</code></dt> <dd>Go to address</dd>
+	<dt><code><strong>help</strong> [cmd]</code></dt><dd>Displays a help text for the specified command or a list of available commands.</dd>
+	<dt><code><strong>info</strong></code></dt> <dd>Displays the processor configuration</dd>
+	<dt><code><strong>stat</strong></code></dt> <dd>Displays processor statistics</dd>
+	<dt><code><strong>cp0d</strong> [rn]</code></dt> <dd>Dumps contents of the coprocessor 0 register(s)</dd>
+	<dt><code><strong>tlbd</strong></code></dt> <dd>Dumps the content of TLB</dd>
+	<dt><code><strong>md</strong> saddr size</code></dt> <dd>Dumps specified TLB mapped memory block</dd>
+	<dt><code><strong>id</strong> sa cnt</code></dt> <dd>Dumps instructions from specified TLB mapped memory</dd>
+	<dt><code><strong>rd</strong></code></dt> <dd>Dumps contents of CPU general registers</dd>
+	<dt><code><strong>goto</strong> na</code></dt> <dd>Go to address</dd>
 </dl>
 
 <h4>Examples</h4>
 
 <p>Example of the <code>help</code> command:</p>
-<pre class="cmd"><b>[MSIM]</b> mips1 help<span class="key">Enter</span>
+<pre class="cmd"><strong>[msim]</strong> mips1 help<span class="key">Enter</span>
 List of available commands:
 help [cmd]           Displays this help text
 info                 Displays configuration information
@@ -827,23 +907,23 @@ md saddr size        Dumps specified TLB mapped memory block
 id sa cnt            Dumps instructions from specified TLB mapped memory
 rd                   Dumps contents of CPU general registers
 goto na              Go to address
-<b>[MSIM] </b>
+<strong>[msim] </strong>
 </pre>
 
 <p>Example of the <code>info</code> command:</p>
-<pre class="cmd"><b>[MSIM]</b> mips1 info<span class="key">Enter</span>
+<pre class="cmd"><strong>[msim]</strong> mips1 info<span class="key">Enter</span>
 type:R4000.32
-<b>[MSIM]</b> </pre>
+<strong>[msim]</strong> </pre>
 
 <p>Example of the <code>stat</code> command:</p>
-<pre class="cmd"><b>[MSIM]</b> mips1 stat<span class="key">Enter</span>
+<pre class="cmd"><strong>[msim]</strong> mips1 stat<span class="key">Enter</span>
 cycles total:853037 in kernel:853037 in user:0 in stdby:0 tlb refill:0 
                       invalid: 0 modified:0 
                       interrupts 0:0 1:0 2:0 3:0 4:0 5:0 6:0 7:0
-<b>[MSIM]</b> </pre>
+<strong>[msim]</strong> </pre>
 
 <p>Example of the <code>cp0d</code> command:</p>
-<pre class="cmd"><b>[MSIM]</b> mips1 cp0d<span class="key">Enter</span>
+<pre class="cmd"><strong>[msim]</strong> mips1 cp0d<span class="key">Enter</span>
   no name       hex dump  readable dump
   00 Index	0000002F  index: 2F res: 0 p: 0 
   01 Random	00000003  random: 03, res: 0000000
@@ -871,18 +951,18 @@ cycles total:853037 in kernel:853037 in user:0 in stdby:0 tlb refill:0
   13 WatchHi	00000000  res: 00000000 paddr1: 0
   14 XContext
   1e ErrorEPC	00000000  errorepc: 00000000
-<b>[MSIM]</b> </pre>
+<strong>[msim]</strong> </pre>
 
 <p>Example of the <code>tlbd</code> command:</p>
-<pre class="cmd"><b>[MSIM]</b> mips1 tlbd<span class="key">Enter</span>
+<pre class="cmd"><strong>[msim]</strong> mips1 tlbd<span class="key">Enter</span>
  [             general             ][    subp 0    ][    subp 1    ]
   no    vpn      mask        g asid  v d   pfn    c  v d   pfn    c
   00  00000000 FFE00000:1M   0  00   1 1 00000000 0  0 0 00000000 0
   01  00000000 FFE00000:1M   0  ff   1 1 00000000 0  0 0 00000000 0
-<b>[MSIM]</b> </pre>
+<strong>[msim]</strong> </pre>
 
 <p>Example of the <code>rd</code> command:</p>
-<pre class="cmd"><b>[MSIM]</b> mips1 rd<span class="key">Enter</span>
+<pre class="cmd"><strong>[msim]</strong> mips1 rd<span class="key">Enter</span>
 processor p0
    0 00000000   at 81000000   v0 62935B2A   v1 62312A00   a0 00000001
   a1 0000004A   a2 0000002E   a3 0000002D   t0 00000000   t1 00000000
@@ -891,7 +971,7 @@ processor p0
   s4 00000000   s5 00000000   s6 00000000   s7 00000000   t8 00000000
   t9 00000000   k0 00000000   k1 00000000   gp 00000000   sp 00013050
   fp 00000000   ra 80401308   pc 80401310   lo 40689065   hi 320BBCB7
-<b>[MSIM]</b> </pre>
+<strong>[msim]</strong> </pre>
 
 <h3>9.3. Output device <code>dprinter</code><a name="dprinter"></a></h3>
 
@@ -917,24 +997,24 @@ processor p0
 
 <h4>Commands</h4>
 <dl>
-	<dt><code><b>help</b> [cmd]</code></dt> <dd>Prints a help text to the specified command or a list of allowed commands.</dd>
-	<dt><code><b>info</b></code></dt> <dd>Print basic configuration information (register address).</dd>
-	<dt><code><b>stat</b></code></dt> <dd>Prints printer statistics (number of characters printed).</dd>
-	<dt><code><b>redir</b> filename</code></dt> <dd>Redirects the output to the file specified.</dd>
-	<dt><code><b>stdout</b></code></dt> <dd>Redirects the output to the standard POSIX output.</dd>
+	<dt><code><strong>help</strong> [cmd]</code></dt> <dd>Prints a help text to the specified command or a list of allowed commands.</dd>
+	<dt><code><strong>info</strong></code></dt> <dd>Print basic configuration information (register address).</dd>
+	<dt><code><strong>stat</strong></code></dt> <dd>Prints printer statistics (number of characters printed).</dd>
+	<dt><code><strong>redir</strong> filename</code></dt> <dd>Redirects the output to the file specified.</dd>
+	<dt><code><strong>stdout</strong></code></dt> <dd>Redirects the output to the standard POSIX output.</dd>
 </dl>
 
 <h4>Example</h4>
 
 <p>Example of the <code>info</code> command:</p>
-<pre class="cmd"><b>[MSIM]</b> printer info<span class="key">Enter</span>
+<pre class="cmd"><strong>[msim]</strong> printer info<span class="key">Enter</span>
 address:0x01000000
-<b>[MSIM]</b> </pre>
+<strong>[msim]</strong> </pre>
 
 <p>Example of the <code>stat</code> command:</p>
-<pre class="cmd"><b>[MSIM]</b> printer stat<span class="key">Enter</span>
+<pre class="cmd"><strong>[msim]</strong> printer stat<span class="key">Enter</span>
 count:11385
-<b>[MSIM]</b> </pre>
+<strong>[msim]</strong> </pre>
 
 <p>Example of a simple output implementation in the kernel:</p>
 <pre class="c"><span class="lnr"> 1 </span><span class="Comment">/*</span><span class="Comment"> VIDEOADDR is an address of memory-mapped register.</span>
@@ -969,27 +1049,27 @@ count:11385
 
 <h4>Commands</h4>
 <dl>
-	<dt><code><b>help</b> [cmd]</code></dt> <dd>Prints a help on the command specified of a list of available commands.</dd>
-	<dt><code><b>info</b></code></dt> <dd>Prints the device information (block address, size and type)</dd>
-	<dt><code><b>stat</b></code></dt> <dd>Print device statistics (none).</dd>
-	<dt><code><b>generic</b> size</code></dt> <dd>Sets the type of the memory to a generic memory block.</dd>
-	<dt><code><b>fmap</b> filename</code></dt> <dd>Maps the memory to a file specified.</dd>
-	<dt><code><b>fill</b> [value]</code></dt> <dd>Clears the memory with zeros or a specified word.</dd>
-	<dt><code><b>load</b> filename</code></dt> <dd>Loads the memory image from a file specified.</dd>
-	<dt><code><b>save</b> filename</code></dt> <dd>Saves the memory block to a file specified.</dd>
+	<dt><code><strong>help</strong> [cmd]</code></dt> <dd>Prints a help on the command specified of a list of available commands.</dd>
+	<dt><code><strong>info</strong></code></dt> <dd>Prints the device information (block address, size and type)</dd>
+	<dt><code><strong>stat</strong></code></dt> <dd>Print device statistics (none).</dd>
+	<dt><code><strong>generic</strong> size</code></dt> <dd>Sets the type of the memory to a generic memory block.</dd>
+	<dt><code><strong>fmap</strong> filename</code></dt> <dd>Maps the memory to a file specified.</dd>
+	<dt><code><strong>fill</strong> [value]</code></dt> <dd>Clears the memory with zeros or a specified word.</dd>
+	<dt><code><strong>load</strong> filename</code></dt> <dd>Loads the memory image from a file specified.</dd>
+	<dt><code><strong>save</strong> filename</code></dt> <dd>Saves the memory block to a file specified.</dd>
 </dl>
 
 <h4>Examples</h4>
 
 <p>Example of the <code>info</code> command.</p>
-<pre class="cmd"><b>[MSIM]</b> startmem info<span class="key">Enter</span>
+<pre class="cmd"><strong>[msim]</strong> startmem info<span class="key">Enter</span>
 start:0x1fc00000 size:1k type:mem
-<b>[MSIM]</b> </pre>
+<strong>[msim]</strong> </pre>
 
 <p>In the following example, the <code>add</code> command creates a 256 kilobytes large read-write memory region <code>mx</code> starting at the address 0x1000.</p>
 
-<pre class="cmd"><b>[MSIM]</b> add rom mx 0x1000 256k<span class="key">Enter</span>
-<b>[MSIM]</b> </pre>
+<pre class="cmd"><strong>[msim]</strong> add rom mx 0x1000 256k<span class="key">Enter</span>
+<strong>[msim]</strong> </pre>
 
 <p>The content of the read-write memory can be changed:</p>
 
@@ -1011,22 +1091,22 @@ start:0x1fc00000 size:1k type:mem
 
 <h4>Commands</h4>
 <dl>
-	<dt><code><b>help</b> [cmd]</code></dt> <dd>Prints a help on the command specified or a list of available commands.</dd>
-	<dt><code><b>info</b></code></dt> <dd>Prints the device information (block address, size and type)</dd>
-	<dt><code><b>stat</b></code></dt> <dd>Print device statistics (none).</dd>
-	<dt><code><b>generic</b> size</code></dt> <dd>Sets the type of the memory to a generic memory block.</dd>
-	<dt><code><b>fmap</b> filename</code></dt> <dd>Maps the memory to a file specified.</dd>
-	<dt><code><b>fill</b> [value]</code></dt> <dd>Clears the memory with zeros or a specified word.</dd>
-	<dt><code><b>load</b> filename</code></dt> <dd>Loads the memory image from a file specified.</dd>
-	<dt><code><b>save</b> filename</code></dt> <dd>Saves the memory block to a file specified.</dd>
+	<dt><code><strong>help</strong> [cmd]</code></dt> <dd>Prints a help on the command specified or a list of available commands.</dd>
+	<dt><code><strong>info</strong></code></dt> <dd>Prints the device information (block address, size and type)</dd>
+	<dt><code><strong>stat</strong></code></dt> <dd>Print device statistics (none).</dd>
+	<dt><code><strong>generic</strong> size</code></dt> <dd>Sets the type of the memory to a generic memory block.</dd>
+	<dt><code><strong>fmap</strong> filename</code></dt> <dd>Maps the memory to a file specified.</dd>
+	<dt><code><strong>fill</strong> [value]</code></dt> <dd>Clears the memory with zeros or a specified word.</dd>
+	<dt><code><strong>load</strong> filename</code></dt> <dd>Loads the memory image from a file specified.</dd>
+	<dt><code><strong>save</strong> filename</code></dt> <dd>Saves the memory block to a file specified.</dd>
 </dl>
 
 <h4>Examples</h4>
 
 <p>In the following example, the <code>add</code> command creates a 128 kilobytes large read-only memory region <code>m0</code> starting at the address 0x1000.</p>
 
-<pre class="cmd"><b>[MSIM]</b> add rom m0 0x1000 128k<span class="key">Enter</span>
-<b>[MSIM]</b> </pre>
+<pre class="cmd"><strong>[msim]</strong> add rom m0 0x1000 128k<span class="key">Enter</span>
+<strong>[msim]</strong> </pre>
 
 <p>An attempt to overwrite the read-only memory is ignored.</p>
 
@@ -1048,14 +1128,14 @@ start:0x1fc00000 size:1k type:mem
 <h4>Commands</h4>
 <p><span class="todo">TODO</span></p>
 <dl>
-	<dt><code><b>help</b> [cmd]</code></dt> <dd>Prints a help on the command specified or a list of available commands.</dd>
-	<dt><code><b>info</b></code></dt> <dd>Prints the device information (see the example below)</dd>
-	<dt><code><b>stat</b></code></dt> <dd>Prints device statistics (see the example below).</dd>
-	<dt><code><b>generic</b> size</code></dt> <dd></dd>
-	<dt><code><b>fmap</b> name</code></dt> <dd></dd>
-	<dt><code><b>fill</b> [value]</code></dt> <dd></dd>
-	<dt><code><b>load</b> fname</code></dt> <dd></dd>
-	<dt><code><b>save</b> fname</code></dt> <dd></dd>
+	<dt><code><strong>help</strong> [cmd]</code></dt> <dd>Prints a help on the command specified or a list of available commands.</dd>
+	<dt><code><strong>info</strong></code></dt> <dd>Prints the device information (see the example below)</dd>
+	<dt><code><strong>stat</strong></code></dt> <dd>Prints device statistics (see the example below).</dd>
+	<dt><code><strong>generic</strong> size</code></dt> <dd></dd>
+	<dt><code><strong>fmap</strong> name</code></dt> <dd></dd>
+	<dt><code><strong>fill</strong> [value]</code></dt> <dd></dd>
+	<dt><code><strong>load</strong> fname</code></dt> <dd></dd>
+	<dt><code><strong>save</strong> fname</code></dt> <dd></dd>
 </dl>
 
 <h4>Examples</h4>
@@ -1086,27 +1166,27 @@ start:0x1fc00000 size:1k type:mem
 
 <h4>Commands</h4>
 <dl>
-	<dt><code><b>help</b> [cmd]</code></dt> <dd>Prints a help on the command specified or a list of available commands.</dd>
-	<dt><code><b>info</b></code></dt> <dd>Prints configuration information (a register address, interrupt number and a keycode pending).</dd>
-	<dt><code><b>stat</b></code></dt> <dd>Prints device statistics (number of interrupts, pressed keys, and overrun keys).</dd>
-	<dt><code><b>gen</b> keycode</code></dt> <dd>Synthetically generates a key press event.</dd>
+	<dt><code><strong>help</strong> [cmd]</code></dt> <dd>Prints a help on the command specified or a list of available commands.</dd>
+	<dt><code><strong>info</strong></code></dt> <dd>Prints configuration information (a register address, interrupt number and a keycode pending).</dd>
+	<dt><code><strong>stat</strong></code></dt> <dd>Prints device statistics (number of interrupts, pressed keys, and overrun keys).</dd>
+	<dt><code><strong>gen</strong> keycode</code></dt> <dd>Synthetically generates a key press event.</dd>
 </dl>
 
 <h4>Examples</h4>
 
 <p>The following command adds a keyboard "kb" to the machine. The keyboard register is mapped to <code>0x10000000</code></p>
-<pre class="cmd"><b>[MSIM]</b>add dkeyboard kb 0x1000000<span class="key">Enter</span>
-<b>[MSIM]</b> </pre>
+<pre class="cmd"><strong>[msim]</strong>add dkeyboard kb 0x1000000<span class="key">Enter</span>
+<strong>[msim]</strong> </pre>
 
 <p>Example of the <code>info</code> command:</p>
-<pre class="cmd"><b>[MSIM]</b> kb info<span class="key">Enter</span>
+<pre class="cmd"><strong>[msim]</strong> kb info<span class="key">Enter</span>
 address:0x10000000 intno:3 regs(key:0x00 ig:0)
-<b>[MSIM]</b> </pre>
+<strong>[msim]</strong> </pre>
 
 <p>Example of the <code>stat</code> command.</p>
-<pre class="cmd"><b>[MSIM]</b> kb stat<span class="key">Enter</span>
+<pre class="cmd"><strong>[msim]</strong> kb stat<span class="key">Enter</span>
 intrc:11 keycount:11 overrun:0
-<b>[MSIM]</b> </pre>
+<strong>[msim]</strong> </pre>
 
 <h3>9.8. Interprocessor communication <code>dorder</code><a name="dorder"></a></h3>
 <p>A device for interprocessor communication. It allows to obtain a processor serial number as well as assert an interrupt on a specified processor.</p>
@@ -1133,17 +1213,17 @@ intrc:11 keycount:11 overrun:0
 
 <h4>Commands</h4>
 <dl>
-	<dt><code><b>help</b> [cmd]</code></dt> <dd>Prints a help on the command specified or a list of available commands.</dd>
-	<dt><code><b>info</b></code></dt> <dd>Prints configuration information (register address and interrupt number).</dd>
-	<dt><code><b>stat</b></code></dt> <dd>Prints device statistics (number of commands obtained).</dd>
-	<dt><code><b>synch</b> mask</code></dt> <dd>Simulates a write operation on the Intr register.</dd>
+	<dt><code><strong>help</strong> [cmd]</code></dt> <dd>Prints a help on the command specified or a list of available commands.</dd>
+	<dt><code><strong>info</strong></code></dt> <dd>Prints configuration information (register address and interrupt number).</dd>
+	<dt><code><strong>stat</strong></code></dt> <dd>Prints device statistics (number of commands obtained).</dd>
+	<dt><code><strong>synch</strong> mask</code></dt> <dd>Simulates a write operation on the Intr register.</dd>
 </dl>
 
 <h4>Examples</h4>
 
 <p>The following example adds a new <code>dorder</code> device named "o" and maps its register on the address <code>0x10000000</code>.</p>
-<pre class="cmd"><b>[MSIM]</b>add dorder o 0x1000000<span class="key">Enter</span>
-<b>[MSIM]</b> </pre>
+<pre class="cmd"><strong>[msim]</strong>add dorder o 0x1000000<span class="key">Enter</span>
+<strong>[msim]</strong> </pre>
 
 <p>Simple implementation in C:</p>
 <pre class="c">
@@ -1181,16 +1261,16 @@ intrc:11 keycount:11 overrun:0
 
 <h4>Commands</h4>
 <dl>
-	<dt><code><b>help</b> [cmd]</code></dt> <dd>Prints a help on the command specified or a list of available commands.</dd>
-	<dt><code><b>info</b></code></dt> <dd>Prints configuration information (assigned register address).</dd>
-	<dt><code><b>stat</b></code></dt> <dd>Prints device statistics (none).</dd>
+	<dt><code><strong>help</strong> [cmd]</code></dt> <dd>Prints a help on the command specified or a list of available commands.</dd>
+	<dt><code><strong>info</strong></code></dt> <dd>Prints configuration information (assigned register address).</dd>
+	<dt><code><strong>stat</strong></code></dt> <dd>Prints device statistics (none).</dd>
 </dl>
 
 <h4>Examples</h4>
 
 <p>The following example adds a new <code>dtime</code> device named "time" and maps its register on the address <code>0x11000000</code>.</p>
-<pre class="cmd"><b>[MSIM]</b>add dtime time 0x1100000<span class="key">Enter</span>
-<b>[MSIM]</b> </pre>
+<pre class="cmd"><strong>[msim]</strong>add dtime time 0x1100000<span class="key">Enter</span>
+<strong>[msim]</strong> </pre>
 
 <p>An implementation in C:</p>
 <pre class="c">
@@ -1208,7 +1288,7 @@ intrc:11 keycount:11 overrun:0
 	<dt><a href="#dint">DINT</a></dt><dd>Enables the interactive mode.</dd>
 	<dt><a href="#drv">DRV</a></dt><dd>Writes the content of all general registers on the screen.</dd>
 	<dt><a href="#dhlt">DHLT</a></dt><dd>Halts the simulation.</dd>
-	<dt><a href="#dval">DVAL</a></dt><dd>Dumps the <code><b>a0</b></code> general register.</dd>
+	<dt><a href="#dval">DVAL</a></dt><dd>Dumps the <code><strong>a0</strong></code> general register.</dd>
 </dl>
 
 <h4>Example</h4>
@@ -1223,32 +1303,32 @@ intrc:11 keycount:11 overrun:0
 <h3>10.1. Trace on <code>DTRC</code><a name="dtrc"></a></h3>
 <p>Enables the trace mode. Together with <a href="DTRO">DTRO</a> instruction, DTRC is useful to show a part of executed code.</p>
 
-<h4>Opcode: <code><b>0x39</b></code></h4>
+<h4>Opcode: <code><strong>0x39</strong></code></h4>
 
 <h3>10.2. Trace off <code>DTRO</code><a name="dtro"></a></h3>
 <p>Disables the trace mode. Together with <a href="DTRO">DTRC</a> instruction, DTRO is useful to show a part of executed code.</p>
 
-<h4>Opcode: <code><b>0x3d</b></code></h4>
+<h4>Opcode: <code><strong>0x3d</strong></code></h4>
 
 <h3>10.3. Interactive mode on <code>DINT</code><a name="dint"></a></h3>
 <p>Enables the interactive mode. The command line is activated immediately.</p>
 
-<h4>Opcode: <code><b>0x29</b></code></h4>
+<h4>Opcode: <code><strong>0x29</strong></code></h4>
 
 <h3>10.4. Register view <code>DRV</code><a name="drv"></a></h3>
 <p>The instruction writes the content of all the general register on the output.</p>
 
-<h4>Opcode: <code><b>0x37</b></code></h4>
+<h4>Opcode: <code><strong>0x37</strong></code></h4>
 
 <h3>10.5. Halt machine <code>DHLT</code><a name="dhlt"></a></h3>
 <p>Halts the machine as well as the simulation immediately. Useful also as the power off feature.</p>
 
-<h4>Opcode: <code><b>0x28</b></code></h4>
+<h4>Opcode: <code><strong>0x28</strong></code></h4>
 
 <h3>10.6. View value <code>DVAL</code><a name="dval"></a></h3>
 <p>Prints the content of the <code>a0</code> (<code>r4</code>) register. The instruction can be used to instantly print a value of a variable.</p>
 
-<h4>Opcode: <code><b>0x35</b></code></h4>
+<h4>Opcode: <code><strong>0x35</strong></code></h4>
 
 <h2>11. GDB support<a name="GDB_support"></a></h2>
 

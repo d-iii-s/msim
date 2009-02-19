@@ -217,7 +217,10 @@ into system-wide prefix.</p>
 
 <h2>3. Command line parameters<a name="Command_line_parameters"></a></h2>
 
-<p>This section briefly describes the command line parameters of MSIM.</p>
+<p>This section briefly describes the command line parameters of MSIM. Most
+of the parameters can be combined. For example a typical usage is to use
+the combination <code>-i -t</code> to enter both interactive and trace
+mode on startup.</p>
 
 <h3>3.1. Version <code>-V</code>, <code>--version</code><a name="cmd_version"></a></h3>
 
@@ -229,46 +232,48 @@ msim version 1.3.7
 copyright (c) 2000-2009 Viliam Holub, Martin Decky</pre>
 
 <h3>3.2. Configuration file <code>-c</code>, <code>--config</code><a name="cmd_configuration"></a></h3>
-<p>Specifies the configuration file name which overrides the default searching rules.</p>
-<h4>Syntax: <code><b>-c</b>|<b>--config</b>[=]filename</code></h4>
+
+<h4>Synopsis</h4>
+<p>Specify the configuration file name which overrides the default searching
+rules.</p>
+<h4>Syntax <code><strong>-c</strong>|<strong>--config</strong>[=]filename</code></h4>
 <h4>Example</h4>
-<pre class="cmd">~$ MSIM -c my.conf</pre>
+<pre class="cmd"><strong>$</strong> msim -c my.conf</pre>
 
 <h3>3.3. Interactive mode <code>-i</code>, <code>--interactive</code><a name="cmd_interactive"></a></h3>
 
+<h4>Synopsis</h4>
 <p>The simulator enters the interactive mode immediately after the configuration file has been processed.</p>
-<h4>Syntax: <code><b>-i</b>|<b>--interactive</b></code></h4>
 <h4>Example</h4>
-<pre class="cmd">~$ MSIM -i<span class="key">Enter</span>
-<b>[MSIM]</b> </pre>
+<pre class="cmd"><strong>$</strong> msim -i<span class="key">Enter</span>
+<strong>[msim]</strong> </pre>
 
 <h3>3.4. Trace mode <code>-t</code>, <code>--trace</code><a name="cmd_trace"></a></h3>
 
-<p>Enters the trace mode, but does not enable the interactive mode.</p>
-<h4>Syntax: <code><b>-t</b>|<b>--trace</b></code></h4>
+<h4>Synopsis</h4>
+<p>Enter the trace mode, but does not enable the interactive mode.</p>
 <h4>Example</h4>
-<pre class="cmd">~$ MSIM -t<span class="key">Enter</span>
-    BFC00000    lui   sp, 0x8000        # 0x8000=32768, sp: 0x0-&gt;0x80000000
-    BFC00004    addiu sp, sp, 0x7000    # 0x7000=28672, 
-					# sp: 0x80000000-&gt;0x80007000
-    BFC00008    addiu t0, 0, 0x8040     # t0: 0x0-&gt;0xffff8040
-    BFC0000C    sll   t1, t0, 0x10      # 0x10=16, t1: 0x0-&gt;0x80400000
-    BFC00010    jr    t1                  
-    BFC00014    nop                       
-    80400000    jal   +0x400f4c         # 0x400f4c=4198220, 
- 					# ra: 0x0-&gt;0x80400008
-    80400004    nop
-...</pre>
+<pre class="cmd"><strong>$</strong> msim -t<span class="key">Enter</span>
+ 1  BFC00000    lui   a0, 0x8000        # 0x8000=32768, a0: 0x0->0x80000000
+ 0  BFC00000    lui   a0, 0x8000        # 0x8000=32768, a0: 0x0->0x80000000
+ 1  BFC00004    ori   a0, a0, 0x1000    # 0x1000h=4096, a0: 0x80000000->0x80001000
+ 0  BFC00004    ori   a0, a0, 0x1000    # 0x1000h=4096, a0: 0x80000000->0x80001000
+ 1  BFC00008    sw    0, (a0)
+ 0  BFC00008    sw    0, (a0)
+
+<strong>...</strong></pre>
 
 <h3>3.5. GDB mode <code>-g</code>, <code>--remote-gdb</code><a name="cmd_gdb"></a></h3>
 
-<p>Enters the gdb mode. The gdb mode is rather experimental in version 1.3.</p>
-<h4>Syntax: <code><b>-g</b>|<b>--remote-gdb[=]</b>port_number</code></h4> 
+<h4>Synopsis</h4>
+<p>Enter the GDB mode which allows a MIPS GDB to be connected to the running
+MSIM for remote debugging. The GDB mode is rather experimental in version 1.3.7.</p>
+<h4>Syntax: <code><strong>-g</strong>|<strong>--remote-gdb[=]</strong>port_number</code></h4>
 
 <h3>3.6. Help <code>-h</code>, <code>--help</code><a name="cmd_help"></a></h3>
 
-<p>Prints a help and quits.</p>
-<h4>Syntax: <code><b>-h</b>|<b>--help</b></code></h4>
+<h4>Synopsis</h4>
+<p>Print command line help and quit.</p>
 
 <h2>4. System environment<a name="System_environment"></a></h2>
 

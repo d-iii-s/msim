@@ -57,7 +57,7 @@ const char *exc_text[] = {
 
 
 const char txt_version[] =
-	PACKAGE " version " VERSION " Copyright (c) 2000-2008 Viliam Holub\n";
+	PACKAGE " version " VERSION "\ncopyright (c) 2000-2009 Viliam Holub, Martin Decky\n";
 
 		
 const char txt_help[] =

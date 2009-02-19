@@ -577,31 +577,60 @@ displayed on the screen.</p>
 
 <h2>7. Input command line<a name="Input_command_line"></a></h2>
 
-<p><span class="todo">TODO</span></p>
+<p>The command line support various nice features like command history, tab
+completion for completing the commands and arguments while typing, etc.</p>
 
-<p>Whitespace, modifications 0x, k, K and M</p>
+<p>A very brief overview of the input command line properties:</p>
 
-<p>Tab completion</p>
+<ul>
+	<li>Commands and their arguments are separated via whitespace. Whitespace
+		characters are: space, tab, period.</li>
+	<li>Numeric values can be prefixed by <code>0x</code> representing hexadecimal
+		notation.</li>
+	<li>Numeric values can be suffixed by <code>k</code> and <code>K</code>
+		(representing multiplication by 1024) and <code>M</code> (representing
+		multiplication by 1048576).</li>
+	<li>String values should be surrounded by quotes (as
+		in <code>&quot;abcd&quot;</code>).</li>
+</ul>
 
 <h2>8. System commands<a name="System_commands"></a></h2>
+
+<p>This section describes the commands of MSIM. These commands can be used
+either in the interactive mode or in a configuration file.</p>
 
 <h3>8.1. List of system commands<a name="System_list"></a></h3>
 
 <dl>
-<dt><a href="#Add">add</a></dt> <dd>Adds a new device into the system.</dd>
-<dt><a href="#Remove">rm</a></dt> <dd>Removes the device from the system.</dd>
-<dt><a href="#Quit">quit</a></dt> <dd>Exits MSIM.</dd>
-<dt><a href="#Memory_dump">md</a></dt> <dd>Dumps words from unmapped memory.</dd>
-<dt><a href="#Instruction_dump">id</a></dt> <dd>Dumps instructions from unmapped memory.</dd>
-<dt><a href="#Device_dump">dd</a></dt> <dd>Dumps all installed devices.</dd>
-<dt><a href="#Memory_block_dump">mbd</a></dt> <dd>Dumps all installed memory blocks.</dd>
-<dt><a href="#Statistics">stat</a></dt> <dd>Dumps available statistic information.</dd>
-<dt><a href="#Print">echo</a></dt> <dd>Prints user message.</dd>
-<dt><a href="#Goto">goto</a></dt> <dd>Go to the specified address or continue.</dd>
-<dt><a href="#Step">step</a></dt> <dd>Simulates one or a specified number of instructions.</dd>
-<dt><a href="#Set">set</a></dt> <dd>Sets environment variables.</dd>
-<dt><a href="#Unset">unset</a></dt> <dd>Unsets environment variables.</dd>
-<dt><a href="#Help">help</a></dt> <dd>Displays a help text.</dd>
+	<dt><a href="#Add">add</a></dt>
+		<dd>Add a new device into the system.</dd>
+	<dt><a href="#Quit">quit</a></dt>
+		<dd>Exit MSIM.</dd>
+	<dt><a href="#Memory_dump">md</a></dt>
+		<dd>Dump words from unmapped memory.</dd>
+	<dt><a href="#Instruction_dump">id</a></dt>
+		<dd>Dump instructions from unmapped memory.</dd>
+	<dt><a href="#Device_dump">dd</a></dt>
+		<dd>Dump all installed devices.</dd>
+	<dt><a href="#Memory_block_dump">mbd</a></dt>
+		<dd>Dump all installed memory blocks.</dd>
+	<dt><a href="#Breakpoint">break</a></dt>
+		<dd>Add memory breakpoint.</dd>
+	<dt><a href="#Breakpoint_dump">bd</a></dt>
+		<dd>Dump memory breakpoints.</dd>
+	<dt><a href="#Breakpoint_remove">br</a></dt>
+		<dd>Remove memory breakpoint.</dd>
+	<dt><a href="#Statistics">stat</a></dt>
+		<dd>Dump available statistic information.</dd>
+	<dt><a href="#Print">echo</a></dt>
+		<dd>Print user message.</dd>
+	<dt><a href="#Goto">goto</a></dt>
+		<dd>Go to the specified address or continue.</dd>
+	<dt><a href="#Step">step</a></dt>
+		<dd>Simulates one or a specified number of instructions.</dd>
+	<dt><a href="#Set">set</a></dt> <dd>Sets environment variables.</dd>
+	<dt><a href="#Unset">unset</a></dt> <dd>Unsets environment variables.</dd>
+	<dt><a href="#Help">help</a></dt> <dd>Displays a help text.</dd>
 </dl>
 
 

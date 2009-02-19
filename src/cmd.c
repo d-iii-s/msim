@@ -156,8 +156,8 @@ static cmd_s system_cmds[] = {
 		system_br,
 		DEFAULT,
 		DEFAULT,
-		"Remove memory breakpoints",
-		"Remove memory breakpoints",
+		"Remove memory breakpoint",
+		"Remove memory breakpoint",
 		REQ INT "addr/memory address" END
 	},
 	{

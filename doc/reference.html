@@ -138,6 +138,13 @@ In <emph>interactive mode</emph> the user communicates with the simulator via
 a command line interface and can modify the environment of the running
 system.</p>
 
+<p>MSIM is programmed in the C programming language. It is not specifically
+designed to run on any architecture of the host computer and is thus very portable.
+The design of the simulator is also modular and extensible. A simulator core
+provides a common clock for all modules. The modules (or <emph>devices</emph>
+in the MSIM terminology) implement a specific functionality such as the CPU,
+keyboard input, character output, etc.</p>
+
 <h3>1.1. Conventions<a name="Conventions"></a></h3>
 
 <p>We use these typographic conventions throughout the text:</p>
@@ -186,6 +193,13 @@ library is also required.</p>
 distributed via a source tarball. Untar the distribution package
 and change your current directory to the directory containing a script
 called <code>configure</code>.</p>
+
+<p>A usual way of downloading and extracting the source package package is:</p>
+
+<pre class="cmd"><strong>$</strong> wget http://dsrg.mff.cuni.cz/~holub/sw/msim/msim-1.3.7.tar.bz2<span class="key">Enter</span>
+<strong>...</strong>
+<strong>$</strong> tar -xjf msim-1.3.7.tar.bz2<span class="key">Enter</span>
+<strong>$</strong> cd msim-1.3.7<span class="key">Enter</span></pre>
 
 <h3>2.2. Configuration<a name="Configuration"></a></h3>
 

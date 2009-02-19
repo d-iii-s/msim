@@ -201,8 +201,8 @@ static cmd_s system_cmds[] = {
 		system_set,
 		system_set_find_generator,
 		DEFAULT,
-		"Set enviroment variables",
-		"Set configuration variables",
+		"Set enviroment variable",
+		"Set enviroment variable",
 		OPT STR "name/variable name" NEXT
 		OPT CON "=" NEXT
 		REQ VAR "val/value" END
@@ -212,8 +212,8 @@ static cmd_s system_cmds[] = {
 		system_unset,
 		system_unset_find_generator,
 		DEFAULT,
-		"Unset environment variables",
-		"Unset environment variables",
+		"Unset environment variable",
+		"Unset environment variable",
 		REQ STR "name/variable name" END
 	},
 	{

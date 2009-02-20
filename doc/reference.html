@@ -74,13 +74,13 @@ for <a href="http://dsrg.mff.cuni.cz/~holub/sw/msim">MSIM</a> version 1.3.7.</p>
 		<ul>
 			<li><a href="#Devices_list">9.1. List of devices<code></code></a></li>
 			<li><a href="#dcpu">9.2. Processor <code>dcpu</code></a></li>
-			<li><a href="#dprinter">9.3. Output device <code>dprinter</code></a></li>
-			<li><a href="#rwm">9.4. Read-write memory <code>rwm</code></a></li>
-			<li><a href="#rom">9.5. Read-only memory <code>rom</code></a></li>
-			<li><a href="#ddisk">9.6. Hard disk <code>ddisk</code></a></li>
-			<li><a href="#dkeyboard">9.7. Keyboard <code>dkeyboard</code></a></li>
-			<li><a href="#dorder">9.8. Interprocessor communication <code>dorder</code></a></li>
-			<li><a href="#dtime">9.9. Real time <code>dtime</code></a></li>
+			<li><a href="#rwm">9.3. Read/write memory <code>rwm</code></a></li>
+			<li><a href="#rom">9.4. Read-only memory <code>rom</code></a></li>
+			<li><a href="#dprinter">9.5. Character output device <code>dprinter</code></a></li>
+			<li><a href="#dkeyboard">9.6. Character input device <code>dkeyboard</code></a></li>
+			<li><a href="#ddisk">9.7. Block device <code>ddisk</code></a></li>
+			<li><a href="#dorder">9.8. Interprocessor communication device <code>dorder</code></a></li>
+			<li><a href="#dtime">9.9. Real-time clock <code>dtime</code></a></li>
 			</ul>
 		</li>
 	<li><a href="#Special_instructions">10. Special instructions</a></li>
@@ -1008,32 +1008,32 @@ cycles total:853037 in kernel:853037 in user:0 in stdby:0 tlb refill:0
 <p>Example of the <code>cp0d</code> command:</p>
 <pre class="cmd"><strong>[msim]</strong> mips1 cp0d<span class="key">Enter</span>
   no name       hex dump  readable dump
-  00 Index	0000002F  index: 2F res: 0 p: 0 
-  01 Random	00000003  random: 03, res: 0000000
-  02 EntryLo0	00000006  g: 0 v: 1 d: 1 c: 0 pfn: 000000 res: 0
-  03 EntryLo1	00000000  g: 0 v: 0 d: 0 c: 0 pfn: 000000 res: 0
-  04 Context	00000000  res: 0 badvpn2: 00000 ptebase: 000
-  05 PageMask	001FE000  res1: 0000 mask: 0FF (1M) res2: 00
-  06 Wired	00000001  wired: 1 res: 0000000
-  08 BadVAddr	00000000  badvaddr: 00000000
-  09 Count	0005A993  count: 5a993
-  0a EntryHi	00000000  asid: 00 res: 0 vpn2: 00000
-  0b Compare	0005ACDC  compare: 5acdc
-  0c Status	00008001  ie: 1 exl: 0 erl: 0 ksu: 0 ux: 0 sx: 0 kx: 0
-  			  im: 80 de: 0 ce: 0 ch: 0 res1: 0 sr: 0 ts: 0
-  			  bev: 0 res2: 0 re: 0 fr: 0 rp: 0 cu: 0
-  0d Cause	00000000  res1: 0 exccode: 00 res2: 0 ip: 00 res3: 00
-    			  ce: 0 res4: 0 bd: 0
-  0e EPC	80401344  epc: 80401344
-  0f PRId	00000200  rev: 00 imp: 02 res: 0000
-  10 Config	00000000  k0: 0 cu: 0 db: 0 b: 0 dc: 0 ic: 0 res: 0 eb: 0
-			  em: 0 be: 0 sm: 0 sc: 0 ew: 0 sw: 0 ss: 0 sb: 0
- 			  ep: 0 ec: 0 cm: 0
-  11 LLAddr	00000000  lladdr: 00000000
-  12 WatchLo	00000000  w: 0 r: 0 res: 0 paddr0: 00000000
-  13 WatchHi	00000000  res: 00000000 paddr1: 0
+  00 Index      0000002F  index: 2F res: 0 p: 0 
+  01 Random     00000003  random: 03, res: 0000000
+  02 EntryLo0   00000006  g: 0 v: 1 d: 1 c: 0 pfn: 000000 res: 0
+  03 EntryLo1   00000000  g: 0 v: 0 d: 0 c: 0 pfn: 000000 res: 0
+  04 Context    00000000  res: 0 badvpn2: 00000 ptebase: 000
+  05 PageMask   001FE000  res1: 0000 mask: 0FF (1M) res2: 00
+  06 Wired      00000001  wired: 1 res: 0000000
+  08 BadVAddr   00000000  badvaddr: 00000000
+  09 Count      0005A993  count: 5a993
+  0a EntryHi    00000000  asid: 00 res: 0 vpn2: 00000
+  0b Compare    0005ACDC  compare: 5acdc
+  0c Status     00008001  ie: 1 exl: 0 erl: 0 ksu: 0 ux: 0 sx: 0 kx: 0
+                          im: 80 de: 0 ce: 0 ch: 0 res1: 0 sr: 0 ts: 0
+                          bev: 0 res2: 0 re: 0 fr: 0 rp: 0 cu: 0
+  0d Cause      00000000  res1: 0 exccode: 00 res2: 0 ip: 00 res3: 00
+                          ce: 0 res4: 0 bd: 0
+  0e EPC        80401344  epc: 80401344
+  0f PRId       00000200  rev: 00 imp: 02 res: 0000
+  10 Config     00000000  k0: 0 cu: 0 db: 0 b: 0 dc: 0 ic: 0 res: 0 eb: 0
+                          em: 0 be: 0 sm: 0 sc: 0 ew: 0 sw: 0 ss: 0 sb: 0
+                          ep: 0 ec: 0 cm: 0
+  11 LLAddr     00000000  lladdr: 00000000
+  12 WatchLo    00000000  w: 0 r: 0 res: 0 paddr0: 00000000
+  13 WatchHi    00000000  res: 00000000 paddr1: 0
   14 XContext
-  1e ErrorEPC	00000000  errorepc: 00000000
+  1e ErrorEPC   00000000  errorepc: 00000000
 <strong>[msim]</strong> </pre>
 
 <p>Example of the <code>tlbd</code> command:</p>
@@ -1056,120 +1056,159 @@ processor p0
   fp 00000000   ra 80401308   pc 80401310   lo 40689065   hi 320BBCB7
 <strong>[msim]</strong> </pre>
 
-<h3>9.4. Read-write memory <code>rwm</code><a name="rwm"></a></h3>
+<h3>9.3. Read/write memory <code>rwm</code><a name="rwm"></a></h3>
 
-<p>The <code>rwm</code> device represents a read-write random-access memory region. The memory block could be a general memory or file-mapped.</p>
+<p>The <code>rwm</code> device represents a read/write random
+access memory region. The memory block could be a general memory
+or mapped from a file.</p>
 
-<h4>Initialization parameters: <code>address</code> <code>size</code></h4>
-	<p>where</p>
-	<dl>
-		<dt><code>address</code></dt> <dd>specifies the starting address the memory block will start at and</dd>
-		<dt><code>size</code></dt> <dd>specifies the size of the memory block.</dd>
-	</dl>
+<h4>Initialization parameters: <code>address</code></h4>
+<p>where</p>
+<dl>
+	<dt><code>address</code></dt>
+		<dd>Starting physical address of the memory block.</dd>
+</dl>
 
 <h4>Commands</h4>
 <dl>
-	<dt><code><strong>help</strong> [cmd]</code></dt> <dd>Prints a help on the command specified of a list of available commands.</dd>
-	<dt><code><strong>info</strong></code></dt> <dd>Prints the device information (block address, size and type)</dd>
-	<dt><code><strong>stat</strong></code></dt> <dd>Print device statistics (none).</dd>
-	<dt><code><strong>generic</strong> size</code></dt> <dd>Sets the type of the memory to a generic memory block.</dd>
-	<dt><code><strong>fmap</strong> filename</code></dt> <dd>Maps the memory to a file specified.</dd>
-	<dt><code><strong>fill</strong> [value]</code></dt> <dd>Clears the memory with zeros or a specified word.</dd>
-	<dt><code><strong>load</strong> filename</code></dt> <dd>Loads the memory image from a file specified.</dd>
-	<dt><code><strong>save</strong> filename</code></dt> <dd>Saves the memory block to a file specified.</dd>
+	<dt><code><strong>help</strong> [cmd]</code></dt>
+		<dd>Print a help on the command specified of a list of available commands.</dd>
+	<dt><code><strong>info</strong></code></dt>
+		<dd>Print the device information (block address, size and type)</dd>
+	<dt><code><strong>stat</strong></code></dt>
+		<dd>Print device statistics (none).</dd>
+	<dt><code><strong>generic</strong> size</code></dt>
+		<dd>Set the size of the memory block.</dd>
+	<dt><code><strong>fmap</strong> filename</code></dt>
+		<dd>Map the contents of the memory block from a file specified.</dd>
+	<dt><code><strong>fill</strong> [value]</code></dt>
+		<dd>Fill the memory block with zeros or the specified word value.</dd>
+	<dt><code><strong>load</strong> filename</code></dt>
+		<dd>Load the contents of the memory block from a file specified.</dd>
+	<dt><code><strong>save</strong> filename</code></dt>
+		<dd>Save the contents of the memory block to a file specified.</dd>
 </dl>
 
 <h4>Examples</h4>
-
 <p>Example of the <code>info</code> command.</p>
 <pre class="cmd"><strong>[msim]</strong> startmem info<span class="key">Enter</span>
 start:0x1fc00000 size:1k type:mem
 <strong>[msim]</strong> </pre>
 
-<p>In the following example, the <code>add</code> command creates a 256 kilobytes large read-write memory region <code>mx</code> starting at the address 0x1000.</p>
+<p>In the following example, the <code>add</code> command creates
+a read/write memory region <code>mx</code> starting at the physical
+address 0x00001000. The size of the region is set to 256&nbsp;KB
+via the <code>generic</code> command.</p>
 
-<pre class="cmd"><strong>[msim]</strong> add rom mx 0x1000 256k<span class="key">Enter</span>
+<pre class="cmd"><strong>[msim]</strong> add rwm mx 0x1000<span class="key">Enter</span>
+<strong>[msim]</strong> mx generic 256k<span class="key">Enter</span>
 <strong>[msim]</strong> </pre>
 
-<p>The content of the read-write memory can be changed:</p>
+<p>The content of the read-write memory can be changed as expected
+from the code running in the simulator:</p>
 
-<pre class="c"><span class="lnr">1 </span><span class="Type">volatile</span> <span class="Type">char</span> *p = (<span class="Type">char</span> *)<span class="Number">0x1000</span>; <span class="Comment">// assume 1-1 direct mapping</span>
-<span class="lnr">2 </span><span class="Type">volatile</span> c = *p; <span class="Comment">// c contains a byte at the address 0x00001000</span>
-<span class="lnr">3 </span>*p += <span class="Number">1</span>;
-<span class="lnr">4 </span><span class="Type">volatile</span> d = *p; <span class="Comment">// d == c+1</span></pre>
+<pre class="c"><span class="lnr"> 1 </span><span class="keyword">volatile char</span> *p = (<span class="keyword">char</span> * ) 0x1000;  <span class="comment">/* assume 1:1 identity memory mapping */</span>
+<span class="lnr"> 2 </span><span class="keyword">char</span> c = *p;  <span class="comment">/* c contains a byte value read from the address 0x00001000 */</span>
+<span class="lnr"> 3 </span>*p += 1;
+<span class="lnr"> 4 </span><span class="keyword">char</span> d = *p;  <span class="comment">/* d contains a byte value read from the address 0x00001001 */</span></pre>
 
-<h3>9.5. Read-only memory <code>rom</code><a name="rom"></a></h3>
+<h3>9.4. Read-only memory <code>rom</code><a name="rom"></a></h3>
 
-<p>The <code>rom</code> device represents a read-only random-access memory region.</p>
+<p>The <code>rom</code> device represents a read-only random access memory region.</p>
 
-<h4>Initialization parameters: <code>address</code> <code>size</code></h4>
-	<p>where</p>
-	<dl>
-		<dt><code>address</code></dt> <dd>specifies the starting address the memory block will start at and</dd>
-		<dt><code>size</code></dt> <dd>specifies the size of the memory block.</dd>
-	</dl>
+<h4>Initialization parameters: <code>address</code></h4>
+<p>where</p>
+<dl>
+	<dt><code>address</code></dt>
+		<dd>Starting physical address of the memory block.</dd>
+</dl>
 
 <h4>Commands</h4>
 <dl>
-	<dt><code><strong>help</strong> [cmd]</code></dt> <dd>Prints a help on the command specified or a list of available commands.</dd>
-	<dt><code><strong>info</strong></code></dt> <dd>Prints the device information (block address, size and type)</dd>
-	<dt><code><strong>stat</strong></code></dt> <dd>Print device statistics (none).</dd>
-	<dt><code><strong>generic</strong> size</code></dt> <dd>Sets the type of the memory to a generic memory block.</dd>
-	<dt><code><strong>fmap</strong> filename</code></dt> <dd>Maps the memory to a file specified.</dd>
-	<dt><code><strong>fill</strong> [value]</code></dt> <dd>Clears the memory with zeros or a specified word.</dd>
-	<dt><code><strong>load</strong> filename</code></dt> <dd>Loads the memory image from a file specified.</dd>
-	<dt><code><strong>save</strong> filename</code></dt> <dd>Saves the memory block to a file specified.</dd>
+	<dt><code><strong>help</strong> [cmd]</code></dt>
+		<dd>Print a help on the command specified or a list of available commands.</dd>
+	<dt><code><strong>info</strong></code></dt>
+		<dd>Print the device information (block address, size and type)</dd>
+	<dt><code><strong>stat</strong></code></dt>
+		<dd>Print device statistics (none).</dd>
+	<dt><code><strong>generic</strong> size</code></dt>
+		<dd>Set the size of the memory block.</dd>
+	<dt><code><strong>fmap</strong> filename</code></dt>
+		<dd>Map the contents of the memory block from a file specified.</dd>
+	<dt><code><strong>fill</strong> [value]</code></dt>
+		<dd>Fill the memory block with zeros or the specified word value.</dd>
+	<dt><code><strong>load</strong> filename</code></dt>
+		<dd>Load the contents of the memory block from a file specified.</dd>
+	<dt><code><strong>save</strong> filename</code></dt>
+		<dd>Save the contents of the memory block to a file specified.</dd>
 </dl>
 
 <h4>Examples</h4>
 
-<p>In the following example, the <code>add</code> command creates a 128 kilobytes large read-only memory region <code>m0</code> starting at the address 0x1000.</p>
+<p>In the following example, the <code>add</code> command creates
+a read-only memory region <code>mx</code> starting at the physical
+address 0x00001000. The size of the region is set to 256&nbsp;KB
+via the <code>generic</code> command.</p>
 
-<pre class="cmd"><strong>[msim]</strong> add rom m0 0x1000 128k<span class="key">Enter</span>
+<pre class="cmd"><strong>[msim]</strong> add rom mx 0x1000<span class="key">Enter</span>
+<strong>[msim]</strong> mx generic 256k<span class="key">Enter</span>
 <strong>[msim]</strong> </pre>
 
-<p>An attempt to overwrite the read-only memory is ignored.</p>
+<p>All attempts to write into read-only memory are silently ignored.</p>
 
-<pre class="c"><span class="lnr">1 </span><span class="Type">volatile</span> <span class="Type">char</span> *p = (<span class="Type">char</span> *)<span class="Number">0x1000</span>; <span class="Comment">// assume 1-1 direct mapping</span>
-<span class="lnr">2 </span><span class="Type">volatile</span> c = *p; <span class="Comment">// c contains a byte at the address 0x00001000</span>
-<span class="lnr">3 </span>*p += <span class="Number">1</span>;
-<span class="lnr">4 </span><span class="Type">volatile</span> d = *p; <span class="Comment">// d == c</span></pre>
+<pre class="c"><span class="lnr"> 1 </span><span class="keyword">volatile char</span> *p = (<span class="keyword">char</span> * ) 0x1000;  <span class="comment">/* assume 1:1 identity memory mapping */</span>
+<span class="lnr"> 2 </span><span class="keyword">char</span> c = *p;  <span class="comment">/* c contains a byte value read from the address 0x00001000 */</span>
+<span class="lnr"> 3 </span>*p = ~c;      <span class="comment">/* write access is ignored */</span>
+<span class="lnr"> 4 </span><span class="keyword">char</span> d = *p;  <span class="comment">/* c == d */</span></pre>
 
-<h3>9.3. Output device <code>dprinter</code><a name="dprinter"></a></h3>
+<h3>9.5. Character output device <code>dprinter</code><a name="dprinter"></a></h3>
 
-<p>Simulates a simple printer device.</p>
+<p>The character output device simulates a simple character printer or a serial console.</p>
 
 <h4>Initialization parameters: <code>address</code></h4>
-	<p>where</p>
-	<dl>
-		<dt><code>address</code></dt> <dd>specifies the physical address of the printer register</dd>
-	</dl>
+<p>where</p>
+<dl>
+	<dt><code>address</code></dt>
+		<dd>Physical address of the printer register</dd>
+</dl>
 
 <h4>Registers</h4>
 <table>
-<caption><code>dprinter</code> registers</caption>
-<thead><tr>
-	<td>Offset</td> <td>Name</td> <td>Operation</td> <td>Description</td>
-</tr></thead>
-<tbody>
-<tr><td rowspan="2">+0</td> <td rowspan="2">Character</td> <td>read</td> <td>Ignored</td></tr>
-<tr><td>write</td> <td>Character to print on the output</td></tr>
-</tbody>
+	<caption><code>dprinter</code> programming registers</caption>
+	<tr>
+		<th>Offset</th><th>Name</th><th>Operation</th><th>Description</th>
+	</tr>
+	<tr>
+		<td rowspan="2">+0</td>
+		<td rowspan="2">character</td>
+		<td>read</td>
+		<td>(ignored)</td>
+	</tr>
+	<tr>
+		<td>write</td>
+		<td>character to be printed on the standard output of MSIM</td>
+	</tr>
 </table>
 
 <h4>Commands</h4>
 <dl>
-	<dt><code><strong>help</strong> [cmd]</code></dt> <dd>Prints a help text to the specified command or a list of allowed commands.</dd>
-	<dt><code><strong>info</strong></code></dt> <dd>Print basic configuration information (register address).</dd>
-	<dt><code><strong>stat</strong></code></dt> <dd>Prints printer statistics (number of characters printed).</dd>
-	<dt><code><strong>redir</strong> filename</code></dt> <dd>Redirects the output to the file specified.</dd>
-	<dt><code><strong>stdout</strong></code></dt> <dd>Redirects the output to the standard POSIX output.</dd>
+	<dt><code><strong>help</strong> [cmd]</code></dt>
+		<dd>Print a help text to the specified command or a list of allowed commands.</dd>
+	<dt><code><strong>info</strong></code></dt>
+		<dd>Print basic configuration information (register address).</dd>
+	<dt><code><strong>stat</strong></code></dt>
+		<dd>Print printer statistics (number of characters printed).</dd>
+	<dt><code><strong>redir</strong> filename</code></dt>
+		<dd>Redirect the output to the file specified.</dd>
+	<dt><code><strong>stdout</strong></code></dt>
+		<dd>Redirect the output to the standard output.</dd>
 </dl>
 
 <h4>Example</h4>
 
 <p>Example of the <code>info</code> command:</p>
-<pre class="cmd"><strong>[msim]</strong> printer info<span class="key">Enter</span>
+<pre class="cmd"><strong>[msim]</strong> add dprinter printer 0x10000000<span class="key">Enter</span>
+<strong>[msim]</strong> printer info<span class="key">Enter</span>
 address:0x01000000
 <strong>[msim]</strong> </pre>
 
@@ -1178,88 +1217,76 @@ address:0x01000000
 count:11385
 <strong>[msim]</strong> </pre>
 
-<p>Example of a simple output implementation in the kernel:</p>
-<pre class="c"><span class="lnr"> 1 </span><span class="Comment">/*</span><span class="Comment"> VIDEOADDR is an address of memory-mapped register.</span>
-<span class="lnr"> 2 </span><span class="Comment"> * It has to correspond with the definition in the configuration file. </span><span class="Comment">*/</span>
-<span class="lnr"> 3 </span><span class="PreProc">#define VIDEOADDR </span><span class="Number">0x90000000</span>
-<span class="lnr"> 4 </span>
-<span class="lnr"> 5 </span><span class="Comment">/*</span><span class="Comment"> There are two small routines.</span>
-<span class="lnr"> 6 </span><span class="Comment"> * putchar writes one character on the screen. </span><span class="Comment">*/</span>
-<span class="lnr"> 7 </span><span class="Type">void</span> putchar( <span class="Type">char</span> c)
-<span class="lnr"> 8 </span>{
-<span class="lnr"> 9 </span>        *((<span class="Type">volatile</span> <span class="Type">char</span> *) VIDEOADDR) = c;
-<span class="lnr">10 </span>}
-<span class="lnr">11 </span>
-<span class="lnr">12 </span><span class="Comment">/*</span><span class="Comment"> putstring writes a null-terminated string on the screen. </span><span class="Comment">*/</span>
-<span class="lnr">13 </span><span class="Type">void</span> putstring( <span class="Type">char</span> *c)
-<span class="lnr">14 </span>{
-<span class="lnr">15 </span>        <span class="Statement">while</span> (*c)
-<span class="lnr">16 </span>                *((<span class="Type">volatile</span> <span class="Type">char</span> *) VIDEOADDR) = *c++;
-<span class="lnr">17 </span>}
+<p>Example of a simple output implementation in the MIPS code:</p>
+<pre class="c"><span class="lnr">  1 </span><span class="comment">/* VIDEOADDR is the address of the memory-mapped register of dprinter.</span>
+<span class="lnr">  2 </span><span class="comment"> * It has to correspond with the definition in the configuration file. */</span>
+<span class="lnr">  3 </span><span class="preproc">#define VIDEOADDR 0x90000000</span>
+<span class="lnr">  4 </span>
+<span class="lnr">  5 </span><span class="comment">/ * Write one character on the screen. */</span>
+<span class="lnr">  6 </span><span class="keyword">void</span> putchar(<span class="keyword">char</span> c)
+<span class="lnr">  7 </span>{
+<span class="lnr">  8 </span>    *((<span class="keyword">volatile char</span> *) VIDEOADDR) = c;
+<span class="lnr">  9 </span>}
+<span class="lnr"> 10 </span>
+<span class="lnr"> 11 </span><span class="comment">/* Write a NULL-terminated string on the screen. */</span>
+<span class="lnr"> 12 </span><span class="keyword">void</span> putstring(<span class="keyword">char</span>* c)
+<span class="lnr"> 13 </span>{
+<span class="lnr"> 14 </span>    <span class="keyword">while</span> (*c)
+<span class="lnr"> 15 </span>        *((<span class="keyword">volatile char</span> *) VIDEOADDR) = *c++;
+<span class="lnr"> 16 </span>}
 </pre>
 
-
-
-<h3>9.6. Hard disk <code>ddisk</code><a name="ddisk"></a></h3>
-<p>Simulates a simple hard disk with DMA. Via linearly ordered 512B-sized sectors, the device allows to access a file by read and write operations.</p>
+<h3>9.6. Character input device <code>dkeyboard</code><a name="dkeyboard"></a></h3>
+<p>The character input device simulates a keyboard connected to the machine.
+When a key is pressed, the keyboard asserts an interrupt and the ASCII key code
+can be read from the memory-mapped register. Any read operation on the register
+automatically deasserts the pending interrupt.</p>
 
 <h4>Initialization parameters: <code>address</code> <code>intno</code></h4>
-	<p>where</p>
-	<dl>
-		<dt><code>address</code></dt> <dd>specifies the starting address the registers are mapped to,</dd>
-		<dt><code>intno</code></dt> <dd>specifies the DMA interrupt number,</dd>
-	</dl>
-
-<h4>Commands</h4>
-<p><span class="todo">TODO</span></p>
+<p>where</p>
 <dl>
-	<dt><code><strong>help</strong> [cmd]</code></dt> <dd>Prints a help on the command specified or a list of available commands.</dd>
-	<dt><code><strong>info</strong></code></dt> <dd>Prints the device information (see the example below)</dd>
-	<dt><code><strong>stat</strong></code></dt> <dd>Prints device statistics (see the example below).</dd>
-	<dt><code><strong>generic</strong> size</code></dt> <dd></dd>
-	<dt><code><strong>fmap</strong> name</code></dt> <dd></dd>
-	<dt><code><strong>fill</strong> [value]</code></dt> <dd></dd>
-	<dt><code><strong>load</strong> fname</code></dt> <dd></dd>
-	<dt><code><strong>save</strong> fname</code></dt> <dd></dd>
+	<dt><code>address</code></dt>
+		<dd>Physical address of the keyboard register.</dd>
+	<dt><code>intno</code></dt>
+		<dd>Interrupt number which will be asserted on keypress.</dd>
 </dl>
-
-<h4>Examples</h4>
-
-<p><span class="todo">TODO</span></p>
-
-<h3>9.7. Keyboard <code>dkeyboard</code><a name="dkeyboard"></a></h3>
-<p>Simulates a keyboard connected to the machine. When a key is pressed, the keyboard asserts an interrupt and writes the ASCII key code to the memory-mapped register. Any read operation on the register deasserts the pending interrupt.</p>
-
-<h4>Initialization parameters: <code>address</code> <code>intno</code></h4>
-	<p>where</p>
-	<dl>
-		<dt><code>address</code></dt> <dd>specifies the address the keyboard register will be mapped to,</dd>
-		<dt><code>intno</code></dt> <dd>specifies the number of raised interrupt.</dd>
-	</dl>
 
 <h4>Registers</h4>
 <table>
-<caption><code>dkeyboard</code> registers</caption>
-<thead><tr>
-	<td>Offset</td> <td>Name</td> <td>Operation</td> <td>Description</td>
-</tr></thead>
-<tbody>
-<tr><td rowspan="2">+0</td> <td rowspan="2">Keycode</td> <td>read</td> <td>A key code. Any read operation deasserts an interrupt.</td></tr>
-<tr><td>write</td> <td>ignored</td></tr>
-</tbody>
+	<caption><code>dkeyboard</code> programming registers</caption>
+	<tr>
+		<th>Offset</th>
+		<th>Name</th>
+		<th>Operation</th>
+		<th>Description</th>
+	</tr>
+	<tr>
+		<td rowspan="2">+0</td>
+		<td rowspan="2">keycode</td>
+		<td>read</td>
+		<td>key code of the pressed key (any read operation deasserts the pending interrupt)</td></tr>
+	<tr>
+		<td>write</td>
+		<td>(ignored)</td>
+	</tr>
 </table>
 
 <h4>Commands</h4>
 <dl>
-	<dt><code><strong>help</strong> [cmd]</code></dt> <dd>Prints a help on the command specified or a list of available commands.</dd>
-	<dt><code><strong>info</strong></code></dt> <dd>Prints configuration information (a register address, interrupt number and a keycode pending).</dd>
-	<dt><code><strong>stat</strong></code></dt> <dd>Prints device statistics (number of interrupts, pressed keys, and overrun keys).</dd>
-	<dt><code><strong>gen</strong> keycode</code></dt> <dd>Synthetically generates a key press event.</dd>
+	<dt><code><strong>help</strong> [cmd]</code></dt>
+		<dd>Print a help on the command specified or a list of available commands.</dd>
+	<dt><code><strong>info</strong></code></dt>
+		<dd>Print configuration information (register address, interrupt number and a keycode pending).</dd>
+	<dt><code><strong>stat</strong></code></dt>
+		<dd>Print device statistics (number of interrupts, pressed keys and overrun keys).</dd>
+	<dt><code><strong>gen</strong> keycode</code></dt>
+		<dd>Synthetically generates a key press event.</dd>
 </dl>
 
 <h4>Examples</h4>
 
-<p>The following command adds a keyboard "kb" to the machine. The keyboard register is mapped to <code>0x10000000</code></p>
+<p>The following command adds a keyboard <code>kb</code> to the machine. The keyboard register is
+mapped physical address 0x10000000.</p>
 <pre class="cmd"><strong>[msim]</strong>add dkeyboard kb 0x1000000<span class="key">Enter</span>
 <strong>[msim]</strong> </pre>
 
@@ -1272,6 +1299,42 @@ address:0x10000000 intno:3 regs(key:0x00 ig:0)
 <pre class="cmd"><strong>[msim]</strong> kb stat<span class="key">Enter</span>
 intrc:11 keycount:11 overrun:0
 <strong>[msim]</strong> </pre>
+
+<h3>9.7. Block device <code>ddisk</code><a name="ddisk"></a></h3>
+
+<p>The block device simulates a simple hard disk with DMA capabilities.
+The device can be accesses by linearly ordered 512&nbsp;B-sized sectors.
+The device allows to access the contents of a file from the host system
+running MSIM.</p>
+
+<h4>Initialization parameters: <code>address</code> <code>intno</code></h4>
+<p>where</p>
+<dl>
+	<dt><code>address</code></dt>
+		<dd>Physical address of the hard disk register.</dd>
+	<dt><code>intno</code></dt>
+		<dd>DMA Interrupt number.</dd>
+</dl>
+
+<h4>Commands</h4>
+<dl>
+	<dt><code><strong>help</strong> [cmd]</code></dt>
+		<dd>Print a help on the command specified or a list of available commands.</dd>
+	<dt><code><strong>info</strong></code></dt>
+		<dd>Print the device information.</dd>
+	<dt><code><strong>stat</strong></code></dt>
+		<dd>Print device statistics.</dd>
+	<dt><code><strong>generic</strong> size</code></dt>
+		<dd>Allocate a block device of the given size from host memory.</dd>
+	<dt><code><strong>fmap</strong> name</code></dt>
+		<dd>Map the block device to a file specified.</dd>
+	<dt><code><strong>fill</strong> [value]</code></dt>
+		<dd>Fill the block device with zeros or the specified word value.</dd>
+	<dt><code><strong>load</strong> fname</code></dt>
+		<dd>Load the contents of the block device from a file specified.</dd>
+	<dt><code><strong>save</strong> fname</code></dt>
+		<dd>Save the contents of the block device to a file specified.</dd>
+</dl>
 
 <h3>9.8. Interprocessor communication <code>dorder</code><a name="dorder"></a></h3>
 <p>A device for interprocessor communication. It allows to obtain a processor serial number as well as assert an interrupt on a specified processor.</p>

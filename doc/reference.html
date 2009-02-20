@@ -852,64 +852,64 @@ not all variables can hold a logical values.</p>
 <code>true</code>, <code>on</code>, <code>yes</code>. Similarly the
 synonyms for <code>false</code> are: <code>false</code>, <code>off</code>,
 <code>no</code> and their prefixes.</p>
-
-	<h4>Example</h4>
-	<p>In the first example, we all the variables:</p>
-	<pre class="cmd"><strong>[msim]</strong> set<span class="key">Enter</span>
-List of all variables:
+<h4>Example</h4>
+<p>In the first example, we list all the variables:</p>
+<pre class="cmd"><strong>[msim]</strong> set<span class="key">Enter</span>
+Group                  Variable   Value
+---------------------- ---------- ----------
 Disassembling features
-	iaddr = on
-	iopc = off
-	icmt = on
-	iregch = on
-	ireg = 2
+                       iaddr      on
+                       iopc       off
+                       icmt       on
+                       iregch     on
+                       ireg       2
 Debugging features
-	trace = on
+                       trace      off
 <strong>[msim]</strong> </pre>
-	<p>In the second example, we set the trace mode to on:</p>
-	<pre class="cmd"><strong>[msim]</strong> s<span class="key">Enter</span>
+<p>In the second example, we switch to trace mode:</p>
+<pre class="cmd"><strong>[msim]</strong> s<span class="key">Enter</span>
 <strong>[msim]</strong> set trace<span class="key">Enter</span>
 <strong>[msim]</strong> s<span class="key">Enter</span>
     0  80401378    addiu a0, a0, 0x40      # 0x40=64, a0: 0xb7b8-&gt;0xf8
 <strong>[msim]</strong> </pre>
-
-	<p>And in the third example, we set the type of register names:</p>
-	<pre class="cmd">[msim] set ireg = 2<span class="key">Enter</span>
+<p>And in the third example, we set the type of register names:</p>
+<pre class="cmd">[msim] set ireg = 2<span class="key">Enter</span>
 [msim] id 0x00401330 1<span class="key">Enter</span>
-    00401330    srl   v0, v0, 0x01        
+    00401330    srl   v0, v0, 0x01
 [msim] set ireg = 0<span class="key">Enter</span>
 [msim] id 0x00401330 1<span class="key">Enter</span>
     00401330    srl   r2, r2, 0x01
 [msim] </pre>
 
-
-<h3>8.15. Unset <code>unset</code><a name="Unset"></a></h3> 
-	<p>Unsets a logical environment variable.</p>
-
-	<h4>Syntax: <code><strong>unset</strong> variable</code></h4>
-	<p>where:</p>
-	<dl>
-		<dt><code>variable</code></dt> <dd>is an environment variable name to unset.</dd>
-	</dl>
-	<p>Specified <code>variable</code> must hold a logical value. Refer to the <a href="#Internal_variables">specialized section</a> for a list and a description of available variables.</p>
-
-	<h4>Example</h4>
-	<p>In the following example, the trace mode is switched off:</p>
-	<pre class="cmd"><strong>[msim]</strong> s<span class="key">Enter</span>
-    80401334    addu  r5, r5, r2        # r5: 0x6512c4be->0x9754a5b8
+<h3>8.16. Unset <code>unset</code><a name="Unset"></a></h3> 
+<h4>Synopsis</h4>
+<p>Unset a logical internal variable.</p>
+<h4>Syntax <code><strong>unset</strong> variable</code></h4>
+<p>where</p>
+<dl>
+	<dt><code>variable</code></dt>
+		<dd>Internal variable name to be unset.</dd>
+</dl>
+<p>Specified <code>variable</code> must hold a logical value. Refer to the
+<a href="#Internal_variables">Internal variables section</a> for the list
+and description of available variables.</p>
+<h4>Example</h4>
+<p>In the following example, the trace mode is switched off:</p>
+<pre class="cmd"><strong>[msim]</strong> s<span class="key">Enter</span>
+    0  80401334    addu  r5, r5, r2        # r5: 0x6512c4be->0x9754a5b8
 <strong>[msim]</strong> unset trace<span class="key">Enter</span>
 <strong>[msim]</strong> s<span class="key">Enter</span>
 <strong>[msim]</strong> </pre>
 
-
-<h3>8.16. Help <code>help</code><a name="Help"></a></h3> 
-	<p>Shows the help for the specified system command or a list of available system commands.</p>
-	<h4>Syntax: <code><strong>help</strong> [command]</code></h4>
-	<p>where:</p>
-	<dl>
-		<dt><code>command</code></dt> <dd>is a command name.</dd>
-	</dl>
-
+<h3>8.17. Help <code>help</code><a name="Help"></a></h3> 
+<h4>Synopsis</h4>
+<p>Show the help for the specified system command or print the list of available system commands.</p>
+<h4>Syntax <code><strong>help</strong> [command]</code></h4>
+<p>where</p>
+<dl>
+	<dt><code>command</code></dt>
+		<dd>Command name (if omited, the list of available system commands is printed).</dd>
+</dl>
 
 <h2>9. Devices<a name="Devices"></a></h2>
 
@@ -1030,7 +1030,7 @@ processor p0
 <p>Simulates a simple printer device.</p>
 
 <h4>Initialization parameters: <code>address</code></h4>
-	<p>where:</p>
+	<p>where</p>
 	<dl>
 		<dt><code>address</code></dt> <dd>specifies the physical address of the printer register</dd>
 	</dl>
@@ -1093,7 +1093,7 @@ count:11385
 <p>The <code>rwm</code> device represents a read-write random-access memory region. The memory block could be a general memory or file-mapped.</p>
 
 <h4>Initialization parameters: <code>address</code> <code>size</code></h4>
-	<p>where:</p>
+	<p>where</p>
 	<dl>
 		<dt><code>address</code></dt> <dd>specifies the starting address the memory block will start at and</dd>
 		<dt><code>size</code></dt> <dd>specifies the size of the memory block.</dd>
@@ -1135,7 +1135,7 @@ start:0x1fc00000 size:1k type:mem
 <p>The <code>rom</code> device represents a read-only random-access memory region.</p>
 
 <h4>Initialization parameters: <code>address</code> <code>size</code></h4>
-	<p>where:</p>
+	<p>where</p>
 	<dl>
 		<dt><code>address</code></dt> <dd>specifies the starting address the memory block will start at and</dd>
 		<dt><code>size</code></dt> <dd>specifies the size of the memory block.</dd>
@@ -1171,7 +1171,7 @@ start:0x1fc00000 size:1k type:mem
 <p>Simulates a simple hard disk with DMA. Via linearly ordered 512B-sized sectors, the device allows to access a file by read and write operations.</p>
 
 <h4>Initialization parameters: <code>address</code> <code>intno</code></h4>
-	<p>where:</p>
+	<p>where</p>
 	<dl>
 		<dt><code>address</code></dt> <dd>specifies the starting address the registers are mapped to,</dd>
 		<dt><code>intno</code></dt> <dd>specifies the DMA interrupt number,</dd>
@@ -1198,7 +1198,7 @@ start:0x1fc00000 size:1k type:mem
 <p>Simulates a keyboard connected to the machine. When a key is pressed, the keyboard asserts an interrupt and writes the ASCII key code to the memory-mapped register. Any read operation on the register deasserts the pending interrupt.</p>
 
 <h4>Initialization parameters: <code>address</code> <code>intno</code></h4>
-	<p>where:</p>
+	<p>where</p>
 	<dl>
 		<dt><code>address</code></dt> <dd>specifies the address the keyboard register will be mapped to,</dd>
 		<dt><code>intno</code></dt> <dd>specifies the number of raised interrupt.</dd>
@@ -1244,7 +1244,7 @@ intrc:11 keycount:11 overrun:0
 <p>A device for interprocessor communication. It allows to obtain a processor serial number as well as assert an interrupt on a specified processor.</p>
 
 <h4>Initialization parameters: <code>address</code> <code>intno</code></h4>
-	<p>where:</p>
+	<p>where</p>
 	<dl>
 		<dt><code>address</code></dt> <dd>specifies the address of device registers,</dd>
 		<dt><code>intno</code></dt> <dd>specifies the interrupt number used.</dd>
@@ -1294,7 +1294,7 @@ intrc:11 keycount:11 overrun:0
 <p>The <code>dtime</code> passes a system time of the host machine to the simulated environment.</p>
 
 <h4>Initialization parameters: <code>address</code></h4>
-	<p>where:</p>
+	<p>where</p>
 	<dl>
 		<dt><code>address</code></dt> <dd>specifies the address of the device "Time" register.</dd>
 	</dl>

@@ -53,19 +53,21 @@ for <a href="http://dsrg.mff.cuni.cz/~holub/sw/msim">MSIM</a> version 1.3.7.</p>
 		<ul>
 			<li><a href="#System_list">8.1. List of system commands</a></li>
 			<li><a href="#Add">8.2. Add <code>add</code></a></li>
-			<li><a href="#Remove">8.3. Remove <code>rm</code></a></li>
-			<li><a href="#Quit">8.4. Quit <code>quit</code></a></li>
-			<li><a href="#Memory_dump">8.5. Memory dump <code>md</code></a></li>
+			<li><a href="#Quit">8.3. Quit <code>quit</code></a></li>
+			<li><a href="#Memory_dump">8.4. Memory dump <code>md</code></a></li>
 			<li><a href="#Instruction_dump">8.5. Instruction dump <code>id</code></a></li>
-			<li><a href="#Device_dump">8.7. Device dump <code>dd</code></a></li>
+			<li><a href="#Device_dump">8.6. Device dump <code>dd</code></a></li>
 			<li><a href="#Memory_block_dump">8.7. Memory block dump <code>mbd</code></a></li>
-			<li><a href="#Statistics">8.10. Statistics <code>stat</code></a></li>
-			<li><a href="#Print">8.11. Print <code>echo</code></a></li>
-			<li><a href="#Goto">8.12. Go to <code>goto</code></a></li>
-			<li><a href="#Step">8.13. Step <code>step</code></a></li>
-			<li><a href="#Set">8.14. Set <code>set</code></a></li>
-			<li><a href="#Unset">8.15. Unset <code>unset</code></a></li>
-			<li><a href="#Help">8.16. Help <code>help</code></a></li>
+			<li><a href="#Breakpoint">8.8. Add memory breakpoint <code>break</code></a></li>
+			<li><a href="#Breakpoint_dump">8.9. Dump memory breakpoints <code>bd</code></a></li>
+			<li><a href="#Breakpoint_remove">8.10. Remove memory breakpoint <code>br</code></a></li>
+			<li><a href="#Statistics">8.11. Statistics <code>stat</code></a></li>
+			<li><a href="#Print">8.12. Print <code>echo</code></a></li>
+			<li><a href="#Goto">8.13. Continue <code>continue</code></a></li>
+			<li><a href="#Step">8.14. Step <code>step</code></a></li>
+			<li><a href="#Set">8.15. Set <code>set</code></a></li>
+			<li><a href="#Unset">8.16. Unset <code>unset</code></a></li>
+			<li><a href="#Help">8.17. Help <code>help</code></a></li>
 		</ul>
 	</li>
 	<li><a href="#Devices">9. Devices</a><br />
@@ -339,10 +341,10 @@ the start of <code>firmware</code> memory).</p>
 
 <p>The executed code will be able to use the read/write memory <code>memory</code>
 located at the physical address 0x00000000. The execution environment is modeled
-strictly according to the specification of MIPS R4000 CPU (please reffer to
+strictly according to the specification of MIPS R4000 CPU (please refer to
 <emph>MIPS R4000 Microprocessor User's Manual</emph>).</p>
 
-<p>Please reffer also to further sections of this text for details about the
+<p>Please refer also to further sections of this text for details about the
 commands used in our brief example.</p>
 
 <h2>5. Configuration file<a name="Configuration_file"></a></h2>
@@ -640,7 +642,7 @@ either in the interactive mode or in a configuration file.</p>
 <h4>Synopsis</h4>
 <p>Add a new device into the system under a specified name.</p>
 <h4>Syntax <code><strong>add</strong> device_type device_name [device_parameters...]</code></h4>
-<p>where:</p>
+<p>where</p>
 <dl>
 	<dt><code>device_type</code></dt>
 		<dd>Specifies a device type. The list of available device types is in the <a href="#Devices">Devices</a> section.</dd>
@@ -661,41 +663,43 @@ either in the interactive mode or in a configuration file.</p>
 <h4>Synopsis</h4>
 <p>Quit the simulator immediately.</p>
 
-<h3>8.5. Memory dump <code>md</code><a name="Memory_dump"></a></h3> 
-	<p>Prints a part of a memory from an unmapped address.</p>
-
-	<h4>Syntax: <code><strong>md</strong> address count</code></h4>
-	<p>where:</p>
-	<dl>
-		<dt><code>address</code></dt> <dd>is the starting address of the memory block,</dd>
-		<dt><code>count</code></dt> <dd>is the number of words to print.</dd>
-	</dl>
-
-	<h4>Example</h4>
-	<p>The following example prints 10 words from the address 0x1240.</p>
-	<pre class="cmd"><strong>[msim]</strong> md 0x1240 10<span class="key">Enter</span>
+<h3>8.4. Memory dump <code>md</code><a name="Memory_dump"></a></h3>
+<h4>Synopsis</h4>
+<p>Print a part of a memory from an unmapped address.</p>
+<h4>Syntax <code><strong>md</strong> address count</code></h4>
+<p>where</p>
+<dl>
+	<dt><code>address</code></dt>
+		<dd>Starting address of the memory block.</dd>
+	<dt><code>count</code></dt>
+		<dd>Number of words to print.</dd>
+</dl>
+<h4>Example</h4>
+<p>The following example prints 10 words from the physical address 0x00001240.</p>
+<pre class="cmd"><strong>[msim]</strong> md 0x1240 10<span class="key">Enter</span>
   00001240    265a45cd  2fefe111  11deadee  30957311  
   00001250    7b218f9f  ffff2345  baba5555  deadbeaf  
   00001260    29dc9aff  1298aa23
 <strong>[msim]</strong> </pre>
 
-<h3>8.6. Instruction dump <code>id</code><a name="Instruction_dump"></a></h3>
-	<p>Prints instructions from the specified unmapped address.</p>
-
-	<h4>Syntax: <code><strong>id</strong> address count</code></h4>
-	<p>where:</p>
-	<dl>
-		<dt><code>address</code></dt> <dd>is the starting address and</dd>
-		<dt><code>count</code></dt> <dd>is the number of instructions to print.</dd>
-	</dl>
-
-	<h4>Example</h4>
-	<p>The following example prints 10 instructions from the address 0x12a8.</p>
-	<pre class="cmd"><strong>[msim]</strong> id 0x12a8 10<span class="key">Enter</span>
+<h3>8.5. Instruction dump <code>id</code><a name="Instruction_dump"></a></h3>
+<h4>Synopsis</h4>
+<p>Print disassembled instructions from the specified unmapped address.</p>
+<h4>Syntax <code><strong>id</strong> address count</code></h4>
+<p>where</p>
+<dl>
+	<dt><code>address</code></dt>
+		<dd>Starting address of the memory block.</dd>
+	<dt><code>count</code></dt>
+		<dd>Number of instructions to print.</dd>
+</dl>
+<h4>Example</h4>
+<p>The following example prints 10 instructions from the address 0x000012a8.</p>
+<pre class="cmd"><strong>[msim]</strong> id 0x12a8 10<span class="key">Enter</span>
     000012A8    ori   s0, s0, 0x5427    # 0x5427h=21543
     000012AC    sw    s2, 0x18(sp)      # 0x18=24
     000012B0    lui   s2, 0x805a        # 0x805a=32858
-    000012B4    ori   s2, s2, 0xce55      
+    000012B4    ori   s2, s2, 0xce55
     000012B8    sw    s1, 0x14(sp)      # 0x14=20
     000012BC    lui   s1, 0x8100        # 0x8100=33024
     000012C0    sw    ra, 0x1c(sp)      # 0x1c=28
@@ -704,14 +708,12 @@ either in the interactive mode or in a configuration file.</p>
     000012CC    nop
 <strong>[msim]</strong> </pre>
 
-<h3>8.7. Device dump <code>dd</code><a name="Device_dump"></a></h3> 
-	<p>Prints a list of devices with parameters added to the system.</p>
-
-	<h4>Syntax: <code><strong>dd</strong></code></h4>
-
-	<h4>Example</h4>
-	<p>The following example prints all devices in the system.</p>
-	<pre class="cmd"><strong>[msim]</strong> dd<span class="key">Enter</span>
+<h3>8.6. Device dump <code>dd</code><a name="Device_dump"></a></h3>
+<h4>Synopsis</h4>
+<p>Print a list of devices with parameters configured in the environment.</p>
+<h4>Example</h4>
+<p>The following example prints all devices in the system.</p>
+<pre class="cmd"><strong>[msim]</strong> dd<span class="key">Enter</span>
 [  name  ] [  type  ] [ parameters...
 printer    dprinter   address:0x01000000
 startmem   rom        start:0x1fc00000 size:1k type:mem
@@ -720,102 +722,136 @@ mainmem    rwm        start:0x00000000 size:256k type:mem
 mips1      dcpu       type:R4000.32
 <strong>[msim]</strong> </pre>
 
-<h3>8.8. Memory block dump <code>mbd</code><a name="Memory_block_dump"></a></h3> 
-	<p>Prints all installed memory blocks.</p>
-
-	<h4>Syntax: <code><strong>mbd</strong></code></h4>
-
-	<h4>Example</h4>
-	<p>The following example prints all installed memory blocks.</p>
-	<pre class="cmd"><strong>[msim]</strong> mbd<span class="key">Enter</span>
+<h3>8.7. Memory block dump <code>mbd</code><a name="Memory_block_dump"></a></h3> 
+<h4>Synopsis</h4>
+<p>Print all configured memory blocks.</p>
+<h4>Example</h4>
+<p>The following example prints all installed memory blocks.</p>
+<pre class="cmd"><strong>[msim]</strong> mbd<span class="key">Enter</span>
 [  name  ] [  type  ] [ parameters...
 startmem   rom        start:0x1fc00000 size:1k type:mem
 xxx        rwm        start:0x00400000 size:256k type:mem
 mainmem    rwm        start:0x00000000 size:256k type:mem
 <strong>[msim]</strong> </pre>
 
-<h3>8.10. Statistics <code>stat</code><a name="Statistics"></a></h3> 
-	<p>Prints statistics of installed devices.</p>
+<h3>8.8. Add memory breakpoint <code>break</code><a name="Breakpoint"></a></h3>
+<h4>Synopsis</h4>
+<p>Add memory access breakpoint. If a read or write access on the the
+physical address of the breakpoint occurs, the simulator is immediately
+switched to interactive mode.</p>
+<h4>Syntax <code><strong>break</strong> address type</code></h4>
+<p>where</p>
+<dl>
+	<dt><code>address</code></dt>
+		<dd>Address of the breakpoint.</dd>
+	<dt><code>count</code></dt>
+		<dd>Consider read accesses (<code>r</code>), write accesses (<code>w</code>) or both (<code>rw</code>).</dd>
+</dl>
 
-	<h4>Syntax: <code><strong>stat</strong></code></h4>
+<h3>8.9. Dump memory breakpoints <code>bd</code><a name="Breakpoint_dump"></a></h3> 
+<h4>Synopsis</h4>
+<p>Print all configured memory access breakpoints.</p>
 
-	<h4>Example</h4>
-	<p>The following example print the statistics of all the installed devices.</p>
-	<pre class="cmd"><strong>[msim]</strong> stat<span class="key">Enter</span>
+<h3>8.10. Remove memory breakpoint <code>br</code><a name="Breakpoint_remove"></a></h3> 
+<h4>Synopsis</h4>
+<p>Remove previously configured memory breakpoint.</p>
+<h4>Syntax <code><strong>break</strong> address</code></h4>
+<p>where</p>
+<dl>
+	<dt><code>address</code></dt>
+		<dd>Address of the previously configured breakpoint.</dd>
+</dl>
+
+<h3>8.11. Statistics <code>stat</code><a name="Statistics"></a></h3>
+<h4>Synopsis</h4>
+<p>Print statistics of installed devices.</p>
+<h4>Example</h4>
+<p>The following example prints the statistics of all the installed devices.</p>
+<pre class="cmd"><strong>[msim]</strong> stat<span class="key">Enter</span>
 [  name  ] [  type  ] [ statistics...
 printer    dprinter   count:42248
 startmem   rom        no statistics
 xxx        rwm        no statistics
 mainmem    rwm        no statistics
-mips1      dcpu       cycles total:1373061 in kernel:1373061 in user:0 
-		      in stdby:0 tlb refill:0 invalid: 0 modified:0 
-		      interrupts 0:0 1:0 2:0 3:0 4:0 5:0 6:0 7:0
+mips1      dcpu       cycles total:1373061 in kernel:1373061 in user:0
+                      in stdby:0 tlb refill:0 invalid: 0 modified:0
+                      interrupts 0:0 1:0 2:0 3:0 4:0 5:0 6:0 7:0
 <strong>[msim]</strong> </pre>
 
-<h3>8.11. Print <code>echo</code><a name="Print"></a></h3> 
-	<p>Prints user message. The <code>echo</code> command is used for information or debugging purposes, mainly in the configuration file.</p>
-
-	<h4>Syntax: <code><strong>echo</strong> message</code></h4>
-	<p>where:</p>
-	<dl>
-		<dt><code>message</code></dt> <dd>is a user message which will be printed.</dd>
-	</dl>
-	
-	<h4>Example</h4>
-	<p>The following example print the message "The point A has been reached".</p>
-	<pre class="cmd"><strong>[msim]</strong> echo "The point A has been reached"<span class="key">Enter</span>
+<h3>8.12. Print <code>echo</code><a name="Print"></a></h3>
+<h4>Synopsis</h4>
+<p>Print user message. The <code>echo</code> command is usually used for debugging purposes, mainly in the configuration file.</p>
+<h4>Syntax <code><strong>echo</strong> message</code></h4>
+<p>where</p>
+<dl>
+	<dt><code>message</code></dt>
+		<dd>String which will be printed.</dd>
+</dl>
+<h4>Example</h4>
+<p>The following example prints the message &quot;The point A has been reached&quot;.</p>
+<pre class="cmd"><strong>[msim]</strong> echo "The point A has been reached"<span class="key">Enter</span>
 The point A has been reached
 <strong>[msim]</strong></pre>
 
-<h3>8.12. Continue <code>continue</code><a name="Continue"></a></h3> 
-	<p>Continue in the simulation. The interactive mode is leaved.</p>
+<h3>8.13. Continue <code>continue</code><a name="Continue"></a></h3>
+<h4>Synopsis</h4>
+<p>Continue in the simulation. The interactive mode is leaved.</p>
+<h4>Example</h4>
+<p>In the following example, the execution is terminated by pressing
+<span class="key">Ctrl+C</span> and later restarted by the <code>continue</code>
+command. The trace mode in still on:</p>
+<pre class="cmd"><strong>...</strong>
 
-	<h4>Syntax: <code><strong>continue</strong></code></h4>
+ 0  80400ED4    subu  v0, v0, a1        # v0: 0x24640-&gt;0x245b7
+ 0  80400ED8    sll   v1, v0, 0x02      # v1: 0xb71d6a00-&gt;0x916dc<span class="key">Ctrl+C</span>
 
-	<h4>Example</h4>
-	<p>In the following example, the execution is terminated by pressing <span class="key">Ctrl+C</span> and restarted back by the <code>continue</code> command. The trace mode in on:</p>
-	<pre class="cmd">...
-80400ED4    subu  v0, v0, a1        # v0: 0x24640-&gt;0x245b7
-80400ED8    sll   v1, v0, 0x02      # v1: 0xb71d6a00-&gt;0x916dc<span class="key">Ctrl+C</span>
+<strong>[msim]</strong> continue<span class="key">Enter</span>
+ 0  80400EDC    addu  v0, v0, v1        # v0: 0x245b7-&gt;0xb5c93
+ 0  80400EE0    sll   v0, v0, 0x04      # v0: 0xb5c93-&gt;0xb5c930
+ 0  80400EE4    addu  v0, v0, a1        # v0: 0xb5c930-&gt;0xb5c9b9
 
-<strong>[msim]</strong> c
-80400EDC    addu  v0, v0, v1        # v0: 0x245b7-&gt;0xb5c93
-80400EE0    sll   v0, v0, 0x04      # v0: 0xb5c93-&gt;0xb5c930
-80400EE4    addu  v0, v0, a1        # v0: 0xb5c930-&gt;0xb5c9b9
-...</pre>
+<strong>...</strong></pre>
 
-<h3>8.13. Step <code>step</code><a name="Step"></a></h3> 
-	<p>Executes one or a specified number of cycles. The <code>step</code> command is default - it is executed if no command is specified.</p>
-
-	<h4>Snytax: <code><strong>step</strong> [count]</code></h4>
-	<p>where:</p>
-	<dl>
-		<dt><code>count</code></dt> <dd>is the optional number of cycles to execute.</dd>
-	</dl>
-	
-	<h4>Example</h4>
-	<p>In the following example, the user executes 3 steps on a 2-processor machine:</p>
-	<pre class="cmd"><strong>[msim]</strong> s 3<span class="key">Enter</span>
- 0  80400ACC    mfc0  v0, status        # v0: 0x0-&gt;0x8001
- 1  80400EC4    srl   a1, a1, 0x18      # 0x18=24, a1: 0x6538b04f-&gt;0x65
- 0  80400AD0    addiu v1, 0, 0xfffe     # v1: 0x0-&gt;0xfffffffe
- 1  80400EC8    sll   v0, a1, 0x04      # v0: 0x219dad69-&gt;0x650
- 0  80400AD4    and   v0, v0, v1        # v0: 0x8001-&gt;0x8000
- 1  80400ECC    addu  v0, v0, a1        # v0: 0x650-&gt;0x6b5
+<h3>8.14. Step <code>step</code><a name="Step"></a></h3>
+<h4>Synopsis</h4>
+<p>Execute one or a specified number of cycles. The <code>step</code> command is default
+(it is executed if a blank command line entered).</p>
+<h4>Snytax <code><strong>step</strong> [count]</code></h4>
+<p>where</p>
+<dl>
+	<dt><code>count</code></dt>
+		<dd>Optional number of cycles to execute.</dd>
+</dl>
+<h4>Example</h4>
+<p>In the following example, the user executes 3 steps on a 2-processor machine:</p>
+<pre class="cmd"><strong>[msim]</strong> s 3<span class="key">Enter</span>
+ 1  80400ACC    mfc0  v0, status        # v0: 0x0-&gt;0x8001
+ 0  80400EC4    srl   a1, a1, 0x18      # 0x18=24, a1: 0x6538b04f-&gt;0x65
+ 1  80400AD0    addiu v1, 0, 0xfffe     # v1: 0x0-&gt;0xfffffffe
+ 0  80400EC8    sll   v0, a1, 0x04      # v0: 0x219dad69-&gt;0x650
+ 1  80400AD4    and   v0, v0, v1        # v0: 0x8001-&gt;0x8000
+ 0  80400ECC    addu  v0, v0, a1        # v0: 0x650-&gt;0x6b5
 <strong>[msim]</strong> </pre>
 
-<h3>8.14. Set <code>set</code><a name="Set"></a></h3> 
-	<p>Sets an environment variable on or to a specified value or prints a list of all variables..</p>
-
-	<h4>Syntax: <code><strong>set</strong> variable [= value]</code></h4>
-	<p>where:</p>
-	<dl>
-		<dt><code>variable</code></dt> <dd>is an environment variable name to set,</dd>
-		<dt><code>value</code></dt> <dd>is an optional value to assign to the environment variable.</dd>
-	</dl>
-
-	<p>Refer to the <a href="#Internal_variables">specialized section</a> for a list and a description of available variables. If <code>value</code> is not specified, the variable is set to the logical true. Note not all variables can hold a logical value. If even <code>variable</code> is not specified, set prints the list of variables and their values.</p>
-	<p>For boolean variables, there are available default constant for true: <code>true</code>, <code>on</code>, <code>yes</code> and for false: <code>false</code>, <code>on</code>, <code>no</code> and their prefixes.</p>
+<h3>8.15. Set <code>set</code><a name="Set"></a></h3>
+<h4>Synopsis</h4>
+<p>Set an internal variable on or to a specified value or print a list of all variables.</p>
+<h4>Syntax <code><strong>set</strong> [variable [= value]]</code></h4>
+<p>where</p>
+<dl>
+	<dt><code>variable</code></dt>
+		<dd>Name of the internal variable name to be set (if not specified, list of all variables is printed).</dd>
+	<dt><code>value</code></dt>
+		<dd>Value to be assigned to the variable (if not specified, logical <code>true</code> is assumed).</dd>
+</dl>
+<p>Refer to the <a href="#Internal_variables">Internal variables section</a> for
+a list and a description of available variables. If <code>value</code> is not
+specified, the variable is set to the logical <code>true</code>. Note that
+not all variables can hold a logical values.</p>
+<p>For boolean variables, there are several synonyms for <code>true</code>:
+<code>true</code>, <code>on</code>, <code>yes</code>. Similarly the
+synonyms for <code>false</code> are: <code>false</code>, <code>off</code>,
+<code>no</code> and their prefixes.</p>
 
 	<h4>Example</h4>
 	<p>In the first example, we all the variables:</p>

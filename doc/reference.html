@@ -18,7 +18,7 @@ for <a href="http://dsrg.mff.cuni.cz/~holub/sw/msim">MSIM</a> version 1.3.7.</p>
 
 <h2>Last change</h2>
 
-<p>2009-02-19</p>
+<p>2009-02-20</p>
 
 <h2>Table of contents</h2>
 
@@ -465,23 +465,23 @@ affect the fields which are printed in disassembler.</p>
 
 <pre class="cmd"><strong>[msim]</strong> unset iregch<span class="key">Enter</span>
 <strong>[msim]</strong> s 5<span class="key">Enter</span>
-    80400ECC    addu  v0, v0, a1
-    80400ED0    sll   v0, v0, 0x06
-    80400ED4    subu  v0, v0, a1
-    80400ED8    sll   v1, v0, 0x02
-    80400EDC    addu  v0, v0, v1
+    0  80400ECC    addu  v0, v0, a1
+    0  80400ED0    sll   v0, v0, 0x06
+    0  80400ED4    subu  v0, v0, a1
+    0  80400ED8    sll   v1, v0, 0x02
+    0  80400EDC    addu  v0, v0, v1
 <strong>[msim]</strong> set iregch<span class="key">Enter</span>
 <strong>[msim]</strong> s 5<span class="key">Enter</span>
-    80400EE0    sll   v0, v0, 0x04      # v0: 0xe12018d9-&gt;0xe83550, 
-                                        # v1: 0xe03fd900-&gt;0xb9c44, 
-                                        # a0: 0x6d9b-&gt;0xe9e3a6c0, 
-                                        # a1: 0xa9-&gt;0xaf, a2: 0xda-&gt;0xdb, 
-                                        # loreg: 0x394745fa-&gt;0x7844ddc0, 
-                                        # hireg: 0x7116dba5-&gt;0x7544c9eb
-    80400EE4    addu  v0, v0, a1        # v0: 0xe83550-&gt;0xe835ff
-    80400EE8    sll   v1, v0, 0x08      # v1: 0xb9c44-&gt;0xe835ff00
-    80400EEC    addu  v0, v0, v1        # v0: 0xe835ff-&gt;0xe91e34ff
-    80400EF0    subu  a0, a0, v0        # a0: 0xe9e3a6c0-&gt;0xc571c1
+    0  80400EE0    sll   v0, v0, 0x04      # v0: 0xe12018d9-&gt;0xe83550, 
+                                           # v1: 0xe03fd900-&gt;0xb9c44, 
+                                           # a0: 0x6d9b-&gt;0xe9e3a6c0, 
+                                           # a1: 0xa9-&gt;0xaf, a2: 0xda-&gt;0xdb, 
+                                           # loreg: 0x394745fa-&gt;0x7844ddc0, 
+                                           # hireg: 0x7116dba5-&gt;0x7544c9eb
+    0  80400EE4    addu  v0, v0, a1        # v0: 0xe83550-&gt;0xe835ff
+    0  80400EE8    sll   v1, v0, 0x08      # v1: 0xb9c44-&gt;0xe835ff00
+    0  80400EEC    addu  v0, v0, v1        # v0: 0xe835ff-&gt;0xe91e34ff
+    0  80400EF0    subu  a0, a0, v0        # a0: 0xe9e3a6c0-&gt;0xc571c1
 <strong>[msim]</strong> </pre>
 
 <p>The <code>ireg</code> selects the scheme for register names used by the
@@ -567,12 +567,12 @@ displayed on the screen.</p>
 <strong>[msim]</strong> s<span class="key">Enter</span>
 <strong>[msim]</strong> set trace<span class="key">Enter</span>
 <strong>[msim]</strong> s<span class="key">Enter</span>
-    80400EC8    sll   v0, a1, 0x04      # v0: 0x1fcec0c2-&gt;0x2f0, 
-                                        # a1: 0x1ffc0227-&gt;0x2f
+    0  80400EC8    sll   v0, a1, 0x04      # v0: 0x1fcec0c2-&gt;0x2f0, 
+                                          # a1: 0x1ffc0227-&gt;0x2f
 <strong>[msim]</strong> s<span class="key">Enter</span>
-    80400ECC    addu  v0, v0, a1        # v0: 0x2f0-&gt;0x31f
+    0  80400ECC    addu  v0, v0, a1        # v0: 0x2f0-&gt;0x31f
 <strong>[msim]</strong> s<span class="key">Enter</span>
-    80400ED0    sll   v0, v0, 0x06      # v0: 0x31f-&gt;0xc7c0
+    0  80400ED0    sll   v0, v0, 0x06      # v0: 0x31f-&gt;0xc7c0
 <strong>[msim]</strong> </pre>
 
 <h2>7. Input command line<a name="Input_command_line"></a></h2>
@@ -636,46 +636,30 @@ either in the interactive mode or in a configuration file.</p>
 		<dd>Display a help text.</dd>
 </dl>
 
-
-<h3>8.2. Add <code>add</code><a name="Add"></a></h3> 
-	<p>Adds a new device into the system under a specified name.</p>
-
-	<h4>Syntax: <code><strong>add</strong> device_type device_name [device_parameters...]</code></h4>
-	<p>where:</p>
-	<dl>
-		<dt><code>device_type</code></dt> <dd>specifies a device type. The list of available device types is in the <a href="#Devices">Devices</a> section,</dd>
-		<dt><code>device_name</code></dt> <dd>is a device name. The name must not be equal to a system command and must be unique among already added devices, and</dd>
-		<dt><code>device_parameters</code></dt> <dd>are initial device parameters. The actual parameters depends on the device type.</dd>
-	</dl>
-
-	<h4>Example</h4>
-	<p>The first example adds a new printer "p0" to the system. The printer register is located at 0x0001000.</p>
-	<pre class="cmd"><strong>[msim]</strong> add dprinter p0 0x1000<span class="key">Enter</span>
+<h3>8.2. Add <code>add</code><a name="Add"></a></h3>
+<h4>Synopsis</h4>
+<p>Add a new device into the system under a specified name.</p>
+<h4>Syntax <code><strong>add</strong> device_type device_name [device_parameters...]</code></h4>
+<p>where:</p>
+<dl>
+	<dt><code>device_type</code></dt>
+		<dd>Specifies a device type. The list of available device types is in the <a href="#Devices">Devices</a> section.</dd>
+	<dt><code>device_name</code></dt>
+		<dd>An identifier of the newly created device. The name must not be equal to a system command and must be unique among already added devices.</dd>
+	<dt><code>device_parameters</code></dt>
+		<dd>Initial device parameters. The actual parameters depends on the device type.</dd>
+</dl>
+<h4>Example</h4>
+<p>The first example adds a new printer <code>p0</code> to the system. The printer register is located at physical address 0x0001000.</p>
+<pre class="cmd"><strong>[msim]</strong> add dprinter p0 0x1000<span class="key">Enter</span>
+<strong>[msim]</strong> </pre>
+<p>The second example adds a read-only memory <code>m0</code> mapped at physical address 0x00010000. The size of the memory is 16&nbsp;KB.</p>
+<pre class="cmd"><strong>[msim]</strong> add rom m0 0x10000 16k<span class="key">Enter</span>
 <strong>[msim]</strong> </pre>
 
-	<p>The second example adds a read-only memory "m0" mapped at 0x10000. The size of the memory is 16 kilobytes.</p>
-	<pre class="cmd"><strong>[msim]</strong> add rom m0 0x10000 16k<span class="key">Enter</span>
-<strong>[msim]</strong> </pre>
-
-<h3>8.3. Remove <code>rm</code><a name="Remove"></a></h3>
-	<p>Removes the specified device from the system.</p>
-
-	<h4>Syntax: <code><strong>rm</strong> device_name</code></h4>
-	<p>where:</p>
-	<dl>
-		<dt><code>device_name</code></dt> <dd>is a name of the device that has to be removed.</dd>
-	</dl>
-
-	<h4>Example</h4>
-
-	<p>The following example removes a device named "Joe" from the system.</p>
-	<pre class="cmd"><strong>[msim]</strong> rm Joe<span class="key">Enter</span>
-<strong>[msim]</strong> </pre>
-
-<h3>8.4. Quit <code>quit</code><a name="Quit"></a></h3> 
-	<p>Quits the simulator immediately.</p>
-
-	<h4>Syntax: <code><strong>quit</strong></code></h4>
+<h3>8.3. Quit <code>quit</code><a name="Quit"></a></h3>
+<h4>Synopsis</h4>
+<p>Quit the simulator immediately.</p>
 
 <h3>8.5. Memory dump <code>md</code><a name="Memory_dump"></a></h3> 
 	<p>Prints a part of a memory from an unmapped address.</p>
@@ -850,7 +834,7 @@ Debugging features
 	<pre class="cmd"><strong>[msim]</strong> s<span class="key">Enter</span>
 <strong>[msim]</strong> set trace<span class="key">Enter</span>
 <strong>[msim]</strong> s<span class="key">Enter</span>
-    80401378    addiu a0, a0, 0x40      # 0x40=64, a0: 0xb7b8-&gt;0xf8
+    0  80401378    addiu a0, a0, 0x40      # 0x40=64, a0: 0xb7b8-&gt;0xf8
 <strong>[msim]</strong> </pre>
 
 	<p>And in the third example, we set the type of register names:</p>

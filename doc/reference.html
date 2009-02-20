@@ -1635,64 +1635,62 @@ on the physical address 0x10000000.</p>
 </dl>
 
 <h2>10. Special instructions<a name="Special_instructions"></a></h2>
-<p>To further improve the experience of debugging the system, MIPS reserves and implements several MSIM-specific instructions for debugging purposes. The form of an instructions allows to change the behavior of the simulator exactly at the place required, with only a minimal influence to the debugged code.</p>
+<p>To further improve the ease of debugging the code running in MSIM,
+there are several non-standard MIPS instructions available.
+This allows to change the behaviour of the simulator exactly at the
+place of code required, with only a minimal influence to the debugged code.</p>
 
 <dl>
-	<dt><a href="#dtrc">DTRC</a></dt><dd>Enables the trace mode.</dd>
-	<dt><a href="#dtro">DTRO</a></dt><dd>Disables the trace mode.</dd>
-	<dt><a href="#dint">DINT</a></dt><dd>Enables the interactive mode.</dd>
-	<dt><a href="#drv">DRV</a></dt><dd>Writes the content of all general registers on the screen.</dd>
-	<dt><a href="#dhlt">DHLT</a></dt><dd>Halts the simulation.</dd>
-	<dt><a href="#dval">DVAL</a></dt><dd>Dumps the <code><strong>a0</strong></code> general register.</dd>
+	<dt><a href="#dtrc">DTRC</a></dt>
+		<dd>Enable the trace mode.</dd>
+	<dt><a href="#dtro">DTRO</a></dt>
+		<dd>Disable the trace mode.</dd>
+	<dt><a href="#dint">DINT</a></dt>
+		<dd>Enable the interactive mode.</dd>
+	<dt><a href="#drv">DRV</a></dt>
+		<dd>Dump the content of all general registers to the screen.</dd>
+	<dt><a href="#dhlt">DHLT</a></dt>
+		<dd>Halt the simulation.</dd>
+	<dt><a href="#dval">DVAL</a></dt>
+		<dd>Dump the <code><strong>a0</strong></code> general register to the screen.</dd>
 </dl>
 
 <h4>Example</h4>
-<p>The following example shows an implementation in C:</p>
-<pre class="c"><span class="lnr">1 </span><span class="PreProc">#define ___traceon()    </span><span class="Statement">asm</span><span class="PreProc"> </span><span class="Type">volatile</span><span class="PreProc"> ( </span><span class="Constant">&quot;</span><span class="Special">\t</span><span class="Constant">.word</span><span class="Special">\t</span><span class="Constant">0x39</span><span class="Special">\n</span><span class="Constant">&quot;</span><span class="PreProc">);</span>
-<span class="lnr">2 </span><span class="PreProc">#define ___traceoff()   </span><span class="Statement">asm</span><span class="PreProc"> </span><span class="Type">volatile</span><span class="PreProc"> ( </span><span class="Constant">&quot;</span><span class="Special">\t</span><span class="Constant">.word</span><span class="Special">\t</span><span class="Constant">0x3d</span><span class="Special">\n</span><span class="Constant">&quot;</span><span class="PreProc">);</span>
-<span class="lnr">3 </span><span class="PreProc">#define ___regview()    </span><span class="Statement">asm</span><span class="PreProc"> </span><span class="Type">volatile</span><span class="PreProc"> ( </span><span class="Constant">&quot;</span><span class="Special">\t</span><span class="Constant">.word</span><span class="Special">\t</span><span class="Constant">0x37</span><span class="Special">\n</span><span class="Constant">&quot;</span><span class="PreProc">);</span>
-<span class="lnr">4 </span><span class="PreProc">#define ___halt()       </span><span class="Statement">asm</span><span class="PreProc"> </span><span class="Type">volatile</span><span class="PreProc"> ( </span><span class="Constant">&quot;</span><span class="Special">\t</span><span class="Constant">.word</span><span class="Special">\t</span><span class="Constant">0x28</span><span class="Special">\n</span><span class="Constant">&quot;</span><span class="PreProc">);</span>
-<span class="lnr">5 </span><span class="PreProc">#define ___val( i)      </span><span class="Statement">asm</span><span class="PreProc"> </span><span class="Type">volatile</span><span class="PreProc"> ( </span><span class="Constant">&quot;</span><span class="Special">\t</span><span class="Constant">.word</span><span class="Special">\t</span><span class="Constant">0x35</span><span class="Special">\n</span><span class="Constant">&quot;</span><span class="PreProc"> :: </span><span class="Constant">&quot;r&quot;</span><span class="PreProc"> (i));</span>
-</pre>
+<p>The following example shows an implementation in GCC:</p>
+<pre class="c"><span class="lnr"> 1 </span><span class="preproc">#define ___trace_on()   asm volatile ( &quot;.word 0x39\n&quot;);</span>
+<span class="lnr"> 2 </span><span class="preproc">#define ___trace_off()  asm volatile ( &quot;.word 0x3d\n&quot;);</span>
+<span class="lnr"> 3 </span><span class="preproc">#define ___reg_dump()   asm volatile ( &quot;.word 0x37\n&quot;);</span>
+<span class="lnr"> 4 </span><span class="preproc">#define ___halt()       asm volatile ( &quot;.word 0x28\n&quot;);</span>
+<span class="lnr"> 5 </span><span class="preproc">#define ___val(i)       asm volatile ( &quot;.word 0x35\n&quot; :: &quot;r&quot; (i));</span></pre>
 
 <h3>10.1. Trace on <code>DTRC</code><a name="dtrc"></a></h3>
-<p>Enables the trace mode. Together with <a href="DTRO">DTRO</a> instruction, DTRC is useful to show a part of executed code.</p>
-
+<p>Enable the trace mode. Together with <a href="#dtro">DTRO</a> instruction, DTRC is useful to show a part of executed code.</p>
 <h4>Opcode: <code><strong>0x39</strong></code></h4>
 
 <h3>10.2. Trace off <code>DTRO</code><a name="dtro"></a></h3>
-<p>Disables the trace mode. Together with <a href="DTRO">DTRC</a> instruction, DTRO is useful to show a part of executed code.</p>
-
+<p>Disable the trace mode. Together with <a href="#dtrc">DTRC</a> instruction, DTRO is useful to show a part of executed code.</p>
 <h4>Opcode: <code><strong>0x3d</strong></code></h4>
 
 <h3>10.3. Interactive mode on <code>DINT</code><a name="dint"></a></h3>
-<p>Enables the interactive mode. The command line is activated immediately.</p>
-
+<p>Enable the interactive mode. The command line is activated immediately.</p>
 <h4>Opcode: <code><strong>0x29</strong></code></h4>
 
 <h3>10.4. Register view <code>DRV</code><a name="drv"></a></h3>
-<p>The instruction writes the content of all the general register on the output.</p>
-
+<p>The instruction dumps the content of all the general registers to the screen.</p>
 <h4>Opcode: <code><strong>0x37</strong></code></h4>
 
 <h3>10.5. Halt machine <code>DHLT</code><a name="dhlt"></a></h3>
-<p>Halts the machine as well as the simulation immediately. Useful also as the power off feature.</p>
-
+<p>Halt the machine as well as the simulation immediately. Useful also as the power off feature.</p>
 <h4>Opcode: <code><strong>0x28</strong></code></h4>
 
 <h3>10.6. View value <code>DVAL</code><a name="dval"></a></h3>
-<p>Prints the content of the <code>a0</code> (<code>r4</code>) register. The instruction can be used to instantly print a value of a variable.</p>
-
+<p>Print the content of the <code>a0</code> (<code>r4</code>) register.
+The instruction can be used to instantly print a value of a variable.</p>
 <h4>Opcode: <code><strong>0x35</strong></code></h4>
 
 <h2>11. GDB support<a name="GDB_support"></a></h2>
 
-<p>The GDB support is experimental in version 1.3.</p>
-
-<p><span class="todo">TODO</span></p>
-
-
-<p><small><a href="http://validator.w3.org/check/referer">XHTML check</a></small></p>
-
+<p>The GDB support is experimental in version 1.3. The feature will be described
+in more detail after it will be matured.</p>
 </body>
 </html>

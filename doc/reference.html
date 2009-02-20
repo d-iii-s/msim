@@ -913,52 +913,83 @@ and description of available variables.</p>
 
 <h2>9. Devices<a name="Devices"></a></h2>
 
+<p>MSIM can be configured with any number of device instances. Every device instance
+has a given type. This section describes the available types of devices and their
+properties.</p>
+
 <h3>9.1. List of devices<a name="Devices_list"></a></h3>
 
 <dl>
-<dt><a href="#dcpu">dcpu</a></dt> <dd>Processor</dd>
-<dt><a href="#dprinter">dprinter</a></dt> <dd>Output device</dd>
-<dt><a href="#rwm">rwm</a></dt> <dd>Read-write memory</dd>
-<dt><a href="#rom">rom</a></dt> <dd>Read-only memory</dd>
-<dt><a href="#ddisk">ddisk</a></dt> <dd>Hard disk</dd>
-<dt><a href="#dkeyboard">dkeyboard</a></dt> <dd>Keyboard</dd>
-<dt><a href="#dorder">dorder</a></dt> <dd>Interprocessor communication</dd>
-<dt><a href="#dtime">dtime</a></dt> <dd>Real time</dd>
+	<dt><a href="#dcpu">dcpu</a></dt>
+		<dd>Processor (CPU)</dd>
+	<dt><a href="#rwm">rwm</a></dt>
+		<dd>Read/write memory</dd>
+	<dt><a href="#rom">rom</a></dt>
+		<dd>Read-only memory</dd>
+	<dt><a href="#dprinter">dprinter</a></dt>
+		<dd>Character output device (printer)</dd>
+	<dt><a href="#dkeyboard">dkeyboard</a></dt>
+		<dd>Character input device (keyboard)</dd>
+	<dt><a href="#ddisk">ddisk</a></dt>
+		<dd>Block device (hard disk)</dd>
+	<dt><a href="#dorder">dorder</a></dt>
+		<dd>Interprocessor communication device</dd>
+	<dt><a href="#dtime">dtime</a></dt>
+		<dd>Real-time clock</dd>
 </dl>
 
 <h3>9.2. Processor <code>dcpu</code><a name="dcpu"></a></h3>
 
 <p>The <code>dcpu</code> device encapsulates a processor.</p>
 
-<h4>Initialization parameters: <i>none</i></h4>
+<h4>Initialization parameters: <emph>none</emph></h4>
 
 <h4>Commands</h4>
 <dl>
-	<dt><code><strong>help</strong> [cmd]</code></dt><dd>Displays a help text for the specified command or a list of available commands.</dd>
-	<dt><code><strong>info</strong></code></dt> <dd>Displays the processor configuration</dd>
-	<dt><code><strong>stat</strong></code></dt> <dd>Displays processor statistics</dd>
-	<dt><code><strong>cp0d</strong> [rn]</code></dt> <dd>Dumps contents of the coprocessor 0 register(s)</dd>
-	<dt><code><strong>tlbd</strong></code></dt> <dd>Dumps the content of TLB</dd>
-	<dt><code><strong>md</strong> saddr size</code></dt> <dd>Dumps specified TLB mapped memory block</dd>
-	<dt><code><strong>id</strong> sa cnt</code></dt> <dd>Dumps instructions from specified TLB mapped memory</dd>
-	<dt><code><strong>rd</strong></code></dt> <dd>Dumps contents of CPU general registers</dd>
-	<dt><code><strong>goto</strong> na</code></dt> <dd>Go to address</dd>
+	<dt><code><strong>help</strong> [cmd]</code></dt>
+		<dd>Display a help text for the specified command or a list of available commands.</dd>
+	<dt><code><strong>info</strong></code></dt>
+		<dd>Display the processor configuration</dd>
+	<dt><code><strong>stat</strong></code></dt>
+		<dd>Display processor statistics</dd>
+	<dt><code><strong>cp0d</strong> [rn]</code></dt>
+		<dd>Dump contents of CP0 register(s)</dd>
+	<dt><code><strong>tlbd</strong></code></dt>
+		<dd>Dump the content of TLB</dd>
+	<dt><code><strong>md</strong> saddr size</code></dt>
+		<dd>Dump specified TLB mapped memory block</dd>
+	<dt><code><strong>id</strong> sa cnt</code></dt>
+		<dd>Dump instructions from specified TLB mapped memory</dd>
+	<dt><code><strong>rd</strong></code></dt>
+		<dd>Dump contents of CPU general registers</dd>
+	<dt><code><strong>goto</strong> addr</code></dt>
+		<dd>Go to address</dd>
+	<dt><code><strong>break</strong> addr</code></dt>
+		<dd>Add code breakpoint</dd>
+	<dt><code><strong>bd</strong></code></dt>
+		<dd>Dump configured code breakpoints</dd>
+	<dt><code><strong>br</strong> addr</code></dt>
+		<dd>Remove configured code breakpoint</dd>
 </dl>
 
 <h4>Examples</h4>
-
 <p>Example of the <code>help</code> command:</p>
-<pre class="cmd"><strong>[msim]</strong> mips1 help<span class="key">Enter</span>
-List of available commands:
-help [cmd]           Displays this help text
-info                 Displays configuration information
-stat                 Displays processor statistics
-cp0d [rn]            Dumps contents of the coprocessor 0 register(s)
-tlbd                 Dumps content of TLB
-md saddr size        Dumps specified TLB mapped memory block
-id sa cnt            Dumps instructions from specified TLB mapped memory
-rd                   Dumps contents of CPU general registers
-goto na              Go to address
+<pre class="cmd"><strong>[msim]</strong> add dcpu mips1<span class="key">Enter</span>
+<strong>[msim]</strong> mips1 help<span class="key">Enter</span>
+Command & arguments  Description
+-------------------- -------------------->
+help [cmd]           Display this help text
+info                 Display configuration information
+stat                 Display processor statistics
+cp0d [rn]            Dump contents of the coprocessor 0 register(s)
+tlbd                 Dump content of TLB
+md saddr size        Dump specified TLB mapped memory block
+id saddr cnt         Dump instructions from specified TLB mapped memory
+rd                   Dump contents of CPU general registers
+goto addr            Go to address
+break addr           Add code breakpoint
+bd                   Dump code breakpoints
+br addr              Remove code breakpoint
 <strong>[msim] </strong>
 </pre>
 
@@ -1024,69 +1055,6 @@ processor p0
   t9 00000000   k0 00000000   k1 00000000   gp 00000000   sp 00013050
   fp 00000000   ra 80401308   pc 80401310   lo 40689065   hi 320BBCB7
 <strong>[msim]</strong> </pre>
-
-<h3>9.3. Output device <code>dprinter</code><a name="dprinter"></a></h3>
-
-<p>Simulates a simple printer device.</p>
-
-<h4>Initialization parameters: <code>address</code></h4>
-	<p>where</p>
-	<dl>
-		<dt><code>address</code></dt> <dd>specifies the physical address of the printer register</dd>
-	</dl>
-
-<h4>Registers</h4>
-<table>
-<caption><code>dprinter</code> registers</caption>
-<thead><tr>
-	<td>Offset</td> <td>Name</td> <td>Operation</td> <td>Description</td>
-</tr></thead>
-<tbody>
-<tr><td rowspan="2">+0</td> <td rowspan="2">Character</td> <td>read</td> <td>Ignored</td></tr>
-<tr><td>write</td> <td>Character to print on the output</td></tr>
-</tbody>
-</table>
-
-<h4>Commands</h4>
-<dl>
-	<dt><code><strong>help</strong> [cmd]</code></dt> <dd>Prints a help text to the specified command or a list of allowed commands.</dd>
-	<dt><code><strong>info</strong></code></dt> <dd>Print basic configuration information (register address).</dd>
-	<dt><code><strong>stat</strong></code></dt> <dd>Prints printer statistics (number of characters printed).</dd>
-	<dt><code><strong>redir</strong> filename</code></dt> <dd>Redirects the output to the file specified.</dd>
-	<dt><code><strong>stdout</strong></code></dt> <dd>Redirects the output to the standard POSIX output.</dd>
-</dl>
-
-<h4>Example</h4>
-
-<p>Example of the <code>info</code> command:</p>
-<pre class="cmd"><strong>[msim]</strong> printer info<span class="key">Enter</span>
-address:0x01000000
-<strong>[msim]</strong> </pre>
-
-<p>Example of the <code>stat</code> command:</p>
-<pre class="cmd"><strong>[msim]</strong> printer stat<span class="key">Enter</span>
-count:11385
-<strong>[msim]</strong> </pre>
-
-<p>Example of a simple output implementation in the kernel:</p>
-<pre class="c"><span class="lnr"> 1 </span><span class="Comment">/*</span><span class="Comment"> VIDEOADDR is an address of memory-mapped register.</span>
-<span class="lnr"> 2 </span><span class="Comment"> * It has to correspond with the definition in the configuration file. </span><span class="Comment">*/</span>
-<span class="lnr"> 3 </span><span class="PreProc">#define VIDEOADDR </span><span class="Number">0x90000000</span>
-<span class="lnr"> 4 </span>
-<span class="lnr"> 5 </span><span class="Comment">/*</span><span class="Comment"> There are two small routines.</span>
-<span class="lnr"> 6 </span><span class="Comment"> * putchar writes one character on the screen. </span><span class="Comment">*/</span>
-<span class="lnr"> 7 </span><span class="Type">void</span> putchar( <span class="Type">char</span> c)
-<span class="lnr"> 8 </span>{
-<span class="lnr"> 9 </span>        *((<span class="Type">volatile</span> <span class="Type">char</span> *) VIDEOADDR) = c;
-<span class="lnr">10 </span>}
-<span class="lnr">11 </span>
-<span class="lnr">12 </span><span class="Comment">/*</span><span class="Comment"> putstring writes a null-terminated string on the screen. </span><span class="Comment">*/</span>
-<span class="lnr">13 </span><span class="Type">void</span> putstring( <span class="Type">char</span> *c)
-<span class="lnr">14 </span>{
-<span class="lnr">15 </span>        <span class="Statement">while</span> (*c)
-<span class="lnr">16 </span>                *((<span class="Type">volatile</span> <span class="Type">char</span> *) VIDEOADDR) = *c++;
-<span class="lnr">17 </span>}
-</pre>
 
 <h3>9.4. Read-write memory <code>rwm</code><a name="rwm"></a></h3>
 
@@ -1166,6 +1134,71 @@ start:0x1fc00000 size:1k type:mem
 <span class="lnr">2 </span><span class="Type">volatile</span> c = *p; <span class="Comment">// c contains a byte at the address 0x00001000</span>
 <span class="lnr">3 </span>*p += <span class="Number">1</span>;
 <span class="lnr">4 </span><span class="Type">volatile</span> d = *p; <span class="Comment">// d == c</span></pre>
+
+<h3>9.3. Output device <code>dprinter</code><a name="dprinter"></a></h3>
+
+<p>Simulates a simple printer device.</p>
+
+<h4>Initialization parameters: <code>address</code></h4>
+	<p>where</p>
+	<dl>
+		<dt><code>address</code></dt> <dd>specifies the physical address of the printer register</dd>
+	</dl>
+
+<h4>Registers</h4>
+<table>
+<caption><code>dprinter</code> registers</caption>
+<thead><tr>
+	<td>Offset</td> <td>Name</td> <td>Operation</td> <td>Description</td>
+</tr></thead>
+<tbody>
+<tr><td rowspan="2">+0</td> <td rowspan="2">Character</td> <td>read</td> <td>Ignored</td></tr>
+<tr><td>write</td> <td>Character to print on the output</td></tr>
+</tbody>
+</table>
+
+<h4>Commands</h4>
+<dl>
+	<dt><code><strong>help</strong> [cmd]</code></dt> <dd>Prints a help text to the specified command or a list of allowed commands.</dd>
+	<dt><code><strong>info</strong></code></dt> <dd>Print basic configuration information (register address).</dd>
+	<dt><code><strong>stat</strong></code></dt> <dd>Prints printer statistics (number of characters printed).</dd>
+	<dt><code><strong>redir</strong> filename</code></dt> <dd>Redirects the output to the file specified.</dd>
+	<dt><code><strong>stdout</strong></code></dt> <dd>Redirects the output to the standard POSIX output.</dd>
+</dl>
+
+<h4>Example</h4>
+
+<p>Example of the <code>info</code> command:</p>
+<pre class="cmd"><strong>[msim]</strong> printer info<span class="key">Enter</span>
+address:0x01000000
+<strong>[msim]</strong> </pre>
+
+<p>Example of the <code>stat</code> command:</p>
+<pre class="cmd"><strong>[msim]</strong> printer stat<span class="key">Enter</span>
+count:11385
+<strong>[msim]</strong> </pre>
+
+<p>Example of a simple output implementation in the kernel:</p>
+<pre class="c"><span class="lnr"> 1 </span><span class="Comment">/*</span><span class="Comment"> VIDEOADDR is an address of memory-mapped register.</span>
+<span class="lnr"> 2 </span><span class="Comment"> * It has to correspond with the definition in the configuration file. </span><span class="Comment">*/</span>
+<span class="lnr"> 3 </span><span class="PreProc">#define VIDEOADDR </span><span class="Number">0x90000000</span>
+<span class="lnr"> 4 </span>
+<span class="lnr"> 5 </span><span class="Comment">/*</span><span class="Comment"> There are two small routines.</span>
+<span class="lnr"> 6 </span><span class="Comment"> * putchar writes one character on the screen. </span><span class="Comment">*/</span>
+<span class="lnr"> 7 </span><span class="Type">void</span> putchar( <span class="Type">char</span> c)
+<span class="lnr"> 8 </span>{
+<span class="lnr"> 9 </span>        *((<span class="Type">volatile</span> <span class="Type">char</span> *) VIDEOADDR) = c;
+<span class="lnr">10 </span>}
+<span class="lnr">11 </span>
+<span class="lnr">12 </span><span class="Comment">/*</span><span class="Comment"> putstring writes a null-terminated string on the screen. </span><span class="Comment">*/</span>
+<span class="lnr">13 </span><span class="Type">void</span> putstring( <span class="Type">char</span> *c)
+<span class="lnr">14 </span>{
+<span class="lnr">15 </span>        <span class="Statement">while</span> (*c)
+<span class="lnr">16 </span>                *((<span class="Type">volatile</span> <span class="Type">char</span> *) VIDEOADDR) = *c++;
+<span class="lnr">17 </span>}
+</pre>
+
+
 
 <h3>9.6. Hard disk <code>ddisk</code><a name="ddisk"></a></h3>
 <p>Simulates a simple hard disk with DMA. Via linearly ordered 512B-sized sectors, the device allows to access a file by read and write operations.</p>

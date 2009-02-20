@@ -1220,7 +1220,7 @@ count:11385
 <p>Example of a simple output implementation in the MIPS code:</p>
 <pre class="c"><span class="lnr">  1 </span><span class="comment">/* VIDEOADDR is the address of the memory-mapped register of dprinter.</span>
 <span class="lnr">  2 </span><span class="comment"> * It has to correspond with the definition in the configuration file. */</span>
-<span class="lnr">  3 </span><span class="preproc">#define VIDEOADDR 0x90000000</span>
+<span class="lnr">  3 </span><span class="preproc">#define VIDEOADDR 0x10000000</span>
 <span class="lnr">  4 </span>
 <span class="lnr">  5 </span><span class="comment">/ * Write one character on the screen. */</span>
 <span class="lnr">  6 </span><span class="keyword">void</span> putchar(<span class="keyword">char</span> c)
@@ -1501,55 +1501,97 @@ running MSIM.</p>
 		<dd>Save the contents of the block device to a file specified.</dd>
 </dl>
 
-<h3>9.8. Interprocessor communication <code>dorder</code><a name="dorder"></a></h3>
-<p>A device for interprocessor communication. It allows to obtain a processor serial number as well as assert an interrupt on a specified processor.</p>
+<h3>9.8. Interprocessor communication device <code>dorder</code><a name="dorder"></a></h3>
+
+<p>This device allows to obtain a processor serial number in a multiprocessor
+configuration and asserting an interprocessor interrupt on a specified processor.</p>
 
 <h4>Initialization parameters: <code>address</code> <code>intno</code></h4>
-	<p>where</p>
-	<dl>
-		<dt><code>address</code></dt> <dd>specifies the address of device registers,</dd>
-		<dt><code>intno</code></dt> <dd>specifies the interrupt number used.</dd>
-	</dl>
+<p>where</p>
+<dl>
+	<dt><code>address</code></dt>
+		<dd>Physical address of the device register.</dd>
+	<dt><code>intno</code></dt>
+		<dd>Interprocessor communication interrupt number.</dd>
+</dl>
 
 <h4>Registers</h4>
 <table>
-<caption><code>dorder</code> registers</caption>
-<thead><tr>
-	<td>Offset</td> <td>Name</td> <td>Operation</td> <td>Description</td>
-</tr></thead>
-<tbody>
-<tr><td rowspan="2">+0</td> <td>Procno</td> <td>read</td> <td>A serial number of the reading processor.</td></tr>
-<tr><td>IntrUp</td> <td>write</td> <td>Setting any bit causes an interrupt pending on the processor specified by the bit index.</td></tr>
-<tr><td>+4</td> <td>IntrDown</td> <td>write</td> <td>Setting any bit acknowledges an interrupt pending on the processor specified by the bit index (the interrupt is deasserted).</td></tr>
-</tbody>
+	<caption><code>dorder</code> programming registers</caption>
+	<tr>
+		<th>Offset</td>
+		<th>Name</th>
+		<th>Operation</th>
+		<th>Description</th>
+	</tr>
+	<tr>
+		<td rowspan="2">+0</td>
+		<td>processor number</td>
+		<td>read</td>
+		<td>get the unique number of the processor performing the read operation</td>
+	</tr>
+	<tr>
+		<td>interrupt up</td>
+		<td>write</td>
+		<td>setting any bit causes an interrupt pending on the processor specified by the bit index</td>
+	</tr>
+	<tr>
+		<td rowspan="2">+4</td>
+		<td rowspan="2">interrupt down</td>
+		<td>read</td>
+		<td>(ignored)</td>
+	</tr>
+	<tr>
+		<td>write</td>
+		<td>setting any bit acknowledges an interrupt pending on the processor specified by the bit index (the interrupt is deasserted)</td>
+	</tr>
 </table>
 
 <h4>Commands</h4>
 <dl>
-	<dt><code><strong>help</strong> [cmd]</code></dt> <dd>Prints a help on the command specified or a list of available commands.</dd>
-	<dt><code><strong>info</strong></code></dt> <dd>Prints configuration information (register address and interrupt number).</dd>
-	<dt><code><strong>stat</strong></code></dt> <dd>Prints device statistics (number of commands obtained).</dd>
-	<dt><code><strong>synch</strong> mask</code></dt> <dd>Simulates a write operation on the Intr register.</dd>
+	<dt><code><strong>help</strong> [cmd]</code></dt>
+		<dd>Print a help on the command specified or a list of available commands.</dd>
+	<dt><code><strong>info</strong></code></dt>
+		<dd>Print configuration information (register address and interrupt number).</dd>
+	<dt><code><strong>stat</strong></code></dt>
+		<dd>Print device statistics (number of interrupts).</dd>
+	<dt><code><strong>synch</strong> mask</code></dt>
+		<dd>Simulate a write operation on the &quot;interrupt up&quot; register.</dd>
 </dl>
 
 <h4>Examples</h4>
-
-<p>The following example adds a new <code>dorder</code> device named "o" and maps its register on the address <code>0x10000000</code>.</p>
-<pre class="cmd"><strong>[msim]</strong>add dorder o 0x1000000<span class="key">Enter</span>
+<p>The following example adds a new <code>dorder</code> device named <code>order</code> and maps its register
+on the physical address 0x10000000.</p>
+<pre class="cmd"><strong>[msim]</strong>add dorder order 0x1000000<span class="key">Enter</span>
 <strong>[msim]</strong> </pre>
-
-<p>Simple implementation in C:</p>
-<pre class="c">
-<span class="lnr">1 </span><span class="Comment">/*</span><span class="Comment"> Memory-mapped register. It must be equal to one specified in</span>
-<span class="lnr">2 </span><span class="Comment"> * the configuration file. </span><span class="Comment">*/</span>
-<span class="lnr">3 </span><span class="PreProc">#define order (*((<span class="Type">volatile</span> mips_word *) </span><span class="Number">0x10000000</span><span class="PreProc">))</span>
-<span class="lnr">4 </span>
-<span class="lnr">5 </span><span class="Comment">/*</span><span class="Comment"> Small untiles. </span><span class="Comment">*/</span>
-<span class="lnr">6 </span><span class="PreProc">#define procno() (order)</span>
-<span class="lnr">7 </span><span class="PreProc">#define sync_proc( no) (order = no)</span>
-<span class="lnr">8 </span><span class="PreProc">#define sync_all_proc( no) (order = </span><span class="Number">0x7fffffff</span><span class="PreProc">)</span>
-<span class="lnr">9 </span><span class="PreProc">#define sync_intr_rq() (order = </span><span class="Number">0x80000000</span><span class="PreProc">)</span>
-</pre>
+<p>Simple usage in MIPS code:</p>
+<pre class="c"><span class="lnr">  1 </span><span class="comment">/* ORDER is the address of the memory-mapped register of dorder.</span>
+<span class="lnr">  2 </span><span class="comment"> * It has to correspond with the definition in the configuration file. */</span>
+<span class="lnr">  3 </span><span class="preproc">#define ORDER 0x10000000</span>
+<span class="lnr">  4 </span>
+<span class="lnr">  5 </span><span class="comment">/* Get current CPU identification. */</span>
+<span class="lnr">  6 </span><span class="keyword">unsigned int</span> cpu_id(<span class="keyword">void</span>)
+<span class="lnr">  7 </span>{
+<span class="lnr">  8 </span>    <span class="keyword">return</span> *((<span class="keyword">volatile unsigned int</span> *) ORDER);
+<span class="lnr">  9 </span>}
+<span class="lnr"> 10 </span>
+<span class="lnr"> 11 </span><span class="comment">/* Send interprocessor interrupt to the given CPU */</span>
+<span class="lnr"> 12 </span><span class="keyword">void</span> cpu_send_ipi(<span class="keyword">unsigned int</span> id)
+<span class="lnr"> 13 </span>{
+<span class="lnr"> 14 </span>    *((<span class="keyword">volatile unsigned int</span> *) ORDER) = (1 &lt;&lt; id);
+<span class="lnr"> 15 </span>}
+<span class="lnr"> 16 </span>
+<span class="lnr"> 17 </span><span class="comment">/* Send interprocessor interrupt to all CPUs */</span>
+<span class="lnr"> 18 </span><span class="keyword">void</span> cpu_send_ipi_all(<span class="keyword">void</span>)
+<span class="lnr"> 19 </span>{
+<span class="lnr"> 20 </span>    *((<span class="keyword">volatile unsigned int</span> *) ORDER) = 0xffffffff;
+<span class="lnr"> 21 </span>}
+<span class="lnr"> 22 </span>
+<span class="lnr"> 23 </span><span class="comment">/* Deassert interprocessor interrupt for the given CPU */</span>
+<span class="lnr"> 24 </span><span class="keyword">void</span> cpu_ack_ipi(<span class="keyword">unsigned int</span> id)
+<span class="lnr"> 25 </span>{
+<span class="lnr"> 26 </span>    *((<span class="keyword">volatile unsigned int</span> *) (ORDER + 4)) = (1 &lt;&lt; id);
+<span class="lnr"> 27 </span>}</pre>
 
 <h3>9.9. Real time <code>dtime</code><a name="dtime"></a></h3>
 <p>The <code>dtime</code> passes a system time of the host machine to the simulated environment.</p>

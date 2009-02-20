@@ -1264,7 +1264,8 @@ automatically deasserts the pending interrupt.</p>
 		<td rowspan="2">+0</td>
 		<td rowspan="2">keycode</td>
 		<td>read</td>
-		<td>key code of the pressed key (any read operation deasserts the pending interrupt)</td></tr>
+		<td>key code of the pressed key (any read operation deasserts the pending interrupt)</td>
+	</tr>
 	<tr>
 		<td>write</td>
 		<td>(ignored)</td>
@@ -1315,6 +1316,170 @@ running MSIM.</p>
 	<dt><code>intno</code></dt>
 		<dd>DMA Interrupt number.</dd>
 </dl>
+
+<h4>Registers</h4>
+<table>
+	<caption><code>ddisk</code> programming registers</caption>
+	<tr>
+		<th>Offset</th>
+		<th>Name</th>
+		<th>Operation</th>
+		<th>Description</th>
+	</tr>
+	<tr>
+		<td rowspan="2">+0</td>
+		<td rowspan="2">DMA buffer address</td>
+		<td>read</td>
+		<td>get the current physical address of the DMA buffer</td>
+	</tr>
+	<tr>
+		<td>write</td>
+		<td>set the physical address of the DMA buffer
+			<ul>
+				<li>performing a <emph>read operation</emph> will store the data read from the block device to this buffer</li>
+				<li>performing a <emph>write operation</emph> will fetch the data to be written to the block device from this buffer</li>
+			</ul></td>
+	</tr>
+	<tr>
+		<td rowspan="2">+4</td>
+		<td rowspan="2">sector number</td>
+		<td>read</td>
+		<td>get the current sector number</td>
+	</tr>
+	<tr>
+		<td>write</td>
+		<td>set the sector number which be used by the next <emph>read</emph> or <emph>write operation</emph></td>
+	</tr>
+	<tr>
+		<td rowspan="2">+8</td>
+		<td rowspan="2">status/command</td>
+		<td>read</td>
+		<td><p>get a bitfield representing the current status of the device:</p>
+			<table class="bitfield">
+				<tr>
+					<th>31</th>
+					<th>30</th>
+					<th>29</th>
+					<th>28</th>
+					<th>27</th>
+					<th>26</th>
+					<th>25</th>
+					<th>24</th>
+					<th>23</th>
+					<th>22</th>
+					<th>21</th>
+					<th>20</th>
+					<th>19</th>
+					<th>18</th>
+					<th>17</th>
+					<th>16</th>
+					<th>15</th>
+					<th>14</th>
+					<th>13</th>
+					<th>12</th>
+					<th>11</th>
+					<th>10</th>
+					<th>9</th>
+					<th>8</th>
+					<th>7</th>
+					<th>6</th>
+					<th>5</th>
+					<th>4</th>
+					<th>3</th>
+					<th>2</th>
+					<th>1</th>
+					<th>0</th>
+				</tr>
+				<tr>
+					<td colspan="28"><code>r1</code></td>
+					<td><code>e</code></td>
+					<td><code>i</code></td>
+					<td colspan="2"><code>r0</code></td>
+				</tr>
+			</table>
+			<p>where the meaning of the fields read is</p>
+			<dl>
+				<dt><code>r1</code></dt>
+					<dd>(reserved)</dd>
+				<dt><code>e</code></dt>
+					<dd>0: no error<br />
+						1: the previous operation caused an error</dd>
+				<dt><code>i</code></dt>
+					<dd>0: no DMA interrupt pending<br />
+						1: DMA interrupt pending</dd>
+				<dt><code>r0</code></dt>
+					<dd>(reserved)</dd>
+			</dl></td>
+	</tr>
+	<tr>
+		<td>write</td>
+		<td><p>set a bitfield representing requested operation:</p>
+			<table class="bitfield">
+				<tr>
+					<th>31</th>
+					<th>30</th>
+					<th>29</th>
+					<th>28</th>
+					<th>27</th>
+					<th>26</th>
+					<th>25</th>
+					<th>24</th>
+					<th>23</th>
+					<th>22</th>
+					<th>21</th>
+					<th>20</th>
+					<th>19</th>
+					<th>18</th>
+					<th>17</th>
+					<th>16</th>
+					<th>15</th>
+					<th>14</th>
+					<th>13</th>
+					<th>12</th>
+					<th>11</th>
+					<th>10</th>
+					<th>9</th>
+					<th>8</th>
+					<th>7</th>
+					<th>6</th>
+					<th>5</th>
+					<th>4</th>
+					<th>3</th>
+					<th>2</th>
+					<th>1</th>
+					<th>0</th>
+				</tr>
+				<tr>
+					<td colspan="29"><code>r0</code></td>
+					<td><code>i</code></td>
+					<td><code>w</code></td>
+					<td><code>r</code></td>
+				</tr>
+			</table>
+			<p>where the meaning of the fields read is</p>
+			<dl>
+				<dt><code>r0</code></dt>
+					<dd>(reserved)</dd>
+				<dt><code>i</code></dt>
+					<dd>if set to 1 then the DMA interrupt is deasserted</dd>
+				<dt><code>w</code></dt>
+					<dd>if set to 1 then a <emph>write operation</emph> is initiated (fetching the data from the DMA buffer and writing it to the sector set)</dd>
+				<dt><code>r</code></dt>
+					<dd>if set to 1 then a <emph>read operation</emph> is initiated (reading the data from the sector set and storing it to the DMA buffer)</dd>
+			</dl>
+			<p>(initiating both read and write operation at the same time results with an error)</p></td>
+	</tr>
+	<tr>
+		<td rowspan="2">+12</td>
+		<td rowspan="2">disk size</td>
+		<td>read</td>
+		<td>get the size of the block device in bytes</td>
+	</tr>
+	<tr>
+		<td>write</td>
+		<td>(ignored)</td>
+	</tr>
+</table>
 
 <h4>Commands</h4>
 <dl>

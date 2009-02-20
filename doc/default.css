@@ -144,3 +144,14 @@ emph.ax1 {
 
 emph.ax2 {
 }
+
+.bitfield th {
+	width: 2em;
+	padding: 0.2em;
+	text-align: center;
+}
+
+.bitfield td {
+	padding: 0.2em;
+	text-align: center;
+}

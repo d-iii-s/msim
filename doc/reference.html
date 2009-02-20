@@ -1593,46 +1593,46 @@ on the physical address 0x10000000.</p>
 <span class="lnr"> 26 </span>    *((<span class="keyword">volatile unsigned int</span> *) (ORDER + 4)) = (1 &lt;&lt; id);
 <span class="lnr"> 27 </span>}</pre>
 
-<h3>9.9. Real time <code>dtime</code><a name="dtime"></a></h3>
-<p>The <code>dtime</code> passes a system time of the host machine to the simulated environment.</p>
+<h3>9.9. Real-time clock <code>dtime</code><a name="dtime"></a></h3>
+<p>This device passes the system time of the host machine to the simulated environment.</p>
 
 <h4>Initialization parameters: <code>address</code></h4>
-	<p>where</p>
-	<dl>
-		<dt><code>address</code></dt> <dd>specifies the address of the device "Time" register.</dd>
-	</dl>
+<p>where</p>
+<dl>
+	<dt><code>address</code></dt>
+		<dd>Physical address of the device register.</dd>
+</dl>
 
 <h4>Registers</h4>
 <table>
-<caption><code>dtime</code> registers</caption>
-<thead><tr>
-	<td>Offset</td> <td>Name</td> <td>Operation</td> <td>Description</td>
-</tr></thead>
-<tbody>
-<tr><td rowspan="2">+0</td> <td rowspan="2">Time</td> <td>read</td> <td>The time since the epoch (00:00:00 UTC, January 1, 1970), measured in seconds. Equivalent to the POSIX <code>time()</code> call.</td></tr>
-<tr><td>write</td> <td>ignored</td></tr>
-</tbody>
+	<caption><code>dtime</code> programming registers</caption>
+	<tr>
+		<th>Offset</th>
+		<th>Name</th>
+		<th>Operation</th>
+		<th>Description</th>
+	</tr>
+	<tr>
+		<td rowspan="2">+0</td>
+		<td rowspan="2">time</td>
+		<td>read</td>
+		<td>number of seconds since the epoch, i.e. 00:00:00 January 1st 1970 UTC (equivalent to the POSIX <code>time()</code> function)</td>
+	</tr>
+	<tr>
+		<td>write</td>
+		<td>(ignored)</td>
+	</tr>
 </table>
 
 <h4>Commands</h4>
 <dl>
-	<dt><code><strong>help</strong> [cmd]</code></dt> <dd>Prints a help on the command specified or a list of available commands.</dd>
-	<dt><code><strong>info</strong></code></dt> <dd>Prints configuration information (assigned register address).</dd>
-	<dt><code><strong>stat</strong></code></dt> <dd>Prints device statistics (none).</dd>
+	<dt><code><strong>help</strong> [cmd]</code></dt>
+		<dd>Print a help on the command specified or a list of available commands.</dd>
+	<dt><code><strong>info</strong></code></dt>
+		<dd>Print configuration information (assigned register address).</dd>
+	<dt><code><strong>stat</strong></code></dt>
+		<dd>Print device statistics (none).</dd>
 </dl>
-
-<h4>Examples</h4>
-
-<p>The following example adds a new <code>dtime</code> device named "time" and maps its register on the address <code>0x11000000</code>.</p>
-<pre class="cmd"><strong>[msim]</strong>add dtime time 0x1100000<span class="key">Enter</span>
-<strong>[msim]</strong> </pre>
-
-<p>An implementation in C:</p>
-<pre class="c">
-<span class="lnr">1 </span><span class="Comment">/*</span><span class="Comment"> Memory-mapped register. It must be equal to one specified in</span>
-<span class="lnr">2 </span><span class="Comment"> * the configuration file. </span><span class="Comment">*/</span>
-<span class="lnr">3 </span><span class="PreProc">#define time() (*((<span class="Type">volatile</span> mips_word *) </span><span class="Number">0x11000000</span><span class="PreProc">))</span>
-</pre>
 
 <h2>10. Special instructions<a name="Special_instructions"></a></h2>
 <p>To further improve the experience of debugging the system, MIPS reserves and implements several MSIM-specific instructions for debugging purposes. The form of an instructions allows to change the behavior of the simulator exactly at the place required, with only a minimal influence to the debugged code.</p>

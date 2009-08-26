@@ -1,5 +1,6 @@
 /*
  * Copyright (c) 2003-2007 Viliam Holub
+ * Copyright (c) 2009 Martin Decky
  * All rights reserved.
  *
  * Distributed under the terms of GPL.
@@ -37,7 +38,6 @@
 
 static bool mem_init(parm_link_s *parm, device_s *dev);
 static bool mem_info(parm_link_s *parm, device_s *dev);
-static bool mem_stat(parm_link_s *parm, device_s *dev);
 static bool mem_generic(parm_link_s *parm, device_s *dev);
 static bool mem_fmap(parm_link_s *parm, device_s *dev);
 static bool mem_fill(parm_link_s *parm, device_s *dev);
@@ -71,15 +71,6 @@ cmd_s dmem_cmds[] = {
 		DEFAULT,
 		"Configuration information",
 		"Configuration information",
-		NOCMD
-	},
-	{
-		"stat",
-		(cmd_f) mem_stat,
-		DEFAULT,
-		DEFAULT,
-		"Statistics",
-		"Statistics",
 		NOCMD
 	},
 	{
@@ -144,7 +135,7 @@ device_type_s drom = {
 	
 	/* Functions */
 	.done = mem_done,
-
+	
 	/* Commands */
 	.cmds = dmem_cmds
 };
@@ -157,7 +148,7 @@ device_type_s drwm = {
 	
 	/* Functions */
 	.done = mem_done,
-
+	
 	/* Commands */
 	.cmds = dmem_cmds
 };
@@ -170,6 +161,16 @@ device_type_s drwm = {
 const char txt_file_map_fail[] = "File map fail";
 const char txt_file_unmap_fail[] = "File unmap fail";
 
+/*
+ * Memory types
+ */
+
+typedef enum {
+	MEMT_NONE = 0,  /**< Uninitialized */
+	MEMT_MEM  = 1,  /**< Generic */
+	MEMT_FMAP = 2   /**< File mapped */
+} mem_type_e;
+
 const char *txt_mem_type[] = {
 	"none",
 	"mem",
@@ -178,27 +179,17 @@ const char *txt_mem_type[] = {
 
 
 /*
- * Memory types
- */
-
-#define MEMT_NONE 0  /**< Uninitialized */
-#define MEMT_MEM  1  /**< Memory */
-#define MEMT_FMAP 2  /**< File mapped */
-
-
-/*
  * Memory device data structure
  */
- 
-struct mem_data_s {
-	uint32_t start;     /* Memory position */
-	uint32_t size;      /* Memory size in bytes */
-	bool writeable;     /* Write-able flag */
-	int mem_type;       /* Memory type (NONE, MEM, FMAP) */
+
+typedef struct {
+	uint32_t start;       /* Memory position */
+	uint32_t size;        /* Memory size in bytes */
+	bool writeable;       /* Write-able flag */
+	mem_type_e mem_type;  /* Memory type */
 	
-	mem_element_s *me;  /* Memory list element */
-};
-typedef struct mem_data_s mem_data_s;
+	mem_element_s *me;    /* Memory list element */
+} mem_data_s;
 
 
 /** Allocate memory block and clear it
@@ -220,10 +211,8 @@ static void mem_alloc_block(mem_data_s *md)
  */
 static void mem_struct(mem_data_s *md, bool alloc)
 {
-	mem_element_s *e;
-	
 	/* Add memory element */
-	e = (mem_element_s *) safe_malloc_t(mem_element_s);
+	mem_element_s *e = (mem_element_s *) safe_malloc_t(mem_element_s);
 	
 	md->me = e;
 	
@@ -235,7 +224,7 @@ static void mem_struct(mem_data_s *md, bool alloc)
 	
 	if (alloc)
 		mem_alloc_block(md);
-		
+	
 	/* Link */
 	mem_link(e);
 }
@@ -264,7 +253,7 @@ static bool try_close(int fd, const char *filename)
 		io_error(filename);
 		return false;
 	}
-
+	
 	return true;
 }
 
@@ -279,7 +268,7 @@ static bool try_open(int *fd, int flags, const char *filename)
 		io_error(filename);
 		return false;
 	}
-
+	
 	return true;
 }
 
@@ -296,7 +285,7 @@ static bool try_lseek(int fd, off_t *offset, int whence, const char *filename)
 		
 		return false;
 	}
-
+	
 	return true;
 }
 
@@ -334,7 +323,7 @@ static void mem_clean_up(mem_data_s *md)
 		safe_free(md->me);
 		break;
 	}
-
+	
 	md->mem_type = MEMT_NONE;
 	md->size = 0;
 }
@@ -347,26 +336,26 @@ static void mem_clean_up(mem_data_s *md)
  */
 static bool mem_init(parm_link_s *parm, device_s *dev)
 {
-	mem_data_s *md;
-
+	mem_data_s *md = safe_malloc_t(mem_data_s);
+	
 	/* Allocate memory structure */
-	dev->data = md = safe_malloc_t(mem_data_s);
-
+	dev->data = md;
+	
 	/* Initialize */
 	parm_next(&parm);
-	md->me = 0;
+	md->me = NULL;
 	md->mem_type = MEMT_NONE;
 	md->start = parm_next_int(&parm);
 	md->size = 0;
 	md->writeable = (dev->type->name == id_rwm);
-
+	
 	/* Check */
 	if (!addr_word_aligned(md->start)) {
 		mprintf("Memory address must by 4-byte aligned\n");
 		safe_free(md);
 		return false;
 	}
-
+	
 	return true;
 }
 
@@ -383,18 +372,8 @@ static bool mem_info(parm_link_s *parm, device_s *dev)
 	mprintf("Start      Size         Type\n");
 	mprintf("---------- ------------ ------\n");
 	mprintf("%#10" PRIx32" %12s %s\n",
-		md->start, s, txt_mem_type[md->mem_type]);
+	    md->start, s, txt_mem_type[md->mem_type]);
 	
-	return true;
-}
-
-
-/** Stat command implementation
- *
- */
-static bool mem_stat(parm_link_s *parm, device_s *dev)
-{
-	mprintf("No statistics\n");
 	return true;
 }
 
@@ -408,15 +387,42 @@ static bool mem_load(parm_link_s *parm, device_s *dev)
 {
 	mem_data_s *md = dev->data;
 	const char *const filename = parm_str(parm);
-	int fd;
-
-	if (md->mem_type == MEMT_NONE) {
+	
+	if (md->mem_type != MEMT_MEM) {
 		/* Illegal. */
 		return false;
 	}
 	
+	int fd;
 	if (!try_open(&fd, O_RDONLY, filename)) {
 		mprintf("%s\n", txt_file_open_err);
+		return false;
+	}
+	
+	/* File size test */
+	off_t offset = 0;
+	if (!try_lseek(fd, &offset, SEEK_END, filename)) {
+		mprintf("%s\n", txt_file_seek_err);
+		try_soft_close(fd, filename);
+		return false;
+	}
+	
+	if (offset == 0) {
+		mprintf("Empty file\n");
+		try_soft_close(fd, filename);
+		return false;
+	}
+	
+	if (offset > (off_t) md->size) {
+		mprintf("File size exceeds memory block size\n");
+		try_soft_close(fd, filename);
+		return false;
+	}
+	
+	offset = 0;
+	if (!try_lseek(fd, &offset, SEEK_SET, filename)) {
+		mprintf("%s\n", txt_file_seek_err);
+		try_soft_close(fd, filename);
 		return false;
 	}
 	
@@ -447,7 +453,7 @@ static bool mem_fill(parm_link_s *parm, device_s *dev)
 	mem_data_s *md = dev->data;
 	const char *s;
 	char c = '\0';
-
+	
 	switch (parm_type(parm)) {
 	case tt_end:
 		/* default '\0' */
@@ -473,7 +479,7 @@ static bool mem_fill(parm_link_s *parm, device_s *dev)
 	}
 	
 	memset(md->me->mem, c, md->size);
-
+	
 	return true;
 }
 
@@ -490,22 +496,21 @@ static bool mem_fmap(parm_link_s *parm, device_s *dev)
 	const char *const filename = parm_str(parm);
 	int fd;
 	void *mx;
-	off_t offset;
-
+	
 	/* Open the file */
 	if (md->writeable)
 		fd = open(filename, O_RDWR);
 	else
 		fd = open(filename, O_RDONLY);
-
+	
 	if (fd == -1) {
 		io_error(filename);
 		mprintf("%s\n", txt_file_open_err);
 		return false;
 	}
-
+	
 	/* File size test */
-	offset = 0;
+	off_t offset = 0;
 	if (!try_lseek(fd, &offset, SEEK_END, filename)) {
 		mprintf("%s\n", txt_file_seek_err);
 		try_soft_close(fd, filename);
@@ -523,13 +528,13 @@ static bool mem_fmap(parm_link_s *parm, device_s *dev)
 		try_soft_close(fd, filename);
 		return false;
 	}
-
+	
 	/* File mapping */
 	if (md->writeable)
 		mx = mmap(0, offset, PROT_READ | PROT_WRITE, MAP_SHARED, fd, 0);
 	else
 		mx = mmap(0, offset, PROT_READ, MAP_SHARED, fd, 0);
-
+	
 	if (mx == MAP_FAILED) {
 		io_error(filename);
 		try_soft_close(fd, filename);
@@ -537,13 +542,13 @@ static bool mem_fmap(parm_link_s *parm, device_s *dev)
 		mprintf("%s\n", txt_file_map_fail);
 		return false;
 	}
-
+	
 	/* Close file */
 	if (!try_close(fd, filename)) {
 		mprintf("%s\n", txt_file_close_err);
 		return false;
 	}
-
+	
 	/* Upgrade structures and
 	   dispose previous memory block */
 	mem_clean_up(md);
@@ -565,7 +570,7 @@ static bool mem_generic(parm_link_s *parm, device_s *dev)
 {
 	mem_data_s *md = dev->data;
 	uint32_t size = parm_int(parm);
-
+	
 	/* Test parameter */
 	if (size & 0x3) {
 		mprintf("Memory size must be 4-byte aligned\n");
@@ -577,19 +582,18 @@ static bool mem_generic(parm_link_s *parm, device_s *dev)
 		return false;
 	}
 	
-	if ((uint64_t) md->start + (uint64_t) size > 0x100000000ull)
-	{
+	if ((uint64_t) md->start + (uint64_t) size > 0x100000000ull) {
 		mprintf("Memory would exceed the 4 GB limit\n");
 		return false;
 	}
 	
 	/* Clear old configuration. */
 	mem_clean_up(md);
-
+	
 	md->mem_type = MEMT_MEM;
 	md->size = size;
 	mem_struct(md, true);
-
+	
 	return true;
 }
 
@@ -635,14 +639,14 @@ static bool mem_save(parm_link_s *parm, device_s *dev)
 	return true;
 }
 
-	
+
 /** Dispose memory device - structures, memory blocks, unmap, etc.
  *
  */
 static void mem_done(device_s *d)
 {
 	mem_data_s *md = d->data;
-
+	
 	mem_clean_up(md);
 	
 	safe_free(d->name);

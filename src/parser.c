@@ -356,7 +356,7 @@ static void parse_g_next(const char **s, g_token_s *t)
  * It is similar to the GNU extension variant.
  *
  */
-static char *strndup(const char *s, size_t max)
+static char *mstrndup(const char *s, size_t max)
 {
 	size_t len;
 	char *r;
@@ -549,7 +549,7 @@ static char *dup_lname(const char *lname)
 
 	for (len = 0; (lname[len]) && (lname[len] != '/'); len++);
 
-	return strndup(lname, len);
+	return mstrndup(lname, len);
 }
 
 

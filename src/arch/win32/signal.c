@@ -40,6 +40,6 @@ static BOOL machine_user_break(DWORD fdwCtrlType)
 void register_sigint(void)
 {
 	SetConsoleCtrlHandler((PHANDLER_ROUTINE) machine_user_break, true);
-} 
+}
 
 #endif /* __WIN32__ */

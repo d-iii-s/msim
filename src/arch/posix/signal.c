@@ -39,6 +39,6 @@ void register_sigint(void)
 	(void) sigemptyset(&act.sa_mask);
 	act.sa_flags = 0;
 	sigaction(SIGINT, &act, NULL);
-} 
+}
 
 #endif /* __WIN32__ */

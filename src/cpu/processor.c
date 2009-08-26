@@ -28,8 +28,8 @@
 
 
 /**< Initial state */
-#define	HARD_RESET_STATUS        (cp0_status_erl_mask | cp0_status_bev_mask)
-#define	HARD_RESET_START_ADDRESS 0xbfc00000
+#define HARD_RESET_STATUS        (cp0_status_erl_mask | cp0_status_bev_mask)
+#define HARD_RESET_START_ADDRESS 0xbfc00000
 #define HARD_RESET_PROC_ID       0x00000400
 #define HARD_RESET_CAUSE         0
 #define HARD_RESET_WATCHLO       0
@@ -40,7 +40,7 @@
 
 #define EXCEPTION_OFFSET 0x180
 
-#define TRAP(x)	\
+#define TRAP(x) \
 	if (x) \
 		res = excTr;
 
@@ -145,7 +145,7 @@ void processor_init(processor_t *pr, unsigned int procno)
  *
  */
 void set_general_reg(processor_t *pr, unsigned int regno, int32_t value)
-{ 
+{
 	if (regno != 0)
 		pr->regs[regno] = value;
 }
@@ -159,9 +159,6 @@ void set_pc(processor_t *pr, ptr_t value)
 	pr->pc = value;
 	pr->pc_next = value + 4;
 }
-
-
-
 
 
 /** Address traslation through the TLB table
@@ -212,7 +209,7 @@ static tlb_look_t tlb_look(processor_t *pr, ptr_t *addr, bool wr)
 			return TLBL_OK;
 		}
 	}
-
+	
 	return TLBL_REFILL;
 }
 
@@ -324,9 +321,9 @@ static enum exc convert_addr_kernel(processor_t *pr, ptr_t *addr, bool wr, bool 
 		*addr -= 0xa0000000; /* kseg1 */
 	else if (*addr < 0xe0000000) /* kseg2 */
 		return tlb_hit(pr, addr, wr, h);
-	else /*	*addr > 0xe0000000 (kseg3) */
+	else /* *addr > 0xe0000000 (kseg3) */
 		return tlb_hit(pr, addr, wr, h);
-
+	
 	return excNone;
 }
 
@@ -359,6 +356,7 @@ static enum exc mem_align_test(processor_t *pr, ptr_t addr, len_t size, bool h)
 		fill_addr_error(pr, addr, h);
 		return excAddrError;
 	}
+	
 	return excNone;
 }
 
@@ -393,7 +391,7 @@ static enum exc acc_mem(processor_t *pr, acc_mode_t mode, ptr_t addr, len_t size
 			   8-byte aligned addresses */
 			
 			if (pr->waddr == (addr >> 3)) {
-				/* 
+				/*
 				 * If EXL is set, the exception has to be postponed,
 				 * the memory access should (probably) proceed.
 				 */
@@ -404,7 +402,7 @@ static enum exc acc_mem(processor_t *pr, acc_mode_t mode, ptr_t addr, len_t size
 					return excWATCH;
 			}
 		}
-
+		
 		if (res == excNone) {
 			if (mode == AM_WRITE)
 				mem_write(pr, addr, *value, size);
@@ -436,7 +434,7 @@ enum exc read_proc_mem(processor_t *pr, ptr_t addr, len_t size, uint32_t *value,
 	default:
 		break;
 	}
-
+	
 	return excNone;
 }
 
@@ -460,7 +458,7 @@ static enum exc fetch_proc_mem(processor_t *pr, ptr_t addr, len_t size, uint32_t
 	default:
 		break;
 	}
-
+	
 	return excNone;
 }
 
@@ -497,12 +495,10 @@ static enum exc write_proc_mem(processor_t *pr, ptr_t addr, len_t size, uint32_t
  */
 enum exc read_proc_ins(processor_t *pr, ptr_t addr, uint32_t *value, bool h)
 {
-	enum exc res;
-
-	res = fetch_proc_mem(pr, addr, INT32, value, h);
+	enum exc res = fetch_proc_mem(pr, addr, INT32, value, h);
 	if ((res != excNone) && (pr->branch == 0))
 		pr->excaddr = pr->pc;
-
+	
 	return res;
 }
 
@@ -558,7 +554,7 @@ static void multiply(processor_t *pr, uint32_t a, uint32_t b, bool sig)
 		pr->loreg = 0;
 		return;
 	}
-
+	
 	/* Signum test */
 	if (sig) {
 		/* Signed multiplication */
@@ -584,12 +580,12 @@ static void multiply(processor_t *pr, uint32_t a, uint32_t b, bool sig)
 static void TLBW(processor_t *pr, unsigned int reg, enum exc *res)
 {
 	if ((cp0_status_cu0 == 1)
-		|| ((cp0_status_ksu == 0)
-		|| (cp0_status_exl == 1)
-		|| (cp0_status_erl == 1))) {
+	    || ((cp0_status_ksu == 0)
+	    || (cp0_status_exl == 1)
+	    || (cp0_status_erl == 1))) {
 		int32_t i = pr->cp0[reg];
 		tlb_ent *t = &pr->tlb[i];
-
+		
 		if (i > 47)
 			mprintf("\nTLBWI: Invalid value in Index\n");
 		else {
@@ -598,7 +594,7 @@ static void TLBW(processor_t *pr, unsigned int reg, enum exc *res)
 			t->vpn2 = cp0_entryhi & t->mask;
 			t->global = cp0_entrylo0_g & cp0_entrylo1_g;
 			t->asid = cp0_entryhi_asid;
-
+			
 			t->pg[0].pfn = cp0_entrylo0_pfn << 12;
 			t->pg[0].cohh = cp0_entrylo0_c;
 			t->pg[0].dirty = cp0_entrylo0_d;
@@ -679,7 +675,7 @@ static enum exc execute(processor_t *pr, instr_info *ii2)
 				i++;
 				tmp <<= 1;
 			}
-
+			
 			pr->regs[ii.rd] = i;
 		}
 		break;
@@ -692,8 +688,8 @@ static enum exc execute(processor_t *pr, instr_info *ii2)
 				i++;
 				tmp <<= 1;
 			}
-
-			pr->regs[ ii.rd] = i;
+			
+			pr->regs[ii.rd] = i;
 		}
 		break;
 	case opcDADD:
@@ -729,7 +725,7 @@ static enum exc execute(processor_t *pr, instr_info *ii2)
 			pr->hireg = rrs % rrt;
 		}
 		break;
-	case opcDIVU:		
+	case opcDIVU:
 		{
 			uint32_t dw1 = (uint32_t) rrs;
 			uint32_t dw2 = (uint32_t) rrt;
@@ -912,7 +908,7 @@ static enum exc execute(processor_t *pr, instr_info *ii2)
 	case opcXORI:
 		pr->regs[ii.rt] = rrs ^ (ii.imm & 0xffff);
 		break;
-
+	
 	/*
 	 * branches and jumps
 	 */
@@ -921,9 +917,9 @@ static enum exc execute(processor_t *pr, instr_info *ii2)
 	case opcBC2FL:
 	case opcBC3FL:
 		if ((cp0_status_cu0 == 1)
-			|| ((cp0_status_ksu == 0)
-			|| (cp0_status_exl == 1)
-			|| (cp0_status_erl == 1))) {
+		    || ((cp0_status_ksu == 0)
+		    || (cp0_status_exl == 1)
+		    || (cp0_status_erl == 1))) {
 			/* Ignore - always false */
 			pr->pc_next += 4;
 			pca = pr->pc_next + 4;
@@ -938,9 +934,9 @@ static enum exc execute(processor_t *pr, instr_info *ii2)
 	case opcBC2F:
 	case opcBC3F:
 		if ((cp0_status_cu0 == 1)
-			|| ((cp0_status_ksu == 0)
-			|| (cp0_status_exl == 1)
-			|| (cp0_status_erl == 1))) {
+		    || ((cp0_status_ksu == 0)
+		    || (cp0_status_exl == 1)
+		    || (cp0_status_erl == 1))) {
 			/* Ignore - always false */
 		} else {
 			/* Coprocessor unusable */
@@ -953,9 +949,9 @@ static enum exc execute(processor_t *pr, instr_info *ii2)
 	case opcBC2TL:
 	case opcBC3TL:
 		if ((cp0_status_cu0 == 1)
-			|| ((cp0_status_ksu == 0)
-			|| (cp0_status_exl == 1)
-			|| (cp0_status_erl == 1))) {
+		    || ((cp0_status_ksu == 0)
+		    || (cp0_status_exl == 1)
+		    || (cp0_status_erl == 1))) {
 			/* Ignore - always true */
 			pca = pr->pc_next + (ii.imm << 2);
 			pr->branch = 2;
@@ -970,9 +966,9 @@ static enum exc execute(processor_t *pr, instr_info *ii2)
 	case opcBC2T:
 	case opcBC3T:
 		if ((cp0_status_cu0 == 1)
-			|| ((cp0_status_ksu == 0)
-			|| (cp0_status_exl == 1)
-			|| (cp0_status_erl == 1))) {
+		    || ((cp0_status_ksu == 0)
+		    || (cp0_status_exl == 1)
+		    || (cp0_status_erl == 1))) {
 			/* Ignore - always true */
 			pca = pr->pc_next + (ii.imm << 2);
 			pr->branch = 2;
@@ -1098,7 +1094,7 @@ static enum exc execute(processor_t *pr, instr_info *ii2)
 		pca = rrs;
 		pr->branch = 2;
 		break;
-
+	
 	/*
 	 * load, store
 	 */
@@ -1151,7 +1147,7 @@ static enum exc execute(processor_t *pr, instr_info *ii2)
 		{
 			uint32_t ll_addr; /* Target LL address */
 			uint32_t ll_val;  /* Value of the addressed mem */
-
+			
 			/* Compute virtual target address
 			   and issue read operation */
 			ll_addr = rrs + ii.imm; 
@@ -1318,7 +1314,7 @@ static enum exc execute(processor_t *pr, instr_info *ii2)
 			
 			if (res == excNone) {
 				int index = oaddr & 0x3;
-
+				
 				val &= tab[index].a;
 				val |= (pr->regs[ii.rt] >> tab[index].s) & ~tab[index].a;
 				
@@ -1393,7 +1389,7 @@ static enum exc execute(processor_t *pr, instr_info *ii2)
 	case opcTNEI:
 		TRAP(rrs != ii.imm);
 		break;
-
+	
 	/*
 	 * special instructions
 	 */
@@ -1465,9 +1461,9 @@ static enum exc execute(processor_t *pr, instr_info *ii2)
 		break;
 	case opcERET:
 		if ((cp0_status_cu0)
-			|| (!cp0_status_ksu)
-			|| (cp0_status_exl)
-			|| (cp0_status_erl)) {
+		    || (!cp0_status_ksu)
+		    || (cp0_status_exl)
+		    || (cp0_status_erl)) {
 			/* ERET breaks LL-SC address tracking */
 			pr->llval = false;
 			pr->lladdr = (uint32_t) -1;
@@ -1502,9 +1498,9 @@ static enum exc execute(processor_t *pr, instr_info *ii2)
 		break;
 	case opcMFC0:
 		if ((cp0_status_cu0 == 1)
-			|| ((cp0_status_ksu == 0)
-			|| (cp0_status_exl == 1)
-			|| (cp0_status_erl == 1)))
+		    || ((cp0_status_ksu == 0)
+		    || (cp0_status_exl == 1)
+		    || (cp0_status_erl == 1)))
 			pr->regs[ii.rt] = pr->cp0[ii.rd];
 		else {
 			/* Coprocessor unusable */
@@ -1520,9 +1516,9 @@ static enum exc execute(processor_t *pr, instr_info *ii2)
 		break;
 	case opcMTC0:
 		if ((cp0_status_cu0 == 1)
-			|| ((cp0_status_ksu == 0)
-			|| (cp0_status_exl)
-			|| (cp0_status_erl)))
+		    || ((cp0_status_ksu == 0)
+		    || (cp0_status_exl)
+		    || (cp0_status_erl)))
 			switch (ii.rd) {
 			/* 0 */
 			case cp0_Index:
@@ -1723,7 +1719,7 @@ static enum exc execute(processor_t *pr, instr_info *ii2)
 		break;
 	case opcTLBP:
 		if ((cp0_status_cu0 == 1) || (cp0_status_ksu == 0) ||
-			(cp0_status_exl == 1) || (cp0_status_erl == 1)) {
+		    (cp0_status_exl == 1) || (cp0_status_erl == 1)) {
 			uint32_t xvpn2, xasid;
 			unsigned int i;
 			
@@ -1733,7 +1729,7 @@ static enum exc execute(processor_t *pr, instr_info *ii2)
 			xasid = cp0_entryhi & cp0_entryhi_asid_mask;
 			for (i = 0; i < 48; i++)
 				if ((pr->tlb[i].vpn2 == xvpn2) &&
-					(pr->tlb[i].global || (pr->tlb[i].asid == xasid))) {
+				    (pr->tlb[i].global || (pr->tlb[i].asid == xasid))) {
 					cp0_index = i;
 					break;
 				}
@@ -1745,8 +1741,8 @@ static enum exc execute(processor_t *pr, instr_info *ii2)
 		break;
 	case opcTLBR:
 		if ((cp0_status_cu0 == 1) ||
-			 (cp0_status_ksu == 0) || (cp0_status_exl == 1) ||
-			 (cp0_status_erl == 1)) {
+		    (cp0_status_ksu == 0) || (cp0_status_exl == 1) ||
+		    (cp0_status_erl == 1)) {
 			int i = cp0_index_index;
 			
 			if (i > 47) {
@@ -1838,7 +1834,7 @@ static enum exc execute(processor_t *pr, instr_info *ii2)
 	
 	/* reg0 control */
 	pr->regs[0] = 0;
-
+	
 	return res;
 }
 
@@ -1872,13 +1868,13 @@ static void handle_exception(processor_t *pr, enum exc res)
 	cp0_cause &= ~cp0_cause_bd_mask;
 	if (pr->branch == 1)
 		cp0_cause |= cp0_cause_bd_mask;
-
+	
 	if (!cp0_status_exl) {
 		cp0_epc = pr->excaddr;
 		if ((res == excInt) && (pr->branch != 2))
 			cp0_epc = pr->pc;
 	}
-		
+	
 	/* Exception vector base address */
 	if (cp0_status_bev) {
 		/* Booting time */
@@ -1912,26 +1908,26 @@ static void manage(processor_t *pr, enum exc res)
 {
 	/* Test for interrupt request */
 	if ((res == excNone)
-		&& (!cp0_status_exl)
-		&& (!cp0_status_erl)
-		&& (cp0_status_ie)
-		&& ((cp0_cause & cp0_status) & cp0_cause_ip_mask) != 0)
+	    && (!cp0_status_exl)
+	    && (!cp0_status_erl)
+	    && (cp0_status_ie)
+	    && ((cp0_cause & cp0_status) & cp0_cause_ip_mask) != 0)
 		res = excInt;
 	
 	/* Exception control */
 	if (res != excNone)
 		handle_exception(pr, res);
-
+	
 	/* Increase counter */
 	cp0_count_count++;
-
+	
 	/* Decrease random register */
 	if (cp0_random-- == 0)
 		cp0_random = 47;
 	
 	if (cp0_random < cp0_wired)
 		cp0_random = 47;
-
+	
 	/* Timer control */
 	if (cp0_count_count == cp0_compare_compare)
 		/* Generating interrupt request */
@@ -1982,25 +1978,25 @@ static void instruction(processor_t *pr, enum exc *res)
 void step(processor_t *pr)
 {
 	enum exc res = excNone;
-
+	
 	/* Instruction execute */
 	if (!pr->stdby)
 		instruction(pr, &res);
-
+	
 	/* Processor control */
 	manage(pr, res);
-
+	
 	if (pr->stdby)
 		pr->w_cycles++;
 	else {
 		if ((cp0_status_ksu == 0)
-			|| (cp0_status_exl == 1)
-			|| (cp0_status_erl == 1))
+		    || (cp0_status_exl == 1)
+		    || (cp0_status_erl == 1))
 			pr->k_cycles++;
 		else
 			pr->u_cycles++;
 	}
-
+	
 	if (pr->branch != 0)
 		pr->branch--;
 	

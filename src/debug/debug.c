@@ -28,7 +28,7 @@
 
 
 #define CP0_PM_ITEMS 7
-#define REG_BUF	1024
+#define REG_BUF      1024
 
 
 static struct {
@@ -91,7 +91,7 @@ static char *cp0_dump_str[] = {
 void reg_view(processor_t *pr)
 {
 	unsigned int i;
-
+	
 	mprintf("processor p%i\n", pr->procno);
 	
 	for (i = 0; i < 30; i += 5) {
@@ -116,7 +116,7 @@ static const char *get_pagemask_name(unsigned int pm)
 	for (i = 0; i < CP0_PM_ITEMS; i++)
 		if (pm == pagemask_name[i].no)
 			return pagemask_name[i].s;
-
+	
 	/* Error */
 	return pagemask_name[CP0_PM_ITEMS].s;
 }
@@ -126,13 +126,13 @@ void tlb_dump(processor_t *pr)
 {
 	unsigned int i;
 	struct tlb_ent *e;
-
+	
 	mprintf( " [             general             ][    subp 0    ][    subp 1    ]\n"
 		"  no    vpn      mask        g asid  v d   pfn    c  v d   pfn    c\n");
-
+	
 	for (i = 0; i < 48; i++) {
 		e = &(pr->tlb[i]);
-
+		
 		mprintf( "  %02x  %08X %08X:%-4s %d  %02x   %d %d %08X %x  %d %d %08X %1x\n",
 			i,
 			e->vpn2, e->mask,
@@ -150,7 +150,7 @@ void tlb_dump(processor_t *pr)
 static void cp0_dump_reg(processor_t *pr, unsigned int reg)
 {
 	const char *s = cp0_dump_str[reg];
-		
+	
 	switch (reg) {
 	case cp0_Index:
 		mprintf(s,
@@ -275,7 +275,7 @@ void cp0_dump(processor_t *pr, int reg)
 	const int vals[] =
 		{0, 1, 2, 3, 4, 5, 6, 8, 9, 10, 11,
 		12, 13, 14, 15, 16, 17, 18, 19, 20, 30, -1};
-
+	
 	mprintf("  no name       hex dump  readable dump\n");
 	if (reg == -1)
 		for (i = &vals[0]; *i != -1; i++)
@@ -300,12 +300,12 @@ void iview(processor_t *pr, uint32_t addr, instr_info *ii, char *regch)
 	char *s_hash;
 	char s_cmt[32];
 	char *s_cmtx;
-
+	
 	const int imm = ii->imm;
 	const char *rtn = regname[ii->rt];
 	const char *rsn = regname[ii->rs];
 	const char *rdn = regname[ii->rd];
-
+	
 	if (pr != NULL)
 		sprintf((char *) s_proc, "%2d  ", pr->procno);
 	else
@@ -315,7 +315,7 @@ void iview(processor_t *pr, uint32_t addr, instr_info *ii, char *regch)
 		sprintf((char *) s_addr, "%08X  ", addr);
 	else
 		s_addr[0] = '\0';
-
+	
 	if (iopc)
 		sprintf((char *) s_iopc, "%08X  ", ii->icode);
 	else
@@ -482,12 +482,12 @@ void modified_regs_dump(processor_t *pr, size_t size, char *sx)
 	char *s3;
 	char sc1[REG_BUF];
 	char sc2[REG_BUF]; 
-
+	
 	sc1[0] = 0;
 	sc2[0] = 0;
 	s1 = sc1;
 	s2 = sc2;
-
+	
 	if (size > REG_BUF)
 		size = REG_BUF;
 	
@@ -529,7 +529,7 @@ void modified_regs_dump(processor_t *pr, size_t size, char *sx)
 		s2 = s3;
 		pr->old_loreg = pr->loreg;
 	}
-
+	
 	/* Test for hireg */
 	if (pr->hireg != pr->old_hireg) {
 		snprintf(s1, size, "%s, hireg: 0x%x->0x%x",
@@ -540,7 +540,7 @@ void modified_regs_dump(processor_t *pr, size_t size, char *sx)
 		s2 = s3;
 		pr->old_hireg = pr->hireg;
 	}
-
+	
 	if (*s2 == 0)
 		*sx = 0;
 	else
@@ -582,7 +582,7 @@ void dbg_dev_dump(void)
 	device_s *dev = NULL;
 	
 	mprintf("[  name  ] [  type  ] [ parameters...\n");
-
+	
 	if (dev_next(&dev)) {
 		do {
 			dbg_dev_infodev(dev);
@@ -606,7 +606,7 @@ static void dbg_dev_statdev(device_s *dev)
  *
  * Implementation of the "stat" command.
  *
- */ 
+ */
 void dbg_dev_stat(void)
 {
 	device_s *dev = NULL;

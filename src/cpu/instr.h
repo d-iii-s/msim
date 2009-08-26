@@ -17,7 +17,7 @@
 #include "../mtypes.h"
 
 /**< Sign bit */
-#define SBIT  0x80000000 
+#define SBIT  0x80000000
 #define NSBIT 0x7fffffff
 
 /*
@@ -282,7 +282,7 @@ typedef enum {
 } basic_instruction_format;
 
 typedef struct {
-	int opcode;		
+	int opcode;
 	int format;
 } instr_form;
 

@@ -176,7 +176,7 @@ enum cp0_regs {
 #define cp0_entryhi_asid_shift 0
 #define cp0_entryhi_res1_shift 8
 #define cp0_entryhi_vpn2_shift 13
-	
+
 #define cp0_entryhi_asid ((pr->cp0[cp0_EntryHi] & cp0_entryhi_asid_mask) >> 0)
 #define cp0_entryhi_res1 ((pr->cp0[cp0_EntryHi] & cp0_entryhi_res1_shift) >> 8)
 #define cp0_entryhi_vpn2 ((pr->cp0[cp0_EntryHi] & cp0_entryhi_vpn2_shift) >> 13)
@@ -287,7 +287,7 @@ enum cp0_regs {
 #define cp0_count_count       cp0_count
 #define cp0_compare_compare   cp0_compare
 #define cp0_epc_epc           cp0_epc
-	
+
 #define cp0_cause_res1_mask    0x00000003U
 #define cp0_cause_exccode_mask 0x0000007cU
 #define cp0_cause_res2_mask    0x00000080U
@@ -466,7 +466,7 @@ enum cp0_regs {
 #define cp0_watchlo_r_mask      0x00000002U
 #define cp0_watchlo_res_mask    0x00000004U
 #define cp0_watchlo_paddr0_mask 0xfffffff8U
-	
+
 #define cp0_watchlo_w_shift      0
 #define cp0_watchlo_r_shift      1
 #define cp0_watchlo_res_shift    2
@@ -535,7 +535,7 @@ enum cp0_regs {
 	& cp0_xcontext_ptebase_mask) >> cp0_xcontext_ptebase_shift)
 
 #define cp0_errorepc (pr->cp0[cp0_ErrorEPC])
-	
+
 #define cp0_index    (pr->cp0[cp0_Index])
 #define cp0_random   (pr->cp0[cp0_Random])
 #define cp0_entrylo0 (pr->cp0[cp0_EntryLo0])
@@ -562,7 +562,7 @@ enum cp0_regs {
 
 /**< cp0 Masks */
 #define cp0_SR_EXLMask 0x00000002U
-	
+
 
 /**< TLB entity definition */
 typedef struct {
@@ -594,7 +594,7 @@ typedef struct {
 /**< Main processor structure */
 typedef struct {
 	unsigned int procno;
-
+	
 	bool stdby;
 	
 	/* standard registers */
@@ -648,12 +648,12 @@ typedef struct {
 /**< Base */
 extern void processor_init(processor_t *pr, unsigned int procno);
 extern void step(processor_t *pr);
-		
+
 /**< First settings */
 extern void set_general_reg(processor_t *pr, unsigned int regno, int32_t value);
 extern void set_pc(processor_t *pr, ptr_t addr);
 extern void update_deb(processor_t *pr);
-	
+
 /**< Reading memory */
 extern enum exc read_proc_mem(processor_t *pr, ptr_t addr, len_t size, uint32_t *value, bool h);
 extern enum exc read_proc_ins(processor_t *pr, ptr_t addr, uint32_t *value, bool h);
@@ -661,5 +661,5 @@ extern enum exc read_proc_ins(processor_t *pr, ptr_t addr, uint32_t *value, bool
 /* interrupts - cause */
 extern void proc_interrupt_up(processor_t *pr, unsigned int no);
 extern void proc_interrupt_down(processor_t *pr, unsigned int no);
-	
+
 #endif /* PROCESSOR_H_ */

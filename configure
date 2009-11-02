@@ -1995,7 +1995,7 @@ fi
 
 PACKAGE=msim
 
-VERSION=1.3.7
+VERSION=1.3.7.1
 
 if test "`cd $srcdir && pwd`" != "`pwd`" && test -f $srcdir/config.status; then
   { { $as_echo "$as_me:$LINENO: error: source directory already configured; run \"make distclean\" there first" >&5

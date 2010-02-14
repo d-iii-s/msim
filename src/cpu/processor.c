@@ -576,21 +576,26 @@ static void multiply(processor_t *pr, uint32_t a, uint32_t b, bool sig)
 
 /** Write a new entry into the TLB
  *
+ * The entry is determined by either the random register (TLBWR) or index (TLBWI)
  */
-static void TLBW(processor_t *pr, unsigned int reg, enum exc *res)
+static void TLBW(processor_t *pr, bool random, enum exc *res)
 {
 	if ((cp0_status_cu0 == 1)
 	    || ((cp0_status_ksu == 0)
 	    || (cp0_status_exl == 1)
-	    || (cp0_status_erl == 1))) {
-		int32_t i = pr->cp0[reg];
-		tlb_ent *t = &pr->tlb[i];
+	    || (cp0_status_erl == 1)))
+	{
+		uint32_t index = random ? cp0_random_random : cp0_index_index;
+		tlb_ent *t = &pr->tlb[index];
 		
-		if (i > 47)
+		if (index > 47)
+			/* Undefined behavior, doing nothing complies.
+			 * Random is read-only, its index should be always fine.
+			 */
 			mprintf("\nTLBWI: Invalid value in Index\n");
 		else {
 			/* TLB filling */
-			t->mask = 0xffffe000 & ~cp0_pagemask;
+			t->mask = cp0_entryhi_vpn2_mask & ~cp0_pagemask;
 			t->vpn2 = cp0_entryhi & t->mask;
 			t->global = cp0_entrylo0_g & cp0_entrylo1_g;
 			t->asid = cp0_entryhi_asid;
@@ -1774,10 +1779,10 @@ static enum exc execute(processor_t *pr, instr_info *ii2)
 		}
 		break;
 	case opcTLBWI:
-		TLBW(pr, cp0_Index, &res);
+		TLBW(pr, false, &res);
 		break;
 	case opcTLBWR:
-		TLBW(pr, cp0_Random, &res);
+		TLBW(pr, true, &res);
 		break;
 	case opcBREAK:
 		if (remote_gdb_conn)

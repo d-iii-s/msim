@@ -583,8 +583,7 @@ static void TLBW(processor_t *pr, bool random, enum exc *res)
 	if ((cp0_status_cu0 == 1)
 	    || ((cp0_status_ksu == 0)
 	    || (cp0_status_exl == 1)
-	    || (cp0_status_erl == 1)))
-	{
+	    || (cp0_status_erl == 1))) {
 		uint32_t index = random ? cp0_random_random : cp0_index_index;
 		tlb_ent *t = &pr->tlb[index];
 		

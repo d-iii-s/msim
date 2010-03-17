@@ -2,6 +2,8 @@
 	Version 1.3.?
 	* add support for DESTDIR into Makefile.in
 	  (thx Vojtech Horky)
+	* fix TLBWI implementation (thx Jan Zaloha
+	  and Vlastimil Babka)
 
 2009-11-02 Martin Decky <decky@dsrg.mff.cuni.cz>
 	Version 1.3.7.1

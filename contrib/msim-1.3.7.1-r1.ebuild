@@ -1,6 +1,6 @@
 DESCRIPTION="A virtual machine simulator based on a MIPS R4000 processor"
-HOMEPAGE="http://dsrg.mff.cuni.cz/~holub/sw/msim/"
-SRC_URI="http://dsrg.mff.cuni.cz/~holub/sw/${PN}/${P}.tar.bz2"
+HOMEPAGE="http://d3s.mff.cuni.cz/~holub/sw/msim/"
+SRC_URI="http://d3s.mff.cuni.cz/~holub/sw/${PN}/${P}.tar.bz2"
 
 LICENSE="GPL-2"
 SLOT="0"

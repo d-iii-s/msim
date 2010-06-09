@@ -1,4 +1,4 @@
-2009-??-?? Martin Decky <decky@dsrg.mff.cuni.cz>
+2009-??-?? Martin Decky <decky@d3s.mff.cuni.cz>
 	Version 1.3.?
 	* add support for DESTDIR into Makefile.in
 	  (thx Vojtech Horky)

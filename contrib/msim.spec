@@ -4,9 +4,9 @@ Version: 1.3.7.1
 Release: 1%{?dist}
 License: GPLv2+
 Group: Development/Tools
-URL: http://dsrg.mff.cuni.cz/~holub/sw/msim/
+URL: http://d3s.mff.cuni.cz/~holub/sw/msim/
 
-Source: http://dsrg.mff.cuni.cz/~holub/sw/msim/msim-%{version}.tar.bz2
+Source: http://d3s.mff.cuni.cz/~holub/sw/msim/msim-%{version}.tar.bz2
 
 BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
 BuildRequires: readline-devel

@@ -271,6 +271,10 @@ static mem_element_s* find_memory_region(ptr_t addr)
 			
 			break;
 		}
+		
+		/* Move to the next region */
+		previous_region = current_region;
+		current_region = current_region->next;
 	}
 	
 	return current_region;

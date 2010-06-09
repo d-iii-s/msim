@@ -588,7 +588,7 @@ typedef struct {
 	
 	ptr_t pc;
 	uint64_t hits;
-} breakpoint_t;
+} sim_breakpoint_t;
 
 
 /**< Main processor structure */
@@ -598,8 +598,8 @@ typedef struct {
 	bool stdby;
 	
 	/* standard registers */
-	int32_t regs[32];
-	int32_t cp0[32];
+	uint32_t regs[32];
+	uint32_t cp0[32];
 	uint64_t fpregs[32];
 	uint32_t loreg;
 	uint32_t hireg;
@@ -613,8 +613,8 @@ typedef struct {
 	tlb_ent *tlblist; /* for faster access */
 	
 	/* old registers (for debug info) */
-	int32_t old_regs[32];
-	int32_t old_cp0[32];
+	uint32_t old_regs[32];
+	uint32_t old_cp0[32];
 	uint32_t old_loreg;
 	uint32_t old_hireg;
 	
@@ -653,6 +653,9 @@ extern void step(processor_t *pr);
 extern void set_general_reg(processor_t *pr, unsigned int regno, int32_t value);
 extern void set_pc(processor_t *pr, ptr_t addr);
 extern void update_deb(processor_t *pr);
+
+/** Addresing function */
+extern enum exc convert_addr(processor_t *pr, ptr_t *addr, bool wr, bool h);
 
 /**< Reading memory */
 extern enum exc read_proc_mem(processor_t *pr, ptr_t addr, len_t size, uint32_t *value, bool h);

@@ -7,6 +7,8 @@
  */
 
 #include <stddef.h>
+#include <assert.h>
+
 #include "list.h"
 
 
@@ -41,6 +43,8 @@ void item_init(item_t *item)
  */
 void list_append(list_t *list, item_t *item)
 {
+	/* Make sure the item is not a member of a list, then add it. */
+	assert(item->list == NULL);
 	item->list = list;
 	
 	/* In an empty list, attach us as head.
@@ -68,6 +72,8 @@ void list_append(list_t *list, item_t *item)
  */
 void list_remove (list_t *list, item_t *item)
 {
+	/* Make sure the item is a member of the list, then remove it. */
+	assert(item->list == list);
 	item->list = NULL;
 	
 	if (item->prev == NULL)
@@ -85,3 +91,23 @@ void list_remove (list_t *list, item_t *item)
 	else
 		item->next->prev = item->prev;
 }
+
+/** Rotate the list by making its head into its tail
+*
+* @param list The list to rotate.
+*
+* @return The rotated item.
+*
+*/
+item_t *list_rotate (list_t *list)
+{
+	/* 
+ 	 * Simply remove and append current list head.
+ 	 * Not most efficient but working nonetheless.
+ 	 */
+
+	item_t *item = list->head;
+	list_remove(list, item);
+	list_append(list, item);
+	return item;
+} 

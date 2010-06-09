@@ -9,6 +9,7 @@
  *
  */
 
+
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <fcntl.h>
@@ -384,8 +385,8 @@ static bool system_id(parm_link_s *pl, void *data)
 	unsigned int cnt = pl->next->token.tval.i;
 	
 	for (; cnt > 0; addr += 4, cnt--) {
-		instr_info ii;
-		ii.icode = mem_read(NULL, addr, 4);
+		instr_info_t ii;
+		ii.icode = mem_read(NULL, addr, INT32);
 		decode_instr(&ii);
 		iview(NULL, addr, &ii, 0);
 	}
@@ -423,7 +424,7 @@ static bool system_mbd(parm_link_s *pl, void *data)
  */
 static bool system_break(parm_link_s *pl, void *data)
 {
-	mem_breakpoint_t *mem_bp = safe_malloc_t(mem_breakpoint_t);
+	mem_breakpoint_t *mem_bp = (mem_breakpoint_t *) safe_malloc_t(mem_breakpoint_t);
 	item_init(&mem_bp->item);
 	mem_bp->addr = pl->token.tval.i;
 	mem_bp->hits = 0;
@@ -522,7 +523,7 @@ static bool system_md(parm_link_s *pl, void *data)
 		if ((i & 0x3) == 0)
 			mprintf("  %#010" PRIx32 "    ", addr);
 		
-		uint32_t val = mem_read(NULL, addr, 4);
+		uint32_t val = mem_read(NULL, addr, INT32);
 		mprintf("%08" PRIx32 " ", val);
 		
 		if ((i & 0x3) == 3)

@@ -18,6 +18,7 @@
 #include "../endi.h"
 #include "device.h"
 
+#define DEFAULT_MEMORY_VALUE32 0xffffffff
 
 enum TMemoryType_enum {
 	mtRWM,
@@ -25,28 +26,25 @@ enum TMemoryType_enum {
 	mtEXC
 };
 
-typedef struct mem_element_s mem_element_s;
-struct mem_element_s {
+typedef struct mem_element_s {
 	/* Memory region type */
-	bool writ;
-
+	bool writable;
+	
 	/* Basic specification - position and size */
 	uint32_t start;
 	uint32_t size;
 	
 	/* Block of memory */
 	unsigned char *mem;
-
+	
 	/* Next element in the list */
-	mem_element_s *next;
-};
-
+	struct mem_element_s *next;
+} mem_element_s;
 
 typedef struct llist {
 	processor_t *p;
 	struct llist *next;
 } llist_t;
-
 
 typedef struct {
 	item_t item;
@@ -82,8 +80,8 @@ extern bool script_stat;
 extern bool remote_gdb;
 extern int remote_gdb_port;
 extern bool remote_gdb_conn;
+extern bool remote_gdb_listen;
 extern bool remote_gdb_step;
-extern bool remote_gdb_one_step;
 
 extern bool version;
 
@@ -106,15 +104,16 @@ extern void done_machine(void);
 extern void go_machine(void);
 extern void machine_step(void);
 
-/**< ll and sc control */
+/** ll and sc control */
 extern void register_ll(processor_t *pr);
 extern void unregister_ll(processor_t *pr);
-	
-/**< Memory access */
-extern void mem_write(processor_t *pr, uint32_t addr, uint32_t val, int size);
-extern uint32_t mem_read(processor_t *pr, uint32_t addr, int size);
 
-/**< Memory control */
+/** Memory access */
+extern bool mem_write(processor_t *pr, uint32_t addr, uint32_t val,
+    size_t size, bool protected_write);
+extern uint32_t mem_read(processor_t *pr, uint32_t addr, size_t size);
+
+/** Memory control */
 extern void mem_link(mem_element_s *e);
 extern void mem_unlink(mem_element_s *e);
 

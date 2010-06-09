@@ -131,12 +131,12 @@ device_type_s dorder = {
 
 
 /** Dorder instance data structure */
-struct dorder_data_struct {
+typedef struct {
 	uint32_t addr;		/**< Dorder address */
 	int intno;		/**< Interrupt number */
 
 	uint64_t cmds;		/**< Total number of commands */
-};
+} dorder_data_s;
 
 
 /** Write to the synchronisation register - generate interrupts.
@@ -145,7 +145,7 @@ struct dorder_data_struct {
  * @param val A value (mask) which identifies processors
  *
  */
-static void sync_up_write(struct dorder_data_struct *od, uint32_t val)
+static void sync_up_write(dorder_data_s *od, uint32_t val)
 {
 	unsigned int i;
 
@@ -163,7 +163,7 @@ static void sync_up_write(struct dorder_data_struct *od, uint32_t val)
  * @param val A value (mask) which identifies processors
  *
  */
-static void sync_down_write(struct dorder_data_struct *od, uint32_t val)
+static void sync_down_write(dorder_data_s *od, uint32_t val)
 {
 	unsigned int i;
 
@@ -184,10 +184,8 @@ static void sync_down_write(struct dorder_data_struct *od, uint32_t val)
  */
 static bool dorder_init(parm_link_s *parm, device_s *dev)
 {
-	struct dorder_data_struct *od;
-	
 	/* Allocate the dorder structure */
-	od = safe_malloc_t(struct dorder_data_struct);
+	dorder_data_s *od = (dorder_data_s *) safe_malloc_t(dorder_data_s);
 	dev->data = od;
 	
 	/* Initialize */
@@ -231,7 +229,7 @@ static bool dorder_init(parm_link_s *parm, device_s *dev)
  */
 static bool dorder_info(parm_link_s *parm, device_s *dev)
 {
-	struct dorder_data_struct *od = dev->data;
+	dorder_data_s *od = (dorder_data_s *) dev->data;
 	
 	mprintf("Address    Int no\n");
 	mprintf("---------- ------\n");
@@ -250,7 +248,7 @@ static bool dorder_info(parm_link_s *parm, device_s *dev)
  */
 static bool dorder_stat(parm_link_s *parm, device_s *dev)
 {
-	struct dorder_data_struct *od = dev->data;
+	dorder_data_s *od = (dorder_data_s *) dev->data;
 	
 	mprintf("Command count\n");
 	mprintf("--------------------\n");
@@ -269,7 +267,7 @@ static bool dorder_stat(parm_link_s *parm, device_s *dev)
  */
 static bool dorder_synchup(parm_link_s *parm, device_s *dev)
 {
-	sync_up_write((struct dorder_data_struct *) dev->data, parm->token.tval.i);
+	sync_up_write((dorder_data_s *) dev->data, parm->token.tval.i);
 	return true;
 }
 
@@ -283,7 +281,7 @@ static bool dorder_synchup(parm_link_s *parm, device_s *dev)
  */
 static bool dorder_synchdown(parm_link_s *parm, device_s *dev)
 {
-	sync_down_write((struct dorder_data_struct *) dev->data, parm->token.tval.i);
+	sync_down_write((dorder_data_s *) dev->data, parm->token.tval.i);
 	return true;
 }
 
@@ -309,7 +307,7 @@ static void dorder_done(device_s *d)
  */
 static void dorder_read(processor_t *pr, device_s *dev, ptr_t addr, uint32_t *val)
 {
-	struct dorder_data_struct *od = dev->data;
+	dorder_data_s *od = (dorder_data_s *) dev->data;
 	
 	if (addr == od->addr + REGISTER_INT_PEND) {
 		if (pr != NULL)
@@ -330,7 +328,7 @@ static void dorder_read(processor_t *pr, device_s *dev, ptr_t addr, uint32_t *va
  */
 void dorder_write(processor_t *pr, device_s *dev, ptr_t addr, uint32_t val)
 {
-	struct dorder_data_struct *od = dev->data;
+	dorder_data_s *od = (dorder_data_s *) dev->data;
 	
 	if (addr == od->addr + REGISTER_INT_UP)
 		sync_up_write(od, val);

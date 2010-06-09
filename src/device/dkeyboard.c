@@ -133,7 +133,7 @@ typedef struct keyboard_data_s keyboard_data_s;
  */
 static void gen_key(device_s *dev, char k)
 {
-	keyboard_data_s *kd = dev->data;
+	keyboard_data_s *kd = (keyboard_data_s *) dev->data;
 
 	kd->incomming = k;
 	kd->keycount++;
@@ -153,10 +153,8 @@ static void gen_key(device_s *dev, char k)
  */
 static bool dkeyboard_init(parm_link_s *parm, device_s *dev)
 {
-	keyboard_data_s *kd;
-	
 	/* Alloc structure */
-	kd = safe_malloc_t(keyboard_data_s);
+	keyboard_data_s *kd = (keyboard_data_s *) safe_malloc_t(keyboard_data_s);
 	dev->data = kd;
 	
 	/* Initialization */
@@ -194,7 +192,7 @@ static bool dkeyboard_init(parm_link_s *parm, device_s *dev)
  */
 static bool dkeyboard_info(parm_link_s *parm, device_s *dev)
 {
-	keyboard_data_s *kb = dev->data;
+	keyboard_data_s *kb = (keyboard_data_s *) dev->data;
 	
 	mprintf("Address    Int no Key  Ig\n");
 	mprintf("---------- ------ ---- ------\n");
@@ -210,7 +208,7 @@ static bool dkeyboard_info(parm_link_s *parm, device_s *dev)
  */
 static bool dkeyboard_stat(parm_link_s *parm, device_s *dev)
 {
-	keyboard_data_s *kd = dev->data;
+	keyboard_data_s *kd = (keyboard_data_s *) dev->data;
 	
 	mprintf("Interrupt count      Key count            Overrun\n");
 	mprintf("-------------------- -------------------- --------------------\n");
@@ -273,7 +271,7 @@ static void keyboard_done(device_s *d)
  */
 static void keyboard_read(processor_t *pr, device_s *dev, ptr_t addr, uint32_t *val)
 {
-	keyboard_data_s *kd = dev->data;
+	keyboard_data_s *kd = (keyboard_data_s *) dev->data;
 	
 	if (addr == kd->addr + REGISTER_CHAR) {
 		*val = kd->incomming;

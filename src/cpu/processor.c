@@ -330,20 +330,20 @@ static enum exc convert_addr_kernel(processor_t *pr, ptr_t *addr, bool wr, bool 
 
 /** The conversion of virtual addresses
  *
- * @param wr Attempt to write
- * @param h  Fill apropriate processor registers
- *           if the address is incorrect
+ * @param write           Attempt to write
+ * @param fill_error_regs Fill apropriate processor registers
+ *                        if the address is incorrect
  *
  */
-static enum exc convert_addr(processor_t *pr, ptr_t *addr, bool wr, bool h)
+enum exc convert_addr(processor_t *pr, ptr_t *addr, bool write, bool fill_error_regs)
 {
 	/* Testing type of translation */
 	if ((cp0_status_ksu == 2) && (!cp0_status_exl) && (!cp0_status_erl))
-		return convert_addr_user(pr, addr, wr, h);
+		return convert_addr_user(pr, addr, write, fill_error_regs);
 	else if ((cp0_status_ksu == 1) && (!cp0_status_exl) && (!cp0_status_erl))
-		return convert_addr_supervisor(pr, addr, wr, h);
+		return convert_addr_supervisor(pr, addr, write, fill_error_regs);
 	else
-		return convert_addr_kernel(pr, addr, wr, h);
+		return convert_addr_kernel(pr, addr, write, fill_error_regs);
 }
 
 
@@ -405,7 +405,7 @@ static enum exc acc_mem(processor_t *pr, acc_mode_t mode, ptr_t addr, len_t size
 		
 		if (res == excNone) {
 			if (mode == AM_WRITE)
-				mem_write(pr, addr, *value, size);
+				mem_write(pr, addr, *value, size, true);
 			else
 				*value = mem_read(pr, addr, size);
 		}
@@ -622,9 +622,9 @@ static void TLBW(processor_t *pr, bool random, enum exc *res)
  * A really huge one, isn't it.
  *
  */
-static enum exc execute(processor_t *pr, instr_info *ii2)
+static enum exc execute(processor_t *pr, instr_info_t *ii2)
 {
-	instr_info ii = *ii2;
+	instr_info_t ii = *ii2;
 	enum exc res = excNone;
 	uint32_t pca = pr->pc_next + 4;
 	int32_t rrs = pr->regs[ii.rs];
@@ -1784,10 +1784,7 @@ static enum exc execute(processor_t *pr, instr_info *ii2)
 		TLBW(pr, true, &res);
 		break;
 	case opcBREAK:
-		if (remote_gdb_conn)
-			gdb_handle_event(8);
-		else
-			res = excBp;
+		res = excBp;
 		break;
 	case opcWAIT:
 		pr->pc_next = pr->pc;
@@ -1947,7 +1944,7 @@ static void manage(processor_t *pr, enum exc res)
  */
 static void instruction(processor_t *pr, enum exc *res)
 {
-	instr_info ii;
+	instr_info_t ii;
 	
 	/* Reading instruction code */
 	*res = read_proc_ins(pr, pr->pc, &ii.icode, true);
@@ -1983,6 +1980,26 @@ void step(processor_t *pr)
 {
 	enum exc res = excNone;
 	
+	/* Check for debugger breakpoints */
+	debug_breakpoint_t *debug_breakpoint = NULL;
+	for_each(debugger_breakpoints, debug_breakpoint, debug_breakpoint_t) {
+		if (debug_breakpoint->pc == pr->pc) {
+			gdb_handle_event(GDB_EVENT_BREAKPOINT);
+			break;
+		}
+	}
+
+	/* Check for code breakpoints */
+	sim_breakpoint_t *bp;
+	for_each(pr->bps, bp, sim_breakpoint_t) {
+		if (bp->pc == pr->pc) {
+			mprintf("\nDebug: Hit breakpoint at %08x\n\n", bp->pc);
+			bp->hits++;
+			interactive = true;
+			break;
+		}
+	}
+
 	/* Instruction execute */
 	if (!pr->stdby)
 		instruction(pr, &res);
@@ -2003,15 +2020,4 @@ void step(processor_t *pr)
 	
 	if (pr->branch != 0)
 		pr->branch--;
-	
-	/* Check for code breakpoints */
-	breakpoint_t *bp;
-	for_each(pr->bps, bp, breakpoint_t) {
-		if (bp->pc == pr->pc) {
-			mprintf("\nDebug: Hit breakpoint at %08x\n\n", bp->pc);
-			bp->hits++;
-			interactive = true;
-			break;
-		}
-	}
 }

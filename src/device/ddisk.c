@@ -214,95 +214,6 @@ struct disk_data_s {
 };
 typedef struct disk_data_s disk_data_s;
 
-
-
-/** Close file descriptor given when I/O error occurs
- *
- * Does not break the program, just only write error message.
- *
- * @param fd       File descriptor to close
- * @param filename Name of the file used for error message
- *
- */
-static void try_soft_close(int fd, const char *filename)
-{
-	if (close(fd)) {
-		io_error(filename);
-		error(txt_file_close_err);
-	}
-}
-
-
-/** Safe file descriptor close
- *
- * By "safe" we mean printing an error message when the file could not be
- * closed.
- *
- * @param fd       File descripton to close
- * @param filename Name of the file used for error message
- * @return true if successful
- *
- */
-static bool try_close(int fd, const char *filename)
-{
-	if (close(fd)) {
-		io_error(filename);
-		return false;
-	}
-
-	return true;
-}
-
-
-/** Safely open a file
- *
- * "Safe" means that an error message is displayed when the fiel could not
- * be opened.
- *
- * @param fd       File descriptor
- * @param flags    Flags of open function
- * @param filename Name of the file to open
- * @return true if successful
- *
- */
-static bool try_open(int *fd, int flags, const char *filename)
-{
-	*fd = open(filename, flags);
-	if (*fd == -1) {
-		io_error(filename);
-		return false;
-	}
-
-	return true;
-}
-
-
-/** Safe lseek
- *
- * This is an implementation of \c lseek which displays an error message
- * when the lseek could not be performed.
- *
- * @param fd       File descriptor
- * @param offset   Offset to set
- * @param whence   Parameter whence of the lseek function call
- * @param filename Name of the file; used for error message displaying
- * @return true if successful
- *
- */
-static bool try_lseek(int fd, off_t *offset, int whence, const char *filename)
-{
-	*offset = lseek(fd, *offset, whence);
-	if (*offset == (off_t) -1) {
-		io_error(filename);
-		try_soft_close(fd, filename);
-
-		return false;
-	}
-
-	return true;
-}
-
-
 /** Safe munmap
  *
  * Result of the call is not relevant.
@@ -327,7 +238,7 @@ static void try_munmap(void *s, size_t l)
  */
 static void ddisk_malloc(disk_data_s *dd)
 {
-	dd->img = safe_malloc(dd->size);
+	dd->img = (uint32_t *) safe_malloc(dd->size);
 	memset(dd->img, 0, dd->size);
 	dd->disk_type = DISKT_MEM;
 }
@@ -404,7 +315,7 @@ static bool ddisk_init(parm_link_s *parm, device_s *dev)
 	}
 	
 	/* Allocate structure */
-	dev->data = dd = safe_malloc_t(disk_data_s);
+	dev->data = dd = (disk_data_s *) safe_malloc_t(disk_data_s);
 	
 	/* Basic structure inicialization */
 	parm_next(&parm);
@@ -414,7 +325,7 @@ static bool ddisk_init(parm_link_s *parm, device_s *dev)
 	dd->disk_wptr = 0;
 	dd->disk_secno = 0;
 	dd->disk_status = 0;
-	dd->img = MAP_FAILED;
+	dd->img = (uint32_t *) MAP_FAILED;
 	
 	dd->action = ACTION_NONE;
 	
@@ -460,7 +371,7 @@ static bool ddisk_init(parm_link_s *parm, device_s *dev)
  */
 static bool ddisk_info(parm_link_s *parm, device_s *dev)
 {
-	disk_data_s *dd = dev->data;
+	disk_data_s *dd = (disk_data_s *) dev->data;
 	char s[16];
 	const char *st = "*";
 
@@ -500,7 +411,7 @@ static bool ddisk_info(parm_link_s *parm, device_s *dev)
  */
 static bool ddisk_stat(parm_link_s *parm, device_s *dev)
 {
-	disk_data_s *dd = dev->data;
+	disk_data_s *dd = (disk_data_s *) dev->data;
 	
 	mprintf("Interrupt count      Commands             Reads\n");
 	mprintf("-------------------- -------------------- --------------------\n");
@@ -526,7 +437,7 @@ static bool ddisk_stat(parm_link_s *parm, device_s *dev)
  */
 static bool ddisk_generic(parm_link_s *parm, device_s *dev)
 {
-	disk_data_s *dd = dev->data;
+	disk_data_s *dd = (disk_data_s *) dev->data;
 	uint32_t size = parm_int(parm);
 
 	/* Size parameter check */
@@ -558,14 +469,13 @@ static bool ddisk_generic(parm_link_s *parm, device_s *dev)
  */
 static bool ddisk_fmap(parm_link_s *parm, device_s *dev)
 {
-	disk_data_s *dd = dev->data;
+	disk_data_s *dd = (disk_data_s *) dev->data;
 	const char *const filename = parm_str(parm);
-	int fd;
 	void *mx;
 	off_t offset;
 
 	/* Open the file */
-	fd = open(filename, O_RDWR);
+	int fd = open(filename, O_RDWR);
 	if (fd == -1) {
 		io_error(filename);
 		mprintf(txt_file_open_err);
@@ -621,7 +531,7 @@ static bool ddisk_fmap(parm_link_s *parm, device_s *dev)
 	ddisk_clean_up(dd);
 	dd->size = offset;
 	dd->disk_type = DISKT_FMAP;
-	dd->img = mx;
+	dd->img = (uint32_t *) mx;
 	
 	return true;
 }
@@ -638,7 +548,7 @@ static bool ddisk_fmap(parm_link_s *parm, device_s *dev)
  */
 static bool ddisk_fill(parm_link_s *parm, device_s *dev)
 {
-	disk_data_s *dd = dev->data;
+	disk_data_s *dd = (disk_data_s *) dev->data;
 	unsigned char c;
 
 	/* String/character */
@@ -675,15 +585,15 @@ static bool ddisk_fill(parm_link_s *parm, device_s *dev)
  */
 static bool ddisk_load(parm_link_s *parm, device_s *dev)
 {
-	disk_data_s *dd = dev->data;
+	disk_data_s *dd = (disk_data_s *) dev->data;
 	const char * const filename = parm_str(parm);
-	int fd;
 	
 	if (dd->disk_type == DISKT_NONE) 
 		/* Illegal */
 		return false;
 	
 	/* Open file */
+	int fd = -1;
 	if (!try_open(&fd, O_RDONLY, filename)) {
 		mprintf(txt_file_open_err);
 		return false;
@@ -721,9 +631,7 @@ static bool ddisk_load(parm_link_s *parm, device_s *dev)
 static bool ddisk_save(parm_link_s *parm, device_s *dev)
 {
 	const char *const filename = parm_str(parm);
-	disk_data_s *dd = dev->data;
-	int fd;
-	ssize_t written;
+	disk_data_s *dd = (disk_data_s *) dev->data;
 	
 	/* Do not write anything when
 	   the image is not initialized */
@@ -731,7 +639,7 @@ static bool ddisk_save(parm_link_s *parm, device_s *dev)
 		return true;
 
 	/* Create file */
-	fd = creat(filename, 0666);
+	int fd = creat(filename, 0666);
 	if (fd == -1) {
 		io_error(filename);
 		mprintf(txt_file_create_err);
@@ -739,8 +647,7 @@ static bool ddisk_save(parm_link_s *parm, device_s *dev)
 	}
 	
 	/* Write data */
-	written = write(fd, dd->img, dd->size);
-	
+	ssize_t written = write(fd, dd->img, dd->size);
 	if (written == -1) {
 		io_error(filename);
 		try_soft_close(fd, filename);
@@ -766,7 +673,7 @@ static bool ddisk_save(parm_link_s *parm, device_s *dev)
  *
  */
 static void ddisk_done(device_s *d) {
-	disk_data_s *dd = d->data;
+	disk_data_s *dd = (disk_data_s *) d->data;
 
 	ddisk_clean_up(dd);
 	
@@ -811,7 +718,7 @@ static void ddisk_read(processor_t *pr, device_s *dev, ptr_t addr, uint32_t *val
  */
 static void ddisk_write(processor_t *pr, device_s *dev, ptr_t addr, uint32_t val)
 {
-	disk_data_s *dd = dev->data;
+	disk_data_s *dd = (disk_data_s *) dev->data;
 	
 	/* Ignore if the disk is not initialized */
 	if (dd->disk_type == DISKT_NONE)
@@ -888,12 +795,12 @@ static void ddisk_write(processor_t *pr, device_s *dev, ptr_t addr, uint32_t val
  */
 static void ddisk_step(device_s *d)
 {
-	disk_data_s *dd = d->data;
+	disk_data_s *dd = (disk_data_s *) d->data;
 	
 	/* Reading */
 	if (dd->action == ACTION_READ) {
 		uint32_t val = dd->img[dd->secno * 128 + dd->cnt];
-		mem_write(NULL, dd->disk_wptr, val, INT32);
+		mem_write(NULL, dd->disk_wptr, val, INT32, true);
 		dd->disk_wptr += 4; /* Next word */
 		dd->cnt++;
 		
@@ -906,7 +813,7 @@ static void ddisk_step(device_s *d)
 		}
 	} else if (dd->action == ACTION_WRITE) { /* Writting */
 		uint32_t val;
-		val = mem_read(NULL, dd->disk_wptr, 4);
+		val = mem_read(NULL, dd->disk_wptr, INT32);
 		dd->img[dd->secno * 128 + dd->cnt] = val;
 		
 		dd->disk_wptr += 4; /* Next word */

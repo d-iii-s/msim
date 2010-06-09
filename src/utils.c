@@ -11,12 +11,20 @@
 
 #include <stdlib.h>
 #include <string.h>
+#include <fcntl.h>
 
 #include "utils.h"
 #include "fault.h"
 #include "check.h"
 #include "main.h"
 
+const char *const txt_file_open_err     = "Could not open file";
+const char *const txt_file_read_err     = "Could not read file";
+const char *const txt_file_close_err    = "Could not close file";
+const char *const txt_filename_expected = "File name expected";
+const char *const txt_file_create_err   = "Could not create file";
+const char *const txt_file_write_err    = "Could not write to file";
+const char *const txt_file_seek_err     = "Could not seek in the file";
 
 /** Safe memory allocation
  *
@@ -58,4 +66,92 @@ bool prefix(const char *pref, const char *str)
 	for (; (*pref) && (*pref == *str); pref++, str++);
 	
 	return (*pref == '\0');
+}
+
+
+/** Safely open a file
+ *
+ * "Safe" means that an error message is displayed when the file could
+ * not be opened.
+ *
+ * @param fd       File descriptor
+ * @param flags    Flags of open function
+ * @param filename Name of the file to open
+ *
+ * @return true if successful
+ *
+ */
+bool try_open(int *fd, int flags, const char *filename)
+{
+	*fd = open(filename, flags);
+	if (*fd == -1) {
+		io_error(filename);
+		return false;
+	}
+	
+	return true;
+}
+
+
+/** Safe file descriptor close
+ *
+ * By "safe" we mean printing an error message when the file could not be
+ * closed.
+ *
+ * @param fd       File descripton to close
+ * @param filename Name of the file used for error message
+ *
+ * @return true if successful
+ *
+ */
+bool try_close(int fd, const char *filename)
+{
+	if (close(fd)) {
+		io_error(filename);
+		return false;
+	}
+	
+	return true;
+}
+
+
+/** Close file descriptor given when I/O error occurs
+ *
+ * Does not break the program, just only write error message.
+ *
+ * @param fd       File descriptor to close
+ * @param filename Name of the file used for error message
+ *
+ */
+void try_soft_close(int fd, const char *filename)
+{
+	if (!try_close(fd, filename))
+		error(txt_file_close_err);
+}
+
+
+/** Safe lseek
+ *
+ * This is an implementation of \c lseek which displays an error message
+ * when the lseek could not be performed.
+ *
+ * @param fd       File descriptor
+ * @param offset   Offset to set
+ * @param whence   Parameter whence of the lseek function call
+ * @param filename Name of the file; used for error message displaying
+ *
+ * @return true if successful
+ *
+ */
+bool try_lseek(int fd, off_t *offset, int whence, const char *filename)
+{
+	*offset = lseek(fd, *offset, whence);
+	if (*offset == (off_t) -1) {
+		io_error(filename);
+		try_soft_close(fd, filename);
+		
+		return false;
+	}
+	
+	return true;
 }

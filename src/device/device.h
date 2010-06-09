@@ -107,15 +107,8 @@ static const char *const txt_no_more_parms	= "No more parameters allowed";
 static const char *const txt_not_en_mem		= "Not enough memory for device inicialization";
 static const char *const txt_intnum_expected	= "Interrupt number expected";
 static const char *const txt_intnum_range	= "Interrupt number out of range 0..6";
-static const char *const txt_file_open_err	= "Could not open file";
 static const char *const txt_cmd_expected	= "Command expected";
-static const char *const txt_file_read_err	= "Could not read file";
-static const char *const txt_file_close_err	= "Could not close file";
-static const char *const txt_filename_expected	= "File name expected";
-static const char *const txt_file_create_err	= "Could not create file";
-static const char *const txt_file_write_err	= "Could not write to file";
 static const char *const txt_unknown_cmd	= "Unknown command";
-static const char *const txt_file_seek_err	= "Could not seek in the file";
 
 /* 
  * Functions on device structures

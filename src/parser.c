@@ -359,13 +359,12 @@ static void parse_g_next(const char **s, g_token_s *t)
 static char *mstrndup(const char *s, size_t max)
 {
 	size_t len;
-	char *r;
 
 	PRE(s != NULL);
 
 	for (len = 0; (s[len]) && (len < max); len++);
 	
-	r = safe_malloc(len + 1);
+	char *r = (char *) safe_malloc(len + 1);
 	memcpy(r, s, len);
 	r[len] = '\0';
 
@@ -705,11 +704,9 @@ char *parm_next_str(parm_link_s **parm)
  */
 bool parm_insert_int(parm_link_s *pl, uint32_t val)
 {
-	parm_link_s *p;
-
 	PRE(pl != NULL);
 
-	p = safe_malloc_t(token_s);
+	parm_link_s *p = (parm_link_s *) safe_malloc_t(parm_link_s);
 
 	p->token.ttype = tt_int;
 	p->token.tval.i = val;
@@ -727,11 +724,9 @@ bool parm_insert_int(parm_link_s *pl, uint32_t val)
  */
 bool parm_insert_str(parm_link_s *pl, char *s)
 {
-	parm_link_s *p;
-	
 	PRE(pl != NULL, s != NULL);
 
-	p = safe_malloc_t(token_s);
+	parm_link_s *p = (parm_link_s *) safe_malloc_t(parm_link_s);
 
 	p->token.ttype = tt_str;
 	p->token.tval.s = s;

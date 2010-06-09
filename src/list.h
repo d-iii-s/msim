@@ -53,6 +53,7 @@ extern void list_init(list_t *list);
 extern void item_init(item_t *item);
 extern void list_append(list_t *list, item_t *item);
 extern void list_remove(list_t *list, item_t *item);
+extern item_t *list_rotate(list_t *list);
 
 
 #endif

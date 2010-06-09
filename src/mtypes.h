@@ -19,9 +19,9 @@
 #define FE_READ_SETUP 2
 
 /**< Argument length */
-#define	INT8  1
+#define INT8  1
 #define INT16 2
-#define	INT32 4
+#define INT32 4
 
 /**< Exception types */
 enum exc { 

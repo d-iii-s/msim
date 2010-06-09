@@ -303,7 +303,7 @@ static int reg_imm_instr_table[32] = {
 };
 
 /* Instruction names */
-instr_text instr_names_acronym[] = {
+instr_text_t instr_names_acronym[] = {
 	/* Special names for blocks of instructions */
 	{ "_spec",   ifNONE},
 	{ "_branch", ifNONE},
@@ -651,7 +651,7 @@ static int opcode_COPx(int opc, int c)
 /** Make basic info about instruction
  *
  */
-void decode_instr(instr_info *ii)
+void decode_instr(instr_info_t *ii)
 {
 	/* Instruction name and type */
 	instr_form *opc = &instr_table[(ii->icode >> 26) & 0x3f];

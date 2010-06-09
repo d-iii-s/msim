@@ -14,7 +14,6 @@
 #include <stdbool.h>
 
 #include "debug.h"
-
 #include "../main.h"
 #include "../mtypes.h"
 #include "../cpu/instr.h"
@@ -134,16 +133,11 @@ void tlb_dump(processor_t *pr)
 		e = &(pr->tlb[i]);
 		
 		mprintf( "  %02x  %08X %08X:%-4s %d  %02x   %d %d %08X %x  %d %d %08X %1x\n",
-			i,
-			e->vpn2, e->mask,
-			get_pagemask_name((~e->mask) >> cp0_pagemask_mask_shift),
-			e->global, e->asid, 
-			e->pg[0].valid, 
-			e->pg[0].dirty, 
-			e->pg[0].pfn, e->pg[0].cohh,
-			e->pg[1].valid,
-			e->pg[1].dirty,
-			e->pg[1].pfn, e->pg[1].cohh);
+		    i, e->vpn2, e->mask,
+		    get_pagemask_name((~e->mask) >> cp0_pagemask_mask_shift),
+		    e->global, e->asid, e->pg[0].valid, e->pg[0].dirty,
+		    e->pg[0].pfn, e->pg[0].cohh, e->pg[1].valid,
+		    e->pg[1].dirty, e->pg[1].pfn, e->pg[1].cohh);
 	}
 }
 
@@ -192,11 +186,10 @@ static void cp0_dump_reg(processor_t *pr, unsigned int reg)
 		break;
 	case cp0_Wired:
 		mprintf(s,
-			cp0_wired, cp0_wired_w,	cp0_wired_res1);
+			cp0_wired, cp0_wired_w, cp0_wired_res1);
 		break;
 	case cp0_BadVAddr:
-		mprintf(s,
-			cp0_badvaddr, cp0_badvaddr_badvaddr);
+		mprintf(s, cp0_badvaddr, cp0_badvaddr_badvaddr);
 		break;
 	case cp0_Count:
 		mprintf(s,
@@ -291,7 +284,7 @@ void cp0_dump(processor_t *pr, int reg)
  *           processor-dependent (with processor number)
  *
  */
-void iview(processor_t *pr, uint32_t addr, instr_info *ii, char *regch)
+void iview(processor_t *pr, uint32_t addr, instr_info_t *ii, char *regch)
 {
 	char s_proc[16];
 	char s_iopc[16];
@@ -464,7 +457,7 @@ void iview(processor_t *pr, uint32_t addr, instr_info *ii, char *regch)
 	
 	mprintf("%-4s%s%s  %-6s%-18s%-2s%s%s%s\n",
 		s_proc, s_addr, s_iopc, 
-		instr_names_acronym[ii->opcode].instr_text, s_parm,
+		instr_names_acronym[ii->opcode].instr_text_t, s_parm,
 		s_hash, s_cmt, s_cmtx, regch);
 }
 

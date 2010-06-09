@@ -287,7 +287,7 @@ typedef struct {
 } instr_form;
 
 
-/**< Various mask and shift settings */
+/** Various mask and shift settings */
 #define TARGET_MASK   0x3ffffff
 #define TARGET_SHIFT  2
 #define TARGET_COMB   0xf0000000
@@ -327,18 +327,18 @@ typedef struct {
 	int imm;
 	int jimm;
 	int shift;
-} instr_info;
+} instr_info_t;
 
 
 typedef struct {
-	char *instr_text;
+	char *instr_text_t;
 	basic_instruction_format itype;
-} instr_text;
+} instr_text_t;
 
 
-extern instr_text instr_names_acronym[];
+extern instr_text_t instr_names_acronym[];
 
-/**< Register and coprocessor names */
+/** Register and coprocessor names */
 extern char *reg_name[][32];
 extern char *cp0_name[][32];
 extern char *cp1_name[][32];
@@ -346,7 +346,7 @@ extern char *cp2_name[][32];
 extern char *cp3_name[][32];
 
 
-/**< Convert opcode to instruction description */
-extern void decode_instr(instr_info *ii);
+/** Convert opcode to instruction description */
+extern void decode_instr(instr_info_t *ii);
 
 #endif /* INSTR_H_ */

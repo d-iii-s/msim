@@ -104,10 +104,9 @@ device_type_s dtime = {
 
 
 /** Dtime instance data structure */
-struct dtime_data_struct {
+typedef struct {
 	uint32_t addr;	/**< Dtime memory location */
-};
-
+} dtime_data_s;
 
 /** Init command implementation
  *
@@ -118,10 +117,8 @@ struct dtime_data_struct {
  */
 static bool dtime_init(parm_link_s *parm, device_s *dev)
 {
-	struct dtime_data_struct *td;
-	
 	/* Alloc the dtime structure. */
-	td = safe_malloc_t(struct dtime_data_struct);
+	dtime_data_s *td = (dtime_data_s *) safe_malloc_t(dtime_data_s);
 	dev->data = td;
 	
 	/* Inicialization */
@@ -157,7 +154,7 @@ static bool dtime_init(parm_link_s *parm, device_s *dev)
  */
 static bool dtime_info(parm_link_s *parm, device_s *dev)
 {
-	struct dtime_data_struct *td = dev->data;
+	dtime_data_s *td = (dtime_data_s *) dev->data;
 	
 	mprintf("Address\n");
 	mprintf("----------\n");
@@ -204,7 +201,7 @@ static void dtime_done(device_s *d)
  */
 static void dtime_read(processor_t *pr, device_s *dev, ptr_t addr, uint32_t *val)
 {
-	struct dtime_data_struct *od = dev->data;
+	dtime_data_s *od = (dtime_data_s *) dev->data;
 	
 	if ((addr == od->addr + REGISTER_SEC) || (addr == od->addr + REGISTER_USEC)) {
 		/* Get actual time */

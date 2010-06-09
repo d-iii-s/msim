@@ -138,10 +138,8 @@ typedef struct printer_data_s printer_data_s;
  */
 static bool dprinter_init(parm_link_s *parm, device_s *dev)
 {
-	printer_data_s *pd;
-	
 	/* The printer structure allocation */
-	pd = safe_malloc_t(printer_data_s);
+	printer_data_s *pd = (printer_data_s *) safe_malloc_t(printer_data_s);
 	dev->data = pd;
 	
 	/* Inicialization */
@@ -168,7 +166,7 @@ static bool dprinter_init(parm_link_s *parm, device_s *dev)
  */
 static bool dprinter_redir(parm_link_s *parm, device_s *dev)
 {
-	printer_data_s *pd = dev->data;
+	printer_data_s *pd = (printer_data_s *) dev->data;
 	const char *const filename = parm_str(parm);
 	FILE *new_file;
 	
@@ -201,7 +199,7 @@ static bool dprinter_redir(parm_link_s *parm, device_s *dev)
  */
 static bool dprinter_stdout(parm_link_s *parm, device_s *dev)
 {
-	printer_data_s *pd = dev->data;
+	printer_data_s *pd = (printer_data_s *) dev->data;
 
 	/* Close old ouput file if it is not stdout already */
 	if (pd->output_file != stdout) {
@@ -222,7 +220,7 @@ static bool dprinter_stdout(parm_link_s *parm, device_s *dev)
  */
 static bool dprinter_info(parm_link_s *parm, device_s *dev)
 {
-	printer_data_s *pd = dev->data;
+	printer_data_s *pd = (printer_data_s *) dev->data;
 	
 	mprintf("Address\n");
 	mprintf("----------\n");
@@ -237,7 +235,7 @@ static bool dprinter_info(parm_link_s *parm, device_s *dev)
  */
 static bool dprinter_stat(parm_link_s *parm, device_s *dev)
 {
-	printer_data_s *pd = dev->data;
+	printer_data_s *pd = (printer_data_s *) dev->data;
 	
 	mprintf("Count\n");
 	mprintf("--------------------\n");
@@ -252,7 +250,7 @@ static bool dprinter_stat(parm_link_s *parm, device_s *dev)
  */
 static void printer_done(device_s *d)
 {
-	printer_data_s *pd = d->data;
+	printer_data_s *pd = (printer_data_s *) d->data;
 
 	/* Close output file if it is not stdout */
 	if (pd->output_file != stdout) {
@@ -272,7 +270,7 @@ static void printer_done(device_s *d)
  */
 static void printer_step4(device_s *d)
 {
-	printer_data_s *pd = d->data;
+	printer_data_s *pd = (printer_data_s *) d->data;
 	
 	/* Check if flush is necesary */
 	if (pd->flush) {
@@ -287,7 +285,7 @@ static void printer_step4(device_s *d)
  */
 static void printer_write(processor_t *pr, device_s *dev, ptr_t addr, uint32_t val)
 {
-	printer_data_s *pd = dev->data;
+	printer_data_s *pd = (printer_data_s *) dev->data;
 
 	if (addr == pd->addr + REGISTER_CHAR) {
 		fprintf(pd->output_file, "%c", (char) val);

@@ -172,13 +172,13 @@ static void dcpu_step(device_s *dev);
 
 device_type_s dcpu = {
 	/* Type name */
-	id_dcpu,
-
+	.name = id_dcpu,
+	
 	/* Brief description*/
-	"MIPS R4000 processor",
-
+	.brief = "MIPS R4000 processor",
+	
 	/* Full description */
-	"MIPS R4000 processor restricted to 32 bits without FPU",
+	.full = "MIPS R4000 processor restricted to 32 bits without FPU",
 	
 	/* Functions */
 	.done  = dcpu_done,	/* done */
@@ -186,7 +186,7 @@ device_type_s dcpu = {
 	.step4 = NULL, 		/* step4 */
 	.read  = NULL,		/* read */
 	.write = NULL,		/* write */
-
+	
 	/* Commands */
 	dcpu_cmds
 };
@@ -230,7 +230,7 @@ static bool dcpu_init(parm_link_s *parm, device_s *dev)
 		return false;
 	}
 	
-	processor_t *cpu = safe_malloc_t(processor_t);
+	processor_t *cpu = (processor_t *) safe_malloc_t(processor_t);
 	processor_init(cpu, id);
 	
 	dev->data = cpu;
@@ -254,7 +254,7 @@ static bool dcpu_info(parm_link_s *parm, device_s *dev)
  */
 static bool dcpu_stat(parm_link_s *parm, device_s *dev)
 {
-	processor_t *p = dev->data;
+	processor_t *p = (processor_t *) dev->data;
 	
 	mprintf("Total cycles         In kernel space      In user space\n");
 	mprintf("-------------------- -------------------- --------------------\n");
@@ -359,7 +359,7 @@ static bool dcpu_md(parm_link_s *parm, device_s *dev)
 static bool dcpu_id(parm_link_s *parm, device_s *dev)
 {
 	enum exc res;
-	instr_info ii;
+	instr_info_t ii;
 	uint32_t addr, siz;
 	
 	addr = parm->token.tval.i & ~0x3;
@@ -400,7 +400,7 @@ static bool dcpu_rd(parm_link_s *parm, device_s *dev)
  */
 static bool dcpu_goto(parm_link_s *parm, device_s *dev)
 {
-	processor_t *pr = dev->data;
+	processor_t *pr = (processor_t *) dev->data;
 	ptr_t addr = parm->token.tval.i;
 	
 	pr->pc = addr;
@@ -415,12 +415,12 @@ static bool dcpu_goto(parm_link_s *parm, device_s *dev)
  */
 static bool dcpu_break(parm_link_s *parm, device_s *dev)
 {
-	breakpoint_t *bp = safe_malloc_t(breakpoint_t);
+	sim_breakpoint_t *bp = (sim_breakpoint_t *) safe_malloc_t(sim_breakpoint_t);
 	item_init(&bp->item);
 	bp->pc = parm->token.tval.i;
 	bp->hits = 0;
 	
-	processor_t *pr = dev->data;
+	processor_t *pr = (processor_t *) dev->data;
 	
 	list_append(&pr->bps, &bp->item);
 	
@@ -433,13 +433,13 @@ static bool dcpu_break(parm_link_s *parm, device_s *dev)
  */
 static bool dcpu_bd(parm_link_s *parm, device_s *dev)
 {
-	processor_t *pr = dev->data;
-	breakpoint_t *bp;
+	processor_t *pr = (processor_t *) dev->data;
+	sim_breakpoint_t *bp;
 	
 	mprintf("Address    Hits\n");
 	mprintf("---------- --------------------\n");
 	
-	for_each(pr->bps, bp, breakpoint_t)
+	for_each(pr->bps, bp, sim_breakpoint_t)
 		mprintf("%#010" PRIx32 " %20" PRIu64 "\n",
 			bp->pc, bp->hits);
 	
@@ -452,12 +452,12 @@ static bool dcpu_bd(parm_link_s *parm, device_s *dev)
  */
 static bool dcpu_br(parm_link_s *parm, device_s *dev)
 {
-	processor_t *pr = dev->data;
+	processor_t *pr = (processor_t *) dev->data;
 	ptr_t addr = parm->token.tval.i;
 	
 	bool fnd = false;
-	breakpoint_t *bp;
-	for_each(pr->bps, bp, breakpoint_t) {
+	sim_breakpoint_t *bp;
+	for_each(pr->bps, bp, sim_breakpoint_t) {
 		if (bp->pc == addr) {
 			list_remove(&pr->bps, &bp->item);
 			safe_free(bp);

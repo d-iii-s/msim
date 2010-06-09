@@ -108,7 +108,7 @@ typedef struct {
 	void *const func;        /* function to be called */
 } set_t;
 
-#define LAST_ENV { NULL, NULL, NULL, 0, NULL, NULL }
+#define LAST_ENV { NULL, NULL, NULL, vt_int, NULL, NULL }
 
 
 typedef bool (*set_int_f)(int);
@@ -127,7 +127,7 @@ const set_t env_set[] =	{
 		"disassembling",
 		"Disassembling features",
 		NULL,
-		0,
+		vt_int,
 		NULL,
 		NULL
 	},
@@ -189,7 +189,7 @@ const set_t env_set[] =	{
 		"debugging",
 		"Debugging features",
 		NULL,
-		0,
+		vt_int,
 		NULL,
 		NULL
 	},

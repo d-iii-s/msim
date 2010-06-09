@@ -219,7 +219,7 @@ static void mem_struct(mem_data_s *md, bool alloc)
 	/* Initialize */
 	e->start = md->start;
 	e->size = md->size;
-	e->writ = md->writeable;
+	e->writable = md->writeable;
 	e->mem = 0;
 	
 	if (alloc)
@@ -228,67 +228,6 @@ static void mem_struct(mem_data_s *md, bool alloc)
 	/* Link */
 	mem_link(e);
 }
-
-
-/** Close file safely
- *
- * On error, write error message and exit.
- *
- */
-static void try_soft_close(int fd, const char *filename)
-{
-	if (close(fd)) {
-		io_error(filename);
-		error(txt_file_close_err);
-	}
-}
-
-
-/** Safe file descriptor close
- *
- */
-static bool try_close(int fd, const char *filename)
-{
-	if (close(fd)) {
-		io_error(filename);
-		return false;
-	}
-	
-	return true;
-}
-
-
-/** Safe file open
- *
- */
-static bool try_open(int *fd, int flags, const char *filename)
-{
-	*fd = open(filename, flags);
-	if (*fd == -1) {
-		io_error(filename);
-		return false;
-	}
-	
-	return true;
-}
-
-
-/** Safe lseek
- *
- */
-static bool try_lseek(int fd, off_t *offset, int whence, const char *filename)
-{
-	*offset = lseek(fd, *offset, whence);
-	if (*offset == (off_t) -1) {
-		io_error(filename);
-		try_soft_close(fd, filename);
-		
-		return false;
-	}
-	
-	return true;
-}
-
 
 /** Safe munmap
  *
@@ -336,7 +275,7 @@ static void mem_clean_up(mem_data_s *md)
  */
 static bool mem_init(parm_link_s *parm, device_s *dev)
 {
-	mem_data_s *md = safe_malloc_t(mem_data_s);
+	mem_data_s *md = (mem_data_s *) safe_malloc_t(mem_data_s);
 	
 	/* Allocate memory structure */
 	dev->data = md;
@@ -365,7 +304,7 @@ static bool mem_init(parm_link_s *parm, device_s *dev)
  */
 static bool mem_info(parm_link_s *parm, device_s *dev)
 {
-	mem_data_s *md = dev->data;
+	mem_data_s *md = (mem_data_s *) dev->data;
 	char s[8];
 	
 	cpr_num(s, md->size);
@@ -385,7 +324,7 @@ static bool mem_info(parm_link_s *parm, device_s *dev)
  */
 static bool mem_load(parm_link_s *parm, device_s *dev)
 {
-	mem_data_s *md = dev->data;
+	mem_data_s *md = (mem_data_s *) dev->data;
 	const char *const filename = parm_str(parm);
 	
 	if (md->mem_type != MEMT_MEM) {
@@ -450,7 +389,7 @@ static bool mem_load(parm_link_s *parm, device_s *dev)
  */
 static bool mem_fill(parm_link_s *parm, device_s *dev)
 {
-	mem_data_s *md = dev->data;
+	mem_data_s *md = (mem_data_s *) dev->data;
 	const char *s;
 	char c = '\0';
 	
@@ -492,7 +431,7 @@ static bool mem_fill(parm_link_s *parm, device_s *dev)
  */
 static bool mem_fmap(parm_link_s *parm, device_s *dev)
 {
-	mem_data_s *md = dev->data;
+	mem_data_s *md = (mem_data_s *) dev->data;
 	const char *const filename = parm_str(parm);
 	int fd;
 	void *mx;
@@ -555,7 +494,7 @@ static bool mem_fmap(parm_link_s *parm, device_s *dev)
 	md->mem_type = MEMT_FMAP;
 	md->size = offset;
 	mem_struct(md, false);
-	md->me->mem = mx;
+	md->me->mem = (unsigned char *) mx;
 	
 	return true;
 }
@@ -568,7 +507,7 @@ static bool mem_fmap(parm_link_s *parm, device_s *dev)
  */
 static bool mem_generic(parm_link_s *parm, device_s *dev)
 {
-	mem_data_s *md = dev->data;
+	mem_data_s *md = (mem_data_s *) dev->data;
 	uint32_t size = parm_int(parm);
 	
 	/* Test parameter */
@@ -645,7 +584,7 @@ static bool mem_save(parm_link_s *parm, device_s *dev)
  */
 static void mem_done(device_s *d)
 {
-	mem_data_s *md = d->data;
+	mem_data_s *md = (mem_data_s *) d->data;
 	
 	mem_clean_up(md);
 	

@@ -96,26 +96,11 @@ struct device_type_s {
 extern const device_type_s *device_types[];
 
 /*
- * The most frequently messages for user.
- * Device implementation should prefer these.
- */
-static const char *const txt_devname_expected	= "Device name expected";
-static const char *const txt_duplicate_devname	= "Duplicate device name";
-static const char *const txt_devaddr_expected	= "Device address expected";
-static const char *const txt_devaddr_error	= "Device address error (4b align expected)";
-static const char *const txt_no_more_parms	= "No more parameters allowed";
-static const char *const txt_not_en_mem		= "Not enough memory for device inicialization";
-static const char *const txt_intnum_expected	= "Interrupt number expected";
-static const char *const txt_intnum_range	= "Interrupt number out of range 0..6";
-static const char *const txt_cmd_expected	= "Command expected";
-static const char *const txt_unknown_cmd	= "Unknown command";
-
-/* 
  * Functions on device structures
  */
 extern device_s *dev_by_name(const char *s);
 extern const char *dev_by_partial_typename(const char *name,
-	const device_type_s ***dt);
+    const device_type_s ***dt);
 extern const char *dev_by_partial_name(const char *name, device_s **d);
 extern int devs_by_partial_name(const char *name, device_s **d);
 extern device_s *dev_by_name(const char *s);

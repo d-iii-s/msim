@@ -19,6 +19,7 @@
 
 #include "ddisk.h"
 
+#include "../text.h"
 #include "../arch/mmap.h"
 #include "machine.h"
 #include "dcpu.h"

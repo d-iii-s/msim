@@ -17,6 +17,7 @@
 
 #include "dprinter.h"
 
+#include "../text.h"
 #include "../mtypes.h"
 #include "device.h"
 #include "../fault.h"

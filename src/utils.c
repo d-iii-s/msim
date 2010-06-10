@@ -13,18 +13,11 @@
 #include <string.h>
 #include <fcntl.h>
 
+#include "text.h"
 #include "utils.h"
 #include "fault.h"
 #include "check.h"
 #include "main.h"
-
-const char *const txt_file_open_err     = "Could not open file";
-const char *const txt_file_read_err     = "Could not read file";
-const char *const txt_file_close_err    = "Could not close file";
-const char *const txt_filename_expected = "File name expected";
-const char *const txt_file_create_err   = "Could not create file";
-const char *const txt_file_write_err    = "Could not write to file";
-const char *const txt_file_seek_err     = "Could not seek in the file";
 
 /** Safe memory allocation
  *

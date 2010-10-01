@@ -22,4 +22,4 @@ extern processor_t *dcpu_find_no(unsigned int no);
 extern void dcpu_interrupt_up(unsigned int cpuno, unsigned int no);
 extern void dcpu_interrupt_down(unsigned int cpuno, unsigned int no);
 
-#endif /* DCPU_H_ */
+#endif

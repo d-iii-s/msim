@@ -92,7 +92,7 @@ void processor_init(processor_t *pr, unsigned int procno)
 	
 	/* Inicializing internal variables */
 	pr->lladdr = (ptr_t) -1;
-	pr->llval = false;
+	pr->llbit = false;
 	
 	/* Inicializing cp0 registers */
 	pr->cp0[cp0_Config] = HARD_RESET_CONFIG;
@@ -101,7 +101,7 @@ void processor_init(processor_t *pr, unsigned int procno)
 	pr->cp0[cp0_PRId] = HARD_RESET_PROC_ID;
 	
 	/* Initial status value */
-	pr->cp0[cp0_Status] = HARD_RESET_STATUS; 
+	pr->cp0[cp0_Status] = HARD_RESET_STATUS;
 	
 	pr->cp0[cp0_Cause] = HARD_RESET_CAUSE;
 	pr->cp0[cp0_WatchLo] = HARD_RESET_WATCHLO;
@@ -1150,30 +1150,30 @@ static exc_t execute(processor_t *pr, instr_info_t *ii2)
 		break;
 	case opcLL:
 		{
-			uint32_t ll_addr; /* Target LL address */
-			uint32_t ll_val;  /* Value of the addressed mem */
+			uint32_t ll_addr;  /* Target LL address */
+			uint32_t ll_val;   /* Value of the addressed memory */
 			
 			/* Compute virtual target address
 			   and issue read operation */
-			ll_addr = rrs + ii.imm; 
+			ll_addr = rrs + ii.imm;
 			res = read_proc_mem(pr, ll_addr, BITS_32, &ll_val, true);
 			
-			if (res == excNone) {
-				/* If the read operation has been successful */
-				pr->regs[ii.rt] = ll_val; /* Store the value */
+			if (res == excNone) {  /* If the read operation has been successful */
+				/* Store the value */
+				pr->regs[ii.rt] = ll_val;
 				
 				/* Since we need physical address to track, issue the
-				   address conversion. It can't fail now */
+				   address conversion. It can't fail now. */
 				convert_addr(pr, &ll_addr, false, false);
 				
 				/* Register address for tracking. */
-				register_ll(pr);
-				pr->llval = true;
+				register_sc(pr);
+				pr->llbit = true;
 				pr->lladdr = ll_addr;
 			} else {
 				/* Invalid address; Cancel the address tracking */
-				unregister_ll(pr);
-				pr->llval = false;
+				unregister_sc(pr);
+				pr->llbit = false;
 				pr->lladdr = (uint32_t) -1;
 			}
 		}
@@ -1244,7 +1244,7 @@ static exc_t execute(processor_t *pr, instr_info_t *ii2)
 		res = write_proc_mem(pr, rrs + ii.imm, BITS_8, pr->regs[ii.rt], true);
 		break;
 	case opcSC:
-		if (!pr->llval) {
+		if (!pr->llbit) {
 			/* If we are not tracking LL-SC,
 			   then SC has to fail */
 			pr->regs[ii.rt] = 0;
@@ -1265,7 +1265,7 @@ static exc_t execute(processor_t *pr, instr_info_t *ii2)
 				   In such a case, the behaviour of SC is undefined.
 				   Let's check that. */
 				convert_addr(pr, &sc_addr, false, false);
-								
+				
 				/* sc_addr now contains physical target address */
 				if (sc_addr != pr->lladdr) {
 					/* LL and SC addresses do not match ;( */
@@ -1277,8 +1277,8 @@ static exc_t execute(processor_t *pr, instr_info_t *ii2)
 			}
 			
 			/* SC always stops LL-SC address tracking */
-			unregister_ll(pr);
-			pr->llval = false;
+			unregister_sc(pr);
+			pr->llbit = false;
 			pr->lladdr = (uint32_t) -1;
 		}
 		break;
@@ -1470,9 +1470,9 @@ static exc_t execute(processor_t *pr, instr_info_t *ii2)
 		    || (cp0_status_exl)
 		    || (cp0_status_erl)) {
 			/* ERET breaks LL-SC address tracking */
-			pr->llval = false;
+			pr->llbit = false;
 			pr->lladdr = (uint32_t) -1;
-			unregister_ll(pr);
+			unregister_sc(pr);
 			
 			/* Delay slot test */
 			if ((pr->branch) && (errors))
@@ -1865,7 +1865,7 @@ static void handle_exception(processor_t *pr, exc_t res)
 	
 	cp0_cause &= ~cp0_cause_exccode_mask;
 	cp0_cause |= res << cp0_cause_exccode_shift;
-		
+	
 	/* Exception branch control */
 	cp0_cause &= ~cp0_cause_bd_mask;
 	if (pr->branch == 1)
@@ -1897,7 +1897,7 @@ static void handle_exception(processor_t *pr, exc_t res)
 		pr->pc += EXCEPTION_OFFSET;
 	
 	pr->pc_next = pr->pc + 4;
-		
+	
 	/* Turn to kernel mode */
 	cp0_status |= cp0_status_exl_mask;
 }

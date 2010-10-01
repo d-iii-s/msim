@@ -207,7 +207,7 @@ static void cp0_dump_reg(processor_t *pr, unsigned int reg)
 		mprintf(s,
 			cp0_status,
 			cp0_status_ie, cp0_status_exl, cp0_status_erl,
-			cp0_status_ksu,	cp0_status_ux, cp0_status_sx,
+			cp0_status_ksu, cp0_status_ux, cp0_status_sx,
 			cp0_status_kx, cp0_status_im, cp0_status_de,
 			cp0_status_ce, cp0_status_ch, cp0_status_res1,
 			cp0_status_sr, cp0_status_ts, cp0_status_bev,

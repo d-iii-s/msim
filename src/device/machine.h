@@ -20,8 +20,6 @@
 
 #define DEFAULT_MEMORY_VALUE  0xffffffffUL
 
-#define MEM_AREAS  32
-
 /*
  * Memory area types
  */
@@ -33,8 +31,7 @@ typedef enum {
 } mem_type_t;
 
 typedef struct {
-	/* Area index */
-	size_t index;
+	item_t item;
 	
 	/* Memory area type */
 	mem_type_t type;
@@ -48,10 +45,10 @@ typedef struct {
 	unsigned char *data;
 } mem_area_t;
 
-typedef struct llist {
-	processor_t *p;
-	struct llist *next;
-} llist_t;
+typedef struct {
+	item_t item;
+	processor_t *cpu;
+} sc_item_t;
 
 /** Common variables */
 extern bool totrace;
@@ -62,8 +59,7 @@ extern bool version;
 
 extern int procno;
 
-extern size_t max_mem_areas;
-extern mem_area_t mem_areas[MEM_AREAS];
+extern list_t mem_areas;
 
 extern char *config_file;
 
@@ -84,7 +80,7 @@ extern bool remote_gdb_listen;
 extern bool remote_gdb_step;
 
 extern uint32_t stepping;
-extern llist_t *ll_list;
+extern list_t sc_list;
 
 extern void input_back(void);
 
@@ -97,9 +93,9 @@ extern void done_machine(void);
 extern void go_machine(void);
 extern void machine_step(void);
 
-/** ll and sc control */
-extern void register_ll(processor_t *pr);
-extern void unregister_ll(processor_t *pr);
+/** Liked Local and Store Conditional control */
+extern void register_sc(processor_t *cpu);
+extern void unregister_sc(processor_t *cpu);
 
 /** Memory access */
 extern bool mem_write(processor_t *pr, uint32_t addr, uint32_t val,
@@ -107,4 +103,4 @@ extern bool mem_write(processor_t *pr, uint32_t addr, uint32_t val,
 extern uint32_t mem_read(processor_t *pr, uint32_t addr, size_t size,
     bool protected_read);
 
-#endif /* MACHINE_H_ */
+#endif

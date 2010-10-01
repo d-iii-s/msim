@@ -391,7 +391,7 @@ parm_link_s *parm_parse(const char *s)
 		parse_g_next(&s, &gt);
 		
 		/* Allocate a new node */
-		*p = (parm_link_s *) safe_malloc_t(parm_link_s);
+		*p = safe_malloc_t(parm_link_s);
 		
 		/* Copy parameters */
 		t = &(*p)->token;
@@ -643,7 +643,7 @@ bool parm_insert_int(parm_link_s *pl, uint32_t val)
 {
 	PRE(pl != NULL);
 
-	parm_link_s *p = (parm_link_s *) safe_malloc_t(parm_link_s);
+	parm_link_s *p = safe_malloc_t(parm_link_s);
 
 	p->token.ttype = tt_int;
 	p->token.tval.i = val;
@@ -663,7 +663,7 @@ bool parm_insert_str(parm_link_s *pl, char *s)
 {
 	PRE(pl != NULL, s != NULL);
 
-	parm_link_s *p = (parm_link_s *) safe_malloc_t(parm_link_s);
+	parm_link_s *p = safe_malloc_t(parm_link_s);
 
 	p->token.ttype = tt_str;
 	p->token.tval.s = s;

@@ -11,7 +11,6 @@
 
 #include "list.h"
 
-
 /** Initialize a list
  *
  * @param list The list to initialize.
@@ -23,7 +22,6 @@ void list_init(list_t *list)
 	list->tail = NULL;
 }
 
-
 /** Initialize an item
  *
  * @param item The item to initialize.
@@ -33,7 +31,6 @@ void item_init(item_t *item)
 {
 	item->list = NULL;
 }
-
 
 /** Append an item to a list
  *
@@ -63,14 +60,13 @@ void list_append(list_t *list, item_t *item)
 	list->tail = item;
 }
 
-
 /** Remove an item from a list
  *
  * @param list The list to remove from.
  * @param item The item to remove.
  *
  */
-void list_remove (list_t *list, item_t *item)
+void list_remove(list_t *list, item_t *item)
 {
 	/* Make sure the item is a member of the list, then remove it. */
 	assert(item->list == list);
@@ -91,23 +87,3 @@ void list_remove (list_t *list, item_t *item)
 	else
 		item->next->prev = item->prev;
 }
-
-/** Rotate the list by making its head into its tail
-*
-* @param list The list to rotate.
-*
-* @return The rotated item.
-*
-*/
-item_t *list_rotate (list_t *list)
-{
-	/* 
- 	 * Simply remove and append current list head.
- 	 * Not most efficient but working nonetheless.
- 	 */
-
-	item_t *item = list->head;
-	list_remove(list, item);
-	list_append(list, item);
-	return item;
-} 

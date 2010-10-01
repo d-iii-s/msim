@@ -30,7 +30,6 @@
 #define REGISTER_LIMIT    8  /**< Register block size */
 /* \} */
 
-
 /*
  * Device commands
  */
@@ -104,7 +103,7 @@ cmd_s dorder_cmds[] = {
 	LAST_CMD
 };
 
-/**< Name of the dorder device as presented to the user */
+/** Name of the dorder device as presented to the user */
 const char id_dorder[] = "dorder";
 
 static void dorder_done(device_s *dev);
@@ -116,9 +115,10 @@ device_type_s dorder = {
 	/* Type name and description */
 	.name = id_dorder,
 	.brief = "Synchronization device",
-	.full = "The order device allows to acquire a unique processor number ("
-	"a serial number) and assert an interrupt to the specified processor"
-	"in the multiprocessor machine.",
+	.full =
+	    "The order device allows to acquire a unique processor number "
+	    "(a serial number) and assert an interrupt to the specified "
+	    "processor in the multiprocessor machine.",
 	
 	/* Functions */
 	.done = dorder_done,
@@ -129,15 +129,13 @@ device_type_s dorder = {
 	dorder_cmds
 };
 
-
 /** Dorder instance data structure */
 typedef struct {
-	uint32_t addr;		/**< Dorder address */
-	int intno;		/**< Interrupt number */
-
-	uint64_t cmds;		/**< Total number of commands */
+	uint32_t addr;  /**< Dorder address */
+	int intno;      /**< Interrupt number */
+	
+	uint64_t cmds;  /**< Total number of commands */
 } dorder_data_s;
-
 
 /** Write to the synchronisation register - generate interrupts.
  *
@@ -148,14 +146,12 @@ typedef struct {
 static void sync_up_write(dorder_data_s *od, uint32_t val)
 {
 	unsigned int i;
-
 	od->cmds++;
-
+	
 	for (i = 0; i < 32; i++, val >>= 1)
 		if (val & 1)
 			dcpu_interrupt_up(i, od->intno);
 }
-
 
 /** Write to the interrupt-down register - disable pending interrupts.
  *
@@ -166,14 +162,13 @@ static void sync_up_write(dorder_data_s *od, uint32_t val)
 static void sync_down_write(dorder_data_s *od, uint32_t val)
 {
 	unsigned int i;
-
+	
 	od->cmds++;
-
+	
 	for (i = 0; i < 32; i++, val >>= 1)
 		if (val & 1)
 			dcpu_interrupt_down(i, od->intno);
 }
-
 
 /** Init command implementation
  *

@@ -64,11 +64,9 @@ bool remote_gdb_listen = false;
 /** Indicate that the debugger has sent a step command */
 bool remote_gdb_step = false;
 
-/** Memory areass */
-size_t max_mem_areas = 0;
-mem_area_t mem_areas[MEM_AREAS];
-
-llist_t *ll_list;
+/** Memory areas */
+list_t mem_areas;
+list_t sc_list;
 
 static uint64_t msteps = 0;
 
@@ -80,7 +78,8 @@ void init_machine(void)
 	cp2name = cp2_name[ireg];
 	cp3name = cp3_name[ireg];
 	
-	ll_list = NULL;
+	list_init(&mem_areas);
+	list_init(&sc_list);
 	
 	input_init();
 	input_shadow();
@@ -204,58 +203,76 @@ void go_machine(void)
 /** Register current processor in LL-SC tracking list
  *
  */
-void register_ll(processor_t *pr)
+void register_sc(processor_t *cpu)
 {
-	llist_t *l;
-	
 	/* Ignore if already registered. */
-	if (ll_list != NULL) {
-		for (l = ll_list; l; l = l->next) {
-			if (l->p == pr)
-				return;
-		}
+	sc_item_t *sc_item;
+	
+	for_each(sc_list, sc_item, sc_item_t) {
+		if (sc_item->cpu == cpu)
+			return;
 	}
 	
-	/* Add processor to the list */
-	l = (llist_t *) safe_malloc_t(llist_t);
-	l->p = pr;
-	l->next = ll_list;
-	ll_list = l;
+	sc_item = safe_malloc_t(sc_item_t);
+	item_init(&sc_item->item);
+	sc_item->cpu = cpu;
+	list_append(&sc_list, &sc_item->item);
 }
 
 /** Remove current processor from the LL-SC tracking list
  *
  */
-void unregister_ll(processor_t *pr)
+void unregister_sc(processor_t *cpu)
 {
-	llist_t *l, *lo = NULL;
+	sc_item_t *sc_item;
 	
-	if (ll_list == NULL)
-		return;
-	
-	for (l = ll_list; l; lo = l, l = l->next) {
-		if (l->p == pr) {
-			if (lo) 
-				lo->next = l->next;
-			else
-				ll_list = l->next;
-			
-			free(l);
+	for_each(sc_list, sc_item, sc_item_t) {
+		if (sc_item->cpu == cpu) {
+			list_remove(&sc_list, &sc_item->item);
+			safe_free(sc_item);
 			break;
 		}
 	}
 }
 
-static mem_area_t* find_mem_area(ptr_t addr)
+static inline mem_area_t* find_mem_area(ptr_t addr)
 {
-	size_t i;
+	mem_area_t *area;
 	
-	for (i = 0; i < max_mem_areas; i++) {
-		ptr_t area_start = mem_areas[i].start;
-		ptr_t area_end = area_start + mem_areas[i].size;
+	for_each(mem_areas, area, mem_area_t) {
+		ptr_t area_start = area->start;
+		ptr_t area_end = area_start + area->size;
 		
 		if ((addr >= area_start) && (addr < area_end))
-			return &mem_areas[i];
+			return area;
+	}
+	
+	return NULL;
+}
+
+/** Find an activated memory breakpoint
+ *
+ * Find an activated memory breakpoint which would be hit for specified
+ * memory address and access conditions.
+ *
+ * @param addr         Address, where the breakpoint can be hit.
+ * @param access_flags Specifies the access condition, under the breakpoint
+ *                     will be hit.
+ *
+ * @return Found breakpoint structure or NULL if there is not any.
+ *
+ */
+static inline mem_breakpoint_t *memory_breakpoint_find(ptr_t addr,
+    access_t access_type)
+{
+	mem_breakpoint_t *breakpoint;
+	
+	for_each(memory_breakpoints, breakpoint, mem_breakpoint_t) {
+		if (breakpoint->addr != addr)
+			continue;
+		
+		if ((access_type & breakpoint->access_flags) != 0)
+			return breakpoint;
 	}
 	
 	return NULL;
@@ -300,10 +317,15 @@ uint32_t mem_read(processor_t *pr, ptr_t addr, size_t size,
 	}
 	
 	/* Check for memory read breakpoints */
-	if (protected_read)
-		memory_breakpoint_check_for_breakpoint(addr, ACCESS_READ);
+	if (protected_read) {
+		mem_breakpoint_t *breakpoint =
+		    memory_breakpoint_find(addr, ACCESS_READ);
+		
+		if (breakpoint != NULL)
+			memory_breakpoint_hit(breakpoint, ACCESS_READ);
+	}
 	
-	unsigned char* value_ptr = &area->data[addr - area->start];
+	unsigned char *value_ptr = &area->data[addr - area->start];
 	
 	/* Now there is correct read/write command */
 	switch (size) {
@@ -318,7 +340,6 @@ uint32_t mem_read(processor_t *pr, ptr_t addr, size_t size,
 		return DEFAULT_MEMORY_VALUE;
 	}
 }
-
 
 /** Memory write
  *
@@ -366,32 +387,34 @@ bool mem_write(processor_t *pr, uint32_t addr, uint32_t val, size_t size,
 	
 	/* Now we have the memory write command */
 	
-	/* ll control */
-	if (ll_list != 0) {
-		llist_t *l, *l2, *lo = 0;
+	/* Load Linked and Store Conditional control */
+	sc_item_t *sc_item = (sc_item_t *) sc_list.head;
+	
+	while (sc_item != NULL) {
+		processor_t *sc_cpu = sc_item->cpu;
 		
-		for (l = ll_list; l;) {
-			if (l->p->lladdr == addr) {
-				l->p->llval = false;
-				if (lo)
-					lo->next = l->next;
-				else
-					ll_list = l->next;
-				l2 = l;
-				l = l->next;
-				free(l2);
-				continue;
-			}
-			lo = l;
-			l = l->next;
-		}
+		if (sc_cpu->lladdr == addr) {
+			sc_cpu->llbit = false;
+			
+			sc_item_t *tmp = sc_item;
+			sc_item = (sc_item_t *) sc_item->item.next;
+			
+			list_remove(&sc_list, &tmp->item);
+			safe_free(tmp);
+		} else
+			sc_item = (sc_item_t *) sc_item->item.next;
 	}
 	
 	/* Check for memory write breakpoints */
-	if (protected_write)
-		memory_breakpoint_check_for_breakpoint(addr, ACCESS_WRITE);
+	if (protected_write) {
+		mem_breakpoint_t *breakpoint =
+		    memory_breakpoint_find(addr, ACCESS_WRITE);
+		
+		if (breakpoint != NULL)
+			memory_breakpoint_hit(breakpoint, ACCESS_WRITE);
+	}
 	
-	unsigned char* value_ptr = &area->data[addr - area->start];
+	unsigned char *value_ptr = &area->data[addr - area->start];
 	
 	switch (size) {
 	case BITS_8:

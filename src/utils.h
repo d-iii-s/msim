@@ -28,7 +28,7 @@
 	}
 
 #define safe_malloc_t(type) \
-	(safe_malloc(sizeof(type)))
+	((type *) safe_malloc(sizeof(type)))
 
 extern void *safe_malloc(const size_t size);
 extern char *safe_strdup(const char *str);

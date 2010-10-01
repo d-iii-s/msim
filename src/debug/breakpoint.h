@@ -60,6 +60,9 @@ typedef struct {
 	access_filter_t access_flags;
 } mem_breakpoint_t;
 
+/** List of all the memory breakpoints */
+extern list_t memory_breakpoints;
+
 /* Memory breakpoints interface */
 
 extern void memory_breakpoint_init_framework(void);
@@ -67,7 +70,7 @@ extern void memory_breakpoint_add(ptr_t address, breakpoint_kind_t kind,
     access_filter_t access_flags);
 extern bool memory_breakpoint_remove(ptr_t address);
 extern void memory_breakpoint_remove_filtered(breakpoint_filter_t filter);
-extern void memory_breakpoint_check_for_breakpoint(ptr_t address,
+extern void memory_breakpoint_hit(mem_breakpoint_t *breakpoint,
     access_t access_type);
 extern void memory_breakpoint_print_list(void);
 

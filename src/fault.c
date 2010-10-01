@@ -19,7 +19,6 @@
 #include "device/machine.h"
 #include "fault.h"
 
-
 /** Message dump to stderr
  *
  */
@@ -28,9 +27,8 @@ void error(const char *fmt, ...)
 	va_list ap;
 	
 	fflush(stdout);
-
 	fprintf(stderr, "%s: ", PACKAGE);
-
+	
 	if (!((!fmt) || (!*fmt))) {
 		va_start(ap, fmt);
 		vfprintf(stderr, fmt, ap);
@@ -40,7 +38,6 @@ void error(const char *fmt, ...)
 	fprintf(stderr, "\n");
 }
 
-
 /* Print message to stderr and exit
  *
  */
@@ -49,7 +46,7 @@ void die(int ex, const char *fmt, ...)
 	va_list ap;
 	
 	fflush(stdout);
-
+	
 	if (!((!fmt) || (!*fmt))) {
 		fprintf(stderr, "%s: ", PACKAGE);
 		
@@ -64,7 +61,6 @@ void die(int ex, const char *fmt, ...)
 	
 	exit(ex);
 }
-		
 
 void io_error(const char *filename)
 {
@@ -73,7 +69,6 @@ void io_error(const char *filename)
 	else
 		error("%s", strerror(errno));
 }
-		
 
 void io_die(int ex, const char *filename)
 {

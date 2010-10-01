@@ -559,12 +559,10 @@ enum cp0_regs {
 #define cp0_taglo    (pr->cp0[cp0_TagLo])
 #define cp0_taghi    (pr->cp0[cp0_TagHi])
 
-
-/**< cp0 Masks */
+/** cp0 Masks */
 #define cp0_SR_EXLMask 0x00000002U
 
-
-/**< TLB entity definition */
+/** TLB entity definition */
 typedef struct {
 	uint32_t pfn;     /* physical page no (shifted << 12) */
 	uint8_t cohh;     /* coherency number */
@@ -582,28 +580,28 @@ typedef struct tlb_ent {
 	struct tlb_ent *next;
 } tlb_ent;
 
-/**< Main processor structure */
+/** Main processor structure */
 typedef struct {
 	unsigned int procno;
 	
 	bool stdby;
 	
-	/* standard registers */
+	/* Standard registers */
 	uint32_t regs[32];
 	uint32_t cp0[32];
 	uint64_t fpregs[32];
 	uint32_t loreg;
 	uint32_t hireg;
 	
-	/* program counter */
+	/* Program counter */
 	ptr_t pc;
 	ptr_t pc_next;
-		
+	
 	/* TLB structures */
 	tlb_ent tlb[48];
 	tlb_ent *tlblist; /* for faster access */
 	
-	/* old registers (for debug info) */
+	/* Old registers (for debug info) */
 	uint32_t old_regs[32];
 	uint32_t old_cp0[32];
 	uint32_t old_loreg;
@@ -613,15 +611,15 @@ typedef struct {
 	unsigned int branch;
 	
 	/* LL and SC track support */
-	bool llval;     /* Track the address flag */
+	bool llbit;    /* Track the address flag */
 	ptr_t lladdr;  /* Physical tracked address */
 	
-	/* watch support */
+	/* Watch support */
 	uint64_t waddr;
 	ptr_t wexcaddr;
 	bool wpending;
 	
-	/* statistics */
+	/* Statistics */
 	uint64_t k_cycles;
 	uint64_t u_cycles;
 	uint64_t w_cycles;
@@ -635,12 +633,11 @@ typedef struct {
 	list_t bps;
 } processor_t;
 
-
-/**< Base */
+/** Base */
 extern void processor_init(processor_t *pr, unsigned int procno);
 extern void step(processor_t *pr);
 
-/**< First settings */
+/** First settings */
 extern void set_general_reg(processor_t *pr, unsigned int regno, int32_t value);
 extern void set_pc(processor_t *pr, ptr_t addr);
 extern void update_deb(processor_t *pr);
@@ -649,14 +646,14 @@ extern void update_deb(processor_t *pr);
 extern exc_t convert_addr(processor_t *pr, ptr_t *addr, bool write,
     bool fill_error_regs);
 
-/**< Reading memory */
+/** Reading memory */
 extern exc_t read_proc_mem(processor_t *pr, ptr_t addr, len_t size,
     uint32_t *value, bool h);
 extern exc_t read_proc_ins(processor_t *pr, ptr_t addr, uint32_t *value,
     bool h);
 
-/* interrupts - cause */
+/** Interrupts - cause */
 extern void proc_interrupt_up(processor_t *pr, unsigned int no);
 extern void proc_interrupt_down(processor_t *pr, unsigned int no);
 
-#endif /* PROCESSOR_H_ */
+#endif

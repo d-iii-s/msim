@@ -172,10 +172,10 @@ static void try_munmap(void *ptr, size_t size)
 	}
 }
 
-/** Clean up the memory
+/** Cleanup the memory
  *
  */
-static void mem_clean_up(mem_area_t *area)
+static void mem_cleanup(mem_area_t *area)
 {
 	switch (area->type) {
 	case MEMT_NONE:
@@ -201,11 +201,6 @@ static void mem_clean_up(mem_area_t *area)
  */
 static bool mem_init(parm_link_s *parm, device_s *dev)
 {
-	if (max_mem_areas >= MEM_AREAS) {
-		mprintf("Memory areas limit exceeded (%u)\n", MEM_AREAS);
-		return false;
-	}
-	
 	/* Initialize */
 	parm_next(&parm);
 	ptr_t start = parm_next_int(&parm);
@@ -214,16 +209,18 @@ static bool mem_init(parm_link_s *parm, device_s *dev)
 		return false;
 	}
 	
-	mem_areas[max_mem_areas].index = max_mem_areas;
-	mem_areas[max_mem_areas].type = MEMT_NONE;
-	mem_areas[max_mem_areas].writable = (dev->type->name == id_rwm);
+	mem_area_t *area = safe_malloc_t(mem_area_t);
+	item_init(&area->item);
 	
-	mem_areas[max_mem_areas].start = start;
-	mem_areas[max_mem_areas].size = 0;
-	mem_areas[max_mem_areas].data = NULL;
+	area->type = MEMT_NONE;
+	area->writable = (dev->type->name == id_rwm);
 	
-	dev->data = &mem_areas[max_mem_areas];
-	max_mem_areas++;
+	area->start = start;
+	area->size = 0;
+	area->data = NULL;
+	
+	list_append(&mem_areas, &area->item);
+	dev->data = area;
 	
 	return true;
 }
@@ -529,13 +526,10 @@ static bool mem_save(parm_link_s *parm, device_s *dev)
 static void mem_done(device_s *dev)
 {
 	mem_area_t *area = (mem_area_t *) dev->data;
-	mem_clean_up(area);
+	
+	mem_cleanup(area);
+	list_remove(&mem_areas, &area->item);
+	
+	safe_free(area);
 	safe_free(dev->name);
-	
-	/* Move areas down */
-	size_t i;
-	for (i = area->index + 1; i < max_mem_areas; i++)
-		mem_areas[i - 1] = mem_areas[i];
-	
-	max_mem_areas--;
 }

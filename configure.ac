@@ -4,7 +4,7 @@ AM_INIT_AUTOMAKE(msim, 1.3.8)
 
 AC_PROG_CC
 if test "$GCC" = "yes"; then
-	CFLAGS="-O3 -Wall -Wextra -Wno-unused-parameter -Wmissing-prototypes"
+	CFLAGS="-g -O3 -Wall -Wextra -Wno-unused-parameter -Wmissing-prototypes"
 fi
 
 AC_PROG_INSTALL

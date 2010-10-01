@@ -41,7 +41,6 @@
 #include "../device/machine.h"
 #include "gdb.h"
 
-/** List of all the memory breakpoints */
 list_t memory_breakpoints;
 
 /************************************************************************/
@@ -65,8 +64,8 @@ void memory_breakpoint_init_framework(void)
  * @return Initialized memory breakpoint structure.
  *
  */
-static mem_breakpoint_t *memory_breakpoint_init(ptr_t address, breakpoint_kind_t kind,
-    access_filter_t access_flags)
+static mem_breakpoint_t *memory_breakpoint_init(ptr_t address,
+    breakpoint_kind_t kind, access_filter_t access_flags)
 {
 	mem_breakpoint_t *breakpoint =
 	    (mem_breakpoint_t *) safe_malloc_t(mem_breakpoint_t);
@@ -165,34 +164,6 @@ void memory_breakpoint_print_list(void)
 	}
 }
 
-/** Find an activated memory breakpoint
- *
- * Find an activated memory breakpoint which would be hit for specified
- * memory address and access conditions.
- *
- * @param address      Address, where the breakpoint can be hit.
- * @param access_flags Specifies the access condition, under the breakpoint
- *                     will be hit.
- *
- * @return Found breakpoint structure or NULL, if there is not any.
- *
- */
-static mem_breakpoint_t *memory_breakpoint_find(ptr_t address,
-    access_t access_type)
-{
-	mem_breakpoint_t *breakpoint = NULL;
-	
-	for_each(memory_breakpoints, breakpoint, mem_breakpoint_t) {
-		if (breakpoint->addr != address)
-			continue;
-		
-		if ((access_type & breakpoint->access_flags) != 0)
-			return breakpoint;
-	}
-	
-	return NULL;
-}
-
 /** Fire given memory breakpoint.
  *
  * For simulator breakpoints it is printed appropriate message to console
@@ -202,8 +173,7 @@ static mem_breakpoint_t *memory_breakpoint_find(ptr_t address,
  * @param access_type Specifies type of access operation.
  *
  */
-static void memory_breakpoint_hit(mem_breakpoint_t *breakpoint,
-    access_t access_type)
+void memory_breakpoint_hit(mem_breakpoint_t *breakpoint, access_t access_type)
 {
 	PRE(breakpoint != NULL);
 	
@@ -225,24 +195,6 @@ static void memory_breakpoint_hit(mem_breakpoint_t *breakpoint,
 	default:
 		assert(false);
 	}
-}
-
-/** Search for memory breakpoint
- *
- * Search for memory breakpoint, which would be hit by specified access
- * operation on given address, and fire it.
- *
- * @param address     Address of memory, where the operation happened.
- * @param access_type Type of the memory access.
- *
- */
-void memory_breakpoint_check_for_breakpoint(ptr_t address, access_t access_type)
-{
-	mem_breakpoint_t *breakpoint =
-	    memory_breakpoint_find(address, access_type);
-	
-	if (breakpoint != NULL)
-		memory_breakpoint_hit(breakpoint, access_type);
 }
 
 /************************************************************************/

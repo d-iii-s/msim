@@ -576,11 +576,11 @@ static void gdb_cmd_step(char *data, bool step)
 	 * How is this useful?
 	 */
 	ptr_t addr;
-	int matched = sscanf(data, "%x", &address);
+	int matched = sscanf(data, "%x", &addr);
 	if (matched == 1) {
 		// TODO: Support more processors
 		processor_t *pr = dcpu_find_no(0);
-		pr->pc = address;
+		pr->pc = addr;
 	}
 	
 	remote_gdb_step = step;

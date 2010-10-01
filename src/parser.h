@@ -97,7 +97,7 @@ typedef struct {
 #define CMP_PARTIAL_HIT   2  /**< Partial hit */
 #define CMP_MULTIPLE_HIT  3  /**< Multi-hit */
 
-typedef struct {
+typedef struct parm_link_s {
 	token_s token;
 	struct parm_link_s *next;
 } parm_link_s;

@@ -376,7 +376,7 @@ static const set_t *search_variable(const char *var_name)
 static void show_help(parm_link_s *parm)
 {
 	const set_t *s;
-
+	
 	if (parm_type(parm) == tt_end) {
 		mprintf("Group                  Variable   Description\n");
 		mprintf("---------------------- ---------- ------------->\n");

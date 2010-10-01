@@ -27,16 +27,15 @@
 #include "input.h"
 #include "output.h"
 
-/**< Shared variable for tab completion */
+/** Shared variable for tab completion */
 char *par_text;
 
-/**< Is the standard input a terminal? */
+/** Is the standard input a terminal? */
 bool input_term;
 
 struct termios tio_shadow;
 struct termios tio_inter;
 struct termios tio_old;
-
 
 /** Terminal and readline initialization
  *
@@ -65,11 +64,10 @@ void input_init(void)
 #endif
 	tio_inter.c_cc[VMIN] = 1;
 	tio_inter.c_cc[VTIME] = 0;
-
+	
 	rl_readline_name = "msim";
 	rl_attempted_completion_function = msim_completion;
 }
-
 
 void input_inter(void)
 {
@@ -77,20 +75,17 @@ void input_inter(void)
 		(void) tcsetattr(0, TCSANOW, &tio_inter);
 }
 
-
 void input_shadow( void)
 {
 	if (input_term)
 		(void) tcsetattr(0, TCSANOW, &tio_shadow);
 }
 
-
 void input_back( void)
 {
 	if (input_term)
 		(void) tcsetattr(0, TCSANOW, &tio_old);
 }
-
 
 /** Generate all possible words suitable for completion
  *
@@ -100,7 +95,7 @@ char *hint_generator(const char *unused_parameter, int level)
 	static const void *data;
 	static parm_link_s *last_parameters = NULL;
 	static gen_f generator;
-
+	
 	if (level == 0) {
 		/* Find completion generator at first. */
 		parm_delete(last_parameters);
@@ -108,22 +103,21 @@ char *hint_generator(const char *unused_parameter, int level)
 		last_parameters = parm_parse(par_text);
 		if (!last_parameters)
 			return NULL;
-
+		
 		parm_check_end(last_parameters, par_text);
-
+		
 		generator = NULL;
 		data = NULL;
 		find_completion_generator(&last_parameters, &generator, &data);
-
+		
 		if (!generator)
 			return NULL;
 	}
-
+	
 	assert(generator != NULL);
-
+	
 	return generator(last_parameters, data, level);
 }
-
 
 /** Try to complete the user input
  *
@@ -131,19 +125,18 @@ char *hint_generator(const char *unused_parameter, int level)
 char **msim_completion(const char *text, int start, int end)
 {
 	char **result;
-
+	
 	par_text = (char *) safe_malloc(end + 1);
 	strncpy(par_text, rl_line_buffer, end);
 	par_text[end] = '\0';
-
+	
 	rl_attempted_completion_over = 1;
-
+	
 	result = rl_completion_matches("", hint_generator);
 	free(par_text);
-
+	
 	return result;
 }
-
 
 /** Interactive mode control
  *
@@ -153,19 +146,19 @@ void interactive_control(void)
 	char *commline;
 	
 	tobreak = false;
-
+	
 	if (reenter) {
 		mprintf("\n");
 		reenter = false;
 	}
-
+	
 	stepping = 0;
 	
 	while (interactive) {
 		input_back();
 		commline = readline("[msim] ");
 		input_shadow();
-
+		
 		if (!commline) {
 			/* User break in readline */
 			mprintf("Quit\n");
@@ -178,7 +171,7 @@ void interactive_control(void)
 			interpret(commline);
 		} else
 			interpret("s");
-
+		
 		free(commline);
 	}
 }

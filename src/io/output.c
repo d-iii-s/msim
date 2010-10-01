@@ -37,10 +37,8 @@
 #include "../parser.h"
 #include "../cline.h"
 
-
-/**< Output file descriptor */
+/** Output file descriptor */
 static FILE *output;
-
 
 /** Initialize the output management
  *
@@ -50,21 +48,19 @@ void output_init(void)
 	output = stdout;
 }
 
-
 /** Print the message on the screen
  *
  */
 void mprintf(const char *fmt, ...)
 {
 	va_list ap;
-
+	
 	PRE(fmt != NULL);
-
+	
 	va_start(ap, fmt);
 	vfprintf(output, fmt, ap);
 	va_end(ap);
 }
-
 
 /** Print the error message
  *
@@ -72,12 +68,12 @@ void mprintf(const char *fmt, ...)
 void mprintf_err(const char *fmt, ...)
 {
 	va_list ap;
-
+	
 	PRE(fmt != NULL);
-
+	
 	if (lineno != -1)
 		fprintf(output, "%d: ", lineno);
-
+	
 	va_start(ap, fmt);
 	vfprintf(output, fmt, ap);
 	va_end(ap);

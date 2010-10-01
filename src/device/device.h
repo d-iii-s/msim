@@ -28,21 +28,16 @@ typedef struct device_type_s device_type_s;
  * 
  * name		A device name given by the user. Must be unique.
  * data		A device specific pointer where internal data are stored.
- *
- * next		A pointer to the next instance. NULL at the end.
  */
 
 struct device_s {
+	item_t item;
+	
 	const device_type_s *type;
 	char *name;
 	void *data;
-
-	struct device_s *next;
-	struct device_s *next_in_step;
-	struct device_s *next_in_step4;
 };
 typedef struct device_s device_s;
-
 
 /*
  * device_type_s
@@ -59,10 +54,10 @@ typedef struct device_s device_s;
  * step		Called every machine cycle.
  * step4	Called every 4096th machine cycle.
  * read		Called while memory read command is out of memory. Device
- * 		shuld test addr if it is relevat.
+ * 		should test addr if it is relevant.
  * write	Called when write memory command is out of memory. Device
  * 		should test addr param.
- * cmds		An array of commands supportred by the device. Have a look
+ * cmds		An array of commands supported by the device. Have a look
  * 		at the device_cmd_struct structure for more information.
  * 		The last command should be the LAST_CMS macro.
  *
@@ -83,32 +78,36 @@ struct device_type_s {
 	const cmd_s *const cmds;
 };
 
+typedef enum {
+	DEVICE_FILTER_ALL,
+	DEVICE_FILTER_STEP,
+	DEVICE_FILTER_STEP4,
+	DEVICE_FILTER_MEMORY,
+	DEVICE_FILTER_PROCESSOR,
+} device_filter_t;
+
 /*
  * LAST_CMD is used in device sources to determine the last command. That's
  * only a null-command with all NULL parameters.
  */
 #define LAST_CMD { NULL, NULL, NULL, 0, NULL, NULL, NULL }
 
-
-/*
- * Device list is an array of all device types within sources.
- */
-extern const device_type_s *device_types[];
+extern void dev_init_framework(void);
 
 /*
  * Functions on device structures
  */
+extern device_s *alloc_device(const char *type_string,
+    const char *device_name);
 extern device_s *dev_by_name(const char *s);
-extern const char *dev_by_partial_typename(const char *name,
-    const device_type_s ***dt);
-extern const char *dev_by_partial_name(const char *name, device_s **d);
-extern int devs_by_partial_name(const char *name, device_s **d);
+extern const char *dev_type_by_partial_name(const char *prefix_name,
+    uint32_t* device_order);
+extern const char *dev_by_partial_name(const char *prefix_name,
+    device_s **device);
+extern size_t dev_count_by_partial_name(const char *prefix_name,
+    device_s **device);
 extern device_s *dev_by_name(const char *s);
-extern bool dev_map(void *data, bool (*f)(void *, device_s *));
-extern bool dev_next(device_s **d);
-extern bool dev_next_in_step(device_s **d);
-extern bool dev_next_in_step4(device_s **d);
-extern void cpr_num(char *s, uint32_t i);
+extern bool dev_next(device_s **device, device_filter_t filter);
 
 /*
  * Link/unlink device functions
@@ -120,12 +119,7 @@ extern void dev_remove(device_s *d);
  * General utils
  */
 extern bool dev_generic_help(parm_link_s *parm, device_s *dev);
-extern void find_dev_gen(parm_link_s **pl, const device_s *d,
-	gen_f *generator, const void **data);
-
-/*
- * Often used tests
- */
-extern bool addr_word_aligned(uint32_t addr);
+extern void dev_find_generator(parm_link_s **pl, const device_s *d,
+    gen_f *generator, const void **data);
 
 #endif /* DEVICE_H_ */

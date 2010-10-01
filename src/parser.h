@@ -36,15 +36,14 @@ enum token_enum {
 	tt_err_overflow
 };
 
-struct token_s {
+typedef struct {
 	enum token_enum ttype;
-
+	
 	union {
 		uint32_t i;
 		char *s;
 	} tval;
-};
-typedef struct token_s token_s;
+} token_s;
 
 
 /*
@@ -52,7 +51,7 @@ typedef struct token_s token_s;
  *
  * Parameters of a command are represented as a collection strings. Each
  * string describes one parameter, strings are separated by a null character.
- * 
+ *
  * A parameter description consists of two flags and a name. The fisrt flag
  * determines whether the parameter is required or is optional. The second
  * flag determines the type - integer, string, any type or that a specified
@@ -66,43 +65,42 @@ typedef struct token_s token_s;
  * be included at the end of a parameter list.
  */
 
-#define REQ  "r"      /**< Parameter is required */
-#define REQC 'r'
-#define OPT  "o"      /**< Parameter is optional */
-#define OPTC 'o'
+#define REQ   "r"  /**< Parameter is required */
+#define REQC  'r'
+#define OPT   "o"  /**< Parameter is optional */
+#define OPTC  'o'
 
-#define INT  "i"      /**< Integer */
-#define INTC 'i'
-#define STR  "s"      /**< String */
-#define STRC 's'
-#define VAR  "v"      /**< Any */
-#define VARC 'v'
-#define CON  "c"      /**< Constant required */
-#define CONC 'c'
+#define INT   "i"  /**< Integer */
+#define INTC  'i'
+#define STR   "s"  /**< String */
+#define STRC  's'
+#define VAR   "v"  /**< Any */
+#define VARC  'v'
+#define CON   "c"  /**< Constant required */
+#define CONC  'c'
 
-#define NEXT "\0"     /**< Mark the next parameter */
+#define NEXT  "\0"  /**< Mark the next parameter */
 
-#define NOCMD  "e"    /**< No command */
-#define NOCMDC 'e'
-#define CONT   "\0n"  /**< Do not check other params */
-#define CONTC  'n'
-#define END	   "\0e"  /**< Mo more parameter */
-#define ENDC   'e'
+#define NOCMD   "e"    /**< No command */
+#define NOCMDC  'e'
+#define CONT    "\0n"  /**< Do not check other params */
+#define CONTC   'n'
+#define END     "\0e"  /**< Mo more parameter */
+#define ENDC    'e'
 
 #define DEFAULT NULL
 
 
 /**< cmd_find return values */
-#define CMP_NH   0  /**< No hit */
-#define CMP_HIT  1	/**< Hit */
-#define CMP_PHIT 2	/**< Partial hit */
-#define CMP_MHIT 3	/**< Multi-hit */
+#define CMP_NO_HIT        0  /**< No hit */
+#define CMP_HIT           1  /**< Hit */
+#define CMP_PARTIAL_HIT   2  /**< Partial hit */
+#define CMP_MULTIPLE_HIT  3  /**< Multi-hit */
 
-struct parm_link_s {
+typedef struct {
 	token_s token;
 	struct parm_link_s *next;
-};
-typedef struct parm_link_s parm_link_s;
+} parm_link_s;
 
 extern parm_link_s pars_end;
 
@@ -114,10 +112,10 @@ typedef struct cmd_s cmd_s;
 typedef bool (*cmd_f)(parm_link_s *parm, void *data);
 typedef char *(*gen_f)(parm_link_s *pl, const void *data, int level);
 typedef void (*fgen_f)(parm_link_s **pl, const cmd_s *cmd, gen_f *generator,
-	const void **data);
+    const void **data);
 
 
-/**< Device command list */
+/** Device command list */
 struct cmd_s {
 	const char *name;   /* command name */
 	cmd_f func;         /* function which implements command */
@@ -137,7 +135,7 @@ extern void parm_delete(parm_link_s *pl);
 extern void parm_set_str(parm_link_s *pl, const char *s);
 
 extern int cmd_find(const char *cmd_name, const cmd_s *cmds,
-	const cmd_s **cmd);
+   const cmd_s **cmd);
 extern parm_link_s *parm_next(parm_link_s **pl);
 extern void parm_check_end(parm_link_s *pl, const char *input);
 
@@ -154,7 +152,7 @@ extern void parm_change_int(parm_link_s *parm, uint32_t val);
 
 extern bool cmd_run_by_spec(const cmd_s *cmd, parm_link_s *parm, void *data);
 extern bool cmd_run_by_name(const char *cmd, parm_link_s *parm,
-	const cmd_s *cmds, void *data);
+   const cmd_s *cmds, void *data);
 extern bool cmd_run_by_parm(parm_link_s *pl, const cmd_s *cmds, void *data);
 
 extern char *generator_cmd(parm_link_s *pl, const void *data, int level);

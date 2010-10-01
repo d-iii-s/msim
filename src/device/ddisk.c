@@ -376,7 +376,7 @@ static bool ddisk_info(parm_link_s *parm, device_s *dev)
 	char s[16];
 	const char *st = "*";
 
-	cpr_num(s, dd->size);
+	convert_size32_to_readable_string(s, dd->size);
 	switch (dd->disk_type) {
 	case DISKT_NONE:
 		st = "uninitialized";
@@ -814,7 +814,7 @@ static void ddisk_step(device_s *d)
 		}
 	} else if (dd->action == ACTION_WRITE) { /* Writting */
 		uint32_t val;
-		val = mem_read(NULL, dd->disk_wptr, INT32);
+		val = mem_read(NULL, dd->disk_wptr, INT32, true);
 		dd->img[dd->secno * 128 + dd->cnt] = val;
 		
 		dd->disk_wptr += 4; /* Next word */

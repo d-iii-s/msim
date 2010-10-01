@@ -13,6 +13,7 @@
 #include <stdbool.h>
 #include <stdio.h>
 #include <string.h>
+#include <assert.h>
 
 #include <readline/readline.h>
 #include <readline/history.h>
@@ -94,31 +95,33 @@ void input_back( void)
 /** Generate all possible words suitable for completion
  *
  */
-char *hint_generator(const char *input, int level)
+char *hint_generator(const char *unused_parameter, int level)
 {
-	char *s;
 	static const void *data;
-	static parm_link_s *pl = NULL;
+	static parm_link_s *last_parameters = NULL;
 	static gen_f generator;
 
 	if (level == 0) {
-		parm_delete(pl);
-		pl = parm_parse(par_text);
-		if (!pl)
+		/* Find completion generator at first. */
+		parm_delete(last_parameters);
+		
+		last_parameters = parm_parse(par_text);
+		if (!last_parameters)
 			return NULL;
-		parm_check_end(pl, par_text);
-		generator = NULL;
 
+		parm_check_end(last_parameters, par_text);
+
+		generator = NULL;
 		data = NULL;
-		find_system_generator(&pl, &generator, &data);
+		find_completion_generator(&last_parameters, &generator, &data);
 
 		if (!generator)
 			return NULL;
 	}
 
-	s = generator(pl, data, level);
+	assert(generator != NULL);
 
-	return s;
+	return generator(last_parameters, data, level);
 }
 
 

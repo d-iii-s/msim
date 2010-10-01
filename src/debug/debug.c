@@ -541,75 +541,34 @@ void modified_regs_dump(processor_t *pr, size_t size, char *sx)
 }
 
 
-static void dbg_dev_infodev(device_s *dev)
+void dbg_print_device_info(device_s *dev)
 {
 	mprintf("%-10s %-10s ", dev->name, dev->type->name);
 	cmd_run_by_name("info", &pars_end, dev->type->cmds, dev);
 }
 
-
-/** Memory structure dump
- *
- */
-void dbg_msd_dump(void)
-{
-	device_s *dev = NULL;
-	
-	printf("[  name  ] [  type  ] [ parameters...\n");
-	
-	if (dev_next(&dev)) {
-		do {
-			if ((dev->type->name == id_rom) || (dev->type->name == id_rwm))
-				dbg_dev_infodev(dev);
-		} while (dev_next(&dev));
-	} else
-		printf("-- no memory --\n");
-}
-
-
-/** Device dump
- *
- */
-void dbg_dev_dump(void)
-{
-	device_s *dev = NULL;
-	
-	mprintf("[  name  ] [  type  ] [ parameters...\n");
-	
-	if (dev_next(&dev)) {
-		do {
-			dbg_dev_infodev(dev);
-		} while (dev_next(&dev));
-	} else
-		printf("-- no devices --\n");
-}
-
-
 /** Show statistics for specified device
  *
  */
-static void dbg_dev_statdev(device_s *dev)
+void dbg_print_device_statistics(device_s *dev)
 {
 	mprintf("%-10s %-10s ", dev->name, dev->type->name);
 	cmd_run_by_name("stat", &pars_end, dev->type->cmds, dev);
 }
 
-
-/** Show statistics for all devices
- *
- * Implementation of the "stat" command.
- *
- */
-void dbg_dev_stat(void)
+void dbg_print_devices(const char* header, const char* nothing_msg,
+    device_filter_t filter, void (print_function) (device_s*))
 {
-	device_s *dev = NULL;
+	device_s *device = NULL;
+	bool device_found = false;
 	
-	mprintf("[  name  ] [  type  ] [ statistics...\n");
+	mprintf(header);
 	
-	if (dev_next(&dev)) {
-		do {
-			dbg_dev_statdev(dev);
-		} while (dev_next(&dev));
-	} else
-		printf( "-- no devices --\n");
+	while (dev_next(&device, filter)) {
+		device_found = true;
+		print_function(device);
+	}
+	
+	if (!device_found)
+		mprintf(nothing_msg);
 }

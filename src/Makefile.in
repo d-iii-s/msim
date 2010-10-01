@@ -8,6 +8,7 @@
 CC = @CC@
 CFLAGS = @CFLAGS@ -Wall -Wextra -Wno-unused-parameter -Wmissing-prototypes
 LIBS = @LIBS@
+TARGET = ./../bin/msim
 
 SOURCES = \
 	utils.c \
@@ -26,6 +27,7 @@ SOURCES = \
 	cpu/instr.c \
 	debug/debug.c \
 	debug/gdb.c \
+	debug/breakpoint.c \
 	device/machine.c \
 	device/mem.c \
 	device/ddisk.c \
@@ -45,7 +47,7 @@ OBJECTS := $(addsuffix .o,$(basename $(SOURCES)))
 
 .PHONY: all depend clean distclean
 
-all: msim
+all: $(TARGET)
 
 -include Makefile.depend
 
@@ -55,11 +57,11 @@ depend:
 $(OBJECTS): %.o: %.c
 	$(CC) -c $(CFLAGS) -o $@ $<
 
-msim: depend $(OBJECTS)
+$(TARGET): depend $(OBJECTS)
 	$(CC) $(CFLAGS) -o $@ $(OBJECTS) $(LIBS)
 
 clean:
-	rm -f msim $(OBJECTS) Makefile.depend
+	rm -f $(TARGET) $(OBJECTS) Makefile.depend
 
 distclean: clean
 	rm -f Makefile

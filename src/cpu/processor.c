@@ -20,6 +20,7 @@
 #include "processor.h"
 #include "../device/machine.h"
 #include "../debug/debug.h"
+#include "../debug/breakpoint.h"
 #include "../text.h"
 #include "../io/output.h"
 #include "../debug/gdb.h"
@@ -243,7 +244,7 @@ static void fill_addr_error(processor_t *pr, ptr_t addr, bool h)
 /** Search through TLB and generates apropriate exception
  *
  */
-static enum exc tlb_hit(processor_t *pr, ptr_t *addr, bool wr, bool h)
+static exc_t tlb_hit(processor_t *pr, ptr_t *addr, bool wr, bool h)
 {
 	switch (tlb_look(pr, addr, wr)) {
 	case TLBL_OK:
@@ -276,7 +277,7 @@ static enum exc tlb_hit(processor_t *pr, ptr_t *addr, bool wr, bool h)
 /** The user mode address conversion
  *
  */
-static enum exc convert_addr_user(processor_t *pr, ptr_t *addr, bool wr, bool h)
+static exc_t convert_addr_user(processor_t *pr, ptr_t *addr, bool wr, bool h)
 {
 	/* Testing 31 bit or looking to TLB */
 	if ((*addr & SBIT) != 0) {
@@ -291,7 +292,7 @@ static enum exc convert_addr_user(processor_t *pr, ptr_t *addr, bool wr, bool h)
 /** The supervisor mode address conversion
  *
  */
-static enum exc convert_addr_supervisor(processor_t *pr, ptr_t *addr, bool wr, bool h)
+static exc_t convert_addr_supervisor(processor_t *pr, ptr_t *addr, bool wr, bool h)
 {
 	if (*addr < 0x80000000) /* suseg */
 		return tlb_hit(pr, addr, wr, h);
@@ -310,7 +311,7 @@ static enum exc convert_addr_supervisor(processor_t *pr, ptr_t *addr, bool wr, b
 /** The kernel mode address conversion
  *
  */
-static enum exc convert_addr_kernel(processor_t *pr, ptr_t *addr, bool wr, bool h)
+static exc_t convert_addr_kernel(processor_t *pr, ptr_t *addr, bool wr, bool h)
 {
 	if (*addr < 0x80000000) { /* kuseg */
 		if (!cp0_status_erl)
@@ -335,7 +336,7 @@ static enum exc convert_addr_kernel(processor_t *pr, ptr_t *addr, bool wr, bool 
  *                        if the address is incorrect
  *
  */
-enum exc convert_addr(processor_t *pr, ptr_t *addr, bool write, bool fill_error_regs)
+exc_t convert_addr(processor_t *pr, ptr_t *addr, bool write, bool fill_error_regs)
 {
 	/* Testing type of translation */
 	if ((cp0_status_ksu == 2) && (!cp0_status_exl) && (!cp0_status_erl))
@@ -350,7 +351,7 @@ enum exc convert_addr(processor_t *pr, ptr_t *addr, bool write, bool fill_error_
 /** Test for correct align and fills BadVAddr if bad
  *
  */
-static enum exc mem_align_test(processor_t *pr, ptr_t addr, len_t size, bool h)
+static exc_t mem_align_test(processor_t *pr, ptr_t addr, len_t size, bool h)
 {
 	if (((size == 2) && (addr & 1)) || ((size == 4) && (addr & 3))) { 
 		fill_addr_error(pr, addr, h);
@@ -375,9 +376,9 @@ static enum exc mem_align_test(processor_t *pr, ptr_t addr, len_t size, bool h)
  * @param h     Generate exception in case of invalid operation
  *
  */
-static enum exc acc_mem(processor_t *pr, acc_mode_t mode, ptr_t addr, len_t size, uint32_t *value, bool h)
+static exc_t acc_mem(processor_t *pr, acc_mode_t mode, ptr_t addr, len_t size, uint32_t *value, bool h)
 {
-	enum exc res;
+	exc_t res;
 	
 	res = mem_align_test(pr, addr, size, h);
 	if (res == excNone) {
@@ -407,7 +408,7 @@ static enum exc acc_mem(processor_t *pr, acc_mode_t mode, ptr_t addr, len_t size
 			if (mode == AM_WRITE)
 				mem_write(pr, addr, *value, size, true);
 			else
-				*value = mem_read(pr, addr, size);
+				*value = mem_read(pr, addr, size, true);
 		}
 	}
 	
@@ -420,7 +421,8 @@ static enum exc acc_mem(processor_t *pr, acc_mode_t mode, ptr_t addr, len_t size
  * Does not change the value if an exception occurs.
  *
  */
-enum exc read_proc_mem(processor_t *pr, ptr_t addr, len_t size, uint32_t *value, bool h)
+exc_t read_proc_mem(processor_t *pr, ptr_t addr, len_t size, uint32_t *value,
+    bool h)
 {
 	switch (acc_mem(pr, AM_READ, addr, size, value, h)) {
 	case excAddrError:
@@ -446,7 +448,8 @@ enum exc read_proc_mem(processor_t *pr, ptr_t addr, len_t size, uint32_t *value,
  * the WATCH exception.
  *
  */
-static enum exc fetch_proc_mem(processor_t *pr, ptr_t addr, len_t size, uint32_t *value, bool h)
+static exc_t fetch_proc_mem(processor_t *pr, ptr_t addr, len_t size,
+    uint32_t *value, bool h)
 {
 	switch (acc_mem(pr, AM_FETCH, addr, size, value, h)) {
 	case excAddrError:
@@ -466,7 +469,8 @@ static enum exc fetch_proc_mem(processor_t *pr, ptr_t addr, len_t size, uint32_t
 /** Perform the write operation to the virtual memory
  *
  */
-static enum exc write_proc_mem(processor_t *pr, ptr_t addr, len_t size, uint32_t value, bool h)
+static exc_t write_proc_mem(processor_t *pr, ptr_t addr, len_t size,
+    uint32_t value, bool h)
 { 
 	switch (acc_mem(pr, AM_WRITE, addr, size, &value, h)) {
 	case excAddrError:
@@ -493,9 +497,9 @@ static enum exc write_proc_mem(processor_t *pr, ptr_t addr, len_t size, uint32_t
 /** Read an instruction
  *
  */
-enum exc read_proc_ins(processor_t *pr, ptr_t addr, uint32_t *value, bool h)
+exc_t read_proc_ins(processor_t *pr, ptr_t addr, uint32_t *value, bool h)
 {
-	enum exc res = fetch_proc_mem(pr, addr, INT32, value, h);
+	exc_t res = fetch_proc_mem(pr, addr, INT32, value, h);
 	if ((res != excNone) && (pr->branch == 0))
 		pr->excaddr = pr->pc;
 	
@@ -578,7 +582,7 @@ static void multiply(processor_t *pr, uint32_t a, uint32_t b, bool sig)
  *
  * The entry is determined by either the random register (TLBWR) or index (TLBWI)
  */
-static void TLBW(processor_t *pr, bool random, enum exc *res)
+static void TLBW(processor_t *pr, bool random, exc_t *res)
 {
 	if ((cp0_status_cu0 == 1)
 	    || ((cp0_status_ksu == 0)
@@ -622,10 +626,10 @@ static void TLBW(processor_t *pr, bool random, enum exc *res)
  * A really huge one, isn't it.
  *
  */
-static enum exc execute(processor_t *pr, instr_info_t *ii2)
+static exc_t execute(processor_t *pr, instr_info_t *ii2)
 {
 	instr_info_t ii = *ii2;
-	enum exc res = excNone;
+	exc_t res = excNone;
 	uint32_t pca = pr->pc_next + 4;
 	int32_t rrs = pr->regs[ii.rs];
 	int32_t rrt = pr->regs[ii.rt];
@@ -1843,7 +1847,7 @@ static enum exc execute(processor_t *pr, instr_info_t *ii2)
 /** Change the processor state according to the exception type
  *
  */
-static void handle_exception(processor_t *pr, enum exc res)
+static void handle_exception(processor_t *pr, exc_t res)
 {
 	bool tlb_refill = false;
 	
@@ -1905,7 +1909,7 @@ static void handle_exception(processor_t *pr, enum exc res)
 /** React on interrupt requests, updates internal timer, random register
  *
  */
-static void manage(processor_t *pr, enum exc res)
+static void manage(processor_t *pr, exc_t res)
 {
 	/* Test for interrupt request */
 	if ((res == excNone)
@@ -1942,7 +1946,7 @@ static void manage(processor_t *pr, enum exc res)
  * debug output.
  *
  */
-static void instruction(processor_t *pr, enum exc *res)
+static void instruction(processor_t *pr, exc_t *res)
 {
 	instr_info_t ii;
 	
@@ -1978,28 +1982,8 @@ static void instruction(processor_t *pr, enum exc *res)
  */
 void step(processor_t *pr)
 {
-	enum exc res = excNone;
+	exc_t res = excNone;
 	
-	/* Check for debugger breakpoints */
-	debug_breakpoint_t *debug_breakpoint = NULL;
-	for_each(debugger_breakpoints, debug_breakpoint, debug_breakpoint_t) {
-		if (debug_breakpoint->pc == pr->pc) {
-			gdb_handle_event(GDB_EVENT_BREAKPOINT);
-			break;
-		}
-	}
-
-	/* Check for code breakpoints */
-	sim_breakpoint_t *bp;
-	for_each(pr->bps, bp, sim_breakpoint_t) {
-		if (bp->pc == pr->pc) {
-			mprintf("\nDebug: Hit breakpoint at %08x\n\n", bp->pc);
-			bp->hits++;
-			interactive = true;
-			break;
-		}
-	}
-
 	/* Instruction execute */
 	if (!pr->stdby)
 		instruction(pr, &res);

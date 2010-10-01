@@ -24,7 +24,7 @@
 #define INT32 4
 
 /**< Exception types */
-enum exc { 
+typedef enum { 
 	excInt   = 0,
 	excMod   = 1,
 	excTLBL  = 2,
@@ -54,10 +54,15 @@ enum exc {
 	excAddrError,
 	excTLB,
 	excReset
-};
+} exc_t;
 
 /**< Addressing and length types */
 typedef uint32_t ptr_t;
 typedef uint32_t len_t;
+
+typedef union {
+	uint8_t uint8[4];
+	uint32_t uint32;
+} union32_t;
 
 #endif /* MTYPES_H_ */

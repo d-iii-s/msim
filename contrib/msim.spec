@@ -1,12 +1,12 @@
 Summary: A virtual machine simulator based on a MIPS R4000 processor
 Name: msim
-Version: 1.3.7.1
+Version: 1.3.8
 Release: 1%{?dist}
 License: GPLv2+
 Group: Development/Tools
 URL: http://d3s.mff.cuni.cz/~holub/sw/msim/
-
 Source: http://d3s.mff.cuni.cz/~holub/sw/msim/msim-%{version}.tar.bz2
+Requires: readline
 
 BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
 BuildRequires: readline-devel
@@ -34,7 +34,7 @@ rm -rf $RPM_BUILD_ROOT
 
 mkdir -p $RPM_BUILD_ROOT%{_bindir}/
 mkdir -p $RPM_BUILD_ROOT%{pkgdocdir}/
-install -m 0755 src/msim $RPM_BUILD_ROOT%{_bindir}/
+install -m 0755 bin/msim $RPM_BUILD_ROOT%{_bindir}/
 install -m 0644 -t $RPM_BUILD_ROOT%{pkgdocdir}/ doc/reference.html doc/default.css
 
 %clean
@@ -46,5 +46,8 @@ rm -rf $RPM_BUILD_ROOT
 %{_bindir}/msim
 
 %changelog
+* Thu Sep 30 2010 Martin Decky <decky@dsrg.mff.cuni.cz> - 1.3.8
+- Bump to 1.3.8
+
 * Thu Nov 02 2009 Martin Decky <decky@dsrg.mff.cuni.cz> - 1.3.7.1
 - Initial spec file

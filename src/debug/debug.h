@@ -18,6 +18,7 @@
 
 #include "../cpu/instr.h"
 #include "../cpu/processor.h"
+#include "../device/device.h"
 
 extern bool dump_addr;
 extern bool dump_instr;
@@ -29,8 +30,10 @@ extern void cp0_dump(processor_t *pr, int reg);
 extern void iview(processor_t *pr, ptr_t addr, instr_info_t *ii, char *regch);
 extern void modified_regs_dump(processor_t *pr, size_t size, char *sx);
 
-extern void dbg_dev_dump(void);
-extern void dbg_dev_stat(void);
-extern void dbg_msd_dump(void);
+extern void dbg_print_devices(const char* header, const char* nothing_msg,
+    device_filter_t filter, void (print_function) (device_s*));
+
+extern void dbg_print_device_info(device_s *dev);
+extern void dbg_print_device_statistics(device_s *dev);
 
 #endif /* DEBUG_H_ */

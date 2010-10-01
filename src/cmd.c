@@ -26,6 +26,7 @@
 #include "device/device.h"
 #include "device/machine.h"
 #include "debug/debug.h"
+#include "debug/breakpoint.h"
 #include "fault.h"
 #include "io/output.h"
 #include "utils.h"
@@ -189,7 +190,7 @@ static cmd_s system_cmds[] = {
 		NOCMD
 	},
 	{
-		"step/s",
+		"step",
 		system_step,
 		DEFAULT,
 		DEFAULT,
@@ -228,48 +229,6 @@ static cmd_s system_cmds[] = {
 	},
 	LAST_CMD
 };
-
-
-/** Searches for device type and allocates device structure
- *
- */
-static device_s *alloc_device(const char *dtype, const char *dname)
-{
-	device_s *dev;
-	const device_type_s **type;
-
-	/* Search for device type */
-	for (type = device_types; *type; type++)
-		if (!strcmp(dtype, (*type)->name))
-			break;
-
-	if (!*type) {
-		intr_error("Unknown device type");
-		return NULL;
-	}
-
-	/* Allocate a new instance */
-	dev = (device_s *) malloc(sizeof(*dev));
-	if (!dev) {
-		intr_error("Not enough memory to allocate device");
-		return NULL;
-	}
-
-	/* Inicialization */
-	dev->type = *type;
-	dev->name = safe_strdup(dname);
-	dev->data = NULL;
-	dev->next = NULL;
-
-	if (!dev->name) {
-		free(dev);
-		intr_error("Not enough memory to allocate device name");
-		return NULL;
-	}
-	
-	return dev;
-}
-
 
 /** Add command implementation
  * 
@@ -386,7 +345,7 @@ static bool system_id(parm_link_s *pl, void *data)
 	
 	for (; cnt > 0; addr += 4, cnt--) {
 		instr_info_t ii;
-		ii.icode = mem_read(NULL, addr, INT32);
+		ii.icode = mem_read(NULL, addr, INT32, false);
 		decode_instr(&ii);
 		iview(NULL, addr, &ii, 0);
 	}
@@ -402,7 +361,8 @@ static bool system_id(parm_link_s *pl, void *data)
  */
 static bool system_dd(parm_link_s *pl, void *data)
 {
-	dbg_dev_dump();
+	dbg_print_devices("[  name  ] [  type  ] [ parameters...\n", "-- no devices --\n", 
+	    DEVICE_FILTER_ALL, dbg_print_device_info);
 	return true;
 }
 
@@ -414,7 +374,8 @@ static bool system_dd(parm_link_s *pl, void *data)
  */
 static bool system_mbd(parm_link_s *pl, void *data)
 {
-	dbg_msd_dump();
+	dbg_print_devices("[  name  ] [  type  ] [ parameters...\n", "-- no memory --\n", 
+	    DEVICE_FILTER_MEMORY, dbg_print_device_info);
 	return true;
 }
 
@@ -424,28 +385,22 @@ static bool system_mbd(parm_link_s *pl, void *data)
  */
 static bool system_break(parm_link_s *pl, void *data)
 {
-	mem_breakpoint_t *mem_bp = (mem_breakpoint_t *) safe_malloc_t(mem_breakpoint_t);
-	item_init(&mem_bp->item);
-	mem_bp->addr = pl->token.tval.i;
-	mem_bp->hits = 0;
-	mem_bp->rd = false;
-	mem_bp->wr = false;
-	
 	char *rw = pl->next->token.tval.s;
-	size_t i = 0;
-
-	while (rw[i] != 0) {
-		
-		if (rw[i] == 'r')
-			mem_bp->rd = true;
-		
-		if (rw[i] == 'w')
-			mem_bp->wr = true;
-		
-		i++;
+	access_filter_t access_flags = ACCESS_FILTER_NONE;
+	
+	if (strchr(rw, 'r') != NULL)
+		access_flags |= ACCESS_READ;
+	
+	if (strchr(rw, 'w') != NULL)
+		access_flags |= ACCESS_WRITE;
+	
+	if (access_flags == ACCESS_FILTER_NONE) {
+		mprintf("Read or write access must be specified.\n");
+		return false;
 	}
 	
-	list_append(&mem_bps, &mem_bp->item);
+	ptr_t address = pl->token.tval.i; 
+	memory_breakpoint_add(address, BREAKPOINT_KIND_SIMULATOR, access_flags);
 	
 	return true;
 }
@@ -455,18 +410,8 @@ static bool system_break(parm_link_s *pl, void *data)
  *
  */
 static bool system_bd(parm_link_s *pl, void *data)
-{
-	mem_breakpoint_t *mem_bp;
-	
-	mprintf("Address    Mode Hits\n");
-	mprintf("---------- ---- --------------------\n");
-	
-	for_each(mem_bps, mem_bp, mem_breakpoint_t)
-		mprintf("%#010" PRIx32 " %c%c   %20" PRIu64 "\n",
-			mem_bp->addr,
-			mem_bp->rd ? 'r' : '-', mem_bp->wr ? 'w' : '-',
-			mem_bp->hits);
-	
+{	
+	memory_breakpoint_print_list();
 	return true;
 }
 
@@ -476,21 +421,12 @@ static bool system_bd(parm_link_s *pl, void *data)
  */
 static bool system_br(parm_link_s *pl, void *data)
 {
-	ptr_t addr = pl->token.tval.i;
+	ptr_t address = pl->token.tval.i;
 	
-	bool fnd = false;
-	mem_breakpoint_t *mem_bp;
-	for_each(mem_bps, mem_bp, mem_breakpoint_t) {
-		if (mem_bp->addr == addr) {
-			list_remove(&mem_bps, &mem_bp->item);
-			safe_free(mem_bp);
-			fnd = true;
-			break;
-		}
-	}
-	
-	if (!fnd)
+	if (!memory_breakpoint_remove(address)) {
 		mprintf("Unknown breakpoint\n");
+		return false;
+	}
 	
 	return true;
 }
@@ -503,7 +439,8 @@ static bool system_br(parm_link_s *pl, void *data)
  */
 static bool system_stat(parm_link_s *pl, void *data)
 {
-	dbg_dev_stat();
+	dbg_print_devices("[  name  ] [  type  ] [ statistics...\n", "-- no devices --\n", 
+	    DEVICE_FILTER_ALL, dbg_print_device_statistics);
 	return true;
 }
 
@@ -523,7 +460,7 @@ static bool system_md(parm_link_s *pl, void *data)
 		if ((i & 0x3) == 0)
 			mprintf("  %#010" PRIx32 "    ", addr);
 		
-		uint32_t val = mem_read(NULL, addr, INT32);
+		uint32_t val = mem_read(NULL, addr, INT32, false);
 		mprintf("%08" PRIx32 " ", val);
 		
 		if ((i & 0x3) == 3)
@@ -644,11 +581,7 @@ static bool setup_apply(const char *buf)
  */
 void script(void)
 {
-	char *buf;
-	
-	buf = (char *) malloc(SETUP_BUF_SIZE);
-	if (!buf)
-		die(ERR_MEM, "Not enough memory for buffer");
+	char *buf = (char *) safe_malloc(SETUP_BUF_SIZE);
 	
 	if (!config_file) {
 		/* Checking for variable MSIMCONF */
@@ -658,35 +591,38 @@ void script(void)
 	}
 	
 	/* Opening configuration file */
-	int fd = open(config_file, O_RDONLY);
-	if (fd == -1) {
+	int fd = -1;
+	if (!try_open(&fd, O_RDONLY, config_file)) {
 		if (errno != ENOENT)
 			io_die(ERR_IO, config_file);
 		
 		interactive = true;
-	} else {
-		/* Reading configuration file */
-		ssize_t rd = read(fd, buf, SETUP_BUF_SIZE);
-		if (rd == -1) {
-			io_error(config_file);
-			if (close(fd))
-				io_error(config_file);
-			
-			die(ERR_IO, 0);
-		}
-		
-		if (rd > SETUP_BUF_SIZE)
-			rd = SETUP_BUF_SIZE;
-		buf[rd] = 0;
-		
-		if (close(fd))
-			io_die(ERR_IO, config_file);
-		
-		set_script_stage(config_file);
-		setup_apply(buf);
-		unset_script_stage();
+		free(buf);
+
+		return;
 	}
- 	
+
+	/* Reading configuration file */
+	ssize_t rd = read(fd, buf, SETUP_BUF_SIZE);
+	if (rd == -1) {
+		io_error(config_file);
+		if (close(fd))
+			io_error(config_file);
+		
+		die(ERR_IO, 0);
+	}
+	
+	if (rd > SETUP_BUF_SIZE)
+		rd = SETUP_BUF_SIZE;
+	buf[rd] = 0;
+	
+	if (close(fd))
+		io_die(ERR_IO, config_file);
+	
+	set_script_stage(config_file);
+	setup_apply(buf);
+	unset_script_stage();	
+	
 	free(buf);
 }
 
@@ -697,18 +633,18 @@ void script(void)
 static char *generator_devtype(parm_link_s *pl, const void *data, int level)
 {
 	const char *str;
-	static const device_type_s **type;
+	static uint32_t last_device_order = 0;
 
 	PRE(pl != NULL);
 	PRE((parm_type(pl) == tt_str) || (parm_type(pl) == tt_end));
 	
 	if (level == 0)
-		type = NULL;
+		last_device_order = 0;
 	
 	if (parm_type(pl) == tt_str)
-		str = dev_by_partial_typename(parm_str(pl), &type);
+		str = dev_type_by_partial_name(parm_str(pl), &last_device_order);
 	else
-		str = dev_by_partial_typename("", &type);
+		str = dev_type_by_partial_name("", &last_device_order);
 	
 	return str ? safe_strdup(str) : NULL;
 }
@@ -739,8 +675,11 @@ static char *generator_devname(parm_link_s *pl, const void *data, int level)
 
 /** Generate a list of commands and device names
  *
+ * @param unused_data Always NULL.
+ *
  */
-static char *generator_system(parm_link_s *pl, const void *data, int level)
+static char *generator_system_cmds_and_device_names(parm_link_s *pl,
+    const void *unused_data, int level)
 {
 	const char *str = NULL;
 	static enum {
@@ -775,9 +714,10 @@ static void system_add_find_generator(parm_link_s **pl, const cmd_s *cmd,
 	PRE(pl != NULL, data != NULL, generator != NULL, cmd != NULL);
 	PRE(*generator == NULL, *pl != NULL, *data == NULL);
 	
+	uint32_t first_device_order = 0;
 	if ((parm_type(*pl) == tt_str)
-		&& (dev_by_partial_typename(parm_str(*pl), NULL))
-		&& (parm_type((*pl)->next) == tt_end))
+	    && (dev_type_by_partial_name(parm_str(*pl), &first_device_order))
+	    && (parm_type((*pl)->next) == tt_end))
 		*generator = generator_devtype; 
 }
 
@@ -868,19 +808,19 @@ static void system_unset_find_generator(parm_link_s **pl, const cmd_s *cmd,
  * The command is specified by the first parameter.
  *
  */
-void find_system_generator(parm_link_s **pl, gen_f *generator,
-	const void **data)
+void find_completion_generator(parm_link_s **pl, gen_f *generator,
+    const void **data)
 {
-	parm_link_s *orig_pl;
-	int cnt;
-	device_s *dev;
+	parm_link_s *next_pl = (*pl)->next;
+	size_t devices_count;
+	device_s *last_device = NULL;
 	const cmd_s *cmd;
 	
 	PRE(pl != NULL, generator != NULL, data != NULL);
 	PRE(*pl != NULL, *generator == NULL, *data == NULL);
 
 	if (parm_type(*pl) == tt_end) {
-		*generator = generator_system;
+		*generator = generator_system_cmds_and_device_names;
 		return;
 	}
 
@@ -888,49 +828,50 @@ void find_system_generator(parm_link_s **pl, gen_f *generator,
 	if (parm_type(*pl) != tt_str)
 		return;
 
-	/* Find a command */
-	int res = cmd_find(parm_str(*pl), system_cmds + 1, &cmd);
-	switch (res) {
-	case CMP_NH: /* Unknown command - check device names */
-		dev = NULL;
-		cnt = devs_by_partial_name(parm_str(*pl), &dev);
-		
-		if (cnt == 0)
-			break;
-		else {
-			orig_pl = *pl;
-			parm_next(pl);
-			if (parm_type(*pl) == tt_end) {
-				*generator = generator_system;
-				*pl = orig_pl;
-				break;
-			} else {
-				if (cnt > 1)
-					break;
-				
-				find_dev_gen(pl, dev, generator, data);
-			}
-		}
-		break;
-	case CMP_MHIT:
-	case CMP_HIT:
-		orig_pl = *pl;
-		parm_next(pl);
-		if (parm_type(*pl) == tt_end) {
-			/* Set the default system generator */
-			*generator = generator_system; 
-			*pl = orig_pl;
-			break;
-		} else {
-			if (res == CMP_MHIT)
-				/* Input error */
-				break;
+	const char* user_text = parm_str(*pl);
 
-			/* continue to the next generator,
-			   if possible */
-			if (cmd->find_gen)
-				cmd->find_gen(pl, cmd, generator, data);
+	/* Find a command */
+	int res = cmd_find(user_text, system_cmds + 1, &cmd);
+	
+	switch (res) {
+	case CMP_NO_HIT: 
+		/*
+		 * Unknown command - check device names. 
+		 * If the user has written only the first part of the command,
+		 * then use device names completion. If there is also a second
+		 * part written and the first part leads just to one device name,
+		 * use commands for that device as completion.
+		 */
+		devices_count = dev_count_by_partial_name(user_text, &last_device);
+		
+		if (parm_type(next_pl) == tt_end) {
+			*generator = generator_system_cmds_and_device_names;
+			break;
+		} 
+
+		if (devices_count == 1) {
+			/* Not sure, if using just next_pl is sufficient */
+			*pl = (*pl)->next;
+
+			dev_find_generator(pl, last_device, generator, data);
 		}
+			
+		break;
+	case CMP_MULTIPLE_HIT:
+	case CMP_HIT:
+		if (parm_type(next_pl) == tt_end) {
+			/* Set the default system generator */
+			*generator = generator_system_cmds_and_device_names; 
+			break;
+		} 
+
+		if (res == CMP_MULTIPLE_HIT)
+			/* Input error */
+			break;
+
+		/* Continue to the next generator, if possible */
+		if (cmd->find_gen)
+			cmd->find_gen(pl, cmd, generator, data);
 		break;
 	}
 }

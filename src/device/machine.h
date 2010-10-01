@@ -46,20 +46,6 @@ typedef struct llist {
 	struct llist *next;
 } llist_t;
 
-typedef struct {
-	item_t item;
-	
-	ptr_t addr;
-	uint64_t hits;
-	bool rd;
-	bool wr;
-} mem_breakpoint_t;
-
-
-/**< Memory breakpoints */
-extern list_t mem_bps;
-
-
 /**< Common variables */
 extern bool totrace;
 extern bool tohalt;
@@ -111,7 +97,8 @@ extern void unregister_ll(processor_t *pr);
 /** Memory access */
 extern bool mem_write(processor_t *pr, uint32_t addr, uint32_t val,
     size_t size, bool protected_write);
-extern uint32_t mem_read(processor_t *pr, uint32_t addr, size_t size);
+extern uint32_t mem_read(processor_t *pr, uint32_t addr, size_t size, 
+    bool protected_read);
 
 /** Memory control */
 extern void mem_link(mem_element_s *e);

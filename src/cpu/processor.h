@@ -582,15 +582,6 @@ typedef struct tlb_ent {
 	struct tlb_ent *next;
 } tlb_ent;
 
-
-typedef struct {
-	item_t item;
-	
-	ptr_t pc;
-	uint64_t hits;
-} sim_breakpoint_t;
-
-
 /**< Main processor structure */
 typedef struct {
 	unsigned int procno;
@@ -655,11 +646,14 @@ extern void set_pc(processor_t *pr, ptr_t addr);
 extern void update_deb(processor_t *pr);
 
 /** Addresing function */
-extern enum exc convert_addr(processor_t *pr, ptr_t *addr, bool wr, bool h);
+extern exc_t convert_addr(processor_t *pr, ptr_t *addr, bool write,
+    bool fill_error_regs);
 
 /**< Reading memory */
-extern enum exc read_proc_mem(processor_t *pr, ptr_t addr, len_t size, uint32_t *value, bool h);
-extern enum exc read_proc_ins(processor_t *pr, ptr_t addr, uint32_t *value, bool h);
+extern exc_t read_proc_mem(processor_t *pr, ptr_t addr, len_t size,
+    uint32_t *value, bool h);
+extern exc_t read_proc_ins(processor_t *pr, ptr_t addr, uint32_t *value,
+    bool h);
 
 /* interrupts - cause */
 extern void proc_interrupt_up(processor_t *pr, unsigned int no);

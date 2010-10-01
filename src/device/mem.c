@@ -307,7 +307,7 @@ static bool mem_info(parm_link_s *parm, device_s *dev)
 	mem_data_s *md = (mem_data_s *) dev->data;
 	char s[8];
 	
-	cpr_num(s, md->size);
+	convert_size32_to_readable_string(s, md->size);
 	mprintf("Start      Size         Type\n");
 	mprintf("---------- ------------ ------\n");
 	mprintf("%#10" PRIx32" %12s %s\n",

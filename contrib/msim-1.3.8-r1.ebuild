@@ -16,6 +16,6 @@ src_compile() {
 }
 
 src_install() {
-	dobin src/msim
+	dobin bin/msim
 	dodoc doc/reference.html doc/default.css
 }

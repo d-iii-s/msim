@@ -18,6 +18,7 @@
 #include "device.h"
 #include "../cpu/processor.h"
 #include "../debug/debug.h"
+#include "../debug/breakpoint.h"
 #include "../io/output.h"
 #include "../utils.h"
 
@@ -44,8 +45,7 @@ static bool dcpu_br(parm_link_s *parm, device_s *dev);
 cmd_s dcpu_cmds[] = {
 	{
 		"init",
-		(cmd_f)
-		dcpu_init,
+		(cmd_f) dcpu_init,
 		DEFAULT,
 		DEFAULT,
 		"Initialization",
@@ -198,15 +198,14 @@ device_type_s dcpu = {
  *         more CPU slots available.
  *
  */
-static unsigned int cpu_get_free_id(void)
+static unsigned int dcpu_get_free_id(void)
 {
 	unsigned int c;
 	unsigned int id_mask = 0;
 	device_s *dev = NULL;
 
-	while (dev_next(&dev))
-		if (dev->type->name == id_dcpu)
-			id_mask |= 1 << ((processor_t *) dev->data)->procno;
+	while (dev_next(&dev, DEVICE_FILTER_PROCESSOR))
+		id_mask |= 1 << ((processor_t *) dev->data)->procno;
 	
 	for (c = 0; c < MAX_CPU; c++, id_mask >>= 1)
 		if (!(id_mask & 1))
@@ -223,7 +222,7 @@ static unsigned int cpu_get_free_id(void)
  */
 static bool dcpu_init(parm_link_s *parm, device_s *dev)
 {
-	unsigned int id = cpu_get_free_id();
+	unsigned int id = dcpu_get_free_id();
 	
 	if (id == MAX_CPU) {
 		mprintf("Maximum CPU count exceeded (%u)", MAX_CPU);
@@ -325,7 +324,7 @@ static bool dcpu_md(parm_link_s *parm, device_s *dev)
 {
 	int j;
 	uint32_t val, addr, siz;
-	enum exc res;
+	exc_t res;
 	
 	addr = parm->token.tval.i & ~0x3;
 	siz = parm->next->token.tval.i;
@@ -358,7 +357,7 @@ static bool dcpu_md(parm_link_s *parm, device_s *dev)
  */
 static bool dcpu_id(parm_link_s *parm, device_s *dev)
 {
-	enum exc res;
+	exc_t res;
 	instr_info_t ii;
 	uint32_t addr, siz;
 	
@@ -415,15 +414,11 @@ static bool dcpu_goto(parm_link_s *parm, device_s *dev)
  */
 static bool dcpu_break(parm_link_s *parm, device_s *dev)
 {
-	sim_breakpoint_t *bp = (sim_breakpoint_t *) safe_malloc_t(sim_breakpoint_t);
-	item_init(&bp->item);
-	bp->pc = parm->token.tval.i;
-	bp->hits = 0;
-	
+	breakpoint_t *bp = breakpoint_init(parm->token.tval.i,
+	    BREAKPOINT_KIND_SIMULATOR);
 	processor_t *pr = (processor_t *) dev->data;
 	
 	list_append(&pr->bps, &bp->item);
-	
 	return true;
 }
 
@@ -434,14 +429,18 @@ static bool dcpu_break(parm_link_s *parm, device_s *dev)
 static bool dcpu_bd(parm_link_s *parm, device_s *dev)
 {
 	processor_t *pr = (processor_t *) dev->data;
-	sim_breakpoint_t *bp;
+	breakpoint_t *bp;
 	
-	mprintf("Address    Hits\n");
-	mprintf("---------- --------------------\n");
+	mprintf("Address    Hits                 Kind\n");
+	mprintf("---------- -------------------- ----------\n");
 	
-	for_each(pr->bps, bp, sim_breakpoint_t)
-		mprintf("%#010" PRIx32 " %20" PRIu64 "\n",
-			bp->pc, bp->hits);
+	for_each(pr->bps, bp, breakpoint_t) {
+		char *kind = (bp->kind == BREAKPOINT_KIND_SIMULATOR) ? "Simulator" :
+		    "Debugger";
+		
+		mprintf("%#010" PRIx32 " %20" PRIu64 " %s\n",
+		    bp->pc, bp->hits, kind);
+	}
 	
 	return true;
 }
@@ -456,8 +455,8 @@ static bool dcpu_br(parm_link_s *parm, device_s *dev)
 	ptr_t addr = parm->token.tval.i;
 	
 	bool fnd = false;
-	sim_breakpoint_t *bp;
-	for_each(pr->bps, bp, sim_breakpoint_t) {
+	breakpoint_t *bp;
+	for_each(pr->bps, bp, breakpoint_t) {
 		if (bp->pc == addr) {
 			list_remove(&pr->bps, &bp->item);
 			safe_free(bp);
@@ -491,21 +490,22 @@ static void dcpu_step(device_s *dev)
 	step((processor_t *) dev->data);
 }
 
-processor_t *cpu_find_no(unsigned int no)
+processor_t *dcpu_find_no(unsigned int no)
 {
 	device_s *dev = NULL;
 
-	while (dev_next(&dev))
-		if (dev->type->name == id_dcpu)
-			if (((processor_t *) dev->data)->procno == no)
-				return ((processor_t *) dev->data);
+	while (dev_next(&dev, DEVICE_FILTER_PROCESSOR)) {
+		processor_t* processor = (processor_t *) dev->data;
+		if (processor->procno == no)
+			return processor;
+	}
 	
 	return NULL;
 }
 
 void dcpu_interrupt_up(unsigned int cpuno, unsigned int no)
 {
-	processor_t *pr = cpu_find_no(cpuno);
+	processor_t *pr = dcpu_find_no(cpuno);
 	
 	if (pr != NULL)
 		proc_interrupt_up(pr, no);
@@ -514,7 +514,7 @@ void dcpu_interrupt_up(unsigned int cpuno, unsigned int no)
 
 void dcpu_interrupt_down(unsigned int cpuno, unsigned int no)
 {
-	processor_t *pr = cpu_find_no(cpuno);
+	processor_t *pr = dcpu_find_no(cpuno);
 	
 	if (pr != NULL)
 		proc_interrupt_down(pr, no);

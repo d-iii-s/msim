@@ -22,14 +22,12 @@
 #include "../io/input.h"
 #include "../io/output.h"
 #include "../debug/gdb.h"
+#include "../debug/breakpoint.h"
 #include "../device/dcpu.h"
 #include "../env.h"
 #include "../check.h"
 #include "../utils.h"
 #include "../fault.h"
-
-/**< Memory breakpoints */
-list_t mem_bps;
 
 /**< Common variables */
 bool tohalt = false;
@@ -81,7 +79,7 @@ void init_machine(void)
 	cp0name = cp0_name[ireg];
 	cp1name = cp1_name[ireg];
 	cp2name = cp2_name[ireg];
-	cp3name	= cp3_name[ireg];
+	cp3name = cp3_name[ireg];
 	stepping = 0;
 	ll_list = NULL;
 	msteps = 0;
@@ -92,7 +90,8 @@ void init_machine(void)
 	input_shadow();
 	register_sigint();
 	
-	list_init(&mem_bps);
+	dev_init_framework();
+	memory_breakpoint_init_framework();
 }
 
 
@@ -126,14 +125,14 @@ void machine_step(void)
 	/* First traverse all the devices
 	   which requires processing time every step */
 	dev = NULL;
-	while (dev_next_in_step(&dev))
+	while (dev_next(&dev, DEVICE_FILTER_STEP))
 		dev->type->step(dev);
 	
 	/* Then, every 4096th cycle traverse
 	   all the devices implementing step4 function */
 	if ((msteps % 4096) == 0) {
 		dev = NULL;
-		while (dev_next_in_step4(&dev))
+		while (dev_next(&dev, DEVICE_FILTER_STEP4))
 			dev->type->step4(dev);
 	}
 }
@@ -144,7 +143,7 @@ void machine_step(void)
  *
  */
 static bool gdb_startup(void) {
-	if (cpu_find_no(0) == NULL) {
+	if (dcpu_find_no(0) == NULL) {
 		error("Cannot debug without configured processor.");
 		return false;
 	}
@@ -171,6 +170,13 @@ static bool gdb_startup(void) {
 void go_machine(void)
 {
 	while (!tohalt) {
+		/*
+		 * Check for code breakpoints. Interactive
+		 * or gdb flags will be set if a breakpoint
+		 * is hit.
+		 */
+		breakpoint_check_for_code_breakpoints();
+		
 		/*
 		 * Open connection to the debugger, if the debugging is
 		 * allowed and the connection has not been opened yet.
@@ -280,29 +286,6 @@ static mem_element_s* find_memory_region(ptr_t addr)
 	return current_region;
 }
 
-static void check_memory_breakpoints(ptr_t addr, bool read)
-{
-	/* Check for memory read breakpoints */
-	mem_breakpoint_t *mem_bp;
-	for_each(mem_bps, mem_bp, mem_breakpoint_t) {
-		if (mem_bp->addr != addr)
-			continue;
-		
-		if (read && mem_bp->rd) {
-			mprintf("\nDebug: Read from address %#10" PRIx64 "\n\n", mem_bp->addr);
-			mem_bp->hits++;
-			interactive = true;
-			break;
-		}
-		
-		if ((!read) && (mem_bp->wr)) {
-			mprintf("\nDebug: Written to address %#10" PRIx64 "\n\n", mem_bp->addr);
-			mem_bp->hits++;
-			interactive = true;
-			break;
-		}
-	}
-}
 
 /** Memory read
  *
@@ -310,19 +293,22 @@ static void check_memory_breakpoints(ptr_t addr, bool read)
  * regions, then from a device which supports reading at specified address.
  * If the address is not contained in any memory region and no device
  * manages it, the default value is returned.
- * 
- * @param pr   Processor, which wants to read
- * @param addr Address of memory to be read
- * @param size Number of bytes to read. Should be one of INT8, INT16 or INT32.
+ *
+ * @param pr             Processor which wants to read.
+ * @param addr           Address of memory to be read.
+ * @param size           Number of bytes to read. Should be one of INT8,
+ *                       INT16 or INT32.
+ * @param protected_read If true the memory breakpoints check is performed.
  *
  * @return Value in specified piece of memory trimmed to given size
  *         or the default memory value, if the address is not valid.
  *
  */
-uint32_t mem_read(processor_t *pr, ptr_t addr, size_t size)
+uint32_t mem_read(processor_t *pr, ptr_t addr, size_t size,
+    bool protected_read)
 {
 	mem_element_s *region = find_memory_region(addr);
-
+	
 	/*
 	 * No region found, try to read the value
 	 * from appropriate device or return the default value.
@@ -332,15 +318,19 @@ uint32_t mem_read(processor_t *pr, ptr_t addr, size_t size)
 		
 		/* List for each device */
 		device_s *dev = NULL;
-		while (dev_next(&dev))
+		while (dev_next(&dev, DEVICE_FILTER_ALL))
 			if (dev->type->read)
 				dev->type->read(pr, dev, addr, &val);
 		
 		return val;
 	}
 	
+	/* Check for memory read breakpoints */
+	if (protected_read)
+		memory_breakpoint_check_for_breakpoint(addr, ACCESS_READ);
+	
 	unsigned char* value_address = &region->mem[addr - region->start];
-
+	
 	/* Now there is correct read/write command */
 	switch (size) {
 	case INT8:
@@ -351,11 +341,8 @@ uint32_t mem_read(processor_t *pr, ptr_t addr, size_t size)
 		return convert_uint32_t_endian(*((uint32_t *) value_address));
 	default:
 		assert(false);
+		return DEFAULT_MEMORY_VALUE32;
 	}
-	
-	check_memory_breakpoints(addr, true);
-
-	return DEFAULT_MEMORY_VALUE32;
 }
 
 
@@ -364,12 +351,13 @@ uint32_t mem_read(processor_t *pr, ptr_t addr, size_t size)
  * Write the given data to memory at given address. At first try to find
  * a configured memory region which contains the given address. If there
  * is no such region, try to write to appropriate device.
- * 
+ *
  * @param pr              Processor, which wants to write to the memory.
  * @param addr            Address of the memory.
  * @param val             Data to be written.
- * @param size            One of INT8, INT16 or INT32. 
- * @param protected_write False to ignore writing to ROM memory. 
+ * @param size            One of INT8, INT16 or INT32.
+ * @param protected_write False to allow writing to ROM memory and ignore
+ *                        the memory breakpoints check.
  *
  * @return False, if there is no configured memory region and device for
  *         given address or the memory is ROM with protected_write parameter
@@ -380,15 +368,15 @@ bool mem_write(processor_t *pr, uint32_t addr, uint32_t val, size_t size,
     bool protected_write)
 {
 	mem_element_s *region = find_memory_region(addr);
-
+	
 	/* No region found, try to write the value to appropriate device */
 	if (region == NULL) {
-	
+		
 		/* List for each device */
 		device_s *dev = NULL;
 		bool written = false;
 		
-		while (dev_next(&dev))
+		while (dev_next(&dev, DEVICE_FILTER_ALL))
 			if (dev->type->write) {
 				dev->type->write(pr, dev, addr, val);
 				written = true;
@@ -396,13 +384,13 @@ bool mem_write(processor_t *pr, uint32_t addr, uint32_t val, size_t size,
 		
 		return written;
 	}
-
+	
 	/* Writting to ROM? */
 	if ((!region->writable) && (protected_write))
 		return false;
-
+	
 	/* Now we have the memory write command */
-
+	
 	/* ll control */
 	if (ll_list != 0) {
 		llist_t *l, *l2, *lo = 0;
@@ -423,9 +411,13 @@ bool mem_write(processor_t *pr, uint32_t addr, uint32_t val, size_t size,
 			l = l->next;
 		}
 	}
-
+	
+	/* Check for memory write breakpoints */
+	if (protected_write)
+		memory_breakpoint_check_for_breakpoint(addr, ACCESS_WRITE);
+	
 	unsigned char* value_address = &region->mem[addr - region->start];
-
+	
 	switch (size) {
 	case INT8:
 		*((uint8_t *) value_address) = convert_uint8_t_endian(val);
@@ -440,9 +432,6 @@ bool mem_write(processor_t *pr, uint32_t addr, uint32_t val, size_t size,
 		assert(false);
 	}
 	
-	/* Check for memory write breakpoints */
-	check_memory_breakpoints(addr, false);
-
 	return true;
 }
 
@@ -469,7 +458,7 @@ void mem_link(mem_element_s *e)
 void mem_unlink(mem_element_s *e)
 {
 	mem_element_s *ex = memlist, *ex2 = 0;
-
+	
 	PRE(e != NULL);
 	
 	while ((ex) && (ex != e)) {

@@ -17,6 +17,7 @@
 #include <stdarg.h>
 #include <stdbool.h>
 #include <inttypes.h>
+#include <assert.h>
 
 #include "device.h"
 
@@ -27,11 +28,16 @@
 #include "ddisk.h"
 #include "dprinter.h"
 #include "dtime.h"
+#include "../io/output.h"
 #include "../check.h"
+#include "../cline.h"
 #include "../utils.h"
 
-/* implemented pheriperal list */
-const device_type_s *device_types[] = {
+/** Count of device types */
+#define DEVICE_TYPE_COUNT  8
+
+/* Implemented peripheral list */
+const device_type_s *device_types[DEVICE_TYPE_COUNT] = {
 	&dcpu,
 	&drwm,
 	&drom,
@@ -39,207 +45,263 @@ const device_type_s *device_types[] = {
 	&dorder,
 	&dkeyboard,
 	&ddisk,
-	&dtime,
-	NULL
+	&dtime
 };
 
-
 /* List of all devices */
-device_s *device_list = NULL;
-/* List of all devices implement step command */
-device_s *device_step_list = NULL;
-/* List of all devices implement step command */
-device_s *device_step4_list = NULL;
+list_t device_list;
 
-
-/** Iterate over the list of all device
- *
- */
-bool dev_next(device_s **d)
+/** Initialize internal global variables. */
+void dev_init_framework(void)
 {
-	*d = *d ? (*d)->next : device_list;
-	return (!!*d);
+	list_init(&device_list);
 }
 
-
-/** Iterate over the list of all devices which implements step
+/** Search for device type and allocates device structure
+ *
+ * @param type_string Exact name of device type.
+ * @param device_name Name, which will be set to created device.
+ *
+ * @return Pointer to the created device. NULL, if the type string
+ *         was not specified correctly.
  *
  */
-bool dev_next_in_step(device_s **d)
+device_s *alloc_device(const char *type_string, const char *device_name)
 {
-	*d = *d ? (*d)->next_in_step : device_step_list;
-	return (!!*d);
-}
-
-
-/** Iterate over the list of all devices which implements step4
- *
- */
-bool dev_next_in_step4(device_s **d)
-{
-	*d = *d ? (*d)->next_in_step4 : device_step4_list;
-	return (!!*d);
-}
-
-
-/** Return the first device type starting with the specified name
- *
- */
-const char *dev_by_partial_typename(const char *name, const device_type_s ***dt)
-{
-	const device_type_s **d = ((dt) && (*dt)) ? *dt : &device_types[-1];
+	const device_type_s *device_type = NULL;
 	
-	if (!name)
-		name = "";
-
-	while ((*++d) && (!prefix(name, (*d)->name)));
-
-	if (dt)
-		*dt = d;
-
-	return (*d ? (*d)->name : NULL);
-}
-
-
-/** Return the first device starting with the specified name
- *
- */
-const char *dev_by_partial_name(const char *name, device_s **d)
-{
-	PRE(d != NULL);
-	
-	if (!name)
-		name = "";
-
-	while (dev_next(d))
-		if (prefix(name, (*d)->name))
+	/* Search for device type */
+	unsigned int i;
+	for (i = 0; i < DEVICE_TYPE_COUNT; i++) {
+		const device_type_s *type = device_types[i];
+		if (strcmp(type_string, type->name) == 0) {
+			device_type = type;
 			break;
-
-	return (*d ? (*d)->name : NULL);
-}
-
-
-/** Return the number of devices specified by by the specified prefix
- *
- * Return a device structure of the last founded device.
- *
- */
-int devs_by_partial_name(const char *name, device_s **d)
-{
-	int cnt = 0;
-	device_s *dx = NULL;
-
-	PRE(name != NULL, d != NULL);
-
-	while (dev_next(&dx))
-		if (prefix(name, dx->name)) {
-			cnt++;
-			*d = dx;
 		}
-
-	return cnt;
+	}
+	
+	if (device_type == NULL) {
+		intr_error("Unknown device type");
+		return NULL;
+	}
+	
+	/* Allocate a new instance */
+	device_s *device = (device_s *) safe_malloc_t(device_s);
+	
+	/* Inicialization */
+	device->type = device_type;
+	device->name = safe_strdup(device_name);
+	device->data = NULL;
+	item_init(&device->item);
+	
+	return device;
 }
 
-
-/** Test for name duplicity.
+/** Test device according to the given filter condition.
+ * 
+ * @param device Device to be tested.
+ * @param filter Condition for filtering.
+ *
+ * @return True if the given device matches to the filter.
  *
  */
-device_s *dev_by_name(const char *s)
+static bool dev_match_to_filter(device_s* device, device_filter_t filter)
 {
-	device_s *d = NULL;
-
-	while (dev_next(&d))
-		if (!strcmp(s, d->name))
-			break;
-
-	return d;
+	assert (device != NULL);
+	
+	switch (filter) {
+	case DEVICE_FILTER_ALL:
+		return true;
+	case DEVICE_FILTER_STEP:
+		return device->type->step != NULL;
+	case DEVICE_FILTER_STEP4:
+		return device->type->step4 != NULL;
+	case DEVICE_FILTER_MEMORY:
+		return (device->type->name == id_rom) || (device->type->name == id_rwm);
+	case DEVICE_FILTER_PROCESSOR:
+		return device->type->name == id_dcpu;
+	default:
+		assert(false);
+		return false;
+	}
 }
 
-
-bool dev_map(void *data, bool (*f)(void *, device_s *))
+/** Iterate over the devices specified by the given filter
+ *
+ * @param device Address of the pointer to the previous device. The
+ *               found device is returned throught this parameter.
+ *               If NULL, then there has been no previous device,
+ *               and the first device, which matches, is returned.
+ *               If there is no next device, the NULL is returned.
+ * @param filter Used to return only a special kind of devices.
+ *
+ * @return True if next device has been found.
+ *
+ */
+bool dev_next(device_s **device, device_filter_t filter)
 {
-	device_s *d = NULL;
-
-	while (dev_next(&d))
-		if (f(data, d))
+	if (*device == NULL) {
+		*device = (device_s *) device_list.head;
+	} else {
+		*device = (device_s *) (*device)->item.next;
+	}
+	
+	/* Find the first device, which matches to the filter */
+	while (*device != NULL) {
+		if (dev_match_to_filter(*device, filter))
 			return true;
-
+		
+		*device = (device_s *) (*device)->item.next;
+	}
+	
 	return false;
 }
 
-
-void cpr_num(char *s, uint32_t i)
-{
-	if (i == 0) {
-		*s = '0';
-		*(s + 1) = 0;
-	} else if ((i & 0xfffff) == 0)
-		sprintf(s, "%" PRId32 "M", i >> 20);
-	else if ((i & 0x3ff) == 0)
-		sprintf(s, "%" PRId32 "K", i >> 10);
-	else if ((i % 1000) == 0)
-		sprintf(s, "%" PRId32 "k", i / 1000);
-	else
-		sprintf(s, "%" PRId32, i);
-}
-
-
-/** Add a new device into the list of devices
+/** Return the first device type starting with the specified prefix.
  *
- * TODO
- * 	- rather add a device at the end of the list
+ * Used for getting text completion in console.
+ *
+ * @param name_prefix  First letters of the device type to be found.
+ * @param device_order Position in the device_types array from the searching
+ *                     will start. Next start position is returned throught
+ *                     this parameter. If the array was all searched the
+ *                     DEVICE_TYPE_COUNT is returned.
+ *
+ * @return Name of found searched device type or NULL, if there is not any.
  *
  */
-void dev_add(device_s *d)
+const char *dev_type_by_partial_name(const char *name_prefix,
+    uint32_t* device_order)
 {
-	/* Add to the list of all devices */
-	d->next = device_list;
-	device_list = d;
-
-	/* If the step function is implemented,
-	 * add the device to the list of step */
-	if (d->type->step) {
-		d->next_in_step = device_step_list;
-		device_step_list = d;
+	PRE(name_prefix != NULL);
+	
+	/* Search from the specified device */
+	unsigned int i;
+	for (i = *device_order; i < DEVICE_TYPE_COUNT; i++) {
+		const char *device_name = device_types[i]->name;
+		
+		if (prefix(name_prefix, device_name)) {
+			/* Move the order to the next device */
+			*device_order = i + 1;
+			return device_name;
+		}
 	}
-
-	/* If the step4 function is implemented,
-	 * add the device to the list of step4 */
-	if (d->type->step4) {
-		d->next_in_step4 = device_step4_list;
-		device_step4_list = d;
-	}
+	
+	*device_order = DEVICE_TYPE_COUNT;
+	return NULL;
 }
 
-
-/** Remove a device from the machine
+/** Return the first device starting with the specified prefix.
  *
- * TODO
- * 	- check if it is correct
- * 	- remove from the list of steps as well
+ * Used for getting text completion in console.
+ *
+ * @param prefix_name First letters of the device name to be found.
+ * @param device      Address of the pointer to the previous device. The
+ *                    found device is returned throught this parameter.
+ *                    If the device pointer is NULL, then there has been
+ *                    no previous device, and the first device, which
+ *                    matches, is returned. If there is no next device,
+ *                    the NULL is returned.
+ *
+ * @return Name of found searched device or NULL, if there is not any.
  *
  */
-void dev_remove(device_s *d)
+const char *dev_by_partial_name(const char *prefix_name, device_s **device)
 {
-	device_s *g, *gx;
-
-	if (d == device_list)
-		device_list = d->next;
-	else {
-		for (g = device_list, gx = NULL; (g) && (g != d); g = g->next)
-			gx = g;
-
-		if (g)
-			gx->next = g->next;
+	PRE(device != NULL);
+	PRE(prefix_name != NULL);
+	
+	while (dev_next(device, DEVICE_FILTER_ALL)) {
+		if (prefix(prefix_name, (*device)->name))
+			break;
 	}
+	
+	char* found_name = *device ? (*device)->name : NULL;
+	return found_name;
 }
 
+/** Return the number of devices which starts by the specified prefix
+ *
+ * @param prefix_name       First letters of the device name to be counted.
+ * @param last_found_device Pointer to the last found device is returned
+ *                          throught this parameter or NULL, if there is
+ *                          not any.
+ *
+ * @return Number of devices found.
+ *
+ */
+size_t dev_count_by_partial_name(const char *name_prefix,
+    device_s **last_found_device)
+{
+	PRE(name_prefix != NULL, last_found_device != NULL);
+	
+	size_t count = 0;
+	device_s *device = NULL;
+	
+	while (dev_next(&device, DEVICE_FILTER_ALL)) {
+		if (prefix(name_prefix, device->name)) {
+			count++;
+			*last_found_device = device;
+		}
+	}
+	
+	if (count == 0)
+		*last_found_device = NULL;
+	
+	return count;
+}
+
+/** Find device with given name
+ *
+ * @param searched_name Name of searched device.
+ *
+ * @return Pointer to the found device or NULL, if there is not any.
+ *
+ */
+device_s *dev_by_name(const char *searched_name)
+{
+	device_s *device = NULL;
+	
+	while (dev_next(&device, DEVICE_FILTER_ALL)) {
+		if (!strcmp(searched_name, device->name))
+			break;
+	}
+	
+	return device;
+}
+
+/** Add a new device to the machine.
+ *
+ * @param device Device to be added.
+ *
+ */
+void dev_add(device_s *device)
+{
+	list_append(&device_list, &device->item);
+}
+
+/** Remove a device from the machine.
+ *
+ * @param Device to be removed.
+ *
+ */
+void dev_remove(device_s *device)
+{
+	list_remove(&device_list, &device->item);
+}
 
 /** Generic help generation
  *
  * Function is designed to be used in device command specifications.
- * It is a general help generated automagically from the device command
+ * It is a general help generated automatically from the device command
  * specification.
+ *
+ * @param parm End token for printing all the device commands and
+ *             a string as a prefix of specified device command. This prefix
+ *             is expected to specify just one command.
+ * @param dev  Device determining, which commands will be printed.
+ *
+ * @return Always true.
  *
  */
 bool dev_generic_help(parm_link_s *parm, device_s *dev)
@@ -249,51 +311,55 @@ bool dev_generic_help(parm_link_s *parm, device_s *dev)
 	return true;
 }
 
-
-void find_dev_gen(parm_link_s **pl, const device_s *d,
-	gen_f *generator, const void **data)
+/** Find appropriate generator for auto completion of device commands.
+ *
+ * @param pl        Second part of text, which has been written for auto
+ *                  completion.
+ * @param dev       Device determining, which commands will be printed.
+ * @param generator This is used for returning found generator. If no generator
+ *                  is found, it remains untouched.
+ * @param data      This is used for returning data for found generator. If no
+ *                  generator is found, it remains untouched.
+ *
+ */
+void dev_find_generator(parm_link_s **pl, const device_s *d,
+    gen_f *generator, const void **data)
 {
-	int res;
 	const cmd_s *cmd;
-	parm_link_s *plx;
-
+	parm_link_s *next_pl = (*pl)->next;
+	
 	if (parm_type(*pl) != tt_str)
 		/* Illegal command name */
 		return;
 	
+	const char* user_text = parm_str(*pl);
+	
 	/* Look up for device command */
-	switch (res = cmd_find(parm_str( *pl), d->type->cmds+1, &cmd)) {
-	case CMP_NH:
+	int res = cmd_find(user_text, d->type->cmds + 1, &cmd);
+	
+	switch (res) {
+	case CMP_NO_HIT:
 		/* No such command */
 		return;
 	case CMP_HIT:
-	case CMP_MHIT:
-		plx = *pl;
-		parm_next(pl);
-		if (parm_type(*pl) == tt_end) {
+	case CMP_MULTIPLE_HIT:
+		if (parm_type(next_pl) == tt_end) {
 			/* Set the default command generator */
 			*generator = generator_cmd; 
+			
+			/* Ignore the hardwired INIT command */
 			*data = d->type->cmds + 1;
-			*pl = plx;
 			break;
-		} else {
-			if (res == CMP_MHIT)
-				/* Input error */
-				break;
-				
-			/* Continue to the next generator, if possible */
-			if (cmd->find_gen)
-				cmd->find_gen(pl, cmd, generator, data);
 		}
+		
+		if (res == CMP_MULTIPLE_HIT)
+			/* Input error */
+			break;
+		
+		/* Continue to the next generator, if possible */
+		if (cmd->find_gen)
+			cmd->find_gen(pl, cmd, generator, data);
+		
 		break;
 	}
-}
-
-
-/** Test whether the address is word-aligned
- *
- */
-bool addr_word_aligned(uint32_t addr)
-{
-	return (addr & 0x3) == 0;
 }

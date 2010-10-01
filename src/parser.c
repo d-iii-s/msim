@@ -351,27 +351,6 @@ static void parse_g_next(const char **s, g_token_s *t)
 }
 
 
-/** Make a string duplicate up to the speficied size
- *
- * It is similar to the GNU extension variant.
- *
- */
-static char *mstrndup(const char *s, size_t max)
-{
-	size_t len;
-
-	PRE(s != NULL);
-
-	for (len = 0; (s[len]) && (len < max); len++);
-	
-	char *r = (char *) safe_malloc(len + 1);
-	memcpy(r, s, len);
-	r[len] = '\0';
-
-	return r;
-}
-
-
 /** Delete the parameter list
  *
  * Also all internal data like strings are freed.
@@ -533,25 +512,6 @@ static const char *find_next_parm(const char *s)
 }
 
 
-/** Allocate a new string containing the long name
- *
- * @param lname A string of format "long_name/short_name" or just only
- *              the long string.
- *
- */
-static char *dup_lname(const char *lname)
-{
-	int len;
-
-	PRE(lname);
-	PRE(*lname != '\0', *lname != '/');
-
-	for (len = 0; (lname[len]) && (lname[len] != '/'); len++);
-
-	return mstrndup(lname, len);
-}
-
-
 /** Compare the command with a name definition.
  *
  * Compare the input command with the command repository.
@@ -560,9 +520,9 @@ static char *dup_lname(const char *lname)
  * @param cmd Supproted commands. Command names/variants are separated via
  *            the '/' character.
  *
- * @return CMP_NH - no hit
- *         CMP_PHIT - partial hit, the specified command is a prefix of another command
- *         CMP_HIT - full hit
+ * @return CMP_NO_HIT      - no hit
+ * @return CMP_PARTIAL_HIT - partial hit, the specified command is a prefix of another command
+ * @return CMP_HIT         - full hit
  *
  */
 static int cmdcmp(const char *s, const char *cmd)
@@ -591,30 +551,7 @@ static int cmdcmp(const char *s, const char *cmd)
 			cmd++;
 	} while (*cmd);
 
-	return (phit ? CMP_PHIT : CMP_NH);
-}
-
-
-/** Compare the parial name with the long command name
- *
- */
-static bool cmd_lprefix(const char *par_name, const cmd_s *cmd)
-{
-	const char *s;
-	const char *s2;
-
-	PRE(par_name != NULL, cmd != NULL);
-	PRE(*par_name != '/');
-
-	/* Compare strings */
-	s = par_name;
-	s2 = cmd->name;
-	while ((*s) && (*s2 != '/') && (*s == *s2)) {
-		s++;
-		s2++;
-	}
-
-	return ((*s2 == '/') || (*s == '\0'));
+	return (phit ? CMP_PARTIAL_HIT : CMP_NO_HIT);
 }
 
 
@@ -795,9 +732,9 @@ int cmd_find(const char *cmd_name, const cmd_s *cmds, const cmd_s **cmd)
 	/* Find fine command */
 	for (phit = 0; (phit != -1) && (cmds->name); cmds++)
 		switch (cmdcmp(cmd_name, cmds->name)) {
-		case CMP_NH:
+		case CMP_NO_HIT:
 			break;
-		case CMP_PHIT:
+		case CMP_PARTIAL_HIT:
 			if ((phit++ == 0) && (cmd))
 				*cmd = cmds;
 			break;
@@ -813,12 +750,12 @@ int cmd_find(const char *cmd_name, const cmd_s *cmds, const cmd_s **cmd)
 	case -1:
 		return CMP_HIT;
 	case 0:
-		return CMP_NH;
+		return CMP_NO_HIT;
 	case 1:
 		return CMP_HIT;
 	}
 
-	return CMP_MHIT;
+	return CMP_MULTIPLE_HIT;
 }
 
 
@@ -918,10 +855,10 @@ bool cmd_run_by_name(const char *cmd_name, parm_link_s *parm, const cmd_s *cmds,
 
 	/* Find fine command */
 	switch (cmd_find(cmd_name, cmds, &cmd)) {
-	case CMP_NH:
+	case CMP_NO_HIT:
 		intr_error("Unknown command: %s", cmd_name);
 		return false;
-	case CMP_MHIT:
+	case CMP_MULTIPLE_HIT:
 		intr_error("Ambiguous command: %s", cmd_name);
 		return false;
 	}
@@ -957,21 +894,31 @@ bool cmd_run_by_parm(parm_link_s *pl, const cmd_s *cmds, void *data)
  */
 char *generator_cmd(parm_link_s *pl, const void *data, int level)
 {
-	const char *cmd_pre;
-	static const cmd_s *cmd_p;
-
 	PRE(data != NULL, pl != NULL);
 	PRE((parm_type(pl) == tt_str) || (parm_type(pl) == tt_end));
 
+	static const cmd_s *last_command;
 	if (level == 0)
-		cmd_p = (cmd_s *) data;
+		last_command = (cmd_s *) data;
 
 	/* Find fine command */
-	cmd_pre = ((parm_type(pl) == tt_str) ? parm_str(pl) : "");
-	while ((cmd_p->name) && (!cmd_lprefix(cmd_pre, cmd_p)))
-		cmd_p++;
-
-	return (cmd_p->name ? dup_lname((cmd_p++)->name) : NULL);
+	const char *cmd_prefix = (parm_type(pl) == tt_str) ? parm_str(pl) : "";
+	
+	/* Device command list is ended by LAST_CMD */
+	while (last_command->name) {
+		if (prefix(cmd_prefix, last_command->name))
+			break;
+		
+		last_command++;
+	}
+	
+	if (last_command->name == NULL)
+		return NULL;
+	
+	char *generated = safe_strdup(last_command->name);
+	last_command++;
+	
+	return generated;
 }
 
 
@@ -1074,10 +1021,10 @@ void cmd_print_extended_help(parm_link_s *parm, const cmd_s *cmds)
 	
 	/* Find fine command */
 	switch (cmd_find(cmd_name, cmds, &cmd)) {
-	case CMP_NH:
+	case CMP_NO_HIT:
 		intr_error("Unknown command: %s", cmd_name);
 		return;
-	case CMP_MHIT:
+	case CMP_MULTIPLE_HIT:
 		intr_error("Ambiguous command: %s", cmd_name);
 		return;
 	}

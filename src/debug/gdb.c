@@ -87,7 +87,7 @@ static bool gdb_read_mem(ptr_t address, size_t length, char *buf)
 		if (buf - start_of_buffer >= GDB_BUFFER_SIZE)
 			return false;
 		
-		uint32_t byte_value = mem_read(NULL, address, INT8, false);
+		uint32_t byte_value = mem_read(NULL, address, BITS_8, false);
 		sprintf(buf, "%02x", byte_value);
 		
 		buf += 2;
@@ -120,7 +120,7 @@ static bool gdb_write_mem(ptr_t addr, size_t length, char *buf)
 			return false;
 		
 		/* Write it */
-		if (!mem_write(NULL, addr, value, INT8, false))
+		if (!mem_write(NULL, addr, value, BITS_8, false))
 			return false;
 		
 		buf += 2;
@@ -736,7 +736,7 @@ static void gdb_breakpoint(char *buf, bool insert)
 	/* Read the breakpoint address and length */
 	
 	sscanf(arguments, "%x,%x", &address, &length);
-	if (length != INT32) {
+	if (length != BITS_32) {
 		strcpy(buf, GDB_ERROR_STRING_BAD_BREAKPOINT_COMMAND);
 		return;
 	}

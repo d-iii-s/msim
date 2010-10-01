@@ -14,17 +14,17 @@
 
 #include <stdint.h>
 
-/**< Errors */
+/** Errors */
 #define FE_OPEN_SETUP 1
 #define FE_READ_SETUP 2
 
-/**< Argument length */
-#define INT8  1
-#define INT16 2
-#define INT32 4
+/** Argument length */
+#define BITS_8   1
+#define BITS_16  2
+#define BITS_32  4
 
-/**< Exception types */
-typedef enum { 
+/** Exception types */
+typedef enum {
 	excInt   = 0,
 	excMod   = 1,
 	excTLBL  = 2,
@@ -39,24 +39,24 @@ typedef enum {
 	excCpU   = 11,
 	excOv    = 12,
 	excTr    = 13,
-	excVCEI	 = 14,
+	excVCEI  = 14,
 	excFPE   = 15,
 	excWATCH = 23,
-	excVCED	 = 31,
-
+	excVCED  = 31,
+	
 	/* Special exception types */
 	excTLBR  = 64,
 	excTLBLR = 65,
 	excTLBSR = 66,
 	
 	/* For us */
-	excNone	= 100,
+	excNone = 100,
 	excAddrError,
 	excTLB,
 	excReset
 } exc_t;
 
-/**< Addressing and length types */
+/** Addressing and length types */
 typedef uint32_t ptr_t;
 typedef uint32_t len_t;
 

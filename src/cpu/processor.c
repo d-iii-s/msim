@@ -28,16 +28,16 @@
 #include "../fault.h"
 
 
-/**< Initial state */
-#define HARD_RESET_STATUS        (cp0_status_erl_mask | cp0_status_bev_mask)
-#define HARD_RESET_START_ADDRESS 0xbfc00000
-#define HARD_RESET_PROC_ID       0x00000400
-#define HARD_RESET_CAUSE         0
-#define HARD_RESET_WATCHLO       0
-#define HARD_RESET_WATCHHI       0
-#define HARD_RESET_CONFIG        0
-#define HARD_RESET_RANDOM        47
-#define HARD_RESET_WIRED         0
+/** Initial state */
+#define HARD_RESET_STATUS         (cp0_status_erl_mask | cp0_status_bev_mask)
+#define HARD_RESET_START_ADDRESS  0xbfc00000
+#define HARD_RESET_PROC_ID        0x00000400
+#define HARD_RESET_CAUSE          0
+#define HARD_RESET_WATCHLO        0
+#define HARD_RESET_WATCHHI        0
+#define HARD_RESET_CONFIG         0
+#define HARD_RESET_RANDOM         47
+#define HARD_RESET_WIRED          0
 
 #define EXCEPTION_OFFSET 0x180
 
@@ -45,8 +45,7 @@
 	if (x) \
 		res = excTr;
 
-
-/**< TLB lookup result */
+/** TLB lookup result */
 typedef enum {
 	TLBL_OK,
 	TLBL_REFILL,
@@ -54,14 +53,12 @@ typedef enum {
 	TLBL_MODIFIED
 } tlb_look_t;
 
-
-/**< Memory access mode */
+/** Memory access mode */
 typedef enum {
 	AM_FETCH,
 	AM_READ,
 	AM_WRITE
 } acc_mode_t;
-
 
 /** Initialize simulation environment
  *
@@ -471,7 +468,7 @@ static exc_t fetch_proc_mem(processor_t *pr, ptr_t addr, len_t size,
  */
 static exc_t write_proc_mem(processor_t *pr, ptr_t addr, len_t size,
     uint32_t value, bool h)
-{ 
+{
 	switch (acc_mem(pr, AM_WRITE, addr, size, &value, h)) {
 	case excAddrError:
 		return excAdES;
@@ -499,7 +496,7 @@ static exc_t write_proc_mem(processor_t *pr, ptr_t addr, len_t size,
  */
 exc_t read_proc_ins(processor_t *pr, ptr_t addr, uint32_t *value, bool h)
 {
-	exc_t res = fetch_proc_mem(pr, addr, INT32, value, h);
+	exc_t res = fetch_proc_mem(pr, addr, BITS_32, value, h);
 	if ((res != excNone) && (pr->branch == 0))
 		pr->excaddr = pr->pc;
 	
@@ -1109,7 +1106,7 @@ static exc_t execute(processor_t *pr, instr_info_t *ii2)
 	case opcLB:
 		{
 			uint32_t tmp;
-			res = read_proc_mem(pr, rrs + ii.imm, INT8, &tmp, true);
+			res = read_proc_mem(pr, rrs + ii.imm, BITS_8, &tmp, true);
 			if (res == excNone)
 				pr->regs[ii.rt] = (tmp & 0x80) ?
 					(tmp | 0xffffff00) :
@@ -1119,7 +1116,7 @@ static exc_t execute(processor_t *pr, instr_info_t *ii2)
 	case opcLBU:
 		{
 			uint32_t tmp;
-			res = read_proc_mem(pr, rrs + ii.imm, INT8, &tmp, true);
+			res = read_proc_mem(pr, rrs + ii.imm, BITS_8, &tmp, true);
 			if (res == excNone)
 				pr->regs[ii.rt] = tmp & 0xff;
 		}
@@ -1136,7 +1133,7 @@ static exc_t execute(processor_t *pr, instr_info_t *ii2)
 	case opcLH:
 		{
 			uint32_t tmp;
-			res = read_proc_mem(pr, rrs + ii.imm, INT16, &tmp, true);
+			res = read_proc_mem(pr, rrs + ii.imm, BITS_16, &tmp, true);
 			if (res == excNone)
 				pr->regs[ii.rt] = (tmp &0x8000) ?
 					(tmp | 0xffff0000) :
@@ -1146,7 +1143,7 @@ static exc_t execute(processor_t *pr, instr_info_t *ii2)
 	case opcLHU:
 		{
 			uint32_t tmp;
-			res = read_proc_mem(pr, rrs + ii.imm, INT16, &tmp, true);
+			res = read_proc_mem(pr, rrs + ii.imm, BITS_16, &tmp, true);
 			if (res == excNone)
 				pr->regs[ii.rt] = tmp & 0xffff;
 		}
@@ -1159,7 +1156,7 @@ static exc_t execute(processor_t *pr, instr_info_t *ii2)
 			/* Compute virtual target address
 			   and issue read operation */
 			ll_addr = rrs + ii.imm; 
-			res = read_proc_mem(pr, ll_addr, INT32, &ll_val, true);
+			res = read_proc_mem(pr, ll_addr, BITS_32, &ll_val, true);
 			
 			if (res == excNone) {
 				/* If the read operation has been successful */
@@ -1188,7 +1185,7 @@ static exc_t execute(processor_t *pr, instr_info_t *ii2)
 		pr->regs[ii.rt] = ii.imm << 16;
 		break;
 	case opcLW:
-		res = read_proc_mem(pr, rrs + ii.imm, INT32, (uint32_t *) &pr->regs[ii.rt], true);
+		res = read_proc_mem(pr, rrs + ii.imm, BITS_32, (uint32_t *) &pr->regs[ii.rt], true);
 		break;
 	case opcLWL: 
 		{
@@ -1205,7 +1202,7 @@ static exc_t execute(processor_t *pr, instr_info_t *ii2)
 			uint32_t val;
 			uint32_t oaddr = rrs + ii.imm;
 			uint32_t addr = oaddr & ~0x3;
-			res = read_proc_mem(pr, addr, INT32, &val, true);
+			res = read_proc_mem(pr, addr, BITS_32, &val, true);
 			
 			if (res == excNone) {
 				int index = oaddr & 0x3;
@@ -1230,7 +1227,7 @@ static exc_t execute(processor_t *pr, instr_info_t *ii2)
 			uint32_t val;
 			uint32_t oaddr = rrs + ii.imm;
 			uint32_t addr = oaddr & ~0x3;
-			res = read_proc_mem(pr, addr, INT32, &val, true);
+			res = read_proc_mem(pr, addr, BITS_32, &val, true);
 			
 			if (res == excNone) {
 				int index = oaddr & 0x3;
@@ -1244,7 +1241,7 @@ static exc_t execute(processor_t *pr, instr_info_t *ii2)
 		res = excRI;
 		break;
 	case opcSB:
-		res = write_proc_mem(pr, rrs + ii.imm, INT8, pr->regs[ii.rt], true);
+		res = write_proc_mem(pr, rrs + ii.imm, BITS_8, pr->regs[ii.rt], true);
 		break;
 	case opcSC:
 		if (!pr->llval) {
@@ -1258,7 +1255,7 @@ static exc_t execute(processor_t *pr, instr_info_t *ii2)
 			uint32_t sc_addr = rrs + ii.imm;
 			
 			/* Perform the write operation */
-			res = write_proc_mem(pr, sc_addr, INT32, pr->regs[ii.rt], true);
+			res = write_proc_mem(pr, sc_addr, BITS_32, pr->regs[ii.rt], true);
 			if (res == excNone) {
 				/* The operation has been successful,
 				   write the result, but... */
@@ -1298,10 +1295,10 @@ static exc_t execute(processor_t *pr, instr_info_t *ii2)
 		res = excRI;
 		break;
 	case opcSH:
-		res = write_proc_mem(pr, rrs + ii.imm, INT16, pr->regs[ii.rt], true);
+		res = write_proc_mem(pr, rrs + ii.imm, BITS_16, pr->regs[ii.rt], true);
 		break;
 	case opcSW:
-		res = write_proc_mem(pr, rrs + ii.imm, INT32, pr->regs[ii.rt], true);
+		res = write_proc_mem(pr, rrs + ii.imm, BITS_32, pr->regs[ii.rt], true);
 		break;
 	case opcSWL:
 		{
@@ -1318,7 +1315,7 @@ static exc_t execute(processor_t *pr, instr_info_t *ii2)
 			uint32_t val;
 			uint32_t oaddr = rrs + ii.imm;
 			uint32_t addr = oaddr & ~0x3;
-			res = read_proc_mem(pr, addr, INT32, &val, true);
+			res = read_proc_mem(pr, addr, BITS_32, &val, true);
 			
 			if (res == excNone) {
 				int index = oaddr & 0x3;
@@ -1326,7 +1323,7 @@ static exc_t execute(processor_t *pr, instr_info_t *ii2)
 				val &= tab[index].a;
 				val |= (pr->regs[ii.rt] >> tab[index].s) & ~tab[index].a;
 				
-				res = write_proc_mem(pr, addr, INT32, val, true);
+				res = write_proc_mem(pr, addr, BITS_32, val, true);
 			}
 		}
 		break;
@@ -1345,7 +1342,7 @@ static exc_t execute(processor_t *pr, instr_info_t *ii2)
 			uint32_t val;
 			uint32_t oaddr = rrs + ii.imm;
 			uint32_t addr = oaddr & ~0x3;
-			res = read_proc_mem(pr, addr, INT32, &val, true);
+			res = read_proc_mem(pr, addr, BITS_32, &val, true);
 			
 			if (res == excNone) {
 				int index = oaddr & 0x3;
@@ -1353,7 +1350,7 @@ static exc_t execute(processor_t *pr, instr_info_t *ii2)
 				val &= tab[index].a;
 				val |= pr->regs[ii.rt] << tab[index].s;
 				
-				res = write_proc_mem(pr, addr, INT32, val, true);
+				res = write_proc_mem(pr, addr, BITS_32, val, true);
 			}
 		}
 		break;

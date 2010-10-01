@@ -28,12 +28,11 @@
 #include "../io/output.h"
 #include "../utils.h"
 
-
-/**< Actions the disk is performing */
+/** Actions the disk is performing */
 enum action_e {
-	ACTION_NONE,  /* Disk is on holidays */
-	ACTION_READ,  /* Disk is reading */
-	ACTION_WRITE  /* Disk is writting */
+	ACTION_NONE,  /**< Disk is on holidays */
+	ACTION_READ,  /**< Disk is reading */
+	ACTION_WRITE  /**< Disk is writting */
 };
 
 /** \{ \name Register offsets */
@@ -52,13 +51,12 @@ enum action_e {
 #define STATUS_MASK  0xf  /**< Status mask */
 /* \} */
 
-/**< Disk types */
+/** Disk types */
 enum disk_type_e {
 	DISKT_NONE,  /**< Uninitialized */
 	DISKT_MEM,   /**< Memory-only disk */
 	DISKT_FMAP   /**< File-mapped */
 };
-
 
 /*
  * Device commands
@@ -180,57 +178,49 @@ device_type_s ddisk = {
 	.step = ddisk_step,
 	.read = ddisk_read,
 	.write = ddisk_write,
-
+	
 	/* Commands */
 	ddisk_cmds
 };
 
-
-/**< Disk instance data structure */
-struct disk_data_s {
-	uint32_t *img;			/**< Disk image memory */
-
+/** Disk instance data structure */
+typedef struct {
+	uint32_t *img;  /**< Disk image memory */
+	
 	/* Configuration */
-	int intno;			/**< Interrupt number */
-	enum disk_type_e disk_type;	/**< Disk type: none, memory, file-mapped */
-	uint32_t addr;			/**< Disk memory location */
-	uint32_t size;			/**< Disk size */
-
+	int intno;                   /**< Interrupt number */
+	enum disk_type_e disk_type;  /**< Disk type: none, memory, file-mapped */
+	uint32_t addr;               /**< Disk memory location */
+	uint32_t size;               /**< Disk size */
+	
 	/* Registers */
-	uint32_t disk_wptr;		/**< Current write pointer */
-	uint32_t disk_secno;		/**< Active sector to read/write */
-	uint32_t disk_status;		/**< Disk status register */
-
+	uint32_t disk_wptr;    /**< Current write pointer */
+	uint32_t disk_secno;   /**< Active sector to read/write */
+	uint32_t disk_status;  /**< Disk status register */
+	
 	/* Current action variables */
-	enum action_e action;		/**< Action type */
-	unsigned secno;			/**< Sector number */
-	unsigned cnt;			/**< Word counter */
-	bool ig;			/**< Interrupt pending flag */
-
+	enum action_e action;  /**< Action type */
+	unsigned secno;        /**< Sector number */
+	unsigned cnt;          /**< Word counter */
+	bool ig;               /**< Interrupt pending flag */
+	
 	/* Statistics */
-	uint64_t intrcount;	/**< Number of interrupts */
-	uint64_t cmds_read;	/**< Number of read commands */
-	uint64_t cmds_write;	/**< Number of write commands */
-	uint64_t cmds_error;	/**< Number of illegal commands */
-};
-typedef struct disk_data_s disk_data_s;
+	uint64_t intrcount;   /**< Number of interrupts */
+	uint64_t cmds_read;   /**< Number of read commands */
+	uint64_t cmds_write;  /**< Number of write commands */
+	uint64_t cmds_error;  /**< Number of illegal commands */
+} disk_data_s;
 
 /** Safe munmap
  *
- * Result of the call is not relevant.
- *
- * @param s	Memory block to unmap
- * @param l	Size of the block
- *
  */
-static void try_munmap(void *s, size_t l)
+static void try_munmap(void *ptr, size_t size)
 {
-	if (munmap(s, l) == -1) {
+	if (munmap(ptr, size) == -1) {
 		io_error(NULL);
-		error("File unmap fail.");
+		error(txt_file_unmap_fail);
 	}
 }
-
 
 /** Allocate an image memory block
  *
@@ -243,7 +233,6 @@ static void ddisk_malloc(disk_data_s *dd)
 	memset(dd->img, 0, dd->size);
 	dd->disk_type = DISKT_MEM;
 }
-
 
 /** Free allocated memory
  *
@@ -259,7 +248,6 @@ static void ddisk_free(disk_data_s *dd)
 	}
 }
 
-
 /** Cancel action processing
  *
  * @param dd Disk instance data structure
@@ -272,7 +260,6 @@ static void ddisk_cancel_action(disk_data_s *dd)
 	dd->cnt = 0;
 }
 
-
 /** Clean up old configuration
  *
  * @param dd Disk instance data structure
@@ -282,7 +269,7 @@ static void ddisk_clean_up(disk_data_s *dd)
 {
 	/* Cancel current action */
 	ddisk_cancel_action(dd);
-
+	
 	/* Do the clean up */
 	switch (dd->disk_type) {
 	case DISKT_NONE:
@@ -298,11 +285,11 @@ static void ddisk_clean_up(disk_data_s *dd)
 	dd->disk_type = DISKT_NONE;
 }
 
-
 /** Init command implementation
  *
  * @param parm Command-line parameters
  * @param dev  Device instance structure
+ *
  * @return true if successful
  *
  */
@@ -338,20 +325,20 @@ static bool ddisk_init(parm_link_s *parm, device_s *dev)
 	dd->disk_type = DISKT_NONE;
 	
 	/* Checks */
-
+	
 	/* Address alignment */
 	if (!addr_word_aligned(dd->addr)) {
 		mprintf("Disk address must be 4-byte aligned\n");
 		free(dd);
 		return false;
 	}
-
+	
 	/* Address limit */
 	if ((uint64_t) dd->addr + (uint64_t) REGISTER_LIMIT > 0x100000000ull) {
 		mprintf("Invalid address; registers would exceed the 4GB limit\n");
 		return false;
 	}
-
+	
 	/* Interrupt no */
 	if (dd->intno > 6) {
 		mprintf(txt_intnum_range);
@@ -361,7 +348,6 @@ static bool ddisk_init(parm_link_s *parm, device_s *dev)
 	
 	return true;
 }
-
 
 /** Info command implementation
  *
@@ -373,35 +359,30 @@ static bool ddisk_init(parm_link_s *parm, device_s *dev)
 static bool ddisk_info(parm_link_s *parm, device_s *dev)
 {
 	disk_data_s *dd = (disk_data_s *) dev->data;
-	char s[16];
-	const char *st = "*";
-
-	convert_size32_to_readable_string(s, dd->size);
+	const char *stype = "*";
+	char *size = uint32_human_readable(dd->size);
+	
 	switch (dd->disk_type) {
 	case DISKT_NONE:
-		st = "uninitialized";
+		stype = "uninitialized";
 		break;
 	case DISKT_MEM:
-		st = "mem";
+		stype = "mem";
 		break;
 	case DISKT_FMAP:
-		st = "file-map";
+		stype = "file-map";
 		break;
 	}
 	
 	mprintf("address:0x%08x intno:%d size:%s type:%s regs(mem:0x%08x "
-		"secno:%d status:0x%x ig:%d)\n",
-		(unsigned) dd->addr,
-		(int) dd->intno,
-		s, st,
-		(unsigned) dd->disk_wptr,
-		(int) dd->disk_secno,
-		(unsigned) dd->disk_status,
-		(int) dd->ig);
-
+	    "secno:%d status:0x%x ig:%d)\n",
+	    (unsigned int) dd->addr, (int) dd->intno,
+	    size, stype, (unsigned int) dd->disk_wptr,
+	    (int) dd->disk_secno, (unsigned int) dd->disk_status,
+	    (int) dd->ig);
+	
 	return true;
 }
-
 
 /** Stat command implementation
  *
@@ -417,17 +398,16 @@ static bool ddisk_stat(parm_link_s *parm, device_s *dev)
 	mprintf("Interrupt count      Commands             Reads\n");
 	mprintf("-------------------- -------------------- --------------------\n");
 	mprintf("%20" PRIu64 " %20" PRIu64 " %20" PRIu64 "\n\n",
-		dd->intrcount, dd->cmds_read + dd->cmds_write + dd->cmds_error,
-		dd->cmds_read);
+	    dd->intrcount, dd->cmds_read + dd->cmds_write + dd->cmds_error,
+	    dd->cmds_read);
 	
 	mprintf("Writes               Errors\n");
 	mprintf("-------------------- --------------------\n");
 	mprintf("%20" PRIu64 " %20" PRIu64 "\n",
-		dd->cmds_write, dd->cmds_error);
+	    dd->cmds_write, dd->cmds_error);
 	
 	return true;
 }
-
 
 /* Make the disk mapped to a memory block
  *
@@ -440,13 +420,13 @@ static bool ddisk_generic(parm_link_s *parm, device_s *dev)
 {
 	disk_data_s *dd = (disk_data_s *) dev->data;
 	uint32_t size = parm_int(parm);
-
+	
 	/* Size parameter check */
 	if (size & 0x1ff) {
-		mprintf("Illegal disk size (should be non-zero and on 512B boundary)");
+		mprintf("Illegal disk size (should be non-zero and on 512-byte aligned)");
 		return false;
 	}
-
+	
 	/* Clean up old configuration
 	   and break the current action */
 	ddisk_clean_up(dd);
@@ -454,7 +434,7 @@ static bool ddisk_generic(parm_link_s *parm, device_s *dev)
 	dd->size = size;
 	ddisk_malloc(dd);
 	/* Disk type already set by ddisk_malloc. */
-
+	
 	return true;
 }
 
@@ -471,72 +451,76 @@ static bool ddisk_generic(parm_link_s *parm, device_s *dev)
 static bool ddisk_fmap(parm_link_s *parm, device_s *dev)
 {
 	disk_data_s *dd = (disk_data_s *) dev->data;
-	const char *const filename = parm_str(parm);
-	void *mx;
-	off_t offset;
-
-	/* Open the file */
-	int fd = open(filename, O_RDWR);
-	if (fd == -1) {
-		io_error(filename);
-		mprintf(txt_file_open_err);
-		return false;
-	}
-
-	/* Get the file size */
-	offset = 0;
-	if (!try_lseek(fd, &offset, SEEK_END, filename)) {
-		mprintf("File size test fail.");
+	const char *const path = parm_str(parm);
+	
+	FILE *file = try_fopen(path, "rb+");
+	if (file == NULL) {
+		io_error(path);
+		mprintf("%s\n", txt_file_open_err);
 		return false;
 	}
 	
 	/* File size test */
-	if (offset == 0) {
-		mprintf("File is empty.");
-		try_soft_close(fd, filename);
-
+	if (!try_fseek(file, 0, SEEK_END, path)) {
+		mprintf("%s\n", txt_file_seek_err);
+		try_soft_fclose(file, path);
 		return false;
 	}
-
+	
+	size_t fsize;
+	if (!try_ftell(file, path, &fsize)) {
+		mprintf("%s\n", txt_file_seek_err);
+		try_soft_fclose(file, path);
+		return false;
+	}
+	
+	if (fsize == 0) {
+		mprintf("Empty file\n");
+		try_soft_fclose(file, path);
+		return false;
+	}
+	
 	/* Align the file size to the nearest
 	   smalled 512 B block */
-	offset = ALIGN_DOWN(offset, 512);
+	fsize = ALIGN_DOWN(fsize, 512);
 	
 	/* Disk size test */
-	if (offset == 0) {
+	if (fsize == 0) {
 		mprintf("File is too small; at least one sector (512 B) should be present");
-		try_soft_close(fd, filename);
-
+		try_soft_fclose(file, path);
 		return false;
 	}
-
-	/* File mapping */
-	mx = mmap(0, offset, PROT_READ | PROT_WRITE, MAP_SHARED, fd, 0);
-
-	if (mx == MAP_FAILED) {
-		io_error(filename);
-		try_soft_close(fd, filename);
-
-		mprintf("File map failed.");
-
+	
+	if (!try_fseek(file, 0, SEEK_SET, path)) {
+		mprintf("%s\n", txt_file_seek_err);
+		try_soft_fclose(file, path);
 		return false;
 	}
-
+	
+	int fd = fileno(file);
+	void *ptr = mmap(0, fsize, PROT_READ | PROT_WRITE, MAP_SHARED, fd, 0);
+	
+	if (ptr == MAP_FAILED) {
+		io_error(path);
+		mprintf("%s\n", txt_file_map_fail);
+		try_soft_fclose(file, path);
+		return false;
+	}
+	
 	/* Close file */
-	if (!try_close(fd, filename)) {
+	if (!try_fclose(file, path)) {
 		mprintf(txt_file_close_err);
 		return false;
 	}
-
+	
 	/* Upgrade structures and reset the device */
 	ddisk_clean_up(dd);
-	dd->size = offset;
+	dd->size = fsize;
 	dd->disk_type = DISKT_FMAP;
-	dd->img = (uint32_t *) mx;
+	dd->img = (uint32_t *) ptr;
 	
 	return true;
 }
-
 
 /** Fill command implementation
  *
@@ -544,6 +528,7 @@ static bool ddisk_fmap(parm_link_s *parm, device_s *dev)
  *
  * @param parm Command-line parameters
  * @param dev  Device instance structure
+ *
  * @return true if successful
  *
  */
@@ -551,14 +536,14 @@ static bool ddisk_fill(parm_link_s *parm, device_s *dev)
 {
 	disk_data_s *dd = (disk_data_s *) dev->data;
 	unsigned char c;
-
+	
 	/* String/character */
-	if (parm_type( parm) == tt_str) {
+	if (parm_type(parm) == tt_str) {
 		if ((!parm_str(parm)[0]) || (parm_str(parm)[1])) {
 			mprintf("Invalid string parameter; exactly one character is necessary.\n");
 			return false;
 		}
-
+		
 		c = parm_str(parm)[0];
 	} else {
 		/* Number */
@@ -566,14 +551,14 @@ static bool ddisk_fill(parm_link_s *parm, device_s *dev)
 			mprintf("Integer constant out of range 0..255\n");
 			return false;
 		}
-
+		
 		c = parm_int(parm);
 	}
+	
 	memset(dd->img, c, dd->size);
-
+	
 	return true;
 }
-
 
 /** Load command implementation
  *
@@ -581,44 +566,44 @@ static bool ddisk_fill(parm_link_s *parm, device_s *dev)
  *
  * @param parm Command-line parameters
  * @param dev  Device instance structure
+ *
  * @return true if successful
  *
  */
 static bool ddisk_load(parm_link_s *parm, device_s *dev)
 {
 	disk_data_s *dd = (disk_data_s *) dev->data;
-	const char * const filename = parm_str(parm);
+	const char *const path = parm_str(parm);
 	
-	if (dd->disk_type == DISKT_NONE) 
+	if (dd->disk_type == DISKT_NONE) {
 		/* Illegal */
 		return false;
+	}
 	
 	/* Open file */
-	int fd = -1;
-	if (!try_open(&fd, O_RDONLY, filename)) {
+	FILE *file = try_fopen(path, "rb");
+	if (file == NULL) {
 		mprintf(txt_file_open_err);
 		return false;
 	}
 	
 	/* Read the file directly */
-	ssize_t readed = read(fd, dd->img, dd->size);
-	if (readed == -1) {
-		io_error(filename);
-		try_soft_close(fd, filename);
-		
+	size_t rd = fread(dd->img, 1, dd->size, file);
+	if (rd < dd->size) {
+		io_error(path);
 		mprintf(txt_file_read_err);
+		try_soft_fclose(file, path);
 		return false;
 	}
 	
 	/* Close file */
-	if (!try_close(fd, filename)) {
+	if (!try_fclose(file, path)) {
 		mprintf(txt_file_close_err);
 		return false;
 	}
 	
 	return true;
 }
-
 
 /** Save command implementation
  *
@@ -626,47 +611,45 @@ static bool ddisk_load(parm_link_s *parm, device_s *dev)
  *
  * @param parm Command-line parameters
  * @param dev  Device instance structure
+ *
  * @return true if successful
  *
  */
 static bool ddisk_save(parm_link_s *parm, device_s *dev)
 {
-	const char *const filename = parm_str(parm);
 	disk_data_s *dd = (disk_data_s *) dev->data;
+	const char *const path = parm_str(parm);
 	
 	/* Do not write anything when
 	   the image is not initialized */
-	if (dd->disk_type == DISKT_NONE) 
+	if (dd->disk_type == DISKT_NONE)
 		return true;
-
+	
 	/* Create file */
-	int fd = creat(filename, 0666);
-	if (fd == -1) {
-		io_error(filename);
+	FILE *file = try_fopen(path, "wb");
+	if (file == NULL) {
+		io_error(path);
 		mprintf(txt_file_create_err);
 		return true;
 	}
 	
 	/* Write data */
-	ssize_t written = write(fd, dd->img, dd->size);
-	if (written == -1) {
-		io_error(filename);
-		try_soft_close(fd, filename);
-
+	size_t wr = fwrite(dd->img, 1, dd->size, file);
+	if (wr < dd->size) {
+		io_error(path);
 		mprintf(txt_file_write_err);
-
+		try_soft_fclose(file, path);
 		return false;
 	}
 	
 	/* Close file */
-	if (!try_close(fd, filename)) {
+	if (!try_fclose(file, path)) {
 		mprintf(txt_file_close_err);
 		return false;
 	}
 	
 	return true;
 }
-
 
 /** Dispose disk
  *
@@ -675,25 +658,25 @@ static bool ddisk_save(parm_link_s *parm, device_s *dev)
  */
 static void ddisk_done(device_s *d) {
 	disk_data_s *dd = (disk_data_s *) d->data;
-
+	
 	ddisk_clean_up(dd);
 	
 	safe_free(d->name);
 	safe_free(d->data);
 }
-	
 
 /** Read command implementation
  *
- * @param d	   Ddisk device pointer
+ * @param d    Ddisk device pointer
  * @param addr Address of the read operation
  * @param val  Readed (returned) value
  *
  */
-static void ddisk_read(processor_t *pr, device_s *dev, ptr_t addr, uint32_t *val)
+static void ddisk_read(processor_t *pr, device_s *dev, ptr_t addr,
+    uint32_t *val)
 {
 	disk_data_s *dd = (disk_data_s *) dev->data;
-
+	
 	/* Do nothing if the disk is not initialized. */
 	if (dd->disk_type == DISKT_NONE)
 		return;
@@ -708,7 +691,6 @@ static void ddisk_read(processor_t *pr, device_s *dev, ptr_t addr, uint32_t *val
 	else if (addr == dd->addr + REGISTER_SIZE)
 		*val = dd->size;
 }
-	
 
 /** Write command implementation
  *
@@ -717,7 +699,8 @@ static void ddisk_read(processor_t *pr, device_s *dev, ptr_t addr, uint32_t *val
  * @param val  Value to write
  *
  */
-static void ddisk_write(processor_t *pr, device_s *dev, ptr_t addr, uint32_t val)
+static void ddisk_write(processor_t *pr, device_s *dev, ptr_t addr,
+    uint32_t val)
 {
 	disk_data_s *dd = (disk_data_s *) dev->data;
 	
@@ -733,13 +716,13 @@ static void ddisk_write(processor_t *pr, device_s *dev, ptr_t addr, uint32_t val
 	else if (addr == dd->addr + REGISTER_STATUS) { /* Set status/command */
 		/* Remove unused bits */
 		dd->disk_status = val & STATUS_MASK;
-
+		
 		/* Request for interrupt deactivation */
 		if (dd->disk_status & STATUS_INT) {
 			dd->ig = false;
 			dcpu_interrupt_down(0, dd->intno);
 		}
-
+		
 		/* Check general errors */
 		if ((val & STATUS_READ) && (val & STATUS_WRITE))
 			return; /* Error simultaneous read/write command */
@@ -758,7 +741,7 @@ static void ddisk_write(processor_t *pr, device_s *dev, ptr_t addr, uint32_t val
 				dd->cmds_error++;
 				return;
 			}
-
+			
 			/* Initialize process of reading */
 			dd->action = ACTION_READ;
 			dd->cnt = 0;
@@ -778,7 +761,7 @@ static void ddisk_write(processor_t *pr, device_s *dev, ptr_t addr, uint32_t val
 				dd->cmds_error++;
 				return;
 			}
-
+			
 			/* Initialize process of writting */
 			dd->action = ACTION_WRITE;
 			dd->cnt = 0;
@@ -787,7 +770,6 @@ static void ddisk_write(processor_t *pr, device_s *dev, ptr_t addr, uint32_t val
 		}
 	}
 }
-
 
 /** One step implementation
  *
@@ -801,8 +783,8 @@ static void ddisk_step(device_s *d)
 	/* Reading */
 	if (dd->action == ACTION_READ) {
 		uint32_t val = dd->img[dd->secno * 128 + dd->cnt];
-		mem_write(NULL, dd->disk_wptr, val, INT32, true);
-		dd->disk_wptr += 4; /* Next word */
+		mem_write(NULL, dd->disk_wptr, val, BITS_32, true);
+		dd->disk_wptr += 4;  /* Next word */
 		dd->cnt++;
 		
 		if (dd->cnt == 128) {
@@ -812,12 +794,12 @@ static void ddisk_step(device_s *d)
 			dd->ig = true;
 			dd->intrcount++;
 		}
-	} else if (dd->action == ACTION_WRITE) { /* Writting */
+	} else if (dd->action == ACTION_WRITE) {  /* Writting */
 		uint32_t val;
-		val = mem_read(NULL, dd->disk_wptr, INT32, true);
+		val = mem_read(NULL, dd->disk_wptr, BITS_32, true);
 		dd->img[dd->secno * 128 + dd->cnt] = val;
 		
-		dd->disk_wptr += 4; /* Next word */
+		dd->disk_wptr += 4;  /* Next word */
 		dd->cnt++;
 		
 		if (dd->cnt == 128) {

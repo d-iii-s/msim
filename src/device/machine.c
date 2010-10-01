@@ -29,20 +29,25 @@
 #include "../utils.h"
 #include "../fault.h"
 
-/**< Common variables */
+/** Common variables */
 bool tohalt = false;
-char *config_file = 0;
+bool change = true;
+bool interactive = false;
+bool errors = true;
+bool version = false;
+bool reenter = false;
 
-/**< Debug features */
+/** User break indicator */
+bool tobreak = false;
+
+char *config_file = NULL;
+uint32_t stepping = 0;
+
+/** Debug features */
 char **cp0name;
 char **cp1name;
 char **cp2name;
 char **cp3name;
-bool change = true;
-bool interactive = false;
-bool errors = true;
-
-bool version = false;
 
 /** Set by the user from command line to enable debugging globaly. */
 bool remote_gdb = false;
@@ -59,32 +64,23 @@ bool remote_gdb_listen = false;
 /** Indicate that the debugger has sent a step command */
 bool remote_gdb_step = false;
 
-bool reenter;
+/** Memory areass */
+size_t max_mem_areas = 0;
+mem_area_t mem_areas[MEM_AREAS];
 
-uint32_t stepping = 0;
-
-/** Head of the list with memory regions */
-mem_element_s *memlist = NULL;
 llist_t *ll_list;
-static uint64_t msteps;
 
-/**< User break indicator */
-bool tobreak = false; 
-
+static uint64_t msteps = 0;
 
 void init_machine(void)
 {
-	memlist = NULL;
 	regname = reg_name[ireg];
 	cp0name = cp0_name[ireg];
 	cp1name = cp1_name[ireg];
 	cp2name = cp2_name[ireg];
 	cp3name = cp3_name[ireg];
-	stepping = 0;
-	ll_list = NULL;
-	msteps = 0;
 	
-	reenter = false;
+	ll_list = NULL;
 	
 	input_init();
 	input_shadow();
@@ -94,7 +90,6 @@ void init_machine(void)
 	memory_breakpoint_init_framework();
 }
 
-
 static void print_statistics(void)
 {
 	if (msteps == 0)
@@ -103,28 +98,23 @@ static void print_statistics(void)
 	mprintf("\nCycles: %" PRIu64 "\n", msteps);
 }
 
-
 void done_machine(void)
 {
 	input_back();
 	print_statistics();
 }
 
-
-
 /** One machine cycle
  *
  */
 void machine_step(void)
 {
-	device_s *dev;
-
 	/* Increase machine cycle counter */
 	msteps++;
 	
 	/* First traverse all the devices
 	   which requires processing time every step */
-	dev = NULL;
+	device_s *dev = NULL;
 	while (dev_next(&dev, DEVICE_FILTER_STEP))
 		dev->type->step(dev);
 	
@@ -211,7 +201,6 @@ void go_machine(void)
 	}
 }
 
-
 /** Register current processor in LL-SC tracking list
  *
  */
@@ -233,7 +222,6 @@ void register_ll(processor_t *pr)
 	l->next = ll_list;
 	ll_list = l;
 }
-
 
 /** Remove current processor from the LL-SC tracking list
  *
@@ -258,34 +246,20 @@ void unregister_ll(processor_t *pr)
 	}
 }
 
-static mem_element_s* find_memory_region(ptr_t addr)
+static mem_area_t* find_mem_area(ptr_t addr)
 {
-	mem_element_s *current_region = memlist;
-	mem_element_s *previous_region = NULL;
+	size_t i;
 	
-	/* Search for memory region for given address */
-	while (current_region != NULL) {
-		ptr_t region_end = current_region->start + current_region->size;
+	for (i = 0; i < max_mem_areas; i++) {
+		ptr_t area_start = mem_areas[i].start;
+		ptr_t area_end = area_start + mem_areas[i].size;
 		
-		if ((addr >= current_region->start) && (addr < region_end)) {
-			/* Hit - optimize the list, put the current region to the first place */
-			if (previous_region != NULL) {
-				previous_region->next = current_region->next;
-				current_region->next = memlist;
-				memlist = current_region;
-			}
-			
-			break;
-		}
-		
-		/* Move to the next region */
-		previous_region = current_region;
-		current_region = current_region->next;
+		if ((addr >= area_start) && (addr < area_end))
+			return &mem_areas[i];
 	}
 	
-	return current_region;
+	return NULL;
 }
-
 
 /** Memory read
  *
@@ -307,14 +281,14 @@ static mem_element_s* find_memory_region(ptr_t addr)
 uint32_t mem_read(processor_t *pr, ptr_t addr, size_t size,
     bool protected_read)
 {
-	mem_element_s *region = find_memory_region(addr);
+	mem_area_t *area = find_mem_area(addr);
 	
 	/*
-	 * No region found, try to read the value
+	 * No memory area found, try to read the value
 	 * from appropriate device or return the default value.
 	 */
-	if (region == NULL) { 
-		uint32_t val = DEFAULT_MEMORY_VALUE32;
+	if (area == NULL) {
+		uint32_t val = DEFAULT_MEMORY_VALUE;
 		
 		/* List for each device */
 		device_s *dev = NULL;
@@ -329,19 +303,19 @@ uint32_t mem_read(processor_t *pr, ptr_t addr, size_t size,
 	if (protected_read)
 		memory_breakpoint_check_for_breakpoint(addr, ACCESS_READ);
 	
-	unsigned char* value_address = &region->mem[addr - region->start];
+	unsigned char* value_ptr = &area->data[addr - area->start];
 	
 	/* Now there is correct read/write command */
 	switch (size) {
-	case INT8:
-		return convert_uint8_t_endian(*((uint8_t *) value_address));
-	case INT16:
-		return convert_uint16_t_endian(*((uint16_t *) value_address));
-	case INT32:
-		return convert_uint32_t_endian(*((uint32_t *) value_address));
+	case BITS_8:
+		return convert_uint8_t_endian(*((uint8_t *) value_ptr));
+	case BITS_16:
+		return convert_uint16_t_endian(*((uint16_t *) value_ptr));
+	case BITS_32:
+		return convert_uint32_t_endian(*((uint32_t *) value_ptr));
 	default:
 		assert(false);
-		return DEFAULT_MEMORY_VALUE32;
+		return DEFAULT_MEMORY_VALUE;
 	}
 }
 
@@ -367,26 +341,27 @@ uint32_t mem_read(processor_t *pr, ptr_t addr, size_t size,
 bool mem_write(processor_t *pr, uint32_t addr, uint32_t val, size_t size,
     bool protected_write)
 {
-	mem_element_s *region = find_memory_region(addr);
+	mem_area_t *area = find_mem_area(addr);
 	
 	/* No region found, try to write the value to appropriate device */
-	if (region == NULL) {
+	if (area == NULL) {
 		
 		/* List for each device */
 		device_s *dev = NULL;
 		bool written = false;
 		
-		while (dev_next(&dev, DEVICE_FILTER_ALL))
+		while (dev_next(&dev, DEVICE_FILTER_ALL)) {
 			if (dev->type->write) {
 				dev->type->write(pr, dev, addr, val);
 				written = true;
 			}
+		}
 		
 		return written;
 	}
 	
 	/* Writting to ROM? */
-	if ((!region->writable) && (protected_write))
+	if ((!area->writable) && (protected_write))
 		return false;
 	
 	/* Now we have the memory write command */
@@ -398,7 +373,7 @@ bool mem_write(processor_t *pr, uint32_t addr, uint32_t val, size_t size,
 		for (l = ll_list; l;) {
 			if (l->p->lladdr == addr) {
 				l->p->llval = false;
-				if (lo) 
+				if (lo)
 					lo->next = l->next;
 				else
 					ll_list = l->next;
@@ -416,60 +391,21 @@ bool mem_write(processor_t *pr, uint32_t addr, uint32_t val, size_t size,
 	if (protected_write)
 		memory_breakpoint_check_for_breakpoint(addr, ACCESS_WRITE);
 	
-	unsigned char* value_address = &region->mem[addr - region->start];
+	unsigned char* value_ptr = &area->data[addr - area->start];
 	
 	switch (size) {
-	case INT8:
-		*((uint8_t *) value_address) = convert_uint8_t_endian(val);
+	case BITS_8:
+		*((uint8_t *) value_ptr) = convert_uint8_t_endian(val);
 		break;
-	case INT16:
-		*((uint16_t *) value_address) = convert_uint16_t_endian(val);
+	case BITS_16:
+		*((uint16_t *) value_ptr) = convert_uint16_t_endian(val);
 		break;
-	case INT32:
-		*((uint32_t *) value_address) = convert_uint32_t_endian(val);
+	case BITS_32:
+		*((uint32_t *) value_ptr) = convert_uint32_t_endian(val);
 		break;
 	default:
 		assert(false);
 	}
 	
 	return true;
-}
-
-
-/** Add memory element to memory list
- *
- * Never fails.
- *
- */
-void mem_link(mem_element_s *e)
-{
-	PRE(e != NULL);
-	
-	e->next = memlist;
-	memlist = e;
-}
-
-
-/** Remove memory element from the list
- *
- * Never fails.
- *
- */
-void mem_unlink(mem_element_s *e)
-{
-	mem_element_s *ex = memlist, *ex2 = 0;
-	
-	PRE(e != NULL);
-	
-	while ((ex) && (ex != e)) {
-		ex2 = ex;
-		ex = ex->next;
-	}
-	
-	if (ex) {
-		if (ex2)
-			ex2->next = e->next;
-		else
-			memlist = e->next;
-	}
 }

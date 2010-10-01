@@ -345,7 +345,7 @@ static bool system_id(parm_link_s *pl, void *data)
 	
 	for (; cnt > 0; addr += 4, cnt--) {
 		instr_info_t ii;
-		ii.icode = mem_read(NULL, addr, INT32, false);
+		ii.icode = mem_read(NULL, addr, BITS_32, false);
 		decode_instr(&ii);
 		iview(NULL, addr, &ii, 0);
 	}
@@ -460,7 +460,7 @@ static bool system_md(parm_link_s *pl, void *data)
 		if ((i & 0x3) == 0)
 			mprintf("  %#010" PRIx32 "    ", addr);
 		
-		uint32_t val = mem_read(NULL, addr, INT32, false);
+		uint32_t val = mem_read(NULL, addr, BITS_32, false);
 		mprintf("%08" PRIx32 " ", val);
 		
 		if ((i & 0x3) == 3)
@@ -584,44 +584,39 @@ void script(void)
 	char *buf = (char *) safe_malloc(SETUP_BUF_SIZE);
 	
 	if (!config_file) {
-		/* Checking for variable MSIMCONF */
+		/* Check for variable MSIMCONF */
 		config_file = getenv("MSIMCONF");
 		if (!config_file)
 			config_file = "msim.conf";
 	}
 	
-	/* Opening configuration file */
-	int fd = -1;
-	if (!try_open(&fd, O_RDONLY, config_file)) {
+	/* Open configuration file */
+	FILE *file = try_fopen(config_file, "r");
+	if (file == NULL) {
 		if (errno != ENOENT)
 			io_die(ERR_IO, config_file);
 		
 		interactive = true;
 		free(buf);
-
+		
 		return;
 	}
-
-	/* Reading configuration file */
-	ssize_t rd = read(fd, buf, SETUP_BUF_SIZE);
-	if (rd == -1) {
-		io_error(config_file);
-		if (close(fd))
-			io_error(config_file);
-		
-		die(ERR_IO, 0);
-	}
 	
+	/* Read configuration file */
+	size_t rd = fread(buf, 1, SETUP_BUF_SIZE, file);
+	
+	/* Be paranoid */
 	if (rd > SETUP_BUF_SIZE)
 		rd = SETUP_BUF_SIZE;
+	
 	buf[rd] = 0;
 	
-	if (close(fd))
+	if (!try_fclose(file, config_file))
 		io_die(ERR_IO, config_file);
 	
 	set_script_stage(config_file);
 	setup_apply(buf);
-	unset_script_stage();	
+	unset_script_stage();
 	
 	free(buf);
 }
@@ -718,7 +713,7 @@ static void system_add_find_generator(parm_link_s **pl, const cmd_s *cmd,
 	if ((parm_type(*pl) == tt_str)
 	    && (dev_type_by_partial_name(parm_str(*pl), &first_device_order))
 	    && (parm_type((*pl)->next) == tt_end))
-		*generator = generator_devtype; 
+		*generator = generator_devtype;
 }
 
 

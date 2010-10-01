@@ -31,7 +31,6 @@
 #include "../io/output.h"
 #include "../utils.h"
 
-
 /*
  * Device structure initialization
  */
@@ -121,7 +120,6 @@ cmd_s dmem_cmds[] = {
 	LAST_CMD
 };
 
-
 const char id_rom[] = "rom";
 const char id_rwm[] = "rwm";
 
@@ -153,23 +151,9 @@ device_type_s drwm = {
 	.cmds = dmem_cmds
 };
 
-
 /*
  * String constants
  */
-
-const char txt_file_map_fail[] = "File map fail";
-const char txt_file_unmap_fail[] = "File unmap fail";
-
-/*
- * Memory types
- */
-
-typedef enum {
-	MEMT_NONE = 0,  /**< Uninitialized */
-	MEMT_MEM  = 1,  /**< Generic */
-	MEMT_FMAP = 2   /**< File mapped */
-} mem_type_e;
 
 const char *txt_mem_type[] = {
 	"none",
@@ -177,96 +161,38 @@ const char *txt_mem_type[] = {
 	"fmap"
 };
 
-
-/*
- * Memory device data structure
- */
-
-typedef struct {
-	uint32_t start;       /* Memory position */
-	uint32_t size;        /* Memory size in bytes */
-	bool writeable;       /* Write-able flag */
-	mem_type_e mem_type;  /* Memory type */
-	
-	mem_element_s *me;    /* Memory list element */
-} mem_data_s;
-
-
-/** Allocate memory block and clear it
- *
- */
-static void mem_alloc_block(mem_data_s *md)
-{
-	void *mx = safe_malloc(md->size);
-	memset(mx, 0, md->size);
-	md->me->mem = (unsigned char *) mx;
-	md->mem_type = MEMT_MEM;
-}
-
-
-/** Create memory element
- *
- * Memory blocks are organized in list.
- *
- */
-static void mem_struct(mem_data_s *md, bool alloc)
-{
-	/* Add memory element */
-	mem_element_s *e = (mem_element_s *) safe_malloc_t(mem_element_s);
-	
-	md->me = e;
-	
-	/* Initialize */
-	e->start = md->start;
-	e->size = md->size;
-	e->writable = md->writeable;
-	e->mem = 0;
-	
-	if (alloc)
-		mem_alloc_block(md);
-	
-	/* Link */
-	mem_link(e);
-}
-
 /** Safe munmap
  *
  */
-static void try_munmap(void *s, size_t l)
+static void try_munmap(void *ptr, size_t size)
 {
-	if (munmap(s, l) == -1) {
+	if (munmap(ptr, size) == -1) {
 		io_error(NULL);
 		error(txt_file_unmap_fail);
 	}
 }
 
-
 /** Clean up the memory
  *
  */
-static void mem_clean_up(mem_data_s *md)
+static void mem_clean_up(mem_area_t *area)
 {
-	switch (md->mem_type) {
+	switch (area->type) {
 	case MEMT_NONE:
 		/* Nothing to do. */
 		break;
 	case MEMT_MEM:
 		/* Free old memory block. */
-		mem_unlink(md->me);
-		safe_free(md->me->mem);
-		safe_free(md->me);
+		safe_free(area->data);
 		break;
 	case MEMT_FMAP:
-		mem_unlink(md->me);
-		try_munmap(md->me->mem, md->size);
-		safe_free(md->me);
+		try_munmap(area->data, area->size);
 		break;
 	}
 	
-	md->mem_type = MEMT_NONE;
-	md->size = 0;
+	area->type = MEMT_NONE;
+	area->size = 0;
 }
-
 
 /** Init command implementation
  *
@@ -275,47 +201,50 @@ static void mem_clean_up(mem_data_s *md)
  */
 static bool mem_init(parm_link_s *parm, device_s *dev)
 {
-	mem_data_s *md = (mem_data_s *) safe_malloc_t(mem_data_s);
-	
-	/* Allocate memory structure */
-	dev->data = md;
-	
-	/* Initialize */
-	parm_next(&parm);
-	md->me = NULL;
-	md->mem_type = MEMT_NONE;
-	md->start = parm_next_int(&parm);
-	md->size = 0;
-	md->writeable = (dev->type->name == id_rwm);
-	
-	/* Check */
-	if (!addr_word_aligned(md->start)) {
-		mprintf("Memory address must by 4-byte aligned\n");
-		safe_free(md);
+	if (max_mem_areas >= MEM_AREAS) {
+		mprintf("Memory areas limit exceeded (%u)\n", MEM_AREAS);
 		return false;
 	}
 	
+	/* Initialize */
+	parm_next(&parm);
+	ptr_t start = parm_next_int(&parm);
+	if (!addr_word_aligned(start)) {
+		mprintf("Memory address must by 4-byte aligned\n");
+		return false;
+	}
+	
+	mem_areas[max_mem_areas].index = max_mem_areas;
+	mem_areas[max_mem_areas].type = MEMT_NONE;
+	mem_areas[max_mem_areas].writable = (dev->type->name == id_rwm);
+	
+	mem_areas[max_mem_areas].start = start;
+	mem_areas[max_mem_areas].size = 0;
+	mem_areas[max_mem_areas].data = NULL;
+	
+	dev->data = &mem_areas[max_mem_areas];
+	max_mem_areas++;
+	
 	return true;
 }
-
 
 /** Info command implementation
  *
  */
 static bool mem_info(parm_link_s *parm, device_s *dev)
 {
-	mem_data_s *md = (mem_data_s *) dev->data;
-	char s[8];
+	mem_area_t *area = (mem_area_t *) dev->data;
+	char *size = uint32_human_readable(area->size);
 	
-	convert_size32_to_readable_string(s, md->size);
 	mprintf("Start      Size         Type\n");
 	mprintf("---------- ------------ ------\n");
-	mprintf("%#10" PRIx32" %12s %s\n",
-	    md->start, s, txt_mem_type[md->mem_type]);
+	mprintf("%#10" PRIx32 " %12s %s\n",
+	    area->start, size, txt_mem_type[area->type]);
+	
+	safe_free(size);
 	
 	return true;
 }
-
 
 /** Load command implementation
  *
@@ -324,63 +253,67 @@ static bool mem_info(parm_link_s *parm, device_s *dev)
  */
 static bool mem_load(parm_link_s *parm, device_s *dev)
 {
-	mem_data_s *md = (mem_data_s *) dev->data;
-	const char *const filename = parm_str(parm);
+	mem_area_t *area = (mem_area_t *) dev->data;
+	const char *const path = parm_str(parm);
 	
-	if (md->mem_type != MEMT_MEM) {
+	if (area->type != MEMT_MEM) {
 		/* Illegal. */
 		return false;
 	}
 	
-	int fd;
-	if (!try_open(&fd, O_RDONLY, filename)) {
+	FILE *file = try_fopen(path, "rb");
+	if (file == NULL) {
 		mprintf("%s\n", txt_file_open_err);
 		return false;
 	}
 	
 	/* File size test */
-	off_t offset = 0;
-	if (!try_lseek(fd, &offset, SEEK_END, filename)) {
+	if (!try_fseek(file, 0, SEEK_END, path)) {
 		mprintf("%s\n", txt_file_seek_err);
-		try_soft_close(fd, filename);
+		try_soft_fclose(file, path);
 		return false;
 	}
 	
-	if (offset == 0) {
+	size_t fsize;
+	if (!try_ftell(file, path, &fsize)) {
+		mprintf("%s\n", txt_file_seek_err);
+		try_soft_fclose(file, path);
+		return false;
+	}
+	
+	if (fsize == 0) {
 		mprintf("Empty file\n");
-		try_soft_close(fd, filename);
+		try_soft_fclose(file, path);
 		return false;
 	}
 	
-	if (offset > (off_t) md->size) {
-		mprintf("File size exceeds memory block size\n");
-		try_soft_close(fd, filename);
+	if (fsize > area->size) {
+		mprintf("File size exceeds memory area size\n");
+		try_soft_fclose(file, path);
 		return false;
 	}
 	
-	offset = 0;
-	if (!try_lseek(fd, &offset, SEEK_SET, filename)) {
+	if (!try_fseek(file, 0, SEEK_SET, path)) {
 		mprintf("%s\n", txt_file_seek_err);
-		try_soft_close(fd, filename);
+		try_soft_fclose(file, path);
 		return false;
 	}
 	
-	ssize_t readed = read(fd, md->me->mem, md->size);
-	if (readed == -1) {
-		io_error(filename);
-		try_soft_close(fd, filename);
+	size_t rd = fread(area->data, 1, fsize, file);
+	if (rd != fsize) {
+		io_error(path);
+		try_soft_fclose(file, path);
 		mprintf("%s\n", txt_file_read_err);
 		return false;
 	}
 	
-	if (!try_close(fd, filename)) {
+	if (!try_fclose(file, path)) {
 		mprintf("%s\n", txt_file_close_err);
 		return false;
 	}
 	
 	return true;
 }
-
 
 /** Fill command implementation
  *
@@ -389,39 +322,40 @@ static bool mem_load(parm_link_s *parm, device_s *dev)
  */
 static bool mem_fill(parm_link_s *parm, device_s *dev)
 {
-	mem_data_s *md = (mem_data_s *) dev->data;
-	const char *s;
-	char c = '\0';
+	mem_area_t *area = (mem_area_t *) dev->data;
+	const char *str;
+	char c = 0;
 	
 	switch (parm_type(parm)) {
 	case tt_end:
 		/* default '\0' */
 		break;
 	case tt_str:
-		s = parm_str(parm);
-		c = s[0];
-		if ((!c) || (s[1])) {
+		str = parm_str(parm);
+		c = str[0];
+		
+		if ((!c) || (str[1])) {
 			mprintf("Invalid character\n");
 			return false;
 		}
+		
 		break;
 	case tt_int:
 		if (parm_int(parm) > 255) {
 			mprintf("Integer out of range 0..255\n");
 			return false;
 		}
+		
 		c = parm_int(parm);
 		break;
 	default:
-		/* unreachable */
+		/* Unreachable */
 		break;
 	}
 	
-	memset(md->me->mem, c, md->size);
-	
+	memset(area->data, c, area->size);
 	return true;
 }
-
 
 /** Fmap command implementation
  *
@@ -431,74 +365,88 @@ static bool mem_fill(parm_link_s *parm, device_s *dev)
  */
 static bool mem_fmap(parm_link_s *parm, device_s *dev)
 {
-	mem_data_s *md = (mem_data_s *) dev->data;
-	const char *const filename = parm_str(parm);
-	int fd;
-	void *mx;
+	mem_area_t *area = (mem_area_t *) dev->data;
+	const char *const path = parm_str(parm);
+	FILE *file;
+	
+	if (area->type != MEMT_NONE) {
+		/* Illegal. */
+		return false;
+	}
 	
 	/* Open the file */
-	if (md->writeable)
-		fd = open(filename, O_RDWR);
+	if (area->writable)
+		file = try_fopen(path, "rb+");
 	else
-		fd = open(filename, O_RDONLY);
+		file = try_fopen(path, "rb");
 	
-	if (fd == -1) {
-		io_error(filename);
+	if (file == NULL) {
+		io_error(path);
 		mprintf("%s\n", txt_file_open_err);
 		return false;
 	}
 	
 	/* File size test */
-	off_t offset = 0;
-	if (!try_lseek(fd, &offset, SEEK_END, filename)) {
+	if (!try_fseek(file, 0, SEEK_END, path)) {
 		mprintf("%s\n", txt_file_seek_err);
-		try_soft_close(fd, filename);
+		try_soft_fclose(file, path);
 		return false;
 	}
 	
-	if (offset == 0) {
+	size_t fsize;
+	if (!try_ftell(file, path, &fsize)) {
+		mprintf("%s\n", txt_file_seek_err);
+		try_soft_fclose(file, path);
+		return false;
+	}
+	
+	if (fsize == 0) {
 		mprintf("Empty file\n");
-		try_soft_close(fd, filename);
+		try_soft_fclose(file, path);
 		return false;
 	}
 	
-	if ((uint64_t) md->start + (uint64_t) offset > 0x100000000ull) {
+	if ((uint64_t) area->start + (uint64_t) fsize > 0x100000000ull) {
 		mprintf("Mapped file exceeds the 4 GB limit\n");
-		try_soft_close(fd, filename);
+		try_soft_fclose(file, path);
 		return false;
 	}
+	
+	if (!try_fseek(file, 0, SEEK_SET, path)) {
+		mprintf("%s\n", txt_file_seek_err);
+		try_soft_fclose(file, path);
+		return false;
+	}
+	
+	int fd = fileno(file);
+	void *ptr;
 	
 	/* File mapping */
-	if (md->writeable)
-		mx = mmap(0, offset, PROT_READ | PROT_WRITE, MAP_SHARED, fd, 0);
+	if (area->writable)
+		ptr = mmap(0, fsize, PROT_READ | PROT_WRITE, MAP_SHARED, fd, 0);
 	else
-		mx = mmap(0, offset, PROT_READ, MAP_SHARED, fd, 0);
+		ptr = mmap(0, fsize, PROT_READ, MAP_SHARED, fd, 0);
 	
-	if (mx == MAP_FAILED) {
-		io_error(filename);
-		try_soft_close(fd, filename);
-		
+	if (ptr == MAP_FAILED) {
+		io_error(path);
 		mprintf("%s\n", txt_file_map_fail);
+		try_soft_fclose(file, path);
 		return false;
 	}
 	
 	/* Close file */
-	if (!try_close(fd, filename)) {
+	if (!try_fclose(file, path)) {
 		mprintf("%s\n", txt_file_close_err);
 		return false;
 	}
 	
-	/* Upgrade structures and
-	   dispose previous memory block */
-	mem_clean_up(md);
-	md->mem_type = MEMT_FMAP;
-	md->size = offset;
-	mem_struct(md, false);
-	md->me->mem = (unsigned char *) mx;
+	/* Upgrade structure */
+	area->type = MEMT_FMAP;
+	area->size = fsize;
+	area->data = (unsigned char *) ptr;
 	
 	return true;
 }
-
 
 /** Generic command implementation
  *
@@ -507,11 +455,16 @@ static bool mem_fmap(parm_link_s *parm, device_s *dev)
  */
 static bool mem_generic(parm_link_s *parm, device_s *dev)
 {
-	mem_data_s *md = (mem_data_s *) dev->data;
+	mem_area_t *area = (mem_area_t *) dev->data;
 	uint32_t size = parm_int(parm);
 	
+	if (area->type != MEMT_NONE) {
+		/* Illegal. */
+		return false;
+	}
+	
 	/* Test parameter */
-	if (size & 0x3) {
+	if (!addr_word_aligned(size)) {
 		mprintf("Memory size must be 4-byte aligned\n");
 		return false;
 	}
@@ -521,21 +474,17 @@ static bool mem_generic(parm_link_s *parm, device_s *dev)
 		return false;
 	}
 	
-	if ((uint64_t) md->start + (uint64_t) size > 0x100000000ull) {
+	if ((uint64_t) area->start + (uint64_t) size > 0x100000000ull) {
 		mprintf("Memory would exceed the 4 GB limit\n");
 		return false;
 	}
 	
-	/* Clear old configuration. */
-	mem_clean_up(md);
-	
-	md->mem_type = MEMT_MEM;
-	md->size = size;
-	mem_struct(md, true);
+	area->type = MEMT_MEM;
+	area->size = size;
+	area->data = safe_malloc(size);
 	
 	return true;
 }
-
 
 /** Save command implementation
  *
@@ -544,33 +493,29 @@ static bool mem_generic(parm_link_s *parm, device_s *dev)
  */
 static bool mem_save(parm_link_s *parm, device_s *dev)
 {
-	mem_data_s *md = dev->data;
-	const char *const filename = parm_str(parm);
-	int fd;
-	ssize_t written;
+	mem_area_t *area = (mem_area_t *) dev->data;
+	const char *const path = parm_str(parm);
 	
 	/* Do not write anything
 	   if the memory is not inicialized */
-	if (md->mem_type == MEMT_NONE)
+	if (area->type == MEMT_NONE)
 		return true;
 	
-	fd = creat(filename, 0666);
-	if (fd == -1) {
-		io_error(filename);
+	FILE *file = try_fopen(path, "wb");
+	if (file == NULL) {
 		mprintf("%s\n", txt_file_create_err);
 		return false;
 	}
 	
-	written = write(fd, md->me->mem, md->size);
-	
-	if (written == -1) {
-		io_error(filename);
-		try_soft_close(fd, filename);
+	size_t wr = fwrite(area->data, 1, area->size, file);
+	if (wr != area->size) {
+		io_error(path);
+		try_soft_fclose(file, path);
 		mprintf("%s\n", txt_file_write_err);
 		return false;
 	}
 	
-	if (!try_close(fd, filename)) {
+	if (!try_fclose(file, path)) {
 		mprintf("%s\n", txt_file_close_err);
 		return false;
 	}
@@ -578,16 +523,19 @@ static bool mem_save(parm_link_s *parm, device_s *dev)
 	return true;
 }
 
-
 /** Dispose memory device - structures, memory blocks, unmap, etc.
  *
  */
-static void mem_done(device_s *d)
+static void mem_done(device_s *dev)
 {
-	mem_data_s *md = (mem_data_s *) d->data;
+	mem_area_t *area = (mem_area_t *) dev->data;
+	mem_clean_up(area);
+	safe_free(dev->name);
 	
-	mem_clean_up(md);
+	/* Move areas down */
+	size_t i;
+	for (i = area->index + 1; i < max_mem_areas; i++)
+		mem_areas[i - 1] = mem_areas[i];
 	
-	safe_free(d->name);
-	safe_free(d->data);
+	max_mem_areas--;
 }

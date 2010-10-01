@@ -18,42 +18,56 @@
 #include "../endi.h"
 #include "device.h"
 
-#define DEFAULT_MEMORY_VALUE32 0xffffffff
+#define DEFAULT_MEMORY_VALUE  0xffffffffUL
 
-enum TMemoryType_enum {
-	mtRWM,
-	mtROM,
-	mtEXC
-};
+#define MEM_AREAS  32
 
-typedef struct mem_element_s {
-	/* Memory region type */
+/*
+ * Memory area types
+ */
+
+typedef enum {
+	MEMT_NONE = 0,  /**< Uninitialized */
+	MEMT_MEM  = 1,  /**< Generic */
+	MEMT_FMAP = 2   /**< File mapped */
+} mem_type_t;
+
+typedef struct {
+	/* Area index */
+	size_t index;
+	
+	/* Memory area type */
+	mem_type_t type;
 	bool writable;
 	
-	/* Basic specification - position and size */
-	uint32_t start;
-	uint32_t size;
+	/* Basic specification (position and size) */
+	ptr_t start;
+	len_t size;
 	
-	/* Block of memory */
-	unsigned char *mem;
-	
-	/* Next element in the list */
-	struct mem_element_s *next;
-} mem_element_s;
+	/* Memory content */
+	unsigned char *data;
+} mem_area_t;
 
 typedef struct llist {
 	processor_t *p;
 	struct llist *next;
 } llist_t;
 
-/**< Common variables */
+/** Common variables */
 extern bool totrace;
 extern bool tohalt;
+extern bool tobreak;
+extern bool reenter;
+extern bool version;
+
 extern int procno;
+
+extern size_t max_mem_areas;
+extern mem_area_t mem_areas[MEM_AREAS];
 
 extern char *config_file;
 
-/**< Debug features */
+/** Debug features */
 extern char **cp0name;
 extern char **cp1name;
 extern char **cp2name;
@@ -69,17 +83,10 @@ extern bool remote_gdb_conn;
 extern bool remote_gdb_listen;
 extern bool remote_gdb_step;
 
-extern bool version;
-
 extern uint32_t stepping;
-extern mem_element_s *memlist;
 extern llist_t *ll_list;
 
-extern bool tobreak;
-extern bool reenter;
-
 extern void input_back(void);
-
 
 /*
  * Basic machine functions
@@ -97,11 +104,7 @@ extern void unregister_ll(processor_t *pr);
 /** Memory access */
 extern bool mem_write(processor_t *pr, uint32_t addr, uint32_t val,
     size_t size, bool protected_write);
-extern uint32_t mem_read(processor_t *pr, uint32_t addr, size_t size, 
+extern uint32_t mem_read(processor_t *pr, uint32_t addr, size_t size,
     bool protected_read);
-
-/** Memory control */
-extern void mem_link(mem_element_s *e);
-extern void mem_unlink(mem_element_s *e);
 
 #endif /* MACHINE_H_ */

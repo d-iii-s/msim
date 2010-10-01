@@ -12,7 +12,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <fcntl.h>
 #include <inttypes.h>
 
 #include "text.h"
@@ -20,6 +19,8 @@
 #include "fault.h"
 #include "check.h"
 #include "main.h"
+
+#define MAX_STRING  16
 
 /** Safe memory allocation
  *
@@ -53,15 +54,15 @@ char *safe_strdup(const char *str)
 bool prefix(const char *prefix, const char *string)
 {
 	PRE(prefix != NULL, string != NULL);
-
+	
 	while (*prefix != 0) {
 		if (*prefix != *string)
 			return false;
-
+		
 		prefix++;
 		string++;
 	}
-
+	
 	return true;
 }
 
@@ -70,113 +71,145 @@ bool prefix(const char *prefix, const char *string)
  * "Safe" means that an error message is displayed when the file could
  * not be opened.
  *
- * @param fd       File descriptor
- * @param flags    Flags of open function
- * @param filename Name of the file to open
+ * @param path Name of the file to open.
+ * @param mode File open mode.
  *
- * @return true if successful
+ * @return File structure if successful or NULL otherwise.
  *
  */
-bool try_open(int *fd, int flags, const char *filename)
+FILE *try_fopen(const char *path, const char *mode)
 {
-	*fd = open(filename, flags);
-	if (*fd == -1) {
-		io_error(filename);
-		return false;
-	}
+	FILE *file = fopen(path, mode);
 	
-	return true;
+	if (file == NULL)
+		io_error(path);
+	
+	return file;
 }
 
-/** Safe file descriptor close
+/** Safe file close
  *
  * By "safe" we mean printing an error message when the file could not be
  * closed.
  *
- * @param fd       File descripton to close
- * @param filename Name of the file used for error message
+ * @param file File to close.
+ * @param path Name of the file used for error message.
  *
  * @return true if successful
  *
  */
-bool try_close(int fd, const char *filename)
+bool try_fclose(FILE *file, const char *path)
 {
-	if (close(fd)) {
-		io_error(filename);
+	if (fclose(file) != 0) {
+		io_error(path);
 		return false;
 	}
 	
 	return true;
 }
 
-/** Close file descriptor given when I/O error occurs
+/** Close file when I/O error occurs
  *
- * Does not break the program, just only write error message.
+ * Does not stop the program, only writes an error message.
  *
- * @param fd       File descriptor to close
- * @param filename Name of the file used for error message
+ * @param file File to close.
+ * @param path Name of the file used for error message.
  *
  */
-void try_soft_close(int fd, const char *filename)
+void try_soft_fclose(FILE *file, const char *path)
 {
-	if (!try_close(fd, filename))
+	if (!try_fclose(file, path))
 		error(txt_file_close_err);
 }
 
-/** Safe lseek
+/** Safe fseek
  *
- * This is an implementation of \c lseek which displays an error message
- * when the lseek could not be performed.
+ * This is an implementation of fseek() which displays an error message
+ * when the fseek() could not be performed.
  *
- * @param fd       File descriptor
- * @param offset   Offset to set
- * @param whence   Parameter whence of the lseek function call
- * @param filename Name of the file; used for error message displaying
+ * @param file   File.
+ * @param offset Offset to set.
+ * @param whence Argument whence for fseek().
+ * @param path   Name of the file; used for error message displaying.
  *
  * @return true if successful
  *
  */
-bool try_lseek(int fd, off_t *offset, int whence, const char *filename)
+bool try_fseek(FILE *file, size_t offset, int whence, const char *path)
 {
-	*offset = lseek(fd, *offset, whence);
-	if (*offset == (off_t) -1) {
-		io_error(filename);
-		try_soft_close(fd, filename);
-		
+	if (fseek(file, (long) offset, whence) != 0) {
+		io_error(path);
+		try_soft_fclose(file, path);
 		return false;
 	}
 	
 	return true;
 }
 
-/** Convert 32 bit unsigned number to string with k, K, M or none suffix.
+/** Safe ftell
  *
- * The conversion applies the first of the following rules,
+ * This is an implementation of ftell() which displays an error message
+ * when the ftell() could not be performed. Also the file position
+ * is checked for possible overflows when truncating to the extend
+ * of size_t.
+ *
+ * @param file File.
+ * @param path Name of the file; used for error message displaying.
+ * @param pos  Returned position.
+ *
+ * @return true if successful
+ *
+ */
+bool try_ftell(FILE *file, const char *path, size_t *pos)
+{
+	PRE(pos != NULL);
+	
+	long lpos = ftell(file);
+	*pos = (size_t) lpos;
+	
+	if ((lpos < 0) || ((long) *pos != lpos)) {
+		io_error(path);
+		try_soft_fclose(file, path);
+		return false;
+	}
+	
+	return true;
+}
+
+/** Convert 32 bit unsigned number to string with k, K, M or no suffix.
+ *
+ * The conversion applies the first of the following rules
  * which matches the value of converted number:
- * 
+ *
  * i == 0 -> "0"
  * i can be expressed with the mega suffix -> number of megabytes + M
  * i can be expressed with the kilo suffix -> number of kilobytes + K
  * i is dividable by 1000 -> number of thousands of bytes + k
  * otherwise -> no suffix
  *
- * @param s Prealocated buffer for the output string.
- * @param i 32 bit unsigned number to be converted. Expected
+ * @param i 32-bit unsigned number to be converted. Expected
  *          to mean count of bytes.
  *
+ * @return Allocated string buffer.
+ *
  */
-void convert_size32_to_readable_string(char *s, uint32_t i)
+char *uint32_human_readable(uint32_t i)
 {
+	char *str = safe_malloc(MAX_STRING);
+	
 	if (i == 0)
-		sprintf(s, "0");
+		snprintf(str, MAX_STRING, "0");
 	else if ((i & 0xfffff) == 0)
-		sprintf(s, "%" PRId32 "M", i >> 20);
+		snprintf(str, MAX_STRING, "%" PRIu32 "M", i >> 20);
 	else if ((i & 0x3ff) == 0)
-		sprintf(s, "%" PRId32 "K", i >> 10);
+		snprintf(str, MAX_STRING, "%" PRIu32 "K", i >> 10);
 	else if ((i % 1000) == 0)
-		sprintf(s, "%" PRId32 "k", i / 1000);
+		snprintf(str, MAX_STRING, "%" PRIu32 "k", i / 1000);
 	else
-		sprintf(s, "%" PRId32, i);
+		snprintf(str, MAX_STRING, "%" PRIu32, i);
+	
+	str[MAX_STRING - 1] = 0;
+	return str;
 }
 
 /** Test whether the address is word-aligned

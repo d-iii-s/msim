@@ -17,7 +17,6 @@
 #include <stdarg.h>
 #include <stdbool.h>
 #include <inttypes.h>
-#include <assert.h>
 
 #include "device.h"
 
@@ -107,7 +106,7 @@ device_s *alloc_device(const char *type_string, const char *device_name)
  */
 static bool dev_match_to_filter(device_s* device, device_filter_t filter)
 {
-	assert (device != NULL);
+	PRE(device != NULL);
 	
 	switch (filter) {
 	case DEVICE_FILTER_ALL:
@@ -121,7 +120,7 @@ static bool dev_match_to_filter(device_s* device, device_filter_t filter)
 	case DEVICE_FILTER_PROCESSOR:
 		return device->type->name == id_dcpu;
 	default:
-		assert(false);
+		PRE(false);
 		return false;
 	}
 }

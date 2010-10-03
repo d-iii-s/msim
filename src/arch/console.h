@@ -47,11 +47,10 @@ struct termios {
 	cc_t c_cc[NCCS];
 };
 
-
 #else
 
 #include <termios.h>
 
 #endif /* __WIN32__ */
 
-#endif /* CONSOLE_H_ */
+#endif

@@ -18,7 +18,7 @@
 #include "../endi.h"
 #include "device.h"
 
-#define DEFAULT_MEMORY_VALUE  0xffffffffUL
+#define DEFAULT_MEMORY_VALUE  0xffffffffU
 
 /*
  * Memory area types

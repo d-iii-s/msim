@@ -24,7 +24,8 @@
 #define MAP_SHARED   0x01
 #define MAP_PRIVATE  0x02
 
-extern void *mmap(void *addr, size_t length, int prot, int flags, int fd, off_t offset);
+extern void *mmap(void *addr, size_t length, int prot, int flags, int fd,
+    off_t offset);
 extern int munmap(void *addr, size_t length);
 
 #else
@@ -33,4 +34,4 @@ extern int munmap(void *addr, size_t length);
 
 #endif /* __WIN32__ */
 
-#endif /* MMAP_H_ */
+#endif

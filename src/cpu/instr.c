@@ -11,511 +11,510 @@
 
 #include "instr.h"
 
-static instr_form instr_table[64] = {
+static instr_form_t instr_table[64] = {
 	/* 0x00 */
-	{ opcSPECIAL, ifREG},
-	{ opcBCOND,   ifIMM},
-	{ opcJ,       ifJ},
-	{ opcJAL,     ifJ},
-	{ opcBEQ,     ifIMM},
-	{ opcBNE,     ifIMM},
-	{ opcBLEZ,    ifIMM},
-	{ opcBGTZ,    ifIMM},
+	{ opcSPECIAL, ifREG },
+	{ opcBCOND,   ifIMM },
+	{ opcJ,       ifJ },
+	{ opcJAL,     ifJ },
+	{ opcBEQ,     ifIMM },
+	{ opcBNE,     ifIMM },
+	{ opcBLEZ,    ifIMM },
+	{ opcBGTZ,    ifIMM },
 	
 	/* 0x08 */
-	{ opcADDI,  ifIMM},
-	{ opcADDIU, ifIMM},
-	{ opcSLTI,  ifIMM},
-	{ opcSLTIU, ifIMM},
-	{ opcANDI,  ifIMM},
-	{ opcORI,   ifIMM},
-	{ opcXORI,  ifIMM},
-	{ opcLUI,   ifIMM},
+	{ opcADDI,  ifIMM },
+	{ opcADDIU, ifIMM },
+	{ opcSLTI,  ifIMM },
+	{ opcSLTIU, ifIMM },
+	{ opcANDI,  ifIMM },
+	{ opcORI,   ifIMM },
+	{ opcXORI,  ifIMM },
+	{ opcLUI,   ifIMM },
 	
 	/* 0x10 */
-	{ opcCOP0,  ifREG},
-	{ opcCOP1,  ifREG},
-	{ opcCOP2,  ifREG},
-	{ opcCOP3,  ifIMM},
-	{ opcBEQL,  ifIMM},
-	{ opcBNEL,  ifIMM},
-	{ opcBLEZL, ifIMM},
-	{ opcBGTZL, ifIMM},
+	{ opcCOP0,  ifREG },
+	{ opcCOP1,  ifREG },
+	{ opcCOP2,  ifREG },
+	{ opcCOP3,  ifIMM },
+	{ opcBEQL,  ifIMM },
+	{ opcBNEL,  ifIMM },
+	{ opcBLEZL, ifIMM },
+	{ opcBGTZL, ifIMM },
 	
 	/* 0x18 */
-	{ opcDADDI,    ifIMM},
-	{ opcDADDIU,   ifIMM},
-	{ opcLDL,      ifIMM},
-	{ opcLDR,      ifIMM},
-	{ opcSPECIAL2, ifREG},
-	{ opcRES,      ifIMM},
-	{ opcRES,      ifIMM},
-	{ opcRES,      ifIMM},
+	{ opcDADDI,    ifIMM },
+	{ opcDADDIU,   ifIMM },
+	{ opcLDL,      ifIMM },
+	{ opcLDR,      ifIMM },
+	{ opcSPECIAL2, ifREG },
+	{ opcRES,      ifIMM },
+	{ opcRES,      ifIMM },
+	{ opcRES,      ifIMM },
 	
 	/* 0x20 */
-	{ opcLB,  ifIMM},
-	{ opcLH,  ifIMM},
-	{ opcLWL, ifIMM},
-	{ opcLW,  ifIMM},
-	{ opcLBU, ifIMM},
-	{ opcLHU, ifIMM},
-	{ opcLWR, ifIMM},
-	{ opcLWU, ifIMM},
+	{ opcLB,  ifIMM },
+	{ opcLH,  ifIMM },
+	{ opcLWL, ifIMM },
+	{ opcLW,  ifIMM },
+	{ opcLBU, ifIMM },
+	{ opcLHU, ifIMM },
+	{ opcLWR, ifIMM },
+	{ opcLWU, ifIMM },
 	
 	/* 0x28 */
-	{ opcSB,    ifIMM},
-	{ opcSH,    ifIMM},
-	{ opcSWL,   ifIMM},
-	{ opcSW,    ifIMM},
-	{ opcSDL,   ifIMM},
-	{ opcSDR,   ifIMM},
-	{ opcSWR,   ifIMM},
-	{ opcCACHE, ifIMM},
+	{ opcSB,    ifIMM },
+	{ opcSH,    ifIMM },
+	{ opcSWL,   ifIMM },
+	{ opcSW,    ifIMM },
+	{ opcSDL,   ifIMM },
+	{ opcSDR,   ifIMM },
+	{ opcSWR,   ifIMM },
+	{ opcCACHE, ifIMM },
 	
 	/* 0x30 */
-	{ opcLL,   ifIMM},
-	{ opcLWC1, ifIMM},
-	{ opcLWC2, ifIMM},
-	{ opcRES,  ifIMM},
-	{ opcLLD,  ifIMM},
-	{ opcLDC1, ifIMM},
-	{ opcLDC2, ifIMM},
-	{ opcLD,   ifIMM},
+	{ opcLL,   ifIMM },
+	{ opcLWC1, ifIMM },
+	{ opcLWC2, ifIMM },
+	{ opcRES,  ifIMM },
+	{ opcLLD,  ifIMM },
+	{ opcLDC1, ifIMM },
+	{ opcLDC2, ifIMM },
+	{ opcLD,   ifIMM },
 	
 	/* 0x38 */
-	{ opcSC,   ifIMM},
-	{ opcSWC1, ifIMM},
-	{ opcSWC2, ifIMM},
-	{ opcRES,  ifIMM},
-	{ opcSCD,  ifIMM},
-	{ opcSDC1, ifIMM},
-	{ opcSDC2, ifIMM},
-	{ opcSD,   ifIMM}
+	{ opcSC,   ifIMM },
+	{ opcSWC1, ifIMM },
+	{ opcSWC2, ifIMM },
+	{ opcRES,  ifIMM },
+	{ opcSCD,  ifIMM },
+	{ opcSDC1, ifIMM },
+	{ opcSDC2, ifIMM },
+	{ opcSD,   ifIMM }
 };
 
-/**< Sub-codes for SPECIAL code, all of there are ifREG */
-static int SPEC_instr_table[64] = {
+/** Sub-codes for SPECIAL code, all of there are ifREG */
+static instr_opcode_t SPEC_instr_table[64] = {
 	/* 0x00 */
-	opcSLL,		opcRES,		opcSRL,		opcSRA,
-	opcSLLV,	opcRES,		opcSRLV,	opcSRAV,
-	opcJR,		opcJALR,	opcMOVZ,	opcMOVN,
-	opcSYSCALL,	opcBREAK,	opcRES,		opcSYNC,
+	opcSLL,     opcRES,   opcSRL,  opcSRA,
+	opcSLLV,    opcRES,   opcSRLV, opcSRAV,
+	opcJR,      opcJALR,  opcMOVZ, opcMOVN,
+	opcSYSCALL, opcBREAK, opcRES,  opcSYNC,
 	
 	/* 0x10 */
-	opcMFHI,	opcMTHI,	opcMFLO,	opcMTLO,
-	opcDSLLV,	opcRES,		opcDSRLV,	opcDSRAV,
-	opcMULT,	opcMULTU,	opcDIV,		opcDIVU,
-	opcDMULT,	opcDMULTU,	opcDDIV,	opcDDIVU,
+	opcMFHI,  opcMTHI,   opcMFLO,  opcMTLO,
+	opcDSLLV, opcRES,    opcDSRLV, opcDSRAV,
+	opcMULT,  opcMULTU,  opcDIV,   opcDIVU,
+	opcDMULT, opcDMULTU, opcDDIV,  opcDDIVU,
 	
 	/* 0x20 */
-	opcADD,		opcADDU,	opcSUB,		opcSUBU,
-	opcAND,		opcOR,		opcXOR,		opcNOR,
-	opcDHLT,	opcDINT,	opcSLT,		opcSLTU,
-	opcDADD,	opcDADDU,	opcDSUB,	opcDSUBU,
+	opcADD,  opcADDU,  opcSUB,  opcSUBU,
+	opcAND,  opcOR,    opcXOR,  opcNOR,
+	opcDHLT, opcDINT,  opcSLT,  opcSLTU,
+	opcDADD, opcDADDU, opcDSUB, opcDSUBU,
 	
 	/* 0x30 */
-	opcTGE,		opcTGEU,	opcTLT,		opcTLTU,
-	opcTEQ,		opcDVAL,	opcTNE,		opcDRV,
-	opcDSLL,	opcDTRC,	opcDSRL,	opcDSRA,
-	opcDSLL32,	opcDTRO,	opcDSRL32,	opcDSRA32
+	opcTGE,    opcTGEU, opcTLT,    opcTLTU,
+	opcTEQ,    opcDVAL, opcTNE,    opcDRV,
+	opcDSLL,   opcDTRC, opcDSRL,   opcDSRA,
+	opcDSLL32, opcDTRO, opcDSRL32, opcDSRA32
 };
 
-/**< Sub-codes for SPECIAL2 code */
-static int SPEC2_instr_table[64] = {
+/** Sub-codes for SPECIAL2 code */
+static instr_opcode_t SPEC2_instr_table[64] = {
 	/* 0x00 */
-	opcMADD,	opcMADDU,	opcMUL,		opcRES,
-	opcMSUB,	opcMSUBU,	opcRES,		opcRES,
-	opcRES,		opcRES,		opcRES,		opcRES,
-	opcRES,		opcRES,		opcRES,		opcRES,
+	opcMADD, opcMADDU, opcMUL, opcRES,
+	opcMSUB, opcMSUBU, opcRES, opcRES,
+	opcRES,  opcRES,   opcRES, opcRES,
+	opcRES,  opcRES,   opcRES, opcRES,
 	
 	/* 0x10 */
-	opcRES,		opcRES,		opcRES,		opcRES,
-	opcRES,		opcRES,		opcRES,		opcRES,
-	opcRES,		opcRES,		opcRES,		opcRES,
-	opcRES,		opcRES,		opcRES,		opcRES,
+	opcRES, opcRES, opcRES, opcRES,
+	opcRES, opcRES, opcRES, opcRES,
+	opcRES, opcRES, opcRES, opcRES,
+	opcRES, opcRES, opcRES, opcRES,
 	
 	/* 0x20 */
-	opcCLZ,		opcCLO,		opcRES,		opcRES,
-	opcRES,		opcRES,		opcRES,		opcRES,
-	opcRES,		opcRES,		opcRES,		opcRES,
-	opcRES,		opcRES,		opcRES,		opcRES,
+	opcCLZ, opcCLO, opcRES, opcRES,
+	opcRES, opcRES, opcRES, opcRES,
+	opcRES, opcRES, opcRES, opcRES,
+	opcRES, opcRES, opcRES, opcRES,
 	
 	/* 0x30 */
-	opcRES,		opcRES,		opcRES,		opcRES,
-	opcRES,		opcRES,		opcRES,		opcRES,
-	opcRES,		opcRES,		opcRES,		opcRES,
-	opcRES,		opcRES,		opcRES,		opcRES,
+	opcRES, opcRES, opcRES, opcRES,
+	opcRES, opcRES, opcRES, opcRES,
+	opcRES, opcRES, opcRES, opcRES,
+	opcRES, opcRES, opcRES, opcRES
 };
 
-/**< Sub-codes for COPz */
-static int COPz_spec[4][32] = {
+/** Sub-codes for COPz */
+static instr_opcode_t COPz_spec[4][32] = {
 	{
 		/* 0x00 */
-		opcMFC0,	opcDMFC0,	opcCFC0,	opcRES,
-		opcMTC0,	opcDMTC0,	opcCTC0,	opcRES,
-		opcBC,		opcRES,		opcRES,		opcRES,
-		opcRES,		opcRES,		opcRES,		opcRES,
+		opcMFC0, opcDMFC0, opcCFC0, opcRES,
+		opcMTC0, opcDMTC0, opcCTC0, opcRES,
+		opcBC,   opcRES,   opcRES,  opcRES,
+		opcRES,  opcRES,   opcRES,  opcRES,
 		
 		/* 0x10 */
-		opcC0,		opcC0,		opcC0,		opcC0,
-		opcC0,		opcC0,		opcC0,		opcC0,
-		opcC0,		opcC0,		opcC0,		opcC0,
-		opcC0,		opcC0,		opcC0,		opcC0
+		opcC0, opcC0, opcC0, opcC0,
+		opcC0, opcC0, opcC0, opcC0,
+		opcC0, opcC0, opcC0, opcC0,
+		opcC0, opcC0, opcC0, opcC0
 	},
 	{
 		/* 0x00 */
-		opcMFC1,	opcDMFC1,	opcCFC1,	opcRES,
-		opcMTC1,	opcDMTC1,	opcCTC1,	opcRES,
-		opcBC,		opcRES,		opcRES,		opcRES,
-		opcRES,		opcRES,		opcRES,		opcRES,
+		opcMFC1, opcDMFC1, opcCFC1, opcRES,
+		opcMTC1, opcDMTC1, opcCTC1, opcRES,
+		opcBC,   opcRES,   opcRES,  opcRES,
+		opcRES,  opcRES,   opcRES,  opcRES,
 		
-		/* 0x10	*/
-		opcC0,		opcC0,		opcC0,		opcC0,
-		opcC0,		opcC0,		opcC0,		opcC0,
-		opcC0,		opcC0,		opcC0,		opcC0,
-		opcC0,		opcC0,		opcC0,		opcC0
+		/* 0x10 */
+		opcC0, opcC0, opcC0, opcC0,
+		opcC0, opcC0, opcC0, opcC0,
+		opcC0, opcC0, opcC0, opcC0,
+		opcC0, opcC0, opcC0, opcC0
 	},
 	{
 		/* 0x00 */
-		opcMFC2,	opcDMFC2,	opcCFC2,	opcRES,
-		opcMTC2,	opcDMTC2,	opcCTC2,	opcRES,
-		opcBC,		opcRES,		opcRES,		opcRES,
-		opcRES,		opcRES,		opcRES,		opcRES,
+		opcMFC2, opcDMFC2, opcCFC2, opcRES,
+		opcMTC2, opcDMTC2, opcCTC2, opcRES,
+		opcBC,   opcRES,   opcRES,  opcRES,
+		opcRES,  opcRES,   opcRES,  opcRES,
 		
 		/* 0x10 */
-		opcC0,		opcC0,		opcC0,		opcC0,
-		opcC0,		opcC0,		opcC0,		opcC0,
-		opcC0,		opcC0,		opcC0,		opcC0,
-		opcC0,		opcC0,		opcC0,		opcC0
+		opcC0, opcC0, opcC0, opcC0,
+		opcC0, opcC0, opcC0, opcC0,
+		opcC0, opcC0, opcC0, opcC0,
+		opcC0, opcC0, opcC0, opcC0
 	},
 	{
 		/* 0x00 */
-		opcMFC3,	opcDMFC3,	opcCFC3,	opcRES,
-		opcMTC3,	opcDMTC3,	opcCTC3,	opcRES,
-		opcBC,		opcRES,		opcRES,		opcRES,
-		opcRES,		opcRES,		opcRES,		opcRES,
+		opcMFC3, opcDMFC3, opcCFC3, opcRES,
+		opcMTC3, opcDMTC3, opcCTC3, opcRES,
+		opcBC,   opcRES,   opcRES,  opcRES,
+		opcRES,  opcRES,   opcRES,  opcRES,
 		
 		/* 0x10 */
-		opcC0,		opcC0,		opcC0,		opcC0,
-		opcC0,		opcC0,		opcC0,		opcC0,
-		opcC0,		opcC0,		opcC0,		opcC0,
-		opcC0,		opcC0,		opcC0,		opcC0
+		opcC0, opcC0, opcC0, opcC0,
+		opcC0, opcC0, opcC0, opcC0,
+		opcC0, opcC0, opcC0, opcC0,
+		opcC0, opcC0, opcC0, opcC0
 	}
 };
 
-/**< Sub-codes for BCx */
-static int BCx_spec[4][32] = {
+/** Sub-codes for BCx */
+static instr_opcode_t BCx_spec[4][32] = {
 	{
 		/* 0x00 */
-		opcBC0F,	opcBC0T,	opcBC0FL,	opcBC0TL,
-		opcRES,	 	opcRES,		opcRES,		opcRES,
-		opcRES,	 	opcRES,		opcRES,		opcRES,
-		opcRES,	 	opcRES,		opcRES,		opcRES,
+		opcBC0F, opcBC0T, opcBC0FL, opcBC0TL,
+		opcRES,  opcRES,  opcRES,   opcRES,
+		opcRES,  opcRES,  opcRES,   opcRES,
+		opcRES,  opcRES,  opcRES,   opcRES,
 		
 		/* 0x10 */
-		opcRES,		opcRES,		opcRES,		opcRES,
-		opcRES,		opcRES,		opcRES,		opcRES,
-		opcRES,		opcRES,		opcRES,		opcRES,
-		opcRES,		opcRES,		opcRES,		opcRES
+		opcRES, opcRES, opcRES, opcRES,
+		opcRES, opcRES, opcRES, opcRES,
+		opcRES, opcRES, opcRES, opcRES,
+		opcRES, opcRES, opcRES, opcRES
 	},
 	{
 		/* 0x00 */
-		opcBC1F,	opcBC1T,	opcBC1FL,	opcBC1TL,
-		opcRES,		opcRES,		opcRES,		opcRES,
-		opcRES,		opcRES,		opcRES,		opcRES,
-		opcRES,		opcRES,		opcRES,		opcRES,
+		opcBC1F, opcBC1T, opcBC1FL, opcBC1TL,
+		opcRES,  opcRES,  opcRES,   opcRES,
+		opcRES,  opcRES,  opcRES,   opcRES,
+		opcRES,  opcRES,  opcRES,   opcRES,
 		
 		/* 0x10 */
-		opcRES,		opcRES,		opcRES,		opcRES,
-		opcRES,		opcRES,		opcRES,		opcRES,
-		opcRES,		opcRES,		opcRES,		opcRES,
-		opcRES,		opcRES,		opcRES,		opcRES
+		opcRES, opcRES, opcRES, opcRES,
+		opcRES, opcRES, opcRES, opcRES,
+		opcRES, opcRES, opcRES, opcRES,
+		opcRES, opcRES, opcRES, opcRES
 	},
 	{
 		/* 0x00 */
-		opcBC2F,	opcBC2T,	opcBC2FL,	opcBC2TL,
-		opcRES,		opcRES,		opcRES,		opcRES,
-		opcRES,		opcRES,		opcRES,		opcRES,
-		opcRES,		opcRES,		opcRES,		opcRES,
+		opcBC2F, opcBC2T, opcBC2FL, opcBC2TL,
+		opcRES,  opcRES,  opcRES,   opcRES,
+		opcRES,  opcRES,  opcRES,   opcRES,
+		opcRES,  opcRES,  opcRES,   opcRES,
 		
 		/* 0x10 */
-		opcRES,		opcRES,		opcRES,		opcRES,
-		opcRES,		opcRES,		opcRES,		opcRES,
-		opcRES,		opcRES,		opcRES,		opcRES,
-		opcRES,		opcRES,		opcRES,		opcRES
+		opcRES, opcRES, opcRES, opcRES,
+		opcRES, opcRES, opcRES, opcRES,
+		opcRES, opcRES, opcRES, opcRES,
+		opcRES, opcRES, opcRES, opcRES
 	},
 	{
 		/* 0x00 */
-		opcBC3F,	opcBC3T,	opcBC3FL,	opcBC3TL,
-		opcRES,		opcRES,		opcRES,		opcRES,
-		opcRES,		opcRES,		opcRES,		opcRES,
-		opcRES,		opcRES,		opcRES,		opcRES,
+		opcBC3F, opcBC3T, opcBC3FL, opcBC3TL,
+		opcRES,  opcRES,  opcRES,   opcRES,
+		opcRES,  opcRES,  opcRES,   opcRES,
+		opcRES,  opcRES,  opcRES,   opcRES,
 		
 		/* 0x10 */
-		opcRES,		opcRES,		opcRES,		opcRES,
-		opcRES,		opcRES,		opcRES,		opcRES,
-		opcRES,		opcRES,		opcRES,		opcRES,
-		opcRES,		opcRES,		opcRES,		opcRES
+		opcRES, opcRES, opcRES, opcRES,
+		opcRES, opcRES, opcRES, opcRES,
+		opcRES, opcRES, opcRES, opcRES,
+		opcRES, opcRES, opcRES, opcRES
 	}
 };
 
-/**< Sub-codes for C0 */
-static int CO_spec[64] = {
+/** Sub-codes for C0 */
+static instr_opcode_t CO_spec[64] = {
 	/* 0x00 */
-	opcQRES,	opcTLBR,	opcTLBWI,	opcQRES,
-	opcQRES,	opcQRES,	opcTLBWR,	opcQRES,
-	opcTLBP,	opcQRES,	opcQRES,	opcQRES,
-	opcQRES,	opcQRES,	opcQRES,	opcQRES,
+	opcQRES, opcTLBR, opcTLBWI, opcQRES,
+	opcQRES, opcQRES, opcTLBWR, opcQRES,
+	opcTLBP, opcQRES, opcQRES,  opcQRES,
+	opcQRES, opcQRES, opcQRES,  opcQRES,
 	
 	/* 0x10 */
-	opcQRES,	opcQRES,	opcQRES,	opcQRES,
-	opcQRES,	opcQRES,	opcQRES,	opcQRES,
-	opcERET,	opcQRES,	opcQRES,	opcQRES,
-	opcQRES,	opcQRES,	opcQRES,	opcQRES,
+	opcQRES, opcQRES, opcQRES, opcQRES,
+	opcQRES, opcQRES, opcQRES, opcQRES,
+	opcERET, opcQRES, opcQRES, opcQRES,
+	opcQRES, opcQRES, opcQRES, opcQRES,
 	
 	/* 0x20 */
-	opcWAIT,	opcQRES,	opcQRES,	opcQRES,
-	opcQRES,	opcQRES,	opcQRES,	opcQRES,
-	opcQRES,	opcQRES,	opcQRES,	opcQRES,
-	opcQRES,	opcQRES,	opcQRES,	opcQRES,
+	opcWAIT, opcQRES, opcQRES, opcQRES,
+	opcQRES, opcQRES, opcQRES, opcQRES,
+	opcQRES, opcQRES, opcQRES, opcQRES,
+	opcQRES, opcQRES, opcQRES, opcQRES,
 	
 	/* 0x30 */
-	opcQRES,	opcQRES,	opcQRES,	opcQRES,
-	opcQRES,	opcQRES,	opcQRES,	opcQRES,
-	opcQRES,	opcQRES,	opcQRES,	opcQRES,
-	opcQRES,	opcQRES,	opcQRES,	opcQRES
+	opcQRES, opcQRES, opcQRES, opcQRES,
+	opcQRES, opcQRES, opcQRES, opcQRES,
+	opcQRES, opcQRES, opcQRES, opcQRES,
+	opcQRES, opcQRES, opcQRES, opcQRES
 };
 
-
-/**< Codes for regimm */
-static int reg_imm_instr_table[32] = {
+/** Codes for regimm */
+static instr_opcode_t reg_imm_instr_table[32] = {
 	/* 0x00 */
-	opcBLTZ,	opcBGEZ,	opcBLTZL,	opcBGEZL,
-	opcRES,		opcRES,		opcRES,		opcRES,
-	opcTGEI,	opcTGEIU,	opcTLTIU,	opcTEQI,
-	opcRES,		opcTNEI,	opcRES,		opcRES,
+	opcBLTZ, opcBGEZ,  opcBLTZL, opcBGEZL,
+	opcRES,  opcRES,   opcRES,   opcRES,
+	opcTGEI, opcTGEIU, opcTLTIU, opcTEQI,
+	opcRES,  opcTNEI,  opcRES,   opcRES,
 	
 	/* 0x10 */
-	opcBLTZAL,	opcBGEZAL,	opcBLTZALL,	opcBGEZALL,
-	opcRES,		opcRES,		opcRES,		opcRES,
-	opcRES,		opcRES,		opcRES,		opcRES,
-	opcRES,		opcRES,		opcRES,		opcRES,
+	opcBLTZAL, opcBGEZAL, opcBLTZALL, opcBGEZALL,
+	opcRES,    opcRES,    opcRES,     opcRES,
+	opcRES,    opcRES,    opcRES,     opcRES,
+	opcRES,    opcRES,    opcRES,     opcRES
 };
 
-/* Instruction names */
+/** Instruction names */
 instr_text_t instr_names_acronym[] = {
 	/* Special names for blocks of instructions */
-	{ "_spec",   ifNONE},
-	{ "_branch", ifNONE},
-	{ "_spec2",  ifNONE},
+	{ "_spec",   ifNONE },
+	{ "_branch", ifNONE },
+	{ "_spec2",  ifNONE },
 	
 	/* Real instructions */
-	{ "add",   ifREG},
-	{ "addi",  ifIMMS},
-	{ "addiu", ifIMMU},
-	{ "addu",  ifREG},
-	{ "and",   ifREG},
-	{ "andi",  ifIMMUX},
+	{ "add",   ifREG },
+	{ "addi",  ifIMMS },
+	{ "addiu", ifIMMU },
+	{ "addu",  ifREG },
+	{ "and",   ifREG },
+	{ "andi",  ifIMMUX },
 	
-	{ "bc0f",  ifOFF},
-	{ "bc1f",  ifOFF},
-	{ "bc2f",  ifOFF},
-	{ "bc3f",  ifOFF},
-	{ "bc0fl", ifOFF},
-	{ "bc1fl", ifOFF},
-	{ "bc2fl", ifOFF},
-	{ "bc3fl", ifOFF},
-	{ "bc0t",  ifOFF},
-	{ "bc1t",  ifOFF},
-	{ "bc2t",  ifOFF},
-	{ "bc3t",  ifOFF},
-	{ "bc0tl", ifOFF},
-	{ "bc1tl", ifOFF},
-	{ "bc2tl", ifOFF},
-	{ "bc3tl", ifOFF},
+	{ "bc0f",  ifOFF },
+	{ "bc1f",  ifOFF },
+	{ "bc2f",  ifOFF },
+	{ "bc3f",  ifOFF },
+	{ "bc0fl", ifOFF },
+	{ "bc1fl", ifOFF },
+	{ "bc2fl", ifOFF },
+	{ "bc3fl", ifOFF },
+	{ "bc0t",  ifOFF },
+	{ "bc1t",  ifOFF },
+	{ "bc2t",  ifOFF },
+	{ "bc3t",  ifOFF },
+	{ "bc0tl", ifOFF },
+	{ "bc1tl", ifOFF },
+	{ "bc2tl", ifOFF },
+	{ "bc3tl", ifOFF },
 	
-	{ "beq",     ifCND},
-	{ "beql",    ifCND},
-	{ "bgez",    ifRO},
-	{ "bgezal",  ifRO},
-	{ "bgezall", ifRO},
-	{ "bgezl",   ifRO},
-	{ "bgtz",    ifRO},
-	{ "bgtzl",   ifRO},
-	{ "blez",    ifRO},
-	{ "blezl",   ifRO},
-	{ "bltz",    ifRO},
-	{ "bltzal",  ifRO},
-	{ "bltzall", ifRO},
-	{ "bltzl",   ifRO},
-	{ "bne",     ifCND},
-	{ "bnel",    ifCND},
-	{ "break",   ifNONE},
+	{ "beq",     ifCND },
+	{ "beql",    ifCND },
+	{ "bgez",    ifRO },
+	{ "bgezal",  ifRO },
+	{ "bgezall", ifRO },
+	{ "bgezl",   ifRO },
+	{ "bgtz",    ifRO },
+	{ "bgtzl",   ifRO },
+	{ "blez",    ifRO },
+	{ "blezl",   ifRO },
+	{ "bltz",    ifRO },
+	{ "bltzal",  ifRO },
+	{ "bltzall", ifRO },
+	{ "bltzl",   ifRO },
+	{ "bne",     ifCND },
+	{ "bnel",    ifCND },
+	{ "break",   ifNONE },
 	
-	{ "cache", ifNONE},
-	{ "cfc0",  ifTD},
-	{ "cfc1",  ifTD},
-	{ "cfc2",  ifTD},
-	{ "cfc3",  ifTD},
-	{ "clo",   ifDS},
-	{ "clz",   ifDS},
-	{ "cop0",  ifOP},
-	{ "cop1",  ifOP},
-	{ "cop2",  ifOP},
-	{ "cop3",  ifOP},
-	{ "ctc0",  ifTD},
-	{ "ctc1",  ifTD},
-	{ "ctc2",  ifTD},
-	{ "ctc3",  ifTD},
+	{ "cache", ifNONE },
+	{ "cfc0",  ifTD },
+	{ "cfc1",  ifTD },
+	{ "cfc2",  ifTD },
+	{ "cfc3",  ifTD },
+	{ "clo",   ifDS },
+	{ "clz",   ifDS },
+	{ "cop0",  ifOP },
+	{ "cop1",  ifOP },
+	{ "cop2",  ifOP },
+	{ "cop3",  ifOP },
+	{ "ctc0",  ifTD },
+	{ "ctc1",  ifTD },
+	{ "ctc2",  ifTD },
+	{ "ctc3",  ifTD },
 	
-	{ "dadd",   ifR4},
-	{ "daddi",  ifR4},
-	{ "daddiu", ifR4},
-	{ "daddu",  ifR4},
-	{ "ddiv",   ifR4},
-	{ "ddivu",  ifR4},
-	{ "div",    ifST},
-	{ "divu",   ifST},
-	{ "dmfc0",  ifR4},
-	{ "dmfc1",  ifR4},
-	{ "dmfc2",  ifR4},
-	{ "dmfc3",  ifR4},
-	{ "dmtc0",  ifR4},
-	{ "dmtc1",  ifR4},
-	{ "dmtc2",  ifR4},
-	{ "dmtc3",  ifR4},
-	{ "dmult",  ifR4},
-	{ "dmultu", ifR4},
-	{ "dsll",   ifR4},
-	{ "dsllv",  ifR4},
-	{ "dsll32", ifR4},
-	{ "dsra",   ifR4},
-	{ "dsrav",  ifR4},
-	{ "dsra32", ifR4},
-	{ "dsrl",   ifR4},
-	{ "dsrlv",  ifR4},
-	{ "dsrl32", ifR4},
-	{ "dsub",   ifR4},
-	{ "dsubu",  ifR4},
+	{ "dadd",   ifR4 },
+	{ "daddi",  ifR4 },
+	{ "daddiu", ifR4 },
+	{ "daddu",  ifR4 },
+	{ "ddiv",   ifR4 },
+	{ "ddivu",  ifR4 },
+	{ "div",    ifST },
+	{ "divu",   ifST },
+	{ "dmfc0",  ifR4 },
+	{ "dmfc1",  ifR4 },
+	{ "dmfc2",  ifR4 },
+	{ "dmfc3",  ifR4 },
+	{ "dmtc0",  ifR4 },
+	{ "dmtc1",  ifR4 },
+	{ "dmtc2",  ifR4 },
+	{ "dmtc3",  ifR4 },
+	{ "dmult",  ifR4 },
+	{ "dmultu", ifR4 },
+	{ "dsll",   ifR4 },
+	{ "dsllv",  ifR4 },
+	{ "dsll32", ifR4 },
+	{ "dsra",   ifR4 },
+	{ "dsrav",  ifR4 },
+	{ "dsra32", ifR4 },
+	{ "dsrl",   ifR4 },
+	{ "dsrlv",  ifR4 },
+	{ "dsrl32", ifR4 },
+	{ "dsub",   ifR4 },
+	{ "dsubu",  ifR4 },
 	
-	{ "eret", ifNONE},
+	{ "eret", ifNONE },
 	
-	{ "j",    ifJ},
-	{ "jal",  ifJ},
-	{ "jalr", ifDS},
-	{ "jr",   ifS},
+	{ "j",    ifJ },
+	{ "jal",  ifJ },
+	{ "jalr", ifDS },
+	{ "jr",   ifS },
 	
-	{ "lb",   ifTOB},
-	{ "lbu",  ifTOB},
-	{ "ld",   ifTOB},
-	{ "ldc1", ifTOB},
-	{ "ldc2", ifTOB},
-	{ "ldl",  ifTOB},
-	{ "ldr",  ifTOB},
-	{ "lh",   ifTOB},
-	{ "lhu",  ifTOB},
-	{ "ll",   ifTOB},
-	{ "lld",  ifTOB},
-	{ "lui",  ifRIW},
-	{ "lw",   ifTOB},
-	{ "lwc1", ifTOB},
-	{ "lwc2", ifTOB},
-	{ "lwl",  ifTOB},
-	{ "lwr",  ifTOB},
-	{ "lwu",  ifTOB},
+	{ "lb",   ifTOB },
+	{ "lbu",  ifTOB },
+	{ "ld",   ifTOB },
+	{ "ldc1", ifTOB },
+	{ "ldc2", ifTOB },
+	{ "ldl",  ifTOB },
+	{ "ldr",  ifTOB },
+	{ "lh",   ifTOB },
+	{ "lhu",  ifTOB },
+	{ "ll",   ifTOB },
+	{ "lld",  ifTOB },
+	{ "lui",  ifRIW },
+	{ "lw",   ifTOB },
+	{ "lwc1", ifTOB },
+	{ "lwc2", ifTOB },
+	{ "lwl",  ifTOB },
+	{ "lwr",  ifTOB },
+	{ "lwu",  ifTOB },
 	
-	{ "madd",  ifST},
-	{ "maddu", ifST},
-	{ "mfc0",  ifTDX0},
-	{ "mfc1",  ifTDX1},
-	{ "mfc2",  ifTDX2},
-	{ "mfc3",  ifTDX3},
-	{ "mfhi",  ifD},
-	{ "mflo",  ifD},
-	{ "movn",  ifREG},
-	{ "movz",  ifREG},
-	{ "msub",  ifST},
-	{ "msubu", ifST},
-	{ "mtc0",  ifTDX0},
-	{ "mtc1",  ifTDX1},
-	{ "mtc2",  ifTDX2},
-	{ "mtc3",  ifTDX3},
-	{ "mthi",  ifS},
-	{ "mtlo",  ifS},
-	{ "mul",   ifREG},
-	{ "mult",  ifST},
-	{ "multu", ifST},
+	{ "madd",  ifST },
+	{ "maddu", ifST },
+	{ "mfc0",  ifTDX0 },
+	{ "mfc1",  ifTDX1 },
+	{ "mfc2",  ifTDX2 },
+	{ "mfc3",  ifTDX3 },
+	{ "mfhi",  ifD },
+	{ "mflo",  ifD },
+	{ "movn",  ifREG },
+	{ "movz",  ifREG },
+	{ "msub",  ifST },
+	{ "msubu", ifST },
+	{ "mtc0",  ifTDX0 },
+	{ "mtc1",  ifTDX1 },
+	{ "mtc2",  ifTDX2 },
+	{ "mtc3",  ifTDX3 },
+	{ "mthi",  ifS },
+	{ "mtlo",  ifS },
+	{ "mul",   ifREG },
+	{ "mult",  ifST },
+	{ "multu", ifST },
 	
-	{ "nor",   ifREG},
+	{ "nor",   ifREG },
 	
-	{ "or",    ifREG},
-	{ "ori",   ifIMMUX},
+	{ "or",    ifREG },
+	{ "ori",   ifIMMUX },
 	
-	{ "sb",      ifTOB},
-	{ "sc",      ifTOB},
-	{ "scd",     ifR4},
-	{ "sd",      ifR4},
-	{ "sdc1",    ifR4},
-	{ "sdc2",    ifR4},
-	{ "sdl",     ifR4},
-	{ "sdr",     ifR4},
-	{ "sh",      ifTOB},
-	{ "sll",     ifDTS},
-	{ "sllv",    ifREG},
-	{ "slt",     ifREG},
-	{ "slti",    ifIMMS},
-	{ "sltiu",   ifIMMU},
-	{ "sltu",    ifREG},
-	{ "sra",     ifDTS},
-	{ "srav",    ifREG},
-	{ "srl",     ifDTS},
-	{ "srlv",    ifREG},
-	{ "sub",     ifREG},
-	{ "subu",    ifREG},
-	{ "sw",      ifTOB},
-	{ "swc1",    ifTOB},
-	{ "swc2",    ifTOB},
-	{ "swl",     ifTOB},
-	{ "swr",     ifTOB},
-	{ "sync",    ifNONE},
-	{ "syscall", ifSYSCALL},
+	{ "sb",      ifTOB },
+	{ "sc",      ifTOB },
+	{ "scd",     ifR4 },
+	{ "sd",      ifR4 },
+	{ "sdc1",    ifR4 },
+	{ "sdc2",    ifR4 },
+	{ "sdl",     ifR4 },
+	{ "sdr",     ifR4 },
+	{ "sh",      ifTOB },
+	{ "sll",     ifDTS },
+	{ "sllv",    ifREG },
+	{ "slt",     ifREG },
+	{ "slti",    ifIMMS },
+	{ "sltiu",   ifIMMU },
+	{ "sltu",    ifREG },
+	{ "sra",     ifDTS },
+	{ "srav",    ifREG },
+	{ "srl",     ifDTS },
+	{ "srlv",    ifREG },
+	{ "sub",     ifREG },
+	{ "subu",    ifREG },
+	{ "sw",      ifTOB },
+	{ "swc1",    ifTOB },
+	{ "swc2",    ifTOB },
+	{ "swl",     ifTOB },
+	{ "swr",     ifTOB },
+	{ "sync",    ifNONE },
+	{ "syscall", ifSYSCALL },
 	
-	{ "teq",   ifST},
-	{ "teqi",  ifSI},
-	{ "tge",   ifST},
-	{ "tgei",  ifSI},
-	{ "tgeiu", ifSIW},
-	{ "tgeu",  ifST},
-	{ "tlbp",  ifNONE},
-	{ "tlbr",  ifNONE},
-	{ "tlbwi", ifNONE},
-	{ "tlbwr", ifNONE},
-	{ "tlt",   ifST},
-	{ "tlti",  ifSI},
-	{ "tltiu", ifSIW},
-	{ "tltu",  ifST},
-	{ "tne",   ifST},
-	{ "tnei",  ifSI},
+	{ "teq",   ifST },
+	{ "teqi",  ifSI },
+	{ "tge",   ifST },
+	{ "tgei",  ifSI },
+	{ "tgeiu", ifSIW },
+	{ "tgeu",  ifST },
+	{ "tlbp",  ifNONE },
+	{ "tlbr",  ifNONE },
+	{ "tlbwi", ifNONE },
+	{ "tlbwr", ifNONE },
+	{ "tlt",   ifST },
+	{ "tlti",  ifSI },
+	{ "tltiu", ifSIW },
+	{ "tltu",  ifST },
+	{ "tne",   ifST },
+	{ "tnei",  ifSI },
 	
-	{ "wait", ifNONE},
+	{ "wait", ifNONE },
 	
-	{ "xor",  ifREG},
-	{ "xori", ifIMMUX},
+	{ "xor",  ifREG },
+	{ "xori", ifIMMUX },
 	
-	{ "nop", ifNONE},
+	{ "nop", ifNONE },
 	
-	{ "unimp", ifERR},
+	{ "unimp", ifERR },
 	
-	{ "res",  ifERR},
-	{ "qres", ifERR},
+	{ "res",  ifERR },
+	{ "qres", ifERR },
 	
-	{ "d_value",    ifERR},
-	{ "d_trace",    ifERR},
-	{ "d_traceoff", ifERR},
-	{ "d_regview",  ifERR},
-	{ "d_halt",     ifERR},
+	{ "d_value",    ifERR },
+	{ "d_trace",    ifERR },
+	{ "d_traceoff", ifERR },
+	{ "d_regview",  ifERR },
+	{ "d_halt",     ifERR },
 	
-	{ "---", ifERR}
+	{ "---", ifERR }
 };
 
 char *reg_name[][32] = {
@@ -630,31 +629,31 @@ char *cp3_name[][32] = {
 	}
 };
 
-
-static int opcode_COPx(int opc, int c)
+static instr_opcode_t opcode_COPx(instr_opcode_t opc, uint32_t icode)
 {
-	int o = COPz_spec[opc - opcCOP0][(c & RS_MASK) >> RS_SHIFT];
+	instr_opcode_t opcode =
+	    COPz_spec[opc - opcCOP0][(icode & RS_MASK) >> RS_SHIFT];
 	
-	switch (o) {
+	switch (opcode) {
 	case opcBC:
-		o = BCx_spec[opc - opcCOP0][(c & RT_MASK) >> RT_SHIFT];
+		opcode =
+		    BCx_spec[opc - opcCOP0][(icode & RT_MASK) >> RT_SHIFT];
 		break;
 	case opcC0:
-		o = CO_spec[c & 0x3f];
+		opcode = CO_spec[icode & 0x3f];
 		break;
 	}
 	
-	return o;
+	return opcode;
 }
 
-
-/** Make basic info about instruction
+/** Decode instruction
  *
  */
 void decode_instr(instr_info_t *ii)
 {
 	/* Instruction name and type */
-	instr_form *opc = &instr_table[(ii->icode >> 26) & 0x3f];
+	instr_form_t *opc = &instr_table[(ii->icode >> 26) & 0x3f];
 	ii->opcode = opc->opcode;
 	
 	switch (opc->opcode) {

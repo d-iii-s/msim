@@ -15,7 +15,8 @@
 #include <windows.h>
 #include <errno.h>
 
-void *mmap(void *addr, size_t length, int prot, int flags, int fd, off_t offset)
+void *mmap(void *addr, size_t length, int prot, int flags, int fd,
+    off_t offset)
 {
 	HANDLE fh = (HANDLE) _get_osfhandle(fd);
 	if (fh == INVALID_HANDLE_VALUE) {
@@ -53,13 +54,15 @@ void *mmap(void *addr, size_t length, int prot, int flags, int fd, off_t offset)
 		}
 	}
 	
-	HANDLE handle = CreateFileMapping(fh, NULL, protect, ((uint64_t) length) >> 32, length & 0xffffffff, NULL);
+	HANDLE handle = CreateFileMapping(fh, NULL, protect,
+	    ((uint64_t) length) >> 32, length & 0xffffffff, NULL);
 	if (handle == NULL) {
 		errno = EPERM;
 		return MAP_FAILED;
 	}
 	
-	void *map = MapViewOfFile(handle, access, ((uint64_t) offset) >> 32, offset & 0xffffffff, length & 0xffffffff);
+	void *map = MapViewOfFile(handle, access, ((uint64_t) offset) >> 32,
+	    offset & 0xffffffff, length & 0xffffffff);
 	if (map == NULL) {
 		errno = ENOMEM;
 		return MAP_FAILED;
@@ -68,7 +71,6 @@ void *mmap(void *addr, size_t length, int prot, int flags, int fd, off_t offset)
 	CloseHandle(handle);
 	return map;
 }
-
 
 int munmap(void *addr, size_t length)
 {

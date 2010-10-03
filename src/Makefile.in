@@ -23,7 +23,7 @@ SOURCES = \
 	list.c \
 	io/input.c \
 	io/output.c \
-	cpu/processor.c \
+	cpu/cpu.c \
 	cpu/instr.c \
 	debug/debug.c \
 	debug/gdb.c \

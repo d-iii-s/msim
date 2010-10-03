@@ -21,4 +21,4 @@
 
 #endif /* __WIN32__ */
 
-#endif /* NETWORK_H_ */
+#endif

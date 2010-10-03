@@ -11,6 +11,6 @@
 
 #include <stdbool.h>
 
-bool stdin_poll(char *key);
+extern bool stdin_poll(char *key);
 
-#endif /* STDIN_H_ */
+#endif

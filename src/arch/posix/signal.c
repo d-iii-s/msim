@@ -15,7 +15,6 @@
 #include "../../device/machine.h"
 #include "../../io/output.h"
 
-
 static void machine_user_break(int signo)
 {
 	if ((tobreak) || (interactive)) {
@@ -30,7 +29,6 @@ static void machine_user_break(int signo)
 	interactive = true;
 }
 
-
 void register_sigint(void)
 {
 	struct sigaction act;
@@ -41,4 +39,4 @@ void register_sigint(void)
 	sigaction(SIGINT, &act, NULL);
 }
 
-#endif /* __WIN32__ */
+#endif /* !__WIN32__ */

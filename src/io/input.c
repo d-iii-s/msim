@@ -13,7 +13,6 @@
 #include <stdbool.h>
 #include <stdio.h>
 #include <string.h>
-#include <assert.h>
 
 #include <readline/readline.h>
 #include <readline/history.h>
@@ -114,7 +113,7 @@ char *hint_generator(const char *unused_parameter, int level)
 			return NULL;
 	}
 	
-	assert(generator != NULL);
+	PRE(generator != NULL);
 	
 	return generator(last_parameters, data, level);
 }

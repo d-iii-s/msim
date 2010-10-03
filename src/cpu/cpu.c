@@ -17,7 +17,7 @@
 #include "../main.h"
 #include "../mtypes.h"
 #include "../endi.h"
-#include "processor.h"
+#include "cpu.h"
 #include "../device/machine.h"
 #include "../debug/debug.h"
 #include "../debug/breakpoint.h"
@@ -39,7 +39,7 @@
 #define HARD_RESET_RANDOM         47
 #define HARD_RESET_WIRED          0
 
-#define EXCEPTION_OFFSET 0x180
+#define EXCEPTION_OFFSET  0x180
 
 #define TRAP(x) \
 	if (x) \
@@ -63,146 +63,82 @@ typedef enum {
 /** Initialize simulation environment
  *
  */
-void processor_init(processor_t *pr, unsigned int procno)
+void cpu_init(cpu_t *cpu, size_t procno)
 {
-	unsigned int i;
+	/* Initially set all members to zero */
+	memset(cpu, 0, sizeof(cpu_t));
 	
-	pr->procno = procno;
-	pr->stdby = false;
+	cpu->procno = procno;
+	cpu_set_pc(HARD_RESET_START_ADDRESS);
 	
-	pr->k_cycles = 0;
-	pr->u_cycles = 0;
-	pr->w_cycles = 0;
-	pr->tlb_refill = 0;
-	pr->tlb_invalid = 0;
-	pr->tlb_modified = 0;
-	
-	/* Inicialize general registers */
-	for (i = 0; i < 32; i++) {
-		pr->regs[i] = 0;
-		pr->fpregs[i] = 0;
-	}
-	
-	/* Inicialize other registers */
-	pr->loreg = 0;
-	pr->hireg = 0;
-	pr->pc = HARD_RESET_START_ADDRESS;
-	pr->pc_next = pr->pc + 4;
-	pr->branch = 0;
-	
-	/* Inicializing internal variables */
-	pr->lladdr = (ptr_t) -1;
-	pr->llbit = false;
-	
-	/* Inicializing cp0 registers */
-	pr->cp0[cp0_Config] = HARD_RESET_CONFIG;
-	pr->cp0[cp0_Random] = HARD_RESET_RANDOM;
-	pr->cp0[cp0_Wired] = HARD_RESET_WIRED;
-	pr->cp0[cp0_PRId] = HARD_RESET_PROC_ID;
+	/* Inicialize cp0 registers */
+	cpu->cp0[cp0_Config] = HARD_RESET_CONFIG;
+	cpu->cp0[cp0_Random] = HARD_RESET_RANDOM;
+	cpu->cp0[cp0_Wired] = HARD_RESET_WIRED;
+	cpu->cp0[cp0_PRId] = HARD_RESET_PROC_ID;
 	
 	/* Initial status value */
-	pr->cp0[cp0_Status] = HARD_RESET_STATUS;
+	cpu->cp0[cp0_Status] = HARD_RESET_STATUS;
 	
-	pr->cp0[cp0_Cause] = HARD_RESET_CAUSE;
-	pr->cp0[cp0_WatchLo] = HARD_RESET_WATCHLO;
-	pr->cp0[cp0_WatchHi] = HARD_RESET_WATCHHI;
-
-	for (i = 0; i < 8; i++)
-		pr->intr[i] = 0;
-	
-	/* Inicializing registers for debugging */
-	for (i = 0; i < 32; i++)
-		pr->old_regs[i] = 0;
-	
-	for (i = 0; i < 32; i++)
-		pr->old_cp0[i] = pr->cp0[i];
-	
-	pr->old_loreg = pr->loreg;
-	pr->old_hireg = pr->hireg;
-	
-	/* Setting up list of TLB entries */
-	pr->tlblist = &pr->tlb[47];
-	for (i = 47; i; i--)
-		pr->tlb[i].next = &pr->tlb[i - 1];
-	
-	pr->tlb[0].next = 0;
-	
-	/* Watches */
-	pr->waddr = 0;
-	pr->wexcaddr = 0;
-	pr->wpending = false;
+	cpu->cp0[cp0_Cause] = HARD_RESET_CAUSE;
+	cpu->cp0[cp0_WatchLo] = HARD_RESET_WATCHLO;
+	cpu->cp0[cp0_WatchHi] = HARD_RESET_WATCHHI;
 	
 	/* Breakpoints */
-	list_init(&pr->bps);
+	list_init(&cpu->bps);
 }
-
-
-/** Write a value into the register
- *
- * Used mainly from external modules.
- *
- */
-void set_general_reg(processor_t *pr, unsigned int regno, int32_t value)
-{
-	if (regno != 0)
-		pr->regs[regno] = value;
-}
-
 
 /** Set the PC register
  *
  */
-void set_pc(processor_t *pr, ptr_t value)
+void cpu_set_pc(cpu_t *cpu, ptr_t value)
 {
-	pr->pc = value;
-	pr->pc_next = value + 4;
+	cpu->pc = value;
+	cpu->pc_next = value + 4;
 }
-
 
 /** Address traslation through the TLB table
  *
- * See tlbl_look_t definition
+ * See tlb_look_t definition
  *
  */
-static tlb_look_t tlb_look(processor_t *pr, ptr_t *addr, bool wr)
+static tlb_look_t tlb_look(cpu_t *cpu, ptr_t *addr, bool wr)
 {
-	tlb_ent *e;
-	tlb_ent *prev;
-	ptr_t a = *addr;
-	
 	/* Ignore TLB test */
 	if (cp0_status_ts == 1)
 		return TLBL_OK;
 	
-	/* Looking for the TBL hit */
-	for (prev = 0, e = pr->tlblist; e; prev = e, e = e->next) {
+	unsigned int hint = cpu->tlb_hint;
+	unsigned int i;
+	
+	/* Look for the TBL hit */
+	for (i = 0; i < TLB_ENTRIES; i++) {
+		tlb_entry_t *entry = &cpu->tlb[(i + hint) % TLB_ENTRIES];
+		
 		/* TLB hit? */
-		if ((a & e->mask) == e->vpn2) {
+		if ((*addr & entry->mask) == entry->vpn2) {
 			/* Test ASID */
-			if ((!e->global) && (e->asid != cp0_entryhi_asid))
+			if ((!entry->global) && (entry->asid != cp0_entryhi_asid))
 				continue;
 			
-			/* Count sub-page */
-			uint32_t smask = (e->mask >> 1) | SBIT; 
-			uint32_t subpageno = ((a & e->mask) < (a & smask)) ? 1 : 0;
+			/* Calculate subpage */
+			uint32_t smask = (entry->mask >> 1) | SBIT;
+			unsigned int subpage =
+			    ((*addr & entry->mask) < (*addr & smask)) ? 1 : 0;
 			
 			/* Test valid & dirty */
-			if (!e->pg[subpageno].valid)
+			if (!entry->pg[subpage].valid)
 				return TLBL_INVALID;
 			
-			if ((wr) && (!e->pg[subpageno].dirty))
-				return TLBL_MODIFIED; 
+			if ((wr) && (!entry->pg[subpage].dirty))
+				return TLBL_MODIFIED;
 			
 			/* Make address */
-			a &= ~smask;
-			*addr = a | (e->pg[subpageno].pfn & smask);
+			ptr_t amask = *addr & (~smask);
+			*addr = amask | (cpu->tlb[i].pg[subpage].pfn & smask);
 			
-			/* Ok, now optimize the list */
-			if (prev) {
-				prev->next = e->next;
-				e->next = pr->tlblist;
-				pr->tlblist = e;
-			}
+			/* Update optimization hint */
+			cpu->tlb_hint = i;
 			
 			return TLBL_OK;
 		}
@@ -211,153 +147,167 @@ static tlb_look_t tlb_look(processor_t *pr, ptr_t *addr, bool wr)
 	return TLBL_REFILL;
 }
 
-
 /** Fill up cp0 registers with specified address
  *
  */
-static void fill_tlb_error(processor_t *pr, ptr_t addr)
+static void fill_tlb_error(cpu_t *cpu, ptr_t addr)
 {
-	cp0_badvaddr = addr;
-	cp0_context &= cp0_context_ptebase_mask;
-	cp0_context |= (addr >> cp0_context_addr_shift) & ~cp0_context_res1_mask;
-	cp0_entryhi &= cp0_entryhi_asid_mask;
-	cp0_entryhi |= addr & cp0_entryhi_vpn2_mask;
+	cp0_badvaddr(cpu) = addr;
+	
+	cp0_context(cpu) &= cp0_context_ptebase_mask;
+	cp0_context(cpu) |= (addr >> cp0_context_addr_shift) & ~cp0_context_res1_mask;
+	
+	cp0_entryhi(cpu) &= cp0_entryhi_asid_mask;
+	cp0_entryhi(cpu) |= addr & cp0_entryhi_vpn2_mask;
 }
-
 
 /** Fill registers as the Address error exception occures
  *
  */
-static void fill_addr_error(processor_t *pr, ptr_t addr, bool h)
+static void fill_addr_error(cpu_t *cpu, ptr_t addr, bool noisy)
 {
-	if (h) {
-		cp0_badvaddr = addr;
-		cp0_context &= ~cp0_context_badvpn2_mask; /* Undefined */
-		cp0_entryhi &= ~cp0_entryhi_vpn2_mask;    /* Undefined */
+	if (noisy) {
+		cp0_badvaddr(cpu) = addr;
+		cp0_context(cpu) &= ~cp0_context_badvpn2_mask;  /* Undefined */
+		cp0_entryhi(cpu) &= ~cp0_entryhi_vpn2_mask;     /* Undefined */
 	}
 }
-
 
 /** Search through TLB and generates apropriate exception
  *
  */
-static exc_t tlb_hit(processor_t *pr, ptr_t *addr, bool wr, bool h)
+static exc_t tlb_hit(cpu_t *cpu, ptr_t *addr, bool wr, bool noisy)
 {
-	switch (tlb_look(pr, addr, wr)) {
+	switch (tlb_look(cpu, addr, wr)) {
 	case TLBL_OK:
 		break;
 	case TLBL_REFILL:
-		if (h) {
-			pr->tlb_refill++;
-			fill_tlb_error(pr, *addr);
+		if (noisy) {
+			cpu->tlb_refill++;
+			fill_tlb_error(cpu, *addr);
 		}
+		
 		return excTLBR;
 	case TLBL_INVALID:
-		if (h) {
-			pr->tlb_invalid++;
-			fill_tlb_error(pr, *addr);
+		if (noisy) {
+			cpu->tlb_invalid++;
+			fill_tlb_error(cpu, *addr);
 		}
+		
 		return excTLB;
 	case TLBL_MODIFIED:
-		if (h) {
+		if (noisy) {
 			pr->tlb_modified++;
-			fill_tlb_error(pr, *addr);
+			fill_tlb_error(cpu, *addr);
 		}
-		return excMod;
 		
+		return excMod;
 	}
 	
 	return excNone;
 }
-
 
 /** The user mode address conversion
  *
  */
-static exc_t convert_addr_user(processor_t *pr, ptr_t *addr, bool wr, bool h)
+static exc_t convert_addr_user(cpu_t *cpu, ptr_t *addr, bool wr, bool noisy)
 {
-	/* Testing 31 bit or looking to TLB */
+	/* Testi 31 bit or look into TLB */
 	if ((*addr & SBIT) != 0) {
-		fill_addr_error(pr, *addr, h);
+		fill_addr_error(cpu, *addr, noisy);
 		return excAddrError;
 	}
 	
-	return tlb_hit(pr, addr, wr, h); /* useg */
+	/* useg */
+	return tlb_hit(cpu, addr, wr, noisy);
 }
-
 
 /** The supervisor mode address conversion
  *
  */
-static exc_t convert_addr_supervisor(processor_t *pr, ptr_t *addr, bool wr, bool h)
+static exc_t convert_addr_supervisor(cpu_t *cpu, ptr_t *addr, bool wr,
+    bool noisy)
 {
-	if (*addr < 0x80000000) /* suseg */
-		return tlb_hit(pr, addr, wr, h);
-	else if (*addr < 0xc0000000) {
-		fill_addr_error(pr, *addr, h);
-		return excAddrError;
-	} else if (*addr < 0xe0000000)
-		return tlb_hit(pr, addr, wr, h); /* ssseg */
-	else { /* *addr > 0xe0000000 */
-		fill_addr_error(pr, *addr, h);
+	if (*addr < 0x80000000)  /* suseg */
+		return tlb_hit(cpu, addr, wr, noisy);
+	
+	if (*addr < 0xc0000000) {
+		fill_addr_error(cpu, *addr, noisy);
 		return excAddrError;
 	}
+	
+	if (*addr < 0xe0000000)  /* ssseg */
+		return tlb_hit(cpu, addr, wr, noisy);
+	
+	/* *addr > 0xe0000000 */
+	fill_addr_error(cpu, *addr, noisy);
+	return excAddrError;
 }
-
 
 /** The kernel mode address conversion
  *
  */
-static exc_t convert_addr_kernel(processor_t *pr, ptr_t *addr, bool wr, bool h)
+static exc_t convert_addr_kernel(cpu_t *cpu, ptr_t *addr, bool wr, bool noisy)
 {
-	if (*addr < 0x80000000) { /* kuseg */
-		if (!cp0_status_erl)
-			return tlb_hit(pr, addr, wr, h);
-	} else if (*addr < 0xa0000000)
-		*addr -= 0x80000000; /* kseg0 */
-	else if (*addr < 0xc0000000)
-		*addr -= 0xa0000000; /* kseg1 */
-	else if (*addr < 0xe0000000) /* kseg2 */
-		return tlb_hit(pr, addr, wr, h);
-	else /* *addr > 0xe0000000 (kseg3) */
-		return tlb_hit(pr, addr, wr, h);
+	if (*addr < 0x80000000) {  /* kuseg */
+		if (!cp0_status_erl(cpu))
+			return tlb_hit(cpu, addr, wr, noisy);
+		
+		return excNone;
+	}
 	
-	return excNone;
+	if (*addr < 0xa0000000) {  /* kseg0 */
+		*addr -= 0x80000000;
+		return excNone;
+	}
+	
+	if (*addr < 0xc0000000) {  /* kseg1 */
+		*addr -= 0xa0000000;
+		return excNone;
+	}
+	
+	if (*addr < 0xe0000000)  /* kseg2 */
+		return tlb_hit(cpu, addr, wr, noisy);
+	
+	/* *addr > 0xe0000000 (kseg3) */
+	return tlb_hit(cpu, addr, wr, noisy);
 }
-
 
 /** The conversion of virtual addresses
  *
- * @param write           Attempt to write
- * @param fill_error_regs Fill apropriate processor registers
- *                        if the address is incorrect
+ * @param write Write access.
+ * @param noisy Fill apropriate processor registers
+ *              if the address is incorrect.
  *
  */
-exc_t convert_addr(processor_t *pr, ptr_t *addr, bool write, bool fill_error_regs)
+exc_t convert_addr(cpu_t *cpu, ptr_t *addr, bool write, bool noisy)
 {
-	/* Testing type of translation */
-	if ((cp0_status_ksu == 2) && (!cp0_status_exl) && (!cp0_status_erl))
-		return convert_addr_user(pr, addr, write, fill_error_regs);
-	else if ((cp0_status_ksu == 1) && (!cp0_status_exl) && (!cp0_status_erl))
-		return convert_addr_supervisor(pr, addr, write, fill_error_regs);
-	else
-		return convert_addr_kernel(pr, addr, write, fill_error_regs);
+	/* Test the type of the translation */
+	if ((cp0_status_ksu(cpu) == 2) && (!cp0_status_exl(cpu)) &&
+	    (!cp0_status_erl(cpu)))
+		return convert_addr_user(cpu, addr, write, noisy);
+	
+	if ((cp0_status_ksu(cpu) == 1) && (!cp0_status_exl(cpu)) &&
+	    (!cp0_status_erl(cpu)))
+		return convert_addr_supervisor(cpu, addr, write, noisy);
+	
+	return convert_addr_kernel(cpu, addr, write, noisy);
 }
 
-
-/** Test for correct align and fills BadVAddr if bad
+/** Test for correct alignment
+ *
+ * Fill BadVAddr if the alignment is not correct.
  *
  */
-static exc_t mem_align_test(processor_t *pr, ptr_t addr, len_t size, bool h)
+static exc_t mem_align_test(cpu_t *cpu, ptr_t addr, len_t size, bool noisy)
 {
-	if (((size == 2) && (addr & 1)) || ((size == 4) && (addr & 3))) { 
-		fill_addr_error(pr, addr, h);
+	if (((size == 2) && (addr & 1)) || ((size == 4) && (addr & 3))) {
+		fill_addr_error(cpu, addr, noisy);
 		return excAddrError;
 	}
 	
 	return excNone;
 }
-
 
 /** Access the virtual memory
  *
@@ -368,34 +318,34 @@ static exc_t mem_align_test(processor_t *pr, ptr_t addr, len_t size, bool h)
  *
  * @param mode  Memory access mode
  * @param addr  Memory address
- * @param size  Argument size in bytes - 1, 2, 4
+ * @param size  Argument size in bytes (1, 2, 4)
  * @param value The value which has to be written/read to
- * @param h     Generate exception in case of invalid operation
+ * @param noisy Generate exception in case of invalid operation
  *
  */
-static exc_t acc_mem(processor_t *pr, acc_mode_t mode, ptr_t addr, len_t size, uint32_t *value, bool h)
+static exc_t acc_mem(cpu_t *cpu, acc_mode_t mode, ptr_t addr, len_t size,
+    uint32_t *value, bool noisy)
 {
-	exc_t res;
+	exc_t res = mem_align_test(cpu, addr, size, noisy);
 	
-	res = mem_align_test(pr, addr, size, h);
 	if (res == excNone) {
-		res = convert_addr(pr, &addr, mode == AM_WRITE, h);
+		res = convert_addr(cpu, &addr, mode == AM_WRITE, noisy);
 		
 		/* Check for watched address */
-		if ((cp0_watchlo_r && mode == AM_READ)
-			|| (cp0_watchlo_w && mode == AM_WRITE)) {
+		if (((cp0_watchlo_r(cpu)) && (mode == AM_READ))
+		    || ((cp0_watchlo_w(cpu)) && (mode == AM_WRITE))) {
 			
 			/* The matching is done on
 			   8-byte aligned addresses */
 			
-			if (pr->waddr == (addr >> 3)) {
+			if (cpu->waddr == (addr >> 3)) {
 				/*
 				 * If EXL is set, the exception has to be postponed,
 				 * the memory access should (probably) proceed.
 				 */
 				if (cp0_status_exl == 1) {
-					pr->wpending = true;
-					pr->wexcaddr = pr->pc;
+					cpu->wpending = true;
+					cpu->wexcaddr = cpu->pc;
 				} else
 					return excWATCH;
 			}
@@ -403,7 +353,7 @@ static exc_t acc_mem(processor_t *pr, acc_mode_t mode, ptr_t addr, len_t size, u
 		
 		if (res == excNone) {
 			if (mode == AM_WRITE)
-				mem_write(pr, addr, *value, size, true);
+				mem_write(cpu, addr, *value, size, true);
 			else
 				*value = mem_read(pr, addr, size, true);
 		}
@@ -412,16 +362,15 @@ static exc_t acc_mem(processor_t *pr, acc_mode_t mode, ptr_t addr, len_t size, u
 	return res;
 }
 
-
 /** Preform the read access from the virtual memory
  *
  * Does not change the value if an exception occurs.
  *
  */
-exc_t read_proc_mem(processor_t *pr, ptr_t addr, len_t size, uint32_t *value,
-    bool h)
+exc_t cpu_read_mem(cpu_t *cpu, ptr_t addr, len_t size, uint32_t *value,
+    bool noisy)
 {
-	switch (acc_mem(pr, AM_READ, addr, size, value, h)) {
+	switch (acc_mem(cpu, AM_READ, addr, size, value, noisy)) {
 	case excAddrError:
 		return excAdEL;
 	case excTLB:
@@ -437,7 +386,6 @@ exc_t read_proc_mem(processor_t *pr, ptr_t addr, len_t size, uint32_t *value,
 	return excNone;
 }
 
-
 /** Preform the fetch access from the virtual memory
  *
  * Does not change the value if an exception occurs.
@@ -445,10 +393,10 @@ exc_t read_proc_mem(processor_t *pr, ptr_t addr, len_t size, uint32_t *value,
  * the WATCH exception.
  *
  */
-static exc_t fetch_proc_mem(processor_t *pr, ptr_t addr, len_t size,
-    uint32_t *value, bool h)
+static exc_t cpu_fetch_mem(cpu_t *cpu, ptr_t addr, len_t size, uint32_t *value,
+    bool noisy)
 {
-	switch (acc_mem(pr, AM_FETCH, addr, size, value, h)) {
+	switch (acc_mem(pr, AM_FETCH, addr, size, value, noisy)) {
 	case excAddrError:
 		return excAdEL;
 	case excTLB:
@@ -462,14 +410,13 @@ static exc_t fetch_proc_mem(processor_t *pr, ptr_t addr, len_t size,
 	return excNone;
 }
 
-
 /** Perform the write operation to the virtual memory
  *
  */
-static exc_t write_proc_mem(processor_t *pr, ptr_t addr, len_t size,
-    uint32_t value, bool h)
+static exc_t cpu_write_mem(cpu_t *cpu, ptr_t addr, len_t size, uint32_t value,
+    bool noisy)
 {
-	switch (acc_mem(pr, AM_WRITE, addr, size, &value, h)) {
+	switch (acc_mem(cpu, AM_WRITE, addr, size, &value, noisy)) {
 	case excAddrError:
 		return excAdES;
 	case excTLB:
@@ -483,71 +430,62 @@ static exc_t write_proc_mem(processor_t *pr, ptr_t addr, len_t size,
 	case excNone:
 		return excNone;
 	default:
-		die(ERR_INTERN, "Internal error at %s(%d)", __FILE__, __LINE__);
+		die(ERR_INTERN, "Internal error at %s(%u)", __FILE__, __LINE__);
 	}
 	
 	/* Unreachable */
 	return excNone;
 }
 
-
 /** Read an instruction
  *
  */
-exc_t read_proc_ins(processor_t *pr, ptr_t addr, uint32_t *value, bool h)
+exc_t cpu_read_ins(cpu_t *cpu, ptr_t addr, uint32_t *value, bool noisy)
 {
-	exc_t res = fetch_proc_mem(pr, addr, BITS_32, value, h);
-	if ((res != excNone) && (pr->branch == 0))
-		pr->excaddr = pr->pc;
+	exc_t res = cpu_fetch_mem(cpu, addr, BITS_32, value, noisy);
+	if ((res != excNone) && (pr->branch == BRANCH_NONE))
+		cpu->excaddr = cpu->pc;
 	
 	return res;
 }
 
-
 /** Assert the specified interrupt
  *
  */
-void proc_interrupt_up(processor_t *pr, unsigned int no)
+void cpu_interrupt_up(cpu_t *cpu, unsigned int no)
 {
-	if (no <= 6) {
-		cp0_cause |= 1 << (cp0_cause_ip0_shift + no);
-		pr->intr[no]++;
-	}
+	PRE(no < INTR_COUNT);
+	
+	cp0_cause(cpu) |= 1 << (cp0_cause_ip0_shift + no);
+	cpu->intr[no]++;
 }
-
 
 /* Deassert the specified interrupt
  *
  */
-void proc_interrupt_down(processor_t *pr, unsigned int no)
+void proc_interrupt_down(cpu_t *cpu, unsigned int no)
 {
-	if (no <= 6)
-		cp0_cause &= ~(1 << (cp0_cause_ip0_shift + no));
+	PRE(no < INTR_COUNT);
+	
+	cp0_cause(cpu) &= ~(1 << (cp0_cause_ip0_shift + no));
 }
-
 
 /** Update the copy of registers
  *
  */
-void update_deb(processor_t *pr)
+void cpu_update_debug(cpu_t *cpu)
 {
-	unsigned int i;
-	
-	for (i = 0; i < 32; i++)
-		pr->old_regs[i] = pr->regs[i];
-	
-	for (i = 0; i < 32; i++)
-		pr->old_cp0[i] = pr->cp0[i];
+	memcpy(cpu->old_regs, cpu->regs, sizeof(cpu->regs));
+	memcpy(cpu->old_cp0, cpu->cp0, sizeof(cpu->cp0));
 	
 	pr->old_loreg = pr->loreg;
 	pr->old_hireg = pr->hireg;
 }
 
-
 /** Perform the multiplication of two integers
  *
  */
-static void multiply(processor_t *pr, uint32_t a, uint32_t b, bool sig)
+static void multiply(cpu_t *cpu, uint32_t a, uint32_t b, bool sign)
 {
 	/* Quick test */
 	if ((a == 0) || (b == 0)) {
@@ -556,17 +494,16 @@ static void multiply(processor_t *pr, uint32_t a, uint32_t b, bool sig)
 		return;
 	}
 	
-	/* Signum test */
-	if (sig) {
+	if (sign) {
 		/* Signed multiplication */
-		int64_t r = (int64_t) (int32_t) a * (int64_t) (int32_t) b;
+		int64_t r = ((int64_t) ((int32_t) a)) * ((int64_t) ((int32_t) b));
 		
 		/* Result */
-		pr->loreg = r & 0xffffffff;
-		pr->hireg = r >> 32;
+		pr->loreg = ((uint64_t) r) & 0xffffffff;
+		pr->hireg = ((uint64_t) r) >> 32;
 	} else {
 		/* Unsigned multiplication */
-		uint64_t r = (uint64_t) a * (uint64_t) b;
+		uint64_t r = ((uint64_t) a) * ((uint64_t) b);
 		
 		/* Result */
 		pr->loreg = r & 0xffffffff;
@@ -574,56 +511,60 @@ static void multiply(processor_t *pr, uint32_t a, uint32_t b, bool sig)
 	}
 }
 
-
 /** Write a new entry into the TLB
  *
- * The entry is determined by either the random register (TLBWR) or index (TLBWI)
+ * The entry index is determined by either
+ * the random register (TLBWR) or index (TLBWI).
+ *
  */
-static void TLBW(processor_t *pr, bool random, exc_t *res)
+static void TLBW(cpu_t *cpu, bool random, exc_t *res)
 {
 	if ((cp0_status_cu0 == 1)
 	    || ((cp0_status_ksu == 0)
 	    || (cp0_status_exl == 1)
 	    || (cp0_status_erl == 1))) {
-		uint32_t index = random ? cp0_random_random : cp0_index_index;
-		tlb_ent *t = &pr->tlb[index];
 		
-		if (index > 47)
-			/* Undefined behavior, doing nothing complies.
+		unsigned int index =
+		    random ? cp0_random_random(cpu) : cp0_index_index(cpu);
+		
+		if (index > 47) {
+			/*
+			 * Undefined behavior, doing nothing complies.
 			 * Random is read-only, its index should be always fine.
 			 */
 			mprintf("\nTLBWI: Invalid value in Index\n");
-		else {
-			/* TLB filling */
-			t->mask = cp0_entryhi_vpn2_mask & ~cp0_pagemask;
-			t->vpn2 = cp0_entryhi & t->mask;
-			t->global = cp0_entrylo0_g & cp0_entrylo1_g;
-			t->asid = cp0_entryhi_asid;
+		} else {
+			/* Fill TLB */
+			tlb_ent_t *entry = &cpu->tlb[index];
 			
-			t->pg[0].pfn = cp0_entrylo0_pfn << 12;
-			t->pg[0].cohh = cp0_entrylo0_c;
-			t->pg[0].dirty = cp0_entrylo0_d;
-			t->pg[0].valid = cp0_entrylo0_v;
+			entry->mask = cp0_entryhi_vpn2_mask & ~cp0_pagemask;
+			entry->vpn2 = cp0_entryhi & entry->mask;
+			entry->global = cp0_entrylo0_g & cp0_entrylo1_g;
+			entry->asid = cp0_entryhi_asid;
 			
-			t->pg[1].pfn = cp0_entrylo1_pfn << 12;
-			t->pg[1].cohh = cp0_entrylo1_c;
-			t->pg[1].dirty = cp0_entrylo1_d;
-			t->pg[1].valid = cp0_entrylo1_v;
+			entry->pg[0].pfn = cp0_entrylo0_pfn << 12;
+			entry->pg[0].cohh = cp0_entrylo0_c;
+			entry->pg[0].dirty = cp0_entrylo0_d;
+			entry->pg[0].valid = cp0_entrylo0_v;
+			
+			entry->pg[1].pfn = cp0_entrylo1_pfn << 12;
+			entry->pg[1].cohh = cp0_entrylo1_c;
+			entry->pg[1].dirty = cp0_entrylo1_d;
+			entry->pg[1].valid = cp0_entrylo1_v;
 		}
 	} else {
 		/* Coprocessor unusable */
 		*res = excCpU;
-		pr->cp0[cp0_Cause] &= ~cp0_cause_ce_mask;
+		entry->cp0[cp0_Cause] &= ~cp0_cause_ce_mask;
 	}
 }
-
 
 /** Execute the instruction specified by the opcode
  *
  * A really huge one, isn't it.
  *
  */
-static exc_t execute(processor_t *pr, instr_info_t *ii2)
+static exc_t execute(cpu_t *cpu, instr_info_t *ii2)
 {
 	instr_info_t ii = *ii2;
 	exc_t res = excNone;
@@ -959,7 +900,7 @@ static exc_t execute(processor_t *pr, instr_info_t *ii2)
 		    || (cp0_status_erl == 1))) {
 			/* Ignore - always true */
 			pca = pr->pc_next + (ii.imm << 2);
-			pr->branch = 2;
+			pr->branch = BRANCH_COND;
 		} else {
 			/* Coprocessor unusable */
 			res = excCpU;
@@ -976,7 +917,7 @@ static exc_t execute(processor_t *pr, instr_info_t *ii2)
 		    || (cp0_status_erl == 1))) {
 			/* Ignore - always true */
 			pca = pr->pc_next + (ii.imm << 2);
-			pr->branch = 2;
+			pr->branch = BRANCH_COND;
 		} else {
 			/* Coprocessor unusable */
 			res = excCpU;
@@ -986,13 +927,13 @@ static exc_t execute(processor_t *pr, instr_info_t *ii2)
 	case opcBEQ:
 		if (rrs == rrt) {
 			pca = pr->pc_next + (ii.imm << 2);
-			pr->branch = 2;
+			pr->branch = BRANCH_COND;
 		}
 		break;
 	case opcBEQL:
 		if (rrs == rrt) {
 			pca = pr->pc_next + (ii.imm << 2);
-			pr->branch = 2;
+			pr->branch = BRANCH_COND;
 		} else {
 			pr->pc_next += 4;
 			pca = pr->pc_next + 4;
@@ -1004,7 +945,7 @@ static exc_t execute(processor_t *pr, instr_info_t *ii2)
 	case opcBGEZ:
 		if (!(rrs & SBIT)) {
 			pca = pr->pc_next + (ii.imm << 2);
-			pr->branch = 2;
+			pr->branch = BRANCH_COND;
 		}
 		break;
 	case opcBGEZALL:
@@ -1013,7 +954,7 @@ static exc_t execute(processor_t *pr, instr_info_t *ii2)
 	case opcBGEZL:
 		if (!(rrs & SBIT)) {
 			pca = pr->pc_next + (ii.imm << 2);
-			pr->branch = 2;
+			pr->branch = BRANCH_COND;
 		} else {
 			pr->pc_next += 4;
 			pca = pr->pc_next + 4;
@@ -1022,13 +963,13 @@ static exc_t execute(processor_t *pr, instr_info_t *ii2)
 	case opcBGTZ:
 		if (rrs > 0) {
 			pca = pr->pc_next + (ii.imm << 2);
-			pr->branch = 2;
+			pr->branch = BRANCH_COND;
 		}
 		break;
 	case opcBGTZL:
 		if (rrs > 0) {
 			pca = pr->pc_next + (ii.imm << 2);
-			pr->branch = 2;
+			pr->branch = BRANCH_COND;
 		} else {
 			pr->pc_next += 4;
 			pca = pr->pc_next + 4;
@@ -1037,13 +978,13 @@ static exc_t execute(processor_t *pr, instr_info_t *ii2)
 	case opcBLEZ:
 		if (rrs <= 0) {
 			pca = pr->pc_next + (ii.imm << 2);
-			pr->branch = 2;
+			pr->branch = BRANCH_COND;
 		}
 		break;
 	case opcBLEZL:
 		if (rrs <= 0) {
 			pca = pr->pc_next + (ii.imm << 2);
-			pr->branch = 2;
+			pr->branch = BRANCH_COND;
 		} else {
 			pr->pc_next += 4;
 			pca = pr->pc_next + 4;
@@ -1055,7 +996,7 @@ static exc_t execute(processor_t *pr, instr_info_t *ii2)
 	case opcBLTZ:
 		if (rrs & SBIT) {
 			pca = pr->pc_next + (ii.imm << 2);
-			pr->branch = 2;
+			pr->branch = BRANCH_COND;
 		}
 		break;
 	case opcBLTZALL:
@@ -1064,7 +1005,7 @@ static exc_t execute(processor_t *pr, instr_info_t *ii2)
 	case opcBLTZL:
 		if (rrs & SBIT) {
 			pca = pr->pc_next + (ii.imm << 2);
-			pr->branch = 2;
+			pr->branch = BRANCH_COND;
 		} else {
 			pr->pc_next += 4;
 			pca = pr->pc_next + 4;
@@ -1073,13 +1014,13 @@ static exc_t execute(processor_t *pr, instr_info_t *ii2)
 	case opcBNE:
 		if (rrs != rrt) {
 			pca = pr->pc_next + (ii.imm << 2);
-			pr->branch = 2;
+			pr->branch = BRANCH_COND;
 		}
 		break;
 	case opcBNEL:
 		if (rrs != rrt) {
 			pca = pr->pc_next + (ii.imm << 2);
-			pr->branch = 2;
+			pr->branch = BRANCH_COND;
 		} else {
 			pr->pc_next += 4;
 			pca = pr->pc_next + 4;
@@ -1090,14 +1031,14 @@ static exc_t execute(processor_t *pr, instr_info_t *ii2)
 		/* no break */
 	case opcJ:
 		pca = (pr->pc_next & TARGET_COMB) | ii.imm;
-		pr->branch = 2;
+		pr->branch = BRANCH_COND;
 		break;
 	case opcJALR:
 		pr->regs[ii.rd] = pr->pc_next + 4;
 		/* no break */
 	case opcJR:
 		pca = rrs;
-		pr->branch = 2;
+		pr->branch = BRANCH_COND;
 		break;
 	
 	/*
@@ -1475,7 +1416,7 @@ static exc_t execute(processor_t *pr, instr_info_t *ii2)
 			unregister_sc(pr);
 			
 			/* Delay slot test */
-			if ((pr->branch) && (errors))
+			if ((pr->branch != BRANCH_NONE) && (errors))
 				mprintf("\nError: ERET in a delay slot\n\n");
 			
 			if (cp0_status_erl) {
@@ -1825,7 +1766,7 @@ static exc_t execute(processor_t *pr, instr_info_t *ii2)
 	}
 	
 	/* Branch test */
-	if ((pr->branch == 2) || (pr->branch == 0))
+	if ((pr->branch == BRANCH_COND) || (pr->branch == BRANCH_NONE))
 		pr->excaddr = pr->pc;
 	
 	/* PC update */
@@ -1840,11 +1781,10 @@ static exc_t execute(processor_t *pr, instr_info_t *ii2)
 	return res;
 }
 
-
 /** Change the processor state according to the exception type
  *
  */
-static void handle_exception(processor_t *pr, exc_t res)
+static void handle_exception(cpu_t *cpu, exc_t res)
 {
 	bool tlb_refill = false;
 	
@@ -1868,12 +1808,12 @@ static void handle_exception(processor_t *pr, exc_t res)
 	
 	/* Exception branch control */
 	cp0_cause &= ~cp0_cause_bd_mask;
-	if (pr->branch == 1)
+	if (pr->branch == BRANCH_PASSED)
 		cp0_cause |= cp0_cause_bd_mask;
 	
 	if (!cp0_status_exl) {
 		cp0_epc = pr->excaddr;
-		if ((res == excInt) && (pr->branch != 2))
+		if ((res == excInt) && (pr->branch != BRANCH_COND))
 			cp0_epc = pr->pc;
 	}
 	
@@ -1902,11 +1842,10 @@ static void handle_exception(processor_t *pr, exc_t res)
 	cp0_status |= cp0_status_exl_mask;
 }
 
-
 /** React on interrupt requests, updates internal timer, random register
  *
  */
-static void manage(processor_t *pr, exc_t res)
+static void manage(cpu_t *cpu, exc_t res)
 {
 	/* Test for interrupt request */
 	if ((res == excNone)
@@ -1918,87 +1857,93 @@ static void manage(processor_t *pr, exc_t res)
 	
 	/* Exception control */
 	if (res != excNone)
-		handle_exception(pr, res);
+		handle_exception(cpu, res);
 	
 	/* Increase counter */
-	cp0_count_count++;
+	cp0_count(cpu)++;
 	
 	/* Decrease random register */
-	if (cp0_random-- == 0)
-		cp0_random = 47;
+	if (cp0_random(cpu)-- == 0)
+		cp0_random(cpu) = 47;
 	
-	if (cp0_random < cp0_wired)
-		cp0_random = 47;
+	if (cp0_random(cpu) < cp0_wired(cpu))
+		cp0_random(cpu) = 47;
 	
 	/* Timer control */
-	if (cp0_count_count == cp0_compare_compare)
-		/* Generating interrupt request */
-		cp0_cause |= 1 << cp0_cause_ip7_shift;
+	if (cp0_count(cpu) == cp0_compare(cpu))
+		/* Generate interrupt request */
+		cp0_cause(cpu) |= 1 << cp0_cause_ip7_shift;
 }
 
-
-/* Simulate just one instruction
+/* Simulate one instruction
  *
- * The are three main parts: instruction reading, decoding and performing
- * debug output.
+ * Four main stages are performed:
+ *  - instruction fetch
+ *  - instruction decode
+ *  - instruction execution
+ *  - debugging output
  *
  */
-static void instruction(processor_t *pr, exc_t *res)
+static void instruction(cpu_t *cpu, exc_t *res)
 {
 	instr_info_t ii;
 	
-	/* Reading instruction code */
-	*res = read_proc_ins(pr, pr->pc, &ii.icode, true);
+	/* Fetch instruction */
+	*res = read_proc_ins(cpu, cpu->pc, &ii.icode, true);
 	if (*res == excNone) {
-		char modif_regs[1024];
-		uint32_t old_pc = pr->pc;
-		
-		/* Decoding instruction code */
+		/* Decode instruction */
 		decode_instr(&ii);
 		
-		/* Executing instruction */
-		*res = execute(pr, &ii);
+		/* Execute instruction */
+		uint32_t old_pc = cpu->pc;
+		*res = execute(cpu, &ii);
 		
-		/* View changes */
-		if ((totrace) && (iregch))
-			modified_regs_dump(pr, 1024, modif_regs);
-		else
-			modif_regs[0] = 0;
-		
-		/* Instruction disassembling */
-		if (totrace)
-			iview(pr, old_pc, &ii, modif_regs);
+		/* Debugging output */
+		if (totrace) {
+			char *modified_regs;
+			
+			if (iregch)
+				modified_regs = modified_regs_dump(cpu);
+			else
+				modified_regs = NULL;
+			
+			iview(cpu, old_pc, &ii, modified_regs);
+			
+			if (modified_regs != NULL)
+				safe_free(modified_regs);
+		}
 	}
 }
-
 
 /* Simulate one step of the processor
  *
  * This is just one instruction.
  *
  */
-void step(processor_t *pr)
+void cpu_step(cpu_t *cpu)
 {
 	exc_t res = excNone;
 	
 	/* Instruction execute */
-	if (!pr->stdby)
-		instruction(pr, &res);
+	if (!cpu->stdby)
+		instruction(cpu, &res);
 	
 	/* Processor control */
-	manage(pr, res);
+	manage(cpu, res);
 	
-	if (pr->stdby)
-		pr->w_cycles++;
+	/* Cycle accounting */
+	if (cpu->stdby)
+		cpu->w_cycles++;
 	else {
-		if ((cp0_status_ksu == 0)
-		    || (cp0_status_exl == 1)
-		    || (cp0_status_erl == 1))
-			pr->k_cycles++;
+		if ((cp0_status_ksu(cpu) == 0)
+		    || (cp0_status_exl(cpu) == 1)
+		    || (cp0_status_erl(cpu) == 1))
+			cpu->k_cycles++;
 		else
-			pr->u_cycles++;
+			cpu->u_cycles++;
 	}
 	
-	if (pr->branch != 0)
-		pr->branch--;
+	/* Branch delay slot control */
+	if (cpu->branch > BRANCH_NONE)
+		cpu->branch--;
 }

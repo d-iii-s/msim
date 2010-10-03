@@ -32,7 +32,6 @@
 
 #include "breakpoint.h"
 
-#include <assert.h>
 #include <inttypes.h>
 
 #include "../utils.h"
@@ -193,7 +192,7 @@ void memory_breakpoint_hit(mem_breakpoint_t *breakpoint, access_t access_type)
 		gdb_handle_event(GDB_EVENT_BREAKPOINT);
 		break;
 	default:
-		assert(false);
+		PRE(false);
 	}
 }
 
@@ -240,7 +239,7 @@ static void breakpoint_hit(breakpoint_t *breakpoint)
 		gdb_handle_event(GDB_EVENT_BREAKPOINT);
 		break;
 	default:
-		assert(false);
+		PRE(false);
 	}
 }
 

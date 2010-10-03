@@ -15,7 +15,6 @@
 #include "../../device/machine.h"
 #include "../../io/output.h"
 
-
 static BOOL machine_user_break(DWORD fdwCtrlType)
 {
 	switch (fdwCtrlType) {
@@ -35,7 +34,6 @@ static BOOL machine_user_break(DWORD fdwCtrlType)
 	
 	return false;
 }
-
 
 void register_sigint(void)
 {

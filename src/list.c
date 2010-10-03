@@ -7,9 +7,8 @@
  */
 
 #include <stddef.h>
-#include <assert.h>
-
 #include "list.h"
+#include "check.h"
 
 /** Initialize a list
  *
@@ -41,7 +40,7 @@ void item_init(item_t *item)
 void list_append(list_t *list, item_t *item)
 {
 	/* Make sure the item is not a member of a list, then add it. */
-	assert(item->list == NULL);
+	PRE(item->list == NULL);
 	item->list = list;
 	
 	/* In an empty list, attach us as head.
@@ -69,7 +68,7 @@ void list_append(list_t *list, item_t *item)
 void list_remove(list_t *list, item_t *item)
 {
 	/* Make sure the item is a member of the list, then remove it. */
-	assert(item->list == list);
+	PRE(item->list == list);
 	item->list = NULL;
 	
 	if (item->prev == NULL)

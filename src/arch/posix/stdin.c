@@ -37,4 +37,4 @@ bool stdin_poll(char *key)
 	return false;
 }
 
-#endif /* __WIN32__ */
+#endif /* !__WIN32__ */

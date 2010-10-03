@@ -16,12 +16,11 @@
 
 #include "../mtypes.h"
 
-/**< Sign bit */
-#define SBIT  0x80000000
-#define NSBIT 0x7fffffff
+/** Sign bit */
+#define SBIT   0x80000000U
+#define NSBIT  0x7fffffffU
 
-/*
- * Opcode numbers
+/** Opcode numbers
  *
  * Warning: Do NOT change the order
  *
@@ -146,7 +145,7 @@ typedef enum {
 	opcLWL,
 	opcLWR,
 	opcLWU,
-
+	
 	opcMADD,
 	opcMADDU,
 	opcMFC0,
@@ -219,12 +218,12 @@ typedef enum {
 	opcTLTU,
 	opcTNE,
 	opcTNEI,
-
+	
 	opcWAIT,
 	
 	opcXOR,
 	opcXORI,
-
+	
 	opcNOP,
 	
 	opcUNIMP,
@@ -239,35 +238,35 @@ typedef enum {
 	opcDRV,
 	opcDHLT,
 	opcDINT,
-
+	
 	opcIllegal,
 	
 	/* For decoding */
 	opcBC,
 	opcC0
-} instr_names;
+} instr_opcode_t;
 
-/**< Instruction formats */
+/** Instruction formats */
 typedef enum {
-	ifX,     /* undefined */
-	ifNONE,  /* no parameters */
-	ifERR,   /* invalid */
-	ifR4,    /* not implemented */
-	ifIMM,   /* immediate */
-	ifIMMS,  /* immediate signed */
-	ifIMMU,  /* immediate unsigned */
-	ifIMMUX, /* immediate unsigned, hex 4 */
+	ifX,       /**< undefined */
+	ifNONE,    /**< no parameters */
+	ifERR,     /**< invalid */
+	ifR4,      /**< not implemented */
+	ifIMM,     /**< immediate */
+	ifIMMS,    /**< immediate signed */
+	ifIMMU,    /**< immediate unsigned */
+	ifIMMUX,   /**< immediate unsigned, hex 4 */
 	
-	ifJ,     /* jump */
-	ifREG,   /* register */
-	ifOFF,   /* offset */
-	ifCND,   /* cond */
-	ifRO,    /* reg + off */
-	ifTD,    /* rt, rd */
-	ifTDX0,  /* rt, rd as number cp0 */
-	ifTDX1,  /* rt, rd as number cp1 */
-	ifTDX2,  /* rt, rd as number cp2 */
-	ifTDX3,  /* rt, rd as number cp3 */
+	ifJ,       /**< jump */
+	ifREG,     /**< register */
+	ifOFF,     /**< offset */
+	ifCND,     /**< cond */
+	ifRO,      /**< reg + off */
+	ifTD,      /**< rt, rd */
+	ifTDX0,    /**< rt, rd as number cp0 */
+	ifTDX1,    /**< rt, rd as number cp1 */
+	ifTDX2,    /**< rt, rd as number cp2 */
+	ifTDX3,    /**< rt, rd as number cp3 */
 	ifOP,
 	ifST,
 	ifDS,
@@ -278,39 +277,39 @@ typedef enum {
 	ifSI,
 	ifSIW,
 	ifDTS,
-	ifSYSCALL /* syscall */
-} basic_instruction_format;
+	ifSYSCALL  /**< syscall */
+} instr_form_basic_t;
 
 typedef struct {
-	int opcode;
-	int format;
-} instr_form;
-
+	instr_opcode_t opcode;
+	instr_form_basic_t format;
+} instr_form_t;
 
 /** Various mask and shift settings */
-#define TARGET_MASK   0x3ffffff
-#define TARGET_SHIFT  2
-#define TARGET_COMB   0xf0000000
-#define FUNCTION_MASK 0x3f
+#define TARGET_MASK    0x03ffffffU
+#define TARGET_SHIFT   2
+#define TARGET_COMB    0xf0000000U
 
-#define SA_MASK  0x7c0
-#define SA_SHIFT 6
-#define RD_MASK  0x0000f800
-#define RD_SHIFT 11
-#define RT_MASK  0x001f0000
-#define RT_SHIFT 16
-#define RS_MASK  0x03e00000
-#define RS_SHIFT 21
-#define OP_MASK  0xfc000000
-#define OP_SHIFT 26
+#define FUNCTION_MASK  0x3f
 
-#define IMM_MASK     0xffff
-#define IMM_SIGN_BIT 0x8000
+#define SA_MASK   0x7c0U
+#define SA_SHIFT  6
+#define RD_MASK   0x0000f800U
+#define RD_SHIFT  11
+#define RT_MASK   0x001f0000U
+#define RT_SHIFT  16
+#define RS_MASK   0x03e00000U
+#define RS_SHIFT  21
+#define OP_MASK   0xfc000000U
+#define OP_SHIFT  26
+
+#define IMM_MASK      0xffffU
+#define IMM_SIGN_BIT  0x8000U
 
 typedef struct {
 	/* Instruction */
 	uint32_t icode;
-	int opcode;
+	instr_opcode_t opcode;
 	
 	/* Parameters */
 	
@@ -324,17 +323,14 @@ typedef struct {
 	uint32_t sa;
 	
 	/* Others */
-	int imm;
-	int jimm;
-	int shift;
+	unsigned int imm;
+	unsigned int shift;
 } instr_info_t;
 
-
 typedef struct {
-	char *instr_text_t;
-	basic_instruction_format itype;
+	char *instr_text;
+	instr_form_basic_t itype;
 } instr_text_t;
-
 
 extern instr_text_t instr_names_acronym[];
 
@@ -345,8 +341,7 @@ extern char *cp1_name[][32];
 extern char *cp2_name[][32];
 extern char *cp3_name[][32];
 
-
 /** Convert opcode to instruction description */
 extern void decode_instr(instr_info_t *ii);
 
-#endif /* INSTR_H_ */
+#endif

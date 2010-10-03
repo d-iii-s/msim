@@ -13,7 +13,6 @@
 #include <stdint.h>
 #include <stdbool.h>
 #include <inttypes.h>
-#include <assert.h>
 
 #include "machine.h"
 
@@ -336,7 +335,7 @@ uint32_t mem_read(processor_t *pr, ptr_t addr, size_t size,
 	case BITS_32:
 		return convert_uint32_t_endian(*((uint32_t *) value_ptr));
 	default:
-		assert(false);
+		PRE(false);
 		return DEFAULT_MEMORY_VALUE;
 	}
 }
@@ -427,7 +426,7 @@ bool mem_write(processor_t *pr, uint32_t addr, uint32_t val, size_t size,
 		*((uint32_t *) value_ptr) = convert_uint32_t_endian(val);
 		break;
 	default:
-		assert(false);
+		PRE(false);
 	}
 	
 	return true;

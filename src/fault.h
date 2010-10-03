@@ -12,16 +12,16 @@
 #ifndef FAULT_H_
 #define FAULT_H_
 
-/**< Print error message to stderr */
+/** Print error message to stderr */
 extern void error(const char *fmt, ...);
 
-/**< Print message to stderr and exits */
+/** Print message to stderr and exits */
 extern void die(int ex, const char *fmt, ...);
 
-/* Dump error description of I/O error */
+/** Dump error description of I/O error */
 extern void io_error(const char *filename);
 
-/* Like io_error() but call exit */
+/** Like io_error() but call exit */
 extern void io_die(int ex, const char *filename);
 
-#endif /* FAULT_H_ */
+#endif

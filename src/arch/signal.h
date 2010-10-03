@@ -9,8 +9,6 @@
 #ifndef SIGNAL_H_
 #define SIGNAL_H_
 
-
 extern void register_sigint(void);
 
-
-#endif /* SIGNAL_H_ */
+#endif

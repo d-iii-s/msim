@@ -17,9 +17,12 @@
 #include <stdarg.h>
 #include <stdbool.h>
 #include <inttypes.h>
-
-#include "device.h"
-
+#include "../io/output.h"
+#include "../main.h"
+#include "../check.h"
+#include "../cline.h"
+#include "../utils.h"
+#include "../fault.h"
 #include "mem.h"
 #include "dcpu.h"
 #include "dkeyboard.h"
@@ -27,10 +30,7 @@
 #include "ddisk.h"
 #include "dprinter.h"
 #include "dtime.h"
-#include "../io/output.h"
-#include "../check.h"
-#include "../cline.h"
-#include "../utils.h"
+#include "device.h"
 
 /** Count of device types */
 #define DEVICE_TYPE_COUNT  8
@@ -120,7 +120,7 @@ static bool dev_match_to_filter(device_s* device, device_filter_t filter)
 	case DEVICE_FILTER_PROCESSOR:
 		return device->type->name == id_dcpu;
 	default:
-		PRE(false);
+		die(ERR_INTERN, "Internal error at %s(%u)", __FILE__, __LINE__);
 		return false;
 	}
 }

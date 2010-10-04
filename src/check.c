@@ -17,10 +17,10 @@
 #include <stdio.h>
 #include <stdarg.h>
 #include <stdlib.h>
-
-#include "check.h"
 #include <unistd.h>
 #include <stdlib.h>
+#include <stdbool.h>
+#include "check.h"
 
 #ifdef RQ_DEBUG
 

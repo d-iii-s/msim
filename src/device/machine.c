@@ -335,7 +335,7 @@ uint32_t mem_read(cpu_t *cpu, ptr_t addr, size_t size,
 	case BITS_32:
 		return convert_uint32_t_endian(*((uint32_t *) value_ptr));
 	default:
-		PRE(false);
+		die(ERR_INTERN, "Internal error at %s(%u)", __FILE__, __LINE__);
 		return DEFAULT_MEMORY_VALUE;
 	}
 }
@@ -426,7 +426,7 @@ bool mem_write(cpu_t *cpu, uint32_t addr, uint32_t val, size_t size,
 		*((uint32_t *) value_ptr) = convert_uint32_t_endian(val);
 		break;
 	default:
-		PRE(false);
+		die(ERR_INTERN, "Internal error at %s(%u)", __FILE__, __LINE__);
 	}
 	
 	return true;

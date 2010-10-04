@@ -167,7 +167,7 @@ void interactive_control(void)
 			add_history(commline);
 			interpret(commline);
 		} else
-			interpret("s");
+			interpret("step");
 		
 		free(commline);
 	}

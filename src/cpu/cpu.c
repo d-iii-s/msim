@@ -30,8 +30,8 @@
 
 /** Initial state */
 #define HARD_RESET_STATUS         (cp0_status_erl_mask | cp0_status_bev_mask)
-#define HARD_RESET_START_ADDRESS  0xbfc00000
-#define HARD_RESET_PROC_ID        0x00000400
+#define HARD_RESET_START_ADDRESS  0xbfc00000U
+#define HARD_RESET_PROC_ID        0x00000400U
 #define HARD_RESET_CAUSE          0
 #define HARD_RESET_WATCHLO        0
 #define HARD_RESET_WATCHHI        0
@@ -168,7 +168,7 @@ static tlb_look_t tlb_look(cpu_t *cpu, ptr_t *addr, bool wr)
 			
 			/* Make address */
 			ptr_t amask = *addr & (~smask);
-			*addr = amask | (cpu->tlb[i].pg[subpage].pfn & smask);
+			*addr = amask | (entry->pg[subpage].pfn & smask);
 			
 			/* Update optimization hint */
 			cpu->tlb_hint = i;
@@ -245,7 +245,7 @@ static exc_t tlb_hit(cpu_t *cpu, ptr_t *addr, bool wr, bool noisy)
  */
 static exc_t convert_addr_user(cpu_t *cpu, ptr_t *addr, bool wr, bool noisy)
 {
-	/* Testi 31 bit or look into TLB */
+	/* Test bit 31 or lookup in TLB */
 	if ((*addr & SBIT) != 0) {
 		fill_addr_error(cpu, *addr, noisy);
 		return excAddrError;
@@ -588,7 +588,7 @@ static void TLBW(cpu_t *cpu, bool random, exc_t *res)
 	} else {
 		/* Coprocessor unusable */
 		*res = excCpU;
-		cpu->cp0[cp0_Cause] &= ~cp0_cause_ce_mask;
+		cp0_cause(cpu) &= ~cp0_cause_ce_mask;
 	}
 }
 
@@ -617,7 +617,7 @@ static exc_t execute(cpu_t *cpu, instr_info_t ii)
 	 */
 	
 	case opcADD:
-		utmp32 = (uint32_t) (((int32_t) urrs) + ((int32_t) urrt));
+		utmp32 = urrs + urrt;
 		
 		if (!((urrs ^ urrt) & SBIT) && ((urrs ^ utmp32) & SBIT)) {
 			res = excOv;
@@ -627,7 +627,7 @@ static exc_t execute(cpu_t *cpu, instr_info_t ii)
 		cpu->regs[ii.rd] = utmp32;
 		break;
 	case opcADDI:
-		utmp32 = (uint32_t) (((int32_t) urrs) + ((int32_t) ii.imm));
+		utmp32 = urrs + ii.imm;
 		
 		if (!((urrs ^ ii.imm) & SBIT) && ((ii.imm ^ utmp32) & SBIT)) {
 			res = excOv;
@@ -663,7 +663,7 @@ static exc_t execute(cpu_t *cpu, instr_info_t ii)
 		utmp32 = 0;
 		utmp32b = urrs;
 		
-		while (!(utmp32b & 0x80000000U) && (utmp32 < 32)) {
+		while ((!(utmp32b & 0x80000000U)) && (utmp32 < 32)) {
 			utmp32++;
 			utmp32b <<= 1;
 		}
@@ -799,7 +799,7 @@ static exc_t execute(cpu_t *cpu, instr_info_t ii)
 		cpu->regs[ii.rd] = urrt >> (urrs & 0x1fU);
 		break;
 	case opcSUB:
-		utmp32 = (uint32_t) (((int32_t) urrs) - ((int32_t) urrt));
+		utmp32 = urrs - urrt;
 		
 		if (((urrs ^ urrt) & SBIT) && ((urrs ^ utmp32) & SBIT)) {
 			res = excOv;
@@ -1012,7 +1012,7 @@ static exc_t execute(cpu_t *cpu, instr_info_t ii)
 		    &utmp32, true);
 		if (res == excNone) {
 			cpu->regs[ii.rt] = (utmp32 & 0x80U) ?
-			    (utmp32 | 0xffffff00) : (utmp32 & 0xffU);
+			    (utmp32 | 0xffffff00U) : (utmp32 & 0xffU);
 		}
 		break;
 	case opcLBU:
@@ -1074,27 +1074,25 @@ static exc_t execute(cpu_t *cpu, instr_info_t ii)
 		break;
 	case opcLW:
 		res = cpu_read_mem(cpu, urrs + ((int32_t) ii.imm), BITS_32,
-		    (uint32_t *) &cpu->regs[ii.rt], true);
+		    &cpu->regs[ii.rt], true);
 		break;
 	case opcLWL:
-		addr = (urrs + ((int32_t) ii.imm)) & ((uint32_t) ~0x3);
+		addr = (urrs + ((int32_t) ii.imm)) & ((uint32_t) ~0x03);
 		res = cpu_read_mem(cpu, addr, BITS_32, &utmp32, true);
 		
 		if (res == excNone) {
-			unsigned int index = (urrs + ((int32_t) ii.imm))
-			    & ((uint32_t) 0x3);
+			unsigned int index = (urrs + ((int32_t) ii.imm)) & 0x03;
 			
 			cpu->regs[ii.rt] &= shift_tab_left[index].mask;
 			cpu->regs[ii.rt] |= utmp32 << shift_tab_left[index].shift;
 		}
 		break;
 	case opcLWR:
-		addr = (urrs + ((int32_t) ii.imm)) & ((uint32_t) ~0x3);
+		addr = (urrs + ((int32_t) ii.imm)) & ((uint32_t) ~0x03);
 		res = cpu_read_mem(cpu, addr, BITS_32, &utmp32, true);
 		
 		if (res == excNone) {
-			unsigned int index = (urrs + ((int32_t) ii.imm))
-			    & ((uint32_t) 0x3);
+			unsigned int index = (urrs + ((int32_t) ii.imm)) & 0x03;
 			
 			cpu->regs[ii.rt] &= shift_tab_right[index].mask;
 			cpu->regs[ii.rt] |= (utmp32 >> shift_tab_right[index].shift)
@@ -1162,12 +1160,11 @@ static exc_t execute(cpu_t *cpu, instr_info_t ii)
 		    cpu->regs[ii.rt], true);
 		break;
 	case opcSWL:
-		addr = (urrs + ((int32_t) ii.imm)) & ((uint32_t) ~0x3);
+		addr = (urrs + ((int32_t) ii.imm)) & ((uint32_t) ~0x03);
 		res = cpu_read_mem(cpu, addr, BITS_32, &utmp32, true);
 		
 		if (res == excNone) {
-			unsigned int index = (urrs + ((int32_t) ii.imm))
-			    & ((uint32_t) 0x3);
+			unsigned int index = (urrs + ((int32_t) ii.imm)) & 0x03;
 			
 			utmp32 &= shift_tab_left_store[index].mask;
 			utmp32 |= (cpu->regs[ii.rt] >> shift_tab_left_store[index].shift)
@@ -1177,12 +1174,11 @@ static exc_t execute(cpu_t *cpu, instr_info_t ii)
 		}
 		break;
 	case opcSWR:
-		addr = (urrs + ((int32_t) ii.imm)) & ((uint32_t) ~0x3);
+		addr = (urrs + ((int32_t) ii.imm)) & ((uint32_t) ~0x03);
 		res = cpu_read_mem(cpu, addr, BITS_32, &utmp32, true);
 		
 		if (res == excNone) {
-			unsigned int index = (urrs + ((int32_t) ii.imm))
-			    & ((uint32_t) 0x3);
+			unsigned int index = (urrs + ((int32_t) ii.imm)) & 0x03;
 			
 			utmp32 &= shift_tab_right_store[index].mask;
 			utmp32 |= cpu->regs[ii.rt] << shift_tab_right_store[index].shift;
@@ -1249,7 +1245,7 @@ static exc_t execute(cpu_t *cpu, instr_info_t ii)
 		break;
 	case opcCFC2:
 		if (cp0_status_cu2(cpu) == 1) {
-				/* Ignored */
+			/* Ignored */
 		} else {
 			/* Coprocessor unusable */
 			res = excCpU;

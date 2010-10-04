@@ -13,7 +13,7 @@
 #define INSTR_H_
 
 #include <stdint.h>
-
+#include "../main.h"
 #include "../mtypes.h"
 
 /** Sign bit */

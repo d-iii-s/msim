@@ -33,12 +33,14 @@
 #include "breakpoint.h"
 
 #include <inttypes.h>
-
-#include "../utils.h"
-#include "../check.h"
 #include "../io/output.h"
 #include "../device/machine.h"
+#include "../main.h"
+#include "../utils.h"
+#include "../check.h"
+#include "../fault.h"
 #include "gdb.h"
+#include "breakpoint.h"
 
 list_t memory_breakpoints;
 
@@ -192,7 +194,7 @@ void memory_breakpoint_hit(mem_breakpoint_t *breakpoint, access_t access_type)
 		gdb_handle_event(GDB_EVENT_BREAKPOINT);
 		break;
 	default:
-		PRE(false);
+		die(ERR_INTERN, "Internal error at %s(%u)", __FILE__, __LINE__);
 	}
 }
 
@@ -239,7 +241,7 @@ static void breakpoint_hit(breakpoint_t *breakpoint)
 		gdb_handle_event(GDB_EVENT_BREAKPOINT);
 		break;
 	default:
-		PRE(false);
+		die(ERR_INTERN, "Internal error at %s(%u)", __FILE__, __LINE__);
 	}
 }
 

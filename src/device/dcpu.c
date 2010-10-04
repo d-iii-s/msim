@@ -16,7 +16,7 @@
 
 #include "../main.h"
 #include "device.h"
-#include "../cpu/processor.h"
+#include "../cpu/cpu.h"
 #include "../debug/debug.h"
 #include "../debug/breakpoint.h"
 #include "../io/output.h"
@@ -205,7 +205,7 @@ static unsigned int dcpu_get_free_id(void)
 	device_s *dev = NULL;
 
 	while (dev_next(&dev, DEVICE_FILTER_PROCESSOR))
-		id_mask |= 1 << ((processor_t *) dev->data)->procno;
+		id_mask |= 1 << ((cpu_t *) dev->data)->procno;
 	
 	for (c = 0; c < MAX_CPU; c++, id_mask >>= 1)
 		if (!(id_mask & 1))
@@ -229,8 +229,8 @@ static bool dcpu_init(parm_link_s *parm, device_s *dev)
 		return false;
 	}
 	
-	processor_t *cpu = (processor_t *) safe_malloc_t(processor_t);
-	processor_init(cpu, id);
+	cpu_t *cpu = safe_malloc_t(cpu_t);
+	cpu_init(cpu, id);
 	
 	dev->data = cpu;
 	
@@ -253,33 +253,33 @@ static bool dcpu_info(parm_link_s *parm, device_s *dev)
  */
 static bool dcpu_stat(parm_link_s *parm, device_s *dev)
 {
-	processor_t *p = (processor_t *) dev->data;
+	cpu_t *cpu = (cpu_t *) dev->data;
 	
 	mprintf("Total cycles         In kernel space      In user space\n");
 	mprintf("-------------------- -------------------- --------------------\n");
 	mprintf("%20" PRIu64 " %20" PRIu64 " %20" PRIu64 "\n\n",
-		(uint64_t) p->k_cycles + p->u_cycles + p->w_cycles,
-		p->k_cycles, p->u_cycles);
+	    (uint64_t) cpu->k_cycles + cpu->u_cycles + cpu->w_cycles,
+	    cpu->k_cycles, cpu->u_cycles);
 	
 	mprintf("Wait cycles          TLB Refill exc       TLB Invalid exc\n");
 	mprintf("-------------------- -------------------- --------------------\n");
 	mprintf("%20" PRIu64 " %20" PRIu64 " %20" PRIu64 "\n\n",
-		p->w_cycles, p->tlb_refill, p->tlb_invalid);
+	    cpu->w_cycles, cpu->tlb_refill, cpu->tlb_invalid);
 	
 	mprintf("TLB Modified exc     Interrupt 0          Interrupt 1\n");
 	mprintf("-------------------- -------------------- --------------------\n");
 	mprintf("%20" PRIu64 " %20" PRIu64 " %20" PRIu64 "\n\n",
-		p->tlb_modified, p->intr[0], p->intr[1]);
+	    cpu->tlb_modified, cpu->intr[0], cpu->intr[1]);
 	
 	mprintf("Interrupt 2          Interrupt 3          Interrupt 4\n");
 	mprintf("-------------------- -------------------- --------------------\n");
 	mprintf("%20" PRIu64 " %20" PRIu64 " %20" PRIu64 "\n\n",
-		p->intr[2], p->intr[3], p->intr[4]);
+	    cpu->intr[2], cpu->intr[3], cpu->intr[4]);
 	
 	mprintf("Interrupt 5          Interrupt 6          Interrupt 7\n");
 	mprintf("-------------------- -------------------- --------------------\n");
 	mprintf("%20" PRIu64 " %20" PRIu64 " %20" PRIu64 "\n",
-		p->intr[5], p->intr[6], p->intr[7]);
+	    cpu->intr[5], cpu->intr[6], cpu->intr[7]);
 	
 	return true;
 }
@@ -300,7 +300,7 @@ static bool dcpu_cp0d(parm_link_s *parm, device_s *dev)
 		}
 	}
 	
-	cp0_dump((processor_t *) dev->data, no);
+	cp0_dump((cpu_t *) dev->data, no);
 	
 	return true;
 }
@@ -311,8 +311,8 @@ static bool dcpu_cp0d(parm_link_s *parm, device_s *dev)
  */
 static bool dcpu_tlbd(parm_link_s *parm, device_s *dev)
 {
-	tlb_dump((processor_t *) dev->data);
-
+	tlb_dump((cpu_t *) dev->data);
+	
 	return true;
 }
 
@@ -333,7 +333,7 @@ static bool dcpu_md(parm_link_s *parm, device_s *dev)
 		if (!(j & 0x3))
 			mprintf("  %#10" PRIx32 "    ", addr);
 		
-		res = read_proc_mem((processor_t *) dev->data, addr, 4, &val, false);
+		res = cpu_read_mem((cpu_t *) dev->data, addr, 4, &val, false);
 		mprintf("res: %d\n", res);
 		
 		if (res == excNone)
@@ -368,15 +368,15 @@ static bool dcpu_id(parm_link_s *parm, device_s *dev)
 	ii.rs = 0;
 	
 	for (; siz; siz--, addr += 4) {
-		res = read_proc_ins((processor_t *) dev->data, addr, &ii.icode, false);
+		res = cpu_read_ins((cpu_t *) dev->data, addr, &ii.icode, false);
 		
 		if (res != excNone) {
 			ii.icode = 0;
 			ii.opcode = opcIllegal;
 		} else
 			decode_instr(&ii);
-
-		iview((processor_t *) dev->data, addr, &ii, 0);
+		
+		iview((cpu_t *) dev->data, addr, &ii, 0);
 	}
 
 	return true;
@@ -388,7 +388,7 @@ static bool dcpu_id(parm_link_s *parm, device_s *dev)
  */
 static bool dcpu_rd(parm_link_s *parm, device_s *dev)
 {
-	reg_view((processor_t *) dev->data);
+	reg_view((cpu_t *) dev->data);
 	
 	return true;
 }
@@ -399,12 +399,10 @@ static bool dcpu_rd(parm_link_s *parm, device_s *dev)
  */
 static bool dcpu_goto(parm_link_s *parm, device_s *dev)
 {
-	processor_t *pr = (processor_t *) dev->data;
+	cpu_t *cpu = (cpu_t *) dev->data;
 	ptr_t addr = parm->token.tval.i;
 	
-	pr->pc = addr;
-	pr->pc_next = addr + 4;
-	
+	cpu_set_pc(cpu, addr);
 	return true;
 }
 
@@ -416,9 +414,9 @@ static bool dcpu_break(parm_link_s *parm, device_s *dev)
 {
 	breakpoint_t *bp = breakpoint_init(parm->token.tval.i,
 	    BREAKPOINT_KIND_SIMULATOR);
-	processor_t *pr = (processor_t *) dev->data;
+	cpu_t *cpu = (cpu_t *) dev->data;
 	
-	list_append(&pr->bps, &bp->item);
+	list_append(&cpu->bps, &bp->item);
 	return true;
 }
 
@@ -428,15 +426,15 @@ static bool dcpu_break(parm_link_s *parm, device_s *dev)
  */
 static bool dcpu_bd(parm_link_s *parm, device_s *dev)
 {
-	processor_t *pr = (processor_t *) dev->data;
+	cpu_t *cpu = (cpu_t *) dev->data;
 	breakpoint_t *bp;
 	
 	mprintf("Address    Hits                 Kind\n");
 	mprintf("---------- -------------------- ----------\n");
 	
-	for_each(pr->bps, bp, breakpoint_t) {
-		char *kind = (bp->kind == BREAKPOINT_KIND_SIMULATOR) ? "Simulator" :
-		    "Debugger";
+	for_each(cpu->bps, bp, breakpoint_t) {
+		const char *kind = (bp->kind == BREAKPOINT_KIND_SIMULATOR)
+		    ? "Simulator" : "Debugger";
 		
 		mprintf("%#010" PRIx32 " %20" PRIu64 " %s\n",
 		    bp->pc, bp->hits, kind);
@@ -451,14 +449,14 @@ static bool dcpu_bd(parm_link_s *parm, device_s *dev)
  */
 static bool dcpu_br(parm_link_s *parm, device_s *dev)
 {
-	processor_t *pr = (processor_t *) dev->data;
+	cpu_t *cpu = (cpu_t *) dev->data;
 	ptr_t addr = parm->token.tval.i;
 	
 	bool fnd = false;
 	breakpoint_t *bp;
-	for_each(pr->bps, bp, breakpoint_t) {
+	for_each(cpu->bps, bp, breakpoint_t) {
 		if (bp->pc == addr) {
-			list_remove(&pr->bps, &bp->item);
+			list_remove(&cpu->bps, &bp->item);
 			safe_free(bp);
 			fnd = true;
 			break;
@@ -487,17 +485,17 @@ static void dcpu_done(device_s *dev)
  */
 static void dcpu_step(device_s *dev)
 {
-	step((processor_t *) dev->data);
+	cpu_step((cpu_t *) dev->data);
 }
 
-processor_t *dcpu_find_no(unsigned int no)
+cpu_t *dcpu_find_no(unsigned int no)
 {
 	device_s *dev = NULL;
-
+	
 	while (dev_next(&dev, DEVICE_FILTER_PROCESSOR)) {
-		processor_t* processor = (processor_t *) dev->data;
-		if (processor->procno == no)
-			return processor;
+		cpu_t* cpu = (cpu_t *) dev->data;
+		if (cpu->procno == no)
+			return cpu;
 	}
 	
 	return NULL;
@@ -505,17 +503,16 @@ processor_t *dcpu_find_no(unsigned int no)
 
 void dcpu_interrupt_up(unsigned int cpuno, unsigned int no)
 {
-	processor_t *pr = dcpu_find_no(cpuno);
+	cpu_t *cpu = dcpu_find_no(cpuno);
 	
-	if (pr != NULL)
-		proc_interrupt_up(pr, no);
+	if (cpu != NULL)
+		cpu_interrupt_up(cpu, no);
 }
-
 
 void dcpu_interrupt_down(unsigned int cpuno, unsigned int no)
 {
-	processor_t *pr = dcpu_find_no(cpuno);
+	cpu_t *cpu = dcpu_find_no(cpuno);
 	
-	if (pr != NULL)
-		proc_interrupt_down(pr, no);
+	if (cpu != NULL)
+		cpu_interrupt_down(cpu, no);
 }

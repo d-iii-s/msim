@@ -20,4 +20,4 @@ extern char *hint_generator(const char *input, int level);
 extern char **msim_completion(const char *text, int start, int end);
 extern void interactive_control(void);
 
-#endif /* INPUT_H_ */
+#endif

@@ -627,7 +627,7 @@ typedef struct {
 	bool global;            /**< Global bit */
 	uint8_t asid;           /**< Address Space ID */
 	tlb_ent_value_t pg[2];  /**< Subpages */
-} tlb_ent_t;
+} tlb_entry_t;
 
 typedef enum {
 	BRANCH_NONE = 0,
@@ -652,7 +652,7 @@ typedef struct {
 	ptr_t pc_next;
 	
 	/* TLB structures */
-	tlb_ent_t tlb[TLB_ENTRIES];
+	tlb_entry_t tlb[TLB_ENTRIES];
 	unsigned int tlb_hint;
 	
 	/* Old registers (for debug info) */
@@ -689,11 +689,8 @@ typedef struct {
 
 /** Base */
 extern void cpu_init(cpu_t *cpu, size_t procno);
+extern void cpu_set_pc(cpu_t *cpu, ptr_t value);
 extern void cpu_step(cpu_t *cpu);
-
-/** First settings */
-extern void cpu_set_pc(cpu_t *cpu, ptr_t addr);
-extern void cpu_update_debug(cpu_t *cpu);
 
 /** Addresing function */
 extern exc_t convert_addr(cpu_t *cpu, ptr_t *addr, bool write, bool noisy);

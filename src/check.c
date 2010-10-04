@@ -22,6 +22,8 @@
 #include <unistd.h>
 #include <stdlib.h>
 
+#ifdef RQ_DEBUG
+
 #define RQ_COND_NO_SIZE  128
 
 #define COL_FILENAME   0
@@ -92,3 +94,5 @@ void rq_test(const char *pre, const char *filename, unsigned int lineno,
 #endif
 	}
 }
+
+#endif /* RQ_DEBUG */

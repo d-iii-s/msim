@@ -311,9 +311,9 @@ bool breakpoint_check_for_code_breakpoints(void)
 	device_s *dev = NULL;
 	
 	while (dev_next(&dev, DEVICE_FILTER_PROCESSOR)) {
-		processor_t* processor = (processor_t *) dev->data;
+		cpu_t* cpu = (cpu_t *) dev->data;
 		
-		if (breakpoint_hit_by_address(processor->bps, processor->pc))
+		if (breakpoint_hit_by_address(cpu->bps, cpu->pc))
 			hit = true;
 	}
 	

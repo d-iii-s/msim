@@ -286,9 +286,9 @@ typedef struct {
 } instr_form_t;
 
 /** Various mask and shift settings */
-#define TARGET_MASK    0x03ffffffU
-#define TARGET_SHIFT   2
-#define TARGET_COMB    0xf0000000U
+#define TARGET_MASK      0x03ffffffU
+#define TARGET_SHIFT     2
+#define TARGET_COMB      0xf0000000U
 
 #define FUNCTION_MASK  0x3f
 
@@ -323,12 +323,12 @@ typedef struct {
 	uint32_t sa;
 	
 	/* Others */
-	unsigned int imm;
-	unsigned int shift;
+	uint32_t imm;
+	uint32_t shift;
 } instr_info_t;
 
 typedef struct {
-	char *instr_text;
+	char *acronym;
 	instr_form_basic_t itype;
 } instr_text_t;
 

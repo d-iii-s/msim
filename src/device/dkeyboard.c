@@ -94,7 +94,7 @@ const char id_keyboard[] = "dkeyboard";
 
 static void keyboard_done(device_s *dev);
 static void keyboard_step4(device_s *dev);
-static void keyboard_read(processor_t *pr, device_s *dev, ptr_t addr, uint32_t *val);
+static void keyboard_read(cpu_t *cpu, device_s *dev, ptr_t addr, uint32_t *val);
 
 device_type_s dkeyboard = {
 	/* Type name and description */
@@ -269,7 +269,7 @@ static void keyboard_done(device_s *d)
  * deasserted.
  *
  */
-static void keyboard_read(processor_t *pr, device_s *dev, ptr_t addr, uint32_t *val)
+static void keyboard_read(cpu_t *cpu, device_s *dev, ptr_t addr, uint32_t *val)
 {
 	keyboard_data_s *kd = (keyboard_data_s *) dev->data;
 	

@@ -82,7 +82,7 @@ cmd_s dtime_cmds[] = {
 const char id_dtime[] = "dtime";
 
 static void dtime_done(device_s *dev);
-static void dtime_read(processor_t *pr, device_s *dev, ptr_t addr, uint32_t *val);
+static void dtime_read(cpu_t *cpu, device_s *dev, ptr_t addr, uint32_t *val);
 
 /** Dtime object structure */
 device_type_s dtime = {
@@ -199,7 +199,7 @@ static void dtime_done(device_s *d)
  * @param val  Readed (returned) value
  *
  */
-static void dtime_read(processor_t *pr, device_s *dev, ptr_t addr, uint32_t *val)
+static void dtime_read(cpu_t *cpu, device_s *dev, ptr_t addr, uint32_t *val)
 {
 	dtime_data_s *od = (dtime_data_s *) dev->data;
 	

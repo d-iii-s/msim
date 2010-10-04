@@ -16,67 +16,56 @@
 
 #include "../mtypes.h"
 #include "../parser.h"
-#include "../cpu/processor.h"
+#include "../cpu/cpu.h"
 
-struct device_type_s;
-typedef struct device_type_s device_type_s;
+struct device;
 
-/*
- * This structure describes a device instance.
- *
- * type		A pointer to the device type description.
- * 
- * name		A device name given by the user. Must be unique.
- * data		A device specific pointer where internal data are stored.
- */
-
-struct device_s {
-	item_t item;
-	
-	const device_type_s *type;
-	char *name;
-	void *data;
-};
-typedef struct device_s device_s;
-
-/*
- * device_type_s
- *
- * This structure describes functions device can use.
- *
- * name		String constant - device type name (i82xx etc.)
- * desc_brief	A brief decription of the device type.
- * desc_full	A full textual device type description.
- * init		Inicialization, called once. There shoud be basic tests -
- * 		conflict detection, allocation memory etc. Returns
- * 		error string while fail.
- * done		Disposes internal data
- * step		Called every machine cycle.
- * step4	Called every 4096th machine cycle.
- * read		Called while memory read command is out of memory. Device
- * 		should test addr if it is relevant.
- * write	Called when write memory command is out of memory. Device
- * 		should test addr param.
- * cmds		An array of commands supported by the device. Have a look
- * 		at the device_cmd_struct structure for more information.
- * 		The last command should be the LAST_CMS macro.
+/** Structure describing device methods.
  *
  * NULL value means "not implemented".
+ *
  */
-
-struct device_type_s {
-	const char *const name;
-	const char *const brief;
-	const char *const full;
+typedef struct {
+	const char *const name;   /**< Device type name (i82xx etc.). */
+	const char *const brief;  /**< Brief decription of the device type. */
+	const char *const full;   /**< Full device type description. */
 	
-	void (*done)(device_s *dev);
-	void (*step)(device_s *dev);
-	void (*step4)(device_s *dev);
-	void (*read)(processor_t *pr, device_s *dev, ptr_t addr, uint32_t *val);
-	void (*write)(processor_t *pr, device_s *dev, ptr_t addr, uint32_t val);
-
+	/** Dispose internal data. */
+	void (*done)(struct device *dev);
+	
+	/** Called every machine cycle. */
+	void (*step)(struct device *dev);
+	
+	/** Called every 4096th machine cycle. */
+	void (*step4)(struct device *dev);
+	
+	/** Device memory read */
+	void (*read)(cpu_t *cpu, struct device *dev, ptr_t addr,
+	    uint32_t *val);
+	
+	/** Device memory write */
+	void (*write)(cpu_t *cpu, struct device *dev, ptr_t addr,
+	    uint32_t val);
+	
+	/**
+	 * An array of commands supported by the device.
+	 * The last command should be the LAST_CMS macro.
+	 *
+	 * @see device_cmd_struct
+	 */
 	const cmd_s *const cmds;
-};
+} device_type_s;
+
+/** Structure describing a device instance.
+ *
+ */
+typedef struct device {
+	item_t item;
+	
+	const device_type_s *type;  /**< Pointer to the device type description. */
+	char *name;                 /**< Device name given by the user. Must be unique. */
+	void *data;                 /**< Device specific pointer where internal data are stored. */
+} device_s;
 
 typedef enum {
 	DEVICE_FILTER_ALL,
@@ -86,11 +75,12 @@ typedef enum {
 	DEVICE_FILTER_PROCESSOR,
 } device_filter_t;
 
-/*
+/**
  * LAST_CMD is used in device sources to determine the last command. That's
- * only a null-command with all NULL parameters.
+ * only a null-command with all parameters NULL.
  */
-#define LAST_CMD { NULL, NULL, NULL, 0, NULL, NULL, NULL }
+#define LAST_CMD \
+	{ NULL, NULL, NULL, 0, NULL, NULL, NULL }
 
 extern void dev_init_framework(void);
 
@@ -122,4 +112,4 @@ extern bool dev_generic_help(parm_link_s *parm, device_s *dev);
 extern void dev_find_generator(parm_link_s **pl, const device_s *d,
     gen_f *generator, const void **data);
 
-#endif /* DEVICE_H_ */
+#endif

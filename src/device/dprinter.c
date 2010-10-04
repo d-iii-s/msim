@@ -102,7 +102,7 @@ const char id_printer[] = "dprinter";
 
 static void printer_done(device_s *dev);
 static void printer_step4(device_s *dev);
-static void printer_write(processor_t *pr, device_s *dev, uint32_t addr, uint32_t val);
+static void printer_write(cpu_t *cpu, device_s *dev, uint32_t addr, uint32_t val);
 
 device_type_s dprinter = {
 	/* Type name and description */
@@ -284,7 +284,7 @@ static void printer_step4(device_s *d)
 /** Write command implementation
  *
  */
-static void printer_write(processor_t *pr, device_s *dev, ptr_t addr, uint32_t val)
+static void printer_write(cpu_t *cpu, device_s *dev, ptr_t addr, uint32_t val)
 {
 	printer_data_s *pd = (printer_data_s *) dev->data;
 

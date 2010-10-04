@@ -13,16 +13,14 @@
 #include <stdbool.h>
 #include <stdio.h>
 #include <string.h>
-
 #include <readline/readline.h>
 #include <readline/history.h>
-
 #include "../arch/console.h"
-#include "../parser.h"
 #include "../device/machine.h"
+#include "../check.h"
+#include "../parser.h"
 #include "../cmd.h"
 #include "../utils.h"
-
 #include "input.h"
 #include "output.h"
 

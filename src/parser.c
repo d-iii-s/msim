@@ -849,10 +849,10 @@ bool cmd_run_by_spec(const cmd_s *cmd, parm_link_s *parm, void *data)
  */
 bool cmd_run_by_name(const char *cmd_name, parm_link_s *parm, const cmd_s *cmds, void *data)
 {
-	const cmd_s *cmd;
-
 	PRE(cmd_name != NULL, parm != NULL, cmds != NULL);
-
+	
+	const cmd_s *cmd = NULL;
+	
 	/* Find fine command */
 	switch (cmd_find(cmd_name, cmds, &cmd)) {
 	case CMP_NO_HIT:
@@ -1007,12 +1007,12 @@ void cmd_print_help(const cmd_s *cmds)
  */
 void cmd_print_extended_help(parm_link_s *parm, const cmd_s *cmds)
 {
+	PRE(parm != NULL, cmds != NULL);
+	
 	const char *const cmd_name = parm_str(parm);
-	const cmd_s *cmd;
+	const cmd_s *cmd = NULL;
 	const char *s;
 	int opt, par;
-
-	PRE(parm != NULL, cmds != NULL);
 	
 	if (parm_type(parm) == tt_end) {
 		cmd_print_help(cmds);

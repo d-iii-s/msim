@@ -9,6 +9,7 @@
  *
  */
 
+#include "../check.h"
 #include "instr.h"
 
 static instr_form_t instr_table[64] = {
@@ -642,6 +643,8 @@ static instr_opcode_t opcode_COPx(instr_opcode_t opc, uint32_t icode)
 	case opcC0:
 		opcode = CO_spec[icode & 0x3f];
 		break;
+	default:
+		PRE(false);
 	}
 	
 	return opcode;
@@ -676,6 +679,8 @@ void decode_instr(instr_info_t *ii)
 	case opcCOP3:
 		ii->opcode = opcode_COPx(ii->opcode, ii->icode);
 		break;
+	default:
+		PRE(false);
 	}
 	
 	/* Parse parameters */
@@ -689,10 +694,10 @@ void decode_instr(instr_info_t *ii)
 		/* Immediate */
 		ii->imm = ii->icode & IMM_MASK;
 		if (ii->imm & IMM_SIGN_BIT)
-			ii->imm |= ~(uint32_t) (IMM_MASK);
+			ii->imm |= ~((uint32_t) (IMM_MASK));
 		break;
 	case ifJ:
-		ii->imm = (ii->icode & TARGET_MASK) << TARGET_SHIFT;
+		ii->imm = ii->icode & TARGET_MASK;
 		ii->rt = 0;
 		ii->rs = 0;
 		ii->rd = 0;
@@ -704,5 +709,7 @@ void decode_instr(instr_info_t *ii)
 		ii->rd = (ii->icode & RD_MASK) >> RD_SHIFT;
 		ii->sa = (ii->icode & SA_MASK) >> SA_SHIFT;
 		ii->function = (ii->icode & FUNCTION_MASK);
+	default:
+		PRE(false);
 	}
 }

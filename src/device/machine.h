@@ -13,7 +13,7 @@
 #include "../mtypes.h"
 #include "../list.h"
 #include "../main.h"
-#include "../cpu/processor.h"
+#include "../cpu/cpu.h"
 #include "../parser.h"
 #include "../endi.h"
 #include "device.h"
@@ -47,7 +47,7 @@ typedef struct {
 
 typedef struct {
 	item_t item;
-	processor_t *cpu;
+	cpu_t *cpu;
 } sc_item_t;
 
 /** Common variables */
@@ -94,13 +94,13 @@ extern void go_machine(void);
 extern void machine_step(void);
 
 /** Liked Local and Store Conditional control */
-extern void register_sc(processor_t *cpu);
-extern void unregister_sc(processor_t *cpu);
+extern void register_sc(cpu_t *cpu);
+extern void unregister_sc(cpu_t *cpu);
 
 /** Memory access */
-extern bool mem_write(processor_t *pr, uint32_t addr, uint32_t val,
+extern bool mem_write(cpu_t *cpu, uint32_t addr, uint32_t val,
     size_t size, bool protected_write);
-extern uint32_t mem_read(processor_t *pr, uint32_t addr, size_t size,
+extern uint32_t mem_read(cpu_t *cpu, uint32_t addr, size_t size,
     bool protected_read);
 
 #endif

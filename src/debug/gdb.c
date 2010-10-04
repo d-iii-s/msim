@@ -34,7 +34,7 @@
 #include "../device/machine.h"
 #include "../parser.h"
 #include "../utils.h"
-#include "../cpu/processor.h"
+#include "../cpu/cpu.h"
 
 #include "../device/dcpu.h"
 
@@ -437,10 +437,10 @@ void gdb_handle_event(gdb_events_t event)
 	char gdb_buf[GDB_BUFFER_SIZE];
 	
 	// TODO: Support more processors
-	processor_t *processor = dcpu_find_no(0);
+	cpu_t *cpu = dcpu_find_no(0);
 	
 	char pc_string[(sizeof(uint32_t) * 2) + 1];
-	gdb_register_dump(processor->pc, pc_string);
+	gdb_register_dump(cpu->pc, pc_string);
 	
 	sprintf(gdb_buf, "T%02x%02x:%s;", event, GDB_REGISTER_NUMBER_PC, pc_string);
 	gdb_send_message(gdb_buf);
@@ -459,15 +459,15 @@ void gdb_handle_event(gdb_events_t event)
 static void gdb_read_registers(char *buf)
 {
 	// TODO: Support more processors
-	processor_t *pr = dcpu_find_no(0);
+	cpu_t *cpu = dcpu_find_no(0);
 	
-	buf = gdb_registers_dump(pr->regs, buf, 32);
-	buf = gdb_register_dump(pr->cp0[cp0_Status], buf);
-	buf = gdb_register_dump(pr->loreg, buf);
-	buf = gdb_register_dump(pr->hireg, buf);
-	buf = gdb_register_dump(pr->cp0[cp0_BadVAddr], buf);
-	buf = gdb_register_dump(pr->cp0[cp0_Cause], buf);
-	buf = gdb_register_dump(pr->pc, buf);
+	buf = gdb_registers_dump(cpu->regs, buf, 32);
+	buf = gdb_register_dump(cpu->cp0[cp0_Status], buf);
+	buf = gdb_register_dump(cpu->loreg, buf);
+	buf = gdb_register_dump(cpu->hireg, buf);
+	buf = gdb_register_dump(cpu->cp0[cp0_BadVAddr], buf);
+	buf = gdb_register_dump(cpu->cp0[cp0_Cause], buf);
+	buf = gdb_register_dump(cpu->pc, buf);
 }
 
 /** Set new content of registers
@@ -483,27 +483,27 @@ static void gdb_read_registers(char *buf)
 static bool gdb_write_registers(char *buf)
 {
 	// TODO: Support more processors
-	processor_t *pr = dcpu_find_no(0);
+	cpu_t *cpu = dcpu_find_no(0);
 	
-	if (!gdb_registers_upload(&buf, pr->regs, 32))
+	if (!gdb_registers_upload(&buf, cpu->regs, 32))
 		return false;
 	
-	if (!gdb_register_upload(&buf, &pr->cp0[cp0_Status]))
+	if (!gdb_register_upload(&buf, &cpu->cp0[cp0_Status]))
 		return false;
 	
-	if (!gdb_register_upload(&buf, &pr->loreg))
+	if (!gdb_register_upload(&buf, &cpu->loreg))
 		return false;
 	
-	if (!gdb_register_upload(&buf, &pr->hireg))
+	if (!gdb_register_upload(&buf, &cpu->hireg))
 		return false;
 	
-	if (!gdb_register_upload(&buf, &pr->cp0[cp0_BadVAddr]))
+	if (!gdb_register_upload(&buf, &cpu->cp0[cp0_BadVAddr]))
 		return false;
 	
-	if (!gdb_register_upload(&buf, &pr->cp0[cp0_Cause]))
+	if (!gdb_register_upload(&buf, &cpu->cp0[cp0_Cause]))
 		return false;
 	
-	if (!gdb_register_upload(&buf, &pr->pc))
+	if (!gdb_register_upload(&buf, &cpu->pc))
 		return false;
 	
 	return true;
@@ -531,8 +531,8 @@ static void gdb_cmd_mem_operation(char *data, bool read)
 	
 	/* We need to get physical address */
 	// TODO: Support more processors
-	processor_t *proc = dcpu_find_no(0);
-	convert_addr(proc, &addr, false, false);
+	cpu_t *cpu = dcpu_find_no(0);
+	convert_addr(cpu, &addr, false, false);
 	
 	/* Move the data pointer to the data to be written */
 	if (!read) {
@@ -578,8 +578,8 @@ static void gdb_cmd_step(char *data, bool step)
 	int matched = sscanf(data, "%x", &addr);
 	if (matched == 1) {
 		// TODO: Support more processors
-		processor_t *pr = dcpu_find_no(0);
-		pr->pc = addr;
+		cpu_t *cpu = dcpu_find_no(0);
+		cpu_set_pc(cpu, addr);
 	}
 	
 	remote_gdb_step = step;
@@ -645,7 +645,7 @@ static void gdb_process_query(char *data)
 static void gdb_insert_code_breakpoint(ptr_t address)
 {
 	// TODO: Support more processors
-	processor_t *processor = dcpu_find_no(0);
+	cpu_t *cpu = dcpu_find_no(0);
 	
 	/*
 	 * Breakpoint insertion should be done in an idempotent way,
@@ -653,7 +653,7 @@ static void gdb_insert_code_breakpoint(ptr_t address)
 	 * we will not insert a new breakpoint and we will not consider
 	 * this as faulty behavior.
 	 */
-	breakpoint_t *breakpoint = breakpoint_find_by_address(processor->bps,
+	breakpoint_t *breakpoint = breakpoint_find_by_address(cpu->bps,
 	    address, BREAKPOINT_FILTER_DEBUGGER);
 
 	if (breakpoint != NULL)
@@ -663,7 +663,7 @@ static void gdb_insert_code_breakpoint(ptr_t address)
 	breakpoint_t *inserted_breakpoint = breakpoint_init(address,
 	    BREAKPOINT_KIND_DEBUGGER);
 	
-	list_append(&processor->bps, &inserted_breakpoint->item);
+	list_append(&cpu->bps, &inserted_breakpoint->item);
 }
 
 /** Deactivate code breakpoint on processor 0 at given address.
@@ -674,16 +674,16 @@ static void gdb_insert_code_breakpoint(ptr_t address)
 static void gdb_remove_code_breakpoint(ptr_t addr)
 {
 	// TODO: Support more processors
-	processor_t *processor = dcpu_find_no(0);
+	cpu_t *cpu = dcpu_find_no(0);
 	
-	breakpoint_t *breakpoint = breakpoint_find_by_address(processor->bps,
+	breakpoint_t *breakpoint = breakpoint_find_by_address(cpu->bps,
 	    addr, BREAKPOINT_FILTER_DEBUGGER);
 	
 	/* Removing non existent breakpoint is not considered as a bug */
 	if (breakpoint == NULL)
 		return;
 	
-	list_remove(&processor->bps, &breakpoint->item);
+	list_remove(&cpu->bps, &breakpoint->item);
 	safe_free(breakpoint);
 }
 
@@ -757,8 +757,8 @@ static void gdb_breakpoint(char *buf, bool insert)
 	/* Handle memory breakpoint */
 	
 	// TODO: Support more processors
-	processor_t* processor = dcpu_find_no(0);
-	convert_addr(processor, &address, false, false);
+	cpu_t* cpu = dcpu_find_no(0);
+	convert_addr(cpu, &address, false, false);
 	
 	if (insert && (!code_breakpoint)) {
 		memory_breakpoint_add(address, BREAKPOINT_KIND_DEBUGGER,
@@ -797,14 +797,14 @@ static void gdb_remote_done(bool fail, bool remote_request)
 	/* Remove all the debugger breakpoints. */
 	
 	// TODO: Support more processors
-	processor_t *processor = dcpu_find_no(0);
+	cpu_t *cpu = dcpu_find_no(0);
 	
-	breakpoint_t *breakpoint = (breakpoint_t *) processor->bps.head;
+	breakpoint_t *breakpoint = (breakpoint_t *) cpu->bps.head;
 	while (breakpoint != NULL) {
 		breakpoint_t *removed = breakpoint;
 		breakpoint = (breakpoint_t *) breakpoint->item.next;
 		
-		list_remove(&processor->bps, &removed->item);
+		list_remove(&cpu->bps, &removed->item);
 		safe_free(removed);
 	}
 	

@@ -17,7 +17,7 @@
 #include "machine.h"
 
 #include "../arch/signal.h"
-#include "../cpu/processor.h"
+#include "../cpu/cpu.h"
 #include "../io/input.h"
 #include "../io/output.h"
 #include "../debug/gdb.h"
@@ -202,7 +202,7 @@ void go_machine(void)
 /** Register current processor in LL-SC tracking list
  *
  */
-void register_sc(processor_t *cpu)
+void register_sc(cpu_t *cpu)
 {
 	/* Ignore if already registered. */
 	sc_item_t *sc_item;
@@ -221,7 +221,7 @@ void register_sc(processor_t *cpu)
 /** Remove current processor from the LL-SC tracking list
  *
  */
-void unregister_sc(processor_t *cpu)
+void unregister_sc(cpu_t *cpu)
 {
 	sc_item_t *sc_item;
 	
@@ -284,7 +284,7 @@ static inline mem_breakpoint_t *memory_breakpoint_find(ptr_t addr,
  * If the address is not contained in any memory region and no device
  * manages it, the default value is returned.
  *
- * @param pr             Processor which wants to read.
+ * @param cpu            Processor which wants to read.
  * @param addr           Address of memory to be read.
  * @param size           Number of bytes to read. Should be one of INT8,
  *                       INT16 or INT32.
@@ -294,7 +294,7 @@ static inline mem_breakpoint_t *memory_breakpoint_find(ptr_t addr,
  *         or the default memory value, if the address is not valid.
  *
  */
-uint32_t mem_read(processor_t *pr, ptr_t addr, size_t size,
+uint32_t mem_read(cpu_t *cpu, ptr_t addr, size_t size,
     bool protected_read)
 {
 	mem_area_t *area = find_mem_area(addr);
@@ -310,7 +310,7 @@ uint32_t mem_read(processor_t *pr, ptr_t addr, size_t size,
 		device_s *dev = NULL;
 		while (dev_next(&dev, DEVICE_FILTER_ALL))
 			if (dev->type->read)
-				dev->type->read(pr, dev, addr, &val);
+				dev->type->read(cpu, dev, addr, &val);
 		
 		return val;
 	}
@@ -346,7 +346,7 @@ uint32_t mem_read(processor_t *pr, ptr_t addr, size_t size,
  * a configured memory region which contains the given address. If there
  * is no such region, try to write to appropriate device.
  *
- * @param pr              Processor, which wants to write to the memory.
+ * @param cpu             Processor, which wants to write to the memory.
  * @param addr            Address of the memory.
  * @param val             Data to be written.
  * @param size            One of INT8, INT16 or INT32.
@@ -358,7 +358,7 @@ uint32_t mem_read(processor_t *pr, ptr_t addr, size_t size,
  *         set to true.
  *
  */
-bool mem_write(processor_t *pr, uint32_t addr, uint32_t val, size_t size,
+bool mem_write(cpu_t *cpu, uint32_t addr, uint32_t val, size_t size,
     bool protected_write)
 {
 	mem_area_t *area = find_mem_area(addr);
@@ -372,7 +372,7 @@ bool mem_write(processor_t *pr, uint32_t addr, uint32_t val, size_t size,
 		
 		while (dev_next(&dev, DEVICE_FILTER_ALL)) {
 			if (dev->type->write) {
-				dev->type->write(pr, dev, addr, val);
+				dev->type->write(cpu, dev, addr, val);
 				written = true;
 			}
 		}
@@ -390,7 +390,7 @@ bool mem_write(processor_t *pr, uint32_t addr, uint32_t val, size_t size,
 	sc_item_t *sc_item = (sc_item_t *) sc_list.head;
 	
 	while (sc_item != NULL) {
-		processor_t *sc_cpu = sc_item->cpu;
+		cpu_t *sc_cpu = sc_item->cpu;
 		
 		if (sc_cpu->lladdr == addr) {
 			sc_cpu->llbit = false;

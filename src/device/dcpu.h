@@ -13,12 +13,12 @@
 #define DCPU_H_
 
 #include "device.h"
-#include "../cpu/processor.h"
+#include "../cpu/cpu.h"
 
 extern device_type_s dcpu;
 extern const char id_dcpu[];
 
-extern processor_t *dcpu_find_no(unsigned int no);
+extern cpu_t *dcpu_find_no(unsigned int no);
 extern void dcpu_interrupt_up(unsigned int cpuno, unsigned int no);
 extern void dcpu_interrupt_down(unsigned int cpuno, unsigned int no);
 

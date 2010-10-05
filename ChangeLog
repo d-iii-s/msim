@@ -1,4 +1,4 @@
-2010-??-?? Martin Decky <decky@d3s.mff.cuni.cz>
+2010-10-05 Martin Decky <decky@d3s.mff.cuni.cz>
 	Version 1.3.8
 	* add support for DESTDIR into Makefile.in
 	  (thx Vojtech Horky)
@@ -8,16 +8,16 @@
 	  and various other improvements by Tomas
 	  Martinec
 
-2009-11-02 Martin Decky <decky@dsrg.mff.cuni.cz>
+2009-11-02 Martin Decky <decky@d3s.mff.cuni.cz>
 	Version 1.3.7.1
 	* add Gentoo ebuild and RPM spec file
 
-2009-02-02 Martin Decky <decky@dsrg.mff.cuni.cz>
+2009-02-02 Martin Decky <decky@d3s.mff.cuni.cz>
 	Version 1.3.7
 	* official reference manual in doc/reference.html
 	* minor string changes
 
-2009-01-19 Martin Decky <decky@dsrg.mff.cuni.cz>
+2009-01-19 Martin Decky <decky@d3s.mff.cuni.cz>
 	Version 1.3.6
 	* fix compilation in Cygwin
 	* use EPC of previous branch instruction if TLB exception
@@ -25,28 +25,28 @@
 	  (thx Ondrej Cerny)
 	* fix memory access alignment
 
-2008-10-31 Martin Decky <decky@dsrg.mff.cuni.cz>
+2008-10-31 Martin Decky <decky@d3s.mff.cuni.cz>
 	Version 1.3.5.1
 	* fix console input in MinGW
 
-2008-10-26 Martin Decky <decky@dsrg.mff.cuni.cz>
+2008-10-26 Martin Decky <decky@d3s.mff.cuni.cz>
 	Version 1.3.5
 	* initial support for building in MinGW
 	* code and data breakpoints
 	* support WATCH exception (thx Lubomir Bulej)
 
-2008-09-24 Martin Decky <decky@dsrg.mff.cuni.cz>
+2008-09-24 Martin Decky <decky@d3s.mff.cuni.cz>
 	Version 1.3.4
 	* source cleanup
 	* simplify build system
 	* split sources into multiple directories
 	* add GPL license
 
-2008-06-05 Viliam Holub <holub@dsrg.mff.cuni.cz>
+2008-06-05 Viliam Holub <holub@d3s.mff.cuni.cz>
 	Version 1.3.4rc2
 	* LL-SC tracking fix (thx Jiri Svoboda)
 
-2007-12-17 Viliam Holub <holub@dsrg.mff.cuni.cz>
+2007-12-17 Viliam Holub <holub@d3s.mff.cuni.cz>
 	Version 1.3.4rc1
 	* dorder sychdown command fix (thx Andrej Krutak)
 	* ddisk and mem clean-up (thx Milan Burda)
@@ -54,35 +54,35 @@
 	* minor performance improvements
 	* badvaddr not set for all exceptions, fixed
 
-2007-11-30 Viliam Holub <holub@dsrg.mff.cuni.cz>
+2007-11-30 Viliam Holub <holub@d3s.mff.cuni.cz>
 	Version 1.3.3
 	* two-register dorder
 	* error messages fix
 	* cpu number fix
 
-2007-11-24 Viliam Holub <holub@dsrg.mff.cuni.cz>
+2007-11-24 Viliam Holub <holub@d3s.mff.cuni.cz>
 	* dorder has two registers now - enable/disable interrupt pending
 
-2007-11-23 Viliam Holub <holub@dsrg.mff.cuni.cz>
+2007-11-23 Viliam Holub <holub@d3s.mff.cuni.cz>
 	Version 1.3.2.3
 	* dorder infinite loop fix (thx David Matousek)
 
-2007-11-21 Viliam Holub <holub@dsrg.mff.cuni.cz>
+2007-11-21 Viliam Holub <holub@d3s.mff.cuni.cz>
 	Version 1.3.2.2
-	* applied patch by Martin Decky, several small fixes 
+	* applied patch by Martin Decky, several small fixes
 
-2007-03-11 Viliam Holub <holub@nenya.ms.mff.cuni.cz>
+2007-03-11 Viliam Holub <holub@d3s.mff.cuni.cz>
 	Version 1.3.2.1
 	* missing stdio.h in input.c fixed
 	* MULT fix (thx Ondrej Palkovsky <ondrap@penguin.cz>)
 	* u_int64_t -> uint_64 fix
 	* dprintf renamed to mprintf to avoid conflicts with libc (Martin
-	  Decky <decky@nenya.ms.mff.cuni.cz>
+	  Decky <decky@d3s.mff.cuni.cz>
 	* minor fixes
 	* goto has been renamed to continue
 	* autogen.sh added
 
-2006-10-09 Viliam Holub <holub@nenya.ms.mff.cuni.cz>
+2006-10-09 Viliam Holub <holub@d3s.mff.cuni.cz>
 	Version 1.3.1
 	* dprintf* functions have been renamed to mprintf* to avoid conflicts
 	  with libc on some systems (thx to Martin Decky)
@@ -91,7 +91,7 @@
 	* keybord keycode register is cleared after read operation; this
 	  allows to read new keycodes even with disabled interrupts
 
-2005-10-18 Viliam Holub <holub@nenya.ms.mff.cuni.cz>
+2005-10-18 Viliam Holub <holub@d3s.mff.cuni.cz>
 	Version 1.3
 	* several small fixes
 	* error messages cleanup
@@ -102,34 +102,34 @@
 2005-09-20 Ondrej Palkovsky <ondrap@penguin.cz>
 	* add 4kc support
 
-2005-09-13 Viliam Holub <holub@nenya.ms.mff.cuni.cz>
+2005-09-13 Viliam Holub <holub@d3s.mff.cuni.cz>
 	* LWL, LWR, SWL, SWR byte counting fix by Ondrej Palkovsky
 
-2005-03-03 Viliam Holub <holub@nenya.ms.mff.cuni.cz>
+2005-03-03 Viliam Holub <holub@d3s.mff.cuni.cz>
 	* MTC0 fix (thx Ondrej Palkovsky)
 	* applied fixes by Lubo
 	* code polishing
 	* polishing of check RQ
 
-2005-01-08 Viliam Holub <holub@nenya.ms.mff.cuni.cz>
+2005-01-08 Viliam Holub <holub@d3s.mff.cuni.cz>
 	Version 1.2.18
 	* minor changes
 	* the first version of TAB completion
 	* all system and device command are now defined via structures
 	* malloc and strdup safe
-	* ERET fix, LBU fix, epc rewrite fix (thx Matej Pivoluska, Martin
-	  Horvath, Jakub Kotrla)
+	* ERET fix, LBU fix, epc rewrite fix (thx Matej Pivoluska,
+	  Martin Horvath, Jakub Kotrla)
 	* code polishing
 
-2004-03-23 Viliam Holub <holub@nenya.ms.mff.cuni.cz>
+2004-03-23 Viliam Holub <holub@d3s.mff.cuni.cz>
 	Version 1.2.12
 	* device command are now generic
 	* generic context help
 
-2003-12-18 Viliam Holub <holub@nenya.ms.mff.cuni.cz>
+2003-12-18 Viliam Holub <holub@d3s.mff.cuni.cz>
 	* code clean-up
 
-2003-12-17 Viliam Holub <holub@nenya.ms.mff.cuni.cz>
+2003-12-17 Viliam Holub <holub@d3s.mff.cuni.cz>
 	Version 1.2.3
 	* cycle counter size increased to long long
 	* non-POSIX terminal attributes are now checked
@@ -138,15 +138,15 @@
 	* (dcpu.c) md command fix
 	* endians checked via autoconf
 
-2003-12-01 Viliam Holub <holub@nenya.ms.mff.cuni.cz>
+2003-12-01 Viliam Holub <holub@d3s.mff.cuni.cz>
 	Version 1.2.2
 	* TLB dirty mask fix (read-only pages were writable)
 
-2003-11-28 Viliam Holub <holub@nenya.ms.mff.cuni.cz>
+2003-11-28 Viliam Holub <holub@d3s.mff.cuni.cz>
 	Version 1.2.1
 	* MTLO and MTHI fix
 
-2003-11-24 Viliam Holub <holub@nenya.ms.mff.cuni.cz>
+2003-11-24 Viliam Holub <holub@d3s.mff.cuni.cz>
 	Version 1.2
 	* debug messages fix
 	* added dtime

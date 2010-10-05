@@ -46,8 +46,8 @@ rm -rf $RPM_BUILD_ROOT
 %{_bindir}/msim
 
 %changelog
-* Thu Sep 30 2010 Martin Decky <decky@dsrg.mff.cuni.cz> - 1.3.8
+* Thu Oct 05 2010 Martin Decky <decky@d3s.mff.cuni.cz> - 1.3.8
 - Bump to 1.3.8
 
-* Thu Nov 02 2009 Martin Decky <decky@dsrg.mff.cuni.cz> - 1.3.7.1
+* Thu Nov 02 2009 Martin Decky <decky@d3s.mff.cuni.cz> - 1.3.7.1
 - Initial spec file

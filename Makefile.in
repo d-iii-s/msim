@@ -16,7 +16,7 @@ msim:
 
 install: msim
 	$(INSTALL) -d $(DESTDIR)$(PREFIX)/bin
-	$(INSTALL) -s -m 755 src/msim $(DESTDIR)$(PREFIX)/bin/msim
+	$(INSTALL) -s -m 755 bin/msim $(DESTDIR)$(PREFIX)/bin/msim
 
 uninstall:
 	rm -f $(PREFIX)/bin/msim

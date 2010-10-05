@@ -52,7 +52,7 @@ char **cp3name;
 bool remote_gdb = false;
 
 /** Port for debugger tcp/ip connection. */
-int remote_gdb_port = 0;
+unsigned int remote_gdb_port = 0;
 
 /** Indicate whether the connection to the debugger was opened. */
 bool remote_gdb_conn = false;

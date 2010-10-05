@@ -21,120 +21,61 @@
 #include <unistd.h>
 #include <stdbool.h>
 #include <sys/types.h>
-
 #include "../arch/network.h"
+#include "../device/machine.h"
+#include "../device/dcpu.h"
+#include "../io/output.h"
 #include "../main.h"
-#include "gdb.h"
 #include "../check.h"
-#include "breakpoint.h"
 #include "../text.h"
 #include "../mtypes.h"
 #include "../fault.h"
-#include "../io/output.h"
-#include "../device/machine.h"
 #include "../parser.h"
 #include "../utils.h"
 #include "../cpu/cpu.h"
+#include "breakpoint.h"
+#include "gdb.h"
 
-#include "../device/dcpu.h"
+#ifdef GDB_DEBUG
 
-static int gdb_fd = 0;
+#define gdb_debug(fmt, ...) \
+	fprintf(stderr, (fmt), ##__VA_ARGS__)
 
-/** GDB communication debugging
- *
- * Print communication between simulator and debugger. It can
- * be turned on by defining the GDB_DEBUG_PRINTS macro.
- *
- * @param fmt Standard printf formating string.
- *
- */
-static void gdb_debug_print(const char *fmt, ...)
-{
-#ifdef GDB_DEBUG_PRINTS
-	PRE(fmt != NULL);
-	
-	va_list ap;
-	
-	va_start(ap, fmt);
-	vprintf(fmt, ap);
-	va_end(ap);
-#endif
-}
+#else /* GDB_DEBUG */
 
-/** Read length bytes from address for machine memory
- *
- * Converts to hex and writes to buf.
- *
- * @param address Starting address for reading the memory.
- * @param length  Number of bytes to read.
- * @param buf     Buffer of at least GDB_BUFFER_SIZE bytes for storing
- *                the memory content.
- *
- * @return False if the content of the memory is too long.
- *
- */
-static bool gdb_read_mem(ptr_t address, size_t length, char *buf)
-{
-	char* start_of_buffer = buf;
-	
-	/*
-	 * We read the memory byte by byte. This ensures
-	 * that we will send the content of memory with correct
-	 * endianess.
-	 */
-	while (length > 0) {
-		if (buf - start_of_buffer >= GDB_BUFFER_SIZE)
-			return false;
-		
-		uint32_t byte_value = mem_read(NULL, address, BITS_8, false);
-		sprintf(buf, "%02x", byte_value);
-		
-		buf += 2;
-		length -= 1;
-		address += 1;
-	}
-	
-	return true;
-}
+#define gdb_debug(fmt, ...)
 
-/** Write length bytes to address in memory from hex string
- *
- * @param addr   Address of memory, where the data will be written.
- * @param length Count of bytes to write.
- * @param buf    Hex string containing data to be written. Each byte
- *               has %02x format.
- *
- * @return True if the hex string was correct and the data were successfully
- *         written.
- *
- */
-static bool gdb_write_mem(ptr_t addr, size_t length, char *buf)
-{
-	while (length > 0) {
-		
-		/* Read one byte */
-		unsigned int value;
-		int matched = sscanf(buf, "%02x", &value);
-		if (matched != 1)
-			return false;
-		
-		/* Write it */
-		if (!mem_write(NULL, addr, value, BITS_8, false))
-			return false;
-		
-		buf += 2;
-		length -= 1;
-		addr++;
-	}
-	
-	return true;
-}
+#endif /* GDB_DEBUG */
+
+
+#define MAX_BAD_CHECKSUMS  10
+#define GRANULARITY        1024
+
+#define GDB_NOT_SUPPORTED             ""
+#define GDB_REPLY_OK                  "OK"
+#define GDB_REPLY_WARNING             "W00"
+#define GDB_REPLY_BAD_MEMORY_COMMAND  "E00"
+#define GDB_REPLY_MEMORY_WRITE_FAIL   "E01"
+#define GDB_REPLY_MEMORY_READ_FAIL    "E02"
+#define GDB_REPLY_BAD_BREAKPOINT      "E04"
+#define GDB_REPLY_REGISTER_WRITE_FAIL "E05"
+
+#define GDB_REGISTER_STATUS         32
+#define GDB_REGISTER_MULTIPLY_LOW   33
+#define GDB_REGISTER_MULTIPLY_HIGH  34
+#define GDB_REGISTER_BAD            35
+#define GDB_REGISTER_CAUSE          36
+#define GDB_REGISTER_PC             37
+
+static int gdb_fd = -1;
+static unsigned int cpuno_global = 0;
+static unsigned int cpuno_step = 0;
 
 /** Read one character from gdb remote descriptor.
  *
  * The bit 7 is cleared.
  *
- * @param c Read char.
+ * @param c Character read.
  *
  * @return True if successful.
  *
@@ -162,8 +103,6 @@ static bool gdb_safe_read(char *c)
  */
 static bool gdb_safe_write(char c)
 {
-	gdb_debug_print("%c", c);
-	
 	ssize_t written = write(gdb_fd, &c, 1);
 	if (written == -1) {
 		io_error("gdb");
@@ -173,19 +112,19 @@ static bool gdb_safe_write(char c)
 	return true;
 }
 
-/** Read a message from gdb and test for correctness
+/** Read request from gdb and test for correctness
  *
- * @param data Buffer for the message, must be at least GDB_BUFFER_SIZE
- *             bytes long.
- *
- * @return False, if there was an error.
+ * @return Allocated request buffer or NULL on failture.
  *
  */
-static bool gdb_get_message(char *data)
+static char *gdb_get_request(void)
 {
+	string_t req;
+	string_init(&req);
+	
 	unsigned int i;
 	
-	for (i = 0; i < GDB_MAXIMUM_BAD_CHECKSUMS_COUNT; i++) {
+	for (i = 0; i < MAX_BAD_CHECKSUMS; i++) {
 		
 		/*
 		 * Message starts with a $ character,
@@ -194,99 +133,107 @@ static bool gdb_get_message(char *data)
 		char c = 0;
 		while (c != '$') {
 			if (!gdb_safe_read(&c))
-				return false;
+				return NULL;
 		}
 		
 		/*
 		 * Read the message characters until
 		 * a # character is found.
 		 */
-		char *buf = data;
-		uint8_t counted_checksum = 0;
-		size_t read_count = 0;
+		uint8_t checksum = 0;
 		
-		while (read_count < GDB_BUFFER_SIZE) {
-			if (!gdb_safe_read(&c))
-				return false;
+		c = 0;
+		while (c != '#') {
+			if (!gdb_safe_read(&c)) {
+				string_done(&req);
+				return NULL;
+			}
 			
-			if (c == '#')
-				break;
-			
-			*buf = c;
-			buf++;
-			counted_checksum += c;
-			read_count++;
+			if (c != '#') {
+				string_push(&req, c);
+				checksum += c;
+			}
 		}
 		
-		*buf = 0;
-		if (read_count >= GDB_BUFFER_SIZE) {
-			error("Message to debugger is too long, data:\n%s\n", buf);
-			return false;
+		/* Get checksum */
+		string_t checksum_str;
+		string_init(&checksum_str);
+		
+		if (!gdb_safe_read(&c)) {
+			string_done(&req);
+			string_done(&checksum_str);
+			return NULL;
 		}
+		string_push(&checksum_str, c);
 		
-		/* Compute checksum */
-		char expected_checksum_buf[2 + 1];
-		if (!gdb_safe_read(expected_checksum_buf))
-			return false;
+		if (!gdb_safe_read(&c)) {
+			string_done(&req);
+			string_done(&checksum_str);
+			return NULL;
+		}
+		string_push(&checksum_str, c);
 		
-		if (!gdb_safe_read(expected_checksum_buf + 1))
-			return false;
+		unsigned int req_checksum = 0;
+		sscanf(checksum_str.str, "%02x", &req_checksum);
+		string_done(&checksum_str);
 		
-		expected_checksum_buf[2] = 0;
-		
-		unsigned int expected_checksum = 0;
-		sscanf(expected_checksum_buf, "%02x", &expected_checksum);
-		
-		if (counted_checksum == expected_checksum)
+		if (checksum == req_checksum)
 			break;
 		
-		/* Checksum error, ask for re-sending */
-		if (!gdb_safe_write('-'))
-			return false;
+		/* Checksum error, ask for re-send */
+		if (!gdb_safe_write('-')) {
+			string_done(&req);
+			return NULL;
+		}
+		
+		string_clear(&req);
 	}
 	
-	if (i >= GDB_MAXIMUM_BAD_CHECKSUMS_COUNT) {
-		error("Messages from the debugger had bad checksum too many times\n");
-		return false;
+	if (i >= MAX_BAD_CHECKSUMS) {
+		error("Communication checksum failure %u times (read)\n",
+		    MAX_BAD_CHECKSUMS);
+		return NULL;
 	}
 	
 	/* Send acknowledgement */
-	if (!gdb_safe_write('+'))
-		return false;
+	if (!gdb_safe_write('+')) {
+		string_done(&req);
+		return NULL;
+	}
 	
-	return true;
+	gdb_debug("<- %s\n", req.str);
+	return req.str;
 }
 
-/** Send a message to gdb
+/** Send reply to gdb
  *
- * @param message NULL terminated message to be sent
+ * @param reply NULL terminated reply to be sent.
  *
- * @return True the message has been sent successfully
+ * @return True if the reply has been sent successfully.
  *
  */
-static bool gdb_send_message(char *message)
+static bool gdb_send_reply(char *reply)
 {
+	gdb_debug("-> %s\n", reply);
+	
 	unsigned int i;
 	
-	for (i = 0; i < GDB_MAXIMUM_BAD_CHECKSUMS_COUNT; i++) {
-		gdb_debug_print("->");
-		
+	for (i = 0; i < MAX_BAD_CHECKSUMS; i++) {
 		/* Initial character */
-		
 		if (!gdb_safe_write('$'))
 			return false;
 		
-		/* Message itself */
+		/* Message */
 		
-		unsigned char counted_checksum = 0;
+		uint8_t checksum = 0;
+		size_t pos = 0;
 		
-		char* to_be_sent_part = message;
-		while (*to_be_sent_part != 0) {
-			if (!gdb_safe_write(*to_be_sent_part))
+		while (reply[pos] != 0) {
+			if (!gdb_safe_write(reply[pos]))
 				return false;
 			
-			counted_checksum += *to_be_sent_part;
-			to_be_sent_part++;
+			checksum += reply[pos];
+			pos++;
 		}
 		
 		/* Ending character and the checksum */
@@ -294,13 +241,11 @@ static bool gdb_send_message(char *message)
 		if (!gdb_safe_write('#'))
 			return false;
 		
-		if (!gdb_safe_write(hexchar[counted_checksum >> 4]))
+		if (!gdb_safe_write(hexchar[checksum >> 4]))
 			return false;
 		
-		if (!gdb_safe_write(hexchar[counted_checksum % 16]))
+		if (!gdb_safe_write(hexchar[checksum & 0x0f]))
 			return false;
-		
-		gdb_debug_print("\n");
 		
 		char c;
 		if (!gdb_safe_read(&c))
@@ -310,164 +255,211 @@ static bool gdb_send_message(char *message)
 			break;
 	}
 	
-	if (i >= GDB_MAXIMUM_BAD_CHECKSUMS_COUNT) {
-		error("Messages to the debugger was resent too many times\n");
+	if (i >= MAX_BAD_CHECKSUMS) {
+		error("Communication checksum failure %u times (write)\n",
+		    MAX_BAD_CHECKSUMS);
 		return false;
 	}
 	
 	return true;
 }
 
-/** Dump given count of registers into given buffer in hex
- *
- * @param registers Array of registers to be dumped
- * @param buf       Buffer for the created hex string
- * @param count     Count of registers to be dumped
- *
- * @param Pointer to terminating null at the and of created hex string.
+/** Read length bytes from address for machine memory
  *
  */
-static char *gdb_registers_dump(const uint32_t *registers, char *buf,
-    size_t count)
+static void gdb_read_mem(ptr_t addr, size_t length)
 {
-	char register_string[(sizeof(uint32_t) * 2) + 1] = "BADDCAFE";
-	size_t i;
+	string_t str;
+	string_init(&str);
 	
-	for (i = 0; i < count; i++) {
-		/*
-		 * Gdb expects even the registers with the endianness
-		 * of the remote target.
-		 *
-		 * The registers are not manipulated as raw memory, so
-		 * they are stored in the memory with endianness
-		 * defined by the compiler of MSIM. So we first convert
-		 * it according to the endianness of the simulated
-		 * program and then we send it byte by byte to the
-		 * debugger.
-		 */
-		union32_t value;
-		value.uint32 = convert_uint32_t_endian(registers[i]);
+	/*
+	 * We read the memory byte by byte. This ensures
+	 * that we will send the content of memory with correct
+	 * endianess.
+	 */
+	while (length > 0) {
+		uint32_t value = mem_read(NULL, addr, BITS_8, false);
+		string_printf(&str, "%02x", value);
 		
-		sprintf(register_string, "%02x%02x%02x%02x", value.uint8[0],
-		    value.uint8[1], value.uint8[2], value.uint8[3]);
-		
-		strcpy(buf, register_string);
-		buf += strlen(register_string);
+		length--;
+		addr++;
 	}
 	
-	return buf;
+	gdb_send_reply(str.str);
+	string_done(&str);
+}
+
+/** Write length bytes to address in memory from hex string
+ *
+ */
+static void gdb_write_mem(ptr_t addr, size_t length, char *data)
+{
+	while (length > 0) {
+		/* Read one byte */
+		unsigned int value;
+		int matched = sscanf(data, "%02x", &value);
+		if (matched != 1) {
+			gdb_send_reply(GDB_REPLY_BAD_MEMORY_COMMAND);
+			return;
+		}
+		
+		/* Write it */
+		if (!mem_write(NULL, addr, value, BITS_8, false)) {
+			gdb_send_reply(GDB_REPLY_MEMORY_WRITE_FAIL);
+			return;
+		}
+		
+		data += 2;
+		length--;
+		addr++;
+	}
+	
+	gdb_send_reply(GDB_REPLY_OK);
 }
 
 /** Dump one register into given buffer in hex
  *
- * @param register_value Value of dumped register
- * @param buf            Buffer for the created hex string
- *
- * @param Pointer to terminating null at the and of created hex string.
- *
  */
-static char *gdb_register_dump(uint32_t register_value, char *buf)
+static void gdb_register_dump(string_t *str, uint32_t val)
 {
-	return gdb_registers_dump(&register_value, buf, 1);
+	/*
+	 * Gdb expects even the registers with the endianness
+	 * of the remote target.
+	 *
+	 * The registers are not manipulated as raw memory, so
+	 * they are stored in the memory with endianness
+	 * defined by the compiler of MSIM. So we first convert
+	 * it according to the endianness of the simulated
+	 * program and then we send it byte by byte to the
+	 * debugger.
+	 */
+	
+	union32_t value;
+	value.uint32 = convert_uint32_t_endian(val);
+	
+	string_printf(str, "%02x%02x%02x%02x",
+	    value.uint8[0], value.uint8[1],
+	    value.uint8[2], value.uint8[3]);
 }
 
-/** Writes new value of registers from given hex string
+/** Dump given count of registers into given buffer in hex
  *
- * @param buf       Buffer containing the hex string. The pointer is modified to point
- *                  to the end of written part.
- * @param registers Array of registers, which will be changed.
- * @param count     Count of registers, which will be changed.
- *
- * @return True, if the hex string was in the correct form.
  *
  */
-static bool gdb_registers_upload(char **buf, uint32_t *registers, size_t count)
+static void gdb_registers_dump(string_t *str, uint32_t *regs, size_t count)
+{
+	size_t i;
+	
+	for (i = 0; i < count; i++)
+		gdb_register_dump(str, regs[i]);
+}
+
+
+
+/** Write new value of one register from given hex string
+ *
+ * @param data Buffer containing the hex string. The pointer
+ *             is modified to point to the end of written part.
+ * @param reg  Pointer to a register.
+ *
+ * @return True if the hex string was in the correct form.
+ *
+ */
+static bool gdb_register_upload(char **data, uint32_t *reg)
+{
+	unsigned int values[4];
+	
+	/* Read 4 bytes */
+	int matched = sscanf(*data, "%02x%02x%02x%02x", &values[0],
+	    &values[1], &values[2], &values[3]);
+	
+	if (matched != 4) {
+		gdb_send_reply(GDB_REPLY_REGISTER_WRITE_FAIL);
+		return false;
+	}
+	
+	/* Convert it to uint32_t and handle the endianness */
+	union32_t value;
+	value.uint8[0] = values[0];
+	value.uint8[1] = values[1];
+	value.uint8[2] = values[2];
+	value.uint8[3] = values[3];
+	
+	*reg = convert_uint32_t_endian(value.uint32);
+	
+	*data += 8;
+	return true;
+}
+
+/** Write new value of registers from given hex string
+ *
+ * @param data Buffer containing the hex string. The pointer
+ *             is modified to point to the end of written part.
+ * @param regs  Array of registers to change.
+ * @param count Number of registers to change.
+ *
+ * @return True if the hex string was in the correct form.
+ *
+ */
+static bool gdb_registers_upload(char **data, uint32_t *regs, size_t count)
 {
 	size_t i;
 	
 	for (i = 0; i < count; i++) {
-		unsigned int values[4];
-		
-		/* Read 4 bytes */
-		int matched = sscanf(*buf, "%02x%02x%02x%02x", &values[0],
-		    &values[1], &values[2], &values[3]);
-		
-		if (matched != 4)
+		if (!gdb_register_upload(data, regs + i))
 			return false;
-		
-		/* Convert it to uint32 and handle the endianness */
-		union32_t value;
-		value.uint8[0] = values[0];
-		value.uint8[1] = values[1];
-		value.uint8[2] = values[2];
-		value.uint8[3] = values[3];
-		
-		registers[i] = convert_uint32_t_endian(value.uint32);
-		
-		*buf += 8;
 	}
 	
 	return true;
 }
 
-/** Writes new value of one register from given hex string
- *
- * @param buf            Buffer containing the hex string. The pointer
- *                       is modified to point to the end of written part.
- * @param register_value Array of registers, which will be changed.
- *
- * @return True, if the hex string was in the correct form.
- *
- */
-static bool gdb_register_upload(char **buf, uint32_t *register_value)
-{
-	return gdb_registers_upload(buf, register_value, 1);
-}
-
 /** Notify the debugger about an event
  *
- * Sends the event number and current pc to the debugger
- * and makes the simulator wait for next command from the debugger.
+ * Send the event number and current PC to the debugger
+ * and make the simulator wait for next command from the debugger.
  *
  * @param event Signal value, which specifies what happened.
  *
  */
-void gdb_handle_event(gdb_events_t event)
+void gdb_handle_event(gdb_event_t event)
 {
-	char gdb_buf[GDB_BUFFER_SIZE];
+	string_t msg;
+	string_init(&msg);
 	
-	// TODO: Support more processors
-	cpu_t *cpu = dcpu_find_no(0);
+	cpu_t *cpu = dcpu_find_no(cpuno_global);
 	
-	char pc_string[(sizeof(uint32_t) * 2) + 1];
-	gdb_register_dump(cpu->pc, pc_string);
+	string_printf(&msg, "T%02x%02x:", event, GDB_REGISTER_PC);
+	gdb_register_dump(&msg, cpu->pc);
+	string_push(&msg, ';');
 	
-	sprintf(gdb_buf, "T%02x%02x:%s;", event, GDB_REGISTER_NUMBER_PC, pc_string);
-	gdb_send_message(gdb_buf);
+	gdb_send_reply(msg.str);
+	string_done(&msg);
 	
 	remote_gdb_listen = true;
 }
 
 /** Read register contents
  *
- * Read register contents and write it to a buffer in a suitable
+ * Read register contents and send it in a suitable
  * format for the debugger.
  *
- * @param buf Buffer for string which will be sent to the debugger.
- *
  */
-static void gdb_read_registers(char *buf)
+static void gdb_read_registers(void)
 {
-	// TODO: Support more processors
-	cpu_t *cpu = dcpu_find_no(0);
+	cpu_t *cpu = dcpu_find_no(cpuno_global);
+	string_t str;
+	string_init(&str);
 	
-	buf = gdb_registers_dump(cpu->regs, buf, 32);
-	buf = gdb_register_dump(cpu->cp0[cp0_Status], buf);
-	buf = gdb_register_dump(cpu->loreg, buf);
-	buf = gdb_register_dump(cpu->hireg, buf);
-	buf = gdb_register_dump(cpu->cp0[cp0_BadVAddr], buf);
-	buf = gdb_register_dump(cpu->cp0[cp0_Cause], buf);
-	buf = gdb_register_dump(cpu->pc, buf);
+	gdb_registers_dump(&str, cpu->regs, 32);
+	gdb_register_dump(&str, cpu->cp0[cp0_Status]);
+	gdb_register_dump(&str, cpu->loreg);
+	gdb_register_dump(&str, cpu->hireg);
+	gdb_register_dump(&str, cpu->cp0[cp0_BadVAddr]);
+	gdb_register_dump(&str, cpu->cp0[cp0_Cause]);
+	gdb_register_dump(&str, cpu->pc);
+	
+	gdb_send_reply(str.str);
+	string_done(&str);
 }
 
 /** Set new content of registers
@@ -475,110 +467,104 @@ static void gdb_read_registers(char *buf)
  * Set new content of registers according to the hex string
  * from the debugger.
  *
- * @param buf Hexa string from the debugger.
- *
- * @return True, if the hex string was in the correct form.
+ * @param req Debugger request.
  *
  */
-static bool gdb_write_registers(char *buf)
+static void gdb_write_registers(char *req)
 {
-	// TODO: Support more processors
-	cpu_t *cpu = dcpu_find_no(0);
+	char *query = req + 1;
+	cpu_t *cpu = dcpu_find_no(cpuno_global);
 	
-	if (!gdb_registers_upload(&buf, cpu->regs, 32))
-		return false;
+	if (!gdb_registers_upload(&query, cpu->regs, 32))
+		return;
 	
-	if (!gdb_register_upload(&buf, &cpu->cp0[cp0_Status]))
-		return false;
+	if (!gdb_register_upload(&query, &cpu->cp0[cp0_Status]))
+		return;
 	
-	if (!gdb_register_upload(&buf, &cpu->loreg))
-		return false;
+	if (!gdb_register_upload(&query, &cpu->loreg))
+		return;
 	
-	if (!gdb_register_upload(&buf, &cpu->hireg))
-		return false;
+	if (!gdb_register_upload(&query, &cpu->hireg))
+		return;
 	
-	if (!gdb_register_upload(&buf, &cpu->cp0[cp0_BadVAddr]))
-		return false;
+	if (!gdb_register_upload(&query, &cpu->cp0[cp0_BadVAddr]))
+		return;
 	
-	if (!gdb_register_upload(&buf, &cpu->cp0[cp0_Cause]))
-		return false;
+	if (!gdb_register_upload(&query, &cpu->cp0[cp0_Cause]))
+		return;
 	
-	if (!gdb_register_upload(&buf, &cpu->pc))
-		return false;
+	if (!gdb_register_upload(&query, &cpu->pc))
+		return;
 	
-	return true;
+	gdb_send_reply(GDB_REPLY_OK);
 }
 
 /** Read or write memory
  *
- * @param data Whole debugger command
- * @param read True to read from the memory
+ * @param req  Whole debugger request.
+ * @param read True to read from the memory.
  *
  */
-static void gdb_cmd_mem_operation(char *data, bool read)
+static void gdb_cmd_mem_operation(char *req, bool read)
 {
-	data++;
-	char *buf = data;
+	char *query = req + 1;
 	
-	/* Try to read and parse the command */
-	ptr_t addr = 0;
-	size_t length = 0;
-	int matched = sscanf(data, "%x,%d", &addr, &length);
+	/* Parse the query */
+	unsigned int address = 0;
+	unsigned int length = 0;
+	int matched = sscanf(query, "%x,%d", &address, &length);
 	if (matched != 2) {
-		strcpy(buf, GDB_ERROR_STRING_BAD_MEMORY_COMMAND);
+		gdb_send_reply(GDB_NOT_SUPPORTED);
 		return;
 	}
 	
-	/* We need to get physical address */
-	// TODO: Support more processors
-	cpu_t *cpu = dcpu_find_no(0);
-	convert_addr(cpu, &addr, false, false);
+	/* Addresses are physical */
+	cpu_t *cpu = dcpu_find_no(cpuno_global);
 	
-	/* Move the data pointer to the data to be written */
-	if (!read) {
-		data = strchr(data, ':');
-		if (data == NULL) {
-			strcpy(buf, GDB_ERROR_STRING_BAD_MEMORY_COMMAND);
-			return;
-		}
-		
-		data++;
+	ptr_t addr = (ptr_t) address;
+	size_t len = (size_t) length;
+	
+	if (convert_addr(cpu, &addr, false, false) == excNone) {
+		if (!read) {
+			/* Move the pointer to the data to be written */
+			query = strchr(query, ':');
+			if (query == NULL) {
+				gdb_send_reply(GDB_REPLY_BAD_MEMORY_COMMAND);
+				return;
+			}
+			
+			query++;
+			gdb_write_mem(addr, len, query);
+		} else
+			gdb_read_mem(addr, len);
+	} else {
+		if (!read)
+			gdb_send_reply(GDB_REPLY_MEMORY_WRITE_FAIL);
+		else
+			gdb_send_reply(GDB_REPLY_MEMORY_READ_FAIL);
 	}
-	
-	/* Perform the memory operation */
-	if (!read) {
-		/* Try to write the new content to the memory */
-		bool success = gdb_write_mem(addr, length, data);
-		strcpy(buf, success ? "OK" : GDB_ERROR_STRING_MEMORY_WRITE_FAIL);
-		
-		return;
-	}
-	
-	/* Try to read the content of the memory */
-	if (!gdb_read_mem(addr, length, buf))
-		strcpy(buf, GDB_ERROR_STRING_MEMORY_READ_FAIL);
 }
 
 /** Step or continue command from the debugger
  *
- * @param data Buffer, that can contain resume address.
+ * @param req  Buffer, that can contain resume address.
  * @param step True for single stepping, false for continue.
  *
  */
-static void gdb_cmd_step(char *data, bool step)
+static void gdb_cmd_step(char *req, bool step)
 {
-	data++;
+	char *query = req + 1;
 	
 	/*
-	 * Address at which the processor should resume.
-	 * If not specified, use the current pc address.
+	 * Decode address at which the processor should
+	 * resume.  If not specified, use the current PC.
 	 * How is this useful?
 	 */
-	ptr_t addr;
-	int matched = sscanf(data, "%x", &addr);
+	unsigned int address;
+	int matched = sscanf(query, "%x", &address);
 	if (matched == 1) {
-		// TODO: Support more processors
-		cpu_t *cpu = dcpu_find_no(0);
+		ptr_t addr = (ptr_t) address;
+		cpu_t *cpu = dcpu_find_no(cpuno_step);
 		cpu_set_pc(cpu, addr);
 	}
 	
@@ -586,67 +572,110 @@ static void gdb_cmd_step(char *data, bool step)
 	remote_gdb_listen = step;
 }
 
-/** Create an answer for the debugger query
- *
- * @param data Whole debugger command. It contains answer for
- *             the query at the end of function call.
+/** Process debugger query
  *
  */
-static void gdb_process_query(char *data)
+static void gdb_process_query(char *req)
 {
-	char *query_content = data + 1;
+	char *query = req + 1;
 	
-	/*
-	 * We pretend that we have attached to some process,
-	 * the gdb will then try to detach when quiting.
-	 */
-	if (strcmp(query_content, "Attached") == 0) {
-		strcpy(data, "1");
+	if (strncmp(query, "Supported", 9) == 0) {
+		/* No extensions are supported */
+		gdb_send_reply(GDB_NOT_SUPPORTED);
 		return;
 	}
 	
-	/* Thread ID does not have meaning here */
-	if (strcmp(query_content, "C") == 0) {
-		strcpy(data, "-1");
+	if (strcmp(query, "C") == 0) {
+		char reply[5];
+		
+		PRE(cpuno_global <= MAX_CPU);
+		
+		/* Represent processors as threads */
+		snprintf(reply, 5, "QC%02x", cpuno_global);
+		gdb_send_reply(reply);
 		return;
 	}
 	
-	/* There is no relocation of program loaded to the simulator */
-	if (strcmp(query_content, "Offsets") == 0) {
-		strcpy(data, "Text=0;Data=0;Bss=0");
+	if (strcmp(query, "Attached") == 0) {
+		/*
+		 * We pretend that we have attached to aprocess,
+		 * gdb will then try to detach when quiting.
+		 */
+		gdb_send_reply("1");
 		return;
 	}
 	
-	/* The supported features list has not been implemented yet */
-	if (strcmp(query_content, "Supported") == 0) {
-		strcpy(data, GDB_NOT_SUPPORTED_STRING);
+	if (strcmp(query, "Offsets") == 0) {
+		/* There are no relocations known to the simulator */
+		gdb_send_reply("Text=0;Data=0;Bss=0");
 		return;
 	}
 	
-	/* Symbol lookup, we do not need it -> send ok */
-	if (strcmp(query_content, "Symbol::") == 0) {
-		strcpy(data, "OK");
+	if (strcmp(query, "Symbol::") == 0) {
+		/* Symbol lookup, we do not need it -> send OK */
+		gdb_send_reply(GDB_REPLY_OK);
 		return;
 	}
 	
-	/* Tracepoints are not supported */
-	if (strcmp(query_content, "TStatus") == 0) {
-		strcpy(data, "T0");
+	if (strcmp(query, "TStatus") == 0) {
+		/* Tracepoints are not supported */
+		gdb_send_reply("T0");
 		return;
 	}
 	
-	strcpy(data, GDB_ERROR_STRING_UNKNOWN_QUERY);
+	/* Unsupported query */
+	gdb_send_reply(GDB_NOT_SUPPORTED);
 }
 
-/** Activate code breakpoint on processor 0 at given address.
- *
- * @param addr PC value of the code breakpoint.
- */
-static void gdb_insert_code_breakpoint(ptr_t address)
+static unsigned int gdb_decode_threadid(char *threadid)
 {
-	// TODO: Support more processors
-	cpu_t *cpu = dcpu_find_no(0);
+	if ((strcmp(threadid, "-1") == 0)
+	    || (strcmp(threadid, "0") == 0)) {
+		gdb_send_reply(GDB_REPLY_OK);
+		return 0;
+	}
 	
+	// TODO: decode specific threadids
+	gdb_send_reply(GDB_NOT_SUPPORTED);
+	return 0;
+}
+
+/** Process debugger thread selection
+ *
+ */
+static void gdb_process_thread(char *req)
+{
+	char *query = req + 1;
+	
+	switch (query[0]) {
+	case 'g':
+		cpuno_global = gdb_decode_threadid(query + 1);
+		break;
+	case 'c':
+		cpuno_step = gdb_decode_threadid(query + 1);
+		break;
+	default:
+		/* Unsupported kind */
+		gdb_send_reply(GDB_NOT_SUPPORTED);
+	}
+}
+
+static void gdb_reply_event(gdb_event_t event)
+{
+	string_t reply;
+	string_init(&reply);
+	
+	string_printf(&reply, "S%02x", event);
+	gdb_send_reply(reply.str);
+	
+	string_done(&reply);
+}
+
+/** Activate code breakpoint
+ *
+ */
+static void gdb_insert_code_breakpoint(cpu_t *cpu, ptr_t addr)
+{
 	/*
 	 * Breakpoint insertion should be done in an idempotent way,
 	 * so if the breakpoint to given address is already inserted,
@@ -654,28 +683,23 @@ static void gdb_insert_code_breakpoint(ptr_t address)
 	 * this as faulty behavior.
 	 */
 	breakpoint_t *breakpoint = breakpoint_find_by_address(cpu->bps,
-	    address, BREAKPOINT_FILTER_DEBUGGER);
-
+	    addr, BREAKPOINT_FILTER_DEBUGGER);
+	
 	if (breakpoint != NULL)
 		return;
 	
-	/* Breakpoint is not inserted so do it now. */
-	breakpoint_t *inserted_breakpoint = breakpoint_init(address,
-	    BREAKPOINT_KIND_DEBUGGER);
+	/* Breakpoint not found, thus insert it now. */
+	breakpoint_t *inserted_breakpoint =
+	    breakpoint_init(addr, BREAKPOINT_KIND_DEBUGGER);
 	
 	list_append(&cpu->bps, &inserted_breakpoint->item);
 }
 
-/** Deactivate code breakpoint on processor 0 at given address.
- *
- * @param addr PC value of the code breakpoint.
+/** Deactivate code breakpoint
  *
  */
-static void gdb_remove_code_breakpoint(ptr_t addr)
+static void gdb_remove_code_breakpoint(cpu_t *cpu, ptr_t addr)
 {
-	// TODO: Support more processors
-	cpu_t *cpu = dcpu_find_no(0);
-	
 	breakpoint_t *breakpoint = breakpoint_find_by_address(cpu->bps,
 	    addr, BREAKPOINT_FILTER_DEBUGGER);
 	
@@ -687,118 +711,99 @@ static void gdb_remove_code_breakpoint(ptr_t addr)
 	safe_free(breakpoint);
 }
 
-/** Handle code or memory breakpoint command from the debugger
+/** Handle code or memory breakpoint commands from the debugger
  *
- * @param buf    Whole command from the debugger. Contains the answer
- *               at the end of function call.
- * @param insert True, if the breakpoint will be inserted.
+ * @param req    Request from the debugger.
+ * @param insert True if the breakpoint should be inserted.
  *
  */
-static void gdb_breakpoint(char *buf, bool insert)
+static void gdb_breakpoint(char *req, bool insert)
 {
-	ptr_t address = 0;
-	uint32_t length = 0;
-	access_filter_t memory_access = ACCESS_FILTER_WRITE;
-	bool code_breakpoint = true;
+	/* Decode the type of breakpoint (code or memory)
+	   and memory access conditions */
 	
-	char *arguments = buf + 3;
+	bool code_breakpoint = false;
+	access_filter_t memory_access = ACCESS_FILTER_ANY;
 	
-	/* Find out the type of breakpoint (code or memory) and memory access conditions */
-	
-	char breakpoint_type_char = buf[1];
-	switch (breakpoint_type_char) {
-	case '0':  /* We handle the software (0) and hardware (1) breakpoints in the same way */
-	case '1':
+	switch (req[1]) {
+	case '0':  /* Software breakpoint */
+	case '1':  /* Hardware breakpoint */
 		code_breakpoint = true;
 		break;
-	case '2':  /* These are memory breakpoints */
-	case '3':
-	case '4':
+	case '2':  /* Memory breakpoint (write) */
 		code_breakpoint = false;
-		switch (breakpoint_type_char) {
-		case '2':
-			memory_access = ACCESS_FILTER_WRITE;
-			break;
-		case '3':
-			memory_access = ACCESS_FILTER_READ;
-			break;
-		default:
-			memory_access = ACCESS_FILTER_ANY;
-		}
+		memory_access = ACCESS_FILTER_WRITE;
+		break;
+	case '3':  /* Memory breakpoint (read) */
+		code_breakpoint = false;
+		memory_access = ACCESS_FILTER_READ;
+		break;
+	case '4':  /* Memory breakpoint (any) */
+		code_breakpoint = false;
+		memory_access = ACCESS_FILTER_ANY;
 		break;
 	default:
 		/* The rest is not supported */
-		strcpy(buf, GDB_NOT_SUPPORTED_STRING);
+		gdb_send_reply(GDB_NOT_SUPPORTED);
 		return;
 	}
 	
-	/* Read the breakpoint address and length */
+	/* Decode the breakpoint address and length */
+	char *arguments = req + 2;
+	unsigned int address;
+	unsigned int length;
+	int matched = sscanf(arguments, ",%x,%x", &address, &length);
 	
-	sscanf(arguments, "%x,%x", &address, &length);
-	if (length != BITS_32) {
-		strcpy(buf, GDB_ERROR_STRING_BAD_BREAKPOINT_COMMAND);
+	if ((matched != 2) || (length != BITS_32)) {
+		gdb_send_reply(GDB_REPLY_BAD_BREAKPOINT);
 		return;
 	}
 	
-	strcpy(buf, "OK");
+	ptr_t addr = (ptr_t) address;
+	cpu_t* cpu = dcpu_find_no(cpuno_global);
 	
-	/* Handle code breakpoint */
-	
-	if (insert && code_breakpoint) {
-		gdb_insert_code_breakpoint(address);
-		return;
+	if (code_breakpoint) {
+		if (insert)
+			gdb_insert_code_breakpoint(cpu, addr);
+		else
+			gdb_remove_code_breakpoint(cpu, addr);
+	} else {
+		if (convert_addr(cpu, &addr, false, false) == excNone) {
+			if (insert)
+				memory_breakpoint_add(addr, BREAKPOINT_KIND_DEBUGGER,
+				    memory_access);
+			else
+				memory_breakpoint_remove(addr);
+		} else {
+			gdb_send_reply(GDB_REPLY_BAD_BREAKPOINT);
+			return;
+		}
 	}
 	
-	if ((!insert) && code_breakpoint) {
-		gdb_remove_code_breakpoint(address);
-		return;
-	}
-	
-	/* Handle memory breakpoint */
-	
-	// TODO: Support more processors
-	cpu_t* cpu = dcpu_find_no(0);
-	convert_addr(cpu, &address, false, false);
-	
-	if (insert && (!code_breakpoint)) {
-		memory_breakpoint_add(address, BREAKPOINT_KIND_DEBUGGER,
-		    memory_access);
-		return;
-	}
-	
-	if ((!insert) && (!code_breakpoint)) {
-		memory_breakpoint_remove(address);
-		return;
-	}
+	gdb_send_reply(GDB_REPLY_OK);
 }
 
-/** Cancel remote gdb
- *
- * Fail gets whether communication fails (io error)
- *
- * @param rq Detect remote request to close connection
+/** Cancel remote debugger connection
  *
  */
 static void gdb_remote_done(bool fail, bool remote_request)
 {
-	if (!fail) {
-		char* message = remote_request ? "OK" : "W00";
-		gdb_send_message(message);
-	}
+	cpu_t *cpu = dcpu_find_no(cpuno_global);
+	
+	if (!fail)
+		gdb_send_reply(remote_request ? GDB_REPLY_OK : GDB_REPLY_WARNING);
 	
 	if (close(gdb_fd) == -1)
 		io_error("gdb_fd");
 	
-	gdb_fd = 0;
+	gdb_fd = -1;
+	cpuno_global = 0;
+	cpuno_step = 0;
 	
 	remote_gdb = false;
 	remote_gdb_conn = false;
 	
 	/* Remove all the debugger breakpoints. */
-	
-	// TODO: Support more processors
-	cpu_t *cpu = dcpu_find_no(0);
-	
 	breakpoint_t *breakpoint = (breakpoint_t *) cpu->bps.head;
 	while (breakpoint != NULL) {
 		breakpoint_t *removed = breakpoint;
@@ -820,8 +825,6 @@ static void gdb_remote_done(bool fail, bool remote_request)
  */
 void gdb_session(void)
 {
-	char buf[GDB_BUFFER_SIZE];
-	
 	/* At first send the result of single step command */
 	if (remote_gdb_step) {
 		remote_gdb_step = false;
@@ -830,55 +833,57 @@ void gdb_session(void)
 	
 	while (true) {
 		/* Read the command. */
-		if (!gdb_get_message(buf)) {
+		char *req = gdb_get_request();
+		if (req == NULL) {
 			gdb_remote_done(true, false);
 			return;
 		}
 		
-		gdb_debug_print("<- %s\n", buf);
-		
-		switch (buf[0]) {
-		case '?':
-			sprintf(buf, "S%02x", GDB_EVENT_NO_EXCEPTION);
+		switch (req[0]) {
+		case 'H':  /* Thread selection */
+			gdb_process_thread(req);
 			break;
-		case 'g':
-			gdb_read_registers(buf);
+		case '?':  /* Get current status */
+			gdb_reply_event(GDB_EVENT_NO_EXCEPTION);
 			break;
-		case 'G':
-			if (gdb_write_registers(&buf[1]))
-				strcpy(buf, "OK");
-			else
-				strcpy(buf, GDB_ERROR_STRING_REGISTERS_WRITE_FAIL);
+		case 'g':  /* Read registers */
+			gdb_read_registers();
 			break;
-		case 'm':
-			gdb_cmd_mem_operation(buf, true);
+		case 'G':  /* Write registers */
+			gdb_write_registers(req);
 			break;
-		case 'M':
-			gdb_cmd_mem_operation(buf, false);
+		case 'm':  /* Memory read */
+			gdb_cmd_mem_operation(req, true);
 			break;
-		case 'c':
-		case 's':
-			gdb_cmd_step(buf, buf[0] != 'c');
+		case 'M':  /* Memory write */
+			gdb_cmd_mem_operation(req, false);
+			break;
+		case 'c':  /* Continue */
+			gdb_cmd_step(req, false);
 			return;
-		case 'D':
-			mprintf("Debugger detach...\n");
+		case 's':  /* Step */
+			gdb_cmd_step(req, true);
+			return;
+		case 'D':  /* Detach */
+			mprintf("... detached\n");
 			gdb_remote_done(false, true);
 			return;
-		case 'q':
-			gdb_process_query(buf);
+		case 'q':  /* Query */
+			gdb_process_query(req);
 			break;
-		case 'Z':
-		case 'z':
-			gdb_breakpoint(buf, (buf[0] == 'Z'));
+		case 'Z':  /* Add breakpoint */
+			gdb_breakpoint(req, true);
+			break;
+		case 'z':  /* Remove breakpoint */
+			gdb_breakpoint(req, false);
 			break;
 		default:
 			/* Send "not implemented" */
-			strcpy(buf, GDB_NOT_SUPPORTED_STRING);
+			gdb_send_reply(GDB_NOT_SUPPORTED);
 			break;
 		}
 		
-		/* Send the answer */
-		gdb_send_message(buf);
+		safe_free(req);
 	}
 }
 
@@ -920,21 +925,21 @@ bool gdb_remote_init(void)
 		return false;
 	}
 	
-	mprintf("Waiting for GDB response on %d...\n", remote_gdb_port);
+	mprintf("Waiting for GDB connection on port %u ...\n", remote_gdb_port);
 	
 	struct sockaddr_in sa_gdb;
 	socklen_t addrlen = sizeof(sa_gdb);
 	gdb_fd = accept(gdb_fd, (struct sockaddr *) &sa_gdb, &addrlen);
 	if (gdb_fd < 0) {
 		if (errno == EINTR)
-			mprintf("...interrupted.\n");
+			mprintf("... interrupted\n");
 		else
 			io_error("accept");
 		
 		return false;
 	}
 	
-	mprintf("...done\n");
+	mprintf("... connected\n");
 	
 	return true;
 }

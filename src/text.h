@@ -40,4 +40,4 @@ extern const char txt_help[];
 
 extern const char hexchar[];
 
-#endif /* TEXT_H_ */
+#endif

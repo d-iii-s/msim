@@ -74,7 +74,7 @@ extern bool errors;
 extern bool script_stat;
 
 extern bool remote_gdb;
-extern int remote_gdb_port;
+extern unsigned int remote_gdb_port;
 extern bool remote_gdb_conn;
 extern bool remote_gdb_listen;
 extern bool remote_gdb_step;

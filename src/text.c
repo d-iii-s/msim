@@ -79,11 +79,9 @@ const char *exc_text[] = {
 	"Virtual Coherency data"
 };
 
-
 const char txt_version[] =
 	PACKAGE " version " VERSION "\ncopyright (c) 2000-2010 Viliam Holub, Martin Decky\n";
 
-		
 const char txt_help[] =
 	"  -V, --version            display version info\n"
 	"  -c, --config=file_name   configuration file name\n"
@@ -91,5 +89,4 @@ const char txt_help[] =
 	"  -t, --trace              enter trace mode\n"
 	"  -g, --remote-gdb=port    enter gdb mode\n";
 
-		
 const char hexchar[] = "0123456789abcdef";

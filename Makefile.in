@@ -6,24 +6,26 @@
 #
 
 INSTALL = @INSTALL@
+RM = @RM@
 PREFIX = @prefix@
 
-.PHONY: all msim install uninstall clean distclean
-all: msim
+BINARY = bin/msim
 
-msim:
-	cd src && $(MAKE)
+.PHONY: all install uninstall clean distclean
 
-install: msim
+all:
+	$(MAKE) -C src
+
+install: all
 	$(INSTALL) -d $(DESTDIR)$(PREFIX)/bin
-	$(INSTALL) -s -m 755 bin/msim $(DESTDIR)$(PREFIX)/bin/msim
+	$(INSTALL) -s -m 755 $(BINARY) $(DESTDIR)$(PREFIX)/$(BINARY)
 
 uninstall:
-	rm -f $(PREFIX)/bin/msim
+	$(RM) -f $(DESTDIR)$(PREFIX)/$(BINARY)
 
 clean:
-	cd src && $(MAKE) clean
+	$(MAKE) -C src clean
 
 distclean: clean
-	cd src && $(MAKE) distclean
-	rm -f Makefile config.log config.status config.h stamp-h
+	$(MAKE) -C src distclean
+	$(RM) -f Makefile config.log config.status config.h stamp-h

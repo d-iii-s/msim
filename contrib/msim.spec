@@ -9,7 +9,7 @@ Source: http://d3s.mff.cuni.cz/~holub/sw/msim/msim-%{version}.tar.bz2
 Requires: readline
 
 BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
-BuildRequires: readline-devel
+BuildRequires: readline-devel, makedepend, diffutils
 
 %description
 MSIM is a light-weight computer simulator based on MIPS R4000. It is used for

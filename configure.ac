@@ -3,8 +3,33 @@ AC_CONFIG_SRCDIR([src/main.c])
 AM_INIT_AUTOMAKE(msim, 1.3.8)
 
 AC_PROG_CC
-if test "$GCC" = "yes"; then
+if test "$GCC" = "yes" ; then
 	CFLAGS="-g -O3 -Wall -Wextra -Wno-unused-parameter -Wmissing-prototypes"
+fi
+
+AC_CHECK_PROG(CP, cp, cp, no)
+if test "$CP" = "no" ; then
+	AC_MSG_ERROR(Utility cp not found (usually part of coreutils).)
+fi
+
+AC_CHECK_PROG(MV, mv, mv, no)
+if test "$MV" = "no" ; then
+	AC_MSG_ERROR(Utility mv not found (usually part of coreutils).)
+fi
+
+AC_CHECK_PROG(RM, rm, rm, no)
+if test "$RM" = "no" ; then
+	AC_MSG_ERROR(Utility rm not found (usually part of coreutils).)
+fi
+
+AC_CHECK_PROG(DIFF, diff, diff, no)
+if test "$DIFF" = "no" ; then
+	AC_MSG_ERROR(Utility diff not found (usually part of diffutils).)
+fi
+
+AC_CHECK_PROG(MAKEDEPEND, makedepend, makedepend, no)
+if test "$MAKEDEPEND" = "no" ; then
+	AC_MSG_ERROR(Utility makedepend not found (usually part of imake).)
 fi
 
 AC_PROG_INSTALL
@@ -40,6 +65,7 @@ AC_C_CONST
 AC_TYPE_SIZE_T
 
 AC_CHECK_FUNCS([getopt_long],, [AC_MSG_FAILURE(Function getopt_long not defined.)])
+AC_SYS_LARGEFILE
 
 AC_SUBST(BUILDLIBS)
 AC_SUBST(AFTERBUILD)

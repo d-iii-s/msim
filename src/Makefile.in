@@ -8,6 +8,14 @@
 CC = @CC@
 CFLAGS = @CFLAGS@
 LIBS = @LIBS@
+CP = @CP@
+MV = @MV@
+RM = @RM@
+DIFF = @DIFF@
+MAKEDEPEND = @MAKEDEPEND@
+
+DEPEND = Makefile.depend
+DEPEND_PREV = $(DEPEND).prev
 TARGET = ./../bin/msim
 
 SOURCES = \
@@ -45,23 +53,25 @@ SOURCES = \
 
 OBJECTS := $(addsuffix .o,$(basename $(SOURCES)))
 
-.PHONY: all depend clean distclean
+.PHONY: all clean distclean
 
 all: $(TARGET)
-
--include Makefile.depend
-
-depend:
-	-makedepend $(CFLAGS) -f - $(SOURCES) > Makefile.depend 2> /dev/null
-
-$(OBJECTS): %.o: %.c
-	$(CC) -c $(CFLAGS) -o $@ $<
-
-$(TARGET): depend $(OBJECTS)
-	$(CC) $(CFLAGS) -o $@ $(OBJECTS) $(LIBS)
+	-[ -f $(DEPEND) ] && $(CP) -a $(DEPEND) $(DEPEND_PREV)
 
 clean:
-	rm -f $(TARGET) $(OBJECTS) Makefile.depend
+	$(RM) -f $(TARGET) $(OBJECTS) $(DEPEND) $(DEPEND_PREV)
 
 distclean: clean
-	rm -f Makefile
+	$(RM) -f Makefile
+
+-include $(DEPEND)
+
+$(TARGET): $(OBJECTS) $(DEPEND)
+	$(CC) $(CFLAGS) $(LIBS) -o $@ $(OBJECTS)
+
+%.o: %.c $(DEPEND)
+	$(CC) -c $(CFLAGS) -o $@ $<
+
+$(DEPEND):
+	$(MAKEDEPEND) -f - -- $(CFLAGS) -- $(SOURCES) > $@ 2> /dev/null
+	-[ -f $(DEPEND_PREV) ] && $(DIFF) -q $(DEPEND_PREV) $@ && $(MV) -f $(DEPEND_PREV) $@

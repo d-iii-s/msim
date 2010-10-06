@@ -7,8 +7,8 @@ SLOT="0"
 KEYWORDS="amd64 x86 ppc sparc"
 
 IUSE=""
-DEPEND="sys-libs/readline"
-RDEPEND="${DEPEND}"
+DEPEND="sys-libs/readline x11-misc/makedepend sys-apps/diffutils"
+RDEPEND="sys-libs/readline"
 
 src_compile() {
 	econf || die "Configuration failed"

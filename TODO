@@ -7,7 +7,6 @@ add debug features - memory allocation
 	- show all allocated memory blocks
 	- check for unallocated memory at the end of the program or at the free function call
 	- allocation information - function, file and the line number
-gdb remote debugging
 serial line
 network
 nonword write via read/write

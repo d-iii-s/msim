@@ -33,7 +33,6 @@
 #include "breakpoint.h"
 
 #include <inttypes.h>
-#include "../io/output.h"
 #include "../device/machine.h"
 #include "../main.h"
 #include "../utils.h"
@@ -153,15 +152,14 @@ void memory_breakpoint_remove_filtered(breakpoint_filter_t filter)
 /** Print activated memory breakpoints for the user */
 void memory_breakpoint_print_list(void)
 {
-	mprintf("Address    Mode Hits\n");
-	mprintf("---------- ---- --------------------\n");
+	printf("[Address ] [Mode] [Hits              ]\n");
 	
 	mem_breakpoint_t *breakpoint = NULL;
 	for_each(memory_breakpoints, breakpoint, mem_breakpoint_t) {
 		bool read = breakpoint->access_flags & ACCESS_READ;
 		bool write = breakpoint->access_flags & ACCESS_WRITE;
 		
-		mprintf("%#010" PRIx32 " %c%c   %20" PRIu64 "\n",
+		printf("%#010" PRIx32 " %c%c     %20" PRIu64 "\n",
 		    breakpoint->addr,
 		    read ? 'r' : '-', write ? 'w' : '-',
 		    breakpoint->hits);
@@ -184,10 +182,10 @@ void memory_breakpoint_hit(mem_breakpoint_t *breakpoint, access_t access_type)
 	switch (breakpoint->kind) {
 	case BREAKPOINT_KIND_SIMULATOR:
 		if (access_type == ACCESS_READ)
-			mprintf("\nDebug: Read from address %#10" PRIx32 "\n\n",
+			alert("Debug: Read from address %#10" PRIx32,
 			    breakpoint->addr);
 		else
-			mprintf("\nDebug: Written to address %#10" PRIx32 "\n\n",
+			alert("Debug: Written to address %#10" PRIx32,
 			    breakpoint->addr);
 		
 		breakpoint->hits++;
@@ -237,7 +235,7 @@ static void breakpoint_hit(breakpoint_t *breakpoint)
 	
 	switch (breakpoint->kind) {
 	case BREAKPOINT_KIND_SIMULATOR:
-		mprintf("\nDebug: Hit breakpoint at %08x\n\n", breakpoint->pc);
+		alert("Debug: Hit breakpoint at %08x", breakpoint->pc);
 		interactive = true;
 		break;
 	case BREAKPOINT_KIND_DEBUGGER:

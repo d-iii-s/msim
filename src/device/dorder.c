@@ -17,7 +17,7 @@
 #include "device.h"
 #include "machine.h"
 #include "dcpu.h"
-#include "../io/output.h"
+#include "../fault.h"
 #include "../parser.h"
 #include "../utils.h"
 
@@ -191,20 +191,20 @@ static bool dorder_init(token_t *parm, device_t *dev)
 
 	/* Address alignment */
 	if (!addr_word_aligned(od->addr)) {
-		mprintf("Dorder address must be 4-byte aligned\n");
+		error("Dorder address must be 4-byte aligned");
 		safe_free(od);
 		return false;
 	}
 
 	/* Address limit */
 	if ((uint64_t) od->addr + (uint64_t) REGISTER_LIMIT > 0x100000000ull) {
-		mprintf("Invalid address; registers would exceed the 4 GB limit\n");
+		error("Invalid address; registers would exceed the 4 GB limit");
 		return false;
 	}
 
 	/* Interrupt number */
 	if ((od->intno < 0) || (od->intno > 6)) {
-		mprintf("Interrupt number must be within 0..6\n");
+		error("Interrupt number must be within 0..6");
 		safe_free(od);
 		return false;
 	}
@@ -222,11 +222,10 @@ static bool dorder_init(token_t *parm, device_t *dev)
  */
 static bool dorder_info(token_t *parm, device_t *dev)
 {
-	dorder_data_s *od = (dorder_data_s *) dev->data;
+	dorder_data_s *data = (dorder_data_s *) dev->data;
 	
-	mprintf("Address    Int no\n");
-	mprintf("---------- ------\n");
-	mprintf("%#10" PRIx64 " %d\n", od->addr, od->intno);
+	printf("[Address ] [Int no]\n");
+	printf("%#10x %d\n", data->addr, data->intno);
 
 	return true;
 }
@@ -243,9 +242,8 @@ static bool dorder_stat(token_t *parm, device_t *dev)
 {
 	dorder_data_s *od = (dorder_data_s *) dev->data;
 	
-	mprintf("Command count\n");
-	mprintf("--------------------\n");
-	mprintf("%" PRIu64 "\n", od->cmds);
+	printf("[Command count]\n");
+	printf("%" PRIu64 "\n", od->cmds);
 
 	return true;
 }

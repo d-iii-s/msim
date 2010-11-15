@@ -19,15 +19,16 @@
 #define ERR_PARM    4  /**< Invalid parameter */
 #define ERR_INTERN  5  /**< Internal error */
 
-extern size_t *lineno_ptr;
-
 /** Print error message to stderr */
 extern void error(const char *fmt, ...);
 
 /** Print internal error to stderr */
-extern void intr_error(const char *msg, ...);
+extern void intr_error(const char *fmt, ...);
 
-/** Print message to stderr and exits */
+/** Print alert to stderr */
+extern void alert(const char *fmt, ...);
+
+/** Print message to stderr and exit */
 extern void die(int status, const char *fmt, ...);
 
 /** Dump error description of I/O error */

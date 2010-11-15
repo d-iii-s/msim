@@ -13,14 +13,14 @@
 #include <windows.h>
 #include <stdlib.h>
 #include "../../device/machine.h"
-#include "../../io/output.h"
+#include "../../fault.h"
 
 static BOOL machine_user_break(DWORD fdwCtrlType)
 {
 	switch (fdwCtrlType) {
 	case CTRL_C_EVENT:
 		if ((tobreak) || (interactive)) {
-			mprintf("Quit\n");
+			alert("Quit");
 			input_back();
 			return false;
 		}

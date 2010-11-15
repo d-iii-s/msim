@@ -13,10 +13,6 @@
 
 #define MAX_CPU  31
 
-/** Errors */
-#define FE_OPEN_SETUP 1
-#define FE_READ_SETUP 2
-
 /** Argument length */
 #define BITS_8   1
 #define BITS_16  2

@@ -6,7 +6,7 @@
  * Distributed under the terms of GPL.
  *
  *
- *  MIPS R4000 32bit system simulator
+ *  MIPS system simulator
  *
  */
 
@@ -20,7 +20,6 @@
 #include "debug/gdb.h"
 #include "device/device.h"
 #include "device/machine.h"
-#include "io/output.h"
 #include "text.h"
 #include "parser.h"
 #include "endi.h"
@@ -88,25 +87,23 @@ static void conf_remote_gdb(const char *opt)
 
 static void parse_cmdline(int argc, char *args[])
 {
-	int c;
-
 	opterr = 0;
-
-	while (1) {
+	
+	while (true) {
 		int option_index = 0;
-	
-		c = getopt_long( argc, args, "tVic:hg:",
-			long_options, &option_index);
-	
+		
+		int c = getopt_long(argc, args, "tVic:hg:",
+		    long_options, &option_index);
+		
 		if (c == -1)
 			break;
-
+		
 		switch (c) {
 		case 't':
 			totrace = true;
 			break;
 		case 'V':
-			mprintf(txt_version);
+			printf(txt_version);
 			done_machine();
 			exit(0);
 		case 'i':
@@ -114,12 +111,12 @@ static void parse_cmdline(int argc, char *args[])
 			break;
 		case 'c':
 			if (config_file)
-				free(config_file);
+				safe_free(config_file);
 			config_file = safe_strdup(optarg);
 			break;
 		case 'h':
-			mprintf(txt_version);
-			mprintf(txt_help);
+			printf(txt_version);
+			printf(txt_help);
 			done_machine();
 			exit(0);
 		case 'g':
@@ -136,16 +133,14 @@ static void parse_cmdline(int argc, char *args[])
 		die(ERR_PARM, "Unexpected arguments.\n");
 }
 
-
 int main(int argc, char *args[])
 {
-	output_init();
 	init_machine();
 	parse_cmdline(argc, args);
 	
 	script();
 	go_machine();
 	done_machine();
-
+	
 	return 0;
 }

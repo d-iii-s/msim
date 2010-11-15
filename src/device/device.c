@@ -25,7 +25,6 @@
 #include "dprinter.h"
 #include "dtime.h"
 #include "device.h"
-#include "../io/output.h"
 #include "../main.h"
 #include "../check.h"
 #include "../utils.h"

@@ -28,8 +28,7 @@ SOURCES = \
 	main.c \
 	parser.c \
 	list.c \
-	io/input.c \
-	io/output.c \
+	input.c \
 	cpu/instr.c \
 	cpu/r4000.c \
 	debug/debug.c \

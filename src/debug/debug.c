@@ -18,7 +18,6 @@
 #include "../device/machine.h"
 #include "../device/dcpu.h"
 #include "../device/mem.h"
-#include "../io/output.h"
 #include "../main.h"
 #include "../env.h"
 #include "../utils.h"
@@ -86,11 +85,11 @@ static char *cp0_dump_str[] = {
 
 void reg_view(cpu_t *cpu)
 {
-	mprintf("processor p%u\n", cpu->procno);
+	printf("processor p%u\n", cpu->procno);
 	
 	unsigned int i;
 	for (i = 0; i < 30; i += 5) {
-		mprintf(" %3s %08X  %3s %08X  %3s %08X  %3s %08X  %3s %08X\n", 
+		printf(" %3s %08X  %3s %08X  %3s %08X  %3s %08X  %3s %08X\n", 
 		    regname[i],     cpu->regs[i], 
 		    regname[i + 1], cpu->regs[i + 1], 
 		    regname[i + 2], cpu->regs[i + 2],
@@ -98,7 +97,7 @@ void reg_view(cpu_t *cpu)
 		    regname[i + 4], cpu->regs[i + 4]);
 	}
 	
-	mprintf(" %3s %08X  %3s %08X   pc %08X   lo %08X   hi %08X\n",
+	printf(" %3s %08X  %3s %08X   pc %08X   lo %08X   hi %08X\n",
 	    regname[i],     cpu->regs[i], 
 	    regname[i + 1], cpu->regs[i + 1],
 	    cpu->pc, cpu->loreg, cpu->hireg);
@@ -119,14 +118,14 @@ static const char *get_pagemask_name(unsigned int pm)
 
 void tlb_dump(cpu_t *cpu)
 {
-	mprintf( " [             general             ][    subp 0    ][    subp 1    ]\n"
-		"  no    vpn      mask        g asid  v d   pfn    c  v d   pfn    c\n");
+	printf(" [             general             ][    subp 0    ][    subp 1    ]\n"
+	    "  no    vpn      mask        g asid  v d   pfn    c  v d   pfn    c\n");
 	
 	unsigned int i;
 	for (i = 0; i < 48; i++) {
 		tlb_entry_t *e = &(cpu->tlb[i]);
 		
-		mprintf( "  %02x  %08X %08X:%-4s %d  %02x   %d %d %08X %x  %d %d %08X %1x\n",
+		printf("  %02x  %08X %08X:%-4s %d  %02x   %d %d %08X %x  %d %d %08X %1x\n",
 		    i, e->vpn2, e->mask,
 		    get_pagemask_name((~e->mask) >> cp0_pagemask_mask_shift),
 		    e->global, e->asid, e->pg[0].valid, e->pg[0].dirty,
@@ -141,37 +140,37 @@ static void cp0_dump_reg(cpu_t *cpu, unsigned int reg)
 	
 	switch (reg) {
 	case cp0_Index:
-		mprintf(s,
+		printf(s,
 		    cp0_index(cpu),
 		    cp0_index_index(cpu), cp0_index_res(cpu), cp0_index_p(cpu));
 		break;
 	case cp0_Random:
-		mprintf(s,
+		printf(s,
 		    cp0_random(cpu), cp0_random_random(cpu), cp0_random_res(cpu));
 		break;
 	case cp0_EntryLo0:
-		mprintf(s,
+		printf(s,
 		    cp0_entrylo0(cpu),
 		    cp0_entrylo0_g(cpu), cp0_entrylo0_v(cpu),
 		    cp0_entrylo0_d(cpu), cp0_entrylo0_c(cpu),
 		    cp0_entrylo0_pfn(cpu), cp0_entrylo0_res1(cpu));
 		break;
 	case cp0_EntryLo1:
-		mprintf(s,
+		printf(s,
 		    cp0_entrylo1(cpu),
 		    cp0_entrylo1_g(cpu), cp0_entrylo1_v(cpu),
 		    cp0_entrylo1_d(cpu), cp0_entrylo1_c(cpu),
 		    cp0_entrylo1_pfn(cpu), cp0_entrylo1_res1(cpu));
 		break;
 	case cp0_Context:
-		mprintf(s,
+		printf(s,
 		    cp0_context(cpu),
 		    cp0_context_res1(cpu),
 		    cp0_context_badvpn2(cpu),
 		    cp0_context_ptebase(cpu));
 		break;
 	case cp0_PageMask:
-		mprintf(s,
+		printf(s,
 		    cp0_pagemask(cpu),
 		    cp0_pagemask_res1(cpu),
 		    cp0_pagemask_mask(cpu),
@@ -179,25 +178,25 @@ static void cp0_dump_reg(cpu_t *cpu, unsigned int reg)
 		    cp0_pagemask_res2(cpu));
 		break;
 	case cp0_Wired:
-		mprintf(s,
+		printf(s,
 		    cp0_wired(cpu), cp0_wired_w(cpu), cp0_wired_res1(cpu));
 		break;
 	case cp0_BadVAddr:
-		mprintf(s, cp0_badvaddr(cpu));
+		printf(s, cp0_badvaddr(cpu));
 		break;
 	case cp0_Count:
-		mprintf(s, cp0_count(cpu));
+		printf(s, cp0_count(cpu));
 		break;
 	case cp0_EntryHi:
-		mprintf(s,
+		printf(s,
 		    cp0_entryhi(cpu), cp0_entryhi_asid(cpu),
 		    cp0_entryhi_res1(cpu), cp0_entryhi_vpn2(cpu));
 		break;
 	case cp0_Compare:
-		mprintf(s, cp0_compare(cpu));
+		printf(s, cp0_compare(cpu));
 		break;
 	case cp0_Status:
-		mprintf(s,
+		printf(s,
 		    cp0_status(cpu),
 		    cp0_status_ie(cpu), cp0_status_exl(cpu), cp0_status_erl(cpu),
 		    cp0_status_ksu(cpu), cp0_status_ux(cpu), cp0_status_sx(cpu),
@@ -208,21 +207,21 @@ static void cp0_dump_reg(cpu_t *cpu, unsigned int reg)
 		    cp0_status_rp(cpu), cp0_status_cu(cpu));
 		break;
 	case cp0_Cause:
-		mprintf(s,
+		printf(s,
 		    cp0_cause(cpu), cp0_cause_res1(cpu), cp0_cause_exccode(cpu),
 		    cp0_cause_res2(cpu), cp0_cause_ip(cpu), cp0_cause_res3(cpu),
 		    cp0_cause_ce(cpu), cp0_cause_res4(cpu), cp0_cause_bd(cpu));
 		break;
 	case cp0_EPC:
-		mprintf(s, cp0_epc(cpu));
+		printf(s, cp0_epc(cpu));
 		break;
 	case cp0_PRId:
-		mprintf(s,
+		printf(s,
 		    cp0_prid(cpu), cp0_prid_rev(cpu),
 		    cp0_prid_imp(cpu), cp0_prid_res(cpu));
 		break;
 	case cp0_Config:
-		mprintf(s,
+		printf(s,
 		    cp0_config(cpu), cp0_config_k0(cpu), cp0_config_cu(cpu),
 		    cp0_config_db(cpu), cp0_config_b(cpu), cp0_config_dc(cpu),
 		    cp0_config_ic(cpu), cp0_config_res(cpu), cp0_config_eb(cpu),
@@ -232,22 +231,22 @@ static void cp0_dump_reg(cpu_t *cpu, unsigned int reg)
 		    cp0_config_ec(cpu), cp0_config_cm(cpu));
 		break;
 	case cp0_LLAddr:
-		mprintf(s, cp0_lladdr(cpu));
+		printf(s, cp0_lladdr(cpu));
 		break;
 	case cp0_WatchLo:
-		mprintf(s,
+		printf(s,
 		    cp0_watchlo(cpu), cp0_watchlo_w(cpu), cp0_watchlo_r(cpu),
 		    cp0_watchlo_res(cpu), cp0_watchlo_paddr0(cpu));
 		break;
 	case cp0_WatchHi:
-		mprintf(s,
+		printf(s,
 		    cp0_watchhi(cpu), cp0_watchhi_paddr1(cpu), cp0_watchhi_res(cpu));
 		break;
 	case cp0_ErrorEPC:
-		mprintf(s, cp0_errorepc(cpu), cp0_errorepc(cpu));
+		printf(s, cp0_errorepc(cpu), cp0_errorepc(cpu));
 		break;
 	default:
-		mprintf(s);
+		printf(s);
 		break;
 	}
 }
@@ -260,7 +259,7 @@ void cp0_dump(cpu_t *cpu, int reg)
 		{0, 1, 2, 3, 4, 5, 6, 8, 9, 10, 11,
 		12, 13, 14, 15, 16, 17, 18, 19, 20, 30, -1};
 	
-	mprintf("  no name       hex dump  readable dump\n");
+	printf("  no name       hex dump  readable dump\n");
 	if (reg == -1)
 		for (i = &vals[0]; *i != -1; i++)
 			cp0_dump_reg(cpu, *i);
@@ -446,7 +445,7 @@ void iview(cpu_t *cpu, uint32_t addr, instr_info_t *ii, char *regch)
 	if ((s_cmt[0]) && (regch[0]))
 		s_cmtx = ", ";
 	
-	mprintf("%-4s%s%s  %-6s%-18s%-2s%s%s%s\n",
+	printf("%-4s%s%s  %-6s%-18s%-2s%s%s%s\n",
 	    s_proc, s_addr, s_iopc,
 	    instr_names_acronym[ii->opcode].acronym, s_parm,
 	    s_hash, s_cmt, s_cmtx, regch);
@@ -535,7 +534,7 @@ char *modified_regs_dump(cpu_t *cpu)
 
 void dbg_print_device_info(device_t *dev)
 {
-	mprintf("%-10s %-10s ", dev->name, dev->type->name);
+	printf("%-10s %-10s ", dev->name, dev->type->name);
 	// FIXME cmd_run_by_name("info", &pars_end, dev->type->cmds, dev);
 }
 
@@ -544,7 +543,7 @@ void dbg_print_device_info(device_t *dev)
  */
 void dbg_print_device_stat(device_t *dev)
 {
-	mprintf("%-10s %-10s ", dev->name, dev->type->name);
+	printf("%-10s %-10s ", dev->name, dev->type->name);
 	// FIXME cmd_run_by_name("stat", &pars_end, dev->type->cmds, dev);
 }
 
@@ -554,7 +553,7 @@ void dbg_print_devices(device_filter_t filter)
 	// device_t *device = NULL;
 	// bool device_found = false;
 	// 
-	// mprintf(header);
+	// printf(header);
 	// 
 	// while (dev_next(&device, filter)) {
 	// 	device_found = true;
@@ -562,7 +561,7 @@ void dbg_print_devices(device_filter_t filter)
 	// }
 	// 
 	// if (!device_found)
-	// 	mprintf(nothing_msg);
+	// 	printf(nothing_msg);
 }
 
 void dbg_print_devices_stat(device_filter_t filter)

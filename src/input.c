@@ -15,14 +15,14 @@
 #include <string.h>
 #include <readline/readline.h>
 #include <readline/history.h>
-#include "../arch/console.h"
-#include "../device/machine.h"
-#include "../check.h"
-#include "../parser.h"
-#include "../cmd.h"
-#include "../utils.h"
+#include "arch/console.h"
+#include "device/machine.h"
+#include "check.h"
+#include "parser.h"
+#include "cmd.h"
+#include "utils.h"
 #include "input.h"
-#include "output.h"
+#include "fault.h"
 
 #define PROMPT  ("[" PACKAGE "] ")
 
@@ -135,7 +135,7 @@ void interactive_control(void)
 	tobreak = false;
 	
 	if (reenter) {
-		mprintf("\n");
+		printf("\n");
 		reenter = false;
 	}
 	
@@ -148,7 +148,7 @@ void interactive_control(void)
 		
 		if (!cmdline) {
 			/* User break in readline */
-			mprintf("Quit\n");
+			alert("Quit");
 			input_back();
 			exit(1);
 		}

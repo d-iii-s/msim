@@ -14,7 +14,6 @@
 #include <stdio.h>
 #include <string.h>
 #include "device/device.h"
-#include "io/output.h"
 #include "parser.h"
 #include "check.h"
 #include "utils.h"
@@ -707,7 +706,7 @@ bool cmd_run_by_spec(const cmd_t *cmd, token_t *parm, void *data)
 	while ((*pars != CONTC) && (*pars != ENDC)) {
 		/* Check the first quantifier */
 		if ((*pars != OPTC) && (*pars != REQC)) {
-			mprintf_err("Invalid parameter quantifier \"%s\".\n", pars);
+			error("Invalid parameter quantifier \"%s\"", pars);
 			return false;
 		}
 		
@@ -715,7 +714,7 @@ bool cmd_run_by_spec(const cmd_t *cmd, token_t *parm, void *data)
 			break;
 		else {
 			if ((*pars == REQC) && (parm->ttype == tt_end)) {
-				mprintf_err("Missing parameter <%s>.\n", find_name(pars));
+				error("Missing parameter \"%s\"", find_name(pars));
 				return false;
 			}
 		}
@@ -724,21 +723,21 @@ bool cmd_run_by_spec(const cmd_t *cmd, token_t *parm, void *data)
 		switch (pars[1]) {
 		case INTC:
 			if (parm->ttype != tt_uint) {
-				mprintf_err("Invalid argument (integer <%s> required).\n",
+				error("Invalid argument (integer \"%s\" required)",
 				    find_name(pars));
 				return false;
 			}
 			break;
 		case STRC:
 			if (parm->ttype != tt_str) {
-				mprintf_err("Invalid argument (string <%s> required).\n",
+				error("Invalid argument (string \"%s\" required)",
 				    find_name(pars));
 				return false;
 			}
 			break;
 		case VARC:
 			if ((parm->ttype != tt_uint) && (parm->ttype != tt_str)) {
-				mprintf_err("Invalid argument (string or integer <%s> required).\n",
+				error("Invalid argument (string or integer \"%s\" required)",
 				    find_name(pars));
 				return false;
 			}
@@ -746,13 +745,13 @@ bool cmd_run_by_spec(const cmd_t *cmd, token_t *parm, void *data)
 		case CONC:
 			if ((parm->ttype != tt_str)
 			    || (strcmp(parm_skipq(pars), parm->tval.str))) {
-				mprintf_err("Invalid argument (string <%s> required).\n",
+				error("Invalid argument (string \"%s\" required)",
 				    find_name(pars));
 				return false;
 			}
 			break;
 		default:
-			mprintf_err("Invalid parameter type \"%s\".\n", pars);
+			error("Invalid parameter type \"%s\"", pars);
 			return false;
 		}
 		
@@ -762,7 +761,7 @@ bool cmd_run_by_spec(const cmd_t *cmd, token_t *parm, void *data)
 	}
 	
 	if ((*pars == ENDC) && (parm->ttype != tt_end)) {
-		mprintf_err("Too many parameters.\n");
+		error("Too many parameters");
 		return false;
 	}
 	
@@ -771,7 +770,7 @@ bool cmd_run_by_spec(const cmd_t *cmd, token_t *parm, void *data)
 	 * is already implemented. If so, call it.
 	 */
 	if (!cmd->func) {
-		intr_error("Command not implemented.");
+		intr_error("Command not implemented");
 		return false;
 	}
 	
@@ -821,7 +820,7 @@ bool cmd_run_by_parm(token_t *parm, const cmd_t *cmds, void *data)
 	
 	/* Check whether the first token is a string */
 	if (parm_type(parm) != tt_str) {
-		intr_error("Command name string expected.");
+		intr_error("Command name string expected");
 		return false;
 	}
 	
@@ -918,11 +917,11 @@ void cmd_print_help(const cmd_t *cmds)
 	/* Ignore the hardwired "init" command */
 	cmds++;
 	
-	mprintf("[Command and arguments        ][Description\n");
+	printf("[Command and arguments       ] [Description\n");
 	
 	while (cmds->name) {
 		char *syntax = cmd_get_syntax(cmds);
-		mprintf("%-30s %s\n", syntax, cmds->desc);
+		printf("%-30s %s\n", syntax, cmds->desc);
 		safe_free(syntax);
 		cmds++;
 	}
@@ -961,10 +960,10 @@ void cmd_print_extended_help(const cmd_t *cmds, token_t *parm)
 		return;
 	}
 	
-	mprintf("%s\n", cmd->descf);
+	printf("%s\n", cmd->descf);
 	
 	char *syntax = cmd_get_syntax(cmd);
-	mprintf("Syntax: %s\n", syntax);
+	printf("Syntax: %s\n", syntax);
 	safe_free(syntax);
 	
 	const char *pars = cmd->pars;
@@ -973,7 +972,7 @@ void cmd_print_extended_help(const cmd_t *cmds, token_t *parm)
 			char *name = safe_strdup(parm_skipq(pars));
 			name[sname_len(name)] = 0;
 			
-			mprintf("\t<%s> %s\n", name, find_name(pars));
+			printf("\t<%s> %s\n", name, find_name(pars));
 			safe_free(name);
 		}
 		

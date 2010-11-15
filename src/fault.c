@@ -26,56 +26,116 @@ static char *script_name = NULL;
 static size_t lineno = 0;
 
 /** Valid line number */
-size_t *lineno_ptr = NULL;
+static size_t *lineno_ptr = NULL;
 
-static void verror(const char *fmt, va_list va)
+static void mverror(bool nl, const char *fmt, va_list va)
 {
 	fflush(stdout);
+	
+	if (nl)
+		fprintf(stderr, "\n");
+	
 	fprintf(stderr, "<%s> ", PACKAGE);
 	vfprintf(stderr, fmt, va);
 	fprintf(stderr, "\n");
 }
 
-void error(const char *fmt, ...)
+static void mferror(bool nl, const char *fmt, ...)
 {
 	va_list va;
 	
 	va_start(va, fmt);
-	verror(fmt, va);
+	mverror(nl, fmt, va);
 	va_end(va);
 }
 
-void intr_error(const char *msg, ...)
+void error(const char *fmt, ...)
 {
 	string_t out;
 	string_init(&out);
 	
 	va_list va;
-	va_start(va, msg);
-	string_printf(&out, msg, va);
+	va_start(va, fmt);
+	string_vprintf(&out, fmt, va);
 	va_end(va);
 	
 	if (lineno_ptr != NULL) {
 		if (script_name)
-			error("Error in %s at %zu: %s", script_name, *lineno_ptr, out.str);
+			mferror(false, "Error in %s at %zu: %s", script_name,
+			    *lineno_ptr, out.str);
 		else
-			error("Error at %zu: %s", *lineno_ptr, out.str);
+			mferror(false, "Error at %zu: %s", *lineno_ptr, out.str);
 	} else
-		error("Error: %s", out.str);
+		mferror(false, "Error: %s", out.str);
+	
+	string_done(&out);
+}
+
+void intr_error(const char *fmt, ...)
+{
+	string_t out;
+	string_init(&out);
+	
+	va_list va;
+	va_start(va, fmt);
+	string_vprintf(&out, fmt, va);
+	va_end(va);
+	
+	if (lineno_ptr != NULL) {
+		if (script_name)
+			mferror(false, "Internal error in %s at %zu: %s", script_name,
+			    *lineno_ptr, out.str);
+		else
+			mferror(false, "Internal error at %zu: %s", *lineno_ptr,
+			    out.str);
+	} else
+		mferror(false, "Internal error: %s", out.str);
+	
+	string_done(&out);
+}
+
+void alert(const char *fmt, ...)
+{
+	string_t out;
+	string_init(&out);
+	
+	va_list va;
+	va_start(va, fmt);
+	string_vprintf(&out, fmt, va);
+	va_end(va);
+	
+	if (lineno_ptr != NULL) {
+		if (script_name)
+			mferror(true, "Alert in %s at %zu: %s", script_name,
+			    *lineno_ptr, out.str);
+		else
+			mferror(true, "Alert at %zu: %s", *lineno_ptr, out.str);
+	} else
+		mferror(true, "Alert: %s", out.str);
 	
 	string_done(&out);
 }
 
 void die(int status, const char *fmt, ...)
 {
-	va_list va;
+	string_t out;
+	string_init(&out);
 	
+	va_list va;
 	va_start(va, fmt);
-	verror(fmt, va);
+	string_vprintf(&out, fmt, va);
 	va_end(va);
 	
-	input_back();
-	exit(status);
+	if (lineno_ptr != NULL) {
+		if (script_name)
+			mferror(false, "Fault in %s at %zu: %s", script_name,
+			    *lineno_ptr, out.str);
+		else
+			mferror(false, "Fault at %zu: %s", *lineno_ptr, out.str);
+	} else
+		mferror(false, "Fault: %s", out.str);
+	
+	string_done(&out);
 }
 
 void io_error(const char *fname)

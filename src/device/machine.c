@@ -16,11 +16,10 @@
 #include "machine.h"
 #include "../arch/signal.h"
 #include "../cpu/r4000.h"
-#include "../io/input.h"
-#include "../io/output.h"
 #include "../debug/gdb.h"
 #include "../debug/breakpoint.h"
 #include "../device/dcpu.h"
+#include "../input.h"
 #include "../env.h"
 #include "../check.h"
 #include "../utils.h"
@@ -91,7 +90,7 @@ static void print_statistics(void)
 	if (msteps == 0)
 		return;
 	
-	mprintf("\nCycles: %" PRIu64 "\n", msteps);
+	printf("\nCycles: %" PRIu64 "\n", msteps);
 }
 
 void done_machine(void)

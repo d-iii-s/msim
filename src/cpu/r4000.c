@@ -17,7 +17,6 @@
 #include "../debug/debug.h"
 #include "../debug/breakpoint.h"
 #include "../debug/gdb.h"
-#include "../io/output.h"
 #include "../check.h"
 #include "../main.h"
 #include "../endi.h"
@@ -564,7 +563,7 @@ static void TLBW(cpu_t *cpu, bool random, exc_t *res)
 			 * Undefined behavior, doing nothing complies.
 			 * Random is read-only, its index should be always fine.
 			 */
-			mprintf("\nTLBWI: Invalid value in Index\n");
+			alert("R4000: Invalid value in Index (TLBWI)");
 		} else {
 			/* Fill TLB */
 			tlb_entry_t *entry = &cpu->tlb[index];
@@ -1132,7 +1131,7 @@ static exc_t execute(cpu_t *cpu, instr_info_t ii)
 				if (addr != cpu->lladdr) {
 					/* LL and SC addresses do not match ;( */
 					if (errors)
-						mprintf("\nError: LL-SC addresses do not match\n\n");
+						alert("R4000: LL/SC addresses do not match");
 				}
 			} else {
 				/* Error writing the target */
@@ -1306,7 +1305,7 @@ static exc_t execute(cpu_t *cpu, instr_info_t ii)
 			
 			/* Delay slot test */
 			if ((cpu->branch != BRANCH_NONE) && (errors))
-				mprintf("\nError: ERET in a delay slot\n\n");
+				alert("R4000: ERET in a branch delay slot");
 			
 			if (cp0_status_erl(cpu)) {
 				/* Error level */
@@ -1376,13 +1375,13 @@ static exc_t execute(cpu_t *cpu, instr_info_t ii)
 				    || (urrt == 0x1ffe000U))
 					cp0_pagemask(cpu) = urrt & cp0_pagemask_mask_mask;
 				else if (errors)
-					mprintf("\nMTC0: Invalid value for PageMask\n");
+					alert("R4000: Invalid value for PageMask (MTC0)");
 				break;
 			case cp0_Wired:
 				cp0_random(cpu) = 47;
 				cp0_wired(cpu) = urrt & 0x3fU;
 				if (cp0_wired(cpu) > 47)
-					mprintf("\nMTC0: Invalid value for Wired\n");
+					alert("R4000: Invalid value for Wired (MTC0)");
 				break;
 			case cp0_Res1:
 				/* Ignored, reserved */
@@ -1563,7 +1562,7 @@ static exc_t execute(cpu_t *cpu, instr_info_t ii)
 			uint32_t i = cp0_index_index(cpu);
 			
 			if (i > 47) {
-				mprintf("\nTLBR: Invalid value in Index\n");
+				alert("R4000: Invalid value in Index (TLBR)");
 				cp0_pagemask(cpu) = 0;
 				cp0_entryhi(cpu) = 0;
 				cp0_entrylo0(cpu) = 0;
@@ -1610,13 +1609,13 @@ static exc_t execute(cpu_t *cpu, instr_info_t ii)
 	 * Machine debugging instructions
 	 */
 	case opcDVAL:
-		mprintf("\nDebug: value %#" PRIx32 " (%" PRIu32 ")\n\n",
+		alert("Debug: Value %#" PRIx32 " (%" PRIu32 ")",
 		    cpu->regs[4], cpu->regs[4]);
 		break;
 	case opcDTRC:
 		if (!totrace) {
 			reg_view(cpu);
-			mprintf("\n");
+			printf("\n");
 		}
 		cpu_update_debug(cpu);
 		totrace = true;
@@ -1625,13 +1624,13 @@ static exc_t execute(cpu_t *cpu, instr_info_t ii)
 		totrace = false;
 		break;
 	case opcDRV:
-		mprintf("\nDebug: register view\n");
+		alert("Debug: register view");
 		reg_view(cpu);
-		mprintf("\n");
+		printf("\n");
 		break;
 	case opcDHLT:
 		if (totrace)
-			mprintf("\nMachine halt\n\n");
+			alert("Debug: Machine halt");
 		tohalt = true;
 		break;
 	case opcDINT:
@@ -1710,7 +1709,7 @@ static void handle_exception(cpu_t *cpu, exc_t res)
 	
 	/* User info and register fill */
 	if (totrace)
-		mprintf("\nRaised exception: %s\n\n", txt_exc[res]);
+		alert("Raised exception: %s", txt_exc[res]);
 	
 	cp0_cause(cpu) &= ~cp0_cause_exccode_mask;
 	cp0_cause(cpu) |= res << cp0_cause_exccode_shift;

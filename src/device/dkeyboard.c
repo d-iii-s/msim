@@ -19,7 +19,7 @@
 #include "device.h"
 #include "dcpu.h"
 #include "../arch/stdin.h"
-#include "../io/output.h"
+#include "../fault.h"
 #include "../utils.h"
 
 /* Register offsets */
@@ -170,14 +170,14 @@ static bool dkeyboard_init(token_t *parm, device_t *dev)
 
 	/* Address alignment */
 	if (!addr_word_aligned(kd->addr)) {
-		mprintf("Keyboard address must be on 4-byte aligned\n");
+		error("Keyboard address must be on 4-byte aligned");
 		free(kd);
 		return false;
 	}
 
 	/* Interrupt no */
 	if (kd->intno > 6) {
-		mprintf("Interrupt number must be within 0..6\n");
+		error("Interrupt number must be within 0..6");
 		free(kd);
 		return false;
 	}
@@ -193,10 +193,9 @@ static bool dkeyboard_info(token_t *parm, device_t *dev)
 {
 	keyboard_data_s *kb = (keyboard_data_s *) dev->data;
 	
-	mprintf("Address    Int no Key  Ig\n");
-	mprintf("---------- ------ ---- ------\n");
-	mprintf("%#08x %-6u %#02x %u\n",
-		kb->addr, kb->intno, kb->incomming, kb->ig);
+	printf("[Address ] [Int no] [Key] [Ig  ]\n");
+	printf("%#08x %-8u %#02x  %u\n",
+	    kb->addr, kb->intno, kb->incomming, kb->ig);
 	
 	return true;
 }
@@ -209,10 +208,9 @@ static bool dkeyboard_stat(token_t *parm, device_t *dev)
 {
 	keyboard_data_s *kd = (keyboard_data_s *) dev->data;
 	
-	mprintf("Interrupt count      Key count            Overrun\n");
-	mprintf("-------------------- -------------------- --------------------\n");
-	mprintf("%20" PRIu64 " %20" PRIu64 " %20" PRIu64 "\n",
-			kd->intrcount, kd->keycount, kd->overrun);
+	printf("[Interrupt count   ] [Key count         ] [Overrun           ]\n");
+	printf("%20" PRIu64 " %20" PRIu64 " %20" PRIu64 "\n",
+	    kd->intrcount, kd->keycount, kd->overrun);
 	
 	return true;
 }
@@ -233,13 +231,13 @@ static bool dkeyboard_gen(token_t *parm, device_t *dev)
 		c = parm_str(parm)[ 0];
 
 		if ((!c) || (parm_str(parm)[ 1])) {
-			mprintf("Invalid key (must be exactly one character)\n");
+			error("Invalid key (must be exactly one character)");
 			return false;
 		}
 	} else {
 		/* Parameter is integer - interpret is as ASCII value. */
 		if (parm_uint(parm) > 255) {
-			mprintf("Invalid key (must be within 0..255)\n");
+			error("Invalid key (must be within 0..255)");
 			return false;
 		}
 

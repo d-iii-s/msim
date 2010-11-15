@@ -22,7 +22,6 @@
 #include "debug/breakpoint.h"
 #include "device/device.h"
 #include "device/machine.h"
-#include "io/output.h"
 #include "main.h"
 #include "cmd.h"
 #include "check.h"
@@ -53,13 +52,13 @@ static bool system_add(token_t *parm, void *data)
 	 */
 	
 	if (cmd_find(name, system_cmds, NULL) == CMP_HIT) {
-		mprintf("Device name \"%s\" is in conflict with a command name.\n",
+		error("Device name \"%s\" is in conflict with a command name",
 		    name);
 		return false;
 	}
 	
 	if (dev_by_name(name)) {
-		mprintf("Device name \"%s\" already added.\n", name);
+		error("Device name \"%s\" already added", name);
 		return false;
 	}
 	
@@ -195,7 +194,7 @@ static bool system_break(token_t *parm, void *data)
 		access_flags |= ACCESS_WRITE;
 	
 	if (access_flags == ACCESS_FILTER_NONE) {
-		mprintf("Read or write access must be specified.\n");
+		error("Read or write access must be specified");
 		return false;
 	}
 	
@@ -221,7 +220,7 @@ static bool system_rembreak(token_t *parm, void *data)
 	ptr_t addr = parm_uint(parm);
 	
 	if (!memory_breakpoint_remove(addr)) {
-		mprintf("Unknown breakpoint.\n");
+		error("Unknown breakpoint");
 		return false;
 	}
 	
@@ -252,17 +251,17 @@ static bool system_dumpmem(token_t *parm, void *data)
 	
 	for (i = 0; i < cnt; addr += 4, i++) {
 		if ((i & 0x3) == 0)
-			mprintf("  %#010" PRIx32 "    ", addr);
+			printf("  %#010" PRIx32 "    ", addr);
 		
 		uint32_t val = mem_read(NULL, addr, BITS_32, false);
-		mprintf("%08" PRIx32 " ", val);
+		printf("%08" PRIx32 " ", val);
 		
 		if ((i & 0x3) == 3)
-			mprintf("\n");
+			printf("\n");
 	}
 	
 	if (i != 0)
-		mprintf("\n");
+		printf("\n");
 	
 	return true;
 }
@@ -290,10 +289,10 @@ static bool system_echo(token_t *parm, void *data)
 	while (parm_type(parm) != tt_end) {
 		switch (parm_type(parm)) {
 		case tt_str:
-			mprintf("%s", parm_str(parm));
+			printf("%s", parm_str(parm));
 			break;
 		case tt_uint:
-			mprintf("%" PRIu32, parm_uint(parm));
+			printf("%" PRIu32, parm_uint(parm));
 			break;
 		default:
 			return false;
@@ -301,10 +300,10 @@ static bool system_echo(token_t *parm, void *data)
 		
 		parm_next(&parm);
 		if (parm_type(parm) != tt_end)
-			mprintf(" ");
+			printf(" ");
 	}
 	
-	mprintf("\n");
+	printf("\n");
 	return true;
 }
 
@@ -333,7 +332,7 @@ bool interpret(const char *str)
 		return true;
 	
 	if (parm_type(parm) != tt_str) {
-		mprintf("Command name expected.\n");
+		error("Command name expected");
 		return true;
 	}
 	
@@ -394,7 +393,7 @@ void script(void)
 	FILE *file = fopen(config_file, "r");
 	if (file == NULL) {
 		if (errno == ENOENT)
-			mprintf("Configuration file \"%s\" not found, skipping.\n",
+			printf("Configuration file \"%s\" not found, skipping.\n",
 			    config_file);
 		else
 			io_die(ERR_IO, config_file);

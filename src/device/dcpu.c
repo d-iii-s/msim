@@ -18,7 +18,7 @@
 #include "../cpu/r4000.h"
 #include "../debug/debug.h"
 #include "../debug/breakpoint.h"
-#include "../io/output.h"
+#include "../fault.h"
 #include "../main.h"
 #include "../utils.h"
 
@@ -222,7 +222,7 @@ static bool dcpu_init(token_t *parm, device_t *dev)
 	unsigned int id = dcpu_get_free_id();
 	
 	if (id == MAX_CPU) {
-		mprintf("Maximum CPU count exceeded (%u)", MAX_CPU);
+		error("Maximum CPU count exceeded (%u)", MAX_CPU);
 		return false;
 	}
 	
@@ -240,7 +240,7 @@ static bool dcpu_init(token_t *parm, device_t *dev)
  */
 static bool dcpu_info(token_t *parm, device_t *dev)
 {
-	mprintf("type:R4000.32\n");
+	printf("R4000.32\n");
 	return true;
 }
 
@@ -252,30 +252,25 @@ static bool dcpu_stat(token_t *parm, device_t *dev)
 {
 	cpu_t *cpu = (cpu_t *) dev->data;
 	
-	mprintf("Total cycles         In kernel space      In user space\n");
-	mprintf("-------------------- -------------------- --------------------\n");
-	mprintf("%20" PRIu64 " %20" PRIu64 " %20" PRIu64 "\n\n",
+	printf("[Total cycles      ] [In kernel space   ] [In user space     ]\n");
+	printf("%20" PRIu64 " %20" PRIu64 " %20" PRIu64 "\n\n",
 	    (uint64_t) cpu->k_cycles + cpu->u_cycles + cpu->w_cycles,
 	    cpu->k_cycles, cpu->u_cycles);
 	
-	mprintf("Wait cycles          TLB Refill exc       TLB Invalid exc\n");
-	mprintf("-------------------- -------------------- --------------------\n");
-	mprintf("%20" PRIu64 " %20" PRIu64 " %20" PRIu64 "\n\n",
+	printf("[Wait cycles       ] [TLB Refill exc    ] [TLB Invalid exc   ]\n");
+	printf("%20" PRIu64 " %20" PRIu64 " %20" PRIu64 "\n\n",
 	    cpu->w_cycles, cpu->tlb_refill, cpu->tlb_invalid);
 	
-	mprintf("TLB Modified exc     Interrupt 0          Interrupt 1\n");
-	mprintf("-------------------- -------------------- --------------------\n");
-	mprintf("%20" PRIu64 " %20" PRIu64 " %20" PRIu64 "\n\n",
+	printf("[TLB Modified exc  ] [Interrupt 0       ] [Interrupt 1       ]\n");
+	printf("%20" PRIu64 " %20" PRIu64 " %20" PRIu64 "\n\n",
 	    cpu->tlb_modified, cpu->intr[0], cpu->intr[1]);
 	
-	mprintf("Interrupt 2          Interrupt 3          Interrupt 4\n");
-	mprintf("-------------------- -------------------- --------------------\n");
-	mprintf("%20" PRIu64 " %20" PRIu64 " %20" PRIu64 "\n\n",
+	printf("[Interrupt 2       ] [Interrupt 3       ] [Interrupt 4       ]\n");
+	printf("%20" PRIu64 " %20" PRIu64 " %20" PRIu64 "\n\n",
 	    cpu->intr[2], cpu->intr[3], cpu->intr[4]);
 	
-	mprintf("Interrupt 5          Interrupt 6          Interrupt 7\n");
-	mprintf("-------------------- -------------------- --------------------\n");
-	mprintf("%20" PRIu64 " %20" PRIu64 " %20" PRIu64 "\n",
+	printf("[Interrupt 5       ] [Interrupt 6       ] [Interrupt 7       ]\n");
+	printf("%20" PRIu64 " %20" PRIu64 " %20" PRIu64 "\n",
 	    cpu->intr[5], cpu->intr[6], cpu->intr[7]);
 	
 	return true;
@@ -288,7 +283,7 @@ static bool dcpu_cp0d(token_t *parm, device_t *dev)
 {
 	uint32_t no = parm_uint(parm);
 	if (no > 31) {
-		mprintf("Out of range (0..31)");
+		error("Out of range (0..31)");
 		return false;
 	}
 	
@@ -317,23 +312,23 @@ static bool dcpu_md(token_t *parm, device_t *dev)
 	
 	for (pos = 0; size; size--, addr += 4, pos++) {
 		if (!(pos & 0x3))
-			mprintf("  %#10" PRIx32 "    ", addr);
+			printf("  %#10" PRIx32 "    ", addr);
 		
 		uint32_t val;
 		exc_t res = cpu_read_mem((cpu_t *) dev->data, addr, 4, &val, false);
-		mprintf("res: %d\n", res);
+		printf("res: %d\n", res);
 		
 		if (res == excNone)
-			mprintf("%08" PRIx32 " ", val);
+			printf("%08" PRIx32 " ", val);
 		else
-			mprintf("xxxxxxxx ");
+			printf("xxxxxxxx ");
 		
 		if ((pos & 0x3) == 3)
-			mprintf("\n");
+			printf("\n");
 	}
 	
 	if (pos != 0)
-		mprintf("\n");
+		printf("\n");
 	
 	return true;
 }
@@ -409,14 +404,13 @@ static bool dcpu_bd(token_t *parm, device_t *dev)
 	cpu_t *cpu = (cpu_t *) dev->data;
 	breakpoint_t *bp;
 	
-	mprintf("Address    Hits                 Kind\n");
-	mprintf("---------- -------------------- ----------\n");
+	printf("[Address ] [Hits              ] [Kind    ]\n");
 	
 	for_each(cpu->bps, bp, breakpoint_t) {
 		const char *kind = (bp->kind == BREAKPOINT_KIND_SIMULATOR)
 		    ? "Simulator" : "Debugger";
 		
-		mprintf("%#010" PRIx32 " %20" PRIu64 " %s\n",
+		printf("%#010" PRIx32 " %20" PRIu64 " %s\n",
 		    bp->pc, bp->hits, kind);
 	}
 	
@@ -444,7 +438,7 @@ static bool dcpu_br(token_t *parm, device_t *dev)
 	}
 	
 	if (!fnd)
-		mprintf("Unknown breakpoint\n");
+		error("Unknown breakpoint");
 	
 	return true;
 }

@@ -13,12 +13,12 @@
 #include <signal.h>
 #include <stdlib.h>
 #include "../../device/machine.h"
-#include "../../io/output.h"
+#include "../../fault.h"
 
 static void machine_user_break(int signo)
 {
 	if ((tobreak) || (interactive)) {
-		mprintf("Quit\n");
+		alert("Quit");
 		input_back();
 		exit(1);
 	}

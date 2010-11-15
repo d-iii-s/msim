@@ -19,16 +19,13 @@
 #include <sys/stat.h>
 #include <errno.h>
 #include <inttypes.h>
-
 #include "mem.h"
-
-#include "../arch/mmap.h"
-#include "../parser.h"
 #include "device.h"
 #include "machine.h"
+#include "../arch/mmap.h"
+#include "../parser.h"
 #include "../fault.h"
 #include "../text.h"
-#include "../io/output.h"
 #include "../utils.h"
 
 /*
@@ -205,7 +202,7 @@ static bool mem_init(token_t *parm, device_t *dev)
 	parm_next(&parm);
 	ptr_t start = parm_next_uint(&parm);
 	if (!addr_word_aligned(start)) {
-		mprintf("Memory address must by 4-byte aligned\n");
+		error("Memory address must by 4-byte aligned");
 		return false;
 	}
 	
@@ -233,9 +230,8 @@ static bool mem_info(token_t *parm, device_t *dev)
 	mem_area_t *area = (mem_area_t *) dev->data;
 	char *size = uint32_human_readable(area->size);
 	
-	mprintf("Start      Size         Type\n");
-	mprintf("---------- ------------ ------\n");
-	mprintf("%#10" PRIx32 " %12s %s\n",
+	printf("[Start   ] [Size      ] [Type]\n");
+	printf("%#10" PRIx32 " %12s %s\n",
 	    area->start, size, txt_mem_type[area->type]);
 	
 	safe_free(size);
@@ -260,36 +256,36 @@ static bool mem_load(token_t *parm, device_t *dev)
 	
 	FILE *file = try_fopen(path, "rb");
 	if (file == NULL) {
-		mprintf("%s\n", txt_file_open_err);
+		error("%s", txt_file_open_err);
 		return false;
 	}
 	
 	/* File size test */
 	if (!try_fseek(file, 0, SEEK_END, path)) {
-		mprintf("%s\n", txt_file_seek_err);
+		error("%s", txt_file_seek_err);
 		return false;
 	}
 	
 	size_t fsize;
 	if (!try_ftell(file, path, &fsize)) {
-		mprintf("%s\n", txt_file_seek_err);
+		error("%s", txt_file_seek_err);
 		return false;
 	}
 	
 	if (fsize == 0) {
-		mprintf("Empty file\n");
+		error("Empty file");
 		safe_fclose(file, path);
 		return false;
 	}
 	
 	if (fsize > area->size) {
-		mprintf("File size exceeds memory area size\n");
+		error("File size exceeds memory area size");
 		safe_fclose(file, path);
 		return false;
 	}
 	
 	if (!try_fseek(file, 0, SEEK_SET, path)) {
-		mprintf("%s\n", txt_file_seek_err);
+		error("%s", txt_file_seek_err);
 		return false;
 	}
 	
@@ -297,7 +293,7 @@ static bool mem_load(token_t *parm, device_t *dev)
 	if (rd != fsize) {
 		io_error(path);
 		safe_fclose(file, path);
-		mprintf("%s\n", txt_file_read_err);
+		error("%s", txt_file_read_err);
 		return false;
 	}
 	
@@ -325,14 +321,14 @@ static bool mem_fill(token_t *parm, device_t *dev)
 		c = str[0];
 		
 		if ((!c) || (str[1])) {
-			mprintf("Invalid character\n");
+			error("Invalid character");
 			return false;
 		}
 		
 		break;
 	case tt_uint:
 		if (parm_uint(parm) > 255) {
-			mprintf("Integer out of range 0..255\n");
+			error("Integer out of range 0..255");
 			return false;
 		}
 		
@@ -372,36 +368,36 @@ static bool mem_fmap(token_t *parm, device_t *dev)
 	
 	if (file == NULL) {
 		io_error(path);
-		mprintf("%s\n", txt_file_open_err);
+		error("%s", txt_file_open_err);
 		return false;
 	}
 	
 	/* File size test */
 	if (!try_fseek(file, 0, SEEK_END, path)) {
-		mprintf("%s\n", txt_file_seek_err);
+		error("%s", txt_file_seek_err);
 		return false;
 	}
 	
 	size_t fsize;
 	if (!try_ftell(file, path, &fsize)) {
-		mprintf("%s\n", txt_file_seek_err);
+		error("%s", txt_file_seek_err);
 		return false;
 	}
 	
 	if (fsize == 0) {
-		mprintf("Empty file\n");
+		error("Empty file");
 		safe_fclose(file, path);
 		return false;
 	}
 	
 	if ((uint64_t) area->start + (uint64_t) fsize > 0x100000000ull) {
-		mprintf("Mapped file exceeds the 4 GB limit\n");
+		error("Mapped file exceeds the 4 GB limit");
 		safe_fclose(file, path);
 		return false;
 	}
 	
 	if (!try_fseek(file, 0, SEEK_SET, path)) {
-		mprintf("%s\n", txt_file_seek_err);
+		error("%s", txt_file_seek_err);
 		return false;
 	}
 	
@@ -416,7 +412,7 @@ static bool mem_fmap(token_t *parm, device_t *dev)
 	
 	if (ptr == MAP_FAILED) {
 		io_error(path);
-		mprintf("%s\n", txt_file_map_fail);
+		error("%s", txt_file_map_fail);
 		safe_fclose(file, path);
 		return false;
 	}
@@ -449,17 +445,17 @@ static bool mem_generic(token_t *parm, device_t *dev)
 	
 	/* Test parameter */
 	if (!addr_word_aligned(size)) {
-		mprintf("Memory size must be 4-byte aligned\n");
+		error("Memory size must be 4-byte aligned");
 		return false;
 	}
 	
 	if (size == 0) {
-		mprintf("Memory size is illegal\n");
+		error("Memory size is illegal");
 		return false;
 	}
 	
 	if ((uint64_t) area->start + (uint64_t) size > 0x100000000ull) {
-		mprintf("Memory would exceed the 4 GB limit\n");
+		error("Memory would exceed the 4 GB limit");
 		return false;
 	}
 	
@@ -487,7 +483,7 @@ static bool mem_save(token_t *parm, device_t *dev)
 	
 	FILE *file = try_fopen(path, "wb");
 	if (file == NULL) {
-		mprintf("%s\n", txt_file_create_err);
+		error("%s", txt_file_create_err);
 		return false;
 	}
 	
@@ -495,7 +491,7 @@ static bool mem_save(token_t *parm, device_t *dev)
 	if (wr != area->size) {
 		io_error(path);
 		safe_fclose(file, path);
-		mprintf("%s\n", txt_file_write_err);
+		error("%s", txt_file_write_err);
 		return false;
 	}
 	

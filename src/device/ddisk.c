@@ -20,7 +20,6 @@
 #include "ddisk.h"
 #include "machine.h"
 #include "../arch/mmap.h"
-#include "../io/output.h"
 #include "../text.h"
 #include "../fault.h"
 #include "../main.h"
@@ -296,7 +295,7 @@ static bool ddisk_init(token_t *parm, device_t *dev)
 	disk_data_s *dd;
 	
 	if (dev->data) {
-		mprintf("Reinicialization is not allowed\n");
+		error("Reinitialization is not allowed");
 		return false;
 	}
 	
@@ -326,20 +325,20 @@ static bool ddisk_init(token_t *parm, device_t *dev)
 	
 	/* Address alignment */
 	if (!addr_word_aligned(dd->addr)) {
-		mprintf("Disk address must be 4-byte aligned\n");
+		error("Disk address must be 4-byte aligned");
 		free(dd);
 		return false;
 	}
 	
 	/* Address limit */
 	if ((uint64_t) dd->addr + (uint64_t) REGISTER_LIMIT > 0x100000000ull) {
-		mprintf("Invalid address; registers would exceed the 4GB limit\n");
+		error("Invalid address; registers would exceed the 4GB limit");
 		return false;
 	}
 	
 	/* Interrupt no */
 	if (dd->intno > 6) {
-		mprintf(txt_intnum_range);
+		error("%s", txt_intnum_range);
 		free(dd);
 		return false;
 	}
@@ -372,7 +371,7 @@ static bool ddisk_info(token_t *parm, device_t *dev)
 		break;
 	}
 	
-	mprintf("address:0x%08x intno:%d size:%s type:%s regs(mem:0x%08x "
+	printf("address:0x%08x intno:%d size:%s type:%s regs(mem:0x%08x "
 	    "secno:%d status:0x%x ig:%d)\n",
 	    (unsigned int) dd->addr, (int) dd->intno,
 	    size, stype, (unsigned int) dd->disk_wptr,
@@ -393,15 +392,13 @@ static bool ddisk_stat(token_t *parm, device_t *dev)
 {
 	disk_data_s *dd = (disk_data_s *) dev->data;
 	
-	mprintf("Interrupt count      Commands             Reads\n");
-	mprintf("-------------------- -------------------- --------------------\n");
-	mprintf("%20" PRIu64 " %20" PRIu64 " %20" PRIu64 "\n\n",
+	printf("[Interrupt count   ] [Commands          ] [Reads             ]\n");
+	printf("%20" PRIu64 " %20" PRIu64 " %20" PRIu64 "\n\n",
 	    dd->intrcount, dd->cmds_read + dd->cmds_write + dd->cmds_error,
 	    dd->cmds_read);
 	
-	mprintf("Writes               Errors\n");
-	mprintf("-------------------- --------------------\n");
-	mprintf("%20" PRIu64 " %20" PRIu64 "\n",
+	printf("[Writes            ] [Errors            ]\n");
+	printf("%20" PRIu64 " %20" PRIu64 "\n",
 	    dd->cmds_write, dd->cmds_error);
 	
 	return true;
@@ -421,7 +418,7 @@ static bool ddisk_generic(token_t *parm, device_t *dev)
 	
 	/* Size parameter check */
 	if (size & 0x1ff) {
-		mprintf("Illegal disk size (should be non-zero and on 512-byte aligned)");
+		error("Illegal disk size (should be non-zero and on 512-byte aligned)");
 		return false;
 	}
 	
@@ -454,24 +451,24 @@ static bool ddisk_fmap(token_t *parm, device_t *dev)
 	FILE *file = try_fopen(path, "rb+");
 	if (file == NULL) {
 		io_error(path);
-		mprintf("%s\n", txt_file_open_err);
+		error("%s", txt_file_open_err);
 		return false;
 	}
 	
 	/* File size test */
 	if (!try_fseek(file, 0, SEEK_END, path)) {
-		mprintf("%s\n", txt_file_seek_err);
+		error("%s", txt_file_seek_err);
 		return false;
 	}
 	
 	size_t fsize;
 	if (!try_ftell(file, path, &fsize)) {
-		mprintf("%s\n", txt_file_seek_err);
+		error("%s", txt_file_seek_err);
 		return false;
 	}
 	
 	if (fsize == 0) {
-		mprintf("Empty file\n");
+		error("Empty file");
 		safe_fclose(file, path);
 		return false;
 	}
@@ -482,13 +479,13 @@ static bool ddisk_fmap(token_t *parm, device_t *dev)
 	
 	/* Disk size test */
 	if (fsize == 0) {
-		mprintf("File is too small; at least one sector (512 B) should be present");
+		error("File is too small; at least one sector (512 B) should be present");
 		safe_fclose(file, path);
 		return false;
 	}
 	
 	if (!try_fseek(file, 0, SEEK_SET, path)) {
-		mprintf("%s\n", txt_file_seek_err);
+		error("%s", txt_file_seek_err);
 		return false;
 	}
 	
@@ -497,7 +494,7 @@ static bool ddisk_fmap(token_t *parm, device_t *dev)
 	
 	if (ptr == MAP_FAILED) {
 		io_error(path);
-		mprintf("%s\n", txt_file_map_fail);
+		error("%s", txt_file_map_fail);
 		safe_fclose(file, path);
 		return false;
 	}
@@ -532,7 +529,7 @@ static bool ddisk_fill(token_t *parm, device_t *dev)
 	/* String/character */
 	if (parm_type(parm) == tt_str) {
 		if ((!parm_str(parm)[0]) || (parm_str(parm)[1])) {
-			mprintf("Invalid string parameter; exactly one character is necessary.\n");
+			error("Invalid string parameter; exactly one character is necessary.");
 			return false;
 		}
 		
@@ -540,7 +537,7 @@ static bool ddisk_fill(token_t *parm, device_t *dev)
 	} else {
 		/* Number */
 		if (parm_uint(parm) > 255) {
-			mprintf("Integer constant out of range 0..255\n");
+			error("Integer constant out of range 0..255");
 			return false;
 		}
 		
@@ -575,7 +572,7 @@ static bool ddisk_load(token_t *parm, device_t *dev)
 	/* Open file */
 	FILE *file = try_fopen(path, "rb");
 	if (file == NULL) {
-		mprintf(txt_file_open_err);
+		error("%s", txt_file_open_err);
 		return false;
 	}
 	
@@ -583,7 +580,7 @@ static bool ddisk_load(token_t *parm, device_t *dev)
 	size_t rd = fread(dd->img, 1, dd->size, file);
 	if (rd < dd->size) {
 		io_error(path);
-		mprintf(txt_file_read_err);
+		error("%s", txt_file_read_err);
 		safe_fclose(file, path);
 		return false;
 	}
@@ -617,7 +614,7 @@ static bool ddisk_save(token_t *parm, device_t *dev)
 	FILE *file = try_fopen(path, "wb");
 	if (file == NULL) {
 		io_error(path);
-		mprintf(txt_file_create_err);
+		error("%s", txt_file_create_err);
 		return true;
 	}
 	
@@ -625,7 +622,7 @@ static bool ddisk_save(token_t *parm, device_t *dev)
 	size_t wr = fwrite(dd->img, 1, dd->size, file);
 	if (wr < dd->size) {
 		io_error(path);
-		mprintf(txt_file_write_err);
+		error("%s", txt_file_write_err);
 		safe_fclose(file, path);
 		return false;
 	}

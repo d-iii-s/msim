@@ -18,7 +18,6 @@
 #include "device.h"
 #include "../text.h"
 #include "../fault.h"
-#include "../io/output.h"
 #include "../utils.h"
 #include "../parser.h"
 
@@ -46,7 +45,7 @@ static bool dprinter_init(token_t *parm, device_t *dev)
 	
 	/* Check address alignment */
 	if (!addr_word_aligned(addr)) {
-		mprintf("Printer address must be on the 4-byte boundary\n");
+		error("Printer address must be on the 4-byte boundary");
 		return false;
 	}
 	
@@ -113,8 +112,8 @@ static bool dprinter_info(token_t *parm, device_t *dev)
 {
 	printer_data_t *data = (printer_data_t *) dev->data;
 	
-	mprintf("[Address ]\n");
-	mprintf("%#10" PRIx32 "\n", data->addr);
+	printf("[Address ]\n");
+	printf("%#10" PRIx32 "\n", data->addr);
 	
 	return true;
 }
@@ -126,8 +125,8 @@ static bool dprinter_stat(token_t *parm, device_t *dev)
 {
 	printer_data_t *data = (printer_data_t *) dev->data;
 	
-	mprintf("[Count             ]\n");
-	mprintf("%20" PRIu64 "\n", data->count);
+	printf("[Count             ]\n");
+	printf("%20" PRIu64 "\n", data->count);
 	
 	return true;
 }

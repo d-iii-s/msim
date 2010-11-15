@@ -27,7 +27,6 @@
 #include "../cpu/r4000.h"
 #include "../device/machine.h"
 #include "../device/dcpu.h"
-#include "../io/output.h"
 #include "../main.h"
 #include "../check.h"
 #include "../text.h"
@@ -188,7 +187,7 @@ static char *gdb_get_request(void)
 	}
 	
 	if (i >= MAX_BAD_CHECKSUMS) {
-		error("Communication checksum failure %u times (read)\n",
+		error("Communication checksum failure %u times (read)",
 		    MAX_BAD_CHECKSUMS);
 		return NULL;
 	}
@@ -254,7 +253,7 @@ static bool gdb_send_reply(char *reply)
 	}
 	
 	if (i >= MAX_BAD_CHECKSUMS) {
-		error("Communication checksum failure %u times (write)\n",
+		error("Communication checksum failure %u times (write)",
 		    MAX_BAD_CHECKSUMS);
 		return false;
 	}
@@ -868,7 +867,7 @@ void gdb_session(void)
 			gdb_cmd_step(req, true);
 			return;
 		case 'D':  /* Detach */
-			mprintf("... detached\n");
+			alert("GDB: Detached");
 			gdb_remote_done(false, true);
 			return;
 		case 'q':  /* Query */
@@ -928,21 +927,21 @@ bool gdb_remote_init(void)
 		return false;
 	}
 	
-	mprintf("Waiting for GDB connection on port %u ...\n", remote_gdb_port);
+	alert("GDB: Waiting for connection on port %u ...", remote_gdb_port);
 	
 	struct sockaddr_in sa_gdb;
 	socklen_t addrlen = sizeof(sa_gdb);
 	gdb_fd = accept(gdb_fd, (struct sockaddr *) &sa_gdb, &addrlen);
 	if (gdb_fd < 0) {
 		if (errno == EINTR)
-			mprintf("... interrupted\n");
+			alert("GDB: Interrupted");
 		else
 			io_error("accept");
 		
 		return false;
 	}
 	
-	mprintf("... connected\n");
+	alert("GDB: Connected");
 	
 	return true;
 }

@@ -12,8 +12,8 @@
 #include <stdlib.h>
 #include <string.h>
 #include <stdbool.h>
-#include "io/output.h"
 #include "cpu/instr.h"
+#include "fault.h"
 #include "parser.h"
 #include "check.h"
 #include "utils.h"
@@ -125,7 +125,7 @@ typedef bool (*set_str_t)(const char *);
 static bool change_ireg(unsigned int i)
 {
 	if (i > 2) {
-		mprintf("Index out of range 0..2\n");
+		error("Index out of range 0..2");
 		return false;
 	}
 	
@@ -223,29 +223,29 @@ const env_t global_env[] = {
  */
 static void print_all_variables(void)
 {
-	mprintf("[Group               ] [Variable] [Value   ]\n");
+	printf("[Group               ] [Variable] [Value   ]\n");
 	
 	const env_t *env;
 	for (env = global_env; env->name; env++) {
 		if (env->val) {
 			/* Variable */
-			mprintf("                       %-10s ", env->name);
+			printf("                       %-10s ", env->name);
 			switch (env->type) {
 			case vt_uint:
-				mprintf("%u", *(unsigned int *) env->val);
+				printf("%u", *(unsigned int *) env->val);
 				break;
 			case vt_str:
-				mprintf("%s", *(const char *) env->val);
+				printf("%s", (const char *) env->val);
 				break;
 			case vt_bool:
-				mprintf("%s", *(bool *) env->val ? "on" : "off");
+				printf("%s", *(bool *) env->val ? "on" : "off");
 				break;
 			}
 		} else {
 			/* Label */
-			mprintf("%s", env->desc);
+			printf("%s", env->desc);
 		}
-		mprintf("\n");
+		printf("\n");
 	}
 }
 
@@ -347,7 +347,7 @@ static const env_t *search_variable(const char *name)
 	}
 	
 	if (!env->name) {
-		mprintf("Unknown variable \"%s\"\n", name);
+		error("Unknown variable \"%s\"", name);
 		return NULL;
 	}
 	
@@ -367,21 +367,21 @@ static void show_help(token_t *parm)
 	const env_t *env;
 	
 	if (parm_type(parm) == tt_end) {
-		mprintf("[Group               ] [Variable] [Description\n");
+		printf("[Group               ] [Variable] [Description\n");
 		for (env = global_env; env->name; env++) {
 			if (env->val)
 				/* Variable */
-				mprintf("                       %-10s %s", env->name,
+				printf("                       %-10s %s", env->name,
 				    env->desc);
 			else
 				/* Label */
-				mprintf("%s", env->desc);
-			mprintf("\n");
+				printf("%s", env->desc);
+			printf("\n");
 		}
 	} else {
 		env = search_variable(parm_next_str(&parm));
 		if (env)
-			mprintf("%s\n", env->descf);
+			printf("%s\n", env->descf);
 	}
 }
 
@@ -478,7 +478,7 @@ static bool set_variable(token_t *parm)
 		return set_uint(env, parm);
 	case vt_bool:
 		if (!bool_sanitize(parm)) {
-			mprintf("Boolean parameter expected\n");
+			error("Boolean parameter expected");
 			return false;
 		}
 		return set_bool(env, parm);

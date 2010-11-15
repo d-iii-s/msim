@@ -17,8 +17,8 @@
 #include <inttypes.h>
 #include "dtime.h"
 #include "device.h"
-#include "../io/output.h"
 #include "../check.h"
+#include "../fault.h"
 #include "../utils.h"
 
 /** Registers */
@@ -47,13 +47,13 @@ static bool dtime_init(token_t *parm, device_t *dev)
 	
 	/* Address alignment */
 	if (!addr_word_aligned(addr)) {
-		mprintf("Dtime address must be 4-byte aligned\n");
+		error("Dtime address must be 4-byte aligned");
 		return false;
 	}
 	
 	/* Address limit */
 	if ((uint64_t) addr + (uint64_t) REGISTER_LIMIT > 0x100000000ull) {
-		mprintf("Invalid address; registers would exceed the 4 GB limit\n");
+		error("Invalid address; registers would exceed the 4 GB limit");
 		return false;
 	}
 	
@@ -78,8 +78,8 @@ static bool dtime_info(token_t *parm, device_t *dev)
 {
 	dtime_data_t *data = (dtime_data_t *) dev->data;
 	
-	mprintf("[Address ]\n");
-	mprintf("%#10" PRIx32 "\n", data->addr);
+	printf("[Address ]\n");
+	printf("%#10" PRIx32 "\n", data->addr);
 	
 	return true;
 }
@@ -94,7 +94,7 @@ static bool dtime_info(token_t *parm, device_t *dev)
  */
 static bool dtime_stat(token_t *parm, device_t *dev)
 {
-	mprintf("No statistics\n");
+	printf("No statistics\n");
 	return true;
 }
 

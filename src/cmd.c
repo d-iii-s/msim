@@ -208,7 +208,7 @@ static bool system_break(token_t *parm, void *data)
  *
  */
 static bool system_dumpbreak(token_t *parm, void *data)
-{	
+{
 	memory_breakpoint_print_list();
 	return true;
 }
@@ -318,7 +318,6 @@ static bool system_help(token_t *parm, void *data)
 	cmd_print_extended_help(system_cmds, parm);
 	return true;
 }
-
 
 /** Interprets the command line.
  *

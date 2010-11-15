@@ -355,17 +355,18 @@ void parm_delete(token_t *parm)
 	PRE(parm != NULL);
 	PRE(parm->item.list != NULL);
 	
-	token_t *token = (token_t *) parm->item.list->head;
+	list_t *list = parm->item.list;
+	token_t *token = (token_t *) list->head;
 	
 	while (token != NULL) {
 		if (token->ttype == tt_str)
 			safe_free(token->tval.str);
 		
-		token_t *tmp = token;
+		token_t *removed = token;
 		token = (token_t *) token->item.next;
 		
-		list_remove(parm->item.list, &tmp->item);
-		safe_free(tmp);
+		list_remove(list, &removed->item);
+		safe_free(removed);
 	}
 }
 
@@ -695,6 +696,7 @@ static size_t sname_len(const char *str)
 bool cmd_run_by_spec(const cmd_t *cmd, token_t *parm, void *data)
 {
 	PRE(cmd != NULL, parm != NULL);
+	token_t *orig_parm = parm;
 	
 	/*
 	 * Check all parameters.
@@ -771,7 +773,7 @@ bool cmd_run_by_spec(const cmd_t *cmd, token_t *parm, void *data)
 		return false;
 	}
 	
-	return cmd->func(parm, data);
+	return cmd->func(orig_parm, data);
 }
 
 /** Execute the specified command
@@ -914,7 +916,7 @@ void cmd_print_help(const cmd_t *cmds)
 	/* Ignore the hardwired "init" command */
 	cmds++;
 	
-	mprintf("[Command and arguments      ] [Description\n");
+	mprintf("[Command and arguments        ][Description\n");
 	
 	while (cmds->name) {
 		char *syntax = cmd_get_syntax(cmds);
@@ -939,7 +941,7 @@ void cmd_print_extended_help(const cmd_t *cmds, token_t *parm)
 		return;
 	}
 	
-	const char *const cmd_name = parm_str(parm);
+	const char *cmd_name = parm_str(parm);
 	const cmd_t *cmd = NULL;
 	
 	/* Find command */
@@ -969,8 +971,10 @@ void cmd_print_extended_help(const cmd_t *cmds, token_t *parm)
 			char *name = safe_strdup(parm_skipq(pars));
 			name[sname_len(name)] = 0;
 			
-			mprintf("\t<%s> %s\n", name, parm_skipq(pars));
+			mprintf("\t<%s> %s\n", name, find_name(pars));
 			safe_free(name);
 		}
+		
+		find_next_parm(&pars);
 	}
 }

@@ -1,6 +1,6 @@
 Summary: A virtual machine simulator based on a MIPS R4000 processor
 Name: msim
-Version: 1.3.8
+Version: 1.4.0
 Release: 1%{?dist}
 License: GPLv2+
 Group: Development/Tools
@@ -46,6 +46,9 @@ rm -rf $RPM_BUILD_ROOT
 %{_bindir}/msim
 
 %changelog
+* ??? ??? ?? 2010 Martin Decky <decky@d3s.mff.cuni.cz> - 1.4.0
+- Bump to 1.4.0
+
 * Thu Oct 05 2010 Martin Decky <decky@d3s.mff.cuni.cz> - 1.3.8
 - Bump to 1.3.8
 

@@ -1,6 +1,6 @@
 AC_INIT
 AC_CONFIG_SRCDIR([src/main.c])
-AM_INIT_AUTOMAKE(msim, 1.3.8)
+AM_INIT_AUTOMAKE(msim, 1.4.0)
 
 AC_PROG_CC
 if test "$GCC" = "yes" ; then

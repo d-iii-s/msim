@@ -21,7 +21,10 @@
 #include <unistd.h>
 #include <stdbool.h>
 #include <sys/types.h>
+#include "breakpoint.h"
+#include "gdb.h"
 #include "../arch/network.h"
+#include "../cpu/r4000.h"
 #include "../device/machine.h"
 #include "../device/dcpu.h"
 #include "../io/output.h"
@@ -31,9 +34,6 @@
 #include "../fault.h"
 #include "../parser.h"
 #include "../utils.h"
-#include "../cpu/cpu.h"
-#include "breakpoint.h"
-#include "gdb.h"
 
 #ifdef GDB_DEBUG
 

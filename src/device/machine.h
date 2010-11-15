@@ -9,13 +9,12 @@
 #ifndef MACHINE_H_
 #define MACHINE_H_
 
-
+#include "device.h"
+#include "../cpu/r4000.h"
 #include "../list.h"
 #include "../main.h"
-#include "../cpu/cpu.h"
 #include "../parser.h"
 #include "../endi.h"
-#include "device.h"
 
 #define DEFAULT_MEMORY_VALUE  0xffffffffU
 

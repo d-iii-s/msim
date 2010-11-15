@@ -13,9 +13,7 @@
 #include <string.h>
 #include <stdbool.h>
 #include <inttypes.h>
-
 #include "dorder.h"
-
 #include "device.h"
 #include "machine.h"
 #include "dcpu.h"

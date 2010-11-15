@@ -17,11 +17,6 @@
 #include <stdarg.h>
 #include <stdbool.h>
 #include <inttypes.h>
-#include "../io/output.h"
-#include "../main.h"
-#include "../check.h"
-#include "../utils.h"
-#include "../fault.h"
 #include "mem.h"
 #include "dcpu.h"
 #include "dkeyboard.h"
@@ -30,6 +25,11 @@
 #include "dprinter.h"
 #include "dtime.h"
 #include "device.h"
+#include "../io/output.h"
+#include "../main.h"
+#include "../check.h"
+#include "../utils.h"
+#include "../fault.h"
 
 /** Count of device types */
 #define DEVICE_TYPE_COUNT  8

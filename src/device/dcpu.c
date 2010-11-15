@@ -5,7 +5,7 @@
  * Distributed under the terms of GPL.
  *
  *
- *  R4000 microprocessor (32bit) device
+ *  MIPS R4000 microprocessor (32 bit part) device
  *
  */
 
@@ -15,11 +15,11 @@
 #include <inttypes.h>
 #include "dcpu.h"
 #include "device.h"
-#include "../main.h"
-#include "../cpu/cpu.h"
+#include "../cpu/r4000.h"
 #include "../debug/debug.h"
 #include "../debug/breakpoint.h"
 #include "../io/output.h"
+#include "../main.h"
 #include "../utils.h"
 
 /*

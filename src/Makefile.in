@@ -30,8 +30,8 @@ SOURCES = \
 	list.c \
 	io/input.c \
 	io/output.c \
-	cpu/cpu.c \
 	cpu/instr.c \
+	cpu/r4000.c \
 	debug/debug.c \
 	debug/gdb.c \
 	debug/breakpoint.c \

@@ -13,11 +13,9 @@
 #include <stdint.h>
 #include <stdbool.h>
 #include <inttypes.h>
-
 #include "machine.h"
-
 #include "../arch/signal.h"
-#include "../cpu/cpu.h"
+#include "../cpu/r4000.h"
 #include "../io/input.h"
 #include "../io/output.h"
 #include "../debug/gdb.h"

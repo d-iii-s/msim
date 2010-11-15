@@ -15,7 +15,7 @@
 #include <stdint.h>
 
 #include "../parser.h"
-#include "../cpu/cpu.h"
+#include "../cpu/r4000.h"
 
 struct device;
 

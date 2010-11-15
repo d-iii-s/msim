@@ -15,9 +15,8 @@
 #include <stdlib.h>
 #include <stdbool.h>
 #include <stdint.h>
-
 #include "../cpu/instr.h"
-#include "../cpu/cpu.h"
+#include "../cpu/r4000.h"
 #include "../device/device.h"
 
 extern bool dump_addr;

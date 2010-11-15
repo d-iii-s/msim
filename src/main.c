@@ -16,7 +16,7 @@
 #include <unistd.h>
 #include <getopt.h>
 #include <string.h>
-#include "cpu/cpu.h"
+#include "cpu/r4000.h"
 #include "debug/gdb.h"
 #include "device/device.h"
 #include "device/machine.h"

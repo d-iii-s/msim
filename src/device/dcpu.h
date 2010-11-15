@@ -5,7 +5,7 @@
  * Distributed under the terms of GPL.
  *
  *
- *  R4000 microprocessor (32bit) device
+ *  MIPS R4000 microprocessor (32 bit part) device
  *
  */
 
@@ -13,7 +13,7 @@
 #define DCPU_H_
 
 #include "device.h"
-#include "../cpu/cpu.h"
+#include "../cpu/r4000.h"
 
 extern device_type_s dcpu;
 extern const char id_dcpu[];

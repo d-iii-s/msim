@@ -5,7 +5,7 @@
  * Distributed under the terms of GPL.
  *
  *
- *  Processor simulation
+ *  MIPS R4000 (32 bit part) simulation
  *
  */
 
@@ -25,7 +25,7 @@
 #include "../env.h"
 #include "../fault.h"
 #include "../utils.h"
-#include "cpu.h"
+#include "r4000.h"
 
 /** Initial state */
 #define HARD_RESET_STATUS         (cp0_status_erl_mask | cp0_status_bev_mask)

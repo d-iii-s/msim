@@ -12,8 +12,9 @@
 #include <stdio.h>
 #include <string.h>
 #include <stdbool.h>
+#include "debug.h"
 #include "../cpu/instr.h"
-#include "../cpu/cpu.h"
+#include "../cpu/r4000.h"
 #include "../device/machine.h"
 #include "../device/dcpu.h"
 #include "../device/mem.h"
@@ -21,11 +22,9 @@
 #include "../main.h"
 #include "../env.h"
 #include "../utils.h"
-#include "debug.h"
 
-
-#define CP0_PM_ITEMS 7
-#define REG_BUF      1024
+#define CP0_PM_ITEMS  7
+#define REG_BUF       1024
 
 
 static struct {

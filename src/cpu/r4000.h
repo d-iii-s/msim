@@ -5,12 +5,12 @@
  * Distributed under the terms of GPL.
  *
  *
- *  Processor simulation
+ *  MIPS R4000 (32 bit part) simulation
  *
  */
 
-#ifndef CPU_H_
-#define CPU_H_
+#ifndef R4000_H_
+#define R4000_H_
 
 #include <stdint.h>
 #include <stdbool.h>

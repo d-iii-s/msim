@@ -16,16 +16,14 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <inttypes.h>
-
-#include "ddisk.h"
-
-#include "../text.h"
-#include "../arch/mmap.h"
-#include "machine.h"
 #include "dcpu.h"
+#include "ddisk.h"
+#include "machine.h"
+#include "../arch/mmap.h"
+#include "../io/output.h"
+#include "../text.h"
 #include "../fault.h"
 #include "../main.h"
-#include "../io/output.h"
 #include "../utils.h"
 
 /** Actions the disk is performing */

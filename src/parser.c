@@ -426,7 +426,9 @@ token_type_t parm_type(token_t *parm)
 bool parm_last(token_t *parm)
 {
 	PRE(parm != NULL);
-	PRE(parm->item.next != NULL);
+	
+	if (parm->item.next == NULL)
+		return false;
 	
 	token_t *next = (token_t *) (parm->item.next);
 	return (next->ttype == tt_end);

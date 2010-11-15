@@ -675,7 +675,7 @@ static const char *find_name(const char *str)
 	if (*tmp != 0)
 		return (tmp + 1);
 	
-	return str;
+	return str + 2;
 }
 
 static size_t sname_len(const char *str)

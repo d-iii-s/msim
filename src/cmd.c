@@ -342,12 +342,11 @@ bool interpret(const char *str)
 	bool ret;
 	device_t *dev = dev_by_name(name);
 	
-	parm_next(&parm);
-	
-	if (dev)
+	if (dev) {
 		/* Device command */
+		parm_next(&parm);
 		ret = cmd_run_by_parm(parm, dev->type->cmds, dev);
-	else
+	} else
 		/* System command */
 		ret = cmd_run_by_parm(parm, system_cmds, NULL);
 	

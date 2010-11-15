@@ -576,7 +576,7 @@ static void find_next_parm(const char **str)
  *
  * @return CMP_NO_HIT for no match.
  * @return CMP_PARTIAL_HIT for partial match, the specified command
-           is a prefix of another command.
+ *         is a prefix of another command.
  * @return CMP_HIT for full match.
  *
  */
@@ -589,8 +589,8 @@ static cmd_find_res_t cmd_compare(const char *str, const char *cmd)
 	for (tmp = str; (*cmd) && (*tmp == *cmd); tmp++, cmd++);
 	
 	/* Check for full match */
-	if (tmp == 0) {
-		if (cmd == 0)
+	if (*tmp == 0) {
+		if (*cmd == 0)
 			return CMP_HIT;
 		
 		return CMP_PARTIAL_HIT;
@@ -816,12 +816,13 @@ bool cmd_run_by_parm(token_t *parm, const cmd_t *cmds, void *data)
 	PRE(parm != NULL, cmds != NULL);
 	
 	/* Check whether the first token is a string */
-	if (parm->ttype != tt_str) {
-		intr_error("Command name expected.");
+	if (parm_type(parm) != tt_str) {
+		intr_error("Command name string expected.");
 		return false;
 	}
 	
-	return cmd_run_by_name(parm->tval.str, parm_next(&parm), cmds, data);
+	const char *cmd_name = parm_next_str(&parm);
+	return cmd_run_by_name(cmd_name, parm, cmds, data);
 }
 
 /** Command tab completion generator

@@ -679,15 +679,6 @@ static cmd_t system_cmds[] = {
 		REQ STR "name/Device name" CONT
 	},
 	{
-		"quit",
-		system_quit,
-		DEFAULT,
-		DEFAULT,
-		"Exit MSIM",
-		"Exit MSIM",
-		NOCMD
-	},
-	{
 		"dumpmem",
 		system_dumpmem,
 		DEFAULT,
@@ -818,6 +809,15 @@ static cmd_t system_cmds[] = {
 		"Display help",
 		"Display help",
 		OPT STR "cmd/command name" END
+	},
+	{
+		"quit",
+		system_quit,
+		DEFAULT,
+		DEFAULT,
+		"Exit MSIM",
+		"Exit MSIM",
+		NOCMD
 	},
 	LAST_CMD
 };

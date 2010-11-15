@@ -20,7 +20,6 @@
 #include "../io/output.h"
 #include "../check.h"
 #include "../main.h"
-#include "../mtypes.h"
 #include "../endi.h"
 #include "../text.h"
 #include "../env.h"
@@ -1711,7 +1710,7 @@ static void handle_exception(cpu_t *cpu, exc_t res)
 	
 	/* User info and register fill */
 	if (totrace)
-		mprintf("\nRaised exception: %s\n\n", exc_text[res]);
+		mprintf("\nRaised exception: %s\n\n", txt_exc[res]);
 	
 	cp0_cause(cpu) &= ~cp0_cause_exccode_mask;
 	cp0_cause(cpu) |= res << cp0_cause_exccode_shift;

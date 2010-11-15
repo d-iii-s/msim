@@ -23,7 +23,6 @@ SOURCES = \
 	fault.c \
 	text.c \
 	env.c \
-	cline.c \
 	cmd.c \
 	check.c \
 	main.c \

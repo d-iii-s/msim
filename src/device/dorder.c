@@ -34,17 +34,17 @@
  * Device commands
  */
 
-static bool dorder_init(parm_link_s *parm, device_s *dev);
-static bool dorder_info(parm_link_s *parm, device_s *dev);
-static bool dorder_stat(parm_link_s *parm, device_s *dev);
-static bool dorder_synchup(parm_link_s *parm, device_s *dev);
-static bool dorder_synchdown(parm_link_s *parm, device_s *dev);
+static bool dorder_init(token_t *parm, device_t *dev);
+static bool dorder_info(token_t *parm, device_t *dev);
+static bool dorder_stat(token_t *parm, device_t *dev);
+static bool dorder_synchup(token_t *parm, device_t *dev);
+static bool dorder_synchdown(token_t *parm, device_t *dev);
 
 /** Dorder command-line commands and parameters */
-cmd_s dorder_cmds[] = {
+cmd_t dorder_cmds[] = {
 	{
 		"init",
-		(cmd_f) dorder_init,
+		(fcmd_t) dorder_init,
 		DEFAULT,
 		DEFAULT,
 		"Initialization",
@@ -55,7 +55,7 @@ cmd_s dorder_cmds[] = {
 	},
 	{
 		"help",
-		(cmd_f) dev_generic_help,
+		(fcmd_t) dev_generic_help,
 		DEFAULT,
 		DEFAULT,
 		"Display help",
@@ -64,7 +64,7 @@ cmd_s dorder_cmds[] = {
 	},
 	{
 		"info",
-		(cmd_f) dorder_info,
+		(fcmd_t) dorder_info,
 		DEFAULT,
 		DEFAULT,
 		"Display device state",
@@ -73,7 +73,7 @@ cmd_s dorder_cmds[] = {
 	},
 	{
 		"stat",
-		(cmd_f) dorder_stat,
+		(fcmd_t) dorder_stat,
 		DEFAULT,
 		DEFAULT,
 		"Display device statistics",
@@ -82,7 +82,7 @@ cmd_s dorder_cmds[] = {
 	},
 	{
 		"synchup",
-		(cmd_f) dorder_synchup,
+		(fcmd_t) dorder_synchup,
 		DEFAULT,
 		DEFAULT,
 		"Write to the synchronization register",
@@ -92,7 +92,7 @@ cmd_s dorder_cmds[] = {
 	},
 	{
 		"synchdown",
-		(cmd_f) dorder_synchdown,
+		(fcmd_t) dorder_synchdown,
 		DEFAULT,
 		DEFAULT,
 		"Write to the synchronization register",
@@ -106,9 +106,9 @@ cmd_s dorder_cmds[] = {
 /** Name of the dorder device as presented to the user */
 const char id_dorder[] = "dorder";
 
-static void dorder_done(device_s *dev);
-static void dorder_read(cpu_t *cpu, device_s *dev, ptr_t addr, uint32_t *val);
-static void dorder_write(cpu_t *cpu, device_s *dev, ptr_t addr, uint32_t val);
+static void dorder_done(device_t *dev);
+static void dorder_read(cpu_t *cpu, device_t *dev, ptr_t addr, uint32_t *val);
+static void dorder_write(cpu_t *cpu, device_t *dev, ptr_t addr, uint32_t val);
 
 /** Doder object structure */
 device_type_s dorder = {
@@ -177,7 +177,7 @@ static void sync_down_write(dorder_data_s *od, uint32_t val)
  * @return true if successful
  *
  */
-static bool dorder_init(parm_link_s *parm, device_s *dev)
+static bool dorder_init(token_t *parm, device_t *dev)
 {
 	/* Allocate the dorder structure */
 	dorder_data_s *od = (dorder_data_s *) safe_malloc_t(dorder_data_s);
@@ -185,8 +185,8 @@ static bool dorder_init(parm_link_s *parm, device_s *dev)
 	
 	/* Initialize */
 	parm_next(&parm);
-	od->addr = parm_next_int(&parm);
-	od->intno = parm_next_int(&parm);
+	od->addr = parm_next_uint(&parm);
+	od->intno = parm_next_uint(&parm);
 	od->cmds = 0;
 
 	/* Checks */
@@ -222,7 +222,7 @@ static bool dorder_init(parm_link_s *parm, device_s *dev)
  * @return true; always successful
  *
  */
-static bool dorder_info(parm_link_s *parm, device_s *dev)
+static bool dorder_info(token_t *parm, device_t *dev)
 {
 	dorder_data_s *od = (dorder_data_s *) dev->data;
 	
@@ -241,7 +241,7 @@ static bool dorder_info(parm_link_s *parm, device_s *dev)
  * @return true; always successful
  *
  */
-static bool dorder_stat(parm_link_s *parm, device_s *dev)
+static bool dorder_stat(token_t *parm, device_t *dev)
 {
 	dorder_data_s *od = (dorder_data_s *) dev->data;
 	
@@ -260,9 +260,9 @@ static bool dorder_stat(parm_link_s *parm, device_s *dev)
  * @return true; always successful
  *
  */
-static bool dorder_synchup(parm_link_s *parm, device_s *dev)
+static bool dorder_synchup(token_t *parm, device_t *dev)
 {
-	sync_up_write((dorder_data_s *) dev->data, parm->token.tval.i);
+	sync_up_write((dorder_data_s *) dev->data, parm_uint(parm));
 	return true;
 }
 
@@ -274,9 +274,9 @@ static bool dorder_synchup(parm_link_s *parm, device_s *dev)
  * @return true; always successful
  *
  */
-static bool dorder_synchdown(parm_link_s *parm, device_s *dev)
+static bool dorder_synchdown(token_t *parm, device_t *dev)
 {
-	sync_down_write((dorder_data_s *) dev->data, parm->token.tval.i);
+	sync_down_write((dorder_data_s *) dev->data, parm_uint(parm));
 	return true;
 }
 
@@ -286,7 +286,7 @@ static bool dorder_synchdown(parm_link_s *parm, device_s *dev)
  * @param d	Device instance pointer
  *
  */
-static void dorder_done(device_s *d)
+static void dorder_done(device_t *d)
 {
 	safe_free(d->name);
 	safe_free(d->data);
@@ -300,7 +300,7 @@ static void dorder_done(device_s *d)
  * @param val  Readed (returned) value
  *
  */
-static void dorder_read(cpu_t *cpu, device_s *dev, ptr_t addr, uint32_t *val)
+static void dorder_read(cpu_t *cpu, device_t *dev, ptr_t addr, uint32_t *val)
 {
 	dorder_data_s *od = (dorder_data_s *) dev->data;
 	
@@ -321,7 +321,7 @@ static void dorder_read(cpu_t *cpu, device_s *dev, ptr_t addr, uint32_t *val)
  * @param val  Value to write
  *
  */
-void dorder_write(cpu_t *cpu, device_s *dev, ptr_t addr, uint32_t val)
+void dorder_write(cpu_t *cpu, device_t *dev, ptr_t addr, uint32_t val)
 {
 	dorder_data_s *od = (dorder_data_s *) dev->data;
 	

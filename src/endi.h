@@ -12,22 +12,25 @@
 #ifndef ENDI_H_
 #define ENDI_H_
 
-#include <stdbool.h>
-
-#include "mtypes.h"
 #include "../config.h"
 
 #ifdef WORDS_BIGENDIAN
-	#define convert_uint8_t_endian(b) (b)
-	#define convert_uint16_t_endian(h) \
-		((((h) << 8) & 0xff00U) | (((h) >> 8) & 0x00ffU))
-	#define convert_uint32_t_endian(w)	\
-		((((w) & 0xffU) << 24) | (((w) & 0xff00U) << 8) | \
-		(((w) & 0xff0000U) >> 8) | (((w) & 0xff000000U) >> 24))
-#else
-	#define convert_uint8_t_endian(b) (b)
-	#define convert_uint16_t_endian(h) (h)
-	#define convert_uint32_t_endian(w) (w)
-#endif
 
-#endif /* ENDI_H_ */
+#define convert_uint8_t_endian(val) (val)
+
+#define convert_uint16_t_endian(val) \
+	((((val) << 8) & 0xff00U) | (((val) >> 8) & 0x00ffU))
+
+#define convert_uint32_t_endian(val) \
+	((((val) & 0xffU) << 24) | (((val) & 0xff00U) << 8) | \
+	(((val) & 0xff0000U) >> 8) | (((val) & 0xff000000U) >> 24))
+
+#else /* WORDS_BIGENDIAN */
+
+#define convert_uint8_t_endian(val) (val)
+#define convert_uint16_t_endian(val) (val)
+#define convert_uint32_t_endian(val) (val)
+
+#endif /* WORDS_BIGENDIAN */
+
+#endif

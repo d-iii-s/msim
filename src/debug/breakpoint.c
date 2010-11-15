@@ -57,6 +57,7 @@ void memory_breakpoint_init_framework(void)
 /** Allocate and initialize a memory breakpoint
  *
  * @param address      Address, where the breakpoint can be hit.
+ * @param length       Size of the breakpoint area.
  * @param kind         Specifies if the breakpoint was initiated for the simulator of
  *                     from the debugger.
  * @param access_flags Specifies the access condition, under the breakpoint
@@ -65,7 +66,7 @@ void memory_breakpoint_init_framework(void)
  * @return Initialized memory breakpoint structure.
  *
  */
-static mem_breakpoint_t *memory_breakpoint_init(ptr_t address,
+static mem_breakpoint_t *memory_breakpoint_init(ptr_t address, len_t length,
     breakpoint_kind_t kind, access_filter_t access_flags)
 {
 	mem_breakpoint_t *breakpoint =
@@ -74,6 +75,7 @@ static mem_breakpoint_t *memory_breakpoint_init(ptr_t address,
 	item_init(&breakpoint->item);
 	breakpoint->kind = kind;
 	breakpoint->addr = address;
+	breakpoint->len = length;
 	breakpoint->hits = 0;
 	breakpoint->access_flags = access_flags;
 	
@@ -83,17 +85,18 @@ static mem_breakpoint_t *memory_breakpoint_init(ptr_t address,
 /** Setup and activate a new memory breakpoint
  *
  * @param address      Address, where the breakpoint can be hit.
+ * @param length       Size of the breakpoint area.
  * @param kind         Specifies if the breakpoint was initiated for the simulator of
  *                     from the debugger.
  * @param access_flags Specifies the access condition, under the breakpoint
  *                     will be hit.
  *
  */
-void memory_breakpoint_add(ptr_t address, breakpoint_kind_t kind,
+void memory_breakpoint_add(ptr_t address, len_t length, breakpoint_kind_t kind,
     access_filter_t access_flags)
 {
 	mem_breakpoint_t *breakpoint =
-	    memory_breakpoint_init(address, kind, access_flags);
+	    memory_breakpoint_init(address, length, kind, access_flags);
 	
 	list_append(&memory_breakpoints, &breakpoint->item);
 }
@@ -124,9 +127,9 @@ bool memory_breakpoint_remove(ptr_t address)
 	return false;
 }
 
-/** Deactivate all the memory breakpoint, which matches to the given filter.
+/** Deactivate all memory breakpoints which matches the given filter.
  *
- * @param filter Filter for selecting breakpoints, which will be deactivated.
+ * @param filter Filter for selecting breakpoints to be deactivated.
  *
  */
 void memory_breakpoint_remove_filtered(breakpoint_filter_t filter)
@@ -138,7 +141,7 @@ void memory_breakpoint_remove_filtered(breakpoint_filter_t filter)
 		mem_breakpoint_t *removed = breakpoint;
 		breakpoint = (mem_breakpoint_t *) breakpoint->item.next;
 		
-		/* Ignore breakpoints, which are not filtered */
+		/* Ignore breakpoints which are not filtered */
 		if ((removed->kind & filter) == 0)
 			continue;
 		
@@ -310,7 +313,7 @@ breakpoint_t *breakpoint_find_by_address(list_t breakpoints,
 bool breakpoint_check_for_code_breakpoints(void)
 {
 	bool hit = false;
-	device_s *dev = NULL;
+	device_t *dev = NULL;
 	
 	while (dev_next(&dev, DEVICE_FILTER_PROCESSOR)) {
 		cpu_t* cpu = (cpu_t *) dev->data;

@@ -19,7 +19,6 @@
 #include "../device/mem.h"
 #include "../io/output.h"
 #include "../main.h"
-#include "../mtypes.h"
 #include "../env.h"
 #include "../utils.h"
 #include "debug.h"
@@ -535,35 +534,39 @@ char *modified_regs_dump(cpu_t *cpu)
 	return sx;
 }
 
-
-void dbg_print_device_info(device_s *dev)
+void dbg_print_device_info(device_t *dev)
 {
 	mprintf("%-10s %-10s ", dev->name, dev->type->name);
-	cmd_run_by_name("info", &pars_end, dev->type->cmds, dev);
+	// FIXME cmd_run_by_name("info", &pars_end, dev->type->cmds, dev);
 }
 
 /** Show statistics for specified device
  *
  */
-void dbg_print_device_statistics(device_s *dev)
+void dbg_print_device_stat(device_t *dev)
 {
 	mprintf("%-10s %-10s ", dev->name, dev->type->name);
-	cmd_run_by_name("stat", &pars_end, dev->type->cmds, dev);
+	// FIXME cmd_run_by_name("stat", &pars_end, dev->type->cmds, dev);
 }
 
-void dbg_print_devices(const char* header, const char* nothing_msg,
-    device_filter_t filter, void (print_function) (device_s*))
+void dbg_print_devices(device_filter_t filter)
 {
-	device_s *device = NULL;
-	bool device_found = false;
-	
-	mprintf(header);
-	
-	while (dev_next(&device, filter)) {
-		device_found = true;
-		print_function(device);
-	}
-	
-	if (!device_found)
-		mprintf(nothing_msg);
+	// FIXME
+	// device_t *device = NULL;
+	// bool device_found = false;
+	// 
+	// mprintf(header);
+	// 
+	// while (dev_next(&device, filter)) {
+	// 	device_found = true;
+	// 	print_function(device);
+	// }
+	// 
+	// if (!device_found)
+	// 	mprintf(nothing_msg);
+}
+
+void dbg_print_devices_stat(device_filter_t filter)
+{
+	// FIXME
 }

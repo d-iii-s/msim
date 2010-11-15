@@ -28,7 +28,6 @@
 #include "../main.h"
 #include "../check.h"
 #include "../text.h"
-#include "../mtypes.h"
 #include "../fault.h"
 #include "../parser.h"
 #include "../utils.h"
@@ -125,6 +124,7 @@ static char *gdb_get_request(void)
 	unsigned int i;
 	
 	for (i = 0; i < MAX_BAD_CHECKSUMS; i++) {
+		string_clear(&req);
 		
 		/*
 		 * Message starts with a $ character,
@@ -185,8 +185,6 @@ static char *gdb_get_request(void)
 			string_done(&req);
 			return NULL;
 		}
-		
-		string_clear(&req);
 	}
 	
 	if (i >= MAX_BAD_CHECKSUMS) {
@@ -754,7 +752,7 @@ static void gdb_breakpoint(char *req, bool insert)
 	unsigned int length;
 	int matched = sscanf(arguments, ",%x,%x", &address, &length);
 	
-	if ((matched != 2) || (length != BITS_32)) {
+	if (matched != 2) {
 		gdb_send_reply(GDB_REPLY_BAD_BREAKPOINT);
 		return;
 	}
@@ -763,6 +761,11 @@ static void gdb_breakpoint(char *req, bool insert)
 	cpu_t* cpu = dcpu_find_no(cpuno_global);
 	
 	if (code_breakpoint) {
+		if (length != BITS_32) {
+			gdb_send_reply(GDB_REPLY_BAD_BREAKPOINT);
+			return;
+		}
+		
 		if (insert)
 			gdb_insert_code_breakpoint(cpu, addr);
 		else
@@ -770,8 +773,8 @@ static void gdb_breakpoint(char *req, bool insert)
 	} else {
 		if (convert_addr(cpu, &addr, false, false) == excNone) {
 			if (insert)
-				memory_breakpoint_add(addr, BREAKPOINT_KIND_DEBUGGER,
-				    memory_access);
+				memory_breakpoint_add(addr, length,
+				    BREAKPOINT_KIND_DEBUGGER, memory_access);
 			else
 				memory_breakpoint_remove(addr);
 		} else {

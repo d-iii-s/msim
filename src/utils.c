@@ -14,7 +14,6 @@
 #include <stdlib.h>
 #include <string.h>
 #include <inttypes.h>
-
 #include "text.h"
 #include "utils.h"
 #include "fault.h"
@@ -22,6 +21,7 @@
 #include "main.h"
 
 #define STRING_GRANULARITY  128
+#define STRING_BUFFER       4096
 
 static void safe_realloc(char **ptr, size_t *size, size_t pos,
     size_t granularity)
@@ -70,13 +70,27 @@ void string_push(string_t *str, char c)
 	str->str[str->pos] = 0;
 }
 
-void string_printf(string_t *str, const char *format, ...)
+void string_append(string_t *str, const char *val)
 {
-	va_list va;
+	PRE(str->str != NULL);
+	PRE(val != NULL);
 	
-	va_start(va, format);
-	int size = vsnprintf(NULL, 0, format, va);
-	va_end(va);
+	size_t len = strlen(val);
+	
+	safe_realloc(&str->str, &str->size, str->pos + len,
+	    STRING_GRANULARITY);
+	
+	memcpy(str->str + str->pos, val, len);
+	str->pos += len;
+	str->str[str->pos] = 0;
+}
+
+void string_vprintf(string_t *str, const char *fmt, va_list va)
+{
+	va_list va2;
+	va_copy(va2, va);
+	int size = vsnprintf(NULL, 0, fmt, va2);
+	va_end(va2);
 	
 	if (size < 0)
 		die(ERR_INTERN, "Error formatting string");
@@ -84,15 +98,35 @@ void string_printf(string_t *str, const char *format, ...)
 	safe_realloc(&str->str, &str->size, str->pos + size,
 	    STRING_GRANULARITY);
 	
-	va_start(va, format);
-	size = vsnprintf(str->str + str->pos, size + 1, format, va);
-	va_end(va);
+	size = vsnprintf(str->str + str->pos, size + 1, fmt, va);
 	
 	if (size < 0)
 		die(ERR_INTERN, "Error formatting string");
 	
 	str->pos += size;
 	str->str[str->pos] = 0;
+}
+
+void string_printf(string_t *str, const char *fmt, ...)
+{
+	va_list va;
+	
+	va_start(va, fmt);
+	string_vprintf(str, fmt, va);
+	va_end(va);
+}
+
+void string_fread(string_t *str, FILE *file)
+{
+	char buf[STRING_BUFFER];
+	
+	while (true) {
+		if (fgets(buf, STRING_BUFFER, file) == NULL)
+			break;
+		
+		buf[STRING_BUFFER - 1] = 0;
+		string_append(str, buf);
+	}
 }
 
 void string_done(string_t *str)
@@ -172,36 +206,16 @@ FILE *try_fopen(const char *path, const char *mode)
 /** Safe file close
  *
  * By "safe" we mean printing an error message when the file could not be
- * closed.
- *
- * @param file File to close.
- * @param path Name of the file used for error message.
- *
- * @return true if successful
- *
- */
-bool try_fclose(FILE *file, const char *path)
-{
-	if (fclose(file) != 0) {
-		io_error(path);
-		return false;
-	}
-	
-	return true;
-}
-
-/** Close file when I/O error occurs
- *
- * Does not stop the program, only writes an error message.
+ * closed and dying.
  *
  * @param file File to close.
  * @param path Name of the file used for error message.
  *
  */
-void try_soft_fclose(FILE *file, const char *path)
+void safe_fclose(FILE *file, const char *path)
 {
-	if (!try_fclose(file, path))
-		error(txt_file_close_err);
+	if (fclose(file) != 0)
+		io_die(ERR_IO, path);
 }
 
 /** Safe fseek
@@ -221,7 +235,7 @@ bool try_fseek(FILE *file, size_t offset, int whence, const char *path)
 {
 	if (fseek(file, (long) offset, whence) != 0) {
 		io_error(path);
-		try_soft_fclose(file, path);
+		safe_fclose(file, path);
 		return false;
 	}
 	
@@ -251,7 +265,7 @@ bool try_ftell(FILE *file, const char *path, size_t *pos)
 	
 	if ((lpos < 0) || ((long) *pos != lpos)) {
 		io_error(path);
-		try_soft_fclose(file, path);
+		safe_fclose(file, path);
 		return false;
 	}
 	

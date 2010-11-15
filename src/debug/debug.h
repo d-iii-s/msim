@@ -30,10 +30,10 @@ extern void cp0_dump(cpu_t *cpu, int reg);
 extern void iview(cpu_t *cpu, ptr_t addr, instr_info_t *ii, char *regch);
 extern char *modified_regs_dump(cpu_t *cpu);
 
-extern void dbg_print_devices(const char* header, const char* nothing_msg,
-    device_filter_t filter, void (print_function) (device_s*));
+extern void dbg_print_devices(device_filter_t filter);
+extern void dbg_print_devices_stat(device_filter_t filter);
 
-extern void dbg_print_device_info(device_s *dev);
-extern void dbg_print_device_statistics(device_s *dev);
+extern void dbg_print_device_info(device_t *dev);
+extern void dbg_print_device_stat(device_t *dev);
 
-#endif /* DEBUG_H_ */
+#endif

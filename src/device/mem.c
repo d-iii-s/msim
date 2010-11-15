@@ -35,18 +35,18 @@
  * Device structure initialization
  */
 
-static bool mem_init(parm_link_s *parm, device_s *dev);
-static bool mem_info(parm_link_s *parm, device_s *dev);
-static bool mem_generic(parm_link_s *parm, device_s *dev);
-static bool mem_fmap(parm_link_s *parm, device_s *dev);
-static bool mem_fill(parm_link_s *parm, device_s *dev);
-static bool mem_load(parm_link_s *parm, device_s *dev);
-static bool mem_save(parm_link_s *parm, device_s *dev);
+static bool mem_init(token_t *parm, device_t *dev);
+static bool mem_info(token_t *parm, device_t *dev);
+static bool mem_generic(token_t *parm, device_t *dev);
+static bool mem_fmap(token_t *parm, device_t *dev);
+static bool mem_fill(token_t *parm, device_t *dev);
+static bool mem_load(token_t *parm, device_t *dev);
+static bool mem_save(token_t *parm, device_t *dev);
 
-cmd_s dmem_cmds[] = {
+cmd_t dmem_cmds[] = {
 	{
 		"init",
-		(cmd_f) mem_init,
+		(fcmd_t) mem_init,
 		DEFAULT,
 		DEFAULT,
 		"Initialization",
@@ -56,7 +56,7 @@ cmd_s dmem_cmds[] = {
 	},
 	{
 		"help",
-		(cmd_f) dev_generic_help,
+		(fcmd_t) dev_generic_help,
 		DEFAULT,
 		DEFAULT,
 		"Usage help",
@@ -65,7 +65,7 @@ cmd_s dmem_cmds[] = {
 	},
 	{
 		"info",
-		(cmd_f) mem_info,
+		(fcmd_t) mem_info,
 		DEFAULT,
 		DEFAULT,
 		"Configuration information",
@@ -74,7 +74,7 @@ cmd_s dmem_cmds[] = {
 	},
 	{
 		"generic",
-		(cmd_f) mem_generic,
+		(fcmd_t) mem_generic,
 		DEFAULT,
 		DEFAULT,
 		"Generic memory type.",
@@ -83,7 +83,7 @@ cmd_s dmem_cmds[] = {
 	},
 	{
 		"fmap",
-		(cmd_f) mem_fmap,
+		(fcmd_t) mem_fmap,
 		DEFAULT,
 		DEFAULT,
 		"Map the memory into the file.",
@@ -92,7 +92,7 @@ cmd_s dmem_cmds[] = {
 	},
 	{
 		"fill",
-		(cmd_f) mem_fill,
+		(fcmd_t) mem_fill,
 		DEFAULT,
 		DEFAULT,
 		"Fill the memory with specified character",
@@ -101,7 +101,7 @@ cmd_s dmem_cmds[] = {
 	},
 	{
 		"load",
-		(cmd_f) mem_load,
+		(fcmd_t) mem_load,
 		DEFAULT,
 		DEFAULT,
 		"Load the file into the memory",
@@ -110,7 +110,7 @@ cmd_s dmem_cmds[] = {
 	},
 	{
 		"save",
-		(cmd_f) mem_save,
+		(fcmd_t) mem_save,
 		DEFAULT,
 		DEFAULT,
 		"Save the context of the memory into the file specified",
@@ -123,7 +123,7 @@ cmd_s dmem_cmds[] = {
 const char id_rom[] = "rom";
 const char id_rwm[] = "rwm";
 
-static void mem_done(device_s *d);
+static void mem_done(device_t *d);
 
 device_type_s drom = {
 	/* Type name and description */
@@ -199,11 +199,11 @@ static void mem_cleanup(mem_area_t *area)
  * Initialize memory structure.
  *
  */
-static bool mem_init(parm_link_s *parm, device_s *dev)
+static bool mem_init(token_t *parm, device_t *dev)
 {
 	/* Initialize */
 	parm_next(&parm);
-	ptr_t start = parm_next_int(&parm);
+	ptr_t start = parm_next_uint(&parm);
 	if (!addr_word_aligned(start)) {
 		mprintf("Memory address must by 4-byte aligned\n");
 		return false;
@@ -228,7 +228,7 @@ static bool mem_init(parm_link_s *parm, device_s *dev)
 /** Info command implementation
  *
  */
-static bool mem_info(parm_link_s *parm, device_s *dev)
+static bool mem_info(token_t *parm, device_t *dev)
 {
 	mem_area_t *area = (mem_area_t *) dev->data;
 	char *size = uint32_human_readable(area->size);
@@ -248,7 +248,7 @@ static bool mem_info(parm_link_s *parm, device_s *dev)
  * Load the contents of the file specified to the memory block.
  *
  */
-static bool mem_load(parm_link_s *parm, device_s *dev)
+static bool mem_load(token_t *parm, device_t *dev)
 {
 	mem_area_t *area = (mem_area_t *) dev->data;
 	const char *const path = parm_str(parm);
@@ -267,48 +267,41 @@ static bool mem_load(parm_link_s *parm, device_s *dev)
 	/* File size test */
 	if (!try_fseek(file, 0, SEEK_END, path)) {
 		mprintf("%s\n", txt_file_seek_err);
-		try_soft_fclose(file, path);
 		return false;
 	}
 	
 	size_t fsize;
 	if (!try_ftell(file, path, &fsize)) {
 		mprintf("%s\n", txt_file_seek_err);
-		try_soft_fclose(file, path);
 		return false;
 	}
 	
 	if (fsize == 0) {
 		mprintf("Empty file\n");
-		try_soft_fclose(file, path);
+		safe_fclose(file, path);
 		return false;
 	}
 	
 	if (fsize > area->size) {
 		mprintf("File size exceeds memory area size\n");
-		try_soft_fclose(file, path);
+		safe_fclose(file, path);
 		return false;
 	}
 	
 	if (!try_fseek(file, 0, SEEK_SET, path)) {
 		mprintf("%s\n", txt_file_seek_err);
-		try_soft_fclose(file, path);
 		return false;
 	}
 	
 	size_t rd = fread(area->data, 1, fsize, file);
 	if (rd != fsize) {
 		io_error(path);
-		try_soft_fclose(file, path);
+		safe_fclose(file, path);
 		mprintf("%s\n", txt_file_read_err);
 		return false;
 	}
 	
-	if (!try_fclose(file, path)) {
-		mprintf("%s\n", txt_file_close_err);
-		return false;
-	}
-	
+	safe_fclose(file, path);
 	return true;
 }
 
@@ -317,7 +310,7 @@ static bool mem_load(parm_link_s *parm, device_s *dev)
  * Fill the memory with a specified character.
  *
  */
-static bool mem_fill(parm_link_s *parm, device_s *dev)
+static bool mem_fill(token_t *parm, device_t *dev)
 {
 	mem_area_t *area = (mem_area_t *) dev->data;
 	const char *str;
@@ -337,13 +330,13 @@ static bool mem_fill(parm_link_s *parm, device_s *dev)
 		}
 		
 		break;
-	case tt_int:
-		if (parm_int(parm) > 255) {
+	case tt_uint:
+		if (parm_uint(parm) > 255) {
 			mprintf("Integer out of range 0..255\n");
 			return false;
 		}
 		
-		c = parm_int(parm);
+		c = parm_uint(parm);
 		break;
 	default:
 		/* Unreachable */
@@ -360,7 +353,7 @@ static bool mem_fill(parm_link_s *parm, device_s *dev)
  * size is less than memory size it is enlarged.
  *
  */
-static bool mem_fmap(parm_link_s *parm, device_s *dev)
+static bool mem_fmap(token_t *parm, device_t *dev)
 {
 	mem_area_t *area = (mem_area_t *) dev->data;
 	const char *const path = parm_str(parm);
@@ -386,32 +379,29 @@ static bool mem_fmap(parm_link_s *parm, device_s *dev)
 	/* File size test */
 	if (!try_fseek(file, 0, SEEK_END, path)) {
 		mprintf("%s\n", txt_file_seek_err);
-		try_soft_fclose(file, path);
 		return false;
 	}
 	
 	size_t fsize;
 	if (!try_ftell(file, path, &fsize)) {
 		mprintf("%s\n", txt_file_seek_err);
-		try_soft_fclose(file, path);
 		return false;
 	}
 	
 	if (fsize == 0) {
 		mprintf("Empty file\n");
-		try_soft_fclose(file, path);
+		safe_fclose(file, path);
 		return false;
 	}
 	
 	if ((uint64_t) area->start + (uint64_t) fsize > 0x100000000ull) {
 		mprintf("Mapped file exceeds the 4 GB limit\n");
-		try_soft_fclose(file, path);
+		safe_fclose(file, path);
 		return false;
 	}
 	
 	if (!try_fseek(file, 0, SEEK_SET, path)) {
 		mprintf("%s\n", txt_file_seek_err);
-		try_soft_fclose(file, path);
 		return false;
 	}
 	
@@ -427,15 +417,12 @@ static bool mem_fmap(parm_link_s *parm, device_s *dev)
 	if (ptr == MAP_FAILED) {
 		io_error(path);
 		mprintf("%s\n", txt_file_map_fail);
-		try_soft_fclose(file, path);
+		safe_fclose(file, path);
 		return false;
 	}
 	
 	/* Close file */
-	if (!try_fclose(file, path)) {
-		mprintf("%s\n", txt_file_close_err);
-		return false;
-	}
+	safe_fclose(file, path);
 	
 	/* Upgrade structure */
 	area->type = MEMT_FMAP;
@@ -450,10 +437,10 @@ static bool mem_fmap(parm_link_s *parm, device_s *dev)
  * Generic command makes memory device a standard memory.
  *
  */
-static bool mem_generic(parm_link_s *parm, device_s *dev)
+static bool mem_generic(token_t *parm, device_t *dev)
 {
 	mem_area_t *area = (mem_area_t *) dev->data;
-	uint32_t size = parm_int(parm);
+	uint32_t size = parm_uint(parm);
 	
 	if (area->type != MEMT_NONE) {
 		/* Illegal. */
@@ -488,7 +475,7 @@ static bool mem_generic(parm_link_s *parm, device_s *dev)
  * Save the content of the memory to the file specified.
  *
  */
-static bool mem_save(parm_link_s *parm, device_s *dev)
+static bool mem_save(token_t *parm, device_t *dev)
 {
 	mem_area_t *area = (mem_area_t *) dev->data;
 	const char *const path = parm_str(parm);
@@ -507,23 +494,19 @@ static bool mem_save(parm_link_s *parm, device_s *dev)
 	size_t wr = fwrite(area->data, 1, area->size, file);
 	if (wr != area->size) {
 		io_error(path);
-		try_soft_fclose(file, path);
+		safe_fclose(file, path);
 		mprintf("%s\n", txt_file_write_err);
 		return false;
 	}
 	
-	if (!try_fclose(file, path)) {
-		mprintf("%s\n", txt_file_close_err);
-		return false;
-	}
-	
+	safe_fclose(file, path);
 	return true;
 }
 
 /** Dispose memory device - structures, memory blocks, unmap, etc.
  *
  */
-static void mem_done(device_s *dev)
+static void mem_done(device_t *dev)
 {
 	mem_area_t *area = (mem_area_t *) dev->data;
 	

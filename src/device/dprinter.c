@@ -14,35 +14,177 @@
 #include <string.h>
 #include <stdbool.h>
 #include <inttypes.h>
-
 #include "dprinter.h"
-
-#include "../text.h"
-#include "../mtypes.h"
 #include "device.h"
+#include "../text.h"
 #include "../fault.h"
 #include "../io/output.h"
 #include "../utils.h"
+#include "../parser.h"
 
-/* Registers */
-#define REGISTER_CHAR  0  /* Outpu character */
-#define REGISTER_LIMIT 4  /* Size of the register block */
+/** Registers */
+#define REGISTER_CHAR   0  /**< Output character */
+#define REGISTER_LIMIT  4  /**< Size of the register block */
 
+typedef struct {
+	ptr_t addr;      /**< Printer register address */
+	bool flush;      /**< Flush-the-output flag */
+	
+	FILE *file;      /**< Output file */
+	char *fname;     /**< Output file name */
+	
+	uint64_t count;  /**< Number of printed characters */
+} printer_data_t;
+
+/** Init command implementation
+ *
+ */
+static bool dprinter_init(token_t *parm, device_t *dev)
+{
+	parm_next(&parm);
+	ptr_t addr = parm_next_uint(&parm);
+	
+	/* Check address alignment */
+	if (!addr_word_aligned(addr)) {
+		mprintf("Printer address must be on the 4-byte boundary\n");
+		return false;
+	}
+	
+	/* The printer structure allocation */
+	printer_data_t *data = safe_malloc_t(printer_data_t);
+	dev->data = data;
+	
+	/* Inicialization */
+	data->addr = addr;
+	data->flush = false;
+	data->file = stdout;
+	data->fname = NULL;
+	data->count = 0;
+	
+	return true;
+}
+
+/** Redir command implementation
+ *
+ */
+static bool dprinter_redir(token_t *parm, device_t *dev)
+{
+	printer_data_t *data = (printer_data_t *) dev->data;
+	char *fname = parm_str(parm);
+	
+	/* Open the file */
+	FILE *file = try_fopen(fname, "w");
+	if (!file)
+		return false;
+	
+	/* Close old output file */
+	if (data->file != stdout) {
+		safe_fclose(data->file, data->fname);
+		safe_free(data->fname);
+	}
+	
+	/* Set new output file */
+	data->file = file;
+	data->fname = safe_strdup(fname);
+	return true;
+}
+
+/** Stdout command implementation
+ *
+ */
+static bool dprinter_stdout(token_t *parm, device_t *dev)
+{
+	printer_data_t *data = (printer_data_t *) dev->data;
+	
+	/* Close old ouput file if it is not stdout already */
+	if (data->file != stdout) {
+		safe_fclose(data->file, data->fname);
+		safe_free(data->fname);
+		data->file = stdout;
+	}
+	
+	return true;
+}
+
+/** Info command implementation
+ *
+ */
+static bool dprinter_info(token_t *parm, device_t *dev)
+{
+	printer_data_t *data = (printer_data_t *) dev->data;
+	
+	mprintf("[Address ]\n");
+	mprintf("%#10" PRIx32 "\n", data->addr);
+	
+	return true;
+}
+
+/** Stat command implementation
+ *
+ */
+static bool dprinter_stat(token_t *parm, device_t *dev)
+{
+	printer_data_t *data = (printer_data_t *) dev->data;
+	
+	mprintf("[Count             ]\n");
+	mprintf("%20" PRIu64 "\n", data->count);
+	
+	return true;
+}
+
+/** Clean up the device
+ *
+ */
+static void printer_done(device_t *dev)
+{
+	printer_data_t *data = (printer_data_t *) dev->data;
+	
+	/* Close output file if it is not stdout */
+	if (data->file != stdout) {
+		safe_fclose(data->file, data->fname);
+		safe_free(data->fname);
+	}
+	
+	safe_free(dev->name);
+	safe_free(dev->data);
+}
+
+/** One step4 implementation
+ *
+ */
+static void printer_step4(device_t *dev)
+{
+	printer_data_t *data = (printer_data_t *) dev->data;
+	
+	/* Check if flush is necesary */
+	if (data->flush) {
+		data->flush = false;
+		fflush(data->file);
+	}
+}
+
+/** Write command implementation
+ *
+ */
+static void printer_write(cpu_t *cpu, device_t *dev, ptr_t addr, uint32_t val)
+{
+	printer_data_t *data = (printer_data_t *) dev->data;
+	
+	if (addr == data->addr + REGISTER_CHAR) {
+		fprintf(data->file, "%c", (char) val);
+		data->flush = true;
+		data->count++;
+	}
+}
 
 /*
  * Device commands
  */
 
-static bool dprinter_init(parm_link_s *parm, device_s *dev);
-static bool dprinter_info(parm_link_s *parm, device_s *dev);
-static bool dprinter_stat(parm_link_s *parm, device_s *dev);
-static bool dprinter_redir(parm_link_s *parm, device_s *dev);
-static bool dprinter_stdout(parm_link_s *parm, device_s *dev);
-
-cmd_s printer_cmds[] = {
+static cmd_t printer_cmds[] = {
 	{
 		"init",
-		(cmd_f) dprinter_init,
+		(fcmd_t) dprinter_init,
 		DEFAULT,
 		DEFAULT,
 		"Initialization",
@@ -52,7 +194,7 @@ cmd_s printer_cmds[] = {
 	},
 	{
 		"help",
-		(cmd_f) dev_generic_help,
+		(fcmd_t) dev_generic_help,
 		DEFAULT,
 		DEFAULT,
 		"Display this help text",
@@ -61,7 +203,7 @@ cmd_s printer_cmds[] = {
 	},
 	{
 		"info",
-		(cmd_f) dprinter_info,
+		(fcmd_t) dprinter_info,
 		DEFAULT,
 		DEFAULT,
 		"Display printer state and configuration",
@@ -70,7 +212,7 @@ cmd_s printer_cmds[] = {
 	},
 	{
 		"stat",
-		(cmd_f) dprinter_stat,
+		(fcmd_t) dprinter_stat,
 		DEFAULT,
 		DEFAULT,
 		"Display printer statistics",
@@ -79,7 +221,7 @@ cmd_s printer_cmds[] = {
 	},
 	{
 		"redir",
-		(cmd_f) dprinter_redir,
+		(fcmd_t) dprinter_redir,
 		DEFAULT,
 		DEFAULT,
 		"Redirect output to the specified file",
@@ -88,7 +230,7 @@ cmd_s printer_cmds[] = {
 	},
 	{
 		"stdout",
-		(cmd_f) dprinter_stdout,
+		(fcmd_t) dprinter_stdout,
 		DEFAULT,
 		DEFAULT,
 		"Redirect output to the standard output",
@@ -98,19 +240,13 @@ cmd_s printer_cmds[] = {
 	LAST_CMD
 };
 
-const char id_printer[] = "dprinter";
-
-static void printer_done(device_s *dev);
-static void printer_step4(device_s *dev);
-static void printer_write(cpu_t *cpu, device_s *dev, uint32_t addr, uint32_t val);
-
 device_type_s dprinter = {
 	/* Type name and description */
-	.name = id_printer,
+	.name = "dprinter",
 	.brief = "Printer simulation",
 	.full = "Printer device represents a simple character output device. Via "
-		"memory-mapped register system can write character to the "
-		"specified output like screen, file or another terminal.",
+	    "memory-mapped register system can write character to the "
+	    "specified output like screen, file or another terminal.",
 	
 	/* Functions */
 	.done = printer_done,
@@ -120,177 +256,3 @@ device_type_s dprinter = {
 	/* Commands */
 	printer_cmds
 };
-
-
-struct printer_data_s {
-	uint32_t addr;		/* Printer register address */
-	bool flush;		/* Flush-the-output flag (flush is necessary and it slow) */
-	
-	FILE *output_file;	/* Output file */
-	
-	uint64_t count;		/* Number of output characters */
-};
-typedef struct printer_data_s printer_data_s;
-
-
-
-/** Init command implementation
- *
- */
-static bool dprinter_init(parm_link_s *parm, device_s *dev)
-{
-	/* The printer structure allocation */
-	printer_data_s *pd = (printer_data_s *) safe_malloc_t(printer_data_s);
-	dev->data = pd;
-	
-	/* Inicialization */
-	parm_next( &parm);
-	pd->addr = parm_next_int(&parm);
-	pd->flush = false;
-	pd->output_file = stdout;
-	
-	pd->count = 0;
-	
-	/* Check address alignment */
-	if (!addr_word_aligned(pd->addr)) {
-		mprintf("Printer address must be in the 4-byte boundary\n");
-		free(pd);
-		return false;
-	}
-	
-	return true;
-}
-
-
-/** Redir command implementation
- *
- */
-static bool dprinter_redir(parm_link_s *parm, device_s *dev)
-{
-	printer_data_s *pd = (printer_data_s *) dev->data;
-	const char *const filename = parm_str(parm);
-	FILE *new_file;
-	
-	/* Open the file */
-	new_file = fopen(filename, "w");
-	if (!new_file) {
-		io_error(filename);
-		mprintf(txt_file_open_err);
-		
-		return false;
-	}
-	
-	/* Close old output file */
-	if (pd->output_file != stdout) {
-		if (!fclose(pd->output_file)) {
-			io_error(NULL);
-			error(txt_file_close_err);
-			return false;
-		}
-	}
-	
-	/* Set new output file */
-	pd->output_file = new_file;
-	return true;
-}
-
-
-/** Stdout command implementation
- *
- */
-static bool dprinter_stdout(parm_link_s *parm, device_s *dev)
-{
-	printer_data_s *pd = (printer_data_s *) dev->data;
-
-	/* Close old ouput file if it is not stdout already */
-	if (pd->output_file != stdout) {
-		if (!fclose( pd->output_file)) {
-			io_error(NULL);
-			return txt_file_close_err;
-		}
-
-		pd->output_file = stdout;
-	}
-	
-	return true;
-}
-
-
-/** Info command implementation
- *
- */
-static bool dprinter_info(parm_link_s *parm, device_s *dev)
-{
-	printer_data_s *pd = (printer_data_s *) dev->data;
-	
-	mprintf("Address\n");
-	mprintf("----------\n");
-	mprintf("%#10" PRIx64 "\n", pd->addr);
-	
-	return true;
-}
-
-
-/** Stat command implementation
- *
- */
-static bool dprinter_stat(parm_link_s *parm, device_s *dev)
-{
-	printer_data_s *pd = (printer_data_s *) dev->data;
-	
-	mprintf("Count\n");
-	mprintf("--------------------\n");
-	mprintf("%20" PRIu64 "\n", pd->count);
-	
-	return true;
-}
-
-
-/** Clean up the device
- *
- */
-static void printer_done(device_s *d)
-{
-	printer_data_s *pd = (printer_data_s *) d->data;
-
-	/* Close output file if it is not stdout */
-	if (pd->output_file != stdout) {
-		if (!fclose(pd->output_file)) {
-			io_error(NULL);
-			error(txt_file_close_err);
-		}
-	}
-
-	safe_free(d->name);
-	safe_free(d->data);
-}
-
-
-/** One step4 implementation
- *
- */
-static void printer_step4(device_s *d)
-{
-	printer_data_s *pd = (printer_data_s *) d->data;
-	
-	/* Check if flush is necesary */
-	if (pd->flush) {
-		pd->flush = false;
-		fflush(pd->output_file);
-	}
-}
-
-
-/** Write command implementation
- *
- */
-static void printer_write(cpu_t *cpu, device_s *dev, ptr_t addr, uint32_t val)
-{
-	printer_data_s *pd = (printer_data_s *) dev->data;
-
-	if (addr == pd->addr + REGISTER_CHAR) {
-		fprintf(pd->output_file, "%c", (char) val);
-		pd->flush = true;
-		pd->count++;
-	}
-}

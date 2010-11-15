@@ -15,34 +15,33 @@
 #include <sys/time.h>
 #include <stdbool.h>
 #include <inttypes.h>
-
-#include "../arch/stdin.h"
 #include "dkeyboard.h"
 #include "device.h"
 #include "dcpu.h"
+#include "../arch/stdin.h"
 #include "../io/output.h"
 #include "../utils.h"
 
 /* Register offsets */
-#define REGISTER_CHAR  0
-#define REGISTER_LIMIT 4
+#define REGISTER_CHAR   0
+#define REGISTER_LIMIT  4
 
 /* Step skip constant */
-#define CYCLE_SKIP 4096
+#define CYCLE_SKIP  4096
 
 /*
  * Device commands
  */
 
-static bool dkeyboard_init(parm_link_s *parm, device_s *dev);
-static bool dkeyboard_info(parm_link_s *parm, device_s *dev);
-static bool dkeyboard_stat(parm_link_s *parm, device_s *dev);
-static bool dkeyboard_gen(parm_link_s *parm, device_s *dev);
+static bool dkeyboard_init(token_t *parm, device_t *dev);
+static bool dkeyboard_info(token_t *parm, device_t *dev);
+static bool dkeyboard_stat(token_t *parm, device_t *dev);
+static bool dkeyboard_gen(token_t *parm, device_t *dev);
 
-cmd_s keyboard_cmds[] = {
+cmd_t keyboard_cmds[] = {
 	{
 		"init",
-		(cmd_f) dkeyboard_init,
+		(fcmd_t) dkeyboard_init,
 		DEFAULT,
 		DEFAULT,
 		"Initialization",
@@ -53,7 +52,7 @@ cmd_s keyboard_cmds[] = {
 	},
 	{
 		"help",
-		(cmd_f) dev_generic_help,
+		(fcmd_t) dev_generic_help,
 		DEFAULT,
 		DEFAULT,
 		"Display this help text",
@@ -62,7 +61,7 @@ cmd_s keyboard_cmds[] = {
 	},
 	{
 		"info",
-		(cmd_f) dkeyboard_info,
+		(fcmd_t) dkeyboard_info,
 		DEFAULT,
 		DEFAULT,
 		"Display keyboard state and configuration",
@@ -71,7 +70,7 @@ cmd_s keyboard_cmds[] = {
 	},
 	{
 		"stat",
-		(cmd_f) dkeyboard_stat,
+		(fcmd_t) dkeyboard_stat,
 		DEFAULT,
 		DEFAULT,
 		"Display keyboard statistics",
@@ -80,7 +79,7 @@ cmd_s keyboard_cmds[] = {
 	},
 	{
 		"gen",
-		(cmd_f) dkeyboard_gen,
+		(fcmd_t) dkeyboard_gen,
 		DEFAULT,
 		DEFAULT,
 		"Generate a key press with specified code",
@@ -92,9 +91,9 @@ cmd_s keyboard_cmds[] = {
 
 const char id_keyboard[] = "dkeyboard";
 
-static void keyboard_done(device_s *dev);
-static void keyboard_step4(device_s *dev);
-static void keyboard_read(cpu_t *cpu, device_s *dev, ptr_t addr, uint32_t *val);
+static void keyboard_done(device_t *dev);
+static void keyboard_step4(device_t *dev);
+static void keyboard_read(cpu_t *cpu, device_t *dev, ptr_t addr, uint32_t *val);
 
 device_type_s dkeyboard = {
 	/* Type name and description */
@@ -131,7 +130,7 @@ typedef struct keyboard_data_s keyboard_data_s;
  * An interrupt is asserted.
  *
  */
-static void gen_key(device_s *dev, char k)
+static void gen_key(device_t *dev, char k)
 {
 	keyboard_data_s *kd = (keyboard_data_s *) dev->data;
 
@@ -151,7 +150,7 @@ static void gen_key(device_s *dev, char k)
 /** Init command implementation
  *
  */
-static bool dkeyboard_init(parm_link_s *parm, device_s *dev)
+static bool dkeyboard_init(token_t *parm, device_t *dev)
 {
 	/* Alloc structure */
 	keyboard_data_s *kd = (keyboard_data_s *) safe_malloc_t(keyboard_data_s);
@@ -159,8 +158,8 @@ static bool dkeyboard_init(parm_link_s *parm, device_s *dev)
 	
 	/* Initialization */
 	parm_next( &parm);
-	kd->addr = parm_next_int(&parm);
-	kd->intno = parm_next_int(&parm);
+	kd->addr = parm_next_uint(&parm);
+	kd->intno = parm_next_uint(&parm);
 	
 	kd->ig = false;
 	kd->intrcount = 0;
@@ -190,7 +189,7 @@ static bool dkeyboard_init(parm_link_s *parm, device_s *dev)
 /** Info command implementation
  *
  */
-static bool dkeyboard_info(parm_link_s *parm, device_s *dev)
+static bool dkeyboard_info(token_t *parm, device_t *dev)
 {
 	keyboard_data_s *kb = (keyboard_data_s *) dev->data;
 	
@@ -206,7 +205,7 @@ static bool dkeyboard_info(parm_link_s *parm, device_s *dev)
 /** Stat command implementation
  *
  */
-static bool dkeyboard_stat(parm_link_s *parm, device_s *dev)
+static bool dkeyboard_stat(token_t *parm, device_t *dev)
 {
 	keyboard_data_s *kd = (keyboard_data_s *) dev->data;
 	
@@ -225,7 +224,7 @@ static bool dkeyboard_stat(parm_link_s *parm, device_s *dev)
  * argument - a character or an integer.
  *
  */
-static bool dkeyboard_gen(parm_link_s *parm, device_s *dev)
+static bool dkeyboard_gen(token_t *parm, device_t *dev)
 {
 	unsigned char c;
 
@@ -239,12 +238,12 @@ static bool dkeyboard_gen(parm_link_s *parm, device_s *dev)
 		}
 	} else {
 		/* Parameter is integer - interpret is as ASCII value. */
-		if (parm_int(parm) > 255) {
+		if (parm_uint(parm) > 255) {
 			mprintf("Invalid key (must be within 0..255)\n");
 			return false;
 		}
 
-		c = parm_int(parm);
+		c = parm_uint(parm);
 	}
 
 	gen_key(dev, c);
@@ -256,7 +255,7 @@ static bool dkeyboard_gen(parm_link_s *parm, device_s *dev)
 /** Clean up the device
  *
  */
-static void keyboard_done(device_s *d)
+static void keyboard_done(device_t *d)
 {
 	safe_free(d->name);
 	safe_free(d->data);
@@ -269,7 +268,7 @@ static void keyboard_done(device_s *d)
  * deasserted.
  *
  */
-static void keyboard_read(cpu_t *cpu, device_s *dev, ptr_t addr, uint32_t *val)
+static void keyboard_read(cpu_t *cpu, device_t *dev, ptr_t addr, uint32_t *val)
 {
 	keyboard_data_s *kd = (keyboard_data_s *) dev->data;
 	
@@ -287,7 +286,7 @@ static void keyboard_read(cpu_t *cpu, device_s *dev, ptr_t addr, uint32_t *val)
 /** One step4 implementation
  *
  */
-static void keyboard_step4(device_s *dev)
+static void keyboard_step4(device_t *dev)
 {
 	char buf;
 	

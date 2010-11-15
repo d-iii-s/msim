@@ -13,39 +13,36 @@
 #include <string.h>
 #include <stdbool.h>
 #include <inttypes.h>
-
-#include "../main.h"
+#include "dcpu.h"
 #include "device.h"
+#include "../main.h"
 #include "../cpu/cpu.h"
 #include "../debug/debug.h"
 #include "../debug/breakpoint.h"
 #include "../io/output.h"
 #include "../utils.h"
 
-#include "dcpu.h"
-
-
 /*
  * Device structure initialization
  */
 
-static bool dcpu_init(parm_link_s *parm, device_s *dev);
-static bool dcpu_info(parm_link_s *parm, device_s *dev);
-static bool dcpu_stat(parm_link_s *parm, device_s *dev);
-static bool dcpu_cp0d(parm_link_s *parm, device_s *dev);
-static bool dcpu_tlbd(parm_link_s *parm, device_s *dev);
-static bool dcpu_md(parm_link_s *parm, device_s *dev);
-static bool dcpu_id(parm_link_s *parm, device_s *dev);
-static bool dcpu_rd(parm_link_s *parm, device_s *dev);
-static bool dcpu_goto(parm_link_s *parm, device_s *dev);
-static bool dcpu_break(parm_link_s *parm, device_s *dev);
-static bool dcpu_bd(parm_link_s *parm, device_s *dev);
-static bool dcpu_br(parm_link_s *parm, device_s *dev);
+static bool dcpu_init(token_t *parm, device_t *dev);
+static bool dcpu_info(token_t *parm, device_t *dev);
+static bool dcpu_stat(token_t *parm, device_t *dev);
+static bool dcpu_cp0d(token_t *parm, device_t *dev);
+static bool dcpu_tlbd(token_t *parm, device_t *dev);
+static bool dcpu_md(token_t *parm, device_t *dev);
+static bool dcpu_id(token_t *parm, device_t *dev);
+static bool dcpu_rd(token_t *parm, device_t *dev);
+static bool dcpu_goto(token_t *parm, device_t *dev);
+static bool dcpu_break(token_t *parm, device_t *dev);
+static bool dcpu_bd(token_t *parm, device_t *dev);
+static bool dcpu_br(token_t *parm, device_t *dev);
 
-cmd_s dcpu_cmds[] = {
+cmd_t dcpu_cmds[] = {
 	{
 		"init",
-		(cmd_f) dcpu_init,
+		(fcmd_t) dcpu_init,
 		DEFAULT,
 		DEFAULT,
 		"Initialization",
@@ -54,7 +51,7 @@ cmd_s dcpu_cmds[] = {
 	},
 	{
 		"help",
-		(cmd_f) dev_generic_help,
+		(fcmd_t) dev_generic_help,
 		DEFAULT,
 		DEFAULT,
 		"Display this help text",
@@ -63,7 +60,7 @@ cmd_s dcpu_cmds[] = {
 	},
 	{
 		"info",
-		(cmd_f) dcpu_info,
+		(fcmd_t) dcpu_info,
 		DEFAULT,
 		DEFAULT,
 		"Display configuration information",
@@ -72,7 +69,7 @@ cmd_s dcpu_cmds[] = {
 	},
 	{
 		"stat",
-		(cmd_f) dcpu_stat,
+		(fcmd_t) dcpu_stat,
 		DEFAULT,
 		DEFAULT,
 		"Display processor statistics",
@@ -81,7 +78,7 @@ cmd_s dcpu_cmds[] = {
 	},
 	{
 		"cp0d",
-		(cmd_f) dcpu_cp0d,
+		(fcmd_t) dcpu_cp0d,
 		DEFAULT,
 		DEFAULT,
 		"Dump contents of the coprocessor 0 register(s)",
@@ -90,7 +87,7 @@ cmd_s dcpu_cmds[] = {
 	},
 	{
 		"tlbd",
-		(cmd_f)dcpu_tlbd,
+		(fcmd_t)dcpu_tlbd,
 		DEFAULT,
 		DEFAULT,
 		"Dump content of TLB",
@@ -99,7 +96,7 @@ cmd_s dcpu_cmds[] = {
 	},
 	{
 		"md",
-		(cmd_f) dcpu_md,
+		(fcmd_t) dcpu_md,
 		DEFAULT,
 		DEFAULT,
 		"Dump specified TLB mapped memory block",
@@ -109,7 +106,7 @@ cmd_s dcpu_cmds[] = {
 	},
 	{
 		"id",
-		(cmd_f) dcpu_id,
+		(fcmd_t) dcpu_id,
 		DEFAULT,
 		DEFAULT,
 		"Dump instructions from specified TLB mapped memory",
@@ -119,7 +116,7 @@ cmd_s dcpu_cmds[] = {
 	},
 	{
 		"rd",
-		(cmd_f) dcpu_rd,
+		(fcmd_t) dcpu_rd,
 		DEFAULT,
 		DEFAULT,
 		"Dump contents of CPU general registers",
@@ -128,7 +125,7 @@ cmd_s dcpu_cmds[] = {
 	},
 	{
 		"goto",
-		(cmd_f) dcpu_goto,
+		(fcmd_t) dcpu_goto,
 		DEFAULT,
 		DEFAULT,
 		"Go to address",
@@ -137,7 +134,7 @@ cmd_s dcpu_cmds[] = {
 	},
 	{
 		"break",
-		(cmd_f) dcpu_break,
+		(fcmd_t) dcpu_break,
 		DEFAULT,
 		DEFAULT,
 		"Add code breakpoint",
@@ -146,7 +143,7 @@ cmd_s dcpu_cmds[] = {
 	},
 	{
 		"bd",
-		(cmd_f) dcpu_bd,
+		(fcmd_t) dcpu_bd,
 		DEFAULT,
 		DEFAULT,
 		"Dump code breakpoints",
@@ -155,7 +152,7 @@ cmd_s dcpu_cmds[] = {
 	},
 	{
 		"br",
-		(cmd_f) dcpu_br,
+		(fcmd_t) dcpu_br,
 		DEFAULT,
 		DEFAULT,
 		"Remove code breakpoint",
@@ -167,8 +164,8 @@ cmd_s dcpu_cmds[] = {
 
 const char id_dcpu[] = "dcpu";
 
-static void dcpu_done(device_s *dev);
-static void dcpu_step(device_s *dev);
+static void dcpu_done(device_t *dev);
+static void dcpu_step(device_t *dev);
 
 device_type_s dcpu = {
 	/* Type name */
@@ -202,7 +199,7 @@ static unsigned int dcpu_get_free_id(void)
 {
 	unsigned int c;
 	unsigned int id_mask = 0;
-	device_s *dev = NULL;
+	device_t *dev = NULL;
 
 	while (dev_next(&dev, DEVICE_FILTER_PROCESSOR))
 		id_mask |= 1 << ((cpu_t *) dev->data)->procno;
@@ -220,7 +217,7 @@ static unsigned int dcpu_get_free_id(void)
 /** Initialization
  *
  */
-static bool dcpu_init(parm_link_s *parm, device_s *dev)
+static bool dcpu_init(token_t *parm, device_t *dev)
 {
 	unsigned int id = dcpu_get_free_id();
 	
@@ -241,7 +238,7 @@ static bool dcpu_init(parm_link_s *parm, device_s *dev)
 /** Info command implementation
  *
  */
-static bool dcpu_info(parm_link_s *parm, device_s *dev)
+static bool dcpu_info(token_t *parm, device_t *dev)
 {
 	mprintf("type:R4000.32\n");
 	return true;
@@ -251,7 +248,7 @@ static bool dcpu_info(parm_link_s *parm, device_s *dev)
 /** Stat command implementation
  *
  */
-static bool dcpu_stat(parm_link_s *parm, device_s *dev)
+static bool dcpu_stat(token_t *parm, device_t *dev)
 {
 	cpu_t *cpu = (cpu_t *) dev->data;
 	
@@ -284,56 +281,46 @@ static bool dcpu_stat(parm_link_s *parm, device_s *dev)
 	return true;
 }
 
-
 /** Cp0d command implementation
  *
  */
-static bool dcpu_cp0d(parm_link_s *parm, device_s *dev)
+static bool dcpu_cp0d(token_t *parm, device_t *dev)
 {
-	int no = -1;
-	
-	if (parm->token.ttype == tt_int) {
-		no = parm->token.tval.i;
-		if ((no < 0) || (no > 31)) {
-			mprintf("Out of range (0..31)");
-			return false;
-		}
+	uint32_t no = parm_uint(parm);
+	if (no > 31) {
+		mprintf("Out of range (0..31)");
+		return false;
 	}
 	
 	cp0_dump((cpu_t *) dev->data, no);
-	
 	return true;
 }
-
 
 /** Tlbd command implementation
  *
  */
-static bool dcpu_tlbd(parm_link_s *parm, device_s *dev)
+static bool dcpu_tlbd(token_t *parm, device_t *dev)
 {
 	tlb_dump((cpu_t *) dev->data);
 	
 	return true;
 }
 
-
 /** Md command implementation
  *
  */
-static bool dcpu_md(parm_link_s *parm, device_s *dev)
+static bool dcpu_md(token_t *parm, device_t *dev)
 {
-	int j;
-	uint32_t val, addr, siz;
-	exc_t res;
+	ptr_t addr = parm_next_uint(&parm) & ~0x03;
+	len_t size = parm_uint(parm);
+	size_t pos;
 	
-	addr = parm->token.tval.i & ~0x3;
-	siz = parm->next->token.tval.i;
-	
-	for (j = 0; siz; siz--, addr+=4, j++) {
-		if (!(j & 0x3))
+	for (pos = 0; size; size--, addr += 4, pos++) {
+		if (!(pos & 0x3))
 			mprintf("  %#10" PRIx32 "    ", addr);
 		
-		res = cpu_read_mem((cpu_t *) dev->data, addr, 4, &val, false);
+		uint32_t val;
+		exc_t res = cpu_read_mem((cpu_t *) dev->data, addr, 4, &val, false);
 		mprintf("res: %d\n", res);
 		
 		if (res == excNone)
@@ -341,34 +328,31 @@ static bool dcpu_md(parm_link_s *parm, device_s *dev)
 		else
 			mprintf("xxxxxxxx ");
 		
-		if ((j & 0x3) == 3)
+		if ((pos & 0x3) == 3)
 			mprintf("\n");
 	}
-
-	if (j)  
+	
+	if (pos != 0)
 		mprintf("\n");
-
+	
 	return true;
 }
-
 
 /** Id command implementation
  *
  */
-static bool dcpu_id(parm_link_s *parm, device_s *dev)
+static bool dcpu_id(token_t *parm, device_t *dev)
 {
-	exc_t res;
+	ptr_t addr = parm_next_uint(&parm) & ~0x03;
+	len_t size = parm_uint(parm);
 	instr_info_t ii;
-	uint32_t addr, siz;
 	
-	addr = parm->token.tval.i & ~0x3;
-	siz = parm->next->token.tval.i;
 	ii.rt = 0;
 	ii.rd = 0;
 	ii.rs = 0;
 	
-	for (; siz; siz--, addr += 4) {
-		res = cpu_read_ins((cpu_t *) dev->data, addr, &ii.icode, false);
+	for (; size; size--, addr += 4) {
+		exc_t res = cpu_read_ins((cpu_t *) dev->data, addr, &ii.icode, false);
 		
 		if (res != excNone) {
 			ii.icode = 0;
@@ -378,41 +362,38 @@ static bool dcpu_id(parm_link_s *parm, device_s *dev)
 		
 		iview((cpu_t *) dev->data, addr, &ii, 0);
 	}
-
+	
 	return true;
 }
-
 
 /** Rd command implementation
  *
  */
-static bool dcpu_rd(parm_link_s *parm, device_s *dev)
+static bool dcpu_rd(token_t *parm, device_t *dev)
 {
 	reg_view((cpu_t *) dev->data);
 	
 	return true;
 }
 
-
 /** Goto command implementation
  *
  */
-static bool dcpu_goto(parm_link_s *parm, device_s *dev)
+static bool dcpu_goto(token_t *parm, device_t *dev)
 {
 	cpu_t *cpu = (cpu_t *) dev->data;
-	ptr_t addr = parm->token.tval.i;
+	ptr_t addr = parm_uint(parm);
 	
 	cpu_set_pc(cpu, addr);
 	return true;
 }
 
-
 /** Break command implementation
  *
  */
-static bool dcpu_break(parm_link_s *parm, device_s *dev)
+static bool dcpu_break(token_t *parm, device_t *dev)
 {
-	breakpoint_t *bp = breakpoint_init(parm->token.tval.i,
+	breakpoint_t *bp = breakpoint_init(parm_uint(parm),
 	    BREAKPOINT_KIND_SIMULATOR);
 	cpu_t *cpu = (cpu_t *) dev->data;
 	
@@ -420,11 +401,10 @@ static bool dcpu_break(parm_link_s *parm, device_s *dev)
 	return true;
 }
 
-
 /** Bd command implementation
  *
  */
-static bool dcpu_bd(parm_link_s *parm, device_s *dev)
+static bool dcpu_bd(token_t *parm, device_t *dev)
 {
 	cpu_t *cpu = (cpu_t *) dev->data;
 	breakpoint_t *bp;
@@ -447,10 +427,10 @@ static bool dcpu_bd(parm_link_s *parm, device_s *dev)
 /** Br command implementation
  *
  */
-static bool dcpu_br(parm_link_s *parm, device_s *dev)
+static bool dcpu_br(token_t *parm, device_t *dev)
 {
 	cpu_t *cpu = (cpu_t *) dev->data;
-	ptr_t addr = parm->token.tval.i;
+	ptr_t addr = parm_uint(parm);
 	
 	bool fnd = false;
 	breakpoint_t *bp;
@@ -473,7 +453,7 @@ static bool dcpu_br(parm_link_s *parm, device_s *dev)
 /** Done
  *
  */
-static void dcpu_done(device_s *dev)
+static void dcpu_done(device_t *dev)
 {
 	safe_free(dev->name);
 	safe_free(dev->data);
@@ -483,14 +463,14 @@ static void dcpu_done(device_s *dev)
 /** Execute one processor step
  *
  */
-static void dcpu_step(device_s *dev)
+static void dcpu_step(device_t *dev)
 {
 	cpu_step((cpu_t *) dev->data);
 }
 
 cpu_t *dcpu_find_no(unsigned int no)
 {
-	device_s *dev = NULL;
+	device_t *dev = NULL;
 	
 	while (dev_next(&dev, DEVICE_FILTER_PROCESSOR)) {
 		cpu_t* cpu = (cpu_t *) dev->data;

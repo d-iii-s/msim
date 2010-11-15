@@ -10,29 +10,25 @@
  *
  */
 
-
 #include <stdlib.h>
 #include <stdio.h>
 #include <fcntl.h>
 #include <unistd.h>
 #include <getopt.h>
 #include <string.h>
-
-#include "text.h"
-#include "mtypes.h"
-#include "device/device.h"
 #include "cpu/cpu.h"
+#include "debug/gdb.h"
+#include "device/device.h"
 #include "device/machine.h"
+#include "io/output.h"
+#include "text.h"
 #include "parser.h"
 #include "endi.h"
 #include "cmd.h"
-#include "io/output.h"
-#include "debug/gdb.h"
 #include "fault.h"
 #include "utils.h"
 
-
-/**< Command line options */
+/** Command line options */
 static struct option long_options[] = {
 	{
 		"trace",
@@ -72,7 +68,6 @@ static struct option long_options[] = {
 	},
 	{ NULL, 0, NULL, 0 }
 };
-
 
 static void conf_remote_gdb(const char *opt)
 {

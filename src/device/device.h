@@ -14,7 +14,6 @@
 
 #include <stdint.h>
 
-#include "../mtypes.h"
 #include "../parser.h"
 #include "../cpu/cpu.h"
 
@@ -53,7 +52,7 @@ typedef struct {
 	 *
 	 * @see device_cmd_struct
 	 */
-	const cmd_s *const cmds;
+	const cmd_t *const cmds;
 } device_type_s;
 
 /** Structure describing a device instance.
@@ -65,7 +64,7 @@ typedef struct device {
 	const device_type_s *type;  /**< Pointer to the device type description. */
 	char *name;                 /**< Device name given by the user. Must be unique. */
 	void *data;                 /**< Device specific pointer where internal data are stored. */
-} device_s;
+} device_t;
 
 typedef enum {
 	DEVICE_FILTER_ALL,
@@ -87,29 +86,31 @@ extern void dev_init_framework(void);
 /*
  * Functions on device structures
  */
-extern device_s *alloc_device(const char *type_string,
+extern device_t *alloc_device(const char *type_string,
     const char *device_name);
-extern device_s *dev_by_name(const char *s);
+extern void free_device(device_t *dev);
+extern void add_device(device_t *dev);
+extern device_t *dev_by_name(const char *s);
 extern const char *dev_type_by_partial_name(const char *prefix_name,
     uint32_t* device_order);
 extern const char *dev_by_partial_name(const char *prefix_name,
-    device_s **device);
+    device_t **device);
 extern size_t dev_count_by_partial_name(const char *prefix_name,
-    device_s **device);
-extern device_s *dev_by_name(const char *s);
-extern bool dev_next(device_s **device, device_filter_t filter);
+    device_t **device);
+extern device_t *dev_by_name(const char *s);
+extern bool dev_next(device_t **device, device_filter_t filter);
 
 /*
  * Link/unlink device functions
  */
-extern void dev_add(device_s *d);
-extern void dev_remove(device_s *d);
+extern void dev_add(device_t *d);
+extern void dev_remove(device_t *d);
 
 /*
  * General utils
  */
-extern bool dev_generic_help(parm_link_s *parm, device_s *dev);
-extern void dev_find_generator(parm_link_s **pl, const device_s *d,
-    gen_f *generator, const void **data);
+extern bool dev_generic_help(token_t *parm, device_t *dev);
+extern gen_t dev_find_generator(token_t **parm, const device_t *dev,
+    const void **data);
 
 #endif

@@ -39,7 +39,8 @@ void item_init(item_t *item)
  */
 void list_append(list_t *list, item_t *item)
 {
-	/* Make sure the item is not a member of a list, then add it. */
+	/* Make sure the item is not a member
+	   of a list, then add it. */
 	PRE(item->list == NULL);
 	item->list = list;
 	
@@ -67,7 +68,8 @@ void list_append(list_t *list, item_t *item)
  */
 void list_remove(list_t *list, item_t *item)
 {
-	/* Make sure the item is a member of the list, then remove it. */
+	/* Make sure the item is a member
+	   of the list, then remove it. */
 	PRE(item->list == list);
 	item->list = NULL;
 	
@@ -85,4 +87,21 @@ void list_remove(list_t *list, item_t *item)
 		list->tail = item->prev;
 	else
 		item->next->prev = item->prev;
+}
+
+void list_insert_after(item_t *anchor, item_t *item)
+{
+	PRE(item->list != NULL);
+	PRE(item->list == NULL);
+	
+	if (anchor->list->tail == anchor)
+		/* If the anchor item is the last item,
+		   use the usual append */
+		list_append(anchor->list, item);
+	else {
+		item->list = anchor->list;
+		item->prev = anchor;
+		item->next = anchor->next;
+		anchor->next = item;
+	}
 }

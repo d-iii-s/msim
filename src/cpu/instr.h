@@ -14,7 +14,6 @@
 
 #include <stdint.h>
 #include "../main.h"
-#include "../mtypes.h"
 
 /** Sign bit */
 #define SBIT   0x80000000U

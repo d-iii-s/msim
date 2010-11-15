@@ -15,7 +15,6 @@
 
 #include <stdbool.h>
 
-#include "../mtypes.h"
 #include "../list.h"
 
 /** gdb signal numbers */

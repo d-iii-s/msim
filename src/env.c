@@ -12,16 +12,12 @@
 #include <stdlib.h>
 #include <string.h>
 #include <stdbool.h>
-
-#include "env.h"
-
-#include "mtypes.h"
-#include "parser.h"
 #include "io/output.h"
 #include "cpu/instr.h"
+#include "parser.h"
 #include "check.h"
 #include "utils.h"
-
+#include "env.h"
 
 /*
  * Instruction disassembling
@@ -29,22 +25,20 @@
 bool iaddr = true;
 bool iopc = false;
 bool icmt = true;
-bool iregch	= true;
-int ireg = 2;
+bool iregch = true;
+unsigned int ireg = 2;
 
 /*
  * Debugging
  */
 bool totrace = false;
 
-
 char **regname;
-
 
 /*
  * Boolean constants
  */
-const char *t_bool[] = {
+static const char *t_bool[] = {
 	"on",
 	"true",
 	"yes",
@@ -54,7 +48,7 @@ const char *t_bool[] = {
 	NULL
 };
 
-const char *t_true_all[] = {
+static const char *t_true_all[] = {
 	"on",
 	"t",
 	"tr",
@@ -66,7 +60,7 @@ const char *t_true_all[] = {
 	NULL
 };
 
-const char *t_false_all[] = {
+static const char *t_false_all[] = {
 	"off",
 	"f",
 	"fa",
@@ -78,140 +72,57 @@ const char *t_false_all[] = {
 	NULL
 };
 
-
-/*
- * The set_struct structure contains a description of simulator environment
- * variables.
+/** Description of simulator environment variables.
  *
- * name	Is the name of a variable as it is visible to the user.
- * desc	Is a short description text. It is displayed as the help text to
- * 	the variable.
- * descf Is a full description of the variable. Displayed when user asks
- * 	for help about that variable.
- * type	A variable type - bool, int, str etc.
- * val	A pointer where to store the value
- * func	A function which is called to change a variable
+ * name  The name of a variable as it is visible to the user.
+ * desc  Short description text. It is displayed as the help text to
+ *       the variable.
+ * descf Full description of the variable. Displayed when user asks
+ *       for help about that variable.
+ * type  Variable type - bool, int, str, etc.
+ * val   Pointer where to store the value.
+ * func  Function which is called to change a variable
  *
  * name == NULL means no other variables
  * name != NULL && val == NULL means this is not a real variable but
- * 	a separator which is used to display a more user-friendly help
- * 	output
+ *              a separator which is used to display a more user-friendly
+ *              help output
  * func != NULL means that a func function have to be called instead direct
- * 	write to the variable
+ *              write to the variable
  */
 typedef struct {
-	const char *const name;  /* name of the variable */
-	const char *const desc;  /* brief textual description */
-	const char *const descf; /* full textual description */
-	var_type_e type;         /* variable type */
-	void *val;               /* where to store a value */
-	void *const func;        /* function to be called */
-} set_t;
+	const char *const name;  /**< Name of the variable */
+	const char *const desc;  /**< Brief textual description */
+	const char *const descf; /**< Full textual description */
+	var_type_t type;         /**< Variable type */
+	void *val;               /**< Where to store a value */
+	void *const func;        /**< Function to be called */
+} env_t;
 
-#define LAST_ENV { NULL, NULL, NULL, vt_int, NULL, NULL }
+#define LAST_ENV \
+	{ \
+		NULL, \
+		NULL, \
+		NULL, \
+		vt_uint, \
+		NULL, \
+		NULL \
+	}
 
+static const env_t *last_env;
+static const char **last_bool;
+static const env_t *last_benv;
 
-typedef bool (*set_int_f)(int);
-typedef bool (*set_bool_f)(bool);
-typedef bool (*set_str_f)(const char *);
-
-
-static bool change_ireg(int i);
-
-
-/*
- * Description of variables
- */
-const set_t env_set[] =	{
-	{
-		"disassembling",
-		"Disassembling features",
-		NULL,
-		vt_int,
-		NULL,
-		NULL
-	},
-	{
-		"iaddr",
-		"Set whether to display instruction addresses",
-		"The iaddr variable sets displaying address of each disassembled "
-			"instruction. This feature is useful especially together with the trace "
-			"variable.",
-		vt_bool,
-		&iaddr,
-		NULL
-	},
-	{
-		"iopc",
-		"Set when instruction opcodes should be displayed",
-		"Set this variable to show instruction opcodes. Althrow an instruction "
-			"opcode is not a human friendly representation, there exists"
-			"reasons when the opcode knowledge may help (debugging random write "
-			"accesses for example).",
-		vt_bool,
-		&iopc,
-		NULL
-	},
-	{
-		"icmt",
-		"Allow comments for instructions",
-		"Set this variable to show information about the disassembled instruction. "
-			"Currenty this is the hex to decimal parameter conversion.",
-		vt_bool,
-		&icmt,
-		NULL
-	},
-	{
-		"iregch",
-		"Set whether to display register changes",
-		"This is a debugging feature - registers which has been modified during "
-			"instruction execution are displayed together with a previous and a new "
-			"value.",
-		vt_bool,
-		&iregch,
-		NULL
-	},
-	{
-		"ireg",
-		"Set register name mode",
-		"There are several modes how register names could be displayed. The first one "
-			"is technical - every register name consist of the 'r' prefix following "
-			"the register number (example - r0, r12, r22, etc.). The second one "
-			"is very similar, the prefix is a '$' mark which is used by the AT&T "
-			"assembler. Finally there is a textual naming convention based on "
-			"a register usage (at, t4, s2, etc.).",
-		vt_int,
-		&ireg,
-		change_ireg
-	},
-	
-	{
-		"debugging",
-		"Debugging features",
-		NULL,
-		vt_int,
-		NULL,
-		NULL
-	},
-	{
-		"trace",
-		"Set disassembling of instructions as they are executed",
-		"Via the trace variable you may choose whether all instructions should "
-			"be disassembled as they are executed.",
-		vt_bool,
-		&totrace,
-		NULL
-	},
-	LAST_ENV
-};
-
+typedef bool (*set_uint_t)(unsigned int);
+typedef bool (*set_bool_t)(bool);
+typedef bool (*set_str_t)(const char *);
 
 /** Change the ireg variable
  *
  * @return true if successful
  *
  */
-static bool change_ireg(int i)
+static bool change_ireg(unsigned int i)
 {
 	if (i > 2) {
 		mprintf("Index out of range 0..2\n");
@@ -224,146 +135,224 @@ static bool change_ireg(int i)
 	return true;
 }
 
+/*
+ * Description of variables
+ */
+const env_t global_env[] = {
+	{
+		"disassembling",
+		"Disassembling features",
+		NULL,
+		vt_uint,
+		NULL,
+		NULL
+	},
+	{
+		"iaddr",
+		"Display instruction addresses",
+		"Display address of each disassembled "
+		    "instruction. This feature is useful "
+		    "especially in conjuction with the trace "
+		    "variable.",
+		vt_bool,
+		&iaddr,
+		NULL
+	},
+	{
+		"iopc",
+		"Display instruction opcodes",
+		"Display instruction opcodes in hexa. Althrow an instruction "
+		    "opcode is not a human friendly representation, there are "
+		    "cases when the opcode can help, for example with debugging "
+		    "random writes.",
+		vt_bool,
+		&iopc,
+		NULL
+	},
+	{
+		"icmt",
+		"Display instruction comments",
+		"Display additional information about the disassembled "
+		    "instructions, e.g. hexa to decimal parameter conversion.",
+		vt_bool,
+		&icmt,
+		NULL
+	},
+	{
+		"iregch",
+		"Display register changes",
+		"Show registers which has been modified during instruction "
+		    "execution together with the previous and the new "
+		    "value.",
+		vt_bool,
+		&iregch,
+		NULL
+	},
+	{
+		"ireg",
+		"Register name mode",
+		"Mode 0 (technical): r0, r12, r22, etc.\n"
+		   "Mode 1 (at&t): $0, $12, $22, etc.\n"
+		   "Mode 2 (textual): at, t4, s2, etc.",
+		vt_uint,
+		&ireg,
+		change_ireg
+	},
+	
+	{
+		"debugging",
+		"Debugging features",
+		NULL,
+		vt_uint,
+		NULL,
+		NULL
+	},
+	{
+		"trace",
+		"Disassemble instructions as they are executed",
+		"Disassemble and display instructions as they are executed.",
+		vt_bool,
+		&totrace,
+		NULL
+	},
+	LAST_ENV
+};
 
 /** Print all variables and its states
  *
  */
 static void print_all_variables(void)
 {
-	const set_t *s = env_set;
+	mprintf("[Group               ] [Variable] [Value   ]\n");
 	
-	mprintf("Group                  Variable   Value\n");
-	mprintf("---------------------- ---------- ----------\n");
-	
-	while (s->name) {
-		if (s->val) {
+	const env_t *env;
+	for (env = global_env; env->name; env++) {
+		if (env->val) {
 			/* Variable */
-			mprintf("                       %-10s ", s->name);
-			switch (s->type) {
-			case vt_int:
-				mprintf("%d", *(int *) s->val);
+			mprintf("                       %-10s ", env->name);
+			switch (env->type) {
+			case vt_uint:
+				mprintf("%u", *(unsigned int *) env->val);
 				break;
 			case vt_str:
-				mprintf("%s", *(const char *) s->val);
+				mprintf("%s", *(const char *) env->val);
 				break;
 			case vt_bool:
-				mprintf("%s", *(bool *) s->val ? "on" : "off");
+				mprintf("%s", *(bool *) env->val ? "on" : "off");
 				break;
 			}
 		} else {
 			/* Label */
-			mprintf("%s", s->desc);
+			mprintf("%s", env->desc);
 		}
 		mprintf("\n");
-
-		s++;
 	}
 }
-
 
 /** Check whether the variable exists
  *
  */
-bool env_check_varname(const char *name, var_type_e *type)
+bool env_check_varname(const char *name, var_type_t *type)
 {
-	const set_t *s;
-	bool ret = false;
-
 	if (!name)
 		name = "";
-
-	for (s = env_set; s->name; s++)
-		if ((s->val) && (!strcmp(name, s->name))) {
+	
+	bool ret = false;
+	const env_t *env;
+	
+	for (env = global_env; env->name; env++) {
+		if ((env->val) && (!strcmp(name, env->name))) {
 			ret = true;
 			if (type)
-				*type = s->type;
+				*type = env->type;
 			break;
 		}
-		
+	}
+	
 	return ret;
 }
 
-
-/** Check whether the variable is boolean
+/** Check whether the variable of a given type
  *
  */
-bool env_bool_type(const char *name)
+bool env_check_type(const char *name, var_type_t type)
 {
-	const set_t *s;
-	bool ret = false;
-
 	if (!name)
 		name = "";
-
-	for (s = env_set; s->name; s++)
-		if ((s->val) && (!strcmp(name, s->name))) {
-			ret = (s->type == vt_bool);
+	
+	bool ret = false;
+	const env_t *env;
+	
+	for (env = global_env; env->name; env++) {
+		if ((env->val) && (!strcmp(name, env->name))) {
+			ret = (env->type == type);
 			break;
 		}
-		
+	}
+	
 	return ret;
 }
 
-
-int env_cnt_partial_varname(const char *name)
+unsigned int env_cnt_partial_varname(const char *name)
 {
-	const set_t *s;
-	int cnt = 0;
-
 	if (!name)
 		name = "";
-
-	for (s = env_set; s->name; s++)
-		if ((s->val) && (prefix(name, s->name)))
+	
+	const env_t *env;
+	unsigned int cnt = 0;
+	
+	for (env = global_env; env->name; env++) {
+		if ((env->val) && (prefix(name, env->name)))
 			cnt++;
-		
+	}
+	
 	return cnt;
 }
 
-
-static bool env_by_partial_varname(const char *name, const set_t **sx)
+static bool env_by_partial_varname(const char *name, const env_t **envp)
 {
-	const set_t *s = (sx && *sx) ? *sx + 1 : env_set;
-
 	if (!name)
 		name = "";
-
-	for (; s->name; s++)
-		if ((s->val) && (prefix(name, s->name)))
+	
+	const env_t *env = ((envp) && (*envp)) ? (*envp + 1) : global_env;
+	
+	for (; env->name; env++) {
+		if ((env->val) && (prefix(name, env->name)))
 			break;
-		
-	if ((s->name) && (sx))
-		*sx = s;
-
-	return (!!s->name);
+	}
+	
+	if ((env->name) && (envp))
+		*envp = env;
+	
+	return (!!env->name);
 }
-
 
 /** Search for the variable description
  *
- * SE: Also prints an error message when
+ * SE: Also print an error message when
  * the variable name was not found.
  *
- * @param var_name The variable name
+ * @param var_name The variable name.
+ *
  * @return Variable descripion
  *
  */
-static const set_t *search_variable(const char *var_name)
+static const env_t *search_variable(const char *name)
 {
-	const set_t *s;
+	const env_t *env;
 	
-	for (s = env_set; s->name; s++)
-		if ((s->val) && (!strcmp(var_name, s->name)))
+	for (env = global_env; env->name; env++) {
+		if ((env->val) && (!strcmp(name, env->name)))
 			break;
+	}
 	
-	if (!s->name) {
-		mprintf("Unknown variable \"%s\"\n", var_name);
+	if (!env->name) {
+		mprintf("Unknown variable \"%s\"\n", name);
 		return NULL;
 	}
-
-	return s;
+	
+	return env;
 }
-
 
 /** Print help text about variables
  *
@@ -373,286 +362,288 @@ static const set_t *search_variable(const char *var_name)
  *
  * @param parm Parameter points to the token following the "help" token.
  */
-static void show_help(parm_link_s *parm)
+static void show_help(token_t *parm)
 {
-	const set_t *s;
+	const env_t *env;
 	
 	if (parm_type(parm) == tt_end) {
-		mprintf("Group                  Variable   Description\n");
-		mprintf("---------------------- ---------- ------------->\n");
-		for (s = env_set; s->name; s++) {
-			if (s->val)
+		mprintf("[Group               ] [Variable] [Description\n");
+		for (env = global_env; env->name; env++) {
+			if (env->val)
 				/* Variable */
-				mprintf("                       %-10s %s", s->name, s->desc);
+				mprintf("                       %-10s %s", env->name,
+				    env->desc);
 			else
 				/* Label */
-				mprintf("%s", s->desc);
+				mprintf("%s", env->desc);
 			mprintf("\n");
 		}
 	} else {
-		s = search_variable(parm_str(parm->next));
-		if (s)
-			mprintf("%s\n", s->descf);
+		env = search_variable(parm_next_str(&parm));
+		if (env)
+			mprintf("%s\n", env->descf);
 	}
 }
-
 
 /** Set an integer variable
  *
  */
-static bool set_int(const set_t *s, parm_link_s *parm)
+static bool set_uint(const env_t *env, token_t *parm)
 {
-	if (s->func)
-		((set_int_f) s->func)(parm_int(parm));
+	if (env->func)
+		((set_uint_t) env->func)(parm_uint(parm));
 	else
-		*(uint32_t *) s->val = parm_int(parm);
+		*((unsigned int *) env->val) = parm_uint(parm);
 		
 	return true;
 }
-
 
 /** Set a boolean variable
  *
  */
-static bool set_bool(const set_t *s, parm_link_s *parm)
+static bool set_bool(const env_t *env, token_t *parm)
 {
-	parm->token.tval.i = !!parm_int(parm);
+	bool val = !!parm_uint(parm);
 	
-	if (s->func)
-		((set_bool_f) s->func)(parm_int(parm));
+	if (env->func)
+		((set_bool_t) env->func)(val);
 	else
-		*(bool *) s->val = !!parm_int(parm);
-		
+		*((bool *) env->val) = val;
+	
 	return true;
 }
-
 
 /** Set a string variable
  *
  */
-static bool set_str(const set_t *s, parm_link_s *parm)
+static bool set_str(const env_t *env, token_t *parm)
 {
-	if (s->func)
-		((set_str_f) s->func)(parm_str(parm));
+	if (env->func)
+		((set_str_t) env->func)(parm_str(parm));
 	else {
-		char *sx = safe_strdup(parm_str(parm));
-		if (!sx) {
-			mprintf("Not enough memory\n");
-			return false;
-		}
-		free(s->val);
-		*(char **) s->val = sx;
+		free(env->val);
+		*((char **) env->val) = safe_strdup(parm_str(parm));
 	}
-		
+	
 	return true;
 }
-
 
 /** Convert a boolean string to integer
  *
  */
-static bool bool_sanitize(parm_link_s *parm)
+static bool bool_sanitize(token_t *parm)
 {
-	const char **s;
-
+	const char **str;
+	
 	if (parm_type(parm) == tt_str) {
 		/* Test for true */
-		for (s = t_true_all; *s; s++)
-			if (!strcmp(parm_str(parm), *s))
+		for (str = t_true_all; *str; str++)
+			if (!strcmp(parm_str(parm), *str))
 				break;
 		
-		if (*s) {
-			parm_change_int(parm, 1);
+		if (*str) {
+			parm_set_uint(parm, 1);
 			return true;
 		}
-
+		
 		/* Test for false */
-		for (s = t_false_all; *s; s++)
-			if (!strcmp(parm_str(parm), *s))
+		for (str = t_false_all; *str; str++)
+			if (!strcmp(parm_str(parm), *str))
 				break;
 		
-		if (*s) {
-			parm_change_int(parm, 0);
+		if (*str) {
+			parm_set_uint(parm, 0);
 			return true;
 		}
 	}
-
+	
 	return false;
 }
-
 
 /** Set variable
  *
  */
-static bool set_variable(parm_link_s *parm)
+static bool set_variable(token_t *parm)
 {
-	const set_t *s = search_variable(parm_str(parm));
+	const env_t *env = search_variable(parm_str(parm));
 	
-	if (!s)
+	if (!env)
 		return false;
-
+	
+	/* Skip '=' constant */
 	parm_next(&parm);
-	parm_next(&parm);
-
-	switch (s->type) {
-	case vt_int:
-		return set_int(s, parm);
+	
+	switch (env->type) {
+	case vt_uint:
+		return set_uint(env, parm);
 	case vt_bool:
 		if (!bool_sanitize(parm)) {
 			mprintf("Boolean parameter expected\n");
 			return false;
 		}
-		return set_bool(s, parm);
+		return set_bool(env, parm);
 	case vt_str:
-		return set_str(s, parm);
+		return set_str(env, parm);
 	default:
 		return false;
 	}
 }
 
-
 /** Decode and set or unset a boolean variable
  *
  */
-static bool set_bool_variable(bool su, parm_link_s *parm)
+static bool set_bool_variable(const char *name, bool val)
 {
-	parm_link_s p = {
-		{
-			tt_int,
-			{su}
-		},
-		NULL
-	};
+	const env_t *env = search_variable(name);
 	
-	const set_t *s = search_variable(parm_str(parm));
-
-	return (s ? set_bool(s, &p) : false);
+	if (env) {
+		token_t *token = safe_malloc_t(token_t);
+		parm_init(token);
+		parm_set_uint(token, val);
+		
+		bool ret = set_bool(env, token);
+		
+		safe_free(token);
+		return ret;
+	}
+	
+	return false;
 }
-
 
 /** Set command implementation
  *
  */
-bool env_cmd_set(parm_link_s *pl)
+bool env_cmd_set(token_t *parm)
 {
-	if (parm_type(pl) == tt_end) {
+	if (parm_type(parm) == tt_end) {
 		/* Show all variables */
 		print_all_variables();
 		return true;
 	}
-
-	if (!strcmp(parm_str(pl), "help")) {
-		/* Set help */
-		show_help(pl->next);
+	
+	const char *name = parm_str(parm);
+	parm_next(&parm);
+	
+	if (!strcmp(name, "help")) {
+		/* Show help */
+		show_help(parm);
 		return true;
 	}
-		
+	
 	/* Implicit boolean? */
-	if (parm_type(pl->next) == tt_end)
-		return set_bool_variable(true, pl);
-
+	if (parm_type(parm) == tt_end)
+		return set_bool_variable(name, true);
+	
 	/* Set the variable */
-	return set_variable(pl);
+	return set_variable(parm);
 }
-
 
 /** Unset command implementation
  *
  */
-bool env_cmd_unset(parm_link_s *pl)
+bool env_cmd_unset(token_t *parm)
 {
-	return set_bool_variable(false, pl);
+	const char *name = parm_str(parm);
+	return set_bool_variable(name, false);
 }
-
 
 /** Generate a list of environment variables
  *
  * For TAB completion.
  *
  */
-char *generator_env_name(parm_link_s *pl, const void *data, int level)
+char *generator_env_name(token_t *parm, const void *data, unsigned int level)
 {
-	bool b;
-	static const set_t *d;
-
-	PRE(pl != NULL);
-	PRE((parm_type(pl) == tt_str) || (parm_type(pl) == tt_end));
+	PRE(parm != NULL);
+	PRE((parm_type(parm) == tt_str) || (parm_type(parm) == tt_end));
 	
 	/* Iterator initialization */
 	if (level == 0)
-		d = NULL;
+		last_env = NULL;
+	
+	const char *name =
+	    (parm_type(parm) == tt_str) ? parm_str(parm) : "";
 	
 	/* Find next suitable entry */
-	b = env_by_partial_varname((parm_type(pl) == tt_str)
-		? parm_str(pl) : "", &d);
+	bool fnd = env_by_partial_varname(name, &last_env);
 	
-	return (b ? safe_strdup(d->name) : NULL);
+	if (fnd)
+		return safe_strdup(last_env->name);
+	
+	return NULL;
 }
-
 
 /** Generate a list of boolean constants
  *
  * For TAB competion.
  *
  */
-char *generator_env_booltype(parm_link_s *pl, const void *data, int level)
+char *generator_env_booltype(token_t *parm, const void *data,
+    unsigned int level)
 {
-	static const char **d;
-
-	PRE(pl != NULL);
-	PRE((parm_type(pl) == tt_str) || (parm_type(pl) == tt_end));
+	PRE(parm != NULL);
+	PRE((parm_type(parm) == tt_str) || (parm_type(parm) == tt_end));
 	
 	/* Iterator initialization */
 	if (level == 0)
-		d = t_bool;
+		last_bool = t_bool;
 	else
-		d++;
-
+		last_bool++;
+	
 	/* Find next suitable entry */
-	while (*d) {
-		if (prefix(parm_str(pl), *d))
+	while (*last_bool) {
+		if (prefix(parm_str(parm), *last_bool))
 			break;
-		d++;
+		last_bool++;
 	}
-
-	return (*d ? safe_strdup(*d) : NULL);
+	
+	if (*last_bool)
+		return safe_strdup(*last_bool);
+	
+	return NULL;
 }
-
 
 /** Generate a list of boolean environment variables
  *
  * For TAB competion.
  *
  */
-char *generator_bool_envname(parm_link_s *pl, const void *data, int level)
+char *generator_bool_envname(token_t *parm, const void *data,
+    unsigned int level)
 {
-	bool b;
-	static const set_t *d;
-
-	PRE(pl != NULL);
-	PRE((parm_type(pl) == tt_str) || parm_type( pl) == tt_end);
+	PRE(parm != NULL);
+	PRE((parm_type(parm) == tt_str) || parm_type(parm) == tt_end);
 	
 	/* Iterator initialization */
 	if (level == 0)
-		d = NULL;
+		last_benv = NULL;
 	
 	/* Find next suitable entry */
+	bool fnd;
 	do {
-		b = env_by_partial_varname((parm_type(pl) == tt_str)
-			? parm_str(pl) : "", &d);
-	} while ((b) && (d->type != vt_bool));
+		const char *name =
+		    (parm_type(parm) == tt_str) ? parm_str(parm) : "";
+		
+		fnd = env_by_partial_varname(name, &last_benv);
+	} while ((fnd) && (last_benv->type != vt_bool));
 	
-	return (b ? safe_strdup(d->name) : NULL);
+	if (fnd)
+		return safe_strdup(last_benv->name);
+	
+	return NULL;
 }
-
 
 /** Generate an equal mark
  *
  */
-char *generator_equal_char(parm_link_s *pl, const void *data, int level)
+char *generator_equal_char(token_t *token, const void *data,
+    unsigned int level)
 {
-	PRE(pl != NULL);
-	PRE((parm_type(pl) == tt_str) || (parm_type( pl) == tt_end));
+	PRE(token != NULL);
+	PRE((parm_type(token) == tt_str) || (parm_type(token) == tt_end));
 	
-	return ((level == 0) ? safe_strdup( "=") : NULL);
+	if (level == 0)
+		return safe_strdup("=");
+	
+	return NULL;
 }

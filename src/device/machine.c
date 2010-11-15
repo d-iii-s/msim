@@ -112,7 +112,7 @@ void machine_step(void)
 	
 	/* First traverse all the devices
 	   which requires processing time every step */
-	device_s *dev = NULL;
+	device_t *dev = NULL;
 	while (dev_next(&dev, DEVICE_FILTER_STEP))
 		dev->type->step(dev);
 	
@@ -255,6 +255,7 @@ static inline mem_area_t* find_mem_area(ptr_t addr)
  * memory address and access conditions.
  *
  * @param addr         Address, where the breakpoint can be hit.
+ * @param size         Size of the access operation.
  * @param access_flags Specifies the access condition, under the breakpoint
  *                     will be hit.
  *
@@ -262,12 +263,15 @@ static inline mem_area_t* find_mem_area(ptr_t addr)
  *
  */
 static inline mem_breakpoint_t *memory_breakpoint_find(ptr_t addr,
-    access_t access_type)
+    size_t size, access_t access_type)
 {
 	mem_breakpoint_t *breakpoint;
 	
 	for_each(memory_breakpoints, breakpoint, mem_breakpoint_t) {
-		if (breakpoint->addr != addr)
+		if (breakpoint->addr + breakpoint->len < addr)
+			continue;
+		
+		if (breakpoint->addr > addr + size)
 			continue;
 		
 		if ((access_type & breakpoint->access_flags) != 0)
@@ -307,7 +311,7 @@ uint32_t mem_read(cpu_t *cpu, ptr_t addr, size_t size,
 		uint32_t val = DEFAULT_MEMORY_VALUE;
 		
 		/* List for each device */
-		device_s *dev = NULL;
+		device_t *dev = NULL;
 		while (dev_next(&dev, DEVICE_FILTER_ALL))
 			if (dev->type->read)
 				dev->type->read(cpu, dev, addr, &val);
@@ -318,7 +322,7 @@ uint32_t mem_read(cpu_t *cpu, ptr_t addr, size_t size,
 	/* Check for memory read breakpoints */
 	if (protected_read) {
 		mem_breakpoint_t *breakpoint =
-		    memory_breakpoint_find(addr, ACCESS_READ);
+		    memory_breakpoint_find(addr, size, ACCESS_READ);
 		
 		if (breakpoint != NULL)
 			memory_breakpoint_hit(breakpoint, ACCESS_READ);
@@ -367,7 +371,7 @@ bool mem_write(cpu_t *cpu, uint32_t addr, uint32_t val, size_t size,
 	if (area == NULL) {
 		
 		/* List for each device */
-		device_s *dev = NULL;
+		device_t *dev = NULL;
 		bool written = false;
 		
 		while (dev_next(&dev, DEVICE_FILTER_ALL)) {
@@ -407,7 +411,7 @@ bool mem_write(cpu_t *cpu, uint32_t addr, uint32_t val, size_t size,
 	/* Check for memory write breakpoints */
 	if (protected_write) {
 		mem_breakpoint_t *breakpoint =
-		    memory_breakpoint_find(addr, ACCESS_WRITE);
+		    memory_breakpoint_find(addr, size, ACCESS_WRITE);
 		
 		if (breakpoint != NULL)
 			memory_breakpoint_hit(breakpoint, ACCESS_WRITE);

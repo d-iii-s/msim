@@ -15,32 +15,130 @@
 #include <stdbool.h>
 #include <sys/time.h>
 #include <inttypes.h>
-
 #include "dtime.h"
-
 #include "device.h"
 #include "../io/output.h"
+#include "../check.h"
 #include "../utils.h"
 
-/** \{ \name Register offsets */
-#define REGISTER_SEC   0
-#define REGISTER_USEC  4
-#define REGISTER_LIMIT 8
-/* \} */
+/** Registers */
+#define REGISTER_SEC    0
+#define REGISTER_USEC   4
+#define REGISTER_LIMIT  8
 
+/** Dtime instance data structure */
+typedef struct {
+	uint32_t addr;  /**< Memory location */
+} dtime_data_t;
 
-/*
- * Device commands
+/** Init command implementation
+ *
+ * @param parm Command-line parameters
+ * @param dev  Device instance structure
+ *
+ * @return True if successful
+ *
  */
+static bool dtime_init(token_t *parm, device_t *dev)
+{
+	/* Checks */
+	parm_next(&parm);
+	ptr_t addr = parm_next_uint(&parm);
+	
+	/* Address alignment */
+	if (!addr_word_aligned(addr)) {
+		mprintf("Dtime address must be 4-byte aligned\n");
+		return false;
+	}
+	
+	/* Address limit */
+	if ((uint64_t) addr + (uint64_t) REGISTER_LIMIT > 0x100000000ull) {
+		mprintf("Invalid address; registers would exceed the 4 GB limit\n");
+		return false;
+	}
+	
+	/* Initialization */
+	dtime_data_t *data = safe_malloc_t(dtime_data_t);
+	dev->data = data;
+	
+	data->addr = addr;
+	
+	return true;
+}
 
-static bool dtime_init(parm_link_s *parm, device_s *dev);
-static bool dtime_info(parm_link_s *parm, device_s *dev);
-static bool dtime_stat(parm_link_s *parm, device_s *dev);
+/** Info command implementation
+ *
+ * @param parm Command-line parameters
+ * @param dev  Device instance structure
+ *
+ * @return True (always successful)
+ *
+ */
+static bool dtime_info(token_t *parm, device_t *dev)
+{
+	dtime_data_t *data = (dtime_data_t *) dev->data;
+	
+	mprintf("[Address ]\n");
+	mprintf("%#10" PRIx32 "\n", data->addr);
+	
+	return true;
+}
 
-cmd_s dtime_cmds[] = {
+/** Stat command implementation
+ *
+ * @param parm Command-line parameters
+ * @param dev  Device instance structure
+ *
+ * @return True (always successful)
+ *
+ */
+static bool dtime_stat(token_t *parm, device_t *dev)
+{
+	mprintf("No statistics\n");
+	return true;
+}
+
+/** Dispose dtime
+ *
+ * @param dev Device pointer
+ *
+ */
+static void dtime_done(device_t *dev)
+{
+	safe_free(dev->name);
+	safe_free(dev->data);
+}
+
+/** Read command implementation
+ *
+ * Read host time via gettimeofday().
+ *
+ * @param dev  Ddisk device pointer
+ * @param addr Address of the read operation
+ * @param val  Read (returned) value
+ *
+ */
+static void dtime_read(cpu_t *cpu, device_t *dev, ptr_t addr, uint32_t *val)
+{
+	PRE(val != NULL);
+	
+	dtime_data_t *data = (dtime_data_t *) dev->data;
+	
+	/* Get actual time */
+	struct timeval timeval;
+	gettimeofday(&timeval, NULL);
+	
+	if (addr == data->addr + REGISTER_SEC)
+		*val = (uint32_t) timeval.tv_sec;
+	
+	if (addr == data->addr + REGISTER_USEC)
+		*val = (uint32_t) timeval.tv_usec;
+}
+
+static cmd_t dtime_cmds[] = {
 	{
 		"init",
-		(cmd_f) dtime_init,
+		(fcmd_t) dtime_init,
 		DEFAULT,
 		DEFAULT,
 		"Initialization",
@@ -50,7 +148,7 @@ cmd_s dtime_cmds[] = {
 	},
 	{
 		"help",
-		(cmd_f) dev_generic_help,
+		(fcmd_t) dev_generic_help,
 		DEFAULT,
 		DEFAULT,
 		"Display help",
@@ -59,7 +157,7 @@ cmd_s dtime_cmds[] = {
 	},
 	{
 		"info",
-		(cmd_f) dtime_info,
+		(fcmd_t) dtime_info,
 		DEFAULT,
 		DEFAULT,
 		"Display device configuration",
@@ -68,7 +166,7 @@ cmd_s dtime_cmds[] = {
 	},
 	{
 		"stat",
-		(cmd_f) dtime_stat,
+		(fcmd_t) dtime_stat,
 		DEFAULT,
 		DEFAULT,
 		"Display device statictics",
@@ -78,21 +176,15 @@ cmd_s dtime_cmds[] = {
 	LAST_CMD
 };
 
-/** Name of the dtime as presented to the user */
-const char id_dtime[] = "dtime";
-
-static void dtime_done(device_s *dev);
-static void dtime_read(cpu_t *cpu, device_s *dev, ptr_t addr, uint32_t *val);
-
 /** Dtime object structure */
 device_type_s dtime = {
 	/* Type name and description */
-	.name = id_dtime,
+	.name = "dtime",
 	.brief = "Real time",
 	.full = "The time device brings the host real time to the simulated "
-		"environment. One memory-mapped register allows programs"
-		"to read hosts time since the Epoch as specified in the"
-		"POSIX.",
+	    "environment. One memory-mapped register allows programs"
+	    "to read hosts time since the Epoch as specified in the"
+	    "POSIX.",
 	
 	/* Functions */
 	.done = dtime_done,
@@ -101,112 +193,3 @@ device_type_s dtime = {
 	/* Commands */
 	.cmds = dtime_cmds
 };
-
-
-/** Dtime instance data structure */
-typedef struct {
-	uint32_t addr;	/**< Dtime memory location */
-} dtime_data_s;
-
-/** Init command implementation
- *
- * @param parm Command-line parameters
- * @param dev  Device instance structure
- * @return true if successful
- *
- */
-static bool dtime_init(parm_link_s *parm, device_s *dev)
-{
-	/* Alloc the dtime structure. */
-	dtime_data_s *td = (dtime_data_s *) safe_malloc_t(dtime_data_s);
-	dev->data = td;
-	
-	/* Inicialization */
-	parm_next(&parm);
-	td->addr = parm_next_int(&parm);
-	
-	/* Checks */
-
-	/* Address alignment */
-	if (!addr_word_aligned(td->addr)) {
-		mprintf("Dtime address must be 4-byte aligned\n");
-		free(td);
-		return false;
-	}
-
-	/* Address limit */
-	if ((uint64_t) td->addr + (uint64_t) REGISTER_LIMIT > 0x100000000ull) {
-		mprintf("Invalid address; registers would exceed the 4 GB limit\n");
-		return false;
-	}
-
-	
-	return true;
-}
-
-
-/** Info command implementation
- *
- * @param parm Command-line parameters
- * @param dev  Device instance structure
- * @return true; always successful
- *
- */
-static bool dtime_info(parm_link_s *parm, device_s *dev)
-{
-	dtime_data_s *td = (dtime_data_s *) dev->data;
-	
-	mprintf("Address\n");
-	mprintf("----------\n");
-	mprintf("%#10" PRIx64 "\n", td->addr);
-	
-	return true;
-}
-
-
-/** Stat command implementation
- *
- * @param parm Command-line parameters
- * @param dev  Device instance structure
- * @return true; always successful
- *
- */
-static bool dtime_stat(parm_link_s *parm, device_s *dev)
-{
-	mprintf("No statistics\n");
-	return true;
-}
-
-
-/** Dispose dtime
- *
- * @param d Device pointer
- *
- */
-static void dtime_done(device_s *d)
-{
-	safe_free(d->name);
-	safe_free(d->data);
-}
-
-
-/** Read command implementation
- *
- * Read host time via gettimeofday().
- *
- * @param d    Ddisk device pointer
- * @param addr Address of the read operation
- * @param val  Readed (returned) value
- *
- */
-static void dtime_read(cpu_t *cpu, device_s *dev, ptr_t addr, uint32_t *val)
-{
-	dtime_data_s *od = (dtime_data_s *) dev->data;
-	
-	if ((addr == od->addr + REGISTER_SEC) || (addr == od->addr + REGISTER_USEC)) {
-		/* Get actual time */
-		struct timeval t;
-		gettimeofday( &t, NULL);
-		*val = (addr == od->addr) ? (uint32_t) t.tv_sec : (uint32_t) t.tv_usec;
-	}
-}

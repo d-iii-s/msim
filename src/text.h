@@ -14,7 +14,6 @@
 
 extern const char *const txt_file_open_err;
 extern const char *const txt_file_read_err;
-extern const char *const txt_file_close_err;
 extern const char *const txt_filename_expected;
 extern const char *const txt_file_create_err;
 extern const char *const txt_file_write_err;
@@ -33,7 +32,7 @@ extern const char *const txt_intnum_range;
 extern const char *const txt_cmd_expected;
 extern const char *const txt_unknown_cmd;
 
-extern const char *exc_text[];
+extern const char *txt_exc[];
 
 extern const char txt_version[];
 extern const char txt_help[];

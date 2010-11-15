@@ -24,15 +24,64 @@
 #include "input.h"
 #include "output.h"
 
-/** Shared variable for tab completion */
-char *par_text;
+#define PROMPT  ("[" PACKAGE "] ")
+
+/** Shared variables for tab completion */
+static char *par_text;
+static token_t *last_pars = NULL;
+static const void *data;
+static gen_t gen;
 
 /** Is the standard input a terminal? */
-bool input_term;
+static bool input_term;
 
-struct termios tio_shadow;
-struct termios tio_inter;
-struct termios tio_old;
+static struct termios tio_shadow;
+static struct termios tio_inter;
+static struct termios tio_old;
+
+/** Generate all possible words suitable for completion
+ *
+ */
+static char *hint_generator(const char *input, int level)
+{
+	PRE(level >= 0);
+	
+	if (level == 0) {
+		if (last_pars != NULL)
+			parm_delete(last_pars);
+		
+		/* Find completion generator at first. */
+		last_pars = parm_parse(par_text);
+		parm_check_end(last_pars, par_text);
+		
+		data = NULL;
+		gen = find_completion_generator(&last_pars, &data);
+		if (gen == NULL)
+			return NULL;
+	}
+	
+	PRE(gen != NULL);
+	return gen(last_pars, data, level);
+}
+
+/** Try to complete the user input
+ *
+ */
+static char **msim_completion(const char *text, int start, int end)
+{
+	char **result;
+	
+	par_text = (char *) safe_malloc(end + 1);
+	strncpy(par_text, rl_line_buffer, end);
+	par_text[end] = 0;
+	
+	rl_attempted_completion_over = 1;
+	
+	result = rl_completion_matches("", hint_generator);
+	safe_free(par_text);
+	
+	return result;
+}
 
 /** Terminal and readline initialization
  *
@@ -66,73 +115,16 @@ void input_init(void)
 	rl_attempted_completion_function = msim_completion;
 }
 
-void input_inter(void)
-{
-	if (input_term)
-		(void) tcsetattr(0, TCSANOW, &tio_inter);
-}
-
-void input_shadow( void)
+void input_shadow(void)
 {
 	if (input_term)
 		(void) tcsetattr(0, TCSANOW, &tio_shadow);
 }
 
-void input_back( void)
+void input_back(void)
 {
 	if (input_term)
 		(void) tcsetattr(0, TCSANOW, &tio_old);
-}
-
-/** Generate all possible words suitable for completion
- *
- */
-char *hint_generator(const char *unused_parameter, int level)
-{
-	static const void *data;
-	static parm_link_s *last_parameters = NULL;
-	static gen_f generator;
-	
-	if (level == 0) {
-		/* Find completion generator at first. */
-		parm_delete(last_parameters);
-		
-		last_parameters = parm_parse(par_text);
-		if (!last_parameters)
-			return NULL;
-		
-		parm_check_end(last_parameters, par_text);
-		
-		generator = NULL;
-		data = NULL;
-		find_completion_generator(&last_parameters, &generator, &data);
-		
-		if (!generator)
-			return NULL;
-	}
-	
-	PRE(generator != NULL);
-	
-	return generator(last_parameters, data, level);
-}
-
-/** Try to complete the user input
- *
- */
-char **msim_completion(const char *text, int start, int end)
-{
-	char **result;
-	
-	par_text = (char *) safe_malloc(end + 1);
-	strncpy(par_text, rl_line_buffer, end);
-	par_text[end] = '\0';
-	
-	rl_attempted_completion_over = 1;
-	
-	result = rl_completion_matches("", hint_generator);
-	free(par_text);
-	
-	return result;
 }
 
 /** Interactive mode control
@@ -140,8 +132,6 @@ char **msim_completion(const char *text, int start, int end)
  */
 void interactive_control(void)
 {
-	char *commline;
-	
 	tobreak = false;
 	
 	if (reenter) {
@@ -153,22 +143,22 @@ void interactive_control(void)
 	
 	while (interactive) {
 		input_back();
-		commline = readline("[msim] ");
+		char *cmdline = readline(PROMPT);
 		input_shadow();
 		
-		if (!commline) {
+		if (!cmdline) {
 			/* User break in readline */
 			mprintf("Quit\n");
 			input_back();
 			exit(1);
 		}
 		
-		if (*commline) {
-			add_history(commline);
-			interpret(commline);
+		if (*cmdline) {
+			add_history(cmdline);
+			interpret(cmdline);
 		} else
 			interpret("step");
 		
-		free(commline);
+		free(cmdline);
 	}
 }

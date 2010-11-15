@@ -48,5 +48,6 @@ extern void list_init(list_t *list);
 extern void item_init(item_t *item);
 extern void list_append(list_t *list, item_t *item);
 extern void list_remove(list_t *list, item_t *item);
+extern void list_insert_after(item_t *anchor, item_t *item);
 
 #endif

@@ -14,45 +14,38 @@
 
 #include <stdbool.h>
 #include <stdint.h>
+#include "main.h"
+#include "list.h"
 
-#include "mtypes.h"
-
-#define PARSER_MAX_STR 256
-
-
-/*
- * NB: add overview to token_overview
- *
- */
-enum token_enum {
+typedef enum {
 	tt_end,
-	tt_int,
+	tt_uint,
 	tt_str,
 	tt_err,
-	tt_err_string_too_long,
 	tt_err_string_noend,
 	tt_err_invalid_num,
 	tt_err_invalid_hex_num,
 	tt_err_overflow
-};
+} token_type_t;
+
+typedef union {
+	uint32_t i;
+	char *str;
+} token_val_t;
 
 typedef struct {
-	enum token_enum ttype;
+	item_t item;
 	
-	union {
-		uint32_t i;
-		char *s;
-	} tval;
-} token_s;
+	token_type_t ttype;
+	token_val_t tval;
+} token_t;
 
-
-/*
- * Command parameter types
+/** Command parameter types
  *
  * Parameters of a command are represented as a collection strings. Each
  * string describes one parameter, strings are separated by a null character.
  *
- * A parameter description consists of two flags and a name. The fisrt flag
+ * A parameter description consists of two flags and a name. The first flag
  * determines whether the parameter is required or is optional. The second
  * flag determines the type - integer, string, any type or that a specified
  * sting is required (aka the = mark in the set command).
@@ -88,76 +81,67 @@ typedef struct {
 #define END     "\0e"  /**< Mo more parameter */
 #define ENDC    'e'
 
-#define DEFAULT NULL
+#define DEFAULT  NULL
 
-
-/**< cmd_find return values */
-#define CMP_NO_HIT        0  /**< No hit */
-#define CMP_HIT           1  /**< Hit */
-#define CMP_PARTIAL_HIT   2  /**< Partial hit */
-#define CMP_MULTIPLE_HIT  3  /**< Multi-hit */
-
-typedef struct parm_link_s {
-	token_s token;
-	struct parm_link_s *next;
-} parm_link_s;
-
-extern parm_link_s pars_end;
+/** cmd_find return values */
+typedef enum {
+	CMP_NO_HIT = 0,        /**< No hit */
+	CMP_HIT = 1,           /**< Exact match */
+	CMP_PARTIAL_HIT = 2,   /**< Partial match */
+	CMP_MULTIPLE_HIT = 3   /**< Multiple match */
+} cmd_find_res_t;
 
 extern const char *token_overview[];
 
-struct cmd_s;
-typedef struct cmd_s cmd_s;
+struct cmd;
 
-typedef bool (*cmd_f)(parm_link_s *parm, void *data);
-typedef char *(*gen_f)(parm_link_s *pl, const void *data, int level);
-typedef void (*fgen_f)(parm_link_s **pl, const cmd_s *cmd, gen_f *generator,
+typedef bool (*fcmd_t)(token_t *parm, void *data);
+typedef char *(*gen_t)(token_t *parm, const void *data, unsigned int level);
+typedef gen_t (*fgen_t)(token_t **parm, const struct cmd *cmd,
     const void **data);
 
-
 /** Device command list */
-struct cmd_s {
-	const char *name;   /* command name */
-	cmd_f func;         /* function which implements command */
-	fgen_f find_gen;    /* finds the completion function */
-	cmd_f help;         /* displays help */
-	const char *desc;   /* short description */
-	const char *descf;  /* full description */
-	const char *pars;   /* parameters and description */
-};
+typedef struct cmd {
+	const char *name;   /* Command name */
+	fcmd_t func;        /* Function which implements command */
+	fgen_t find_gen;    /* Function for finding the completion function */
+	fcmd_t help;        /* Help function */
+	const char *desc;   /* Short description */
+	const char *descf;  /* Full description */
+	const char *pars;   /* Parameters and description */
+} cmd_t;
 
-extern bool hexadecimal(char c);
-extern int hex2int(char c);
-extern bool numeric_hex_char(char c);
+extern token_t *parm_parse(const char *str);
+extern void parm_delete(token_t *parm);
 
-extern parm_link_s *parm_parse(const char *s);
-extern void parm_delete(parm_link_s *pl);
-extern void parm_set_str(parm_link_s *pl, const char *s);
+extern void parm_check_end(token_t *parm, const char *str);
+extern void parm_init(token_t *parm);
+extern void parm_set_uint(token_t *parm, uint32_t val);
+extern void parm_set_str(token_t *parm, char *str);
+extern void parm_insert_uint(token_t *parm, uint32_t val);
+extern void parm_insert_str(token_t *parm, char *s);
 
-extern int cmd_find(const char *cmd_name, const cmd_s *cmds,
-   const cmd_s **cmd);
-extern parm_link_s *parm_next(parm_link_s **pl);
-extern void parm_check_end(parm_link_s *pl, const char *input);
+extern token_t *parm_next(token_t **parm);
+extern token_type_t parm_type(token_t *parm);
+extern bool parm_last(token_t *parm);
+extern uint32_t parm_uint(token_t *parm);
+extern char *parm_str(token_t *parm);
 
-extern int parm_type(parm_link_s *parm);
-extern uint32_t parm_int(parm_link_s *parm);
-extern char *parm_str(parm_link_s *parm);
-extern uint32_t parm_next_int(parm_link_s **parm);
-extern char *parm_next_str(parm_link_s **parm);
+extern uint32_t parm_next_uint(token_t **parm);
+extern char *parm_next_str(token_t **parm);
 
-extern bool parm_insert_int(parm_link_s *parm, uint32_t val);
-extern bool parm_insert_str(parm_link_s *parm, char *s);
+extern cmd_find_res_t cmd_find(const char *cmd_name, const cmd_t *cmds,
+   const cmd_t **cmd);
 
-extern void parm_change_int(parm_link_s *parm, uint32_t val);
+extern bool cmd_run_by_spec(const cmd_t *cmd, token_t *parm, void *data);
+extern bool cmd_run_by_name(const char *cmd, token_t *parm,
+   const cmd_t *cmds, void *data);
+extern bool cmd_run_by_parm(token_t *parm, const cmd_t *cmds, void *data);
 
-extern bool cmd_run_by_spec(const cmd_s *cmd, parm_link_s *parm, void *data);
-extern bool cmd_run_by_name(const char *cmd, parm_link_s *parm,
-   const cmd_s *cmds, void *data);
-extern bool cmd_run_by_parm(parm_link_s *pl, const cmd_s *cmds, void *data);
+extern char *generator_cmd(token_t *parm, const void *data,
+    unsigned int level);
 
-extern char *generator_cmd(parm_link_s *pl, const void *data, int level);
+extern void cmd_print_help(const cmd_t *cmds);
+extern void cmd_print_extended_help(const cmd_t *cmds, token_t *parm);
 
-extern void cmd_print_help(const cmd_s *cmds);
-extern void cmd_print_extended_help(parm_link_s *parm, const cmd_s *cmds);
-
-#endif /* PARSER_H_ */
+#endif

@@ -16,4 +16,4 @@
 
 extern device_type_s dtime;
 
-#endif /* DTIME_H_ */
+#endif

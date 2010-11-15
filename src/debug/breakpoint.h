@@ -10,9 +10,8 @@
 #define BREAKPOINT_H_
 
 #include <stdbool.h>
-
 #include "../list.h"
-#include "../mtypes.h"
+#include "../main.h"
 
 /** Kind of code breakpoints */
 typedef enum {
@@ -56,6 +55,7 @@ typedef struct {
 	
 	breakpoint_kind_t kind;
 	ptr_t addr;
+	len_t len;
 	uint64_t hits;
 	access_filter_t access_flags;
 } mem_breakpoint_t;
@@ -66,8 +66,8 @@ extern list_t memory_breakpoints;
 /* Memory breakpoints interface */
 
 extern void memory_breakpoint_init_framework(void);
-extern void memory_breakpoint_add(ptr_t address, breakpoint_kind_t kind,
-    access_filter_t access_flags);
+extern void memory_breakpoint_add(ptr_t address, len_t size,
+    breakpoint_kind_t kind, access_filter_t access_flags);
 extern bool memory_breakpoint_remove(ptr_t address);
 extern void memory_breakpoint_remove_filtered(breakpoint_filter_t filter);
 extern void memory_breakpoint_hit(mem_breakpoint_t *breakpoint,

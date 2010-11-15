@@ -15,7 +15,7 @@
 #include <stdlib.h>
 #include <stdbool.h>
 #include <stdio.h>
-#include "mtypes.h"
+#include "main.h"
 
 #define MAX(a, b)  (((a) < (b)) ? (b) : (a))
 #define MIN(a, b)  (((a) < (b)) ? (a) : (b))
@@ -28,8 +28,10 @@
 
 #define safe_free(ptr) \
 	{ \
-		free(ptr); \
-		ptr = NULL; \
+		if (ptr != NULL) { \
+			free(ptr); \
+			ptr = NULL; \
+		} \
 	}
 
 #define safe_malloc_t(type) \
@@ -47,7 +49,10 @@ extern char *safe_strdup(const char *str);
 extern void string_init(string_t *str);
 extern void string_clear(string_t *str);
 extern void string_push(string_t *str, char c);
-extern void string_printf(string_t *str, const char *format, ...);
+extern void string_append(string_t *str, const char *val);
+extern void string_vprintf(string_t *str, const char *fmt, va_list va);
+extern void string_printf(string_t *str, const char *fmt, ...);
+extern void string_fread(string_t *str, FILE *file);
 extern void string_done(string_t *str);
 
 extern bool prefix(const char *pref, const char *str);
@@ -56,10 +61,9 @@ extern char *uint32_human_readable(uint32_t i);
 extern bool addr_word_aligned(ptr_t addr);
 
 extern FILE *try_fopen(const char *path, const char *mode);
-extern bool try_fclose(FILE *file, const char *path);
-
-extern void try_soft_fclose(FILE *file, const char *path);
 extern bool try_fseek(FILE *file, size_t offset, int whence, const char *path);
 extern bool try_ftell(FILE *file, const char *path, size_t *pos);
+
+extern void safe_fclose(FILE *file, const char *path);
 
 #endif

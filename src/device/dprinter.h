@@ -16,4 +16,4 @@
 
 extern device_type_s dprinter;
 
-#endif /* DPRINTER_H_ */
+#endif

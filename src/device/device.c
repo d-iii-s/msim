@@ -20,7 +20,6 @@
 #include "../io/output.h"
 #include "../main.h"
 #include "../check.h"
-#include "../cline.h"
 #include "../utils.h"
 #include "../fault.h"
 #include "mem.h"
@@ -65,7 +64,7 @@ void dev_init_framework(void)
  *         was not specified correctly.
  *
  */
-device_s *alloc_device(const char *type_string, const char *device_name)
+device_t *alloc_device(const char *type_string, const char *device_name)
 {
 	const device_type_s *device_type = NULL;
 	
@@ -80,31 +79,42 @@ device_s *alloc_device(const char *type_string, const char *device_name)
 	}
 	
 	if (device_type == NULL) {
-		intr_error("Unknown device type");
+		intr_error("Unknown device type.");
 		return NULL;
 	}
 	
 	/* Allocate a new instance */
-	device_s *device = (device_s *) safe_malloc_t(device_s);
+	device_t *dev = safe_malloc_t(device_t);
 	
 	/* Inicialization */
-	device->type = device_type;
-	device->name = safe_strdup(device_name);
-	device->data = NULL;
-	item_init(&device->item);
+	dev->type = device_type;
+	dev->name = safe_strdup(device_name);
+	dev->data = NULL;
+	item_init(&dev->item);
 	
-	return device;
+	return dev;
+}
+
+void free_device(device_t *dev)
+{
+	safe_free(dev->name);
+	safe_free(dev);
+}
+
+void add_device(device_t *dev)
+{
+	list_append(&device_list, &dev->item);
 }
 
 /** Test device according to the given filter condition.
- * 
+ *
  * @param device Device to be tested.
  * @param filter Condition for filtering.
  *
  * @return True if the given device matches to the filter.
  *
  */
-static bool dev_match_to_filter(device_s* device, device_filter_t filter)
+static bool dev_match_to_filter(device_t* device, device_filter_t filter)
 {
 	PRE(device != NULL);
 	
@@ -137,12 +147,12 @@ static bool dev_match_to_filter(device_s* device, device_filter_t filter)
  * @return True if next device has been found.
  *
  */
-bool dev_next(device_s **device, device_filter_t filter)
+bool dev_next(device_t **device, device_filter_t filter)
 {
 	if (*device == NULL) {
-		*device = (device_s *) device_list.head;
+		*device = (device_t *) device_list.head;
 	} else {
-		*device = (device_s *) (*device)->item.next;
+		*device = (device_t *) (*device)->item.next;
 	}
 	
 	/* Find the first device, which matches to the filter */
@@ -150,7 +160,7 @@ bool dev_next(device_s **device, device_filter_t filter)
 		if (dev_match_to_filter(*device, filter))
 			return true;
 		
-		*device = (device_s *) (*device)->item.next;
+		*device = (device_t *) (*device)->item.next;
 	}
 	
 	return false;
@@ -205,7 +215,7 @@ const char *dev_type_by_partial_name(const char *name_prefix,
  * @return Name of found searched device or NULL, if there is not any.
  *
  */
-const char *dev_by_partial_name(const char *prefix_name, device_s **device)
+const char *dev_by_partial_name(const char *prefix_name, device_t **device)
 {
 	PRE(device != NULL);
 	PRE(prefix_name != NULL);
@@ -230,12 +240,12 @@ const char *dev_by_partial_name(const char *prefix_name, device_s **device)
  *
  */
 size_t dev_count_by_partial_name(const char *name_prefix,
-    device_s **last_found_device)
+    device_t **last_found_device)
 {
 	PRE(name_prefix != NULL, last_found_device != NULL);
 	
 	size_t count = 0;
-	device_s *device = NULL;
+	device_t *device = NULL;
 	
 	while (dev_next(&device, DEVICE_FILTER_ALL)) {
 		if (prefix(name_prefix, device->name)) {
@@ -257,9 +267,9 @@ size_t dev_count_by_partial_name(const char *name_prefix,
  * @return Pointer to the found device or NULL, if there is not any.
  *
  */
-device_s *dev_by_name(const char *searched_name)
+device_t *dev_by_name(const char *searched_name)
 {
-	device_s *device = NULL;
+	device_t *device = NULL;
 	
 	while (dev_next(&device, DEVICE_FILTER_ALL)) {
 		if (!strcmp(searched_name, device->name))
@@ -274,7 +284,7 @@ device_s *dev_by_name(const char *searched_name)
  * @param device Device to be added.
  *
  */
-void dev_add(device_s *device)
+void dev_add(device_t *device)
 {
 	list_append(&device_list, &device->item);
 }
@@ -284,7 +294,7 @@ void dev_add(device_s *device)
  * @param Device to be removed.
  *
  */
-void dev_remove(device_s *device)
+void dev_remove(device_t *device)
 {
 	list_remove(&device_list, &device->item);
 }
@@ -303,52 +313,46 @@ void dev_remove(device_s *device)
  * @return Always true.
  *
  */
-bool dev_generic_help(parm_link_s *parm, device_s *dev)
+bool dev_generic_help(token_t *parm, device_t *dev)
 {
-	cmd_print_extended_help(parm, dev->type->cmds);
-	
+	cmd_print_extended_help(dev->type->cmds, parm);
 	return true;
 }
 
 /** Find appropriate generator for auto completion of device commands.
  *
- * @param pl        Second part of text, which has been written for auto
+ * @param parm      Second part of text, which has been written for auto
  *                  completion.
  * @param dev       Device determining, which commands will be printed.
- * @param generator This is used for returning found generator. If no generator
- *                  is found, it remains untouched.
  * @param data      This is used for returning data for found generator. If no
  *                  generator is found, it remains untouched.
  *
  */
-void dev_find_generator(parm_link_s **pl, const device_s *d,
-    gen_f *generator, const void **data)
+gen_t dev_find_generator(token_t **parm, const device_t *dev,
+    const void **data)
 {
-	const cmd_s *cmd;
-	parm_link_s *next_pl = (*pl)->next;
+	/* Check if the first token is a string */
+	if (parm_type(*parm) != tt_str)
+		return NULL;
 	
-	if (parm_type(*pl) != tt_str)
-		/* Illegal command name */
-		return;
-	
-	const char* user_text = parm_str(*pl);
+	const char* user_text = parm_str(*parm);
 	
 	/* Look up for device command */
-	int res = cmd_find(user_text, d->type->cmds + 1, &cmd);
+	const cmd_t *cmd;
+	cmd_find_res_t res = cmd_find(user_text, dev->type->cmds + 1, &cmd);
 	
 	switch (res) {
 	case CMP_NO_HIT:
-		/* No such command */
-		return;
+	case CMP_PARTIAL_HIT:
+		break;
 	case CMP_HIT:
 	case CMP_MULTIPLE_HIT:
-		if (parm_type(next_pl) == tt_end) {
-			/* Set the default command generator */
-			*generator = generator_cmd; 
-			
+		if (parm_last(*parm)) {
 			/* Ignore the hardwired INIT command */
-			*data = d->type->cmds + 1;
-			break;
+			*data = dev->type->cmds + 1;
+			
+			/* Set the default command generator */
+			return generator_cmd;
 		}
 		
 		if (res == CMP_MULTIPLE_HIT)
@@ -357,8 +361,10 @@ void dev_find_generator(parm_link_s **pl, const device_s *d,
 		
 		/* Continue to the next generator, if possible */
 		if (cmd->find_gen)
-			cmd->find_gen(pl, cmd, generator, data);
+			return cmd->find_gen(parm, cmd, data);
 		
 		break;
 	}
+	
+	return NULL;
 }

@@ -38,7 +38,7 @@ enum action_e {
 /** \{ \name Register offsets */
 #define REGISTER_ADDR   0   /**< Address */
 #define REGISTER_SECNO  4   /**< Sector number */
-#define	REGISTER_STATUS 8   /**< Status/commands */
+#define REGISTER_STATUS 8   /**< Status/commands */
 #define REGISTER_SIZE   12  /**< Disk size in bytes */
 #define REGISTER_LIMIT  16  /**< Size of register block */
 /* \} */
@@ -62,19 +62,19 @@ enum disk_type_e {
  * Device commands
  */
 
-static bool ddisk_init(parm_link_s *parm, device_s *dev);
-static bool ddisk_info(parm_link_s *parm, device_s *dev);
-static bool ddisk_stat(parm_link_s *parm, device_s *dev);
-static bool ddisk_generic(parm_link_s *parm, device_s *dev);
-static bool ddisk_fmap(parm_link_s *parm, device_s *dev);
-static bool ddisk_fill(parm_link_s *parm, device_s *dev);
-static bool ddisk_load(parm_link_s *parm, device_s *dev);
-static bool ddisk_save(parm_link_s *parm, device_s *dev);
+static bool ddisk_init(token_t *parm, device_t *dev);
+static bool ddisk_info(token_t *parm, device_t *dev);
+static bool ddisk_stat(token_t *parm, device_t *dev);
+static bool ddisk_generic(token_t *parm, device_t *dev);
+static bool ddisk_fmap(token_t *parm, device_t *dev);
+static bool ddisk_fill(token_t *parm, device_t *dev);
+static bool ddisk_load(token_t *parm, device_t *dev);
+static bool ddisk_save(token_t *parm, device_t *dev);
 
-cmd_s ddisk_cmds[] = {
+cmd_t ddisk_cmds[] = {
 	{
 		"init",
-		(cmd_f) ddisk_init,
+		(fcmd_t) ddisk_init,
 		DEFAULT,
 		DEFAULT,
 		"Initialization",
@@ -85,7 +85,7 @@ cmd_s ddisk_cmds[] = {
 	},
 	{
 		"help",
-		(cmd_f) dev_generic_help,
+		(fcmd_t) dev_generic_help,
 		DEFAULT,
 		DEFAULT,
 		"Display help",
@@ -94,7 +94,7 @@ cmd_s ddisk_cmds[] = {
 	},
 	{
 		"info",
-		(cmd_f) ddisk_info,
+		(fcmd_t) ddisk_info,
 		DEFAULT,
 		DEFAULT,
 		"Configuration information",
@@ -103,7 +103,7 @@ cmd_s ddisk_cmds[] = {
 	},
 	{
 		"stat",
-		(cmd_f) ddisk_stat,
+		(fcmd_t) ddisk_stat,
 		DEFAULT,
 		DEFAULT,
 		"Statistics",
@@ -112,7 +112,7 @@ cmd_s ddisk_cmds[] = {
 	},
 	{
 		"generic",
-		(cmd_f) ddisk_generic,
+		(fcmd_t) ddisk_generic,
 		DEFAULT,
 		DEFAULT,
 		"Generic memory type",
@@ -121,7 +121,7 @@ cmd_s ddisk_cmds[] = {
 	},
 	{
 		"fmap",
-		(cmd_f) ddisk_fmap,
+		(fcmd_t) ddisk_fmap,
 		DEFAULT,
 		DEFAULT,
 		"Map the memory as the file specified",
@@ -130,7 +130,7 @@ cmd_s ddisk_cmds[] = {
 	},
 	{
 		"fill",
-		(cmd_f) ddisk_fill,
+		(fcmd_t) ddisk_fill,
 		DEFAULT,
 		DEFAULT,
 		"Fill the memory with specified character",
@@ -139,7 +139,7 @@ cmd_s ddisk_cmds[] = {
 	},
 	{
 		"load",
-		(cmd_f) ddisk_load,
+		(fcmd_t) ddisk_load,
 		DEFAULT,
 		DEFAULT,
 		"Load the memory image from the file specified",
@@ -148,7 +148,7 @@ cmd_s ddisk_cmds[] = {
 	},
 	{
 		"save",
-		(cmd_f) ddisk_save,
+		(fcmd_t) ddisk_save,
 		DEFAULT,
 		DEFAULT,
 		"Save the memory image into the file specified",
@@ -161,10 +161,10 @@ cmd_s ddisk_cmds[] = {
 /**< Name of the disk device as presented to the user */
 const char id_ddisk[] = "ddisk";
 
-static void ddisk_done(device_s *dev);
-static void ddisk_step(device_s *dev);
-static void ddisk_read(cpu_t *cpu, device_s *dev, ptr_t addr, uint32_t *val);
-static void ddisk_write(cpu_t *cpu, device_s *dev, ptr_t addr, uint32_t val);
+static void ddisk_done(device_t *dev);
+static void ddisk_step(device_t *dev);
+static void ddisk_read(cpu_t *cpu, device_t *dev, ptr_t addr, uint32_t *val);
+static void ddisk_write(cpu_t *cpu, device_t *dev, ptr_t addr, uint32_t val);
 
 /**< Ddisk object structure */
 device_type_s ddisk = {
@@ -293,7 +293,7 @@ static void ddisk_clean_up(disk_data_s *dd)
  * @return true if successful
  *
  */
-static bool ddisk_init(parm_link_s *parm, device_s *dev)
+static bool ddisk_init(token_t *parm, device_t *dev)
 {
 	disk_data_s *dd;
 	
@@ -307,8 +307,8 @@ static bool ddisk_init(parm_link_s *parm, device_s *dev)
 	
 	/* Basic structure inicialization */
 	parm_next(&parm);
-	dd->addr = parm_next_int(&parm);
-	dd->intno = parm_next_int(&parm);
+	dd->addr = parm_next_uint(&parm);
+	dd->intno = parm_next_uint(&parm);
 	dd->size = 0;
 	dd->disk_wptr = 0;
 	dd->disk_secno = 0;
@@ -356,7 +356,7 @@ static bool ddisk_init(parm_link_s *parm, device_s *dev)
  * @return true, always successful
  *
  */
-static bool ddisk_info(parm_link_s *parm, device_s *dev)
+static bool ddisk_info(token_t *parm, device_t *dev)
 {
 	disk_data_s *dd = (disk_data_s *) dev->data;
 	const char *stype = "*";
@@ -391,7 +391,7 @@ static bool ddisk_info(parm_link_s *parm, device_s *dev)
  * @return true, always successful
  *
  */
-static bool ddisk_stat(parm_link_s *parm, device_s *dev)
+static bool ddisk_stat(token_t *parm, device_t *dev)
 {
 	disk_data_s *dd = (disk_data_s *) dev->data;
 	
@@ -416,10 +416,10 @@ static bool ddisk_stat(parm_link_s *parm, device_s *dev)
  * @return true if successful
  *
  */
-static bool ddisk_generic(parm_link_s *parm, device_s *dev)
+static bool ddisk_generic(token_t *parm, device_t *dev)
 {
 	disk_data_s *dd = (disk_data_s *) dev->data;
-	uint32_t size = parm_int(parm);
+	uint32_t size = parm_uint(parm);
 	
 	/* Size parameter check */
 	if (size & 0x1ff) {
@@ -448,7 +448,7 @@ static bool ddisk_generic(parm_link_s *parm, device_s *dev)
  * @return true if successful
  *
  */
-static bool ddisk_fmap(parm_link_s *parm, device_s *dev)
+static bool ddisk_fmap(token_t *parm, device_t *dev)
 {
 	disk_data_s *dd = (disk_data_s *) dev->data;
 	const char *const path = parm_str(parm);
@@ -463,20 +463,18 @@ static bool ddisk_fmap(parm_link_s *parm, device_s *dev)
 	/* File size test */
 	if (!try_fseek(file, 0, SEEK_END, path)) {
 		mprintf("%s\n", txt_file_seek_err);
-		try_soft_fclose(file, path);
 		return false;
 	}
 	
 	size_t fsize;
 	if (!try_ftell(file, path, &fsize)) {
 		mprintf("%s\n", txt_file_seek_err);
-		try_soft_fclose(file, path);
 		return false;
 	}
 	
 	if (fsize == 0) {
 		mprintf("Empty file\n");
-		try_soft_fclose(file, path);
+		safe_fclose(file, path);
 		return false;
 	}
 	
@@ -487,13 +485,12 @@ static bool ddisk_fmap(parm_link_s *parm, device_s *dev)
 	/* Disk size test */
 	if (fsize == 0) {
 		mprintf("File is too small; at least one sector (512 B) should be present");
-		try_soft_fclose(file, path);
+		safe_fclose(file, path);
 		return false;
 	}
 	
 	if (!try_fseek(file, 0, SEEK_SET, path)) {
 		mprintf("%s\n", txt_file_seek_err);
-		try_soft_fclose(file, path);
 		return false;
 	}
 	
@@ -503,15 +500,12 @@ static bool ddisk_fmap(parm_link_s *parm, device_s *dev)
 	if (ptr == MAP_FAILED) {
 		io_error(path);
 		mprintf("%s\n", txt_file_map_fail);
-		try_soft_fclose(file, path);
+		safe_fclose(file, path);
 		return false;
 	}
 	
 	/* Close file */
-	if (!try_fclose(file, path)) {
-		mprintf(txt_file_close_err);
-		return false;
-	}
+	safe_fclose(file, path);
 	
 	/* Upgrade structures and reset the device */
 	ddisk_clean_up(dd);
@@ -532,7 +526,7 @@ static bool ddisk_fmap(parm_link_s *parm, device_s *dev)
  * @return true if successful
  *
  */
-static bool ddisk_fill(parm_link_s *parm, device_s *dev)
+static bool ddisk_fill(token_t *parm, device_t *dev)
 {
 	disk_data_s *dd = (disk_data_s *) dev->data;
 	unsigned char c;
@@ -547,12 +541,12 @@ static bool ddisk_fill(parm_link_s *parm, device_s *dev)
 		c = parm_str(parm)[0];
 	} else {
 		/* Number */
-		if (parm_int(parm) > 255) {
+		if (parm_uint(parm) > 255) {
 			mprintf("Integer constant out of range 0..255\n");
 			return false;
 		}
 		
-		c = parm_int(parm);
+		c = parm_uint(parm);
 	}
 	
 	memset(dd->img, c, dd->size);
@@ -570,7 +564,7 @@ static bool ddisk_fill(parm_link_s *parm, device_s *dev)
  * @return true if successful
  *
  */
-static bool ddisk_load(parm_link_s *parm, device_s *dev)
+static bool ddisk_load(token_t *parm, device_t *dev)
 {
 	disk_data_s *dd = (disk_data_s *) dev->data;
 	const char *const path = parm_str(parm);
@@ -592,16 +586,12 @@ static bool ddisk_load(parm_link_s *parm, device_s *dev)
 	if (rd < dd->size) {
 		io_error(path);
 		mprintf(txt_file_read_err);
-		try_soft_fclose(file, path);
+		safe_fclose(file, path);
 		return false;
 	}
 	
 	/* Close file */
-	if (!try_fclose(file, path)) {
-		mprintf(txt_file_close_err);
-		return false;
-	}
-	
+	safe_fclose(file, path);
 	return true;
 }
 
@@ -615,7 +605,7 @@ static bool ddisk_load(parm_link_s *parm, device_s *dev)
  * @return true if successful
  *
  */
-static bool ddisk_save(parm_link_s *parm, device_s *dev)
+static bool ddisk_save(token_t *parm, device_t *dev)
 {
 	disk_data_s *dd = (disk_data_s *) dev->data;
 	const char *const path = parm_str(parm);
@@ -638,16 +628,12 @@ static bool ddisk_save(parm_link_s *parm, device_s *dev)
 	if (wr < dd->size) {
 		io_error(path);
 		mprintf(txt_file_write_err);
-		try_soft_fclose(file, path);
+		safe_fclose(file, path);
 		return false;
 	}
 	
 	/* Close file */
-	if (!try_fclose(file, path)) {
-		mprintf(txt_file_close_err);
-		return false;
-	}
-	
+	safe_fclose(file, path);
 	return true;
 }
 
@@ -656,7 +642,7 @@ static bool ddisk_save(parm_link_s *parm, device_s *dev)
  * @param d Device pointer
  *
  */
-static void ddisk_done(device_s *d) {
+static void ddisk_done(device_t *d) {
 	disk_data_s *dd = (disk_data_s *) d->data;
 	
 	ddisk_clean_up(dd);
@@ -672,7 +658,7 @@ static void ddisk_done(device_s *d) {
  * @param val  Readed (returned) value
  *
  */
-static void ddisk_read(cpu_t *cpu, device_s *dev, ptr_t addr,
+static void ddisk_read(cpu_t *cpu, device_t *dev, ptr_t addr,
     uint32_t *val)
 {
 	disk_data_s *dd = (disk_data_s *) dev->data;
@@ -699,7 +685,7 @@ static void ddisk_read(cpu_t *cpu, device_s *dev, ptr_t addr,
  * @param val  Value to write
  *
  */
-static void ddisk_write(cpu_t *cpu, device_s *dev, ptr_t addr,
+static void ddisk_write(cpu_t *cpu, device_t *dev, ptr_t addr,
     uint32_t val)
 {
 	disk_data_s *dd = (disk_data_s *) dev->data;
@@ -776,7 +762,7 @@ static void ddisk_write(cpu_t *cpu, device_s *dev, ptr_t addr,
  * @param d Ddisk device pointer
  *
  */
-static void ddisk_step(device_s *d)
+static void ddisk_step(device_t *d)
 {
 	disk_data_s *dd = (disk_data_s *) d->data;
 	

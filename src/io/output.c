@@ -30,12 +30,10 @@
 #include <ctype.h>
 #include <string.h>
 #include <stdbool.h>
-
 #include "output.h"
-
+#include "../fault.h"
 #include "../check.h"
 #include "../parser.h"
-#include "../cline.h"
 
 /** Output file descriptor */
 static FILE *output;
@@ -71,8 +69,8 @@ void mprintf_err(const char *fmt, ...)
 	
 	PRE(fmt != NULL);
 	
-	if (lineno != -1)
-		fprintf(output, "%d: ", lineno);
+	if (lineno_ptr != NULL)
+		fprintf(output, "%zu: ", *lineno_ptr);
 	
 	va_start(ap, fmt);
 	vfprintf(output, fmt, ap);

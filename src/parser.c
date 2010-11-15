@@ -312,6 +312,9 @@ token_t *parm_parse(const char *str)
 	PRE(str != NULL);
 	
 	int_token_t int_token;
+	int_token.i = 0;
+	int_token.str.str = NULL;
+	
 	list_t *pars = safe_malloc_t(list_t);
 	list_init(pars);
 	

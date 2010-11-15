@@ -390,10 +390,10 @@ void parm_check_end(token_t *parm, const char *str)
 		/* Find the end of the parameter list */
 		
 		token_t *pre = parm;
-		while (parm_type(parm_next(&parm)))
+		while (parm_type(parm_next(&parm)) != tt_end)
 			pre = parm;
 		
-		parm_insert_str(parm, safe_strdup(""));
+		parm_insert_str(pre, safe_strdup(""));
 	}
 }
 

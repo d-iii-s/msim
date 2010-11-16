@@ -15,7 +15,7 @@
 #include <string.h>
 #include "device/device.h"
 #include "parser.h"
-#include "check.h"
+#include "assert.h"
 #include "utils.h"
 #include "fault.h"
 
@@ -48,8 +48,8 @@ const char *token_overview[] = {
  */
 static unsigned int read_multiply(const char **str)
 {
-	PRE(str != NULL);
-	PRE(*str != NULL);
+	ASSERT(str != NULL);
+	ASSERT(*str != NULL);
 	
 	const char *tmp = *str;
 	unsigned int mply;
@@ -127,8 +127,8 @@ static bool alphanum(char c)
  */
 static void skip_whitespace_chars(const char **str)
 {
-	PRE(str != NULL);
-	PRE(*str != NULL);
+	ASSERT(str != NULL);
+	ASSERT(*str != NULL);
 	
 	const char *tmp = *str;
 	
@@ -173,8 +173,9 @@ static unsigned int char2uint(char c)
  */
 static void read_number(const char **str, int_token_t *token)
 {
-	PRE(str != NULL, tmp != NULL);
-	PRE(*str != NULL);
+	ASSERT(str != NULL);
+	ASSERT(*str != NULL);
+	ASSERT(token != NULL);
 	
 	const char *tmp = *str;
 	uint64_t i = 0;
@@ -245,8 +246,9 @@ static void read_number(const char **str, int_token_t *token)
  */
 static void read_string(const char **str, int_token_t *token)
 {
-	PRE(str != NULL, token != NULL);
-	PRE(*str != NULL);
+	ASSERT(str != NULL);
+	ASSERT(*str != NULL);
+	ASSERT(token != NULL);
 	
 	const char *tmp = *str;
 	string_t out;
@@ -293,8 +295,9 @@ static void read_string(const char **str, int_token_t *token)
  */
 static void read_token(const char **str, int_token_t *token)
 {
-	PRE(str != NULL, token != NULL);
-	PRE(*str != NULL);
+	ASSERT(str != NULL);
+	ASSERT(*str != NULL);
+	ASSERT(token != NULL);
 	
 	if ((**str == 0) || (**str == '\n')) {
 		token->ttype = tt_end;
@@ -312,8 +315,9 @@ static void read_token(const char **str, int_token_t *token)
  */
 static void parse_token(const char **str, int_token_t *token)
 {
-	PRE(str != NULL, token != NULL);
-	PRE(*str != NULL);
+	ASSERT(str != NULL);
+	ASSERT(*str != NULL);
+	ASSERT(token != NULL);
 	
 	skip_whitespace_chars(str);
 	read_token(str, token);
@@ -324,7 +328,7 @@ static void parse_token(const char **str, int_token_t *token)
  */
 token_t *parm_parse(const char *str)
 {
-	PRE(str != NULL);
+	ASSERT(str != NULL);
 	
 	int_token_t int_token;
 	int_token.i = 0;
@@ -367,8 +371,8 @@ token_t *parm_parse(const char *str)
  */
 void parm_delete(token_t *parm)
 {
-	PRE(parm != NULL);
-	PRE(parm->item.list != NULL);
+	ASSERT(parm != NULL);
+	ASSERT(parm->item.list != NULL);
 	
 	list_t *list = parm->item.list;
 	token_t *token = (token_t *) list->head;
@@ -393,8 +397,8 @@ void parm_delete(token_t *parm)
  */
 void parm_check_end(token_t *parm, const char *str)
 {
-	PRE(parm != NULL);
-	PRE(str != NULL);
+	ASSERT(parm != NULL);
+	ASSERT(str != NULL);
 	
 	if (parm_type(parm) == tt_end)
 		return;
@@ -417,9 +421,9 @@ void parm_check_end(token_t *parm, const char *str)
  */
 token_t *parm_next(token_t **parm)
 {
-	PRE(parm != NULL);
-	PRE(*parm != NULL);
-	PRE((*parm)->item.next != NULL);
+	ASSERT(parm != NULL);
+	ASSERT(*parm != NULL);
+	ASSERT((*parm)->item.next != NULL);
 	
 	*parm = (token_t *) ((*parm)->item.next);
 	return *parm;
@@ -430,7 +434,7 @@ token_t *parm_next(token_t **parm)
  */
 token_type_t parm_type(token_t *parm)
 {
-	PRE(parm != NULL);
+	ASSERT(parm != NULL);
 	
 	return parm->ttype;
 }
@@ -440,7 +444,7 @@ token_type_t parm_type(token_t *parm)
  */
 bool parm_last(token_t *parm)
 {
-	PRE(parm != NULL);
+	ASSERT(parm != NULL);
 	
 	if (parm->item.next == NULL)
 		return false;
@@ -454,8 +458,8 @@ bool parm_last(token_t *parm)
  */
 uint64_t parm_uint(token_t *parm)
 {
-	PRE(parm != NULL);
-	PRE(parm->ttype == tt_uint);
+	ASSERT(parm != NULL);
+	ASSERT(parm->ttype == tt_uint);
 	
 	return parm->tval.i;
 }
@@ -465,8 +469,8 @@ uint64_t parm_uint(token_t *parm)
  */
 char *parm_str(token_t *parm)
 {
-	PRE(parm != NULL);
-	PRE(parm->ttype == tt_str);
+	ASSERT(parm != NULL);
+	ASSERT(parm->ttype == tt_str);
 	
 	return parm->tval.str;
 }
@@ -476,8 +480,8 @@ char *parm_str(token_t *parm)
  */
 uint64_t parm_next_uint(token_t **parm)
 {
-	PRE(parm != NULL);
-	PRE(*parm != NULL);
+	ASSERT(parm != NULL);
+	ASSERT(*parm != NULL);
 	
 	uint64_t i = parm_uint(*parm);
 	parm_next(parm);
@@ -490,8 +494,8 @@ uint64_t parm_next_uint(token_t **parm)
  */
 char *parm_next_str(token_t **parm)
 {
-	PRE(parm != NULL);
-	PRE(*parm != NULL);
+	ASSERT(parm != NULL);
+	ASSERT(*parm != NULL);
 	
 	char *str = parm_str(*parm);
 	parm_next(parm);
@@ -506,7 +510,7 @@ char *parm_next_str(token_t **parm)
  */
 void parm_insert_uint(token_t *parm, uint64_t val)
 {
-	PRE(token != NULL);
+	ASSERT(parm != NULL);
 	
 	token_t *ntoken = safe_malloc_t(token_t);
 	
@@ -524,7 +528,8 @@ void parm_insert_uint(token_t *parm, uint64_t val)
  */
 void parm_insert_str(token_t *parm, char *str)
 {
-	PRE(token != NULL, str != NULL);
+	ASSERT(parm != NULL);
+	ASSERT(str != NULL);
 	
 	token_t *ntoken = safe_malloc_t(token_t);
 	
@@ -537,7 +542,7 @@ void parm_insert_str(token_t *parm, char *str)
 
 void parm_init(token_t *parm)
 {
-	PRE(parm != NULL);
+	ASSERT(parm != NULL);
 	
 	item_init(&parm->item);
 	parm->ttype = tt_end;
@@ -548,7 +553,7 @@ void parm_init(token_t *parm)
  */
 void parm_set_uint(token_t *parm, uint64_t val)
 {
-	PRE(parm != NULL);
+	ASSERT(parm != NULL);
 	
 	if (parm->ttype == tt_str)
 		safe_free(parm->tval.str);
@@ -562,7 +567,8 @@ void parm_set_uint(token_t *parm, uint64_t val)
  */
 void parm_set_str(token_t *parm, char *str)
 {
-	PRE(parm != NULL, str != NULL);
+	ASSERT(parm != NULL);
+	ASSERT(str != NULL);
 	
 	if (parm->ttype == tt_str)
 		safe_free(parm->tval.str);
@@ -579,8 +585,8 @@ void parm_set_str(token_t *parm, char *str)
  */
 static void find_next_parm(const char **str)
 {
-	PRE(str != NULL);
-	PRE(*str != NULL);
+	ASSERT(str != NULL);
+	ASSERT(*str != NULL);
 	
 	while (*(*str)++);
 }
@@ -600,7 +606,8 @@ static void find_next_parm(const char **str)
  */
 static cmd_find_res_t cmd_compare(const char *str, const char *cmd)
 {
-	PRE(str != NULL, cmd != NULL);
+	ASSERT(str != NULL);
+	ASSERT(cmd != NULL);
 	
 	/* Compare strings */
 	const char *tmp;
@@ -622,7 +629,7 @@ static cmd_find_res_t cmd_compare(const char *str, const char *cmd)
  */
 static const char *parm_skipq(const char *str)
 {
-	PRE(str != NULL);
+	ASSERT(str != NULL);
 	
 	return (str + 2);
 }
@@ -640,7 +647,8 @@ static const char *parm_skipq(const char *str)
 cmd_find_res_t cmd_find(const char *cmd_name, const cmd_t *cmds,
     const cmd_t **cmd)
 {
-	PRE(cmd_name != NULL, cmds != NULL);
+	ASSERT(cmd_name != NULL);
+	ASSERT(cmds != NULL);
 	
 	cmd_find_res_t res;
 	
@@ -680,7 +688,7 @@ cmd_find_res_t cmd_find(const char *cmd_name, const cmd_t *cmds,
  */
 static const char *find_name(const char *str)
 {
-	PRE(str != NULL);
+	ASSERT(str != NULL);
 	
 	if ((str[0] == 0) || (str[1] == 0))
 		return str;
@@ -697,7 +705,7 @@ static const char *find_name(const char *str)
 
 static size_t sname_len(const char *str)
 {
-	PRE(str != NULL);
+	ASSERT(str != NULL);
 	
 	/* Search for a separator */
 	const char *tmp;
@@ -712,7 +720,9 @@ static size_t sname_len(const char *str)
  */
 bool cmd_run_by_spec(const cmd_t *cmd, token_t *parm, void *data)
 {
-	PRE(cmd != NULL, parm != NULL);
+	ASSERT(cmd != NULL);
+	ASSERT(parm != NULL);
+	
 	token_t *orig_parm = parm;
 	
 	/*
@@ -803,7 +813,9 @@ bool cmd_run_by_spec(const cmd_t *cmd, token_t *parm, void *data)
 bool cmd_run_by_name(const char *cmd_name, token_t *parm, const cmd_t *cmds,
     void *data)
 {
-	PRE(cmd_name != NULL, parm != NULL, cmds != NULL);
+	ASSERT(cmd_name != NULL);
+	ASSERT(parm != NULL);
+	ASSERT(cmds != NULL);
 	
 	const cmd_t *cmd = NULL;
 	
@@ -832,7 +844,8 @@ bool cmd_run_by_name(const char *cmd_name, token_t *parm, const cmd_t *cmds,
  */
 bool cmd_run_by_parm(token_t *parm, const cmd_t *cmds, void *data)
 {
-	PRE(parm != NULL, cmds != NULL);
+	ASSERT(parm != NULL);
+	ASSERT(cmds != NULL);
 	
 	/* Check whether the first token is a string */
 	if (parm_type(parm) != tt_str) {
@@ -852,8 +865,9 @@ bool cmd_run_by_parm(token_t *parm, const cmd_t *cmds, void *data)
  */
 char *generator_cmd(token_t *parm, const void *data, unsigned int level)
 {
-	PRE(parm != NULL, data != NULL);
-	PRE((parm_type(parm) == tt_str) || (parm_type(parm) == tt_end));
+	ASSERT(parm != NULL);
+	ASSERT(data != NULL);
+	ASSERT((parm_type(parm) == tt_str) || (parm_type(parm) == tt_end));
 	
 	if (level == 0)
 		last_cmd = (cmd_t *) data;
@@ -928,7 +942,7 @@ static char *cmd_get_syntax(const cmd_t *cmd)
  */
 void cmd_print_help(const cmd_t *cmds)
 {
-	PRE(cmds != NULL);
+	ASSERT(cmds != NULL);
 	
 	/* Ignore the hardwired "init" command */
 	cmds++;
@@ -951,7 +965,8 @@ void cmd_print_help(const cmd_t *cmds)
  */
 void cmd_print_extended_help(const cmd_t *cmds, token_t *parm)
 {
-	PRE(parm != NULL, cmds != NULL);
+	ASSERT(parm != NULL);
+	ASSERT(cmds != NULL);
 	
 	if (parm_type(parm) == tt_end) {
 		cmd_print_help(cmds);

@@ -15,7 +15,7 @@
 #include "cpu/instr.h"
 #include "fault.h"
 #include "parser.h"
-#include "check.h"
+#include "assert.h"
 #include "utils.h"
 #include "env.h"
 
@@ -554,8 +554,8 @@ bool env_cmd_unset(token_t *parm)
  */
 char *generator_env_name(token_t *parm, const void *data, unsigned int level)
 {
-	PRE(parm != NULL);
-	PRE((parm_type(parm) == tt_str) || (parm_type(parm) == tt_end));
+	ASSERT(parm != NULL);
+	ASSERT((parm_type(parm) == tt_str) || (parm_type(parm) == tt_end));
 	
 	/* Iterator initialization */
 	if (level == 0)
@@ -581,8 +581,8 @@ char *generator_env_name(token_t *parm, const void *data, unsigned int level)
 char *generator_env_booltype(token_t *parm, const void *data,
     unsigned int level)
 {
-	PRE(parm != NULL);
-	PRE((parm_type(parm) == tt_str) || (parm_type(parm) == tt_end));
+	ASSERT(parm != NULL);
+	ASSERT((parm_type(parm) == tt_str) || (parm_type(parm) == tt_end));
 	
 	/* Iterator initialization */
 	if (level == 0)
@@ -611,8 +611,8 @@ char *generator_env_booltype(token_t *parm, const void *data,
 char *generator_bool_envname(token_t *parm, const void *data,
     unsigned int level)
 {
-	PRE(parm != NULL);
-	PRE((parm_type(parm) == tt_str) || parm_type(parm) == tt_end);
+	ASSERT(parm != NULL);
+	ASSERT((parm_type(parm) == tt_str) || parm_type(parm) == tt_end);
 	
 	/* Iterator initialization */
 	if (level == 0)
@@ -639,8 +639,8 @@ char *generator_bool_envname(token_t *parm, const void *data,
 char *generator_equal_char(token_t *token, const void *data,
     unsigned int level)
 {
-	PRE(token != NULL);
-	PRE((parm_type(token) == tt_str) || (parm_type(token) == tt_end));
+	ASSERT(token != NULL);
+	ASSERT((parm_type(token) == tt_str) || (parm_type(token) == tt_end));
 	
 	if (level == 0)
 		return safe_strdup("=");

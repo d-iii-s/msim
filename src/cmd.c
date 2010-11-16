@@ -24,7 +24,7 @@
 #include "device/machine.h"
 #include "main.h"
 #include "cmd.h"
-#include "check.h"
+#include "assert.h"
 #include "fault.h"
 #include "utils.h"
 #include "env.h"
@@ -421,8 +421,8 @@ void script(void)
 static char *generator_devtype(token_t *parm, const void *data,
     unsigned int level)
 {
-	PRE(parm != NULL);
-	PRE((parm_type(parm) == tt_str) || (parm_type(parm) == tt_end));
+	ASSERT(parm != NULL);
+	ASSERT((parm_type(parm) == tt_str) || (parm_type(parm) == tt_end));
 	
 	const char *str;
 	static uint32_t last_device_order = 0;
@@ -444,8 +444,8 @@ static char *generator_devtype(token_t *parm, const void *data,
 static char *generator_devname(token_t *parm, const void *data,
     unsigned int level)
 {
-	PRE(parm != NULL);
-	PRE((parm_type(parm) == tt_str) || (parm_type(parm) == tt_end));
+	ASSERT(parm != NULL);
+	ASSERT((parm_type(parm) == tt_str) || (parm_type(parm) == tt_end));
 	
 	const char *str;
 	static device_t *dev;
@@ -498,8 +498,11 @@ static char *generator_system_cmds_and_device_names(token_t *parm,
 static gen_t system_add_find_generator(token_t **parm, const cmd_t *cmd,
     const void **data)
 {
-	PRE(parm != NULL, data != NULL, generator != NULL, cmd != NULL);
-	PRE(*parm != NULL, *data == NULL);
+	ASSERT(parm != NULL);
+	ASSERT(*parm != NULL);
+	ASSERT(cmd != NULL);
+	ASSERT(data != NULL);
+	ASSERT(*data == NULL);
 	
 	uint32_t first_device_order = 0;
 	if ((parm_type(*parm) == tt_str)
@@ -516,8 +519,11 @@ static gen_t system_add_find_generator(token_t **parm, const cmd_t *cmd,
 static gen_t system_set_find_generator(token_t **parm, const cmd_t *cmd,
     const void **data)
 {
-	PRE(parm != NULL, data != NULL, generator != NULL, cmd != NULL);
-	PRE(*parm != NULL, *data == NULL);
+	ASSERT(parm != NULL);
+	ASSERT(*parm != NULL);
+	ASSERT(cmd != NULL);
+	ASSERT(data != NULL);
+	ASSERT(*data == NULL);
 	
 	if (parm_type(*parm) == tt_str) {
 		unsigned int res;
@@ -568,8 +574,11 @@ static gen_t system_set_find_generator(token_t **parm, const cmd_t *cmd,
 static gen_t system_unset_find_generator(token_t **parm, const cmd_t *cmd,
     const void **data)
 {
-	PRE(parm != NULL, data != NULL, generator != NULL, cmd != NULL);
-	PRE(*parm != NULL, *data == NULL);
+	ASSERT(parm != NULL);
+	ASSERT(*parm != NULL);
+	ASSERT(cmd != NULL);
+	ASSERT(data != NULL);
+	ASSERT(*data == NULL);
 	
 	if (parm_type(*parm) == tt_str) {
 		/* Look up for a variable name */
@@ -592,8 +601,10 @@ static gen_t system_unset_find_generator(token_t **parm, const cmd_t *cmd,
  */
 gen_t find_completion_generator(token_t **parm, const void **data)
 {
-	PRE(parm != NULL, generator != NULL, data != NULL);
-	PRE(*parm != NULL, *generator == NULL, *data == NULL);
+	ASSERT(parm != NULL);
+	ASSERT(*parm != NULL);
+	ASSERT(data != NULL);
+	ASSERT(*data == NULL);
 	
 	if (parm_last(*parm))
 		return generator_system_cmds_and_device_names;

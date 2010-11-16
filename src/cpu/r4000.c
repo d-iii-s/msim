@@ -17,7 +17,7 @@
 #include "../debug/debug.h"
 #include "../debug/breakpoint.h"
 #include "../debug/gdb.h"
-#include "../check.h"
+#include "../assert.h"
 #include "../main.h"
 #include "../endi.h"
 #include "../text.h"
@@ -485,7 +485,7 @@ exc_t cpu_read_ins(cpu_t *cpu, ptr_t addr, uint32_t *value, bool noisy)
  */
 void cpu_interrupt_up(cpu_t *cpu, unsigned int no)
 {
-	PRE(no < INTR_COUNT);
+	ASSERT(no < INTR_COUNT);
 	
 	cp0_cause(cpu) |= 1 << (cp0_cause_ip0_shift + no);
 	cpu->intr[no]++;
@@ -496,7 +496,7 @@ void cpu_interrupt_up(cpu_t *cpu, unsigned int no)
  */
 void cpu_interrupt_down(cpu_t *cpu, unsigned int no)
 {
-	PRE(no < INTR_COUNT);
+	ASSERT(no < INTR_COUNT);
 	
 	cp0_cause(cpu) &= ~(1 << (cp0_cause_ip0_shift + no));
 }

@@ -21,7 +21,7 @@
 #include "../device/dcpu.h"
 #include "../input.h"
 #include "../env.h"
-#include "../check.h"
+#include "../assert.h"
 #include "../utils.h"
 #include "../fault.h"
 

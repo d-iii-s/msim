@@ -17,7 +17,7 @@
 #include "text.h"
 #include "utils.h"
 #include "fault.h"
-#include "check.h"
+#include "assert.h"
 #include "main.h"
 
 #define STRING_GRANULARITY  128
@@ -48,7 +48,7 @@ void string_init(string_t *str)
 
 void string_clear(string_t *str)
 {
-	PRE(str->str != NULL);
+	ASSERT(str->str != NULL);
 	
 	str->size = 0;
 	str->pos = 0;
@@ -60,7 +60,7 @@ void string_clear(string_t *str)
 
 void string_push(string_t *str, char c)
 {
-	PRE(str->str != NULL);
+	ASSERT(str->str != NULL);
 	
 	safe_realloc(&str->str, &str->size, str->pos + 1,
 	    STRING_GRANULARITY);
@@ -72,8 +72,8 @@ void string_push(string_t *str, char c)
 
 void string_append(string_t *str, const char *val)
 {
-	PRE(str->str != NULL);
-	PRE(val != NULL);
+	ASSERT(str->str != NULL);
+	ASSERT(val != NULL);
 	
 	size_t len = strlen(val);
 	
@@ -131,7 +131,7 @@ void string_fread(string_t *str, FILE *file)
 
 void string_done(string_t *str)
 {
-	PRE(str->str != NULL);
+	ASSERT(str->str != NULL);
 	
 	safe_free(str->str);
 	str->size = 0;
@@ -155,7 +155,7 @@ void *safe_malloc(const size_t size)
  */
 char *safe_strdup(const char *str)
 {
-	PRE(str != NULL);
+	ASSERT(str != NULL);
 	
 	char *duplicate = strdup(str);
 	if (duplicate == NULL)
@@ -169,7 +169,8 @@ char *safe_strdup(const char *str)
  */
 bool prefix(const char *prefix, const char *string)
 {
-	PRE(prefix != NULL, string != NULL);
+	ASSERT(prefix != NULL);
+	ASSERT(string != NULL);
 	
 	while (*prefix != 0) {
 		if (*prefix != *string)
@@ -258,7 +259,7 @@ bool try_fseek(FILE *file, size_t offset, int whence, const char *path)
  */
 bool try_ftell(FILE *file, const char *path, size_t *pos)
 {
-	PRE(pos != NULL);
+	ASSERT(pos != NULL);
 	
 	long lpos = ftell(file);
 	*pos = (size_t) lpos;

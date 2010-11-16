@@ -17,7 +17,7 @@
 #include <inttypes.h>
 #include "dtime.h"
 #include "device.h"
-#include "../check.h"
+#include "../assert.h"
 #include "../fault.h"
 #include "../utils.h"
 
@@ -120,7 +120,7 @@ static void dtime_done(device_t *dev)
  */
 static void dtime_read(cpu_t *cpu, device_t *dev, ptr_t addr, uint32_t *val)
 {
-	PRE(val != NULL);
+	ASSERT(val != NULL);
 	
 	dtime_data_t *data = (dtime_data_t *) dev->data;
 	

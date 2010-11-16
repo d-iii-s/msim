@@ -36,7 +36,7 @@
 #include "../device/machine.h"
 #include "../main.h"
 #include "../utils.h"
-#include "../check.h"
+#include "../assert.h"
 #include "../fault.h"
 #include "gdb.h"
 #include "breakpoint.h"
@@ -177,7 +177,7 @@ void memory_breakpoint_print_list(void)
  */
 void memory_breakpoint_hit(mem_breakpoint_t *breakpoint, access_t access_type)
 {
-	PRE(breakpoint != NULL);
+	ASSERT(breakpoint != NULL);
 	
 	switch (breakpoint->kind) {
 	case BREAKPOINT_KIND_SIMULATOR:

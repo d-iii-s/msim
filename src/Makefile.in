@@ -24,7 +24,6 @@ SOURCES = \
 	text.c \
 	env.c \
 	cmd.c \
-	check.c \
 	main.c \
 	parser.c \
 	list.c \

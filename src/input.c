@@ -17,7 +17,7 @@
 #include <readline/history.h>
 #include "arch/console.h"
 #include "device/machine.h"
-#include "check.h"
+#include "assert.h"
 #include "parser.h"
 #include "cmd.h"
 #include "utils.h"
@@ -44,7 +44,7 @@ static struct termios tio_old;
  */
 static char *hint_generator(const char *input, int level)
 {
-	PRE(level >= 0);
+	ASSERT(level >= 0);
 	
 	if (level == 0) {
 		if (last_pars != NULL)
@@ -60,7 +60,7 @@ static char *hint_generator(const char *input, int level)
 			return NULL;
 	}
 	
-	PRE(gen != NULL);
+	ASSERT(gen != NULL);
 	return gen(last_pars, data, level);
 }
 

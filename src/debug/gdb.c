@@ -28,7 +28,7 @@
 #include "../device/machine.h"
 #include "../device/dcpu.h"
 #include "../main.h"
-#include "../check.h"
+#include "../assert.h"
 #include "../text.h"
 #include "../fault.h"
 #include "../parser.h"
@@ -585,7 +585,7 @@ static void gdb_process_query(char *req)
 	if (strcmp(query, "C") == 0) {
 		char reply[5];
 		
-		PRE(cpuno_global <= MAX_CPU);
+		ASSERT(cpuno_global <= MAX_CPU);
 		
 		/* Represent processors as threads */
 		snprintf(reply, 5, "QC%02x", cpuno_global);

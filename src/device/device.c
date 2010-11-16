@@ -26,7 +26,7 @@
 #include "dtime.h"
 #include "device.h"
 #include "../main.h"
-#include "../check.h"
+#include "../assert.h"
 #include "../utils.h"
 #include "../fault.h"
 
@@ -115,7 +115,7 @@ void add_device(device_t *dev)
  */
 static bool dev_match_to_filter(device_t* device, device_filter_t filter)
 {
-	PRE(device != NULL);
+	ASSERT(device != NULL);
 	
 	switch (filter) {
 	case DEVICE_FILTER_ALL:
@@ -181,7 +181,7 @@ bool dev_next(device_t **device, device_filter_t filter)
 const char *dev_type_by_partial_name(const char *name_prefix,
     uint32_t* device_order)
 {
-	PRE(name_prefix != NULL);
+	ASSERT(name_prefix != NULL);
 	
 	/* Search from the specified device */
 	unsigned int i;
@@ -216,8 +216,8 @@ const char *dev_type_by_partial_name(const char *name_prefix,
  */
 const char *dev_by_partial_name(const char *prefix_name, device_t **device)
 {
-	PRE(device != NULL);
-	PRE(prefix_name != NULL);
+	ASSERT(device != NULL);
+	ASSERT(prefix_name != NULL);
 	
 	while (dev_next(device, DEVICE_FILTER_ALL)) {
 		if (prefix(prefix_name, (*device)->name))
@@ -241,7 +241,8 @@ const char *dev_by_partial_name(const char *prefix_name, device_t **device)
 size_t dev_count_by_partial_name(const char *name_prefix,
     device_t **last_found_device)
 {
-	PRE(name_prefix != NULL, last_found_device != NULL);
+	ASSERT(name_prefix != NULL);
+	ASSERT(last_found_device != NULL);
 	
 	size_t count = 0;
 	device_t *device = NULL;

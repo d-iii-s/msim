@@ -129,7 +129,7 @@ void machine_step(void)
  */
 static bool gdb_startup(void) {
 	if (dcpu_find_no(0) == NULL) {
-		error("Cannot debug without configured processor.");
+		error("Cannot debug without any processor");
 		return false;
 	}
 	

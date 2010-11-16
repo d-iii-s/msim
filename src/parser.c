@@ -812,13 +812,13 @@ bool cmd_run_by_name(const char *cmd_name, token_t *parm, const cmd_t *cmds,
 	case CMP_HIT:
 		break;
 	case CMP_PARTIAL_HIT:
-		intr_error("Partial command \"%s\".", cmd_name);
+		intr_error("Partial command \"%s\"", cmd_name);
 		return false;
 	case CMP_NO_HIT:
-		intr_error("Unknown command \"%s\".", cmd_name);
+		intr_error("Unknown command \"%s\"", cmd_name);
 		return false;
 	case CMP_MULTIPLE_HIT:
-		intr_error("Ambiguous command \"%s\".", cmd_name);
+		intr_error("Ambiguous command \"%s\"", cmd_name);
 		return false;
 	}
 	
@@ -966,13 +966,13 @@ void cmd_print_extended_help(const cmd_t *cmds, token_t *parm)
 	case CMP_HIT:
 		break;
 	case CMP_PARTIAL_HIT:
-		intr_error("Partial command \"%s\".", cmd_name);
+		intr_error("Partial command \"%s\"", cmd_name);
 		return;
 	case CMP_NO_HIT:
-		intr_error("Unknown command \"%s\".", cmd_name);
+		intr_error("Unknown command \"%s\"", cmd_name);
 		return;
 	case CMP_MULTIPLE_HIT:
-		intr_error("Ambiguous command \"%s\".", cmd_name);
+		intr_error("Ambiguous command \"%s\"", cmd_name);
 		return;
 	}
 	

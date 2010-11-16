@@ -75,10 +75,10 @@ static void conf_remote_gdb(const char *opt)
 	
 	port_no = strtol(opt, &endp, 0);
 	if (!endp)
-		die(ERR_PARM, "Port number expected.");
+		die(ERR_PARM, "Port number expected");
 	
 	if ((port_no < 0) || (port_no > 65534))
-		die(ERR_PARM, "Invalid port number.");
+		die(ERR_PARM, "Invalid port number");
 	
 	remote_gdb = true;
 	remote_gdb_port = port_no;
@@ -130,7 +130,7 @@ static void parse_cmdline(int argc, char *args[])
 	}
 	
 	if (optind < argc)
-		die(ERR_PARM, "Unexpected arguments.\n");
+		die(ERR_PARM, "Unexpected arguments");
 }
 
 int main(int argc, char *args[])

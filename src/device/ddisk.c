@@ -529,7 +529,7 @@ static bool ddisk_fill(token_t *parm, device_t *dev)
 	/* String/character */
 	if (parm_type(parm) == tt_str) {
 		if ((!parm_str(parm)[0]) || (parm_str(parm)[1])) {
-			error("Invalid string parameter; exactly one character is necessary.");
+			error("Invalid string parameter; exactly one character is necessary");
 			return false;
 		}
 		

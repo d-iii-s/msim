@@ -927,7 +927,7 @@ bool gdb_remote_init(void)
 		return false;
 	}
 	
-	alert("GDB: Waiting for connection on port %u ...", remote_gdb_port);
+	alert("GDB: Waiting for connection on port %u", remote_gdb_port);
 	
 	struct sockaddr_in sa_gdb;
 	socklen_t addrlen = sizeof(sa_gdb);

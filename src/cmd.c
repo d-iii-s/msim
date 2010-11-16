@@ -139,14 +139,33 @@ static bool system_unset(token_t *parm, void *data)
  */
 static bool system_dumpins(token_t *parm, void *data)
 {
-	ptr_t addr = ALIGN_DOWN(parm_uint(parm), 4);
-	uint32_t cnt = parm_next_uint(&parm);
+	uint64_t _addr = ALIGN_DOWN(parm_uint_next(&parm), 4);
+	uint64_t _cnt = parm_uint(parm);
 	
-	for (; cnt > 0; addr += 4, cnt--) {
+	if (!phys_range(_addr)) {
+		error("Physical address out of range");
+		return false;
+	}
+	
+	if (!phys_range(_cnt)) {
+		error("Count out of range");
+		return false;
+	}
+	
+	if (!phys_range(_addr + _cnt * BITS_32)) {
+		error("Count exceeds physical memory range");
+		return false;
+	}
+	
+	ptr36_t addr;
+	len36_t cnt;
+	
+	for (addr = (ptr36_t) _addr, cnt = (len36_t) _cnt; cnt > 0;
+	    addr += BITS_32, cnt--) {
 		instr_info_t ii;
-		ii.icode = mem_read(NULL, addr, BITS_32, false);
+		ii.icode = physmem_read(NULL, addr, BITS_32, false);
 		decode_instr(&ii);
-		iview(NULL, addr, &ii, 0);
+		iview_phys(addr, &ii, 0);
 	}
 	
 	return true;
@@ -179,11 +198,24 @@ static bool system_dumpphys(token_t *parm, void *data)
  */
 static bool system_break(token_t *parm, void *data)
 {
-	ptr_t addr = parm_uint(parm);
-	parm_next(&parm);
-	uint32_t size = parm_uint(parm);
-	parm_next(&parm);
+	uint64_t addr = parm_uint_next(&parm);
+	uint64_t size = parm_uint_next(&parm);
 	const char *rw = parm_str(parm);
+	
+	if (!phys_range(addr)) {
+		error("Physical address out of range");
+		return false;
+	}
+	
+	if (!phys_range(size)) {
+		error("Size out of range");
+		return false;
+	}
+	
+	if (!phys_range(addr + size)) {
+		error("Size exceeds physical memory range");
+		return false;
+	}
 	
 	access_filter_t access_flags = ACCESS_FILTER_NONE;
 	
@@ -198,7 +230,7 @@ static bool system_break(token_t *parm, void *data)
 		return false;
 	}
 	
-	memory_breakpoint_add(addr, size, access_flags,
+	physmem_breakpoint_add((ptr36_t) addr, (len36_t) size, access_flags,
 	    BREAKPOINT_KIND_SIMULATOR);
 	return true;
 }
@@ -208,7 +240,7 @@ static bool system_break(token_t *parm, void *data)
  */
 static bool system_dumpbreak(token_t *parm, void *data)
 {
-	memory_breakpoint_print_list();
+	physmem_breakpoint_print_list();
 	return true;
 }
 
@@ -217,9 +249,14 @@ static bool system_dumpbreak(token_t *parm, void *data)
  */
 static bool system_rembreak(token_t *parm, void *data)
 {
-	ptr_t addr = parm_uint(parm);
+	uint64_t addr = parm_uint(parm);
 	
-	if (!memory_breakpoint_remove(addr)) {
+	if (!phys_range(addr)) {
+		error("Physical address out of range");
+		return false;
+	}
+	
+	if (!physmem_breakpoint_remove(addr)) {
 		error("Unknown breakpoint");
 		return false;
 	}
@@ -245,18 +282,37 @@ static bool system_stat(token_t *parm, void *data)
  */
 static bool system_dumpmem(token_t *parm, void *data)
 {
-	ptr_t addr = ALIGN_DOWN(parm_uint(parm), 4);
-	uint32_t cnt = parm_next_uint(&parm);
-	uint32_t i;
+	uint64_t _addr = ALIGN_DOWN(parm_uint_next(&parm), 4);
+	uint64_t _cnt = parm_uint(parm);
 	
-	for (i = 0; i < cnt; addr += 4, i++) {
-		if ((i & 0x3) == 0)
-			printf("  %#010" PRIx32 "    ", addr);
+	if (!phys_range(_addr)) {
+		error("Physical address out of range");
+		return false;
+	}
+	
+	if (!phys_range(_cnt)) {
+		error("Count out of range");
+		return false;
+	}
+	
+	if (!phys_range(_addr + _cnt * BITS_32)) {
+		error("Count exceeds physical memory range");
+		return false;
+	}
+	
+	ptr36_t addr;
+	len36_t cnt;
+	len36_t i;
+	
+	for (addr = (ptr36_t) _addr, cnt = (len36_t) _cnt, i = 0;
+	    i < cnt; addr += BITS_32, i++) {
+		if ((i & 0x03) == 0)
+			printf("  %#011" PRIx64 "   ", addr);
 		
-		uint32_t val = mem_read(NULL, addr, BITS_32, false);
+		uint32_t val = physmem_read(NULL, addr, BITS_32, false);
 		printf("%08" PRIx32 " ", val);
 		
-		if ((i & 0x3) == 3)
+		if ((i & 0x03) == 3)
 			printf("\n");
 	}
 	

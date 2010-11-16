@@ -59,7 +59,12 @@ extern void string_done(string_t *str);
 extern bool prefix(const char *pref, const char *str);
 extern char *uint32_human_readable(uint32_t i);
 
-extern bool addr_word_aligned(ptr_t addr);
+extern bool ptr32_word_aligned(ptr32_t addr);
+extern bool ptr36_word_aligned(ptr36_t addr);
+extern bool ptr64_word_aligned(ptr64_t addr);
+
+extern bool virt_range(uint64_t addr);
+extern bool phys_range(uint64_t addr);
 
 extern FILE *try_fopen(const char *path, const char *mode);
 extern bool try_fseek(FILE *file, size_t offset, int whence, const char *path);

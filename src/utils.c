@@ -316,7 +316,26 @@ char *uint32_human_readable(uint32_t i)
  * @return True if the address is 4B aligned.
  *
  */
-bool addr_word_aligned(ptr_t addr)
+bool ptr32_word_aligned(ptr32_t addr)
 {
-	return (addr & 0x3) == 0;
+	return (addr & 0x03) == 0;
+}
+
+bool ptr36_word_aligned(ptr36_t addr)
+{
+	return (addr & 0x03) == 0;
+}
+
+bool ptr64_word_aligned(ptr64_t addr)
+{
+	return (addr & 0x03) == 0;
+}
+
+bool virt_range(uint64_t addr)
+{
+	return (addr <= 0xffffffffULL);
+}
+
+bool phys_range(uint64_t addr) {
+	return (addr <= 0xfffffffffULL);
 }

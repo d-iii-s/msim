@@ -127,8 +127,8 @@ extern bool parm_last(token_t *parm);
 extern uint64_t parm_uint(token_t *parm);
 extern char *parm_str(token_t *parm);
 
-extern uint64_t parm_next_uint(token_t **parm);
-extern char *parm_next_str(token_t **parm);
+extern uint64_t parm_uint_next(token_t **parm);
+extern char *parm_str_next(token_t **parm);
 
 extern cmd_find_res_t cmd_find(const char *cmd_name, const cmd_t *cmds,
    const cmd_t **cmd);

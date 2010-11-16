@@ -37,7 +37,7 @@ bool reenter = false;
 bool tobreak = false;
 
 char *config_file = NULL;
-uint32_t stepping = 0;
+uint64_t stepping = 0;
 
 /** Debug features */
 char **cp0name;
@@ -295,7 +295,7 @@ static inline mem_breakpoint_t *memory_breakpoint_find(ptr_t addr,
  *         or the default memory value, if the address is not valid.
  *
  */
-uint32_t mem_read(cpu_t *cpu, ptr_t addr, size_t size,
+uint32_t mem_read(cpu_t *cpu, ptr_t addr, wsize_t size,
     bool protected_read)
 {
 	mem_area_t *area = find_mem_area(addr);
@@ -359,7 +359,7 @@ uint32_t mem_read(cpu_t *cpu, ptr_t addr, size_t size,
  *         set to true.
  *
  */
-bool mem_write(cpu_t *cpu, uint32_t addr, uint32_t val, size_t size,
+bool mem_write(cpu_t *cpu, uint32_t addr, uint32_t val, wsize_t size,
     bool protected_write)
 {
 	mem_area_t *area = find_mem_area(addr);

@@ -379,7 +379,7 @@ static void show_help(token_t *parm)
 			printf("\n");
 		}
 	} else {
-		env = search_variable(parm_next_str(&parm));
+		env = search_variable(parm_str_next(&parm));
 		if (env)
 			printf("%s\n", env->descf);
 	}

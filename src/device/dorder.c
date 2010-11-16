@@ -183,8 +183,8 @@ static bool dorder_init(token_t *parm, device_t *dev)
 	
 	/* Initialize */
 	parm_next(&parm);
-	od->addr = parm_next_uint(&parm);
-	od->intno = parm_next_uint(&parm);
+	od->addr = parm_uint_next(&parm);
+	od->intno = parm_uint_next(&parm);
 	od->cmds = 0;
 
 	/* Checks */

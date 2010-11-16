@@ -36,12 +36,12 @@ typedef struct {
 	bool writable;
 	
 	/* Basic specification (position and size) */
-	ptr_t start;
-	len_t size;
+	ptr36_t start;
+	len36_t size;
 	
 	/* Memory content */
 	unsigned char *data;
-} mem_area_t;
+} physmem_area_t;
 
 typedef struct {
 	item_t item;
@@ -55,10 +55,7 @@ extern bool tobreak;
 extern bool reenter;
 extern bool version;
 
-extern int procno;
-
-extern list_t mem_areas;
-
+extern list_t physmem_areas;
 extern char *config_file;
 
 /** Debug features */
@@ -77,7 +74,7 @@ extern bool remote_gdb_conn;
 extern bool remote_gdb_listen;
 extern bool remote_gdb_step;
 
-extern uint32_t stepping;
+extern uint64_t stepping;
 extern list_t sc_list;
 
 extern void input_back(void);
@@ -96,9 +93,9 @@ extern void register_sc(cpu_t *cpu);
 extern void unregister_sc(cpu_t *cpu);
 
 /** Memory access */
-extern bool mem_write(cpu_t *cpu, uint32_t addr, uint32_t val,
-    size_t size, bool protected_write);
-extern uint32_t mem_read(cpu_t *cpu, uint32_t addr, size_t size,
+extern bool physmem_write(cpu_t *cpu, ptr36_t addr, uint32_t val,
+    wsize_t size, bool protected_write);
+extern uint32_t physmem_read(cpu_t *cpu, ptr36_t addr, wsize_t size,
     bool protected_read);
 
 #endif

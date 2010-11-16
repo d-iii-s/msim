@@ -94,8 +94,10 @@ static shift_tab_t shift_tab_right_store[] = {
 /** Initialize simulation environment
  *
  */
-void cpu_init(cpu_t *cpu, size_t procno)
+void cpu_init(cpu_t *cpu, unsigned int procno)
 {
+	ASSERT(cpu != NULL);
+	
 	/* Initially set all members to zero */
 	memset(cpu, 0, sizeof(cpu_t));
 	
@@ -122,8 +124,10 @@ void cpu_init(cpu_t *cpu, size_t procno)
 /** Set the PC register
  *
  */
-void cpu_set_pc(cpu_t *cpu, ptr_t value)
+void cpu_set_pc(cpu_t *cpu, ptr32_t value)
 {
+	ASSERT(cpu != NULL);
+	
 	cpu->pc = value;
 	cpu->pc_next = value + 4;
 }
@@ -133,8 +137,11 @@ void cpu_set_pc(cpu_t *cpu, ptr_t value)
  * See tlb_look_t definition
  *
  */
-static tlb_look_t tlb_look(cpu_t *cpu, ptr_t *addr, bool wr)
+static tlb_look_t tlb_look(cpu_t *cpu, ptr32_t virt, ptr36_t *phys, bool wr)
 {
+	ASSERT(cpu != NULL);
+	ASSERT(phys != NULL);
+	
 	/* Ignore TLB test */
 	if (cp0_status_ts(cpu) == 1)
 		return TLBL_OK;
@@ -147,15 +154,15 @@ static tlb_look_t tlb_look(cpu_t *cpu, ptr_t *addr, bool wr)
 		tlb_entry_t *entry = &cpu->tlb[(i + hint) % TLB_ENTRIES];
 		
 		/* TLB hit? */
-		if ((*addr & entry->mask) == entry->vpn2) {
+		if ((virt & entry->mask) == entry->vpn2) {
 			/* Test ASID */
 			if ((!entry->global) && (entry->asid != cp0_entryhi_asid(cpu)))
 				continue;
 			
 			/* Calculate subpage */
-			uint32_t smask = (entry->mask >> 1) | SBIT;
+			ptr32_t smask = (entry->mask >> 1) | SBIT;
 			unsigned int subpage =
-			    ((*addr & entry->mask) < (*addr & smask)) ? 1 : 0;
+			    ((virt & entry->mask) < (virt & smask)) ? 1 : 0;
 			
 			/* Test valid & dirty */
 			if (!entry->pg[subpage].valid)
@@ -165,8 +172,8 @@ static tlb_look_t tlb_look(cpu_t *cpu, ptr_t *addr, bool wr)
 				return TLBL_MODIFIED;
 			
 			/* Make address */
-			ptr_t amask = *addr & (~smask);
-			*addr = amask | (entry->pg[subpage].pfn & smask);
+			ptr36_t amask = virt & (~smask);
+			*phys = amask | (entry->pg[subpage].pfn & smask);
 			
 			/* Update optimization hint */
 			cpu->tlb_hint = i;
@@ -181,8 +188,10 @@ static tlb_look_t tlb_look(cpu_t *cpu, ptr_t *addr, bool wr)
 /** Fill up cp0 registers with specified address
  *
  */
-static void fill_tlb_error(cpu_t *cpu, ptr_t addr)
+static void fill_tlb_error(cpu_t *cpu, ptr32_t addr)
 {
+	ASSERT(cpu != NULL);
+	
 	cp0_badvaddr(cpu) = addr;
 	
 	cp0_context(cpu) &= cp0_context_ptebase_mask;
@@ -195,8 +204,10 @@ static void fill_tlb_error(cpu_t *cpu, ptr_t addr)
 /** Fill registers as the Address error exception occures
  *
  */
-static void fill_addr_error(cpu_t *cpu, ptr_t addr, bool noisy)
+static void fill_addr_error(cpu_t *cpu, ptr32_t addr, bool noisy)
 {
+	ASSERT(cpu != NULL);
+	
 	if (noisy) {
 		cp0_badvaddr(cpu) = addr;
 		cp0_context(cpu) &= ~cp0_context_badvpn2_mask;  /* Undefined */
@@ -207,29 +218,33 @@ static void fill_addr_error(cpu_t *cpu, ptr_t addr, bool noisy)
 /** Search through TLB and generates apropriate exception
  *
  */
-static exc_t tlb_hit(cpu_t *cpu, ptr_t *addr, bool wr, bool noisy)
+static exc_t tlb_hit(cpu_t *cpu, ptr32_t virt, ptr36_t *phys, bool wr,
+    bool noisy)
 {
-	switch (tlb_look(cpu, addr, wr)) {
+	ASSERT(cpu != NULL);
+	ASSERT(phys != NULL);
+	
+	switch (tlb_look(cpu, virt, phys, wr)) {
 	case TLBL_OK:
 		break;
 	case TLBL_REFILL:
 		if (noisy) {
 			cpu->tlb_refill++;
-			fill_tlb_error(cpu, *addr);
+			fill_tlb_error(cpu, virt);
 		}
 		
 		return excTLBR;
 	case TLBL_INVALID:
 		if (noisy) {
 			cpu->tlb_invalid++;
-			fill_tlb_error(cpu, *addr);
+			fill_tlb_error(cpu, virt);
 		}
 		
 		return excTLB;
 	case TLBL_MODIFIED:
 		if (noisy) {
 			cpu->tlb_modified++;
-			fill_tlb_error(cpu, *addr);
+			fill_tlb_error(cpu, virt);
 		}
 		
 		return excMod;
@@ -241,67 +256,78 @@ static exc_t tlb_hit(cpu_t *cpu, ptr_t *addr, bool wr, bool noisy)
 /** The user mode address conversion
  *
  */
-static exc_t convert_addr_user(cpu_t *cpu, ptr_t *addr, bool wr, bool noisy)
+static exc_t convert_addr_user(cpu_t *cpu, ptr32_t virt, ptr36_t *phys,
+    bool wr, bool noisy)
 {
+	ASSERT(cpu != NULL);
+	ASSERT(phys != NULL);
+	
 	/* Test bit 31 or lookup in TLB */
-	if ((*addr & SBIT) != 0) {
-		fill_addr_error(cpu, *addr, noisy);
+	if ((virt & SBIT) != 0) {
+		fill_addr_error(cpu, virt, noisy);
 		return excAddrError;
 	}
 	
 	/* useg */
-	return tlb_hit(cpu, addr, wr, noisy);
+	return tlb_hit(cpu, virt, phys, wr, noisy);
 }
 
 /** The supervisor mode address conversion
  *
  */
-static exc_t convert_addr_supervisor(cpu_t *cpu, ptr_t *addr, bool wr,
-    bool noisy)
+static exc_t convert_addr_supervisor(cpu_t *cpu, ptr32_t virt, ptr36_t *phys,
+    bool wr, bool noisy)
 {
-	if (*addr < 0x80000000U)  /* suseg */
-		return tlb_hit(cpu, addr, wr, noisy);
+	ASSERT(cpu != NULL);
+	ASSERT(phys != NULL);
 	
-	if (*addr < 0xc0000000U) {
-		fill_addr_error(cpu, *addr, noisy);
+	if (virt < 0x80000000U)  /* suseg */
+		return tlb_hit(cpu, virt, phys, wr, noisy);
+	
+	if (virt < 0xc0000000U) {
+		fill_addr_error(cpu, virt, noisy);
 		return excAddrError;
 	}
 	
-	if (*addr < 0xe0000000U)  /* ssseg */
-		return tlb_hit(cpu, addr, wr, noisy);
+	if (virt < 0xe0000000U)  /* ssseg */
+		return tlb_hit(cpu, virt, phys, wr, noisy);
 	
-	/* *addr > 0xe0000000U */
-	fill_addr_error(cpu, *addr, noisy);
+	/* virt > 0xe0000000U */
+	fill_addr_error(cpu, virt, noisy);
 	return excAddrError;
 }
 
 /** The kernel mode address conversion
  *
  */
-static exc_t convert_addr_kernel(cpu_t *cpu, ptr_t *addr, bool wr, bool noisy)
+static exc_t convert_addr_kernel(cpu_t *cpu, ptr32_t virt, ptr36_t *phys,
+    bool wr, bool noisy)
 {
-	if (*addr < 0x80000000U) {  /* kuseg */
+	ASSERT(cpu != NULL);
+	ASSERT(phys != NULL);
+	
+	if (virt < 0x80000000U) {  /* kuseg */
 		if (!cp0_status_erl(cpu))
-			return tlb_hit(cpu, addr, wr, noisy);
+			return tlb_hit(cpu, virt, phys, wr, noisy);
 		
 		return excNone;
 	}
 	
-	if (*addr < 0xa0000000U) {  /* kseg0 */
-		*addr -= 0x80000000;
+	if (virt < 0xa0000000U) {  /* kseg0 */
+		*phys = virt - 0x80000000U;
 		return excNone;
 	}
 	
-	if (*addr < 0xc0000000U) {  /* kseg1 */
-		*addr -= 0xa0000000;
+	if (virt < 0xc0000000U) {  /* kseg1 */
+		*phys = virt - 0xa0000000U;
 		return excNone;
 	}
 	
-	if (*addr < 0xe0000000U)  /* kseg2 */
-		return tlb_hit(cpu, addr, wr, noisy);
+	if (virt < 0xe0000000U)  /* kseg2 */
+		return tlb_hit(cpu, virt, phys, wr, noisy);
 	
-	/* *addr > 0xe0000000U (kseg3) */
-	return tlb_hit(cpu, addr, wr, noisy);
+	/* virt > 0xe0000000U (kseg3) */
+	return tlb_hit(cpu, virt, phys, wr, noisy);
 }
 
 /** The conversion of virtual addresses
@@ -311,18 +337,22 @@ static exc_t convert_addr_kernel(cpu_t *cpu, ptr_t *addr, bool wr, bool noisy)
  *              if the address is incorrect.
  *
  */
-exc_t convert_addr(cpu_t *cpu, ptr_t *addr, bool write, bool noisy)
+exc_t convert_addr(cpu_t *cpu, ptr32_t virt, ptr36_t *phys, bool write,
+    bool noisy)
 {
+	ASSERT(cpu != NULL);
+	ASSERT(phys != NULL);
+	
 	/* Test the type of the translation */
 	if ((cp0_status_ksu(cpu) == 2) && (!cp0_status_exl(cpu)) &&
 	    (!cp0_status_erl(cpu)))
-		return convert_addr_user(cpu, addr, write, noisy);
+		return convert_addr_user(cpu, virt, phys, write, noisy);
 	
 	if ((cp0_status_ksu(cpu) == 1) && (!cp0_status_exl(cpu)) &&
 	    (!cp0_status_erl(cpu)))
-		return convert_addr_supervisor(cpu, addr, write, noisy);
+		return convert_addr_supervisor(cpu, virt, phys, write, noisy);
 	
-	return convert_addr_kernel(cpu, addr, write, noisy);
+	return convert_addr_kernel(cpu, virt, phys, write, noisy);
 }
 
 /** Test for correct alignment
@@ -330,11 +360,25 @@ exc_t convert_addr(cpu_t *cpu, ptr_t *addr, bool write, bool noisy)
  * Fill BadVAddr if the alignment is not correct.
  *
  */
-static exc_t mem_align_test(cpu_t *cpu, ptr_t addr, len_t size, bool noisy)
+static exc_t mem_align_test(cpu_t *cpu, ptr32_t addr, wsize_t size, bool noisy)
 {
-	if (((size == 2) && (addr & 1)) || ((size == 4) && (addr & 3))) {
-		fill_addr_error(cpu, addr, noisy);
-		return excAddrError;
+	ASSERT(cpu != NULL);
+	
+	switch (size) {
+	case BITS_16:
+		if ((addr & 0x01) != 0) {
+			fill_addr_error(cpu, addr, noisy);
+			return excAddrError;
+		}
+		break;
+	case BITS_32:
+		if ((addr & 0x03) != 0) {
+			fill_addr_error(cpu, addr, noisy);
+			return excAddrError;
+		}
+		break;
+	default:
+		break;
 	}
 	
 	return excNone;
@@ -354,13 +398,17 @@ static exc_t mem_align_test(cpu_t *cpu, ptr_t addr, len_t size, bool noisy)
  * @param noisy Generate exception in case of invalid operation
  *
  */
-static exc_t acc_mem(cpu_t *cpu, acc_mode_t mode, ptr_t addr, len_t size,
+static exc_t acc_mem(cpu_t *cpu, acc_mode_t mode, ptr32_t addr, wsize_t size,
     uint32_t *value, bool noisy)
 {
+	ASSERT(cpu != NULL);
+	ASSERT(value != NULL);
+	
 	exc_t res = mem_align_test(cpu, addr, size, noisy);
 	
 	if (res == excNone) {
-		res = convert_addr(cpu, &addr, mode == AM_WRITE, noisy);
+		ptr36_t phys;
+		res = convert_addr(cpu, addr, &phys, mode == AM_WRITE, noisy);
 		
 		/* Check for watched address */
 		if (((cp0_watchlo_r(cpu)) && (mode == AM_READ))
@@ -369,7 +417,7 @@ static exc_t acc_mem(cpu_t *cpu, acc_mode_t mode, ptr_t addr, len_t size,
 			/* The matching is done on
 			   8-byte aligned addresses */
 			
-			if (cpu->waddr == (addr >> 3)) {
+			if (cpu->waddr == (phys >> 3)) {
 				/*
 				 * If EXL is set, the exception has to be postponed,
 				 * the memory access should (probably) proceed.
@@ -384,9 +432,9 @@ static exc_t acc_mem(cpu_t *cpu, acc_mode_t mode, ptr_t addr, len_t size,
 		
 		if (res == excNone) {
 			if (mode == AM_WRITE)
-				mem_write(cpu, addr, *value, size, true);
+				physmem_write(cpu, phys, *value, size, true);
 			else
-				*value = mem_read(cpu, addr, size, true);
+				*value = physmem_read(cpu, phys, size, true);
 		}
 	}
 	
@@ -398,9 +446,12 @@ static exc_t acc_mem(cpu_t *cpu, acc_mode_t mode, ptr_t addr, len_t size,
  * Does not change the value if an exception occurs.
  *
  */
-exc_t cpu_read_mem(cpu_t *cpu, ptr_t addr, len_t size, uint32_t *value,
+exc_t cpu_read_mem(cpu_t *cpu, ptr32_t addr, wsize_t size, uint32_t *value,
     bool noisy)
 {
+	ASSERT(cpu != NULL);
+	ASSERT(value != NULL);
+	
 	switch (acc_mem(cpu, AM_READ, addr, size, value, noisy)) {
 	case excAddrError:
 		return excAdEL;
@@ -424,9 +475,12 @@ exc_t cpu_read_mem(cpu_t *cpu, ptr_t addr, len_t size, uint32_t *value,
  * the WATCH exception.
  *
  */
-static exc_t cpu_fetch_mem(cpu_t *cpu, ptr_t addr, len_t size, uint32_t *value,
-    bool noisy)
+static exc_t cpu_fetch_mem(cpu_t *cpu, ptr32_t addr, wsize_t size,
+    uint32_t *value, bool noisy)
 {
+	ASSERT(cpu != NULL);
+	ASSERT(value != NULL);
+	
 	switch (acc_mem(cpu, AM_FETCH, addr, size, value, noisy)) {
 	case excAddrError:
 		return excAdEL;
@@ -444,9 +498,11 @@ static exc_t cpu_fetch_mem(cpu_t *cpu, ptr_t addr, len_t size, uint32_t *value,
 /** Perform the write operation to the virtual memory
  *
  */
-static exc_t cpu_write_mem(cpu_t *cpu, ptr_t addr, len_t size, uint32_t value,
-    bool noisy)
+static exc_t cpu_write_mem(cpu_t *cpu, ptr32_t addr, wsize_t size,
+    uint32_t value, bool noisy)
 {
+	ASSERT(cpu != NULL);
+	
 	switch (acc_mem(cpu, AM_WRITE, addr, size, &value, noisy)) {
 	case excAddrError:
 		return excAdES;
@@ -461,7 +517,7 @@ static exc_t cpu_write_mem(cpu_t *cpu, ptr_t addr, len_t size, uint32_t value,
 	case excNone:
 		return excNone;
 	default:
-		die(ERR_INTERN, "Internal error at %s(%u)", __FILE__, __LINE__);
+		die(ERR_INTERN, "Unexpected exception on memory write");
 	}
 	
 	/* Unreachable */
@@ -471,8 +527,11 @@ static exc_t cpu_write_mem(cpu_t *cpu, ptr_t addr, len_t size, uint32_t value,
 /** Read an instruction
  *
  */
-exc_t cpu_read_ins(cpu_t *cpu, ptr_t addr, uint32_t *value, bool noisy)
+exc_t cpu_read_ins(cpu_t *cpu, ptr32_t addr, uint32_t *value, bool noisy)
 {
+	ASSERT(cpu != NULL);
+	ASSERT(value != NULL);
+	
 	exc_t res = cpu_fetch_mem(cpu, addr, BITS_32, value, noisy);
 	if ((res != excNone) && (cpu->branch == BRANCH_NONE))
 		cpu->excaddr = cpu->pc;
@@ -485,6 +544,7 @@ exc_t cpu_read_ins(cpu_t *cpu, ptr_t addr, uint32_t *value, bool noisy)
  */
 void cpu_interrupt_up(cpu_t *cpu, unsigned int no)
 {
+	ASSERT(cpu != NULL);
 	ASSERT(no < INTR_COUNT);
 	
 	cp0_cause(cpu) |= 1 << (cp0_cause_ip0_shift + no);
@@ -496,6 +556,7 @@ void cpu_interrupt_up(cpu_t *cpu, unsigned int no)
  */
 void cpu_interrupt_down(cpu_t *cpu, unsigned int no)
 {
+	ASSERT(cpu != NULL);
 	ASSERT(no < INTR_COUNT);
 	
 	cp0_cause(cpu) &= ~(1 << (cp0_cause_ip0_shift + no));
@@ -506,6 +567,8 @@ void cpu_interrupt_down(cpu_t *cpu, unsigned int no)
  */
 static void cpu_update_debug(cpu_t *cpu)
 {
+	ASSERT(cpu != NULL);
+	
 	memcpy(cpu->old_regs, cpu->regs, sizeof(cpu->regs));
 	memcpy(cpu->old_cp0, cpu->cp0, sizeof(cpu->cp0));
 	
@@ -518,6 +581,8 @@ static void cpu_update_debug(cpu_t *cpu)
  */
 static void multiply(cpu_t *cpu, uint32_t a, uint32_t b, bool sign)
 {
+	ASSERT(cpu != NULL);
+	
 	/* Quick test */
 	if ((a == 0) || (b == 0)) {
 		cpu->hireg = 0;
@@ -550,6 +615,9 @@ static void multiply(cpu_t *cpu, uint32_t a, uint32_t b, bool sign)
  */
 static void TLBW(cpu_t *cpu, bool random, exc_t *res)
 {
+	ASSERT(cpu != NULL);
+	ASSERT(res != NULL);
+	
 	if ((cp0_status_cu0(cpu) == 1)
 	    || ((cp0_status_ksu(cpu) == 0)
 	    || (cp0_status_exl(cpu) == 1)
@@ -597,6 +665,8 @@ static void TLBW(cpu_t *cpu, bool random, exc_t *res)
  */
 static exc_t execute(cpu_t *cpu, instr_info_t ii)
 {
+	ASSERT(cpu != NULL);
+	
 	exc_t res = excNone;
 	uint32_t pca = cpu->pc_next + 4;
 	
@@ -606,7 +676,7 @@ static exc_t execute(cpu_t *cpu, instr_info_t ii)
 	uint32_t utmp32;
 	uint32_t utmp32b;
 	uint64_t utmp64;
-	ptr_t addr;
+	ptr32_t addr;
 	
 	switch (ii.opcode) {
 	
@@ -1051,12 +1121,13 @@ static exc_t execute(cpu_t *cpu, instr_info_t ii)
 			
 			/* Since we need physical address to track, issue the
 			   address conversion. It can't fail now. */
-			convert_addr(cpu, &addr, false, false);
+			ptr36_t phys;
+			convert_addr(cpu, addr, &phys, false, false);
 			
 			/* Register address for tracking. */
 			register_sc(cpu);
 			cpu->llbit = true;
-			cpu->lladdr = addr;
+			cpu->lladdr = phys;
 		} else {
 			/* Invalid address; Cancel the address tracking */
 			unregister_sc(cpu);
@@ -1125,10 +1196,11 @@ static exc_t execute(cpu_t *cpu, instr_info_t ii)
 				/* ...we are too polite if LL and SC addresses differ.
 				   In such a case, the behaviour of SC is undefined.
 				   Let's check that. */
-				convert_addr(cpu, &addr, false, false);
+				ptr36_t phys;
+				convert_addr(cpu, addr, &phys, false, false);
 				
 				/* sc_addr now contains physical target address */
-				if (addr != cpu->lladdr) {
+				if (phys != cpu->lladdr) {
 					/* LL and SC addresses do not match ;( */
 					if (errors)
 						alert("R4000: LL/SC addresses do not match");
@@ -1694,6 +1766,8 @@ static exc_t execute(cpu_t *cpu, instr_info_t ii)
  */
 static void handle_exception(cpu_t *cpu, exc_t res)
 {
+	ASSERT(cpu != NULL);
+	
 	bool tlb_refill = false;
 	
 	/* Convert TLB Refill exceptions */
@@ -1725,7 +1799,7 @@ static void handle_exception(cpu_t *cpu, exc_t res)
 			cp0_epc(cpu) = cpu->pc;
 	}
 	
-	ptr_t exc_pc;
+	ptr32_t exc_pc;
 	/* Exception vector base address */
 	if (cp0_status_bev(cpu)) {
 		/* Boot time */
@@ -1756,6 +1830,8 @@ static void handle_exception(cpu_t *cpu, exc_t res)
  */
 static void manage(cpu_t *cpu, exc_t res)
 {
+	ASSERT(cpu != NULL);
+	
 	/* Test for interrupt request */
 	if ((res == excNone)
 	    && (!cp0_status_exl(cpu))
@@ -1795,10 +1871,12 @@ static void manage(cpu_t *cpu, exc_t res)
  */
 static void instruction(cpu_t *cpu, exc_t *res)
 {
-	instr_info_t ii;
+	ASSERT(cpu != NULL);
 	
 	/* Fetch instruction */
+	instr_info_t ii;
 	*res = cpu_read_ins(cpu, cpu->pc, &ii.icode, true);
+	
 	if (*res == excNone) {
 		/* Decode instruction */
 		decode_instr(&ii);
@@ -1831,6 +1909,8 @@ static void instruction(cpu_t *cpu, exc_t *res)
  */
 void cpu_step(cpu_t *cpu)
 {
+	ASSERT(cpu != NULL);
+	
 	exc_t res = excNone;
 	
 	/* Instruction execute */

@@ -14,9 +14,11 @@
 #define MAX_CPU  31
 
 /** Argument length */
-#define BITS_8   1
-#define BITS_16  2
-#define BITS_32  4
+typedef enum {
+	BITS_8 = 1,
+	BITS_16 = 2,
+	BITS_32 = 4
+} wsize_t;
 
 /** Exception types */
 typedef enum {
@@ -52,7 +54,13 @@ typedef enum {
 } exc_t;
 
 /** Address and length types */
-typedef uint32_t ptr_t;
-typedef uint32_t len_t;
+typedef uint32_t ptr32_t;
+typedef uint32_t len32_t;
+
+typedef uint64_t ptr36_t;
+typedef uint64_t len36_t;
+
+typedef uint64_t ptr64_t;
+typedef uint64_t len64_t;
 
 #endif

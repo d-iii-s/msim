@@ -39,11 +39,11 @@ typedef struct {
 	void (*step4)(struct device *dev);
 	
 	/** Device memory read */
-	void (*read)(cpu_t *cpu, struct device *dev, ptr_t addr,
+	void (*read)(cpu_t *cpu, struct device *dev, ptr36_t addr,
 	    uint32_t *val);
 	
 	/** Device memory write */
-	void (*write)(cpu_t *cpu, struct device *dev, ptr_t addr,
+	void (*write)(cpu_t *cpu, struct device *dev, ptr36_t addr,
 	    uint32_t val);
 	
 	/**
@@ -90,24 +90,25 @@ extern device_t *alloc_device(const char *type_string,
     const char *device_name);
 extern void free_device(device_t *dev);
 extern void add_device(device_t *dev);
-extern device_t *dev_by_name(const char *s);
+
+extern device_t *dev_by_name(const char *name);
 extern const char *dev_type_by_partial_name(const char *prefix_name,
     uint32_t* device_order);
 extern const char *dev_by_partial_name(const char *prefix_name,
     device_t **device);
 extern size_t dev_count_by_partial_name(const char *prefix_name,
     device_t **device);
-extern device_t *dev_by_name(const char *s);
-extern bool dev_next(device_t **device, device_filter_t filter);
+
+extern bool dev_next(device_t **dev, device_filter_t filter);
 
 /*
  * Link/unlink device functions
  */
-extern void dev_add(device_t *d);
-extern void dev_remove(device_t *d);
+extern void dev_add(device_t *dev);
+extern void dev_remove(device_t *dev);
 
 /*
- * General utils
+ * General utilities
  */
 extern bool dev_generic_help(token_t *parm, device_t *dev);
 extern gen_t dev_find_generator(token_t **parm, const device_t *dev,

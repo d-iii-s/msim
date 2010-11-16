@@ -636,7 +636,7 @@ typedef enum {
 
 /** Main processor structure */
 typedef struct {
-	size_t procno;
+	unsigned int procno;
 	bool stdby;
 	
 	/* Standard registers */
@@ -647,8 +647,8 @@ typedef struct {
 	uint32_t hireg;
 	
 	/* Program counter */
-	ptr_t pc;
-	ptr_t pc_next;
+	ptr32_t pc;
+	ptr32_t pc_next;
 	
 	/* TLB structures */
 	tlb_entry_t tlb[TLB_ENTRIES];
@@ -660,16 +660,16 @@ typedef struct {
 	uint32_t old_loreg;
 	uint32_t old_hireg;
 	
-	ptr_t excaddr;
+	ptr32_t excaddr;
 	branch_state_t branch;
 	
 	/* LL and SC track support */
-	bool llbit;    /**< Track the address flag */
-	ptr_t lladdr;  /**< Physical tracked address */
+	bool llbit;      /**< Track the address flag */
+	ptr36_t lladdr;  /**< Physical tracked address */
 	
 	/* Watch support */
-	uint64_t waddr;
-	ptr_t wexcaddr;
+	ptr36_t waddr;
+	ptr32_t wexcaddr;
 	bool wpending;
 	
 	/* Statistics */
@@ -687,17 +687,18 @@ typedef struct {
 } cpu_t;
 
 /** Base */
-extern void cpu_init(cpu_t *cpu, size_t procno);
-extern void cpu_set_pc(cpu_t *cpu, ptr_t value);
+extern void cpu_init(cpu_t *cpu, unsigned int procno);
+extern void cpu_set_pc(cpu_t *cpu, ptr32_t value);
 extern void cpu_step(cpu_t *cpu);
 
 /** Addresing function */
-extern exc_t convert_addr(cpu_t *cpu, ptr_t *addr, bool write, bool noisy);
+extern exc_t convert_addr(cpu_t *cpu, ptr32_t virt, ptr36_t *phys, bool write,
+    bool noisy);
 
 /** Reading memory */
-extern exc_t cpu_read_mem(cpu_t *cpu, ptr_t addr, len_t size,
+extern exc_t cpu_read_mem(cpu_t *cpu, ptr32_t addr, wsize_t size,
     uint32_t *value, bool noisy);
-extern exc_t cpu_read_ins(cpu_t *cpu, ptr_t addr, uint32_t *value,
+extern exc_t cpu_read_ins(cpu_t *cpu, ptr32_t addr, uint32_t *value,
     bool noisy);
 
 /** Interrupts */

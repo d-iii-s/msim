@@ -478,7 +478,7 @@ char *parm_str(token_t *parm)
 /** Return the integer parameter and move to the next one
  *
  */
-uint64_t parm_next_uint(token_t **parm)
+uint64_t parm_uint_next(token_t **parm)
 {
 	ASSERT(parm != NULL);
 	ASSERT(*parm != NULL);
@@ -492,7 +492,7 @@ uint64_t parm_next_uint(token_t **parm)
 /** Return the integer parameter and moves to the next one
  *
  */
-char *parm_next_str(token_t **parm)
+char *parm_str_next(token_t **parm)
 {
 	ASSERT(parm != NULL);
 	ASSERT(*parm != NULL);
@@ -853,7 +853,7 @@ bool cmd_run_by_parm(token_t *parm, const cmd_t *cmds, void *data)
 		return false;
 	}
 	
-	const char *cmd_name = parm_next_str(&parm);
+	const char *cmd_name = parm_str_next(&parm);
 	return cmd_run_by_name(cmd_name, parm, cmds, data);
 }
 

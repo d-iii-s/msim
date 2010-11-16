@@ -266,10 +266,10 @@ static bool gdb_send_reply(char *reply)
 	return true;
 }
 
-/** Read length bytes from address for machine memory
+/** Read length bytes from address of machine memory
  *
  */
-static void gdb_read_mem(ptr_t addr, size_t length)
+static void gdb_read_mem(ptr36_t addr, len36_t length)
 {
 	string_t str;
 	string_init(&str);
@@ -294,7 +294,7 @@ static void gdb_read_mem(ptr_t addr, size_t length)
 /** Write length bytes to address in memory from hex string
  *
  */
-static void gdb_write_mem(ptr_t addr, size_t length, char *data)
+static void gdb_write_mem(ptr36_t addr, len36_t length, char *data)
 {
 	while (length > 0) {
 		/* Read one byte */
@@ -348,9 +348,10 @@ static void gdb_register_dump(string_t *str, uint32_t val)
  *
  *
  */
-static void gdb_registers_dump(string_t *str, uint32_t *regs, size_t count)
+static void gdb_registers_dump(string_t *str, uint32_t *regs,
+    unsigned int count)
 {
-	size_t i;
+	unsigned int i;
 	
 	for (i = 0; i < count; i++)
 		gdb_register_dump(str, regs[i]);
@@ -403,9 +404,10 @@ static bool gdb_register_upload(char **data, uint32_t *reg)
  * @return True if the hex string was in the correct form.
  *
  */
-static bool gdb_registers_upload(char **data, uint32_t *regs, size_t count)
+static bool gdb_registers_upload(char **data, uint32_t *regs,
+    unsigned int count)
 {
-	size_t i;
+	unsigned int i;
 	
 	for (i = 0; i < count; i++) {
 		if (!gdb_register_upload(data, regs + i))
@@ -523,8 +525,8 @@ static void gdb_cmd_mem_operation(char *req, bool read)
 	/* Addresses are physical */
 	cpu_t *cpu = dcpu_find_no(cpuno_global);
 	
-	ptr_t addr = (ptr_t) address;
-	size_t len = (size_t) length;
+	ptr36_t addr = (ptr36_t) address;
+	len36_t len = (len36_t) length;
 	
 	if (convert_addr(cpu, &addr, false, false) == excNone) {
 		if (!read) {

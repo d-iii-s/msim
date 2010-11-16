@@ -14,8 +14,8 @@
 #include <stdarg.h>
 #include <stdlib.h>
 #include <string.h>
-#include "device/machine.h"
-#include "main.h"
+#include "../config.h"
+#include "input.h"
 #include "fault.h"
 #include "utils.h"
 
@@ -136,6 +136,9 @@ void die(int status, const char *fmt, ...)
 		mferror(false, "Fault: %s", out.str);
 	
 	string_done(&out);
+	
+	input_back();
+	exit(status);
 }
 
 void io_error(const char *fname)

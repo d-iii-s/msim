@@ -19,7 +19,7 @@
 #include "../debug/gdb.h"
 #include "../assert.h"
 #include "../main.h"
-#include "../endi.h"
+#include "../endian.h"
 #include "../text.h"
 #include "../env.h"
 #include "../fault.h"

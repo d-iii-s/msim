@@ -22,7 +22,7 @@
 #include "device/machine.h"
 #include "text.h"
 #include "parser.h"
-#include "endi.h"
+#include "endian.h"
 #include "cmd.h"
 #include "fault.h"
 #include "utils.h"

@@ -14,7 +14,7 @@
 #include "../list.h"
 #include "../main.h"
 #include "../parser.h"
-#include "../endi.h"
+#include "../endian.h"
 
 #define DEFAULT_MEMORY_VALUE  0xffffffffU
 

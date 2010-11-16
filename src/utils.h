@@ -51,7 +51,8 @@ extern void string_clear(string_t *str);
 extern void string_push(string_t *str, char c);
 extern void string_append(string_t *str, const char *val);
 extern void string_vprintf(string_t *str, const char *fmt, va_list va);
-extern void string_printf(string_t *str, const char *fmt, ...);
+extern void string_printf(string_t *str, const char *fmt, ...)
+    __attribute__((format(printf, 2, 3)));
 extern void string_fread(string_t *str, FILE *file);
 extern void string_done(string_t *str);
 

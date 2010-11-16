@@ -23,7 +23,7 @@ static const cmd_t *last_cmd;
 
 typedef struct {
 	token_type_t ttype;
-	uint32_t i;
+	uint64_t i;
 	string_t str;
 } int_token_t;
 
@@ -184,9 +184,16 @@ static void read_number(const char **str, int_token_t *token)
 		tmp += 2;
 		
 		while (hexadecimal(*tmp)) {
+			uint64_t orig_i = i;
 			i <<= 4;
 			i += char2uint(*tmp);
 			tmp++;
+			
+			/* Overflow test */
+			if (i < orig_i) {
+				token->ttype = tt_err_overflow;
+				return;
+			}
 		}
 		
 		if (tmp > *str)
@@ -196,22 +203,31 @@ static void read_number(const char **str, int_token_t *token)
 	} else {
 		/* Decimal number */
 		if (decimal(*tmp)) {
+			uint64_t orig_i = i;
 			i *= 10;
 			i += char2uint(*tmp);
 			tmp++;
+			
+			/* Overflow test */
+			if (i < orig_i) {
+				token->ttype = tt_err_overflow;
+				return;
+			}
 		}
 		
 		if (tmp > *str) {
 			token->ttype = tt_uint;
+			
+			uint64_t orig_i = i;
 			i *= read_multiply(&tmp);
+			
+			/* Overflow test */
+			if (i < orig_i) {
+				token->ttype = tt_err_overflow;
+				return;
+			}
 		} else
 			token->ttype = tt_err_invalid_num;
-	}
-	
-	/* Overflow test */
-	if (i > 0xffffffffU) {
-		token->ttype = tt_err_overflow;
-		return;
 	}
 	
 	/* Error test */
@@ -220,7 +236,7 @@ static void read_number(const char **str, int_token_t *token)
 		return;
 	}
 	
-	token->i = (uint32_t) i;
+	token->i = i;
 	*str = tmp;
 }
 
@@ -436,7 +452,7 @@ bool parm_last(token_t *parm)
 /** Return the integer parameter
  *
  */
-uint32_t parm_uint(token_t *parm)
+uint64_t parm_uint(token_t *parm)
 {
 	PRE(parm != NULL);
 	PRE(parm->ttype == tt_uint);
@@ -458,12 +474,12 @@ char *parm_str(token_t *parm)
 /** Return the integer parameter and move to the next one
  *
  */
-uint32_t parm_next_uint(token_t **parm)
+uint64_t parm_next_uint(token_t **parm)
 {
 	PRE(parm != NULL);
 	PRE(*parm != NULL);
 	
-	uint32_t i = parm_uint(*parm);
+	uint64_t i = parm_uint(*parm);
 	parm_next(parm);
 	
 	return i;
@@ -488,7 +504,7 @@ char *parm_next_str(token_t **parm)
  * The new parameter is inserted after the specified one.
  *
  */
-void parm_insert_uint(token_t *parm, uint32_t val)
+void parm_insert_uint(token_t *parm, uint64_t val)
 {
 	PRE(token != NULL);
 	
@@ -530,7 +546,7 @@ void parm_init(token_t *parm)
 /** Change the parameter type to int
  *
  */
-void parm_set_uint(token_t *parm, uint32_t val)
+void parm_set_uint(token_t *parm, uint64_t val)
 {
 	PRE(parm != NULL);
 	

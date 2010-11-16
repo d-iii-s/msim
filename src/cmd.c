@@ -292,7 +292,7 @@ static bool system_echo(token_t *parm, void *data)
 			printf("%s", parm_str(parm));
 			break;
 		case tt_uint:
-			printf("%" PRIu32, parm_uint(parm));
+			printf("%" PRIu64, parm_uint(parm));
 			break;
 		default:
 			return false;

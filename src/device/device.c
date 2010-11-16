@@ -78,7 +78,7 @@ device_t *alloc_device(const char *type_string, const char *device_name)
 	}
 	
 	if (device_type == NULL) {
-		intr_error("Unknown device type.");
+		error("Unknown device type.");
 		return NULL;
 	}
 	

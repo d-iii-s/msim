@@ -20,16 +20,20 @@
 #define ERR_INTERN  5  /**< Internal error */
 
 /** Print error message to stderr */
-extern void error(const char *fmt, ...);
+extern void error(const char *fmt, ...)
+    __attribute__((format(printf, 1, 2)));
 
 /** Print internal error to stderr */
-extern void intr_error(const char *fmt, ...);
+extern void intr_error(const char *fmt, ...)
+    __attribute__((format(printf, 1, 2)));
 
 /** Print alert to stderr */
-extern void alert(const char *fmt, ...);
+extern void alert(const char *fmt, ...)
+    __attribute__((format(printf, 1, 2)));
 
 /** Print message to stderr and exit */
-extern void die(int status, const char *fmt, ...);
+extern void die(int status, const char *fmt, ...)
+    __attribute__((format(printf, 2, 3)));
 
 /** Dump error description of I/O error */
 extern void io_error(const char *fname);

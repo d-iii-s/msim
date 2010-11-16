@@ -29,7 +29,7 @@ typedef enum {
 } token_type_t;
 
 typedef union {
-	uint32_t i;
+	uint64_t i;
 	char *str;
 } token_val_t;
 
@@ -116,18 +116,18 @@ extern void parm_delete(token_t *parm);
 
 extern void parm_check_end(token_t *parm, const char *str);
 extern void parm_init(token_t *parm);
-extern void parm_set_uint(token_t *parm, uint32_t val);
+extern void parm_set_uint(token_t *parm, uint64_t val);
 extern void parm_set_str(token_t *parm, char *str);
-extern void parm_insert_uint(token_t *parm, uint32_t val);
+extern void parm_insert_uint(token_t *parm, uint64_t val);
 extern void parm_insert_str(token_t *parm, char *s);
 
 extern token_t *parm_next(token_t **parm);
 extern token_type_t parm_type(token_t *parm);
 extern bool parm_last(token_t *parm);
-extern uint32_t parm_uint(token_t *parm);
+extern uint64_t parm_uint(token_t *parm);
 extern char *parm_str(token_t *parm);
 
-extern uint32_t parm_next_uint(token_t **parm);
+extern uint64_t parm_next_uint(token_t **parm);
 extern char *parm_next_str(token_t **parm);
 
 extern cmd_find_res_t cmd_find(const char *cmd_name, const cmd_t *cmds,

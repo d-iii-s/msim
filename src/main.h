@@ -55,9 +55,4 @@ typedef enum {
 typedef uint32_t ptr_t;
 typedef uint32_t len_t;
 
-typedef union {
-	uint8_t uint8[4];
-	uint32_t uint32;
-} union32_t;
-
 #endif

@@ -65,6 +65,11 @@
 #define GDB_REGISTER_CAUSE          36
 #define GDB_REGISTER_PC             37
 
+typedef union {
+	uint8_t uint8[4];
+	uint32_t uint32;
+} __attribute__((packed)) union32_t;
+
 static int gdb_fd = -1;
 static unsigned int cpuno_global = 0;
 static unsigned int cpuno_step = 0;

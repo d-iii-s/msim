@@ -203,7 +203,7 @@ static void read_number(const char **str, int_token_t *token)
 			token->ttype = tt_err_invalid_hex_num;
 	} else {
 		/* Decimal number */
-		if (decimal(*tmp)) {
+		while (decimal(*tmp)) {
 			uint64_t orig_i = i;
 			i *= 10;
 			i += char2uint(*tmp);

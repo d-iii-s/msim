@@ -42,6 +42,8 @@ static cmd_t system_cmds[];
  */
 static bool system_add(token_t *parm, void *data)
 {
+	ASSERT(parm != NULL);
+	
 	const char *name = parm_str(parm);
 	parm_next(&parm);
 	const char *instance = parm_str(parm);
@@ -85,6 +87,8 @@ static bool system_add(token_t *parm, void *data)
  */
 static bool system_continue(token_t *parm, void *data)
 {
+	ASSERT(parm != NULL);
+	
 	interactive = false;
 	return true;
 }
@@ -96,6 +100,8 @@ static bool system_continue(token_t *parm, void *data)
  */
 static bool system_step(token_t *parm, void *data)
 {
+	ASSERT(parm != NULL);
+	
 	switch (parm_type(parm)) {
 	case tt_end:
 		stepping = 1;
@@ -106,6 +112,7 @@ static bool system_step(token_t *parm, void *data)
 		interactive = false;
 		break;
 	default:
+		intr_error("Unexpected parameter type");
 		return false;
 	}
 	
@@ -119,6 +126,7 @@ static bool system_step(token_t *parm, void *data)
  */
 static bool system_set(token_t *parm, void *data)
 {
+	ASSERT(parm != NULL);
 	return env_cmd_set(parm);
 }
 
@@ -129,6 +137,7 @@ static bool system_set(token_t *parm, void *data)
  */
 static bool system_unset(token_t *parm, void *data)
 {
+	ASSERT(parm != NULL);
 	return env_cmd_unset(parm);
 }
 
@@ -139,6 +148,8 @@ static bool system_unset(token_t *parm, void *data)
  */
 static bool system_dumpins(token_t *parm, void *data)
 {
+	ASSERT(parm != NULL);
+	
 	uint64_t _addr = ALIGN_DOWN(parm_uint_next(&parm), 4);
 	uint64_t _cnt = parm_uint(parm);
 	
@@ -178,6 +189,8 @@ static bool system_dumpins(token_t *parm, void *data)
  */
 static bool system_dumpdev(token_t *parm, void *data)
 {
+	ASSERT(parm != NULL);
+	
 	dbg_print_devices(DEVICE_FILTER_ALL);
 	return true;
 }
@@ -189,6 +202,8 @@ static bool system_dumpdev(token_t *parm, void *data)
  */
 static bool system_dumpphys(token_t *parm, void *data)
 {
+	ASSERT(parm != NULL);
+	
 	dbg_print_devices(DEVICE_FILTER_MEMORY);
 	return true;
 }
@@ -198,6 +213,8 @@ static bool system_dumpphys(token_t *parm, void *data)
  */
 static bool system_break(token_t *parm, void *data)
 {
+	ASSERT(parm != NULL);
+	
 	uint64_t addr = parm_uint_next(&parm);
 	uint64_t size = parm_uint_next(&parm);
 	const char *rw = parm_str(parm);
@@ -240,6 +257,7 @@ static bool system_break(token_t *parm, void *data)
  */
 static bool system_dumpbreak(token_t *parm, void *data)
 {
+	ASSERT(parm != NULL);
 	physmem_breakpoint_print_list();
 	return true;
 }
@@ -249,6 +267,8 @@ static bool system_dumpbreak(token_t *parm, void *data)
  */
 static bool system_rembreak(token_t *parm, void *data)
 {
+	ASSERT(parm != NULL);
+	
 	uint64_t addr = parm_uint(parm);
 	
 	if (!phys_range(addr)) {
@@ -271,6 +291,7 @@ static bool system_rembreak(token_t *parm, void *data)
  */
 static bool system_stat(token_t *parm, void *data)
 {
+	ASSERT(parm != NULL);
 	dbg_print_devices_stat(DEVICE_FILTER_ALL);
 	return true;
 }
@@ -282,6 +303,8 @@ static bool system_stat(token_t *parm, void *data)
  */
 static bool system_dumpmem(token_t *parm, void *data)
 {
+	ASSERT(parm != NULL);
+	
 	uint64_t _addr = ALIGN_DOWN(parm_uint_next(&parm), 4);
 	uint64_t _cnt = parm_uint(parm);
 	
@@ -329,6 +352,8 @@ static bool system_dumpmem(token_t *parm, void *data)
  */
 static bool system_quit(token_t *parm, void *data)
 {
+	ASSERT(parm != NULL);
+	
 	interactive = false;
 	tohalt = true;
 	
@@ -342,6 +367,8 @@ static bool system_quit(token_t *parm, void *data)
  */
 static bool system_echo(token_t *parm, void *data)
 {
+	ASSERT(parm != NULL);
+	
 	while (parm_type(parm) != tt_end) {
 		switch (parm_type(parm)) {
 		case tt_str:
@@ -351,6 +378,7 @@ static bool system_echo(token_t *parm, void *data)
 			printf("%" PRIu64, parm_uint(parm));
 			break;
 		default:
+			intr_error("Unexpected parameter type");
 			return false;
 		}
 		
@@ -829,7 +857,7 @@ static cmd_t system_cmds[] = {
 		DEFAULT,
 		"Print user message",
 		"Print user message",
-		OPT STR "text" END
+		OPT VAR "text" CONT
 	},
 	{
 		"continue",

@@ -762,6 +762,8 @@ gen_t find_completion_generator(token_t **parm, const void **data)
 			return cmd->find_gen(parm, cmd, data);
 		
 		break;
+	default:
+		intr_error("Unexpected compare result");
 	}
 	
 	return NULL;

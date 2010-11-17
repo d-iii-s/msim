@@ -240,6 +240,8 @@ static void print_all_variables(void)
 			case vt_bool:
 				printf("%s", *(bool *) env->val ? "on" : "off");
 				break;
+			default:
+				intr_error("Unexpected variable type");
 			}
 		} else {
 			/* Label */
@@ -254,7 +256,7 @@ static void print_all_variables(void)
  */
 bool env_check_varname(const char *name, var_type_t *type)
 {
-	if (!name)
+	if (name == NULL)
 		name = "";
 	
 	bool ret = false;
@@ -277,7 +279,7 @@ bool env_check_varname(const char *name, var_type_t *type)
  */
 bool env_check_type(const char *name, var_type_t type)
 {
-	if (!name)
+	if (name == NULL)
 		name = "";
 	
 	bool ret = false;
@@ -295,7 +297,7 @@ bool env_check_type(const char *name, var_type_t type)
 
 unsigned int env_cnt_partial_varname(const char *name)
 {
-	if (!name)
+	if (name == NULL)
 		name = "";
 	
 	const env_t *env;
@@ -311,7 +313,7 @@ unsigned int env_cnt_partial_varname(const char *name)
 
 static bool env_by_partial_varname(const char *name, const env_t **envp)
 {
-	if (!name)
+	if (name == NULL)
 		name = "";
 	
 	const env_t *env = ((envp) && (*envp)) ? (*envp + 1) : global_env;
@@ -339,6 +341,8 @@ static bool env_by_partial_varname(const char *name, const env_t **envp)
  */
 static const env_t *search_variable(const char *name)
 {
+	ASSERT(name != NULL);
+	
 	const env_t *env;
 	
 	for (env = global_env; env->name; env++) {
@@ -364,6 +368,8 @@ static const env_t *search_variable(const char *name)
  */
 static void show_help(token_t *parm)
 {
+	ASSERT(parm != NULL);
+	
 	const env_t *env;
 	
 	if (parm_type(parm) == tt_end) {
@@ -390,6 +396,9 @@ static void show_help(token_t *parm)
  */
 static bool set_uint(const env_t *env, token_t *parm)
 {
+	ASSERT(env != NULL);
+	ASSERT(parm != NULL);
+	
 	if (env->func)
 		((set_uint_t) env->func)(parm_uint(parm));
 	else
@@ -403,6 +412,9 @@ static bool set_uint(const env_t *env, token_t *parm)
  */
 static bool set_bool(const env_t *env, token_t *parm)
 {
+	ASSERT(env != NULL);
+	ASSERT(parm != NULL);
+	
 	bool val = !!parm_uint(parm);
 	
 	if (env->func)
@@ -418,6 +430,9 @@ static bool set_bool(const env_t *env, token_t *parm)
  */
 static bool set_str(const env_t *env, token_t *parm)
 {
+	ASSERT(env != NULL);
+	ASSERT(parm != NULL);
+	
 	if (env->func)
 		((set_str_t) env->func)(parm_str(parm));
 	else {
@@ -433,6 +448,8 @@ static bool set_str(const env_t *env, token_t *parm)
  */
 static bool bool_sanitize(token_t *parm)
 {
+	ASSERT(parm != NULL);
+	
 	const char **str;
 	
 	if (parm_type(parm) == tt_str) {
@@ -465,6 +482,8 @@ static bool bool_sanitize(token_t *parm)
  */
 static bool set_variable(token_t *parm)
 {
+	ASSERT(parm != NULL);
+	
 	const env_t *env = search_variable(parm_str(parm));
 	
 	if (!env)
@@ -485,6 +504,7 @@ static bool set_variable(token_t *parm)
 	case vt_str:
 		return set_str(env, parm);
 	default:
+		intr_error("Unexpected variable type");
 		return false;
 	}
 }
@@ -494,6 +514,8 @@ static bool set_variable(token_t *parm)
  */
 static bool set_bool_variable(const char *name, bool val)
 {
+	ASSERT(name != NULL);
+	
 	const env_t *env = search_variable(name);
 	
 	if (env) {
@@ -515,6 +537,8 @@ static bool set_bool_variable(const char *name, bool val)
  */
 bool env_cmd_set(token_t *parm)
 {
+	ASSERT(parm != NULL);
+	
 	if (parm_type(parm) == tt_end) {
 		/* Show all variables */
 		print_all_variables();
@@ -543,6 +567,8 @@ bool env_cmd_set(token_t *parm)
  */
 bool env_cmd_unset(token_t *parm)
 {
+	ASSERT(parm != NULL);
+	
 	const char *name = parm_str(parm);
 	return set_bool_variable(name, false);
 }

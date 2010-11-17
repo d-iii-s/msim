@@ -480,7 +480,7 @@ void iview(cpu_t *cpu, ptr32_t addr, instr_info_t *ii, char *regch)
 	
 	char s_addr[16];
 	if (iaddr)
-		sprintf(s_addr, "%08" PRIx32 "  ", addr);
+		sprintf(s_addr, "%#010" PRIx32 "  ", addr);
 	else
 		s_addr[0] = 0;
 	
@@ -492,7 +492,7 @@ void iview_phys(ptr36_t addr, instr_info_t *ii, char *regch)
 {
 	char s_addr[16];
 	if (iaddr)
-		sprintf(s_addr, "%09" PRIx64 "  ", addr);
+		sprintf(s_addr, "%#011" PRIx64 "  ", addr);
 	else
 		s_addr[0] = 0;
 	

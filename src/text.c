@@ -19,15 +19,11 @@
  * The most frequently messages for user.
  * Device implementation should prefer these.
  */
-const char *const txt_file_open_err     = "Could not open file";
 const char *const txt_file_read_err     = "Could not read file";
 const char *const txt_filename_expected = "File name expected";
 const char *const txt_file_create_err   = "Could not create file";
 const char *const txt_file_write_err    = "Could not write to file";
-const char *const txt_file_seek_err     = "Could not seek in the file";
-const char *const txt_file_tell_err     = "Could not tell position in the file";
 const char *const txt_file_map_fail     = "File map fail";
-const char *const txt_file_unmap_fail   = "File unmap fail";
 const char *const txt_devname_expected  = "Device name expected";
 const char *const txt_duplicate_devname = "Duplicate device name";
 const char *const txt_devaddr_expected  = "Device address expected";

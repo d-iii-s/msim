@@ -418,25 +418,16 @@ static bool ddisk_fmap(token_t *parm, device_t *dev)
 	const char *const path = parm_str(parm);
 	
 	FILE *file = try_fopen(path, "rb+");
-	if (file == NULL) {
-		io_error(path);
-		error("%s", txt_file_open_err);
+	if (file == NULL)
 		return false;
-	}
 	
 	/* File size test */
-	if (!try_fseek(file, 0, SEEK_END, path)) {
-		error("%s", txt_file_seek_err);
-		safe_fclose(file, path);
+	if (!try_fseek(file, 0, SEEK_END, path))
 		return false;
-	}
 	
 	size_t fsize;
-	if (!try_ftell(file, path, &fsize)) {
-		error("%s", txt_file_seek_err);
-		safe_fclose(file, path);
+	if (!try_ftell(file, path, &fsize))
 		return false;
-	}
 	
 	if (fsize == 0) {
 		error("Empty file");
@@ -463,13 +454,16 @@ static bool ddisk_fmap(token_t *parm, device_t *dev)
 		return false;
 	}
 	
-	if (!try_fseek(file, 0, SEEK_SET, path)) {
-		error("%s", txt_file_seek_err);
+	if (!try_fseek(file, 0, SEEK_SET, path))
+		return false;
+	
+	int fd = fileno(file);
+	if (fd == -1) {
+		io_error(path);
 		safe_fclose(file, path);
 		return false;
 	}
 	
-	int fd = fileno(file);
 	void *ptr = mmap(0, fsize, PROT_READ | PROT_WRITE, MAP_SHARED, fd, 0);
 	
 	if (ptr == MAP_FAILED) {
@@ -560,24 +554,16 @@ static bool ddisk_load(token_t *parm, device_t *dev)
 	
 	/* Open file */
 	FILE *file = try_fopen(path, "rb");
-	if (file == NULL) {
-		error("%s", txt_file_open_err);
+	if (file == NULL)
 		return false;
-	}
 	
 	/* File size test */
-	if (!try_fseek(file, 0, SEEK_END, path)) {
-		error("%s", txt_file_seek_err);
-		safe_fclose(file, path);
+	if (!try_fseek(file, 0, SEEK_END, path))
 		return false;
-	}
 	
 	size_t fsize;
-	if (!try_ftell(file, path, &fsize)) {
-		error("%s", txt_file_seek_err);
-		safe_fclose(file, path);
+	if (!try_ftell(file, path, &fsize))
 		return false;
-	}
 	
 	if (fsize == 0) {
 		error("Empty file");
@@ -591,11 +577,8 @@ static bool ddisk_load(token_t *parm, device_t *dev)
 		return false;
 	}
 	
-	if (!try_fseek(file, 0, SEEK_SET, path)) {
-		error("%s", txt_file_seek_err);
-		safe_fclose(file, path);
+	if (!try_fseek(file, 0, SEEK_SET, path))
 		return false;
-	}
 	
 	/* Read the file directly */
 	size_t rd = fread(data->img, 1, fsize, file);

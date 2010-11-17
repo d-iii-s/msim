@@ -67,9 +67,9 @@ extern bool virt_range(uint64_t addr);
 extern bool phys_range(uint64_t addr);
 
 extern FILE *try_fopen(const char *path, const char *mode);
+extern bool check_isdir(FILE *file);
 extern bool try_fseek(FILE *file, size_t offset, int whence, const char *path);
 extern bool try_ftell(FILE *file, const char *path, size_t *pos);
-
 extern void safe_fclose(FILE *file, const char *path);
 
 extern void try_munmap(void *ptr, size_t size);

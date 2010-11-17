@@ -252,24 +252,16 @@ static bool mem_load(token_t *parm, device_t *dev)
 	}
 	
 	FILE *file = try_fopen(path, "rb");
-	if (file == NULL) {
-		error("%s", txt_file_open_err);
+	if (file == NULL)
 		return false;
-	}
 	
 	/* File size test */
-	if (!try_fseek(file, 0, SEEK_END, path)) {
-		error("%s", txt_file_seek_err);
-		safe_fclose(file, path);
+	if (!try_fseek(file, 0, SEEK_END, path))
 		return false;
-	}
 	
 	size_t fsize;
-	if (!try_ftell(file, path, &fsize)) {
-		error("%s", txt_file_seek_err);
-		safe_fclose(file, path);
+	if (!try_ftell(file, path, &fsize))
 		return false;
-	}
 	
 	if (fsize == 0) {
 		error("Empty file");
@@ -283,11 +275,8 @@ static bool mem_load(token_t *parm, device_t *dev)
 		return false;
 	}
 	
-	if (!try_fseek(file, 0, SEEK_SET, path)) {
-		error("%s", txt_file_seek_err);
-		safe_fclose(file, path);
+	if (!try_fseek(file, 0, SEEK_SET, path))
 		return false;
-	}
 	
 	size_t rd = fread(area->data, 1, fsize, file);
 	if (rd != fsize) {
@@ -366,25 +355,16 @@ static bool mem_fmap(token_t *parm, device_t *dev)
 	else
 		file = try_fopen(path, "rb");
 	
-	if (file == NULL) {
-		io_error(path);
-		error("%s", txt_file_open_err);
+	if (file == NULL)
 		return false;
-	}
 	
 	/* File size test */
-	if (!try_fseek(file, 0, SEEK_END, path)) {
-		error("%s", txt_file_seek_err);
-		safe_fclose(file, path);
+	if (!try_fseek(file, 0, SEEK_END, path))
 		return false;
-	}
 	
 	size_t fsize;
-	if (!try_ftell(file, path, &fsize)) {
-		error("%s", txt_file_seek_err);
-		safe_fclose(file, path);
+	if (!try_ftell(file, path, &fsize))
 		return false;
-	}
 	
 	if (fsize == 0) {
 		error("Empty file");
@@ -412,13 +392,16 @@ static bool mem_fmap(token_t *parm, device_t *dev)
 		return false;
 	}
 	
-	if (!try_fseek(file, 0, SEEK_SET, path)) {
-		error("%s", txt_file_seek_err);
+	if (!try_fseek(file, 0, SEEK_SET, path))
+		return false;
+	
+	int fd = fileno(file);
+	if (fd == -1) {
+		io_error(path);
 		safe_fclose(file, path);
 		return false;
 	}
 	
-	int fd = fileno(file);
 	void *ptr;
 	
 	/* File mapping */

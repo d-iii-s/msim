@@ -9,11 +9,13 @@
  *
  */
 
+#include <sys/stat.h>
 #include <stdio.h>
 #include <stdarg.h>
 #include <stdlib.h>
 #include <string.h>
 #include <inttypes.h>
+#include <unistd.h>
 #include "arch/mmap.h"
 #include "text.h"
 #include "utils.h"
@@ -27,6 +29,10 @@
 static void safe_realloc(char **ptr, size_t *size, size_t pos,
     size_t granularity)
 {
+	ASSERT(ptr != NULL);
+	ASSERT(*ptr != NULL);
+	ASSERT(size != NULL);
+	
 	size_t sz = ALIGN_UP(MAX(*size, pos + 1), granularity);
 	
 	if (sz != *size) {
@@ -40,6 +46,8 @@ static void safe_realloc(char **ptr, size_t *size, size_t pos,
 
 void string_init(string_t *str)
 {
+	ASSERT(str != NULL);
+	
 	str->str = safe_malloc(STRING_GRANULARITY);
 	str->size = STRING_GRANULARITY;
 	str->pos = 0;
@@ -49,6 +57,7 @@ void string_init(string_t *str)
 
 void string_clear(string_t *str)
 {
+	ASSERT(str != NULL);
 	ASSERT(str->str != NULL);
 	
 	str->size = 0;
@@ -61,6 +70,7 @@ void string_clear(string_t *str)
 
 void string_push(string_t *str, char c)
 {
+	ASSERT(str != NULL);
 	ASSERT(str->str != NULL);
 	
 	safe_realloc(&str->str, &str->size, str->pos + 1,
@@ -73,6 +83,7 @@ void string_push(string_t *str, char c)
 
 void string_append(string_t *str, const char *val)
 {
+	ASSERT(str != NULL);
 	ASSERT(str->str != NULL);
 	ASSERT(val != NULL);
 	
@@ -88,6 +99,9 @@ void string_append(string_t *str, const char *val)
 
 void string_vprintf(string_t *str, const char *fmt, va_list va)
 {
+	ASSERT(str != NULL);
+	ASSERT(fmt != NULL);
+	
 	va_list va2;
 	va_copy(va2, va);
 	int size = vsnprintf(NULL, 0, fmt, va2);
@@ -110,6 +124,9 @@ void string_vprintf(string_t *str, const char *fmt, va_list va)
 
 void string_printf(string_t *str, const char *fmt, ...)
 {
+	ASSERT(str != NULL);
+	ASSERT(fmt != NULL);
+	
 	va_list va;
 	
 	va_start(va, fmt);
@@ -119,6 +136,9 @@ void string_printf(string_t *str, const char *fmt, ...)
 
 void string_fread(string_t *str, FILE *file)
 {
+	ASSERT(str != NULL);
+	ASSERT(file != NULL);
+	
 	char buf[STRING_BUFFER];
 	
 	while (true) {
@@ -132,6 +152,7 @@ void string_fread(string_t *str, FILE *file)
 
 void string_done(string_t *str)
 {
+	ASSERT(str != NULL);
 	ASSERT(str->str != NULL);
 	
 	safe_free(str->str);
@@ -144,6 +165,8 @@ void string_done(string_t *str)
  */
 void *safe_malloc(const size_t size)
 {
+	ASSERT(size > 0);
+	
 	void *ptr = malloc(size);
 	if (ptr == NULL)
 		die(ERR_MEM, "Not enough memory");
@@ -197,12 +220,40 @@ bool prefix(const char *prefix, const char *string)
  */
 FILE *try_fopen(const char *path, const char *mode)
 {
+	ASSERT(path != NULL);
+	ASSERT(mode != NULL);
+	
 	FILE *file = fopen(path, mode);
 	
-	if (file == NULL)
+	if (file != NULL) {
+		/* We do not want to open directories */
+		if (check_isdir(file)) {
+			safe_fclose(file, path);
+			file = NULL;
+		}
+	} else
 		io_error(path);
 	
 	return file;
+}
+
+bool check_isdir(FILE *file)
+{
+	ASSERT(file != NULL);
+	
+	int fd = fileno(file);
+	if (fd == -1) {
+		io_error(NULL);
+		return false;
+	}
+	
+	struct stat stat;
+	if (fstat(fd, &stat) != 0) {
+		io_error(NULL);
+		return false;
+	}
+	
+	return S_ISDIR(stat.st_mode);
 }
 
 /** Safe file close
@@ -216,6 +267,9 @@ FILE *try_fopen(const char *path, const char *mode)
  */
 void safe_fclose(FILE *file, const char *path)
 {
+	ASSERT(file != NULL);
+	ASSERT(path != NULL);
+	
 	if (fclose(file) != 0)
 		io_die(ERR_IO, path);
 }
@@ -235,6 +289,9 @@ void safe_fclose(FILE *file, const char *path)
  */
 bool try_fseek(FILE *file, size_t offset, int whence, const char *path)
 {
+	ASSERT(file != NULL);
+	ASSERT(path != NULL);
+	
 	if (fseek(file, (long) offset, whence) != 0) {
 		io_error(path);
 		safe_fclose(file, path);
@@ -260,6 +317,8 @@ bool try_fseek(FILE *file, size_t offset, int whence, const char *path)
  */
 bool try_ftell(FILE *file, const char *path, size_t *pos)
 {
+	ASSERT(file != NULL);
+	ASSERT(path != NULL);
 	ASSERT(pos != NULL);
 	
 	long lpos = ftell(file);
@@ -276,10 +335,10 @@ bool try_ftell(FILE *file, const char *path, size_t *pos)
 
 void try_munmap(void *ptr, size_t size)
 {
-	if (munmap(ptr, size) == -1) {
+	ASSERT(ptr != NULL);
+	
+	if (munmap(ptr, size) == -1)
 		io_error(NULL);
-		error(txt_file_unmap_fail);
-	}
 }
 
 /** Convert 32 bit unsigned number to string with k, K, M or no suffix.

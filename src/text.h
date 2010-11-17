@@ -12,15 +12,11 @@
 #ifndef TEXT_H_
 #define TEXT_H_
 
-extern const char *const txt_file_open_err;
 extern const char *const txt_file_read_err;
 extern const char *const txt_filename_expected;
 extern const char *const txt_file_create_err;
 extern const char *const txt_file_write_err;
-extern const char *const txt_file_seek_err;
-extern const char *const txt_file_tell_err;
 extern const char *const txt_file_map_fail;
-extern const char *const txt_file_unmap_fail;
 extern const char *const txt_devname_expected;
 extern const char *const txt_duplicate_devname;
 extern const char *const txt_devaddr_expected;

@@ -31,6 +31,13 @@
 
 static cmd_t system_cmds[];
 
+typedef enum {
+	command_name,
+	device_name
+} gen_type_t;
+
+static gen_type_t gen_type = command_name;
+
 /** Add command implementation
  *
  * Add memory, devices, etc.
@@ -398,6 +405,8 @@ static bool system_echo(token_t *parm, void *data)
  */
 static bool system_help(token_t *parm, void *data)
 {
+	ASSERT(parm != NULL);
+	
 	cmd_print_extended_help(system_cmds, parm);
 	return true;
 }
@@ -409,6 +418,8 @@ static bool system_help(token_t *parm, void *data)
  */
 bool interpret(const char *str)
 {
+	ASSERT(str != NULL);
+	
 	/* Parse input */
 	token_t *parm = parm_parse(str);
 	
@@ -441,6 +452,8 @@ bool interpret(const char *str)
  */
 static bool setup_apply(const char *buf)
 {
+	ASSERT(buf != NULL);
+	
 	size_t lineno = 1;
 	
 	while ((*buf) && (!tohalt)) {
@@ -482,6 +495,13 @@ void script(void)
 		else
 			io_die(ERR_IO, config_file);
 		
+		interactive = true;
+		return;
+	}
+	
+	if (check_isdir(file)) {
+		alert("Path \"%s\" is a directory, skipping", config_file);
+		safe_fclose(file, config_file);
 		interactive = true;
 		return;
 	}
@@ -555,11 +575,9 @@ static char *generator_devname(token_t *parm, const void *data,
 static char *generator_system_cmds_and_device_names(token_t *parm,
     const void *unused_data, unsigned int level)
 {
+	ASSERT(parm != NULL);
+	
 	const char *str = NULL;
-	static enum {
-		command_name,
-		device_name
-	} gen_type;
 	
 	if (level == 0)
 		gen_type = command_name;

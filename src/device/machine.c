@@ -61,7 +61,7 @@ bool remote_gdb_listen = false;
 bool remote_gdb_step = false;
 
 /** Memory areas */
-list_t mem_areas;
+list_t physmem_areas;
 list_t sc_list;
 
 static uint64_t msteps = 0;
@@ -74,7 +74,7 @@ void init_machine(void)
 	cp2name = cp2_name[ireg];
 	cp3name = cp3_name[ireg];
 	
-	list_init(&mem_areas);
+	list_init(&physmem_areas);
 	list_init(&sc_list);
 	
 	input_init();
@@ -82,7 +82,7 @@ void init_machine(void)
 	register_sigint();
 	
 	dev_init_framework();
-	memory_breakpoint_init_framework();
+	breakpoint_init_framework();
 }
 
 static void print_statistics(void)
@@ -231,13 +231,13 @@ void unregister_sc(cpu_t *cpu)
 	}
 }
 
-static inline mem_area_t* find_mem_area(ptr_t addr)
+static inline physmem_area_t* find_physmem_area(ptr36_t addr)
 {
-	mem_area_t *area;
+	physmem_area_t *area;
 	
-	for_each(mem_areas, area, mem_area_t) {
-		ptr_t area_start = area->start;
-		ptr_t area_end = area_start + area->size;
+	for_each(physmem_areas, area, physmem_area_t) {
+		ptr36_t area_start = area->start;
+		ptr36_t area_end = area_start + area->size;
 		
 		if ((addr >= area_start) && (addr < area_end))
 			return area;
@@ -259,12 +259,12 @@ static inline mem_area_t* find_mem_area(ptr_t addr)
  * @return Found breakpoint structure or NULL if there is not any.
  *
  */
-static inline mem_breakpoint_t *memory_breakpoint_find(ptr_t addr,
-    size_t size, access_t access_type)
+static inline physmem_breakpoint_t *physmem_breakpoint_find(ptr36_t addr,
+    wsize_t size, access_t access_type)
 {
-	mem_breakpoint_t *breakpoint;
+	physmem_breakpoint_t *breakpoint;
 	
-	for_each(memory_breakpoints, breakpoint, mem_breakpoint_t) {
+	for_each(physmem_breakpoints, breakpoint, physmem_breakpoint_t) {
 		if (breakpoint->addr + breakpoint->len < addr)
 			continue;
 		
@@ -295,10 +295,10 @@ static inline mem_breakpoint_t *memory_breakpoint_find(ptr_t addr,
  *         or the default memory value, if the address is not valid.
  *
  */
-uint32_t mem_read(cpu_t *cpu, ptr_t addr, wsize_t size,
+uint32_t physmem_read(cpu_t *cpu, ptr36_t addr, wsize_t size,
     bool protected_read)
 {
-	mem_area_t *area = find_mem_area(addr);
+	physmem_area_t *area = find_physmem_area(addr);
 	
 	/*
 	 * No memory area found, try to read the value
@@ -318,11 +318,11 @@ uint32_t mem_read(cpu_t *cpu, ptr_t addr, wsize_t size,
 	
 	/* Check for memory read breakpoints */
 	if (protected_read) {
-		mem_breakpoint_t *breakpoint =
-		    memory_breakpoint_find(addr, size, ACCESS_READ);
+		physmem_breakpoint_t *breakpoint =
+		    physmem_breakpoint_find(addr, size, ACCESS_READ);
 		
 		if (breakpoint != NULL)
-			memory_breakpoint_hit(breakpoint, ACCESS_READ);
+			physmem_breakpoint_hit(breakpoint, ACCESS_READ);
 	}
 	
 	unsigned char *value_ptr = &area->data[addr - area->start];
@@ -336,9 +336,10 @@ uint32_t mem_read(cpu_t *cpu, ptr_t addr, wsize_t size,
 	case BITS_32:
 		return convert_uint32_t_endian(*((uint32_t *) value_ptr));
 	default:
-		die(ERR_INTERN, "Internal error at %s(%u)", __FILE__, __LINE__);
-		return DEFAULT_MEMORY_VALUE;
+		die(ERR_INTERN, "Unexpected physical memory read size");
 	}
+	
+	return DEFAULT_MEMORY_VALUE;
 }
 
 /** Memory write
@@ -359,10 +360,10 @@ uint32_t mem_read(cpu_t *cpu, ptr_t addr, wsize_t size,
  *         set to true.
  *
  */
-bool mem_write(cpu_t *cpu, uint32_t addr, uint32_t val, wsize_t size,
+bool physmem_write(cpu_t *cpu, ptr36_t addr, uint32_t val, wsize_t size,
     bool protected_write)
 {
-	mem_area_t *area = find_mem_area(addr);
+	physmem_area_t *area = find_physmem_area(addr);
 	
 	/* No region found, try to write the value to appropriate device */
 	if (area == NULL) {
@@ -407,11 +408,11 @@ bool mem_write(cpu_t *cpu, uint32_t addr, uint32_t val, wsize_t size,
 	
 	/* Check for memory write breakpoints */
 	if (protected_write) {
-		mem_breakpoint_t *breakpoint =
-		    memory_breakpoint_find(addr, size, ACCESS_WRITE);
+		physmem_breakpoint_t *breakpoint =
+		    physmem_breakpoint_find(addr, size, ACCESS_WRITE);
 		
 		if (breakpoint != NULL)
-			memory_breakpoint_hit(breakpoint, ACCESS_WRITE);
+			physmem_breakpoint_hit(breakpoint, ACCESS_WRITE);
 	}
 	
 	unsigned char *value_ptr = &area->data[addr - area->start];
@@ -427,7 +428,7 @@ bool mem_write(cpu_t *cpu, uint32_t addr, uint32_t val, wsize_t size,
 		*((uint32_t *) value_ptr) = convert_uint32_t_endian(val);
 		break;
 	default:
-		die(ERR_INTERN, "Internal error at %s(%u)", __FILE__, __LINE__);
+		die(ERR_INTERN, "Unexpected physical memory write size");
 	}
 	
 	return true;

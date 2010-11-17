@@ -28,7 +28,7 @@
 
 /** Dtime instance data structure */
 typedef struct {
-	uint32_t addr;  /**< Memory location */
+	ptr36_t addr;  /**< Memory location */
 } dtime_data_t;
 
 /** Init command implementation
@@ -41,19 +41,24 @@ typedef struct {
  */
 static bool dtime_init(token_t *parm, device_t *dev)
 {
-	/* Checks */
 	parm_next(&parm);
-	ptr_t addr = parm_next_uint(&parm);
+	uint64_t _addr = parm_uint(parm);
 	
-	/* Address alignment */
-	if (!addr_word_aligned(addr)) {
-		error("Dtime address must be 4-byte aligned");
+	if (!phys_range(_addr)) {
+		error("Physical memory address out of range");
 		return false;
 	}
 	
-	/* Address limit */
-	if ((uint64_t) addr + (uint64_t) REGISTER_LIMIT > 0x100000000ull) {
-		error("Invalid address; registers would exceed the 4 GB limit");
+	if (!phys_range(_addr + (uint64_t) REGISTER_LIMIT)) {
+		error("Invalid address, registers would exceed the physical "
+		    "memory range");
+		return false;
+	}
+	
+	ptr36_t addr = _addr;
+	
+	if (!ptr36_word_aligned(addr)) {
+		error("Physical memory address must by 4-byte aligned");
 		return false;
 	}
 	
@@ -78,8 +83,8 @@ static bool dtime_info(token_t *parm, device_t *dev)
 {
 	dtime_data_t *data = (dtime_data_t *) dev->data;
 	
-	printf("[Address ]\n");
-	printf("%#10" PRIx32 "\n", data->addr);
+	printf("[address ]\n");
+	printf("%#11" PRIx64 "\n", data->addr);
 	
 	return true;
 }
@@ -118,21 +123,26 @@ static void dtime_done(device_t *dev)
  * @param val  Read (returned) value
  *
  */
-static void dtime_read(cpu_t *cpu, device_t *dev, ptr_t addr, uint32_t *val)
+static void dtime_read(cpu_t *cpu, device_t *dev, ptr36_t addr, uint32_t *val)
 {
+	ASSERT(dev != NULL);
 	ASSERT(val != NULL);
 	
 	dtime_data_t *data = (dtime_data_t *) dev->data;
 	
 	/* Get actual time */
 	struct timeval timeval;
-	gettimeofday(&timeval, NULL);
 	
-	if (addr == data->addr + REGISTER_SEC)
+	switch (addr - data->addr) {
+	case REGISTER_SEC:
+		gettimeofday(&timeval, NULL);
 		*val = (uint32_t) timeval.tv_sec;
-	
-	if (addr == data->addr + REGISTER_USEC)
+		break;
+	case REGISTER_USEC:
+		gettimeofday(&timeval, NULL);
 		*val = (uint32_t) timeval.tv_usec;
+		break;
+	}
 }
 
 static cmd_t dtime_cmds[] = {

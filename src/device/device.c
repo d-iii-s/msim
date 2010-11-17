@@ -129,9 +129,10 @@ static bool dev_match_to_filter(device_t* device, device_filter_t filter)
 	case DEVICE_FILTER_PROCESSOR:
 		return device->type->name == id_dcpu;
 	default:
-		die(ERR_INTERN, "Internal error at %s(%u)", __FILE__, __LINE__);
-		return false;
+		die(ERR_INTERN, "Unexpected device filter");
 	}
+	
+	return false;
 }
 
 /** Iterate over the devices specified by the given filter

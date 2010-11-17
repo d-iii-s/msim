@@ -12,12 +12,14 @@
 #include <stdio.h>
 #include <string.h>
 #include <stdbool.h>
+#include <inttypes.h>
 #include "debug.h"
 #include "../cpu/instr.h"
 #include "../cpu/r4000.h"
 #include "../device/machine.h"
 #include "../device/dcpu.h"
 #include "../device/mem.h"
+#include "../assert.h"
 #include "../main.h"
 #include "../env.h"
 #include "../utils.h"
@@ -251,61 +253,64 @@ static void cp0_dump_reg(cpu_t *cpu, unsigned int reg)
 	}
 }
 
-
-void cp0_dump(cpu_t *cpu, int reg)
+void cp0_dump_all(cpu_t *cpu)
 {
-	const int *i;
-	const int vals[] =
-		{0, 1, 2, 3, 4, 5, 6, 8, 9, 10, 11,
-		12, 13, 14, 15, 16, 17, 18, 19, 20, 30, -1};
+	ASSERT(cpu != NULL);
 	
 	printf("  no name       hex dump  readable dump\n");
-	if (reg == -1)
-		for (i = &vals[0]; *i != -1; i++)
-			cp0_dump_reg(cpu, *i);
-	else
-		cp0_dump_reg(cpu, reg);
+	cp0_dump_reg(cpu, 0);
+	cp0_dump_reg(cpu, 1);
+	cp0_dump_reg(cpu, 2);
+	cp0_dump_reg(cpu, 3);
+	cp0_dump_reg(cpu, 4);
+	cp0_dump_reg(cpu, 5);
+	cp0_dump_reg(cpu, 6);
+	cp0_dump_reg(cpu, 8);
+	cp0_dump_reg(cpu, 9);
+	cp0_dump_reg(cpu, 10);
+	cp0_dump_reg(cpu, 11);
+	cp0_dump_reg(cpu, 12);
+	cp0_dump_reg(cpu, 13);
+	cp0_dump_reg(cpu, 14);
+	cp0_dump_reg(cpu, 15);
+	cp0_dump_reg(cpu, 16);
+	cp0_dump_reg(cpu, 17);
+	cp0_dump_reg(cpu, 18);
+	cp0_dump_reg(cpu, 19);
+	cp0_dump_reg(cpu, 20);
+	cp0_dump_reg(cpu, 30);
 }
 
-
-/** Convert an opcode to text
- *
- * @param pr If not NULL then the dump is
- *           processor-dependent (with processor number)
- *
- */
-void iview(cpu_t *cpu, uint32_t addr, instr_info_t *ii, char *regch)
+void cp0_dump(cpu_t *cpu, unsigned int reg)
 {
-	char s_proc[16];
-	char s_iopc[16];
-	char s_addr[16];
-	char s_parm[32];
-	char *s_hash;
-	char s_cmt[32];
-	char *s_cmtx;
+	ASSERT(cpu != NULL);
 	
-	const int imm = ii->imm;
+	printf("  no name       hex dump  readable dump\n");
+	cp0_dump_reg(cpu, reg);
+}
+
+static void iview_common(instr_info_t *ii, char *regch)
+{
+	const uint32_t imm = ii->imm;
+	const int32_t simm = (int32_t) imm;
+	const uint32_t immh = imm & 0xffffU;
+	const uint32_t sysc = (ii->icode >> 6) & 0xfffffU;
+	
 	const char *rtn = regname[ii->rt];
 	const char *rsn = regname[ii->rs];
 	const char *rdn = regname[ii->rd];
 	
-	if (cpu != NULL)
-		sprintf((char *) s_proc, "%2d  ", cpu->procno);
-	else
-		s_proc[0] = '\0';
-	
-	if (iaddr)
-		sprintf((char *) s_addr, "%08X  ", addr);
-	else
-		s_addr[0] = '\0';
-	
+	char s_iopc[16];
 	if (iopc)
-		sprintf((char *) s_iopc, "%08X  ", ii->icode);
+		sprintf(s_iopc, "%08" PRIx32 "  ", ii->icode);
 	else
-		s_iopc[0] = '\0';
+		s_iopc[0] = 0;
 	
-	s_parm[0] = '\0';
-	s_cmt[0] = '\0';
+	char s_parm[32];
+	s_parm[0] = 0;
+	
+	char s_cmt[32];
+	s_cmt[0] = 0;
 	
 	switch (instr_names_acronym[ii->opcode].itype) {
 	case ifNONE:
@@ -318,48 +323,45 @@ void iview(cpu_t *cpu, uint32_t addr, instr_info_t *ii, char *regch)
 		sprintf(s_parm, "%s, %s, %s", rdn, rsn, rtn);
 		break;
 	case ifIMM:
-		sprintf(s_parm, "%s, %s, 0x%x", rtn, rsn, imm);
-		break;
 	case ifIMMS:
-		sprintf(s_parm, "%s, %s, 0x%x", rtn, rsn, imm);
+		sprintf(s_parm, "%s, %s, %#" PRIx32, rtn, rsn, imm);
 		if (imm > 9)
-			sprintf(s_cmt, "0x%x=%d", imm, imm);
+			sprintf(s_cmt, "%#" PRIx32 " = %" PRIu32 " (%" PRId32 ")",
+			    imm, imm, simm);
 		break;
 	case ifIMMU:
-		sprintf(s_parm, "%s, %s, 0x%x", rtn, rsn, (unsigned int) (imm & 0xffff));
-		if (imm > 9)
-			sprintf((char *) s_cmt, "0x%x=%u", imm,	(unsigned int) (imm & 0xffff));
-		break;
 	case ifIMMUX:
-		sprintf(s_parm, "%s, %s, 0x%04x", rtn, rsn,	(unsigned int) (imm & 0xffff));
-		if (imm > 9)
-			sprintf((char *) s_cmt, "0x%xh=%u", imm, (unsigned int) (imm & 0xffff));
+		sprintf(s_parm, "%s, %s, %#" PRIx32, rtn, rsn, immh);
+		if (immh > 9)
+			sprintf(s_cmt, "%#" PRIx32 " = %" PRIu32, immh, immh);
 		break;
 	case ifOFF:
-		sprintf(s_parm, "0x%x", imm);
+		sprintf(s_parm, "%#" PRIx32, imm);
 		if (imm > 9)
-			sprintf((char *) s_cmt, "0x%x=%u", imm, imm);
+			sprintf(s_cmt, "%#" PRIx32 " = %" PRIu32, imm, imm);
 		break;
 	case ifCND:
-		if (imm > 0)
-			sprintf(s_parm, "%s, %s, 0x%x", rsn, rtn, imm);
+		if (simm >= 0)
+			sprintf(s_parm, "%s, %s, %#" PRIx32, rsn, rtn, imm);
 		else
-			sprintf(s_parm, "%s, %s, -0x%x", rsn, rtn, -imm);
-		if (imm > 9)
-			sprintf((char *) s_cmt, "0x%x=%u", imm, imm);
+			sprintf(s_parm, "%s, %s, -%#" PRIx32, rsn, rtn, (uint32_t) -simm);
+		if ((imm > 9) || (simm < 0))
+			sprintf(s_cmt, "%#" PRIx32 " = %" PRIu32 " (%" PRId32 ")",
+			    imm, imm, simm);
 		break;
 	case ifDTS:
-		sprintf(s_parm, "%s, %s, 0x%02x", rdn, rtn, ii->shift);
+		sprintf(s_parm, "%s, %s, %#" PRIx32, rdn, rtn, ii->shift);
 		if (ii->shift > 9)
-			sprintf((char *) s_cmt, "0x%x=%u", ii->shift, ii->shift);
+			sprintf(s_cmt, "%#" PRIx32 " = %" PRIu32, ii->shift, ii->shift);
 		break;
 	case ifRO:
-		if (imm > 0)
-			sprintf(s_parm, "%s, 0x%x", rsn, imm);
+		if (simm >= 0)
+			sprintf(s_parm, "%s, %#" PRIx32, rsn, imm);
 		else
-			sprintf(s_parm, "%s, -0x%x", rsn, -imm);
-		if (imm > 9)
-			sprintf((char *) s_cmt, "0x%x=%u", imm, imm);
+			sprintf(s_parm, "%s, -%#" PRIx32, rsn, (uint32_t) -simm);
+		if ((imm > 9) || (simm < 0))
+			sprintf(s_cmt, "%#" PRIx32 " = %" PRIu32 " (%" PRId32 ")",
+			    imm, imm, simm);
 		break;
 	case ifTD:
 		sprintf(s_parm, "%s, %s", rtn, rdn);
@@ -377,15 +379,20 @@ void iview(cpu_t *cpu, uint32_t addr, instr_info_t *ii, char *regch)
 		sprintf(s_parm, "%s, %s", rtn, cp3name[ii->rd]);
 		break;
 	case ifOP:
-		sprintf(s_parm, "0x%x", ii->icode & 0x01ffffff);
+		sprintf(s_parm, "%#" PRIx32, ii->icode & 0x01ffffffU);
 		break;
 	case ifST:
 		sprintf(s_parm, "%s, %s", rsn, rtn);
 		break;
 	case ifJ:
+		if (simm >= 0)
+			sprintf(s_parm, "+%#" PRIx32, imm);
+		else
+			sprintf(s_parm, "-%#" PRIx32, (uint32_t) -simm);
 		sprintf(s_parm, "+0x%x", ii->imm);
-		if (ii->imm > 9)
-			sprintf((char *) s_cmt, "0x%x=%d", ii->imm, ii->imm);
+		if ((imm > 9) || (simm < 0))
+			sprintf(s_cmt, "%#" PRIx32 " = %" PRIu32 " (%" PRId32 ")",
+			    imm, imm, simm);
 		break;
 	case ifDS:
 		sprintf(s_parm, "%s, %s", rdn, rsn);
@@ -394,36 +401,39 @@ void iview(cpu_t *cpu, uint32_t addr, instr_info_t *ii, char *regch)
 		sprintf(s_parm, "%s", rsn);
 		break;
 	case ifTOB:
-		if (imm)
-			sprintf(s_parm, "%s, 0x%x(%s)", rtn, imm, rsn);
+		if (simm > 0)
+			sprintf(s_parm, "%s, %#" PRIx32 "(%s)", rtn, imm, rsn);
+		else if (simm < 0)
+			sprintf(s_parm, "%s, -%#" PRIx32 "(%s)", rtn, (uint32_t) -simm, rsn);
 		else
 			sprintf(s_parm, "%s, (%s)", rtn, rsn);
-		if (imm > 9)
-			sprintf((char *) s_cmt, "0x%x=%d", imm, imm);
+		if ((imm > 9) || (simm < 0))
+			sprintf(s_cmt, "%#" PRIx32 " = %" PRIu32 " (%" PRId32 ")",
+			    imm, imm, simm);
 		break;
 	case ifRIW:
-		sprintf(s_parm, "%s, 0x%04x", rtn, imm & 0xffff);
-		if ((imm & 0xffff) > 9)
-			sprintf((char *) s_cmt, "0x%x=%d", imm & 0xffff, imm & 0xffff);
+		sprintf(s_parm, "%s, %#" PRIx32, rtn, immh);
+		if (immh > 9)
+			sprintf(s_cmt, "%#" PRIx32 " = %" PRIu32, immh, immh);
 		break;
 	case ifD:
 		sprintf(s_parm, "%s", rdn);
 		break;
 	case ifSI:
-		sprintf(s_parm, "%s, 0x%x", rsn, imm);
+		sprintf(s_parm, "%s, %#" PRIx32, rsn, imm);
 		if (imm > 9)
-			sprintf((char *) s_cmt, "0x%x=%d", imm, imm);
+			sprintf(s_cmt, "%#" PRIx32 " = %" PRIu32 " (%" PRId32 ")",
+			    imm, imm, simm);
 		break;
 	case ifSIW:
-		sprintf(s_parm, "%s, 0x%x [%u]", rsn, imm, (unsigned int) imm);
+		sprintf(s_parm, "%s, %#" PRIx32 " [%u]", rsn, imm, imm);
 		if (imm > 9)
-			sprintf((char *) s_cmt, "0x%x=%u", imm, (unsigned int) imm);
-			break;
+			sprintf(s_cmt, "%#" PRIx32 " = %" PRIu32, imm, imm);
+		break;
 	case ifSYSCALL:
-		sprintf(s_parm, "0x%x", (ii->icode >> 6) & 0xfffff);
-		if ((ii->icode >> 6) > 9)
-			sprintf((char *) s_cmt, "0x%x=%d",
-				(ii->icode >> 6) & 0xfffff, (ii->icode >> 6) & 0xfffff);
+		sprintf(s_parm, "%#" PRIx32, sysc);
+		if (sysc > 9)
+			sprintf(s_cmt, "%#" PRIx32 " = %" PRIu32, sysc, sysc);
 		break;
 	case ifX:
 	case ifERR:
@@ -437,20 +447,58 @@ void iview(cpu_t *cpu, uint32_t addr, instr_info_t *ii, char *regch)
 	if (!regch)
 		regch = "";
 	
-	s_hash = "";
-	if ((s_cmt[0]) || (regch[0]))
+	char *s_hash;
+	if ((s_cmt[0] != 0) || (regch[0] != 0))
 		s_hash = "#";
+	else
+		s_hash = "";
 	
-	s_cmtx = "";
-	if ((s_cmt[0]) && (regch[0]))
+	char *s_cmtx;
+	if ((s_cmt[0] != 0) && (regch[0] != 0))
 		s_cmtx = ", ";
+	else
+		s_cmtx = "";
 	
-	printf("%-4s%s%s  %-6s%-18s%-2s%s%s%s\n",
-	    s_proc, s_addr, s_iopc,
-	    instr_names_acronym[ii->opcode].acronym, s_parm,
-	    s_hash, s_cmt, s_cmtx, regch);
+	printf("%s  %-6s%-18s%-2s%s%s%s\n", s_iopc,
+	    instr_names_acronym[ii->opcode].acronym,
+	    s_parm, s_hash, s_cmt, s_cmtx, regch);
 }
 
+/** Convert an opcode to text
+ *
+ * @param pr If not NULL then the dump is
+ *           processor-dependent (with processor number)
+ *
+ */
+void iview(cpu_t *cpu, ptr32_t addr, instr_info_t *ii, char *regch)
+{
+	char s_cpu[16];
+	if (cpu != NULL)
+		sprintf(s_cpu, "%2u  ", cpu->procno);
+	else
+		s_cpu[0] = 0;
+	
+	char s_addr[16];
+	if (iaddr)
+		sprintf(s_addr, "%08" PRIx32 "  ", addr);
+	else
+		s_addr[0] = 0;
+	
+	printf("%-4s%s", s_cpu, s_addr);
+	iview_common(ii, regch);
+}
+
+void iview_phys(ptr36_t addr, instr_info_t *ii, char *regch)
+{
+	char s_addr[16];
+	if (iaddr)
+		sprintf(s_addr, "%09" PRIx64 "  ", addr);
+	else
+		s_addr[0] = 0;
+	
+	printf("%s", s_addr);
+	iview_common(ii, regch);
+}
 
 /** Write info about changed registers
  *

@@ -26,7 +26,7 @@
 #define REGISTER_LIMIT  4  /**< Size of the register block */
 
 typedef struct {
-	ptr_t addr;      /**< Printer register address */
+	ptr36_t addr;    /**< Printer register address */
 	bool flush;      /**< Flush-the-output flag */
 	
 	FILE *file;      /**< Output file */
@@ -41,11 +41,23 @@ typedef struct {
 static bool dprinter_init(token_t *parm, device_t *dev)
 {
 	parm_next(&parm);
-	ptr_t addr = parm_next_uint(&parm);
+	uint64_t _addr = parm_uint(parm);
 	
-	/* Check address alignment */
-	if (!addr_word_aligned(addr)) {
-		error("Printer address must be on the 4-byte boundary");
+	if (!phys_range(_addr)) {
+		error("Physical memory address out of range");
+		return false;
+	}
+	
+	if (!phys_range(_addr + (uint64_t) REGISTER_LIMIT)) {
+		error("Invalid address, registers would exceed the physical "
+		    "memory range");
+		return false;
+	}
+	
+	ptr36_t addr = _addr;
+	
+	if (!ptr36_word_aligned(addr)) {
+		error("Physical memory address must by 4-byte aligned");
 		return false;
 	}
 	
@@ -53,7 +65,7 @@ static bool dprinter_init(token_t *parm, device_t *dev)
 	printer_data_t *data = safe_malloc_t(printer_data_t);
 	dev->data = data;
 	
-	/* Inicialization */
+	/* Initialization */
 	data->addr = addr;
 	data->flush = false;
 	data->file = stdout;
@@ -112,8 +124,8 @@ static bool dprinter_info(token_t *parm, device_t *dev)
 {
 	printer_data_t *data = (printer_data_t *) dev->data;
 	
-	printf("[Address ]\n");
-	printf("%#10" PRIx32 "\n", data->addr);
+	printf("[address ]\n");
+	printf("%#11" PRIx64 "\n", data->addr);
 	
 	return true;
 }
@@ -125,7 +137,7 @@ static bool dprinter_stat(token_t *parm, device_t *dev)
 {
 	printer_data_t *data = (printer_data_t *) dev->data;
 	
-	printf("[Count             ]\n");
+	printf("[count             ]\n");
 	printf("%20" PRIu64 "\n", data->count);
 	
 	return true;
@@ -165,14 +177,16 @@ static void printer_step4(device_t *dev)
 /** Write command implementation
  *
  */
-static void printer_write(cpu_t *cpu, device_t *dev, ptr_t addr, uint32_t val)
+static void printer_write(cpu_t *cpu, device_t *dev, ptr36_t addr, uint32_t val)
 {
 	printer_data_t *data = (printer_data_t *) dev->data;
 	
-	if (addr == data->addr + REGISTER_CHAR) {
+	switch (addr - data->addr) {
+	case REGISTER_CHAR:
 		fprintf(data->file, "%c", (char) val);
 		data->flush = true;
 		data->count++;
+		break;
 	}
 }
 

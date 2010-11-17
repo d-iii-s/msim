@@ -16,4 +16,4 @@
 
 extern device_type_s ddisk;
 
-#endif /* DDISK_H_ */
+#endif

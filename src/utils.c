@@ -14,6 +14,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <inttypes.h>
+#include "arch/mmap.h"
 #include "text.h"
 #include "utils.h"
 #include "fault.h"
@@ -273,6 +274,14 @@ bool try_ftell(FILE *file, const char *path, size_t *pos)
 	return true;
 }
 
+void try_munmap(void *ptr, size_t size)
+{
+	if (munmap(ptr, size) == -1) {
+		io_error(NULL);
+		error(txt_file_unmap_fail);
+	}
+}
+
 /** Convert 32 bit unsigned number to string with k, K, M or no suffix.
  *
  * The conversion applies the first of the following rules
@@ -290,21 +299,23 @@ bool try_ftell(FILE *file, const char *path, size_t *pos)
  * @return Allocated string buffer.
  *
  */
-char *uint32_human_readable(uint32_t i)
+char *uint64_human_readable(uint64_t i)
 {
 	string_t str;
 	string_init(&str);
 	
 	if (i == 0)
 		string_push(&str, '0');
-	else if ((i & 0xfffff) == 0)
-		string_printf(&str, "%" PRIu32 "M", i >> 20);
-	else if ((i & 0x3ff) == 0)
-		string_printf(&str, "%" PRIu32 "K", i >> 10);
+	else if ((i & 0x3fffffffU) == 0)
+		string_printf(&str, "%" PRIu64 "G", i >> 30);
+	else if ((i & 0xfffffU) == 0)
+		string_printf(&str, "%" PRIu64 "M", i >> 20);
+	else if ((i & 0x3ffU) == 0)
+		string_printf(&str, "%" PRIu64 "K", i >> 10);
 	else if ((i % 1000) == 0)
-		string_printf(&str, "%" PRIu32 "k", i / 1000);
+		string_printf(&str, "%" PRIu64 "k", i / 1000);
 	else
-		string_printf(&str, "%" PRIu32, i);
+		string_printf(&str, "%" PRIu64, i);
 	
 	return str.str;
 }

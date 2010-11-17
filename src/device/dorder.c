@@ -19,13 +19,14 @@
 #include "dcpu.h"
 #include "../fault.h"
 #include "../parser.h"
+#include "../text.h"
 #include "../utils.h"
 
 /** \{ \name Registers */
-#define REGISTER_INT_UP   0  /**< Assert interrupts */
-#define REGISTER_INT_PEND 0  /**< Interrupts pending */
-#define REGISTER_INT_DOWN 4  /**< Deassert interrupts */
-#define REGISTER_LIMIT    8  /**< Register block size */
+#define REGISTER_INT_UP    0  /**< Assert interrupts */
+#define REGISTER_INT_PEND  0  /**< Interrupts pending */
+#define REGISTER_INT_DOWN  4  /**< Deassert interrupts */
+#define REGISTER_LIMIT     8  /**< Register block size */
 /* \} */
 
 /*
@@ -105,8 +106,8 @@ cmd_t dorder_cmds[] = {
 const char id_dorder[] = "dorder";
 
 static void dorder_done(device_t *dev);
-static void dorder_read(cpu_t *cpu, device_t *dev, ptr_t addr, uint32_t *val);
-static void dorder_write(cpu_t *cpu, device_t *dev, ptr_t addr, uint32_t val);
+static void dorder_read(cpu_t *cpu, device_t *dev, ptr36_t addr, uint32_t *val);
+static void dorder_write(cpu_t *cpu, device_t *dev, ptr36_t addr, uint32_t val);
 
 /** Doder object structure */
 device_type_s dorder = {
@@ -129,89 +130,92 @@ device_type_s dorder = {
 
 /** Dorder instance data structure */
 typedef struct {
-	uint32_t addr;  /**< Dorder address */
-	int intno;      /**< Interrupt number */
+	ptr36_t addr;        /**< Dorder address */
+	unsigned int intno;  /**< Interrupt number */
 	
 	uint64_t cmds;  /**< Total number of commands */
 } dorder_data_s;
 
 /** Write to the synchronisation register - generate interrupts.
  *
- * @param od Dorder instance data structure
- * @param val A value (mask) which identifies processors
+ * @param data Instance data structure
+ * @param val  Value (mask) which identifies processors
  *
  */
-static void sync_up_write(dorder_data_s *od, uint32_t val)
+static void sync_up_write(dorder_data_s *data, uint32_t val)
 {
 	unsigned int i;
-	od->cmds++;
+	data->cmds++;
 	
 	for (i = 0; i < 32; i++, val >>= 1)
 		if (val & 1)
-			dcpu_interrupt_up(i, od->intno);
+			dcpu_interrupt_up(i, data->intno);
 }
 
 /** Write to the interrupt-down register - disable pending interrupts.
  *
- * @param od  Dorder instance data structure
- * @param val A value (mask) which identifies processors
+ * @param data Instance data structure
+ * @param val  Value (mask) which identifies processors
  *
  */
-static void sync_down_write(dorder_data_s *od, uint32_t val)
+static void sync_down_write(dorder_data_s *data, uint32_t val)
 {
 	unsigned int i;
-	
-	od->cmds++;
+	data->cmds++;
 	
 	for (i = 0; i < 32; i++, val >>= 1)
 		if (val & 1)
-			dcpu_interrupt_down(i, od->intno);
+			dcpu_interrupt_down(i, data->intno);
 }
 
 /** Init command implementation
  *
  * @param parm Command-line parameters
  * @param dev  Device instance structure
- * @return true if successful
+ *
+ * @return True if successful
  *
  */
 static bool dorder_init(token_t *parm, device_t *dev)
 {
+	parm_next(&parm);
+	uint64_t _addr = parm_uint_next(&parm);
+	uint64_t _intno = parm_uint_next(&parm);
+	
+	if (!phys_range(_addr)) {
+		error("Physical memory address out of range");
+		return false;
+	}
+	
+	if (!phys_range(_addr + (uint64_t) REGISTER_LIMIT)) {
+		error("Invalid address, registers would exceed the physical "
+		    "memory range");
+		return false;
+	}
+	
+	ptr36_t addr = _addr;
+	
+	if (!ptr36_word_aligned(addr)) {
+		error("Physical memory address must by 4-byte aligned");
+		return false;
+	}
+	
+	if (_intno > 6) {
+		error("%s", txt_intnum_range);
+		return false;
+	}
+	
 	/* Allocate the dorder structure */
-	dorder_data_s *od = (dorder_data_s *) safe_malloc_t(dorder_data_s);
-	dev->data = od;
+	dorder_data_s *data = safe_malloc_t(dorder_data_s);
+	dev->data = data;
 	
 	/* Initialize */
-	parm_next(&parm);
-	od->addr = parm_uint_next(&parm);
-	od->intno = parm_uint_next(&parm);
-	od->cmds = 0;
-
-	/* Checks */
-
-	/* Address alignment */
-	if (!addr_word_aligned(od->addr)) {
-		error("Dorder address must be 4-byte aligned");
-		safe_free(od);
-		return false;
-	}
-
-	/* Address limit */
-	if ((uint64_t) od->addr + (uint64_t) REGISTER_LIMIT > 0x100000000ull) {
-		error("Invalid address; registers would exceed the 4 GB limit");
-		return false;
-	}
-
-	/* Interrupt number */
-	if ((od->intno < 0) || (od->intno > 6)) {
-		error("Interrupt number must be within 0..6");
-		safe_free(od);
-		return false;
-	}
+	data->addr = addr;
+	data->intno = _intno;
+	data->cmds = 0;
 	
 	return true;
 }
-
 
 /** Info command implementation
  *
@@ -224,36 +228,36 @@ static bool dorder_info(token_t *parm, device_t *dev)
 {
 	dorder_data_s *data = (dorder_data_s *) dev->data;
 	
-	printf("[Address ] [Int no]\n");
-	printf("%#10x %d\n", data->addr, data->intno);
-
+	printf("[address ] [int]\n");
+	printf("%#11" PRIx64 " %-5u\n", data->addr, data->intno);
+	
 	return true;
 }
-
 
 /** Stat comamnd implementation
  *
  * @param parm Command-line parameters
  * @param dev  Device instance structure
- * @return true; always successful
+ *
+ * @return True (always successful)
  *
  */
 static bool dorder_stat(token_t *parm, device_t *dev)
 {
-	dorder_data_s *od = (dorder_data_s *) dev->data;
+	dorder_data_s *data = (dorder_data_s *) dev->data;
 	
-	printf("[Command count]\n");
-	printf("%" PRIu64 "\n", od->cmds);
-
+	printf("[command count]\n");
+	printf("%" PRIu64 "\n", data->cmds);
+	
 	return true;
 }
-
 
 /** Synchup command implementation
  *
  * @param parm Command-line parameters
  * @param dev  Device instance structure
- * @return true; always successful
+ *
+ * @return True (always successful)
  *
  */
 static bool dorder_synchup(token_t *parm, device_t *dev)
@@ -262,12 +266,12 @@ static bool dorder_synchup(token_t *parm, device_t *dev)
 	return true;
 }
 
-
 /** Synchdown command implementation
  *
  * @param parm Command-line parameters
  * @param dev  Device instance structure
- * @return true; always successful
+ *
+ * @return True (always successful)
  *
  */
 static bool dorder_synchdown(token_t *parm, device_t *dev)
@@ -276,53 +280,58 @@ static bool dorder_synchdown(token_t *parm, device_t *dev)
 	return true;
 }
 
-
 /** Clean up the device
  *
- * @param d	Device instance pointer
+ * @param dev Device instance pointer
  *
  */
-static void dorder_done(device_t *d)
+static void dorder_done(device_t *dev)
 {
-	safe_free(d->name);
-	safe_free(d->data);
+	safe_free(dev->name);
+	safe_free(dev->data);
 }
-
 
 /** Read command implementation
  *
- * @param d    Dorder device pointer
+ * @param dev  Device pointer
  * @param addr Address of the read operation
- * @param val  Readed (returned) value
+ * @param val  Read (returned) value
  *
  */
-static void dorder_read(cpu_t *cpu, device_t *dev, ptr_t addr, uint32_t *val)
+static void dorder_read(cpu_t *cpu, device_t *dev, ptr36_t addr, uint32_t *val)
 {
-	dorder_data_s *od = (dorder_data_s *) dev->data;
+	dorder_data_s *data = (dorder_data_s *) dev->data;
 	
-	if (addr == od->addr + REGISTER_INT_PEND) {
+	switch (addr - data->addr) {
+	case REGISTER_INT_PEND:
 		if (cpu != NULL)
 			*val = cpu->procno;
 		else
 			*val = (uint32_t) -1;
-	} else if (addr == od->addr + REGISTER_INT_DOWN)
+		break;
+	case REGISTER_INT_DOWN:
 		*val = 0;
+		break;
+	}
 }
-
 
 /** Write command implementation
  *
- * @param d    Dorder device pointer
- * @param addr Written address
+ * @param dev  Dorder device pointer
+ * @param addr Address of the write operation
  * @param val  Value to write
  *
  */
-void dorder_write(cpu_t *cpu, device_t *dev, ptr_t addr, uint32_t val)
+void dorder_write(cpu_t *cpu, device_t *dev, ptr36_t addr, uint32_t val)
 {
-	dorder_data_s *od = (dorder_data_s *) dev->data;
+	dorder_data_s *data = (dorder_data_s *) dev->data;
 	
-	if (addr == od->addr + REGISTER_INT_UP)
-		sync_up_write(od, val);
-	else if (addr == od->addr + REGISTER_INT_DOWN)
-		sync_down_write(od, val);
+	switch (addr - data->addr) {
+	case REGISTER_INT_UP:
+		sync_up_write(data, val);
+		break;
+	case REGISTER_INT_DOWN:
+		sync_down_write(data, val);
+		break;
+	}
 }

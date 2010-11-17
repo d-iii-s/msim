@@ -41,16 +41,16 @@
 #include "gdb.h"
 #include "breakpoint.h"
 
-list_t memory_breakpoints;
+list_t physmem_breakpoints;
 
 /************************************************************************/
 /* Memory breakpoints                                                   */
 /************************************************************************/
 
 /** Routine for initializing global variables in this module */
-void memory_breakpoint_init_framework(void)
+void breakpoint_init_framework(void)
 {
-	list_init(&memory_breakpoints);
+	list_init(&physmem_breakpoints);
 }
 
 /** Allocate and initialize a memory breakpoint
@@ -65,11 +65,10 @@ void memory_breakpoint_init_framework(void)
  * @return Initialized memory breakpoint structure.
  *
  */
-static mem_breakpoint_t *memory_breakpoint_init(ptr_t address, len_t length,
-    breakpoint_kind_t kind, access_filter_t access_flags)
+static physmem_breakpoint_t *physmem_breakpoint_init(ptr36_t address,
+    len36_t length, breakpoint_kind_t kind, access_filter_t access_flags)
 {
-	mem_breakpoint_t *breakpoint =
-	    (mem_breakpoint_t *) safe_malloc_t(mem_breakpoint_t);
+	physmem_breakpoint_t *breakpoint = safe_malloc_t(physmem_breakpoint_t);
 	
 	item_init(&breakpoint->item);
 	breakpoint->kind = kind;
@@ -91,13 +90,13 @@ static mem_breakpoint_t *memory_breakpoint_init(ptr_t address, len_t length,
  *                     will be hit.
  *
  */
-void memory_breakpoint_add(ptr_t address, len_t length, breakpoint_kind_t kind,
-    access_filter_t access_flags)
+void physmem_breakpoint_add(ptr36_t address, len36_t length,
+    breakpoint_kind_t kind, access_filter_t access_flags)
 {
-	mem_breakpoint_t *breakpoint =
-	    memory_breakpoint_init(address, length, kind, access_flags);
+	physmem_breakpoint_t *breakpoint =
+	    physmem_breakpoint_init(address, length, kind, access_flags);
 	
-	list_append(&memory_breakpoints, &breakpoint->item);
+	list_append(&physmem_breakpoints, &breakpoint->item);
 }
 
 /** Deactivate memory breakpoint with specified address
@@ -107,20 +106,20 @@ void memory_breakpoint_add(ptr_t address, len_t length, breakpoint_kind_t kind,
  * @return True, if some breakpoint has been deactivated.
  *
  */
-bool memory_breakpoint_remove(ptr_t address)
+bool physmem_breakpoint_remove(ptr36_t address)
 {
-	mem_breakpoint_t *breakpoint =
-	    (mem_breakpoint_t *) memory_breakpoints.head;
+	physmem_breakpoint_t *breakpoint =
+	    (physmem_breakpoint_t *) physmem_breakpoints.head;
 	
 	while (breakpoint != NULL) {
 		if (breakpoint->addr == address) {
-			list_remove(&memory_breakpoints, &breakpoint->item);
+			list_remove(&physmem_breakpoints, &breakpoint->item);
 			safe_free(breakpoint);
 			
 			return true;
 		}
 		
-		breakpoint = (mem_breakpoint_t *) breakpoint->item.next;
+		breakpoint = (physmem_breakpoint_t *) breakpoint->item.next;
 	}
 	
 	return false;
@@ -131,31 +130,31 @@ bool memory_breakpoint_remove(ptr_t address)
  * @param filter Filter for selecting breakpoints to be deactivated.
  *
  */
-void memory_breakpoint_remove_filtered(breakpoint_filter_t filter)
+void physmem_breakpoint_remove_filtered(breakpoint_filter_t filter)
 {
-	mem_breakpoint_t *breakpoint =
-	    (mem_breakpoint_t *) memory_breakpoints.head;
+	physmem_breakpoint_t *breakpoint =
+	    (physmem_breakpoint_t *) physmem_breakpoints.head;
 	
 	while (breakpoint != NULL) {
-		mem_breakpoint_t *removed = breakpoint;
-		breakpoint = (mem_breakpoint_t *) breakpoint->item.next;
+		physmem_breakpoint_t *removed = breakpoint;
+		breakpoint = (physmem_breakpoint_t *) breakpoint->item.next;
 		
 		/* Ignore breakpoints which are not filtered */
 		if ((removed->kind & filter) == 0)
 			continue;
 		
-		list_remove(&memory_breakpoints, &removed->item);
+		list_remove(&physmem_breakpoints, &removed->item);
 		safe_free(removed);
 	}
 }
 
 /** Print activated memory breakpoints for the user */
-void memory_breakpoint_print_list(void)
+void physmem_breakpoint_print_list(void)
 {
 	printf("[Address ] [Mode] [Hits              ]\n");
 	
-	mem_breakpoint_t *breakpoint = NULL;
-	for_each(memory_breakpoints, breakpoint, mem_breakpoint_t) {
+	physmem_breakpoint_t *breakpoint = NULL;
+	for_each(physmem_breakpoints, breakpoint, physmem_breakpoint_t) {
 		bool read = breakpoint->access_flags & ACCESS_READ;
 		bool write = breakpoint->access_flags & ACCESS_WRITE;
 		
@@ -175,7 +174,8 @@ void memory_breakpoint_print_list(void)
  * @param access_type Specifies type of access operation.
  *
  */
-void memory_breakpoint_hit(mem_breakpoint_t *breakpoint, access_t access_type)
+void physmem_breakpoint_hit(physmem_breakpoint_t *breakpoint,
+    access_t access_type)
 {
 	ASSERT(breakpoint != NULL);
 	
@@ -195,7 +195,7 @@ void memory_breakpoint_hit(mem_breakpoint_t *breakpoint, access_t access_type)
 		gdb_handle_event(GDB_EVENT_BREAKPOINT);
 		break;
 	default:
-		die(ERR_INTERN, "Internal error at %s(%u)", __FILE__, __LINE__);
+		die(ERR_INTERN, "Unexpected physical memory breakpoint kind");
 	}
 }
 
@@ -211,7 +211,7 @@ void memory_breakpoint_hit(mem_breakpoint_t *breakpoint, access_t access_type)
  * @return Initialized code breakpoint structure.
  *
  */
-breakpoint_t *breakpoint_init(ptr_t address, breakpoint_kind_t kind)
+breakpoint_t *breakpoint_init(ptr32_t address, breakpoint_kind_t kind)
 {
 	breakpoint_t *breakpoint =
 	    (breakpoint_t *) safe_malloc_t(breakpoint_t);
@@ -242,7 +242,7 @@ static void breakpoint_hit(breakpoint_t *breakpoint)
 		gdb_handle_event(GDB_EVENT_BREAKPOINT);
 		break;
 	default:
-		die(ERR_INTERN, "Internal error at %s(%u)", __FILE__, __LINE__);
+		die(ERR_INTERN, "Unexpected breakpoint kind");
 	}
 }
 
@@ -257,7 +257,7 @@ static void breakpoint_hit(breakpoint_t *breakpoint)
  * @return True, if at least one breakpoint has been hit.
  *
  */
-static bool breakpoint_hit_by_address(list_t breakpoints, ptr_t address)
+static bool breakpoint_hit_by_address(list_t breakpoints, ptr32_t address)
 {
 	bool hit = false;
 	
@@ -286,7 +286,7 @@ static bool breakpoint_hit_by_address(list_t breakpoints, ptr_t address)
  *
  */
 breakpoint_t *breakpoint_find_by_address(list_t breakpoints,
-    ptr_t address, breakpoint_filter_t filter)
+    ptr32_t address, breakpoint_filter_t filter)
 {
 	breakpoint_t *breakpoint = NULL;
 	

@@ -26,13 +26,13 @@ typedef enum {
 	MEMT_NONE = 0,  /**< Uninitialized */
 	MEMT_MEM  = 1,  /**< Generic */
 	MEMT_FMAP = 2   /**< File mapped */
-} mem_type_t;
+} physmem_type_t;
 
 typedef struct {
 	item_t item;
 	
 	/* Memory area type */
-	mem_type_t type;
+	physmem_type_t type;
 	bool writable;
 	
 	/* Basic specification (position and size) */

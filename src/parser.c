@@ -46,7 +46,7 @@ const char *token_overview[] = {
  * is advanced accordingly.
  *
  */
-static unsigned int read_multiply(const char **str)
+static uint64_t read_multiply(const char **str)
 {
 	ASSERT(str != NULL);
 	ASSERT(*str != NULL);

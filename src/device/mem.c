@@ -158,21 +158,10 @@ const char *txt_mem_type[] = {
 	"fmap"
 };
 
-/** Safe munmap
- *
- */
-static void try_munmap(void *ptr, size_t size)
-{
-	if (munmap(ptr, size) == -1) {
-		io_error(NULL);
-		error(txt_file_unmap_fail);
-	}
-}
-
 /** Cleanup the memory
  *
  */
-static void mem_cleanup(mem_area_t *area)
+static void mem_cleanup(physmem_area_t *area)
 {
 	switch (area->type) {
 	case MEMT_NONE:
@@ -200,13 +189,21 @@ static bool mem_init(token_t *parm, device_t *dev)
 {
 	/* Initialize */
 	parm_next(&parm);
-	ptr_t start = parm_next_uint(&parm);
-	if (!addr_word_aligned(start)) {
-		error("Memory address must by 4-byte aligned");
+	uint64_t _start = parm_uint_next(&parm);
+	
+	if (!phys_range(_start)) {
+		error("Physical memory address out of range");
 		return false;
 	}
 	
-	mem_area_t *area = safe_malloc_t(mem_area_t);
+	ptr36_t start = _start;
+	
+	if (!ptr36_word_aligned(start)) {
+		error("Physical memory address must by 4-byte aligned");
+		return false;
+	}
+	
+	physmem_area_t *area = safe_malloc_t(physmem_area_t);
 	item_init(&area->item);
 	
 	area->type = MEMT_NONE;
@@ -216,7 +213,7 @@ static bool mem_init(token_t *parm, device_t *dev)
 	area->size = 0;
 	area->data = NULL;
 	
-	list_append(&mem_areas, &area->item);
+	list_append(&physmem_areas, &area->item);
 	dev->data = area;
 	
 	return true;
@@ -227,11 +224,11 @@ static bool mem_init(token_t *parm, device_t *dev)
  */
 static bool mem_info(token_t *parm, device_t *dev)
 {
-	mem_area_t *area = (mem_area_t *) dev->data;
-	char *size = uint32_human_readable(area->size);
+	physmem_area_t *area = (physmem_area_t *) dev->data;
+	char *size = uint64_human_readable(area->size);
 	
-	printf("[Start   ] [Size      ] [Type]\n");
-	printf("%#10" PRIx32 " %12s %s\n",
+	printf("[Start    ] [Size      ] [Type]\n"
+	    "%#011" PRIx64 " %12s %s\n",
 	    area->start, size, txt_mem_type[area->type]);
 	
 	safe_free(size);
@@ -246,11 +243,11 @@ static bool mem_info(token_t *parm, device_t *dev)
  */
 static bool mem_load(token_t *parm, device_t *dev)
 {
-	mem_area_t *area = (mem_area_t *) dev->data;
+	physmem_area_t *area = (physmem_area_t *) dev->data;
 	const char *const path = parm_str(parm);
 	
 	if (area->type != MEMT_MEM) {
-		/* Illegal. */
+		error("Physical memory area already established");
 		return false;
 	}
 	
@@ -263,12 +260,14 @@ static bool mem_load(token_t *parm, device_t *dev)
 	/* File size test */
 	if (!try_fseek(file, 0, SEEK_END, path)) {
 		error("%s", txt_file_seek_err);
+		safe_fclose(file, path);
 		return false;
 	}
 	
 	size_t fsize;
 	if (!try_ftell(file, path, &fsize)) {
 		error("%s", txt_file_seek_err);
+		safe_fclose(file, path);
 		return false;
 	}
 	
@@ -286,6 +285,7 @@ static bool mem_load(token_t *parm, device_t *dev)
 	
 	if (!try_fseek(file, 0, SEEK_SET, path)) {
 		error("%s", txt_file_seek_err);
+		safe_fclose(file, path);
 		return false;
 	}
 	
@@ -308,7 +308,7 @@ static bool mem_load(token_t *parm, device_t *dev)
  */
 static bool mem_fill(token_t *parm, device_t *dev)
 {
-	mem_area_t *area = (mem_area_t *) dev->data;
+	physmem_area_t *area = (physmem_area_t *) dev->data;
 	const char *str;
 	char c = 0;
 	
@@ -335,8 +335,8 @@ static bool mem_fill(token_t *parm, device_t *dev)
 		c = parm_uint(parm);
 		break;
 	default:
-		/* Unreachable */
-		break;
+		intr_error("Unexpected parameter type");
+		return false;
 	}
 	
 	memset(area->data, c, area->size);
@@ -351,12 +351,12 @@ static bool mem_fill(token_t *parm, device_t *dev)
  */
 static bool mem_fmap(token_t *parm, device_t *dev)
 {
-	mem_area_t *area = (mem_area_t *) dev->data;
+	physmem_area_t *area = (physmem_area_t *) dev->data;
 	const char *const path = parm_str(parm);
 	FILE *file;
 	
 	if (area->type != MEMT_NONE) {
-		/* Illegal. */
+		error("Physical memory area already established");
 		return false;
 	}
 	
@@ -375,12 +375,14 @@ static bool mem_fmap(token_t *parm, device_t *dev)
 	/* File size test */
 	if (!try_fseek(file, 0, SEEK_END, path)) {
 		error("%s", txt_file_seek_err);
+		safe_fclose(file, path);
 		return false;
 	}
 	
 	size_t fsize;
 	if (!try_ftell(file, path, &fsize)) {
 		error("%s", txt_file_seek_err);
+		safe_fclose(file, path);
 		return false;
 	}
 	
@@ -390,14 +392,29 @@ static bool mem_fmap(token_t *parm, device_t *dev)
 		return false;
 	}
 	
-	if ((uint64_t) area->start + (uint64_t) fsize > 0x100000000ull) {
-		error("Mapped file exceeds the 4 GB limit");
+	if (!phys_range(fsize)) {
+		error("File size out of physical memory range");
+		safe_fclose(file, path);
+		return false;
+	}
+	
+	len36_t size = (len36_t) fsize;
+	
+	if (size != fsize) {
+		error("Incompatible host and guest address space sizes");
+		safe_fclose(file, path);
+		return false;
+	}
+	
+	if (!phys_range(area->start + size)) {
+		error("File size exceeds physical memory range");
 		safe_fclose(file, path);
 		return false;
 	}
 	
 	if (!try_fseek(file, 0, SEEK_SET, path)) {
 		error("%s", txt_file_seek_err);
+		safe_fclose(file, path);
 		return false;
 	}
 	
@@ -435,33 +452,46 @@ static bool mem_fmap(token_t *parm, device_t *dev)
  */
 static bool mem_generic(token_t *parm, device_t *dev)
 {
-	mem_area_t *area = (mem_area_t *) dev->data;
-	uint32_t size = parm_uint(parm);
+	physmem_area_t *area = (physmem_area_t *) dev->data;
+	uint64_t _size = parm_uint(parm);
 	
 	if (area->type != MEMT_NONE) {
-		/* Illegal. */
+		error("Physical memory area already established");
 		return false;
 	}
 	
-	/* Test parameter */
-	if (!addr_word_aligned(size)) {
-		error("Memory size must be 4-byte aligned");
+	if (_size == 0) {
+		error("Physical memory area size cannot be zero");
 		return false;
 	}
 	
-	if (size == 0) {
-		error("Memory size is illegal");
+	if (!phys_range(_size)) {
+		error("Size out of physical memory range");
 		return false;
 	}
 	
-	if ((uint64_t) area->start + (uint64_t) size > 0x100000000ull) {
-		error("Memory would exceed the 4 GB limit");
+	len36_t size = (len36_t) _size;
+	
+	if (!phys_range(area->start + size)) {
+		error("Size exceeds physical memory range");
+		return false;
+	}
+	
+	if (!ptr36_word_aligned(size)) {
+		error("Physical memory size must be 4-byte aligned");
+		return false;
+	}
+	
+	size_t host_size = (size_t) size;
+	
+	if (host_size != size) {
+		error("Incompatible host and guest address space sizes");
 		return false;
 	}
 	
 	area->type = MEMT_MEM;
 	area->size = size;
-	area->data = safe_malloc(size);
+	area->data = safe_malloc(host_size);
 	
 	return true;
 }
@@ -473,13 +503,20 @@ static bool mem_generic(token_t *parm, device_t *dev)
  */
 static bool mem_save(token_t *parm, device_t *dev)
 {
-	mem_area_t *area = (mem_area_t *) dev->data;
+	physmem_area_t *area = (physmem_area_t *) dev->data;
 	const char *const path = parm_str(parm);
 	
-	/* Do not write anything
-	   if the memory is not inicialized */
-	if (area->type == MEMT_NONE)
-		return true;
+	if (area->type == MEMT_NONE) {
+		error("Physical memory area not established");
+		return false;
+	}
+	
+	size_t host_size = (size_t) area->size;
+	
+	if (host_size != area->size) {
+		error("Incompatible host and guest address space sizes");
+		return false;
+	}
 	
 	FILE *file = try_fopen(path, "wb");
 	if (file == NULL) {
@@ -487,8 +524,8 @@ static bool mem_save(token_t *parm, device_t *dev)
 		return false;
 	}
 	
-	size_t wr = fwrite(area->data, 1, area->size, file);
-	if (wr != area->size) {
+	size_t wr = fwrite(area->data, 1, host_size, file);
+	if (wr != host_size) {
 		io_error(path);
 		safe_fclose(file, path);
 		error("%s", txt_file_write_err);
@@ -504,10 +541,10 @@ static bool mem_save(token_t *parm, device_t *dev)
  */
 static void mem_done(device_t *dev)
 {
-	mem_area_t *area = (mem_area_t *) dev->data;
+	physmem_area_t *area = (physmem_area_t *) dev->data;
 	
 	mem_cleanup(area);
-	list_remove(&mem_areas, &area->item);
+	list_remove(&physmem_areas, &area->item);
 	
 	safe_free(area);
 	safe_free(dev->name);

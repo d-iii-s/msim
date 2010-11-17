@@ -123,9 +123,9 @@ static void parse_cmdline(int argc, char *args[])
 			conf_remote_gdb(optarg);
 			break;
 		case '?':
-			die(ERR_PARM, "Unknown parameter or argument required\n");
+			die(ERR_PARM, "Unknown parameter or argument required");
 		default:
-			die(ERR_PARM, "Unknown parameter \"%c\"\n", optopt);
+			die(ERR_PARM, "Unknown parameter \"%c\"", optopt);
 		}
 	}
 	

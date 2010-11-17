@@ -148,7 +148,7 @@ static bool system_dumpins(token_t *parm, void *data)
 	}
 	
 	if (!phys_range(_cnt)) {
-		error("Count out of range");
+		error("Count out of physical memory range");
 		return false;
 	}
 	
@@ -208,7 +208,7 @@ static bool system_break(token_t *parm, void *data)
 	}
 	
 	if (!phys_range(size)) {
-		error("Size out of range");
+		error("Size out of physical memory range");
 		return false;
 	}
 	
@@ -291,7 +291,7 @@ static bool system_dumpmem(token_t *parm, void *data)
 	}
 	
 	if (!phys_range(_cnt)) {
-		error("Count out of range");
+		error("Count out of physical memory range");
 		return false;
 	}
 	
@@ -417,7 +417,7 @@ static bool setup_apply(const char *buf)
 	
 	while ((*buf) && (!tohalt)) {
 		if (!interpret(buf))
-			die(ERR_INIT, 0);
+			return false;
 		
 		lineno++;
 		set_lineno(lineno);
@@ -449,7 +449,7 @@ void script(void)
 	FILE *file = fopen(config_file, "r");
 	if (file == NULL) {
 		if (errno == ENOENT)
-			printf("Configuration file \"%s\" not found, skipping.\n",
+			alert("Configuration file \"%s\" not found, skipping",
 			    config_file);
 		else
 			io_die(ERR_IO, config_file);
@@ -465,9 +465,11 @@ void script(void)
 	string_fread(&str, file);
 	
 	safe_fclose(file, config_file);
-	setup_apply(str.str);
-	unset_script();
 	
+	if (!setup_apply(str.str))
+		die(ERR_INIT, "Error in configuration file");
+	
+	unset_script();
 	string_done(&str);
 }
 

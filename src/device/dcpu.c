@@ -178,16 +178,15 @@ device_type_s dcpu = {
 	.full = "MIPS R4000 processor restricted to 32 bits without FPU",
 	
 	/* Functions */
-	.done  = dcpu_done,	/* done */
-	.step  = dcpu_step,	/* step */
-	.step4 = NULL, 		/* step4 */
-	.read  = NULL,		/* read */
-	.write = NULL,		/* write */
+	.done  = dcpu_done,  /* done */
+	.step  = dcpu_step,  /* step */
+	.step4 = NULL,       /* step4 */
+	.read  = NULL,       /* read */
+	.write = NULL,       /* write */
 	
 	/* Commands */
 	dcpu_cmds
 };
-
 
 /** Get first available CPU id
  *
@@ -200,19 +199,16 @@ static unsigned int dcpu_get_free_id(void)
 	unsigned int c;
 	unsigned int id_mask = 0;
 	device_t *dev = NULL;
-
+	
 	while (dev_next(&dev, DEVICE_FILTER_PROCESSOR))
 		id_mask |= 1 << ((cpu_t *) dev->data)->procno;
 	
 	for (c = 0; c < MAX_CPU; c++, id_mask >>= 1)
 		if (!(id_mask & 1))
 			return c;
-
+	
 	return MAX_CPU;
 }
-
-	
-
 
 /** Initialization
  *
@@ -228,12 +224,10 @@ static bool dcpu_init(token_t *parm, device_t *dev)
 	
 	cpu_t *cpu = safe_malloc_t(cpu_t);
 	cpu_init(cpu, id);
-	
 	dev->data = cpu;
 	
 	return true;
 }
-
 
 /** Info command implementation
  *
@@ -243,7 +237,6 @@ static bool dcpu_info(token_t *parm, device_t *dev)
 	printf("R4000.32\n");
 	return true;
 }
-
 
 /** Stat command implementation
  *
@@ -281,7 +274,7 @@ static bool dcpu_stat(token_t *parm, device_t *dev)
  */
 static bool dcpu_cp0d(token_t *parm, device_t *dev)
 {
-	uint32_t no = parm_uint(parm);
+	uint64_t no = parm_uint(parm);
 	if (no > 31) {
 		error("Out of range (0..31)");
 		return false;
@@ -297,7 +290,6 @@ static bool dcpu_cp0d(token_t *parm, device_t *dev)
 static bool dcpu_tlbd(token_t *parm, device_t *dev)
 {
 	tlb_dump((cpu_t *) dev->data);
-	
 	return true;
 }
 
@@ -306,28 +298,46 @@ static bool dcpu_tlbd(token_t *parm, device_t *dev)
  */
 static bool dcpu_md(token_t *parm, device_t *dev)
 {
-	ptr_t addr = parm_next_uint(&parm) & ~0x03;
-	len_t size = parm_uint(parm);
-	size_t pos;
+	uint64_t _addr = ALIGN_DOWN(parm_uint_next(&parm), 4);
+	uint64_t _cnt = parm_uint(parm);
 	
-	for (pos = 0; size; size--, addr += 4, pos++) {
-		if (!(pos & 0x3))
+	if (!virt_range(_addr)) {
+		error("Virtual address out of range");
+		return false;
+	}
+	
+	if (!virt_range(_cnt)) {
+		error("Count out of virtual memory range");
+		return false;
+	}
+	
+	if (!virt_range(_addr + _cnt * BITS_32)) {
+		error("Count exceeds virtual memory range");
+		return false;
+	}
+	
+	ptr32_t addr;
+	len32_t cnt;
+	len32_t i;
+	
+	for (addr = (ptr32_t) _addr, cnt = (len32_t) _cnt, i = 0;
+	    i < cnt; addr += BITS_32, i++) {
+		if ((i & 0x03) == 0)
 			printf("  %#10" PRIx32 "    ", addr);
 		
 		uint32_t val;
 		exc_t res = cpu_read_mem((cpu_t *) dev->data, addr, 4, &val, false);
-		printf("res: %d\n", res);
 		
 		if (res == excNone)
 			printf("%08" PRIx32 " ", val);
 		else
 			printf("xxxxxxxx ");
 		
-		if ((pos & 0x3) == 3)
+		if ((i & 0x03) == 3)
 			printf("\n");
 	}
 	
-	if (pos != 0)
+	if (i != 0)
 		printf("\n");
 	
 	return true;
@@ -338,19 +348,40 @@ static bool dcpu_md(token_t *parm, device_t *dev)
  */
 static bool dcpu_id(token_t *parm, device_t *dev)
 {
-	ptr_t addr = parm_next_uint(&parm) & ~0x03;
-	len_t size = parm_uint(parm);
-	instr_info_t ii;
+	uint64_t _addr = ALIGN_DOWN(parm_uint_next(&parm), 4);
+	uint64_t _cnt = parm_uint(parm);
 	
-	ii.rt = 0;
-	ii.rd = 0;
-	ii.rs = 0;
+	if (!virt_range(_addr)) {
+		error("Virtual address out of range");
+		return false;
+	}
 	
-	for (; size; size--, addr += 4) {
+	if (!virt_range(_cnt)) {
+		error("Count out of virtual memory range");
+		return false;
+	}
+	
+	if (!virt_range(_addr + _cnt * BITS_32)) {
+		error("Count exceeds virtual memory range");
+		return false;
+	}
+	
+	ptr32_t addr;
+	len32_t cnt;
+	
+	for (addr = (ptr32_t) _addr, cnt = (len32_t) _cnt; cnt > 0;
+	    addr += BITS_32, cnt--) {
+		instr_info_t ii;
 		exc_t res = cpu_read_ins((cpu_t *) dev->data, addr, &ii.icode, false);
 		
 		if (res != excNone) {
 			ii.icode = 0;
+			ii.rs = 0;
+			ii.rt = 0;
+			ii.rd = 0;
+			ii.sa = 0;
+			ii.imm = 0;
+			ii.shift = 0;
 			ii.opcode = opcIllegal;
 		} else
 			decode_instr(&ii);
@@ -367,7 +398,6 @@ static bool dcpu_id(token_t *parm, device_t *dev)
 static bool dcpu_rd(token_t *parm, device_t *dev)
 {
 	reg_view((cpu_t *) dev->data);
-	
 	return true;
 }
 
@@ -377,9 +407,14 @@ static bool dcpu_rd(token_t *parm, device_t *dev)
 static bool dcpu_goto(token_t *parm, device_t *dev)
 {
 	cpu_t *cpu = (cpu_t *) dev->data;
-	ptr_t addr = parm_uint(parm);
+	uint64_t addr = ALIGN_DOWN(parm_uint_next(&parm), 4);
 	
-	cpu_set_pc(cpu, addr);
+	if (!virt_range(addr)) {
+		error("Virtual address out of range");
+		return false;
+	}
+	
+	cpu_set_pc(cpu, (ptr32_t) addr);
 	return true;
 }
 
@@ -388,11 +423,18 @@ static bool dcpu_goto(token_t *parm, device_t *dev)
  */
 static bool dcpu_break(token_t *parm, device_t *dev)
 {
-	breakpoint_t *bp = breakpoint_init(parm_uint(parm),
-	    BREAKPOINT_KIND_SIMULATOR);
 	cpu_t *cpu = (cpu_t *) dev->data;
+	uint64_t addr = ALIGN_DOWN(parm_uint_next(&parm), 4);
 	
+	if (!virt_range(addr)) {
+		error("Virtual address out of range");
+		return false;
+	}
+	
+	breakpoint_t *bp = breakpoint_init((ptr32_t) addr,
+	    BREAKPOINT_KIND_SIMULATOR);
 	list_append(&cpu->bps, &bp->item);
+	
 	return true;
 }
 
@@ -404,7 +446,7 @@ static bool dcpu_bd(token_t *parm, device_t *dev)
 	cpu_t *cpu = (cpu_t *) dev->data;
 	breakpoint_t *bp;
 	
-	printf("[Address ] [Hits              ] [Kind    ]\n");
+	printf("[address ] [hits              ] [kind    ]\n");
 	
 	for_each(cpu->bps, bp, breakpoint_t) {
 		const char *kind = (bp->kind == BREAKPOINT_KIND_SIMULATOR)
@@ -417,14 +459,18 @@ static bool dcpu_bd(token_t *parm, device_t *dev)
 	return true;
 }
 
-
 /** Br command implementation
  *
  */
 static bool dcpu_br(token_t *parm, device_t *dev)
 {
 	cpu_t *cpu = (cpu_t *) dev->data;
-	ptr_t addr = parm_uint(parm);
+	uint64_t addr = ALIGN_DOWN(parm_uint_next(&parm), 4);
+	
+	if (!virt_range(addr)) {
+		error("Virtual address out of range");
+		return false;
+	}
 	
 	bool fnd = false;
 	breakpoint_t *bp;
@@ -437,12 +483,13 @@ static bool dcpu_br(token_t *parm, device_t *dev)
 		}
 	}
 	
-	if (!fnd)
+	if (!fnd) {
 		error("Unknown breakpoint");
+		return false;
+	}
 	
 	return true;
 }
-
 
 /** Done
  *
@@ -452,7 +499,6 @@ static void dcpu_done(device_t *dev)
 	safe_free(dev->name);
 	safe_free(dev->data);
 }
-
 
 /** Execute one processor step
  *

@@ -58,29 +58,28 @@ typedef struct {
 	len32_t len;
 	uint64_t hits;
 	access_filter_t access_flags;
-} mem_breakpoint_t;
+} physmem_breakpoint_t;
 
 /** List of all the memory breakpoints */
 extern list_t physmem_breakpoints;
 
+extern void breakpoint_init_framework(void);
+
 /* Memory breakpoints interface */
 
-extern void physmem_breakpoint_init_framework(void);
 extern void physmem_breakpoint_add(ptr36_t address, len36_t size,
     breakpoint_kind_t kind, access_filter_t access_flags);
 extern bool physmem_breakpoint_remove(ptr36_t address);
 extern void physmem_breakpoint_remove_filtered(breakpoint_filter_t filter);
-extern void physmem_breakpoint_hit(mem_breakpoint_t *breakpoint,
+extern void physmem_breakpoint_hit(physmem_breakpoint_t *breakpoint,
     access_t access_type);
 extern void physmem_breakpoint_print_list(void);
 
 /* Code breakpoints interface */
 
 extern breakpoint_t *breakpoint_init(ptr32_t address, breakpoint_kind_t kind);
-
 extern breakpoint_t *breakpoint_find_by_address(list_t breakpoints,
     ptr32_t address, breakpoint_filter_t filter);
-
 extern bool breakpoint_check_for_code_breakpoints(void);
 
 #endif

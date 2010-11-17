@@ -16,4 +16,4 @@
 
 extern device_type_s dkeyboard;
 
-#endif /* DKEYBOARD_H_ */
+#endif

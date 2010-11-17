@@ -20,6 +20,7 @@
 #include "dcpu.h"
 #include "../arch/stdin.h"
 #include "../fault.h"
+#include "../text.h"
 #include "../utils.h"
 
 /* Register offsets */
@@ -89,15 +90,13 @@ cmd_t keyboard_cmds[] = {
 	LAST_CMD
 };
 
-const char id_keyboard[] = "dkeyboard";
-
 static void keyboard_done(device_t *dev);
 static void keyboard_step4(device_t *dev);
-static void keyboard_read(cpu_t *cpu, device_t *dev, ptr_t addr, uint32_t *val);
+static void keyboard_read(cpu_t *cpu, device_t *dev, ptr36_t addr, uint32_t *val);
 
 device_type_s dkeyboard = {
 	/* Type name and description */
-	.name = id_keyboard,
+	.name = "dkeyboard",
 	.brief = "Keyboard simulation",
 	.full = "Device reads key codes from the specified input and sends them to "
 		"the system via the interrrupt assert and a memory-mapped "
@@ -107,114 +106,117 @@ device_type_s dkeyboard = {
 	.done = keyboard_done,
 	.step4 = keyboard_step4,
 	.read = keyboard_read,
-
+	
 	/* Commands */
 	.cmds = keyboard_cmds
 };
 
-struct keyboard_data_s {
-	uint32_t addr;		/* Dkeyboard register address. */
-	int intno;		/* Interrupt number */
-	char incomming;		/* Character buffer */
+typedef struct {
+	ptr36_t addr;        /* Register address */
+	unsigned int intno;  /* Interrupt number */
+	char incomming;      /* Character buffer */
 	
-	bool ig;		/* Interrupt pending flag */
-	uint64_t intrcount;		/* Number of interrupts asserted */
-	uint64_t keycount;		/* Number of keys acquired */
-	uint64_t overrun;		/* Number of overwritten characters in the buffer. */
-};
-typedef struct keyboard_data_s keyboard_data_s;
-
+	bool ig;             /* Interrupt pending flag */
+	uint64_t intrcount;  /* Number of interrupts asserted */
+	uint64_t keycount;   /* Number of keys acquired */
+	uint64_t overrun;    /* Number of overwritten characters in the buffer. */
+} keyboard_data_s;
 
 /** Generate a key press
  *
  * An interrupt is asserted.
  *
  */
-static void gen_key(device_t *dev, char k)
+static void gen_key(device_t *dev, char c)
 {
-	keyboard_data_s *kd = (keyboard_data_s *) dev->data;
-
-	kd->incomming = k;
-	kd->keycount++;
-			
-	if (!kd->ig) {
-		kd->ig = true;
-		kd->intrcount++;
-		dcpu_interrupt_up(0, kd->intno);
+	keyboard_data_s *data = (keyboard_data_s *) dev->data;
+	
+	data->incomming = c;
+	data->keycount++;
+	
+	if (!data->ig) {
+		data->ig = true;
+		data->intrcount++;
+		dcpu_interrupt_up(0, data->intno);
 	} else
 		/* Increase the number of overrun characters */
-		kd->overrun++;
+		data->overrun++;
 }
-
 
 /** Init command implementation
  *
  */
 static bool dkeyboard_init(token_t *parm, device_t *dev)
 {
+	parm_next(&parm);
+	uint64_t _addr = parm_uint_next(&parm);
+	uint64_t _intno = parm_uint_next(&parm);
+	
+	if (!phys_range(_addr)) {
+		error("Physical memory address out of range");
+		return false;
+	}
+	
+	if (!phys_range(_addr + (uint64_t) REGISTER_LIMIT)) {
+		error("Invalid address, registers would exceed the physical "
+		    "memory range");
+		return false;
+	}
+	
+	ptr36_t addr = _addr;
+	
+	if (!ptr36_word_aligned(addr)) {
+		error("Physical memory address must by 4-byte aligned");
+		return false;
+	}
+	
+	if (_intno > 6) {
+		error("%s", txt_intnum_range);
+		return false;
+	}
+	
 	/* Alloc structure */
-	keyboard_data_s *kd = (keyboard_data_s *) safe_malloc_t(keyboard_data_s);
-	dev->data = kd;
+	keyboard_data_s *data = safe_malloc_t(keyboard_data_s);
+	dev->data = data;
 	
 	/* Initialization */
-	parm_next( &parm);
-	kd->addr = parm_next_uint(&parm);
-	kd->intno = parm_next_uint(&parm);
+	data->addr = addr;
+	data->intno = _intno;
+	data->ig = false;
+	data->intrcount = 0;
+	data->keycount = 0;
+	data->overrun = 0;
 	
-	kd->ig = false;
-	kd->intrcount = 0;
-	kd->keycount = 0;
-	kd->overrun = 0;
-
-	/* Checks */
-
-	/* Address alignment */
-	if (!addr_word_aligned(kd->addr)) {
-		error("Keyboard address must be on 4-byte aligned");
-		free(kd);
-		return false;
-	}
-
-	/* Interrupt no */
-	if (kd->intno > 6) {
-		error("Interrupt number must be within 0..6");
-		free(kd);
-		return false;
-	}
-
 	return true;
 }
-
 
 /** Info command implementation
  *
  */
 static bool dkeyboard_info(token_t *parm, device_t *dev)
 {
-	keyboard_data_s *kb = (keyboard_data_s *) dev->data;
+	keyboard_data_s *data = (keyboard_data_s *) dev->data;
 	
-	printf("[Address ] [Int no] [Key] [Ig  ]\n");
-	printf("%#08x %-8u %#02x  %u\n",
-	    kb->addr, kb->intno, kb->incomming, kb->ig);
+	printf("[address ] [int] [key] [ig]\n");
+	printf("%#11" PRIx64 " %-5u %#02x  %u\n",
+	    data->addr, data->intno, data->incomming, data->ig);
 	
 	return true;
 }
-
 
 /** Stat command implementation
  *
  */
 static bool dkeyboard_stat(token_t *parm, device_t *dev)
 {
-	keyboard_data_s *kd = (keyboard_data_s *) dev->data;
+	keyboard_data_s *data = (keyboard_data_s *) dev->data;
 	
-	printf("[Interrupt count   ] [Key count         ] [Overrun           ]\n");
+	printf("[interrupt count   ] [key count         ] [overrun           ]\n");
 	printf("%20" PRIu64 " %20" PRIu64 " %20" PRIu64 "\n",
-	    kd->intrcount, kd->keycount, kd->overrun);
+	    data->intrcount, data->keycount, data->overrun);
 	
 	return true;
 }
-
 
 /** Gen command implementation
  *
@@ -224,41 +226,48 @@ static bool dkeyboard_stat(token_t *parm, device_t *dev)
  */
 static bool dkeyboard_gen(token_t *parm, device_t *dev)
 {
-	unsigned char c;
-
-	/* Parameter is string - take the first character */
-	if (parm_type( parm) == tt_str) {
-		c = parm_str(parm)[ 0];
-
-		if ((!c) || (parm_str(parm)[ 1])) {
-			error("Invalid key (must be exactly one character)");
-			return false;
-		}
-	} else {
-		/* Parameter is integer - interpret is as ASCII value. */
-		if (parm_uint(parm) > 255) {
-			error("Invalid key (must be within 0..255)");
-			return false;
-		}
-
-		c = parm_uint(parm);
-	}
-
-	gen_key(dev, c);
+	const char *str;
+	char c = 0;
 	
+	switch (parm_type(parm)) {
+	case tt_end:
+		/* default '\0' */
+		break;
+	case tt_str:
+		str = parm_str(parm);
+		c = str[0];
+		
+		if ((!c) || (str[1])) {
+			error("Invalid character");
+			return false;
+		}
+		
+		break;
+	case tt_uint:
+		if (parm_uint(parm) > 255) {
+			error("Integer out of range 0..255");
+			return false;
+		}
+		
+		c = parm_uint(parm);
+		break;
+	default:
+		intr_error("Unexpected parameter type");
+		return false;
+	}
+	
+	gen_key(dev, c);
 	return true;
 }
-
 
 /** Clean up the device
  *
  */
-static void keyboard_done(device_t *d)
+static void keyboard_done(device_t *dev)
 {
-	safe_free(d->name);
-	safe_free(d->data);
+	safe_free(dev->name);
+	safe_free(dev->data);
 }
-	
 
 /** Read implementation
  *
@@ -266,28 +275,29 @@ static void keyboard_done(device_t *d)
  * deasserted.
  *
  */
-static void keyboard_read(cpu_t *cpu, device_t *dev, ptr_t addr, uint32_t *val)
+static void keyboard_read(cpu_t *cpu, device_t *dev, ptr36_t addr, uint32_t *val)
 {
-	keyboard_data_s *kd = (keyboard_data_s *) dev->data;
+	keyboard_data_s *data = (keyboard_data_s *) dev->data;
 	
-	if (addr == kd->addr + REGISTER_CHAR) {
-		*val = kd->incomming;
-		kd->incomming = 0;
-		if (kd->ig) {
-			kd->ig = false;
-			dcpu_interrupt_down(0, kd->intno);
+	switch (addr - data->addr) {
+	case REGISTER_CHAR:
+		*val = data->incomming;
+		data->incomming = 0;
+		if (data->ig) {
+			data->ig = false;
+			dcpu_interrupt_down(0, data->intno);
 		}
+		break;
 	}
 }
-
 
 /** One step4 implementation
  *
  */
 static void keyboard_step4(device_t *dev)
 {
-	char buf;
+	char c;
 	
-	if (stdin_poll(&buf))
-		gen_key(dev, buf);
+	if (stdin_poll(&c))
+		gen_key(dev, c);
 }

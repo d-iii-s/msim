@@ -269,7 +269,7 @@ static bool gdb_send_reply(char *reply)
 /** Read length bytes from address of machine memory
  *
  */
-static void gdb_read_mem(ptr36_t addr, len36_t length)
+static void gdb_read_physmem(ptr36_t addr, len36_t length)
 {
 	string_t str;
 	string_init(&str);
@@ -280,7 +280,7 @@ static void gdb_read_mem(ptr36_t addr, len36_t length)
 	 * endianess.
 	 */
 	while (length > 0) {
-		uint32_t value = mem_read(NULL, addr, BITS_8, false);
+		uint32_t value = physmem_read(NULL, addr, BITS_8, false);
 		string_printf(&str, "%02x", value);
 		
 		length--;
@@ -294,7 +294,7 @@ static void gdb_read_mem(ptr36_t addr, len36_t length)
 /** Write length bytes to address in memory from hex string
  *
  */
-static void gdb_write_mem(ptr36_t addr, len36_t length, char *data)
+static void gdb_write_physmem(ptr36_t addr, len36_t length, char *data)
 {
 	while (length > 0) {
 		/* Read one byte */
@@ -306,7 +306,7 @@ static void gdb_write_mem(ptr36_t addr, len36_t length, char *data)
 		}
 		
 		/* Write it */
-		if (!mem_write(NULL, addr, value, BITS_8, false)) {
+		if (!physmem_write(NULL, addr, value, BITS_8, false)) {
 			gdb_send_reply(GDB_REPLY_MEMORY_WRITE_FAIL);
 			return;
 		}
@@ -525,10 +525,11 @@ static void gdb_cmd_mem_operation(char *req, bool read)
 	/* Addresses are physical */
 	cpu_t *cpu = dcpu_find_no(cpuno_global);
 	
-	ptr36_t addr = (ptr36_t) address;
-	len36_t len = (len36_t) length;
+	ptr32_t virt = (ptr36_t) address;
+	len32_t len = (len36_t) length;
+	ptr36_t phys;
 	
-	if (convert_addr(cpu, &addr, false, false) == excNone) {
+	if (convert_addr(cpu, virt, &phys, false, false) == excNone) {
 		if (!read) {
 			/* Move the pointer to the data to be written */
 			query = strchr(query, ':');
@@ -538,9 +539,9 @@ static void gdb_cmd_mem_operation(char *req, bool read)
 			}
 			
 			query++;
-			gdb_write_mem(addr, len, query);
+			gdb_write_physmem(phys, len, query);
 		} else
-			gdb_read_mem(addr, len);
+			gdb_read_physmem(phys, len);
 	} else {
 		if (!read)
 			gdb_send_reply(GDB_REPLY_MEMORY_WRITE_FAIL);
@@ -567,7 +568,7 @@ static void gdb_cmd_step(char *req, bool step)
 	unsigned int address;
 	int matched = sscanf(query, "%x", &address);
 	if (matched == 1) {
-		ptr_t addr = (ptr_t) address;
+		ptr32_t addr = (ptr32_t) address;
 		cpu_t *cpu = dcpu_find_no(cpuno_step);
 		cpu_set_pc(cpu, addr);
 	}
@@ -678,7 +679,7 @@ static void gdb_reply_event(gdb_event_t event)
 /** Activate code breakpoint
  *
  */
-static void gdb_insert_code_breakpoint(cpu_t *cpu, ptr_t addr)
+static void gdb_insert_code_breakpoint(cpu_t *cpu, ptr32_t addr)
 {
 	/*
 	 * Breakpoint insertion should be done in an idempotent way,
@@ -702,7 +703,7 @@ static void gdb_insert_code_breakpoint(cpu_t *cpu, ptr_t addr)
 /** Deactivate code breakpoint
  *
  */
-static void gdb_remove_code_breakpoint(cpu_t *cpu, ptr_t addr)
+static void gdb_remove_code_breakpoint(cpu_t *cpu, ptr32_t addr)
 {
 	breakpoint_t *breakpoint = breakpoint_find_by_address(cpu->bps,
 	    addr, BREAKPOINT_FILTER_DEBUGGER);
@@ -763,7 +764,7 @@ static void gdb_breakpoint(char *req, bool insert)
 		return;
 	}
 	
-	ptr_t addr = (ptr_t) address;
+	ptr32_t virt = (ptr32_t) address;
 	cpu_t* cpu = dcpu_find_no(cpuno_global);
 	
 	if (code_breakpoint) {
@@ -773,16 +774,18 @@ static void gdb_breakpoint(char *req, bool insert)
 		}
 		
 		if (insert)
-			gdb_insert_code_breakpoint(cpu, addr);
+			gdb_insert_code_breakpoint(cpu, virt);
 		else
-			gdb_remove_code_breakpoint(cpu, addr);
+			gdb_remove_code_breakpoint(cpu, virt);
 	} else {
-		if (convert_addr(cpu, &addr, false, false) == excNone) {
+		ptr36_t phys;
+		
+		if (convert_addr(cpu, virt, &phys, false, false) == excNone) {
 			if (insert)
-				memory_breakpoint_add(addr, length,
+				physmem_breakpoint_add(phys, length,
 				    BREAKPOINT_KIND_DEBUGGER, memory_access);
 			else
-				memory_breakpoint_remove(addr);
+				physmem_breakpoint_remove(phys);
 		} else {
 			gdb_send_reply(GDB_REPLY_BAD_BREAKPOINT);
 			return;
@@ -822,7 +825,7 @@ static void gdb_remote_done(bool fail, bool remote_request)
 		safe_free(removed);
 	}
 	
-	memory_breakpoint_remove_filtered(BREAKPOINT_FILTER_DEBUGGER);
+	physmem_breakpoint_remove_filtered(BREAKPOINT_FILTER_DEBUGGER);
 }
 
 /** Gdb main message loop implementation.

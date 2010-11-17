@@ -57,7 +57,7 @@ extern void string_fread(string_t *str, FILE *file);
 extern void string_done(string_t *str);
 
 extern bool prefix(const char *pref, const char *str);
-extern char *uint32_human_readable(uint32_t i);
+extern char *uint64_human_readable(uint64_t i);
 
 extern bool ptr32_word_aligned(ptr32_t addr);
 extern bool ptr36_word_aligned(ptr36_t addr);
@@ -71,5 +71,7 @@ extern bool try_fseek(FILE *file, size_t offset, int whence, const char *path);
 extern bool try_ftell(FILE *file, const char *path, size_t *pos);
 
 extern void safe_fclose(FILE *file, const char *path);
+
+extern void try_munmap(void *ptr, size_t size);
 
 #endif

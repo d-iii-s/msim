@@ -16,4 +16,4 @@
 
 extern device_type_s dorder;
 
-#endif /* DORDER_H_ */
+#endif

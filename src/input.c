@@ -69,6 +69,8 @@ static char *hint_generator(const char *input, int level)
  */
 static char **msim_completion(const char *text, int start, int end)
 {
+	ASSERT(end >= 0);
+	
 	char **result;
 	
 	par_text = (char *) safe_malloc(end + 1);
@@ -94,7 +96,7 @@ void input_init(void)
 		return;
 	
 	(void) tcgetattr(0, &tio_shadow);
-	 
+	
 	tio_old = tio_shadow;
 	tio_inter = tio_shadow;
 	tio_shadow.c_lflag &= ~(ECHO | INLCR | ICANON | ECHOE | ONLCR);
@@ -148,6 +150,7 @@ void interactive_control(void)
 		
 		if (!cmdline) {
 			/* User break in readline */
+			printf("\n");
 			alert("Quit");
 			input_back();
 			exit(1);

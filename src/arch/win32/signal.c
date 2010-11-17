@@ -20,6 +20,7 @@ static BOOL machine_user_break(DWORD fdwCtrlType)
 	switch (fdwCtrlType) {
 	case CTRL_C_EVENT:
 		if ((tobreak) || (interactive)) {
+			printf("\n");
 			alert("Quit");
 			input_back();
 			return false;

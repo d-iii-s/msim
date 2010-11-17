@@ -18,6 +18,7 @@
 static void machine_user_break(int signo)
 {
 	if ((tobreak) || (interactive)) {
+		printf("\n");
 		alert("Quit");
 		input_back();
 		exit(1);

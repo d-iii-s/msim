@@ -895,6 +895,8 @@ char *generator_cmd(token_t *parm, const void *data, unsigned int level)
 
 static char *cmd_get_syntax(const cmd_t *cmd)
 {
+	ASSERT(cmd != NULL);
+	
 	string_t msg;
 	string_init(&msg);
 	
@@ -965,8 +967,8 @@ void cmd_print_help(const cmd_t *cmds)
  */
 void cmd_print_extended_help(const cmd_t *cmds, token_t *parm)
 {
-	ASSERT(parm != NULL);
 	ASSERT(cmds != NULL);
+	ASSERT(parm != NULL);
 	
 	if (parm_type(parm) == tt_end) {
 		cmd_print_help(cmds);

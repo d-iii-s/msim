@@ -20,6 +20,7 @@
 #include "debug/gdb.h"
 #include "device/device.h"
 #include "device/machine.h"
+#include "assert.h"
 #include "text.h"
 #include "parser.h"
 #include "endian.h"
@@ -70,6 +71,8 @@ static struct option long_options[] = {
 
 static void conf_remote_gdb(const char *opt)
 {
+	ASSERT(opt != NULL);
+	
 	char *endp;
 	long int port_no;
 	

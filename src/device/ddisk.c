@@ -34,11 +34,11 @@ enum action_e {
 
 /** \{ \name Register offsets */
 #define REGISTER_ADDR_LO   0   /**< Address (bits 0 .. 31) */
-#define REGISTER_ADDR_HI   4   /**< Address (bits 32 .. 35) */
-#define REGISTER_SECNO     8   /**< Sector number */
-#define REGISTER_SECNO_HI  12  /**< Reserved for future extension */
-#define REGISTER_STATUS    16  /**< Status/commands */
-#define REGISTER_SIZE_LO   20  /**< Disk size in bytes (bits 0 .. 31) */
+#define REGISTER_SECNO     4   /**< Sector number */
+#define REGISTER_STATUS    8   /**< Status/commands */
+#define REGISTER_SIZE_LO   12  /**< Disk size in bytes (bits 0 .. 31) */
+#define REGISTER_ADDR_HI   16  /**< Address (bits 32 .. 35) */
+#define REGISTER_SECNO_HI  20  /**< Reserved for future extension */
 #define REGISTER_SIZE_HI   24  /**< Disk size in bytes (bits 32 .. 63) */
 #define REGISTER_LIMIT     28  /**< Size of register block */
 /* \} */

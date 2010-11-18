@@ -94,7 +94,7 @@ static void conf_remote_gdb(const char *opt)
 	remote_gdb_port = port_no;
 }
 
-static void parse_cmdline(int argc, char *args[])
+static bool parse_cmdline(int argc, char *args[])
 {
 	opterr = 0;
 	
@@ -113,8 +113,7 @@ static void parse_cmdline(int argc, char *args[])
 			break;
 		case 'V':
 			printf(txt_version);
-			done_machine();
-			exit(0);
+			return false;
 		case 'i':
 			interactive = true;
 			break;
@@ -126,8 +125,7 @@ static void parse_cmdline(int argc, char *args[])
 		case 'h':
 			printf(txt_version);
 			printf(txt_help);
-			done_machine();
-			exit(0);
+			return false;
 		case 'g':
 			conf_remote_gdb(optarg);
 			break;
@@ -143,15 +141,17 @@ static void parse_cmdline(int argc, char *args[])
 	
 	if (optind < argc)
 		die(ERR_PARM, "Unexpected arguments");
+	
+	return true;
 }
 
 int main(int argc, char *args[])
 {
 	init_machine();
-	parse_cmdline(argc, args);
-	
-	script();
-	go_machine();
+	if (parse_cmdline(argc, args)) {
+		script();
+		go_machine();
+	}
 	done_machine();
 	
 	return 0;

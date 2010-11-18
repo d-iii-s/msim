@@ -167,7 +167,10 @@ static void ddisk_read(cpu_t *cpu, device_t *dev, ptr36_t addr, uint32_t *val);
 static void ddisk_write(cpu_t *cpu, device_t *dev, ptr36_t addr, uint32_t val);
 
 /**< Ddisk object structure */
-device_type_s ddisk = {
+device_type_t ddisk = {
+	/* Disk is simulated deterministically */
+	.nondet = false,
+	
 	/* Type name and description */
 	.name = id_ddisk,
 	.brief = "Disk simulation",

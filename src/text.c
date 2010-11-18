@@ -81,6 +81,7 @@ const char txt_help[] =
 	"  -c, --config=file_name   configuration file name\n"
 	"  -i, --interactive        enter interactive mode\n"
 	"  -t, --trace              enter trace mode\n"
-	"  -g, --remote-gdb=port    enter gdb mode\n";
+	"  -g, --remote-gdb=port    enter gdb mode\n"
+	"  -n, --non-deterministic  enable non-deterministic behaviour\n";
 
 const char hexchar[] = "0123456789abcdef";

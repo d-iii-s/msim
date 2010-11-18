@@ -21,6 +21,7 @@
 #include "device/device.h"
 #include "device/machine.h"
 #include "assert.h"
+#include "env.h"
 #include "text.h"
 #include "parser.h"
 #include "endian.h"
@@ -66,6 +67,12 @@ static struct option long_options[] = {
 		0,
 		'g'
 	},
+	{
+		"non-deterministic",
+		no_argument,
+		0,
+		'n'
+	},
 	{ NULL, 0, NULL, 0 }
 };
 
@@ -87,7 +94,6 @@ static void conf_remote_gdb(const char *opt)
 	remote_gdb_port = port_no;
 }
 
-
 static void parse_cmdline(int argc, char *args[])
 {
 	opterr = 0;
@@ -95,7 +101,7 @@ static void parse_cmdline(int argc, char *args[])
 	while (true) {
 		int option_index = 0;
 		
-		int c = getopt_long(argc, args, "tVic:hg:",
+		int c = getopt_long(argc, args, "tVic:hg:n",
 		    long_options, &option_index);
 		
 		if (c == -1)
@@ -124,6 +130,9 @@ static void parse_cmdline(int argc, char *args[])
 			exit(0);
 		case 'g':
 			conf_remote_gdb(optarg);
+			break;
+		case 'n':
+			nondet = true;
 			break;
 		case '?':
 			die(ERR_PARM, "Unknown parameter or argument required");

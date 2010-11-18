@@ -14,6 +14,6 @@
 
 #include "device.h"
 
-extern device_type_s dtime;
+extern device_type_t dtime;
 
 #endif

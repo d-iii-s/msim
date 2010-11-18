@@ -15,7 +15,7 @@
 #include "device.h"
 #include "../cpu/r4000.h"
 
-extern device_type_s dcpu;
+extern device_type_t dcpu;
 extern const char id_dcpu[];
 
 extern cpu_t *dcpu_find_no(unsigned int no);

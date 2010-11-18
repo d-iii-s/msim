@@ -25,6 +25,7 @@ struct device;
  *
  */
 typedef struct {
+	bool nondet;              /**< Device is non-deterministic. */
 	const char *const name;   /**< Device type name (i82xx etc.). */
 	const char *const brief;  /**< Brief decription of the device type. */
 	const char *const full;   /**< Full device type description. */
@@ -53,7 +54,7 @@ typedef struct {
 	 * @see device_cmd_struct
 	 */
 	const cmd_t *const cmds;
-} device_type_s;
+} device_type_t;
 
 /** Structure describing a device instance.
  *
@@ -61,7 +62,7 @@ typedef struct {
 typedef struct device {
 	item_t item;
 	
-	const device_type_s *type;  /**< Pointer to the device type description. */
+	const device_type_t *type;  /**< Pointer to the device type description. */
 	char *name;                 /**< Device name given by the user. Must be unique. */
 	void *data;                 /**< Device specific pointer where internal data are stored. */
 } device_t;

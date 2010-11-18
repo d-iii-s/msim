@@ -23,6 +23,7 @@ extern bool icmt;
 extern bool iregch;
 extern unsigned int ireg;
 extern bool totrace;
+extern bool nondet;
 
 extern char **regname;
 

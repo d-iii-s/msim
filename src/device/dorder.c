@@ -110,7 +110,10 @@ static void dorder_read(cpu_t *cpu, device_t *dev, ptr36_t addr, uint32_t *val);
 static void dorder_write(cpu_t *cpu, device_t *dev, ptr36_t addr, uint32_t val);
 
 /** Doder object structure */
-device_type_s dorder = {
+device_type_t dorder = {
+	/* Order device is simulated deterministically */
+	.nondet = false,
+	
 	/* Type name and description */
 	.name = id_dorder,
 	.brief = "Synchronization device",

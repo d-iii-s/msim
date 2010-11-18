@@ -19,6 +19,7 @@
 #include "device.h"
 #include "dcpu.h"
 #include "../arch/stdin.h"
+#include "../env.h"
 #include "../fault.h"
 #include "../text.h"
 #include "../utils.h"
@@ -94,7 +95,15 @@ static void keyboard_done(device_t *dev);
 static void keyboard_step4(device_t *dev);
 static void keyboard_read(cpu_t *cpu, device_t *dev, ptr36_t addr, uint32_t *val);
 
-device_type_s dkeyboard = {
+device_type_t dkeyboard = {
+	/* Technically speaking the keyboard
+	   (as any asynchronous input device)
+	   is non-deterministic in principle.
+	   However, without any keypresses there
+	   is no active behaviour which would
+	   result in non-determinism. */
+	.nondet = false,
+	
 	/* Type name and description */
 	.name = "dkeyboard",
 	.brief = "Keyboard simulation",
@@ -186,6 +195,11 @@ static bool dkeyboard_init(token_t *parm, device_t *dev)
 	data->intrcount = 0;
 	data->keycount = 0;
 	data->overrun = 0;
+	
+	if (!nondet)
+		alert("Keyboard (as any input device) is non-deterministic in principle.\n"
+		    "The device was added on your own risk. To avoid any non-deterministic\n"
+		    "effects do not press any keys.");
 	
 	return true;
 }

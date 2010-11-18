@@ -17,7 +17,7 @@
 extern const char id_rom[];
 extern const char id_rwm[];
 
-extern device_type_s drom;
-extern device_type_s drwm;
+extern device_type_t drom;
+extern device_type_t drwm;
 
 #endif

@@ -167,7 +167,10 @@ const char id_dcpu[] = "dcpu";
 static void dcpu_done(device_t *dev);
 static void dcpu_step(device_t *dev);
 
-device_type_s dcpu = {
+device_type_t dcpu = {
+	/* CPU is simulated deterministically */
+	.nondet = false,
+	
 	/* Type name */
 	.name = id_dcpu,
 	

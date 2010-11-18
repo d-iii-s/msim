@@ -14,6 +14,6 @@
 
 #include "device.h"
 
-extern device_type_s dkeyboard;
+extern device_type_t dkeyboard;
 
 #endif

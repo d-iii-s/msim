@@ -187,10 +187,13 @@ static cmd_t dtime_cmds[] = {
 };
 
 /** Dtime object structure */
-device_type_s dtime = {
+device_type_t dtime = {
+	/* Real-time device induces non-determinism */
+	.nondet = true,
+	
 	/* Type name and description */
 	.name = "dtime",
-	.brief = "Real time",
+	.brief = "Real-time",
 	.full = "The time device brings the host real time to the simulated "
 	    "environment. One memory-mapped register allows programs"
 	    "to read hosts time since the Epoch as specified in the"

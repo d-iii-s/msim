@@ -27,6 +27,7 @@ bool iopc = false;
 bool icmt = true;
 bool iregch = true;
 unsigned int ireg = 2;
+bool nondet = false;
 
 /*
  * Debugging
@@ -139,6 +140,23 @@ static bool change_ireg(unsigned int i)
  * Description of variables
  */
 const env_t global_env[] = {
+	{
+		"runtime",
+		"Run-time features",
+		NULL,
+		vt_uint,
+		NULL,
+		NULL
+	},
+	{
+		"nondet",
+		"Enable non-determinism",
+		"Enable features and devices which break "
+		    "determinism of the simulation.",
+		vt_bool,
+		&nondet,
+		NULL
+	},
 	{
 		"disassembling",
 		"Disassembling features",

@@ -14,6 +14,7 @@
 #include <stdarg.h>
 #include <stdlib.h>
 #include <string.h>
+#include <unistd.h>
 #include "../config.h"
 #include "input.h"
 #include "fault.h"
@@ -28,21 +29,49 @@ static size_t lineno = 0;
 /** Valid line number */
 static size_t *lineno_ptr = NULL;
 
-static void mverror(const char *fmt, va_list va)
+typedef enum {
+	COLOR_RED   = 1,
+	COLOR_CYAN  = 6,
+	COLOR_WHITE = 7
+} tty_color_t;
+
+typedef enum {
+	CMD_RESET = 0,
+	CMD_BOLD  = 1,
+	CMD_COLOR = 30
+} tty_command_t;
+
+static void tty_ctrl(FILE *tty, unsigned int mode)
+{
+	int fd = fileno(tty);
+	
+	if ((fd != -1) && (isatty(fd))) {
+		fprintf(tty, "\033[%um", mode);
+		fflush(tty);
+	}
+}
+
+static void mverror(unsigned int color, const char *fmt, va_list va)
 {
 	fflush(stdout);
+	tty_ctrl(stderr, CMD_RESET);
+	tty_ctrl(stderr, CMD_BOLD);
+	tty_ctrl(stderr, CMD_COLOR + color);
+	
 	fprintf(stderr, "<%s> ", PACKAGE);
 	vfprintf(stderr, fmt, va);
 	fprintf(stderr, "\n");
+	
+	tty_ctrl(stderr, CMD_RESET);
 }
 
-static __attribute__((format(printf, 1, 2)))
-    void mferror(const char *fmt, ...)
+static __attribute__((format(printf, 2, 3)))
+    void mferror(unsigned int color, const char *fmt, ...)
 {
 	va_list va;
 	
 	va_start(va, fmt);
-	mverror(fmt, va);
+	mverror(color, fmt, va);
 	va_end(va);
 }
 
@@ -58,12 +87,13 @@ void error(const char *fmt, ...)
 	
 	if (lineno_ptr != NULL) {
 		if (script_name)
-			mferror("Error in %s at %zu: %s", script_name,
-			    *lineno_ptr, out.str);
+			mferror(COLOR_RED, "Error in %s at line %zu:\n%s",
+			    script_name, *lineno_ptr, out.str);
 		else
-			mferror("Error at %zu: %s", *lineno_ptr, out.str);
+			mferror(COLOR_RED, "Error at line %zu:\n%s",
+			    *lineno_ptr, out.str);
 	} else
-		mferror("Error: %s", out.str);
+		mferror(COLOR_RED, "Error: %s", out.str);
 	
 	string_done(&out);
 }
@@ -80,13 +110,13 @@ void intr_error(const char *fmt, ...)
 	
 	if (lineno_ptr != NULL) {
 		if (script_name)
-			mferror("Internal error in %s at %zu: %s", script_name,
-			    *lineno_ptr, out.str);
+			mferror(COLOR_WHITE, "Internal error in %s at line %zu:\n%s",
+			    script_name, *lineno_ptr, out.str);
 		else
-			mferror("Internal error at %zu: %s", *lineno_ptr,
-			    out.str);
+			mferror(COLOR_WHITE, "Internal error at line %zu:\n%s",
+			    *lineno_ptr, out.str);
 	} else
-		mferror("Internal error: %s", out.str);
+		mferror(COLOR_WHITE, "Internal error: %s", out.str);
 	
 	string_done(&out);
 }
@@ -103,12 +133,13 @@ void alert(const char *fmt, ...)
 	
 	if (lineno_ptr != NULL) {
 		if (script_name)
-			mferror("Alert in %s at %zu: %s", script_name,
-			    *lineno_ptr, out.str);
+			mferror(COLOR_CYAN, "Alert in %s at line %zu:\n%s",
+			    script_name, *lineno_ptr, out.str);
 		else
-			mferror("Alert at %zu: %s", *lineno_ptr, out.str);
+			mferror(COLOR_CYAN, "Alert at line %zu:\n%s",
+			    *lineno_ptr, out.str);
 	} else
-		mferror("Alert: %s", out.str);
+		mferror(COLOR_CYAN, "Alert: %s", out.str);
 	
 	string_done(&out);
 }
@@ -125,12 +156,13 @@ void die(int status, const char *fmt, ...)
 	
 	if (lineno_ptr != NULL) {
 		if (script_name)
-			mferror("Fault in %s at %zu: %s", script_name,
-			    *lineno_ptr, out.str);
+			mferror(COLOR_RED, "Fault in %s at line %zu: %s",
+			    script_name, *lineno_ptr, out.str);
 		else
-			mferror("Fault at %zu: %s", *lineno_ptr, out.str);
+			mferror(COLOR_RED, "Fault at line %zu: %s",
+			    *lineno_ptr, out.str);
 	} else
-		mferror("Fault: %s", out.str);
+		mferror(COLOR_RED, "Fault: %s", out.str);
 	
 	string_done(&out);
 	
@@ -141,7 +173,7 @@ void die(int status, const char *fmt, ...)
 void io_error(const char *fname)
 {
 	if (fname)
-		error("%s: %s", fname, strerror(errno));
+		error("%s (%s)", strerror(errno), fname);
 	else
 		error("%s", strerror(errno));
 }
@@ -149,7 +181,7 @@ void io_error(const char *fname)
 void io_die(int status, const char *fname)
 {
 	if (fname)
-		die(status, "%s: %s", fname, strerror(errno));
+		die(status, "%s (%s)", strerror(errno), fname);
 	else
 		die(status, "%s", strerror(errno));
 }

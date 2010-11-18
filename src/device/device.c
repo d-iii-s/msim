@@ -26,6 +26,7 @@
 #include "dtime.h"
 #include "device.h"
 #include "../main.h"
+#include "../env.h"
 #include "../assert.h"
 #include "../utils.h"
 #include "../fault.h"
@@ -34,7 +35,7 @@
 #define DEVICE_TYPE_COUNT  8
 
 /* Implemented peripheral list */
-const device_type_s *device_types[DEVICE_TYPE_COUNT] = {
+const device_type_t *device_types[DEVICE_TYPE_COUNT] = {
 	&dcpu,
 	&drwm,
 	&drom,
@@ -65,12 +66,12 @@ void dev_init_framework(void)
  */
 device_t *alloc_device(const char *type_string, const char *device_name)
 {
-	const device_type_s *device_type = NULL;
+	const device_type_t *device_type = NULL;
 	
 	/* Search for device type */
 	unsigned int i;
 	for (i = 0; i < DEVICE_TYPE_COUNT; i++) {
-		const device_type_s *type = device_types[i];
+		const device_type_t *type = device_types[i];
 		if (strcmp(type_string, type->name) == 0) {
 			device_type = type;
 			break;
@@ -79,6 +80,12 @@ device_t *alloc_device(const char *type_string, const char *device_name)
 	
 	if (device_type == NULL) {
 		error("Unknown device type");
+		return NULL;
+	}
+	
+	if ((!nondet) && (device_type->nondet)) {
+		error("Device induces non-deterministic behaviour. This is currently disabled.\n"
+		    "Set the variable \"nondet\" to \"on\" to enable adding this device.");
 		return NULL;
 	}
 	

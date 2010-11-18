@@ -122,7 +122,10 @@ const char id_rwm[] = "rwm";
 
 static void mem_done(device_t *d);
 
-device_type_s drom = {
+device_type_t drom = {
+	/* ROM is simulated deterministically */
+	.nondet = false,
+	
 	/* Type name and description */
 	.name = id_rom,
 	.brief = "Read-only memory",
@@ -135,7 +138,10 @@ device_type_s drom = {
 	.cmds = dmem_cmds
 };
 
-device_type_s drwm = {
+device_type_t drwm = {
+	/* RAM is simulated deterministically */
+	.nondet = false,
+	
 	/* Type name and description */
 	.name = id_rwm,
 	.brief = "Read/write memory",

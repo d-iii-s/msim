@@ -14,6 +14,6 @@
 
 #include "device.h"
 
-extern device_type_s dprinter;
+extern device_type_t dprinter;
 
 #endif

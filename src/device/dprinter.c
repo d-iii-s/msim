@@ -253,7 +253,10 @@ static cmd_t printer_cmds[] = {
 	LAST_CMD
 };
 
-device_type_s dprinter = {
+device_type_t dprinter = {
+	/* Printer is simulated deterministically */
+	.nondet = false,
+	
 	/* Type name and description */
 	.name = "dprinter",
 	.brief = "Printer simulation",

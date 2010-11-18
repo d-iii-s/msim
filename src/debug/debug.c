@@ -120,14 +120,14 @@ static const char *get_pagemask_name(unsigned int pm)
 
 void tlb_dump(cpu_t *cpu)
 {
-	printf(" [             general             ][    subp 0    ][    subp 1    ]\n"
-	    "  no    vpn      mask        g asid  v d   pfn    c  v d   pfn    c\n");
+	printf(" [             general             ][    subp 0     ][     subp 1    ]\n"
+	    "  no    vpn      mask        g asid  v d   pfn     c  v d   pfn     c\n");
 	
 	unsigned int i;
 	for (i = 0; i < 48; i++) {
 		tlb_entry_t *e = &(cpu->tlb[i]);
 		
-		printf("  %02x  %08X %08X:%-4s %d  %02x   %d %d %08X %x  %d %d %08X %1x\n",
+		printf("  %02x  %08" PRIx32 " %08" PRIx32 ":%-4s %u  %02x   %u %u %09" PRIx64 " %1x  %u %u %09" PRIx64 " %1x\n",
 		    i, e->vpn2, e->mask,
 		    get_pagemask_name((~e->mask) >> cp0_pagemask_mask_shift),
 		    e->global, e->asid, e->pg[0].valid, e->pg[0].dirty,

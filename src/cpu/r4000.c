@@ -39,8 +39,8 @@
 
 #define EXCEPTION_OFFSET  0x180
 
-#define TRAP(x) \
-	if (x) \
+#define TRAP(expr) \
+	if (expr) \
 		res = excTr;
 
 /** TLB lookup result */
@@ -160,7 +160,7 @@ static tlb_look_t tlb_look(cpu_t *cpu, ptr32_t virt, ptr36_t *phys, bool wr)
 				continue;
 			
 			/* Calculate subpage */
-			ptr32_t smask = (entry->mask >> 1) | SBIT;
+			ptr36_t smask = (entry->mask >> 1) | TLB_PHYSMASK;
 			unsigned int subpage =
 			    ((virt & entry->mask) < (virt & smask)) ? 1 : 0;
 			
@@ -641,12 +641,12 @@ static void TLBW(cpu_t *cpu, bool random, exc_t *res)
 			entry->global = cp0_entrylo0_g(cpu) & cp0_entrylo1_g(cpu);
 			entry->asid = cp0_entryhi_asid(cpu);
 			
-			entry->pg[0].pfn = cp0_entrylo0_pfn(cpu) << 12;
+			entry->pg[0].pfn = (ptr36_t) cp0_entrylo0_pfn(cpu) << 12;
 			entry->pg[0].cohh = cp0_entrylo0_c(cpu);
 			entry->pg[0].dirty = cp0_entrylo0_d(cpu);
 			entry->pg[0].valid = cp0_entrylo0_v(cpu);
 			
-			entry->pg[1].pfn = cp0_entrylo1_pfn(cpu) << 12;
+			entry->pg[1].pfn = (ptr36_t) cp0_entrylo1_pfn(cpu) << 12;
 			entry->pg[1].cohh = cp0_entrylo1_c(cpu);
 			entry->pg[1].dirty = cp0_entrylo1_d(cpu);
 			entry->pg[1].valid = cp0_entrylo1_v(cpu);

@@ -18,9 +18,10 @@
 #include "../list.h"
 #include "instr.h"
 
-#define TLB_ENTRIES  48
-#define REG_COUNT    32
-#define INTR_COUNT   8
+#define TLB_ENTRIES   48
+#define REG_COUNT     32
+#define INTR_COUNT    8
+#define TLB_PHYSMASK  0x780000000ULL
 
 /* cp0 registers */
 typedef enum {
@@ -614,7 +615,7 @@ typedef enum {
 
 /** TLB entity definition */
 typedef struct {
-	uint32_t pfn;  /**< Physical page no (shifted << 12) */
+	ptr36_t pfn;   /**< Physical page no (shifted << 12) */
 	uint8_t cohh;  /**< Coherency number */
 	bool dirty;    /**< Dirty bit */
 	bool valid;    /**< Valid bit */

@@ -87,22 +87,22 @@ static char *cp0_dump_str[] = {
 
 void reg_view(cpu_t *cpu)
 {
-	printf("processor p%u\n", cpu->procno);
+	printf("processor %u\n", cpu->procno);
 	
 	unsigned int i;
 	for (i = 0; i < 30; i += 5) {
-		printf(" %3s %08X  %3s %08X  %3s %08X  %3s %08X  %3s %08X\n", 
-		    regname[i],     cpu->regs[i], 
-		    regname[i + 1], cpu->regs[i + 1], 
-		    regname[i + 2], cpu->regs[i + 2],
-		    regname[i + 3], cpu->regs[i + 3], 
-		    regname[i + 4], cpu->regs[i + 4]);
+		printf(" %3s %16" PRIx64 "  %3s %16" PRIx64 "  %3s %16" PRIx64 "  %3s %16" PRIx64 "  %3s %16" PRIx64 "\n",
+		    regname[i],     cpu->regs[i].val,
+		    regname[i + 1], cpu->regs[i + 1].val,
+		    regname[i + 2], cpu->regs[i + 2].val,
+		    regname[i + 3], cpu->regs[i + 3].val,
+		    regname[i + 4], cpu->regs[i + 4].val);
 	}
 	
-	printf(" %3s %08X  %3s %08X   pc %08X   lo %08X   hi %08X\n",
-	    regname[i],     cpu->regs[i], 
-	    regname[i + 1], cpu->regs[i + 1],
-	    cpu->pc, cpu->loreg, cpu->hireg);
+	printf(" %3s %16" PRIx64 "  %3s %16" PRIx64 "   pc %16" PRIx64 "   lo %16" PRIx64 "   hi %16" PRIx64 "\n",
+	    regname[i],     cpu->regs[i].val,
+	    regname[i + 1], cpu->regs[i + 1].val,
+	    cpu->pc.ptr, cpu->loreg.val, cpu->hireg.val);
 }
 
 
@@ -470,7 +470,7 @@ static void iview_common(instr_info_t *ii, char *regch)
  *           processor-dependent (with processor number)
  *
  */
-void iview(cpu_t *cpu, ptr32_t addr, instr_info_t *ii, char *regch)
+void iview(cpu_t *cpu, ptr64_t addr, instr_info_t *ii, char *regch)
 {
 	char s_cpu[16];
 	if (cpu != NULL)
@@ -478,9 +478,9 @@ void iview(cpu_t *cpu, ptr32_t addr, instr_info_t *ii, char *regch)
 	else
 		s_cpu[0] = 0;
 	
-	char s_addr[16];
+	char s_addr[32];
 	if (iaddr)
-		sprintf(s_addr, "%#010" PRIx32 "  ", addr);
+		sprintf(s_addr, "%#018" PRIx64 "  ", addr.ptr);
 	else
 		s_addr[0] = 0;
 	
@@ -524,9 +524,9 @@ char *modified_regs_dump(cpu_t *cpu)
 	
 	/* Test for general registers */
 	for (i = 0; i < 32; i++)
-		if (cpu->regs[i] != cpu->old_regs[i]) {
-			snprintf(s1, size, "%s, %s: 0x%x->0x%x", s2, regname[i],
-			    cpu->old_regs[i], cpu->regs[i]);
+		if (cpu->regs[i].val != cpu->old_regs[i].val) {
+			snprintf(s1, size, "%s, %s: %#" PRIx64 "->%#" PRIx64,
+			    s2, regname[i], cpu->old_regs[i].val, cpu->regs[i].val);
 			
 			s3 = s1;
 			s1 = s2;
@@ -536,13 +536,13 @@ char *modified_regs_dump(cpu_t *cpu)
 		
 	/* Test for cp0 */
 	for (i = 0; i < 32; i++)
-		if ((cpu->cp0[i] != cpu->old_cp0[i]) && (i != cp0_Random) && (i != cp0_Count)) {
+		if ((cpu->cp0[i].val != cpu->old_cp0[i].val) && (i != cp0_Random) && (i != cp0_Count)) {
 			if (cp0name == cp0_name[2])
-				snprintf(s1, size, "%s, cp0_%s: 0x%08x->0x%08x", s2,
-					cp0name[i], cpu->old_cp0[i], cpu->cp0[i]);
+				snprintf(s1, size, "%s, cp0_%s: %#" PRIx64 "->%#" PRIx64,
+				    s2, cp0name[i], cpu->old_cp0[i].val, cpu->cp0[i].val);
 			else
-				snprintf(s1, size, "%s, cp0[%d]: 0x%08x->0x%08x", s2,
-					i, cpu->old_cp0[i], cpu->cp0[i]);
+				snprintf(s1, size, "%s, cp0[%u]: %#" PRIx64 "->%#" PRIx64,
+				    s2, i, cpu->old_cp0[i].val, cpu->cp0[i].val);
 			
 			s3 = s1;
 			s1 = s2;
@@ -551,10 +551,10 @@ char *modified_regs_dump(cpu_t *cpu)
 		}
 	
 	/* Test for loreg */
-	if (cpu->loreg != cpu->old_loreg) {
-		snprintf(s1, size, "%s, loreg: 0x%x->0x%x",
-			s2, cpu->old_loreg, cpu->loreg);
-			
+	if (cpu->loreg.val != cpu->old_loreg.val) {
+		snprintf(s1, size, "%s, loreg: %#" PRIx64 "->%#" PRIx64,
+		    s2, cpu->old_loreg.val, cpu->loreg.val);
+		
 		s3 = s1;
 		s1 = s2;
 		s2 = s3;
@@ -562,9 +562,9 @@ char *modified_regs_dump(cpu_t *cpu)
 	}
 	
 	/* Test for hireg */
-	if (cpu->hireg != cpu->old_hireg) {
-		snprintf(s1, size, "%s, hireg: 0x%x->0x%x",
-			s2, cpu->old_hireg, cpu->hireg);
+	if (cpu->hireg.val != cpu->old_hireg.val) {
+		snprintf(s1, size, "%s, hireg: %#" PRIx64 "->%#" PRIx64,
+		    s2, cpu->old_hireg.val, cpu->hireg.val);
 		
 		s3 = s1;
 		s1 = s2;

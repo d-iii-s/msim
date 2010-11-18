@@ -59,7 +59,6 @@ extern void string_done(string_t *str);
 extern bool prefix(const char *pref, const char *str);
 extern char *uint64_human_readable(uint64_t i);
 
-extern bool ptr32_word_aligned(ptr32_t addr);
 extern bool ptr36_word_aligned(ptr36_t addr);
 extern bool ptr64_word_aligned(ptr64_t addr);
 

@@ -319,22 +319,22 @@ static bool dcpu_md(token_t *parm, device_t *dev)
 		return false;
 	}
 	
-	ptr32_t addr;
-	len32_t cnt;
-	len32_t i;
+	ptr64_t addr;
+	len64_t cnt;
+	len64_t i;
 	
-	for (addr = (ptr32_t) _addr, cnt = (len32_t) _cnt, i = 0;
-	    i < cnt; addr += BITS_32, i++) {
+	for (addr.ptr = _addr, cnt = _cnt, i = 0;
+	    i < cnt; addr.ptr += BITS_32, i++) {
 		if ((i & 0x03) == 0)
-			printf("  %#10" PRIx32 "    ", addr);
+			printf("  %#018" PRIx64 "    ", addr.ptr);
 		
-		uint32_t val;
+		uint64_t val;
 		exc_t res = cpu_read_mem((cpu_t *) dev->data, addr, 4, &val, false);
 		
 		if (res == excNone)
-			printf("%08" PRIx32 " ", val);
+			printf("%016" PRIx64 " ", val);
 		else
-			printf("xxxxxxxx ");
+			printf("xxxxxxxxxxxxxxxx ");
 		
 		if ((i & 0x03) == 3)
 			printf("\n");
@@ -369,11 +369,11 @@ static bool dcpu_id(token_t *parm, device_t *dev)
 		return false;
 	}
 	
-	ptr32_t addr;
-	len32_t cnt;
+	ptr64_t addr;
+	len64_t cnt;
 	
-	for (addr = (ptr32_t) _addr, cnt = (len32_t) _cnt; cnt > 0;
-	    addr += BITS_32, cnt--) {
+	for (addr.ptr = _addr, cnt = _cnt; cnt > 0;
+	    addr.ptr += BITS_32, cnt--) {
 		instr_info_t ii;
 		exc_t res = cpu_read_ins((cpu_t *) dev->data, addr, &ii.icode, false);
 		
@@ -410,14 +410,17 @@ static bool dcpu_rd(token_t *parm, device_t *dev)
 static bool dcpu_goto(token_t *parm, device_t *dev)
 {
 	cpu_t *cpu = (cpu_t *) dev->data;
-	uint64_t addr = ALIGN_DOWN(parm_uint_next(&parm), 4);
+	uint64_t _addr = ALIGN_DOWN(parm_uint_next(&parm), 4);
 	
-	if (!virt_range(addr)) {
+	if (!virt_range(_addr)) {
 		error("Virtual address out of range");
 		return false;
 	}
 	
-	cpu_set_pc(cpu, (ptr32_t) addr);
+	ptr64_t addr;
+	addr.ptr = _addr;
+	
+	cpu_set_pc(cpu, addr);
 	return true;
 }
 
@@ -427,14 +430,17 @@ static bool dcpu_goto(token_t *parm, device_t *dev)
 static bool dcpu_break(token_t *parm, device_t *dev)
 {
 	cpu_t *cpu = (cpu_t *) dev->data;
-	uint64_t addr = ALIGN_DOWN(parm_uint_next(&parm), 4);
+	uint64_t _addr = ALIGN_DOWN(parm_uint_next(&parm), 4);
 	
-	if (!virt_range(addr)) {
+	if (!virt_range(_addr)) {
 		error("Virtual address out of range");
 		return false;
 	}
 	
-	breakpoint_t *bp = breakpoint_init((ptr32_t) addr,
+	ptr64_t addr;
+	addr.ptr = _addr;
+	
+	breakpoint_t *bp = breakpoint_init(addr,
 	    BREAKPOINT_KIND_SIMULATOR);
 	list_append(&cpu->bps, &bp->item);
 	
@@ -455,8 +461,8 @@ static bool dcpu_bd(token_t *parm, device_t *dev)
 		const char *kind = (bp->kind == BREAKPOINT_KIND_SIMULATOR)
 		    ? "Simulator" : "Debugger";
 		
-		printf("%#010" PRIx32 " %20" PRIu64 " %s\n",
-		    bp->pc, bp->hits, kind);
+		printf("%#018" PRIx64 " %20" PRIu64 " %s\n",
+		    bp->pc.ptr, bp->hits, kind);
 	}
 	
 	return true;
@@ -478,7 +484,7 @@ static bool dcpu_br(token_t *parm, device_t *dev)
 	bool fnd = false;
 	breakpoint_t *bp;
 	for_each(cpu->bps, bp, breakpoint_t) {
-		if (bp->pc == addr) {
+		if (bp->pc.ptr == addr) {
 			list_remove(&cpu->bps, &bp->item);
 			safe_free(bp);
 			fnd = true;

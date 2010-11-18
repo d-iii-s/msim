@@ -17,7 +17,8 @@
 typedef enum {
 	BITS_8 = 1,
 	BITS_16 = 2,
-	BITS_32 = 4
+	BITS_32 = 4,
+	BITS_64 = 8
 } wsize_t;
 
 /** Exception types */
@@ -54,13 +55,39 @@ typedef enum {
 } exc_t;
 
 /** Address and length types */
-typedef uint32_t ptr32_t;
-typedef uint32_t len32_t;
-
 typedef uint64_t ptr36_t;
 typedef uint64_t len36_t;
 
-typedef uint64_t ptr64_t;
+typedef union {
+	uint64_t ptr;
+#ifdef WORDS_BIGENDIAN
+	struct {
+		uint32_t hi;
+		uint32_t lo;
+	};
+#else
+	struct {
+		uint32_t lo;
+		uint32_t hi;
+	};
+#endif
+} __attribute__((packed)) ptr64_t;
+
+typedef union {
+	uint64_t val;
+#ifdef WORDS_BIGENDIAN
+	struct {
+		uint32_t hi;
+		uint32_t lo;
+	};
+#else
+	struct {
+		uint32_t lo;
+		uint32_t hi;
+	};
+#endif
+} __attribute__((packed)) reg64_t;
+
 typedef uint64_t len64_t;
 
 #endif

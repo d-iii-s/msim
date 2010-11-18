@@ -20,6 +20,7 @@
 #include <stdarg.h>
 #include <unistd.h>
 #include <stdbool.h>
+#include <inttypes.h>
 #include <sys/types.h>
 #include "breakpoint.h"
 #include "gdb.h"
@@ -66,9 +67,9 @@
 #define GDB_REGISTER_PC             37
 
 typedef union {
-	uint8_t uint8[4];
-	uint32_t uint32;
-} __attribute__((packed)) union32_t;
+	uint8_t uint8[8];
+	uint64_t uint64;
+} __attribute__((packed)) union64_t;
 
 static int gdb_fd = -1;
 static unsigned int cpuno_global = 0;
@@ -280,8 +281,8 @@ static void gdb_read_physmem(ptr36_t addr, len36_t length)
 	 * endianess.
 	 */
 	while (length > 0) {
-		uint32_t value = physmem_read(NULL, addr, BITS_8, false);
-		string_printf(&str, "%02x", value);
+		uint64_t value = physmem_read(NULL, addr, BITS_8, false);
+		string_printf(&str, "%02" PRIx64, value);
 		
 		length--;
 		addr++;
@@ -322,7 +323,7 @@ static void gdb_write_physmem(ptr36_t addr, len36_t length, char *data)
 /** Dump one register into given buffer in hex
  *
  */
-static void gdb_register_dump(string_t *str, uint32_t val)
+static void gdb_register_dump(string_t *str, uint64_t val)
 {
 	/*
 	 * Gdb expects even the registers with the endianness
@@ -336,28 +337,28 @@ static void gdb_register_dump(string_t *str, uint32_t val)
 	 * debugger.
 	 */
 	
-	union32_t value;
-	value.uint32 = convert_uint32_t_endian(val);
+	union64_t value;
+	value.uint64 = convert_uint64_t_endian(val);
 	
-	string_printf(str, "%02x%02x%02x%02x",
+	string_printf(str, "%02x%02x%02x%02x%02x%02x%02x%02x",
 	    value.uint8[0], value.uint8[1],
-	    value.uint8[2], value.uint8[3]);
+	    value.uint8[2], value.uint8[3],
+	    value.uint8[4], value.uint8[5],
+	    value.uint8[6], value.uint8[7]);
 }
 
 /** Dump given count of registers into given buffer in hex
  *
  *
  */
-static void gdb_registers_dump(string_t *str, uint32_t *regs,
+static void gdb_registers_dump(string_t *str, reg64_t *regs,
     unsigned int count)
 {
 	unsigned int i;
 	
 	for (i = 0; i < count; i++)
-		gdb_register_dump(str, regs[i]);
+		gdb_register_dump(str, regs[i].val);
 }
-
-
 
 /** Write new value of one register from given hex string
  *
@@ -368,29 +369,34 @@ static void gdb_registers_dump(string_t *str, uint32_t *regs,
  * @return True if the hex string was in the correct form.
  *
  */
-static bool gdb_register_upload(char **data, uint32_t *reg)
+static bool gdb_register_upload(char **data, reg64_t *reg)
 {
-	unsigned int values[4];
+	unsigned int values[8];
 	
 	/* Read 4 bytes */
-	int matched = sscanf(*data, "%02x%02x%02x%02x", &values[0],
-	    &values[1], &values[2], &values[3]);
+	int matched = sscanf(*data, "%02x%02x%02x%02x%02x%02x%02x%02x",
+	    &values[0], &values[1], &values[2], &values[3],
+	    &values[4], &values[5], &values[6], &values[7]);
 	
-	if (matched != 4) {
+	if (matched != 8) {
 		gdb_send_reply(GDB_REPLY_REGISTER_WRITE_FAIL);
 		return false;
 	}
 	
 	/* Convert it to uint32_t and handle the endianness */
-	union32_t value;
+	union64_t value;
 	value.uint8[0] = values[0];
 	value.uint8[1] = values[1];
 	value.uint8[2] = values[2];
 	value.uint8[3] = values[3];
+	value.uint8[4] = values[4];
+	value.uint8[5] = values[5];
+	value.uint8[6] = values[6];
+	value.uint8[7] = values[7];
 	
-	*reg = convert_uint32_t_endian(value.uint32);
+	reg->val = convert_uint64_t_endian(value.uint64);
 	
-	*data += 8;
+	*data += 16;
 	return true;
 }
 
@@ -404,7 +410,7 @@ static bool gdb_register_upload(char **data, uint32_t *reg)
  * @return True if the hex string was in the correct form.
  *
  */
-static bool gdb_registers_upload(char **data, uint32_t *regs,
+static bool gdb_registers_upload(char **data, reg64_t *regs,
     unsigned int count)
 {
 	unsigned int i;
@@ -433,7 +439,7 @@ void gdb_handle_event(gdb_event_t event)
 	cpu_t *cpu = dcpu_find_no(cpuno_global);
 	
 	string_printf(&msg, "T%02x%02x:", event, GDB_REGISTER_PC);
-	gdb_register_dump(&msg, cpu->pc);
+	gdb_register_dump(&msg, cpu->pc.ptr);
 	string_push(&msg, ';');
 	
 	gdb_send_reply(msg.str);
@@ -455,12 +461,12 @@ static void gdb_read_registers(void)
 	string_init(&str);
 	
 	gdb_registers_dump(&str, cpu->regs, 32);
-	gdb_register_dump(&str, cpu->cp0[cp0_Status]);
-	gdb_register_dump(&str, cpu->loreg);
-	gdb_register_dump(&str, cpu->hireg);
-	gdb_register_dump(&str, cpu->cp0[cp0_BadVAddr]);
-	gdb_register_dump(&str, cpu->cp0[cp0_Cause]);
-	gdb_register_dump(&str, cpu->pc);
+	gdb_register_dump(&str, cpu->cp0[cp0_Status].val);
+	gdb_register_dump(&str, cpu->loreg.val);
+	gdb_register_dump(&str, cpu->hireg.val);
+	gdb_register_dump(&str, cpu->cp0[cp0_BadVAddr].val);
+	gdb_register_dump(&str, cpu->cp0[cp0_Cause].val);
+	gdb_register_dump(&str, cpu->pc.ptr);
 	
 	gdb_send_reply(str.str);
 	string_done(&str);
@@ -525,8 +531,9 @@ static void gdb_cmd_mem_operation(char *req, bool read)
 	/* Addresses are physical */
 	cpu_t *cpu = dcpu_find_no(cpuno_global);
 	
-	ptr32_t virt = (ptr36_t) address;
-	len32_t len = (len36_t) length;
+	ptr64_t virt;
+	virt.ptr = address;
+	len64_t len = length;
 	ptr36_t phys;
 	
 	if (convert_addr(cpu, virt, &phys, false, false) == excNone) {
@@ -568,7 +575,8 @@ static void gdb_cmd_step(char *req, bool step)
 	unsigned int address;
 	int matched = sscanf(query, "%x", &address);
 	if (matched == 1) {
-		ptr32_t addr = (ptr32_t) address;
+		ptr64_t addr;
+		addr.ptr = address;
 		cpu_t *cpu = dcpu_find_no(cpuno_step);
 		cpu_set_pc(cpu, addr);
 	}
@@ -679,7 +687,7 @@ static void gdb_reply_event(gdb_event_t event)
 /** Activate code breakpoint
  *
  */
-static void gdb_insert_code_breakpoint(cpu_t *cpu, ptr32_t addr)
+static void gdb_insert_code_breakpoint(cpu_t *cpu, ptr64_t addr)
 {
 	/*
 	 * Breakpoint insertion should be done in an idempotent way,
@@ -703,7 +711,7 @@ static void gdb_insert_code_breakpoint(cpu_t *cpu, ptr32_t addr)
 /** Deactivate code breakpoint
  *
  */
-static void gdb_remove_code_breakpoint(cpu_t *cpu, ptr32_t addr)
+static void gdb_remove_code_breakpoint(cpu_t *cpu, ptr64_t addr)
 {
 	breakpoint_t *breakpoint = breakpoint_find_by_address(cpu->bps,
 	    addr, BREAKPOINT_FILTER_DEBUGGER);
@@ -764,7 +772,8 @@ static void gdb_breakpoint(char *req, bool insert)
 		return;
 	}
 	
-	ptr32_t virt = (ptr32_t) address;
+	ptr64_t virt;
+	virt.ptr = address;
 	cpu_t* cpu = dcpu_find_no(cpuno_global);
 	
 	if (code_breakpoint) {

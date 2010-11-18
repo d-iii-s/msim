@@ -45,7 +45,7 @@ typedef struct {
 	item_t item;
 	
 	breakpoint_kind_t kind;
-	ptr32_t pc;
+	ptr64_t pc;
 	uint64_t hits;
 } breakpoint_t;
 
@@ -54,8 +54,8 @@ typedef struct {
 	item_t item;
 	
 	breakpoint_kind_t kind;
-	ptr32_t addr;
-	len32_t len;
+	ptr36_t addr;
+	len36_t size;
 	uint64_t hits;
 	access_filter_t access_flags;
 } physmem_breakpoint_t;
@@ -77,9 +77,9 @@ extern void physmem_breakpoint_print_list(void);
 
 /* Code breakpoints interface */
 
-extern breakpoint_t *breakpoint_init(ptr32_t address, breakpoint_kind_t kind);
+extern breakpoint_t *breakpoint_init(ptr64_t address, breakpoint_kind_t kind);
 extern breakpoint_t *breakpoint_find_by_address(list_t breakpoints,
-    ptr32_t address, breakpoint_filter_t filter);
+    ptr64_t address, breakpoint_filter_t filter);
 extern bool breakpoint_check_for_code_breakpoints(void);
 
 #endif

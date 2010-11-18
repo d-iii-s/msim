@@ -265,7 +265,7 @@ static inline physmem_breakpoint_t *physmem_breakpoint_find(ptr36_t addr,
 	physmem_breakpoint_t *breakpoint;
 	
 	for_each(physmem_breakpoints, breakpoint, physmem_breakpoint_t) {
-		if (breakpoint->addr + breakpoint->len < addr)
+		if (breakpoint->addr + breakpoint->size < addr)
 			continue;
 		
 		if (breakpoint->addr > addr + size)
@@ -295,7 +295,7 @@ static inline physmem_breakpoint_t *physmem_breakpoint_find(ptr36_t addr,
  *         or the default memory value, if the address is not valid.
  *
  */
-uint32_t physmem_read(cpu_t *cpu, ptr36_t addr, wsize_t size,
+uint64_t physmem_read(cpu_t *cpu, ptr36_t addr, wsize_t size,
     bool protected_read)
 {
 	physmem_area_t *area = find_physmem_area(addr);
@@ -360,7 +360,7 @@ uint32_t physmem_read(cpu_t *cpu, ptr36_t addr, wsize_t size,
  *         set to true.
  *
  */
-bool physmem_write(cpu_t *cpu, ptr36_t addr, uint32_t val, wsize_t size,
+bool physmem_write(cpu_t *cpu, ptr36_t addr, uint64_t val, wsize_t size,
     bool protected_write)
 {
 	physmem_area_t *area = find_physmem_area(addr);

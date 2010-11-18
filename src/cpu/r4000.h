@@ -74,17 +74,9 @@ typedef enum {
 #define cp0_index_res_shift    6
 #define cp0_index_p_shift      31
 
-#define cp0_index_index(cpu) \
-	(((cpu)->cp0[cp0_Index] \
-	    & cp0_index_index_mask) >> cp0_index_index_shift)
-
-#define cp0_index_res(cpu) \
-	(((cpu)->cp0[cp0_Index] \
-	    & cp0_index_res_mask) >> cp0_index_res_shift)
-
-#define cp0_index_p(cpu) \
-	(((cpu)->cp0[cp0_Index] \
-	    & cp0_index_p_mask) >> cp0_index_p_shift)
+#define cp0_index_index(cpu)  (((cpu)->cp0[cp0_Index].val & cp0_index_index_mask) >> cp0_index_index_shift)
+#define cp0_index_res(cpu)    (((cpu)->cp0[cp0_Index].val & cp0_index_res_mask) >> cp0_index_res_shift)
+#define cp0_index_p(cpu)      (((cpu)->cp0[cp0_Index].val & cp0_index_p_mask) >> cp0_index_p_shift)
 
 #define cp0_random_random_mask  0x0000003fU
 #define cp0_random_res_mask     0xffffffc0U
@@ -92,13 +84,8 @@ typedef enum {
 #define cp0_random_random_shift  0
 #define cp0_random_res_shift     6
 
-#define cp0_random_random(cpu) \
-	(((cpu)->cp0[cp0_Random] \
-	    & cp0_random_random_mask) >> cp0_random_random_shift)
-
-#define cp0_random_res(cpu) \
-	(((cpu)->cp0[ cp0_Random] \
-	    & cp0_random_res_mask) >> cp0_random_res_shift)
+#define cp0_random_random(cpu)  (((cpu)->cp0[cp0_Random].val & cp0_random_random_mask) >> cp0_random_random_shift)
+#define cp0_random_res(cpu)     (((cpu)->cp0[cp0_Random].val & cp0_random_res_mask) >> cp0_random_res_shift)
 
 #define cp0_status_ie_mask    0x00000001U
 #define cp0_status_exl_mask   0x00000002U
@@ -150,30 +137,30 @@ typedef enum {
 #define cp0_status_cu3_shift   31
 #define cp0_status_cu_shift    28
 
-#define cp0_status_ie(cpu)   (((cpu)->cp0[cp0_Status] & cp0_status_ie_mask) >> 0)
-#define cp0_status_exl(cpu)  (((cpu)->cp0[cp0_Status] & cp0_status_exl_mask) >> 1)
-#define cp0_status_erl(cpu)  (((cpu)->cp0[cp0_Status] & cp0_status_erl_mask) >> 2)
-#define cp0_status_ksu(cpu)  (((cpu)->cp0[cp0_Status] & cp0_status_ksu_mask) >> 3)
-#define cp0_status_ux(cpu)   (((cpu)->cp0[cp0_Status] & cp0_status_ux_mask) >> 5)
-#define cp0_status_sx(cpu)   (((cpu)->cp0[cp0_Status] & cp0_status_sx_mask) >> 6)
-#define cp0_status_kx(cpu)   (((cpu)->cp0[cp0_Status] & cp0_status_kx_mask) >> 7)
-#define cp0_status_im(cpu)   (((cpu)->cp0[cp0_Status] & cp0_status_im_mask) >> 8)
-#define cp0_status_de(cpu)   (((cpu)->cp0[cp0_Status] & cp0_status_de_mask) >> 16)
-#define cp0_status_ce(cpu)   (((cpu)->cp0[cp0_Status] & cp0_status_ce_mask) >> 17)
-#define cp0_status_ch(cpu)   (((cpu)->cp0[cp0_Status] & cp0_status_ch_mask) >> 18)
-#define cp0_status_res1(cpu) (((cpu)->cp0[cp0_Status] & cp0_status_res1_mask) >> 19)
-#define cp0_status_sr(cpu)   (((cpu)->cp0[cp0_Status] & cp0_status_sr_mask) >> 20)
-#define cp0_status_ts(cpu)   (((cpu)->cp0[cp0_Status] & cp0_status_ts_mask) >> 21)
-#define cp0_status_bev(cpu)  (((cpu)->cp0[cp0_Status] & cp0_status_bev_mask) >> 22)
-#define cp0_status_res2(cpu) (((cpu)->cp0[cp0_Status] & cp0_status_res2_mask) >> 23)
-#define cp0_status_re(cpu)   (((cpu)->cp0[cp0_Status] & cp0_status_re_mask) >> 25)
-#define cp0_status_fr(cpu)   (((cpu)->cp0[cp0_Status] & cp0_status_fr_mask) >> 26)
-#define cp0_status_rp(cpu)   (((cpu)->cp0[cp0_Status] & cp0_status_rp_mask) >> 27)
-#define cp0_status_cu0(cpu)  (((cpu)->cp0[cp0_Status] & cp0_status_cu0_mask) >> 28)
-#define cp0_status_cu1(cpu)  (((cpu)->cp0[cp0_Status] & cp0_status_cu1_mask) >> 29)
-#define cp0_status_cu2(cpu)  (((cpu)->cp0[cp0_Status] & cp0_status_cu2_mask) >> 30)
-#define cp0_status_cu3(cpu)  (((cpu)->cp0[cp0_Status] & cp0_status_cu3_mask) >> 31)
-#define cp0_status_cu(cpu)   (((cpu)->cp0[cp0_Status] & cp0_status_cu_mask) >> 28)
+#define cp0_status_ie(cpu)   (((cpu)->cp0[cp0_Status].val & cp0_status_ie_mask) >> 0)
+#define cp0_status_exl(cpu)  (((cpu)->cp0[cp0_Status].val & cp0_status_exl_mask) >> 1)
+#define cp0_status_erl(cpu)  (((cpu)->cp0[cp0_Status].val & cp0_status_erl_mask) >> 2)
+#define cp0_status_ksu(cpu)  (((cpu)->cp0[cp0_Status].val & cp0_status_ksu_mask) >> 3)
+#define cp0_status_ux(cpu)   (((cpu)->cp0[cp0_Status].val & cp0_status_ux_mask) >> 5)
+#define cp0_status_sx(cpu)   (((cpu)->cp0[cp0_Status].val & cp0_status_sx_mask) >> 6)
+#define cp0_status_kx(cpu)   (((cpu)->cp0[cp0_Status].val & cp0_status_kx_mask) >> 7)
+#define cp0_status_im(cpu)   (((cpu)->cp0[cp0_Status].val & cp0_status_im_mask) >> 8)
+#define cp0_status_de(cpu)   (((cpu)->cp0[cp0_Status].val & cp0_status_de_mask) >> 16)
+#define cp0_status_ce(cpu)   (((cpu)->cp0[cp0_Status].val & cp0_status_ce_mask) >> 17)
+#define cp0_status_ch(cpu)   (((cpu)->cp0[cp0_Status].val & cp0_status_ch_mask) >> 18)
+#define cp0_status_res1(cpu) (((cpu)->cp0[cp0_Status].val & cp0_status_res1_mask) >> 19)
+#define cp0_status_sr(cpu)   (((cpu)->cp0[cp0_Status].val & cp0_status_sr_mask) >> 20)
+#define cp0_status_ts(cpu)   (((cpu)->cp0[cp0_Status].val & cp0_status_ts_mask) >> 21)
+#define cp0_status_bev(cpu)  (((cpu)->cp0[cp0_Status].val & cp0_status_bev_mask) >> 22)
+#define cp0_status_res2(cpu) (((cpu)->cp0[cp0_Status].val & cp0_status_res2_mask) >> 23)
+#define cp0_status_re(cpu)   (((cpu)->cp0[cp0_Status].val & cp0_status_re_mask) >> 25)
+#define cp0_status_fr(cpu)   (((cpu)->cp0[cp0_Status].val & cp0_status_fr_mask) >> 26)
+#define cp0_status_rp(cpu)   (((cpu)->cp0[cp0_Status].val & cp0_status_rp_mask) >> 27)
+#define cp0_status_cu0(cpu)  (((cpu)->cp0[cp0_Status].val & cp0_status_cu0_mask) >> 28)
+#define cp0_status_cu1(cpu)  (((cpu)->cp0[cp0_Status].val & cp0_status_cu1_mask) >> 29)
+#define cp0_status_cu2(cpu)  (((cpu)->cp0[cp0_Status].val & cp0_status_cu2_mask) >> 30)
+#define cp0_status_cu3(cpu)  (((cpu)->cp0[cp0_Status].val & cp0_status_cu3_mask) >> 31)
+#define cp0_status_cu(cpu)   (((cpu)->cp0[cp0_Status].val & cp0_status_cu_mask) >> 28)
 
 #define cp0_entryhi_asid_mask  0x000000ffU
 #define cp0_entryhi_res1_mask  0x00001f00U
@@ -183,9 +170,9 @@ typedef enum {
 #define cp0_entryhi_res1_shift  8
 #define cp0_entryhi_vpn2_shift  13
 
-#define cp0_entryhi_asid(cpu)  (((cpu)->cp0[cp0_EntryHi] & cp0_entryhi_asid_mask) >> 0)
-#define cp0_entryhi_res1(cpu)  (((cpu)->cp0[cp0_EntryHi] & cp0_entryhi_res1_shift) >> 8)
-#define cp0_entryhi_vpn2(cpu)  (((cpu)->cp0[cp0_EntryHi] & cp0_entryhi_vpn2_shift) >> 13)
+#define cp0_entryhi_asid(cpu)  (((cpu)->cp0[cp0_EntryHi].val & cp0_entryhi_asid_mask) >> 0)
+#define cp0_entryhi_res1(cpu)  (((cpu)->cp0[cp0_EntryHi].val & cp0_entryhi_res1_shift) >> 8)
+#define cp0_entryhi_vpn2(cpu)  (((cpu)->cp0[cp0_EntryHi].val & cp0_entryhi_vpn2_shift) >> 13)
 
 #define cp0_entrylo_g_mask     0x00000001U
 #define cp0_entrylo_v_mask     0x00000002U
@@ -201,53 +188,19 @@ typedef enum {
 #define cp0_entrylo_pfn_shift   6
 #define cp0_entrylo_res1_shift  30
 
-#define cp0_entrylo0_g(cpu) \
-	(((cpu)->cp0[cp0_EntryLo0] \
-	    & cp0_entrylo_g_mask) >> cp0_entrylo_g_shift)
+#define cp0_entrylo0_g(cpu)     (((cpu)->cp0[cp0_EntryLo0].val & cp0_entrylo_g_mask) >> cp0_entrylo_g_shift)
+#define cp0_entrylo0_v(cpu)     (((cpu)->cp0[cp0_EntryLo0].val & cp0_entrylo_v_mask) >> cp0_entrylo_v_shift)
+#define cp0_entrylo0_d(cpu)     (((cpu)->cp0[cp0_EntryLo0].val & cp0_entrylo_d_mask) >> cp0_entrylo_d_shift)
+#define cp0_entrylo0_c(cpu)     (((cpu)->cp0[cp0_EntryLo0].val & cp0_entrylo_c_mask) >> cp0_entrylo_c_shift)
+#define cp0_entrylo0_pfn(cpu)   (((cpu)->cp0[cp0_EntryLo0].val & cp0_entrylo_pfn_mask) >> cp0_entrylo_pfn_shift)
+#define cp0_entrylo0_res1(cpu)  (((cpu)->cp0[cp0_EntryLo0].val & cp0_entrylo_res1_mask) >> cp0_entrylo_res1_shift)
 
-#define cp0_entrylo0_v(cpu) \
-	(((cpu)->cp0[cp0_EntryLo0] \
-	    & cp0_entrylo_v_mask) >> cp0_entrylo_v_shift)
-
-#define cp0_entrylo0_d(cpu) \
-	(((cpu)->cp0[cp0_EntryLo0] \
-	    & cp0_entrylo_d_mask) >> cp0_entrylo_d_shift)
-
-#define cp0_entrylo0_c(cpu) \
-	(((cpu)->cp0[cp0_EntryLo0] \
-	    & cp0_entrylo_c_mask) >> cp0_entrylo_c_shift)
-
-#define cp0_entrylo0_pfn(cpu) \
-	(((cpu)->cp0[cp0_EntryLo0] \
-	    & cp0_entrylo_pfn_mask) >> cp0_entrylo_pfn_shift)
-
-#define cp0_entrylo0_res1(cpu) \
-	(((cpu)->cp0[cp0_EntryLo0] \
-	    & cp0_entrylo_res1_mask) >> cp0_entrylo_res1_shift)
-
-#define cp0_entrylo1_g(cpu) \
-	(((cpu)->cp0[cp0_EntryLo1] \
-	    & cp0_entrylo_g_mask) >> cp0_entrylo_g_shift)
-
-#define cp0_entrylo1_v(cpu) \
-	(((cpu)->cp0[cp0_EntryLo1] \
-	    & cp0_entrylo_v_mask) >> cp0_entrylo_v_shift)
-
-#define cp0_entrylo1_d(cpu) \
-	(((cpu)->cp0[cp0_EntryLo1] \
-	    & cp0_entrylo_d_mask) >> cp0_entrylo_d_shift)
-
-#define cp0_entrylo1_c(cpu) \
-	(((cpu)->cp0[cp0_EntryLo1] \
-	    & cp0_entrylo_c_mask) >> cp0_entrylo_c_shift)
-
-#define cp0_entrylo1_pfn(cpu) \
-	(((cpu)->cp0[cp0_EntryLo1] \
-	    & cp0_entrylo_pfn_mask) >> cp0_entrylo_pfn_shift)
-
-#define cp0_entrylo1_res1(cpu) \
-	(((cpu)->cp0[cp0_EntryLo1] \
-	    & cp0_entrylo_res1_mask) >> cp0_entrylo_res1_shift)
+#define cp0_entrylo1_g(cpu)     (((cpu)->cp0[cp0_EntryLo1].val & cp0_entrylo_g_mask) >> cp0_entrylo_g_shift)
+#define cp0_entrylo1_v(cpu)     (((cpu)->cp0[cp0_EntryLo1].val & cp0_entrylo_v_mask) >> cp0_entrylo_v_shift)
+#define cp0_entrylo1_d(cpu)     (((cpu)->cp0[cp0_EntryLo1].val & cp0_entrylo_d_mask) >> cp0_entrylo_d_shift)
+#define cp0_entrylo1_c(cpu)     (((cpu)->cp0[cp0_EntryLo1].val & cp0_entrylo_c_mask) >> cp0_entrylo_c_shift)
+#define cp0_entrylo1_pfn(cpu)   (((cpu)->cp0[cp0_EntryLo1].val & cp0_entrylo_pfn_mask) >> cp0_entrylo_pfn_shift)
+#define cp0_entrylo1_res1(cpu)  (((cpu)->cp0[cp0_EntryLo1].val & cp0_entrylo_res1_mask) >> cp0_entrylo_res1_shift)
 
 #define cp0_wired_w_mask     0x0000001fU
 #define cp0_wired_res1_mask  0xffffffe0U
@@ -255,13 +208,8 @@ typedef enum {
 #define cp0_wired_w_shift     0
 #define cp0_wired_res1_shift  6
 
-#define cp0_wired_w(cpu) \
-	(((cpu)->cp0[cp0_Wired] \
-	    & cp0_wired_w_mask) >> cp0_wired_w_shift)
-
-#define cp0_wired_res1(cpu) \
-	(((cpu)->cp0[cp0_Wired] \
-	    & cp0_wired_res1_mask) >> cp0_wired_res1_shift)
+#define cp0_wired_w(cpu)     (((cpu)->cp0[cp0_Wired].val & cp0_wired_w_mask) >> cp0_wired_w_shift)
+#define cp0_wired_res1(cpu)  (((cpu)->cp0[cp0_Wired].val & cp0_wired_res1_mask) >> cp0_wired_res1_shift)
 
 #define cp0_context_res1_mask     0x0000000fU
 #define cp0_context_badvpn2_mask  0x007ffff0U
@@ -272,17 +220,9 @@ typedef enum {
 #define cp0_context_ptebase_shift  23
 #define cp0_context_addr_shift     9
 
-#define cp0_context_res1(cpu) \
-	(((cpu)->cp0[cp0_Context] \
-	    & cp0_context_res1_mask) >> cp0_context_res1_shift)
-
-#define cp0_context_badvpn2(cpu) \
-	(((cpu)->cp0[cp0_Context] \
-	    & cp0_context_badvpn2_mask) >> cp0_context_badvpn2_shift)
-
-#define cp0_context_ptebase(cpu) \
-	(((cpu)->cp0[cp0_Context] \
-	    & cp0_context_ptebase_mask) >> cp0_context_ptebase_shift)
+#define cp0_context_res1(cpu)     (((cpu)->cp0[cp0_Context].val & cp0_context_res1_mask) >> cp0_context_res1_shift)
+#define cp0_context_badvpn2(cpu)  (((cpu)->cp0[cp0_Context].val & cp0_context_badvpn2_mask) >> cp0_context_badvpn2_shift)
+#define cp0_context_ptebase(cpu)  (((cpu)->cp0[cp0_Context].val & cp0_context_ptebase_mask) >> cp0_context_ptebase_shift)
 
 #define cp0_pagemask_res1_mask  0x00001fffU
 #define cp0_pagemask_mask_mask  0x01ffe000U
@@ -292,18 +232,9 @@ typedef enum {
 #define cp0_pagemask_mask_shift  13
 #define cp0_pagemask_res2_shift  25
 
-#define cp0_pagemask_res1(cpu) \
-	(((cpu)->cp0[cp0_PageMask] \
-	    & cp0_pagemask_res1_mask) >> cp0_pagemask_res1_shift)
-
-#define cp0_pagemask_mask(cpu) \
-	(((cpu)->cp0[cp0_PageMask] \
-	    & cp0_pagemask_mask_mask) >> cp0_pagemask_mask_shift)
-
-#define cp0_pagemask_res2(cpu) \
-	(((cpu)->cp0[cp0_PageMask] \
-	    & cp0_pagemask_res2_mask) >> cp0_pagemask_res2_shift)
-
+#define cp0_pagemask_res1(cpu)  (((cpu)->cp0[cp0_PageMask].val & cp0_pagemask_res1_mask) >> cp0_pagemask_res1_shift)
+#define cp0_pagemask_mask(cpu)  (((cpu)->cp0[cp0_PageMask].val & cp0_pagemask_mask_mask) >> cp0_pagemask_mask_shift)
+#define cp0_pagemask_res2(cpu)  (((cpu)->cp0[cp0_PageMask].val & cp0_pagemask_res2_mask) >> cp0_pagemask_res2_shift)
 
 #define cp0_cause_res1_mask     0x00000003U
 #define cp0_cause_exccode_mask  0x0000007cU
@@ -337,37 +268,14 @@ typedef enum {
 #define cp0_cause_res4_shift     30
 #define cp0_cause_bd_shift       31
 
-#define cp0_cause_res1(cpu) \
-	(((cpu)->cp0[cp0_Cause] \
-	    & cp0_cause_res1_mask) >> cp0_cause_res1_shift)
-
-#define cp0_cause_exccode(cpu) \
-	(((cpu)->cp0[cp0_Cause] \
-	    & cp0_cause_exccode_mask) >> cp0_cause_exccode_shift)
-
-#define cp0_cause_res2(cpu) \
-	(((cpu)->cp0[cp0_Cause] \
-	    & cp0_cause_res2_mask) >> cp0_cause_res2_shift)
-
-#define cp0_cause_ip(cpu) \
-	(((cpu)->cp0[cp0_Cause] \
-	    & cp0_cause_ip_mask) >> cp0_cause_ip_shift)
-
-#define cp0_cause_res3(cpu) \
-	(((cpu)->cp0[cp0_Cause] \
-	    & cp0_cause_res3_mask) >> cp0_cause_res3_shift)
-
-#define cp0_cause_ce(cpu) \
-	(((cpu)->cp0[cp0_Cause] \
-	    & cp0_cause_ce_mask) >> cp0_cause_ce_shift)
-
-#define cp0_cause_res4(cpu) \
-	(((cpu)->cp0[cp0_Cause] \
-	    & cp0_cause_res4_mask) >> cp0_cause_res4_shift)
-
-#define cp0_cause_bd(cpu) \
-	(((cpu)->cp0[cp0_Cause] \
-	    & cp0_cause_bd_mask) >> cp0_cause_bd_shift)
+#define cp0_cause_res1(cpu)     (((cpu)->cp0[cp0_Cause].val & cp0_cause_res1_mask) >> cp0_cause_res1_shift)
+#define cp0_cause_exccode(cpu)  (((cpu)->cp0[cp0_Cause].val & cp0_cause_exccode_mask) >> cp0_cause_exccode_shift)
+#define cp0_cause_res2(cpu)     (((cpu)->cp0[cp0_Cause].val & cp0_cause_res2_mask) >> cp0_cause_res2_shift)
+#define cp0_cause_ip(cpu)       (((cpu)->cp0[cp0_Cause].val & cp0_cause_ip_mask) >> cp0_cause_ip_shift)
+#define cp0_cause_res3(cpu)     (((cpu)->cp0[cp0_Cause].val & cp0_cause_res3_mask) >> cp0_cause_res3_shift)
+#define cp0_cause_ce(cpu)       (((cpu)->cp0[cp0_Cause].val & cp0_cause_ce_mask) >> cp0_cause_ce_shift)
+#define cp0_cause_res4(cpu)     (((cpu)->cp0[cp0_Cause].val & cp0_cause_res4_mask) >> cp0_cause_res4_shift)
+#define cp0_cause_bd(cpu)       (((cpu)->cp0[cp0_Cause].val & cp0_cause_bd_mask) >> cp0_cause_bd_shift)
 
 #define cp0_prid_rev_mask  0x000000ffU
 #define cp0_prid_imp_mask  0x0000ff00U
@@ -377,17 +285,9 @@ typedef enum {
 #define cp0_prid_imp_shift  8
 #define cp0_prid_res_shift  16
 
-#define cp0_prid_rev(cpu) \
-	(((cpu)->cp0[cp0_PRId] \
-	    & cp0_prid_rev_mask) >> cp0_prid_rev_shift)
-
-#define cp0_prid_imp(cpu) \
-	(((cpu)->cp0[cp0_PRId] \
-	    & cp0_prid_imp_mask) >> cp0_prid_imp_shift)
-
-#define cp0_prid_res(cpu) \
-	(((cpu)->cp0[cp0_PRId] \
-	    & cp0_prid_res_mask) >> cp0_prid_res_shift)
+#define cp0_prid_rev(cpu)  (((cpu)->cp0[cp0_PRId].val & cp0_prid_rev_mask) >> cp0_prid_rev_shift)
+#define cp0_prid_imp(cpu)  (((cpu)->cp0[cp0_PRId].val & cp0_prid_imp_mask) >> cp0_prid_imp_shift)
+#define cp0_prid_res(cpu)  (((cpu)->cp0[cp0_PRId].val & cp0_prid_res_mask) >> cp0_prid_res_shift)
 
 #define cp0_config_k0_mask   0x00000007U
 #define cp0_config_cu_mask   0x00000008U
@@ -429,81 +329,25 @@ typedef enum {
 #define cp0_config_ec_shift   28
 #define cp0_config_cm_shift   31
 
-#define cp0_config_k0(cpu) \
-	(((cpu)->cp0[cp0_Config] \
-	    & cp0_config_k0_mask) >> cp0_config_k0_shift)
-
-#define cp0_config_cu(cpu) \
-	(((cpu)->cp0[cp0_Config] \
-	    & cp0_config_cu_mask) >> cp0_config_cu_shift)
-
-#define cp0_config_db(cpu) \
-	(((cpu)->cp0[cp0_Config] \
-	    & cp0_config_db_mask) >> cp0_config_db_shift)
-
-#define cp0_config_b(cpu) \
-	(((cpu)->cp0[cp0_Config] \
-	    & cp0_config_b_mask) >> cp0_config_b_shift)
-
-#define cp0_config_dc(cpu) \
-	(((cpu)->cp0[cp0_Config] \
-	    & cp0_config_dc_mask) >> cp0_config_dc_shift)
-
-#define cp0_config_ic(cpu) \
-	(((cpu)->cp0[cp0_Config] \
-	    & cp0_config_ic_mask) >> cp0_config_ic_shift)
-
-#define cp0_config_res(cpu) \
-	(((cpu)->cp0[cp0_Config] \
-	    & cp0_config_res_mask) >>cp0_config_res_shift)
-
-#define cp0_config_eb(cpu) \
-	(((cpu)->cp0[cp0_Config] \
-	    & cp0_config_eb_mask) >> cp0_config_eb_shift)
-
-#define cp0_config_em(cpu) \
-	(((cpu)->cp0[cp0_Config] \
-	    & cp0_config_em_mask) >> cp0_config_em_shift)
-
-#define cp0_config_be(cpu) \
-	(((cpu)->cp0[cp0_Config] \
-	    & cp0_config_be_mask) >> cp0_config_be_shift)
-
-#define cp0_config_sm(cpu) \
-	(((cpu)->cp0[cp0_Config] \
-	    & cp0_config_sm_mask) >> cp0_config_sm_shift)
-
-#define cp0_config_sc(cpu) \
-	(((cpu)->cp0[cp0_Config] \
-	    & cp0_config_sc_mask) >> cp0_config_sc_shift)
-
-#define cp0_config_ew(cpu) \
-	(((cpu)->cp0[cp0_Config] \
-	    & cp0_config_ew_mask) >> cp0_config_ew_shift)
-
-#define cp0_config_sw(cpu) \
-	(((cpu)->cp0[cp0_Config] \
-	    & cp0_config_sw_mask) >> cp0_config_sw_shift)
-
-#define cp0_config_ss(cpu) \
-	(((cpu)->cp0[cp0_Config] \
-	    & cp0_config_ss_mask) >> cp0_config_ss_shift)
-
-#define cp0_config_sb(cpu) \
-	(((cpu)->cp0[cp0_Config] \
-	    & cp0_config_sb_mask) >> cp0_config_sb_shift)
-
-#define cp0_config_ep(cpu) \
-	(((cpu)->cp0[cp0_Config] \
-	    & cp0_config_ep_mask) >> cp0_config_ep_shift)
-
-#define cp0_config_ec(cpu) \
-	(((cpu)->cp0[cp0_Config] \
-	    & cp0_config_ec_mask) >> cp0_config_ec_shift)
-
-#define cp0_config_cm(cpu) \
-	(((cpu)->cp0[cp0_Config] \
-	    & cp0_config_cm_mask) >> cp0_config_cm_shift)
+#define cp0_config_k0(cpu)  (((cpu)->cp0[cp0_Config].val & cp0_config_k0_mask) >> cp0_config_k0_shift)
+#define cp0_config_cu(cpu)  (((cpu)->cp0[cp0_Config].val & cp0_config_cu_mask) >> cp0_config_cu_shift)
+#define cp0_config_db(cpu)  (((cpu)->cp0[cp0_Config].val & cp0_config_db_mask) >> cp0_config_db_shift)
+#define cp0_config_b(cpu)   (((cpu)->cp0[cp0_Config].val & cp0_config_b_mask) >> cp0_config_b_shift)
+#define cp0_config_dc(cpu)  (((cpu)->cp0[cp0_Config].val & cp0_config_dc_mask) >> cp0_config_dc_shift)
+#define cp0_config_ic(cpu)  (((cpu)->cp0[cp0_Config].val & cp0_config_ic_mask) >> cp0_config_ic_shift)
+#define cp0_config_res(cpu) (((cpu)->cp0[cp0_Config].val & cp0_config_res_mask) >>cp0_config_res_shift)
+#define cp0_config_eb(cpu)  (((cpu)->cp0[cp0_Config].val & cp0_config_eb_mask) >> cp0_config_eb_shift)
+#define cp0_config_em(cpu)  (((cpu)->cp0[cp0_Config].val & cp0_config_em_mask) >> cp0_config_em_shift)
+#define cp0_config_be(cpu)  (((cpu)->cp0[cp0_Config].val & cp0_config_be_mask) >> cp0_config_be_shift)
+#define cp0_config_sm(cpu)  (((cpu)->cp0[cp0_Config].val & cp0_config_sm_mask) >> cp0_config_sm_shift)
+#define cp0_config_sc(cpu)  (((cpu)->cp0[cp0_Config].val & cp0_config_sc_mask) >> cp0_config_sc_shift)
+#define cp0_config_ew(cpu)  (((cpu)->cp0[cp0_Config].val & cp0_config_ew_mask) >> cp0_config_ew_shift)
+#define cp0_config_sw(cpu)  (((cpu)->cp0[cp0_Config].val & cp0_config_sw_mask) >> cp0_config_sw_shift)
+#define cp0_config_ss(cpu)  (((cpu)->cp0[cp0_Config].val & cp0_config_ss_mask) >> cp0_config_ss_shift)
+#define cp0_config_sb(cpu)  (((cpu)->cp0[cp0_Config].val & cp0_config_sb_mask) >> cp0_config_sb_shift)
+#define cp0_config_ep(cpu)  (((cpu)->cp0[cp0_Config].val & cp0_config_ep_mask) >> cp0_config_ep_shift)
+#define cp0_config_ec(cpu)  (((cpu)->cp0[cp0_Config].val & cp0_config_ec_mask) >> cp0_config_ec_shift)
+#define cp0_config_cm(cpu)  (((cpu)->cp0[cp0_Config].val & cp0_config_cm_mask) >> cp0_config_cm_shift)
 
 #define cp0_watchlo_w_mask       0x00000001U
 #define cp0_watchlo_r_mask       0x00000002U
@@ -515,21 +359,10 @@ typedef enum {
 #define cp0_watchlo_res_shift     2
 #define cp0_watchlo_paddr0_shift  3
 
-#define cp0_watchlo_w(cpu) \
-	(((cpu)->cp0[cp0_WatchLo] \
-	    & cp0_watchlo_w_mask) >> cp0_watchlo_w_shift)
-
-#define cp0_watchlo_r(cpu) \
-	(((cpu)->cp0[cp0_WatchLo] \
-	    & cp0_watchlo_r_mask) >> cp0_watchlo_r_shift)
-
-#define cp0_watchlo_res(cpu) \
-	(((cpu)->cp0[cp0_WatchLo] \
-	    & cp0_watchlo_res_mask) >> cp0_watchlo_res_shift)
-
-#define cp0_watchlo_paddr0(cpu) \
-	(((cpu)->cp0[cp0_WatchLo] \
-	    & cp0_watchlo_paddr0_mask) >> cp0_watchlo_paddr0_shift)
+#define cp0_watchlo_w(cpu)       (((cpu)->cp0[cp0_WatchLo].val & cp0_watchlo_w_mask) >> cp0_watchlo_w_shift)
+#define cp0_watchlo_r(cpu)       (((cpu)->cp0[cp0_WatchLo].val & cp0_watchlo_r_mask) >> cp0_watchlo_r_shift)
+#define cp0_watchlo_res(cpu)     (((cpu)->cp0[cp0_WatchLo].val & cp0_watchlo_res_mask) >> cp0_watchlo_res_shift)
+#define cp0_watchlo_paddr0(cpu)  (((cpu)->cp0[cp0_WatchLo].val & cp0_watchlo_paddr0_mask) >> cp0_watchlo_paddr0_shift)
 
 #define cp0_watchhi_paddr1_mask  0x0000000fU
 #define cp0_watchhi_res_mask     0xfffffff0U
@@ -537,13 +370,8 @@ typedef enum {
 #define cp0_watchhi_paddr1_shift  0
 #define cp0_watchhi_res_shift     4
 
-#define cp0_watchhi_paddr1(cpu) \
-	(((cpu)->cp0[cp0_WatchHi] \
-	    & cp0_watchhi_paddr1_mask) >> cp0_watchhi_paddr1_shift)
-
-#define cp0_watchhi_res(cpu) \
-	(((cpu)->cp0[cp0_WatchHi] \
-	    & cp0_watchhi_res_mask) >> cp0_watchhi_res_shift)
+#define cp0_watchhi_paddr1(cpu)  (((cpu)->cp0[cp0_WatchHi].val & cp0_watchhi_paddr1_mask) >> cp0_watchhi_paddr1_shift)
+#define cp0_watchhi_res(cpu)     (((cpu)->cp0[cp0_WatchHi].val & cp0_watchhi_res_mask) >> cp0_watchhi_res_shift)
 
 #define cp0_ecc_ecc_mask  0x000000ffU
 #define cp0_ecc_res_mask  0xffffff00U
@@ -551,13 +379,8 @@ typedef enum {
 #define cp0_ecc_ecc_shift  0
 #define cp0_ecc_res_shift  8
 
-#define cp0_ecc_ecc(cpu) \
-	(((cpu)->cp0[cp0_ECC] \
-	    & cp0_ecc_ecc_mask) >> cp0_ecc_ecc_shift)
-
-#define cp0_ecc_res(cpu) \
-	(((cpu)->cp0[cp0_ECC] \
-	    & cp0_ecc_res_mask) >> cp0_ecc_res_shift)
+#define cp0_ecc_ecc(cpu)  (((cpu)->cp0[cp0_ECC].val & cp0_ecc_ecc_mask) >> cp0_ecc_ecc_shift)
+#define cp0_ecc_res(cpu)  (((cpu)->cp0[cp0_ECC].val & cp0_ecc_res_mask) >> cp0_ecc_res_shift)
 
 #define cp0_xcontext_res1_mask     0x0000000fU
 #define cd0_xcontext_badvpn2_mask  0x00000000U
@@ -569,21 +392,10 @@ typedef enum {
 #define cp0_xcontext_r_shift        31
 #define cp0_xcontext_ptebase_shift  33
 
-#define cp0_xcontext_res1(cpu) \
-	(((cpu)->cp0[cp0_XContext] \
-	    & cp0_xcontext_res1_mask) >> cp0_xcontext_res1_shift)
-
-#define cp0_xcontext_badvpn2(cpu) \
-	(((cpu)->cp0[cp0_XContext] \
-	    & cp0_xcontext_badvpn2_mask) >> cp0_xcontext_badvpn2_shift)
-
-#define cp0_xcontext_r(cpu) \
-	(((cpu)->cp0[cp0_XContext] \
-	    & cp0_xcontext_r_mask) >> cp0_xcontext_r_shift)
-
-#define cp0_xcontext_ptebase(cpu) \
-	(((cpu)->cp0[cp0_XContext] \
-	    & cp0_xcontext_ptebase_mask) >> cp0_xcontext_ptebase_shift)
+#define cp0_xcontext_res1(cpu)     (((cpu)->cp0[cp0_XContext].val & cp0_xcontext_res1_mask) >> cp0_xcontext_res1_shift)
+#define cp0_xcontext_badvpn2(cpu)  (((cpu)->cp0[cp0_XContext].val & cp0_xcontext_badvpn2_mask) >> cp0_xcontext_badvpn2_shift)
+#define cp0_xcontext_r(cpu)        (((cpu)->cp0[cp0_XContext].val & cp0_xcontext_r_mask) >> cp0_xcontext_r_shift)
+#define cp0_xcontext_ptebase(cpu)  (((cpu)->cp0[cp0_XContext].val & cp0_xcontext_ptebase_mask) >> cp0_xcontext_ptebase_shift)
 
 #define cp0_errorepc(cpu)  ((cpu)->cp0[cp0_ErrorEPC])
 
@@ -623,7 +435,7 @@ typedef struct {
 
 typedef struct {
 	uint32_t mask;          /**< Enhanced mask */
-	uint32_t vpn2;          /**< Vitrual page no (shifted << 7) */
+	uint32_t vpn2;          /**< Virtual page no (shifted << 7) */
 	bool global;            /**< Global bit */
 	uint8_t asid;           /**< Address Space ID */
 	tlb_ent_value_t pg[2];  /**< Subpages */
@@ -641,27 +453,27 @@ typedef struct {
 	bool stdby;
 	
 	/* Standard registers */
-	uint32_t regs[REG_COUNT];
-	uint32_t cp0[REG_COUNT];
+	reg64_t regs[REG_COUNT];
+	reg64_t cp0[REG_COUNT];
 	uint64_t fpregs[REG_COUNT];
-	uint32_t loreg;
-	uint32_t hireg;
+	reg64_t loreg;
+	reg64_t hireg;
 	
 	/* Program counter */
-	ptr32_t pc;
-	ptr32_t pc_next;
+	ptr64_t pc;
+	ptr64_t pc_next;
 	
 	/* TLB structures */
 	tlb_entry_t tlb[TLB_ENTRIES];
 	unsigned int tlb_hint;
 	
 	/* Old registers (for debug info) */
-	uint32_t old_regs[REG_COUNT];
-	uint32_t old_cp0[REG_COUNT];
-	uint32_t old_loreg;
-	uint32_t old_hireg;
+	reg64_t old_regs[REG_COUNT];
+	reg64_t old_cp0[REG_COUNT];
+	reg64_t old_loreg;
+	reg64_t old_hireg;
 	
-	ptr32_t excaddr;
+	ptr64_t excaddr;
 	branch_state_t branch;
 	
 	/* LL and SC track support */
@@ -670,7 +482,7 @@ typedef struct {
 	
 	/* Watch support */
 	ptr36_t waddr;
-	ptr32_t wexcaddr;
+	ptr64_t wexcaddr;
 	bool wpending;
 	
 	/* Statistics */
@@ -689,17 +501,17 @@ typedef struct {
 
 /** Base */
 extern void cpu_init(cpu_t *cpu, unsigned int procno);
-extern void cpu_set_pc(cpu_t *cpu, ptr32_t value);
+extern void cpu_set_pc(cpu_t *cpu, ptr64_t value);
 extern void cpu_step(cpu_t *cpu);
 
 /** Addresing function */
-extern exc_t convert_addr(cpu_t *cpu, ptr32_t virt, ptr36_t *phys, bool write,
+extern exc_t convert_addr(cpu_t *cpu, ptr64_t virt, ptr36_t *phys, bool write,
     bool noisy);
 
 /** Reading memory */
-extern exc_t cpu_read_mem(cpu_t *cpu, ptr32_t addr, wsize_t size,
-    uint32_t *value, bool noisy);
-extern exc_t cpu_read_ins(cpu_t *cpu, ptr32_t addr, uint32_t *value,
+extern exc_t cpu_read_mem(cpu_t *cpu, ptr64_t addr, wsize_t size,
+    uint64_t *value, bool noisy);
+extern exc_t cpu_read_ins(cpu_t *cpu, ptr64_t addr, uint32_t *value,
     bool noisy);
 
 /** Interrupts */

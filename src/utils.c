@@ -383,14 +383,9 @@ char *uint64_human_readable(uint64_t i)
  *
  * @param addr Address to be tested.
  *
- * @return True if the address is 4B aligned.
+ * @return True if the address is 4-byte aligned.
  *
  */
-bool ptr32_word_aligned(ptr32_t addr)
-{
-	return (addr & 0x03) == 0;
-}
-
 bool ptr36_word_aligned(ptr36_t addr)
 {
 	return (addr & 0x03) == 0;
@@ -398,12 +393,12 @@ bool ptr36_word_aligned(ptr36_t addr)
 
 bool ptr64_word_aligned(ptr64_t addr)
 {
-	return (addr & 0x03) == 0;
+	return (addr.ptr & 0x03) == 0;
 }
 
 bool virt_range(uint64_t addr)
 {
-	return (addr <= 0xffffffffULL);
+	return true;
 }
 
 bool phys_range(uint64_t addr) {

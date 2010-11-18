@@ -93,9 +93,9 @@ extern void register_sc(cpu_t *cpu);
 extern void unregister_sc(cpu_t *cpu);
 
 /** Memory access */
-extern bool physmem_write(cpu_t *cpu, ptr36_t addr, uint32_t val,
+extern bool physmem_write(cpu_t *cpu, ptr36_t addr, uint64_t val,
     wsize_t size, bool protected_write);
-extern uint32_t physmem_read(cpu_t *cpu, ptr36_t addr, wsize_t size,
+extern uint64_t physmem_read(cpu_t *cpu, ptr36_t addr, wsize_t size,
     bool protected_read);
 
 #endif

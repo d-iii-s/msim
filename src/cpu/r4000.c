@@ -43,6 +43,21 @@
 	if (expr) \
 		res = excTr;
 
+#define CPU_TLB_SHUTDOWN(cpu) \
+	(cp0_status_ts(cpu) == 1)
+
+#define CPU_USER_MODE(cpu) \
+	((cp0_status_ksu(cpu) == 2) && (!cp0_status_exl(cpu)) && \
+	    (!cp0_status_erl(cpu)))
+
+#define CPU_SUPERVISOR_MODE(cpu) \
+	((cp0_status_ksu(cpu) == 1) && (!cp0_status_exl(cpu)) && \
+	    (!cp0_status_erl(cpu)))
+
+#define CPU_KERNEL_MODE(cpu) \
+	((cp0_status_ksu(cpu) == 0) || (cp0_status_exl(cpu)) || \
+	    (cp0_status_erl(cpu)))
+
 /** TLB lookup result */
 typedef enum {
 	TLBL_OK,
@@ -142,8 +157,8 @@ static tlb_look_t tlb_look(cpu_t *cpu, ptr32_t virt, ptr36_t *phys, bool wr)
 	ASSERT(cpu != NULL);
 	ASSERT(phys != NULL);
 	
-	/* Ignore TLB test */
-	if (cp0_status_ts(cpu) == 1)
+	/* Ignore TLB on shutdown */
+	if (CPU_TLB_SHUTDOWN(cpu))
 		return TLBL_OK;
 	
 	unsigned int hint = cpu->tlb_hint;
@@ -160,7 +175,7 @@ static tlb_look_t tlb_look(cpu_t *cpu, ptr32_t virt, ptr36_t *phys, bool wr)
 				continue;
 			
 			/* Calculate subpage */
-			ptr36_t smask = (entry->mask >> 1) | TLB_PHYSMASK;
+			ptr36_t smask = (ptr36_t) (entry->mask >> 1) | TLB_PHYSMASK;
 			unsigned int subpage =
 			    ((virt & entry->mask) < (virt & smask)) ? 1 : 0;
 			
@@ -261,6 +276,7 @@ static exc_t convert_addr_user(cpu_t *cpu, ptr32_t virt, ptr36_t *phys,
 {
 	ASSERT(cpu != NULL);
 	ASSERT(phys != NULL);
+	ASSERT(CPU_USER_MODE(cpu));
 	
 	/* Test bit 31 or lookup in TLB */
 	if ((virt & SBIT) != 0) {
@@ -280,6 +296,7 @@ static exc_t convert_addr_supervisor(cpu_t *cpu, ptr32_t virt, ptr36_t *phys,
 {
 	ASSERT(cpu != NULL);
 	ASSERT(phys != NULL);
+	ASSERT(CPU_SUPERVISOR_MODE(cpu));
 	
 	if (virt < 0x80000000U)  /* suseg */
 		return tlb_hit(cpu, virt, phys, wr, noisy);
@@ -305,6 +322,7 @@ static exc_t convert_addr_kernel(cpu_t *cpu, ptr32_t virt, ptr36_t *phys,
 {
 	ASSERT(cpu != NULL);
 	ASSERT(phys != NULL);
+	ASSERT(CPU_KERNEL_MODE(cpu));
 	
 	if (virt < 0x80000000U) {  /* kuseg */
 		if (!cp0_status_erl(cpu))
@@ -343,13 +361,10 @@ exc_t convert_addr(cpu_t *cpu, ptr32_t virt, ptr36_t *phys, bool write,
 	ASSERT(cpu != NULL);
 	ASSERT(phys != NULL);
 	
-	/* Test the type of the translation */
-	if ((cp0_status_ksu(cpu) == 2) && (!cp0_status_exl(cpu)) &&
-	    (!cp0_status_erl(cpu)))
+	if (CPU_USER_MODE(cpu))
 		return convert_addr_user(cpu, virt, phys, write, noisy);
 	
-	if ((cp0_status_ksu(cpu) == 1) && (!cp0_status_exl(cpu)) &&
-	    (!cp0_status_erl(cpu)))
+	if (CPU_SUPERVISOR_MODE(cpu))
 		return convert_addr_supervisor(cpu, virt, phys, write, noisy);
 	
 	return convert_addr_kernel(cpu, virt, phys, write, noisy);

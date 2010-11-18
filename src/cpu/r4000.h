@@ -5,7 +5,7 @@
  * Distributed under the terms of GPL.
  *
  *
- *  MIPS R4000 (32 bit part) simulation
+ *  MIPS R4000 simulation
  *
  */
 
@@ -22,6 +22,8 @@
 #define REG_COUNT     32
 #define INTR_COUNT    8
 #define TLB_PHYSMASK  0x780000000ULL
+
+#define DEFAULT_MEMORY_VALUE  0xffffffffffffffffULL
 
 /* cp0 registers */
 typedef enum {
@@ -504,14 +506,26 @@ extern void cpu_init(cpu_t *cpu, unsigned int procno);
 extern void cpu_set_pc(cpu_t *cpu, ptr64_t value);
 extern void cpu_step(cpu_t *cpu);
 
+/** Physical memory access */
+extern uint8_t physmem_read8(cpu_t *cpu, ptr36_t addr, bool protected);
+extern uint16_t physmem_read16(cpu_t *cpu, ptr36_t addr, bool protected);
+extern uint32_t physmem_read32(cpu_t *cpu, ptr36_t addr, bool protected);
+
+extern bool physmem_write8(cpu_t *cpu, ptr36_t addr, uint8_t val,
+    bool protected);
+extern bool physmem_write16(cpu_t *cpu, ptr36_t addr, uint16_t val,
+    bool protected);
+extern bool physmem_write32(cpu_t *cpu, ptr36_t addr, uint32_t val,
+    bool protected);
+
 /** Addresing function */
 extern exc_t convert_addr(cpu_t *cpu, ptr64_t virt, ptr36_t *phys, bool write,
     bool noisy);
 
-/** Reading memory */
-extern exc_t cpu_read_mem(cpu_t *cpu, ptr64_t addr, wsize_t size,
-    uint64_t *value, bool noisy);
-extern exc_t cpu_read_ins(cpu_t *cpu, ptr64_t addr, uint32_t *value,
+/** Virtual memory access */
+extern exc_t cpu_read_mem32(cpu_t *cpu, ptr64_t addr, uint32_t *value,
+    bool noisy);
+extern exc_t cpu_read_ins(cpu_t *cpu, ptr64_t addr, uint32_t *icode,
     bool noisy);
 
 /** Interrupts */

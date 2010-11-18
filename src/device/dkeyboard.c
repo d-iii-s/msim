@@ -93,7 +93,7 @@ cmd_t keyboard_cmds[] = {
 
 static void keyboard_done(device_t *dev);
 static void keyboard_step4(device_t *dev);
-static void keyboard_read(cpu_t *cpu, device_t *dev, ptr36_t addr, uint32_t *val);
+static void keyboard_read8(cpu_t *cpu, device_t *dev, ptr36_t addr, uint8_t *val);
 
 device_type_t dkeyboard = {
 	/* Technically speaking the keyboard
@@ -114,7 +114,7 @@ device_type_t dkeyboard = {
 	/* Functions */
 	.done = keyboard_done,
 	.step4 = keyboard_step4,
-	.read = keyboard_read,
+	.read8 = keyboard_read8,
 	
 	/* Commands */
 	.cmds = keyboard_cmds
@@ -289,7 +289,7 @@ static void keyboard_done(device_t *dev)
  * deasserted.
  *
  */
-static void keyboard_read(cpu_t *cpu, device_t *dev, ptr36_t addr, uint32_t *val)
+static void keyboard_read8(cpu_t *cpu, device_t *dev, ptr36_t addr, uint8_t *val)
 {
 	keyboard_data_s *data = (keyboard_data_s *) dev->data;
 	

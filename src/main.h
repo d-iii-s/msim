@@ -13,14 +13,6 @@
 
 #define MAX_CPU  31
 
-/** Argument length */
-typedef enum {
-	BITS_8 = 1,
-	BITS_16 = 2,
-	BITS_32 = 4,
-	BITS_64 = 8
-} wsize_t;
-
 /** Exception types */
 typedef enum {
 	excInt   = 0,

@@ -18,7 +18,6 @@
 #include <inttypes.h>
 #include "dcpu.h"
 #include "ddisk.h"
-#include "machine.h"
 #include "../arch/mmap.h"
 #include "../text.h"
 #include "../fault.h"
@@ -163,8 +162,8 @@ const char id_ddisk[] = "ddisk";
 
 static void ddisk_done(device_t *dev);
 static void ddisk_step(device_t *dev);
-static void ddisk_read(cpu_t *cpu, device_t *dev, ptr36_t addr, uint32_t *val);
-static void ddisk_write(cpu_t *cpu, device_t *dev, ptr36_t addr, uint32_t val);
+static void ddisk_read32(cpu_t *cpu, device_t *dev, ptr36_t addr, uint32_t *val);
+static void ddisk_write32(cpu_t *cpu, device_t *dev, ptr36_t addr, uint32_t val);
 
 /**< Ddisk object structure */
 device_type_t ddisk = {
@@ -179,11 +178,11 @@ device_type_t ddisk = {
 	/* Functions */
 	.done = ddisk_done,
 	.step = ddisk_step,
-	.read = ddisk_read,
-	.write = ddisk_write,
+	.read32 = ddisk_read32,
+	.write32 = ddisk_write32,
 	
 	/* Commands */
-	ddisk_cmds
+	.cmds = ddisk_cmds
 };
 
 /** Disk instance data structure */
@@ -666,7 +665,7 @@ static void ddisk_done(device_t *dev) {
  * @param val  Read (returned) value
  *
  */
-static void ddisk_read(cpu_t *cpu, device_t *dev, ptr36_t addr,
+static void ddisk_read32(cpu_t *cpu, device_t *dev, ptr36_t addr,
     uint32_t *val)
 {
 	disk_data_s *data = (disk_data_s *) dev->data;
@@ -708,7 +707,7 @@ static void ddisk_read(cpu_t *cpu, device_t *dev, ptr36_t addr,
  * @param val  Value to write
  *
  */
-static void ddisk_write(cpu_t *cpu, device_t *dev, ptr36_t addr,
+static void ddisk_write32(cpu_t *cpu, device_t *dev, ptr36_t addr,
     uint32_t val)
 {
 	disk_data_s *data = (disk_data_s *) dev->data;
@@ -795,7 +794,7 @@ static void ddisk_step(device_t *dev)
 	switch (data->action) {
 	case ACTION_READ:
 		pos = data->secno * 128 + data->cnt;
-		physmem_write(NULL, data->disk_ptr, data->img[pos], BITS_32, true);
+		physmem_write32(NULL, data->disk_ptr, data->img[pos], true);
 		
 		/* Next word */
 		data->disk_ptr += 4;
@@ -803,7 +802,7 @@ static void ddisk_step(device_t *dev)
 		break;
 	case ACTION_WRITE:
 		pos = data->secno * 128 + data->cnt;
-		data->img[pos] = physmem_read(NULL, data->disk_ptr, BITS_32, true);
+		data->img[pos] = physmem_read32(NULL, data->disk_ptr, true);
 		
 		/* Next word */
 		data->disk_ptr += 4;

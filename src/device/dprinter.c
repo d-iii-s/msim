@@ -177,7 +177,7 @@ static void printer_step4(device_t *dev)
 /** Write command implementation
  *
  */
-static void printer_write(cpu_t *cpu, device_t *dev, ptr36_t addr, uint32_t val)
+static void printer_write8(cpu_t *cpu, device_t *dev, ptr36_t addr, uint8_t val)
 {
 	printer_data_t *data = (printer_data_t *) dev->data;
 	
@@ -267,8 +267,8 @@ device_type_t dprinter = {
 	/* Functions */
 	.done = printer_done,
 	.step4 = printer_step4,
-	.write = printer_write,
+	.write8 = printer_write8,
 	
 	/* Commands */
-	printer_cmds
+	.cmds = printer_cmds
 };

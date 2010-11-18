@@ -16,12 +16,12 @@
 #include "debug.h"
 #include "../cpu/instr.h"
 #include "../cpu/r4000.h"
-#include "../device/machine.h"
 #include "../device/dcpu.h"
+#include "../device/machine.h"
 #include "../device/mem.h"
 #include "../assert.h"
-#include "../main.h"
 #include "../env.h"
+#include "../main.h"
 #include "../utils.h"
 
 #define CP0_PM_ITEMS  7

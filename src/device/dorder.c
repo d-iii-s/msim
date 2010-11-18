@@ -15,7 +15,6 @@
 #include <inttypes.h>
 #include "dorder.h"
 #include "device.h"
-#include "machine.h"
 #include "dcpu.h"
 #include "../fault.h"
 #include "../parser.h"
@@ -106,8 +105,8 @@ cmd_t dorder_cmds[] = {
 const char id_dorder[] = "dorder";
 
 static void dorder_done(device_t *dev);
-static void dorder_read(cpu_t *cpu, device_t *dev, ptr36_t addr, uint32_t *val);
-static void dorder_write(cpu_t *cpu, device_t *dev, ptr36_t addr, uint32_t val);
+static void dorder_read32(cpu_t *cpu, device_t *dev, ptr36_t addr, uint32_t *val);
+static void dorder_write32(cpu_t *cpu, device_t *dev, ptr36_t addr, uint32_t val);
 
 /** Doder object structure */
 device_type_t dorder = {
@@ -124,11 +123,11 @@ device_type_t dorder = {
 	
 	/* Functions */
 	.done = dorder_done,
-	.read = dorder_read,
-	.write = dorder_write,
+	.read32 = dorder_read32,
+	.write32 = dorder_write32,
 	
 	/* Commands */
-	dorder_cmds
+	.cmds = dorder_cmds
 };
 
 /** Dorder instance data structure */
@@ -301,7 +300,7 @@ static void dorder_done(device_t *dev)
  * @param val  Read (returned) value
  *
  */
-static void dorder_read(cpu_t *cpu, device_t *dev, ptr36_t addr, uint32_t *val)
+static void dorder_read32(cpu_t *cpu, device_t *dev, ptr36_t addr, uint32_t *val)
 {
 	dorder_data_s *data = (dorder_data_s *) dev->data;
 	
@@ -325,7 +324,7 @@ static void dorder_read(cpu_t *cpu, device_t *dev, ptr36_t addr, uint32_t *val)
  * @param val  Value to write
  *
  */
-void dorder_write(cpu_t *cpu, device_t *dev, ptr36_t addr, uint32_t val)
+static void dorder_write32(cpu_t *cpu, device_t *dev, ptr36_t addr, uint32_t val)
 {
 	dorder_data_s *data = (dorder_data_s *) dev->data;
 	

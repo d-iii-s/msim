@@ -123,7 +123,7 @@ static void dtime_done(device_t *dev)
  * @param val  Read (returned) value
  *
  */
-static void dtime_read(cpu_t *cpu, device_t *dev, ptr36_t addr, uint32_t *val)
+static void dtime_read32(cpu_t *cpu, device_t *dev, ptr36_t addr, uint32_t *val)
 {
 	ASSERT(dev != NULL);
 	ASSERT(val != NULL);
@@ -201,7 +201,7 @@ device_type_t dtime = {
 	
 	/* Functions */
 	.done = dtime_done,
-	.read = dtime_read,
+	.read32 = dtime_read32,
 	
 	/* Commands */
 	.cmds = dtime_cmds

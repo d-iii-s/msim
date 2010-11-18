@@ -26,13 +26,14 @@
 #include "gdb.h"
 #include "../arch/network.h"
 #include "../cpu/r4000.h"
-#include "../device/machine.h"
 #include "../device/dcpu.h"
-#include "../main.h"
+#include "../device/machine.h"
 #include "../assert.h"
-#include "../text.h"
+#include "../endian.h"
 #include "../fault.h"
+#include "../main.h"
 #include "../parser.h"
+#include "../text.h"
 #include "../utils.h"
 
 #ifdef GDB_DEBUG
@@ -281,8 +282,8 @@ static void gdb_read_physmem(ptr36_t addr, len36_t length)
 	 * endianess.
 	 */
 	while (length > 0) {
-		uint64_t value = physmem_read(NULL, addr, BITS_8, false);
-		string_printf(&str, "%02" PRIx64, value);
+		uint8_t value = physmem_read8(NULL, addr, false);
+		string_printf(&str, "%02" PRIx8, value);
 		
 		length--;
 		addr++;
@@ -307,7 +308,7 @@ static void gdb_write_physmem(ptr36_t addr, len36_t length, char *data)
 		}
 		
 		/* Write it */
-		if (!physmem_write(NULL, addr, value, BITS_8, false)) {
+		if (!physmem_write8(NULL, addr, (uint8_t) value, false)) {
 			gdb_send_reply(GDB_REPLY_MEMORY_WRITE_FAIL);
 			return;
 		}
@@ -364,12 +365,12 @@ static void gdb_registers_dump(string_t *str, reg64_t *regs,
  *
  * @param data Buffer containing the hex string. The pointer
  *             is modified to point to the end of written part.
- * @param reg  Pointer to a register.
+ * @param val  Pointer to value.
  *
  * @return True if the hex string was in the correct form.
  *
  */
-static bool gdb_register_upload(char **data, reg64_t *reg)
+static bool gdb_register_upload(char **data, uint64_t *val)
 {
 	unsigned int values[8];
 	
@@ -394,8 +395,7 @@ static bool gdb_register_upload(char **data, reg64_t *reg)
 	value.uint8[6] = values[6];
 	value.uint8[7] = values[7];
 	
-	reg->val = convert_uint64_t_endian(value.uint64);
-	
+	*val = convert_uint64_t_endian(value.uint64);
 	*data += 16;
 	return true;
 }
@@ -416,7 +416,7 @@ static bool gdb_registers_upload(char **data, reg64_t *regs,
 	unsigned int i;
 	
 	for (i = 0; i < count; i++) {
-		if (!gdb_register_upload(data, regs + i))
+		if (!gdb_register_upload(data, &regs[i].val))
 			return false;
 	}
 	
@@ -488,22 +488,22 @@ static void gdb_write_registers(char *req)
 	if (!gdb_registers_upload(&query, cpu->regs, 32))
 		return;
 	
-	if (!gdb_register_upload(&query, &cpu->cp0[cp0_Status]))
+	if (!gdb_register_upload(&query, &cpu->cp0[cp0_Status].val))
 		return;
 	
-	if (!gdb_register_upload(&query, &cpu->loreg))
+	if (!gdb_register_upload(&query, &cpu->loreg.val))
 		return;
 	
-	if (!gdb_register_upload(&query, &cpu->hireg))
+	if (!gdb_register_upload(&query, &cpu->hireg.val))
 		return;
 	
-	if (!gdb_register_upload(&query, &cpu->cp0[cp0_BadVAddr]))
+	if (!gdb_register_upload(&query, &cpu->cp0[cp0_BadVAddr].val))
 		return;
 	
-	if (!gdb_register_upload(&query, &cpu->cp0[cp0_Cause]))
+	if (!gdb_register_upload(&query, &cpu->cp0[cp0_Cause].val))
 		return;
 	
-	if (!gdb_register_upload(&query, &cpu->pc))
+	if (!gdb_register_upload(&query, &cpu->pc.ptr))
 		return;
 	
 	gdb_send_reply(GDB_REPLY_OK);
@@ -777,7 +777,7 @@ static void gdb_breakpoint(char *req, bool insert)
 	cpu_t* cpu = dcpu_find_no(cpuno_global);
 	
 	if (code_breakpoint) {
-		if (length != BITS_32) {
+		if (length != 4) {
 			gdb_send_reply(GDB_REPLY_BAD_BREAKPOINT);
 			return;
 		}

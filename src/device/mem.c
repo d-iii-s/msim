@@ -19,12 +19,12 @@
 #include <sys/stat.h>
 #include <errno.h>
 #include <inttypes.h>
-#include "mem.h"
 #include "device.h"
 #include "machine.h"
+#include "mem.h"
 #include "../arch/mmap.h"
-#include "../parser.h"
 #include "../fault.h"
+#include "../parser.h"
 #include "../text.h"
 #include "../utils.h"
 

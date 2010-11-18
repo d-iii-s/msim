@@ -18,11 +18,11 @@
 #include "arch/console.h"
 #include "device/machine.h"
 #include "assert.h"
-#include "parser.h"
 #include "cmd.h"
-#include "utils.h"
-#include "input.h"
 #include "fault.h"
+#include "input.h"
+#include "parser.h"
+#include "utils.h"
 
 #define PROMPT  ("[" PACKAGE "] ")
 

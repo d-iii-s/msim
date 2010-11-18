@@ -34,12 +34,12 @@
 
 #include <inttypes.h>
 #include "../device/machine.h"
-#include "../main.h"
-#include "../utils.h"
 #include "../assert.h"
 #include "../fault.h"
-#include "gdb.h"
+#include "../main.h"
+#include "../utils.h"
 #include "breakpoint.h"
+#include "gdb.h"
 
 list_t physmem_breakpoints;
 

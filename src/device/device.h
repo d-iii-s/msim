@@ -40,12 +40,25 @@ typedef struct {
 	void (*step4)(struct device *dev);
 	
 	/** Device memory read */
-	void (*read)(cpu_t *cpu, struct device *dev, ptr36_t addr,
+	void (*read8)(cpu_t *cpu, struct device *dev, ptr36_t addr,
+	    uint8_t *val);
+	void (*read16)(cpu_t *cpu, struct device *dev, ptr36_t addr,
+	    uint16_t *val);
+	void (*read32)(cpu_t *cpu, struct device *dev, ptr36_t addr,
 	    uint32_t *val);
+	void (*read64)(cpu_t *cpu, struct device *dev, ptr36_t addr,
+	    uint64_t *val);
 	
 	/** Device memory write */
-	void (*write)(cpu_t *cpu, struct device *dev, ptr36_t addr,
+	void (*write8)(cpu_t *cpu, struct device *dev, ptr36_t addr,
+	    uint8_t val);
+	void (*write16)(cpu_t *cpu, struct device *dev, ptr36_t addr,
+	    uint16_t val);
+	void (*write32)(cpu_t *cpu, struct device *dev, ptr36_t addr,
 	    uint32_t val);
+	void (*write64)(cpu_t *cpu, struct device *dev, ptr36_t addr,
+	    uint64_t val);
+	
 	
 	/**
 	 * An array of commands supported by the device.

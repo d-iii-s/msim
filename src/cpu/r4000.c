@@ -5,7 +5,7 @@
  * Distributed under the terms of GPL.
  *
  *
- *  MIPS R4000 (32 bit part) simulation
+ *  MIPS R4000 simulation
  *
  */
 
@@ -13,16 +13,17 @@
 #include <stdio.h>
 #include <string.h>
 #include <inttypes.h>
-#include "../device/machine.h"
-#include "../debug/debug.h"
 #include "../debug/breakpoint.h"
+#include "../debug/debug.h"
 #include "../debug/gdb.h"
+#include "../device/device.h"
+#include "../device/machine.h"
 #include "../assert.h"
-#include "../main.h"
 #include "../endian.h"
-#include "../text.h"
 #include "../env.h"
 #include "../fault.h"
+#include "../main.h"
+#include "../text.h"
 #include "../utils.h"
 #include "r4000.h"
 
@@ -373,35 +374,52 @@ exc_t convert_addr(cpu_t *cpu, ptr64_t virt, ptr36_t *phys, bool write,
 	return convert_addr_kernel(cpu, virt, phys, write, noisy);
 }
 
-/** Test for correct alignment
+/** Test for correct alignment (16 bits)
  *
  * Fill BadVAddr if the alignment is not correct.
  *
  */
-static exc_t mem_align_test(cpu_t *cpu, ptr64_t addr, wsize_t size, bool noisy)
+static inline exc_t align_test16(cpu_t *cpu, ptr64_t addr, bool noisy)
 {
 	ASSERT(cpu != NULL);
 	
-	switch (size) {
-	case BITS_16:
-		if ((addr.ptr & 0x01) != 0) {
-			fill_addr_error(cpu, addr, noisy);
-			return excAddrError;
-		}
-		break;
-	case BITS_32:
-		if ((addr.ptr & 0x03) != 0) {
-			fill_addr_error(cpu, addr, noisy);
-			return excAddrError;
-		}
-		break;
-	case BITS_64:
-		if ((addr.ptr & 0x07) != 0) {
-			fill_addr_error(cpu, addr, noisy);
-			return excAddrError;
-		}
-	default:
-		break;
+	if ((addr.ptr & 0x01) != 0) {
+		fill_addr_error(cpu, addr, noisy);
+		return excAddrError;
+	}
+	
+	return excNone;
+}
+
+/** Test for correct alignment (32 bits)
+ *
+ * Fill BadVAddr if the alignment is not correct.
+ *
+ */
+static inline exc_t align_test32(cpu_t *cpu, ptr64_t addr, bool noisy)
+{
+	ASSERT(cpu != NULL);
+	
+	if ((addr.ptr & 0x03) != 0) {
+		fill_addr_error(cpu, addr, noisy);
+		return excAddrError;
+	}
+	
+	return excNone;
+}
+
+/** Test for correct alignment (64 bits)
+ *
+ * Fill BadVAddr if the alignment is not correct.
+ *
+ */
+static inline exc_t align_test64(cpu_t *cpu, ptr64_t addr, bool noisy)
+{
+	ASSERT(cpu != NULL);
+	
+	if ((addr.ptr & 0x07) != 0) {
+		fill_addr_error(cpu, addr, noisy);
+		return excAddrError;
 	}
 	
 	return excNone;
@@ -415,154 +433,628 @@ static exc_t mem_align_test(cpu_t *cpu, ptr64_t addr, wsize_t size, bool noisy)
  * If the exception occures, the value does not change.
  *
  * @param mode  Memory access mode
- * @param addr  Virtual memory address
- * @param size  Argument size in bytes (1, 2, 4, 8)
- * @param value The value which has to be written/read to
+ * @param virt  Virtual memory address
+ * @param phys  Physical memory address
  * @param noisy Generate exception in case of invalid operation
  *
  */
-static exc_t acc_mem(cpu_t *cpu, acc_mode_t mode, ptr64_t addr, wsize_t size,
-    uint64_t *value, bool noisy)
+static inline exc_t access_mem(cpu_t *cpu, acc_mode_t mode, ptr64_t virt,
+    ptr36_t *phys, bool noisy)
 {
 	ASSERT(cpu != NULL);
-	ASSERT(value != NULL);
+	ASSERT(phys != NULL);
 	
-	exc_t res = mem_align_test(cpu, addr, size, noisy);
+	exc_t res = convert_addr(cpu, virt, phys, mode == AM_WRITE, noisy);
 	
-	if (res == excNone) {
-		ptr36_t phys;
-		res = convert_addr(cpu, addr, &phys, mode == AM_WRITE, noisy);
+	/* Check for watched address */
+	if (((cp0_watchlo_r(cpu)) && (mode == AM_READ))
+	    || ((cp0_watchlo_w(cpu)) && (mode == AM_WRITE))) {
 		
-		/* Check for watched address */
-		if (((cp0_watchlo_r(cpu)) && (mode == AM_READ))
-		    || ((cp0_watchlo_w(cpu)) && (mode == AM_WRITE))) {
-			
-			/* The matching is done on
-			   8-byte aligned addresses */
-			
-			if (cpu->waddr == (phys >> 3)) {
-				/*
-				 * If EXL is set, the exception has to be postponed,
-				 * the memory access should (probably) proceed.
-				 */
-				if (cp0_status_exl(cpu) == 1) {
-					cpu->wpending = true;
-					cpu->wexcaddr = cpu->pc;
-				} else
-					return excWATCH;
-			}
-		}
+		/* The matching is done on
+		   8-byte aligned addresses */
 		
-		if (res == excNone) {
-			if (mode == AM_WRITE)
-				physmem_write(cpu, phys, *value, size, true);
-			else
-				*value = physmem_read(cpu, phys, size, true);
+		if (cpu->waddr == (*phys >> 3)) {
+			/*
+			 * If EXL is set, the exception has to be postponed,
+			 * the memory access should (probably) proceed.
+			 */
+			if (cp0_status_exl(cpu) == 1) {
+				cpu->wpending = true;
+				cpu->wexcaddr = cpu->pc;
+			} else
+				return excWATCH;
 		}
 	}
 	
 	return res;
 }
 
-/** Preform the read access from the virtual memory
+/** Preform read operation from the virtual memory (8 bits)
  *
  * Does not change the value if an exception occurs.
  *
  */
-exc_t cpu_read_mem(cpu_t *cpu, ptr64_t addr, wsize_t size, uint64_t *value,
+static inline exc_t cpu_read_mem8(cpu_t *cpu, ptr64_t addr, uint8_t *val,
     bool noisy)
 {
 	ASSERT(cpu != NULL);
-	ASSERT(value != NULL);
+	ASSERT(val != NULL);
 	
-	switch (acc_mem(cpu, AM_READ, addr, size, value, noisy)) {
+	ptr36_t phys;
+	exc_t res = access_mem(cpu, AM_READ, addr, &phys, noisy);
+	if (res != excNone)
+		return res;
+	
+	*val = physmem_read8(cpu, phys, true);
+	return res;
+}
+
+/** Preform read operation from the virtual memory (16 bits)
+ *
+ * Does not change the value if an exception occurs.
+ *
+ */
+static inline exc_t cpu_read_mem16(cpu_t *cpu, ptr64_t addr, uint16_t *val,
+    bool noisy)
+{
+	ASSERT(cpu != NULL);
+	ASSERT(val != NULL);
+	
+	exc_t res = align_test16(cpu, addr, noisy);
+	if (res != excNone)
+		return res;
+	
+	ptr36_t phys;
+	res = access_mem(cpu, AM_READ, addr, &phys, noisy);
+	if (res != excNone)
+		return res;
+	
+	*val = physmem_read16(cpu, phys, true);
+	return res;
+}
+
+/** Preform read operation from the virtual memory (32 bits)
+ *
+ * Does not change the value if an exception occurs.
+ *
+ */
+exc_t cpu_read_mem32(cpu_t *cpu, ptr64_t addr, uint32_t *val, bool noisy)
+{
+	ASSERT(cpu != NULL);
+	ASSERT(val != NULL);
+	
+	exc_t res = align_test32(cpu, addr, noisy);
+	if (res != excNone)
+		return res;
+	
+	ptr36_t phys;
+	res = access_mem(cpu, AM_READ, addr, &phys, noisy);
+	if (res != excNone)
+		return res;
+	
+	*val = physmem_read32(cpu, phys, true);
+	return res;
+}
+
+/** Perform write operation to the virtual memory (8 bits)
+ *
+ */
+static inline exc_t cpu_write_mem8(cpu_t *cpu, ptr64_t addr, uint8_t value,
+    bool noisy)
+{
+	ASSERT(cpu != NULL);
+	
+	ptr36_t phys;
+	exc_t res = access_mem(cpu, AM_WRITE, addr, &phys, noisy);
+	switch (res) {
+	case excNone:
+		physmem_write8(cpu, phys, value, true);
+		break;
 	case excAddrError:
-		return excAdEL;
+		res = excAdES;
+		break;
 	case excTLB:
-		return excTLBL;
+		res = excTLBS;
+		break;
 	case excTLBR:
-		return excTLBLR;
-	case excWATCH:
-		return excWATCH;
+		res = excTLBSR;
+		break;
 	default:
 		break;
 	}
 	
-	return excNone;
+	return res;
 }
 
-/** Preform the fetch access from the virtual memory
+/** Perform write operation to the virtual memory (16 bits)
+ *
+ */
+static inline exc_t cpu_write_mem16(cpu_t *cpu, ptr64_t addr, uint16_t value,
+    bool noisy)
+{
+	ASSERT(cpu != NULL);
+	
+	exc_t res = align_test16(cpu, addr, noisy);
+	if (res != excNone)
+		return res;
+	
+	ptr36_t phys;
+	res = access_mem(cpu, AM_WRITE, addr, &phys, noisy);
+	switch (res) {
+	case excNone:
+		physmem_write16(cpu, phys, value, true);
+		break;
+	case excAddrError:
+		res = excAdES;
+		break;
+	case excTLB:
+		res = excTLBS;
+		break;
+	case excTLBR:
+		res = excTLBSR;
+		break;
+	default:
+		break;
+	}
+	
+	return res;
+}
+
+/** Perform write operation to the virtual memory (32 bits)
+ *
+ */
+static inline exc_t cpu_write_mem32(cpu_t *cpu, ptr64_t addr, uint32_t value,
+    bool noisy)
+{
+	ASSERT(cpu != NULL);
+	
+	exc_t res = align_test32(cpu, addr, noisy);
+	if (res != excNone)
+		return res;
+	
+	ptr36_t phys;
+	res = access_mem(cpu, AM_WRITE, addr, &phys, noisy);
+	switch (res) {
+	case excNone:
+		physmem_write32(cpu, phys, value, true);
+		break;
+	case excAddrError:
+		res = excAdES;
+		break;
+	case excTLB:
+		res = excTLBS;
+		break;
+	case excTLBR:
+		res = excTLBSR;
+		break;
+	default:
+		break;
+	}
+	
+	return res;
+}
+
+/** Read an instruction
  *
  * Does not change the value if an exception occurs.
  * Fetching instructions (on R4000) does not trigger
  * the WATCH exception.
  *
  */
-static exc_t cpu_fetch_mem(cpu_t *cpu, ptr64_t addr, uint32_t *value,
-    bool noisy)
+exc_t cpu_read_ins(cpu_t *cpu, ptr64_t addr, uint32_t *icode, bool noisy)
 {
 	ASSERT(cpu != NULL);
-	ASSERT(value != NULL);
+	ASSERT(icode != NULL);
 	
-	uint64_t tmp;
+	exc_t res = align_test32(cpu, addr, noisy);
+	if (res != excNone)
+		return res;
 	
-	switch (acc_mem(cpu, AM_FETCH, addr, BITS_32, &tmp, noisy)) {
+	ptr36_t phys;
+	res = access_mem(cpu, AM_FETCH, addr, &phys, noisy);
+	switch (res) {
+	case excNone:
+		*icode = physmem_read32(cpu, phys, true);
+		break;
 	case excAddrError:
-		return excAdEL;
+		res = excAdEL;
+		break;
 	case excTLB:
-		return excTLBL;
+		res = excTLBL;
+		break;
 	case excTLBR:
-		return excTLBLR;
+		res = excTLBLR;
+		break;
 	default:
-		*value = (uint32_t) tmp;
 		break;
 	}
 	
-	return excNone;
-}
-
-/** Perform the write operation to the virtual memory
- *
- */
-static exc_t cpu_write_mem(cpu_t *cpu, ptr64_t addr, wsize_t size,
-    uint64_t value, bool noisy)
-{
-	ASSERT(cpu != NULL);
-	
-	switch (acc_mem(cpu, AM_WRITE, addr, size, &value, noisy)) {
-	case excAddrError:
-		return excAdES;
-	case excTLB:
-		return excTLBS;
-	case excTLBR:
-		return excTLBSR;
-	case excMod:
-		return excMod;
-	case excWATCH:
-		return excWATCH;
-	case excNone:
-		return excNone;
-	default:
-		die(ERR_INTERN, "Unexpected exception on memory write");
-	}
-	
-	/* Unreachable */
-	return excNone;
-}
-
-/** Read an instruction
- *
- */
-exc_t cpu_read_ins(cpu_t *cpu, ptr64_t addr, uint32_t *value, bool noisy)
-{
-	ASSERT(cpu != NULL);
-	ASSERT(value != NULL);
-	
-	exc_t res = cpu_fetch_mem(cpu, addr, value, noisy);
-	if ((res != excNone) && (cpu->branch == BRANCH_NONE))
+	if ((noisy) && (res != excNone) && (cpu->branch == BRANCH_NONE))
 		cpu->excaddr = cpu->pc;
 	
 	return res;
+}
+
+/** Find an activated memory breakpoint
+ *
+ * Find an activated memory breakpoint which would be hit for specified
+ * memory address and access conditions.
+ *
+ * @param addr         Address, where the breakpoint can be hit.
+ * @param size         Size of the access operation.
+ * @param access_flags Specifies the access condition, under the breakpoint
+ *                     will be hit.
+ *
+ * @return Found breakpoint structure or NULL if there is not any.
+ *
+ */
+static inline void physmem_breakpoint_find(ptr36_t addr, len36_t size,
+    access_t access_type)
+{
+	physmem_breakpoint_t *breakpoint;
+	
+	for_each(physmem_breakpoints, breakpoint, physmem_breakpoint_t) {
+		if (breakpoint->addr + breakpoint->size < addr)
+			continue;
+		
+		if (breakpoint->addr > addr + size)
+			continue;
+		
+		if ((access_type & breakpoint->access_flags) != 0) {
+			physmem_breakpoint_hit(breakpoint, access_type);
+			break;
+		}
+	}
+}
+
+static inline physmem_area_t* find_physmem_area(ptr36_t addr)
+{
+	physmem_area_t *area;
+	
+	for_each(physmem_areas, area, physmem_area_t) {
+		ptr36_t area_start = area->start;
+		ptr36_t area_end = area_start + area->size;
+		
+		if ((addr >= area_start) && (addr < area_end))
+			return area;
+	}
+	
+	return NULL;
+}
+
+static inline uint8_t devmem_read8(cpu_t *cpu, ptr36_t addr)
+{
+	uint8_t val = (uint8_t) DEFAULT_MEMORY_VALUE;
+	
+	/* List for each device */
+	device_t *dev = NULL;
+	while (dev_next(&dev, DEVICE_FILTER_ALL))
+		if (dev->type->read8)
+			dev->type->read8(cpu, dev, addr, &val);
+	
+	return val;
+}
+
+static inline uint16_t devmem_read16(cpu_t *cpu, ptr36_t addr)
+{
+	uint16_t val = (uint16_t) DEFAULT_MEMORY_VALUE;
+	
+	/* List for each device */
+	device_t *dev = NULL;
+	while (dev_next(&dev, DEVICE_FILTER_ALL))
+		if (dev->type->read16)
+			dev->type->read16(cpu, dev, addr, &val);
+	
+	return val;
+}
+
+static inline uint32_t devmem_read32(cpu_t *cpu, ptr36_t addr)
+{
+	uint32_t val = (uint32_t) DEFAULT_MEMORY_VALUE;
+	
+	/* List for each device */
+	device_t *dev = NULL;
+	while (dev_next(&dev, DEVICE_FILTER_ALL))
+		if (dev->type->read32)
+			dev->type->read32(cpu, dev, addr, &val);
+	
+	return val;
+}
+
+/** Physical memory read (8 bits)
+ *
+ * Read 8 bits from memory. At first try to read from configured memory
+ * regions, then from a device which supports reading at specified address.
+ * If the address is not contained in any memory region and no device
+ * manages it, the default value is returned.
+ *
+ * @param cpu       Processor which wants to read.
+ * @param addr      Address of memory to be read.
+ * @param protected If true the memory breakpoints check is performed.
+ *
+ * @return Value in specified piece of memory or the default memory value
+ *         if the address is not valid.
+ *
+ */
+uint8_t physmem_read8(cpu_t *cpu, ptr36_t addr, bool protected)
+{
+	physmem_area_t *area = find_physmem_area(addr);
+	
+	/*
+	 * No memory area found, try to read the value
+	 * from appropriate device or return the default value.
+	 */
+	if (area == NULL)
+		return devmem_read8(cpu, addr);
+	
+	/* Check for memory read breakpoints */
+	if (protected)
+		physmem_breakpoint_find(addr, 1, ACCESS_READ);
+	
+	return convert_uint8_t_endian(*((uint8_t *)
+	    (area->data + (addr - area->start))));
+}
+
+/** Physical memory read (16 bits)
+ *
+ * Read 16 bits from memory. At first try to read from configured memory
+ * regions, then from a device which supports reading at specified address.
+ * If the address is not contained in any memory region and no device
+ * manages it, the default value is returned.
+ *
+ * @param cpu       Processor which wants to read.
+ * @param addr      Address of memory to be read.
+ * @param protected If true the memory breakpoints check is performed.
+ *
+ * @return Value in specified piece of memory or the default memory value
+ *         if the address is not valid.
+ *
+ */
+uint16_t physmem_read16(cpu_t *cpu, ptr36_t addr, bool protected)
+{
+	physmem_area_t *area = find_physmem_area(addr);
+	
+	/*
+	 * No memory area found, try to read the value
+	 * from appropriate device or return the default value.
+	 */
+	if (area == NULL)
+		return devmem_read16(cpu, addr);
+	
+	/* Check for memory read breakpoints */
+	if (protected)
+		physmem_breakpoint_find(addr, 2, ACCESS_READ);
+	
+	return convert_uint16_t_endian(*((uint16_t *)
+	    (area->data + (addr - area->start))));
+}
+
+/** Physical memory read (32 bits)
+ *
+ * Read 32 bits from memory. At first try to read from configured memory
+ * regions, then from a device which supports reading at specified address.
+ * If the address is not contained in any memory region and no device
+ * manages it, the default value is returned.
+ *
+ * @param cpu       Processor which wants to read.
+ * @param addr      Address of memory to be read.
+ * @param protected If true the memory breakpoints check is performed.
+ *
+ * @return Value in specified piece of memory or the default memory value
+ *         if the address is not valid.
+ *
+ */
+uint32_t physmem_read32(cpu_t *cpu, ptr36_t addr, bool protected)
+{
+	physmem_area_t *area = find_physmem_area(addr);
+	
+	/*
+	 * No memory area found, try to read the value
+	 * from appropriate device or return the default value.
+	 */
+	if (area == NULL)
+		return devmem_read32(cpu, addr);
+	
+	/* Check for memory read breakpoints */
+	if (protected)
+		physmem_breakpoint_find(addr, 4, ACCESS_READ);
+	
+	return convert_uint32_t_endian(*((uint32_t *)
+	    (area->data + (addr - area->start))));
+}
+
+/** Load Linked and Store Conditional control
+ *
+ */
+static inline void sc_control(ptr36_t addr)
+{
+	sc_item_t *sc_item = (sc_item_t *) sc_list.head;
+	
+	while (sc_item != NULL) {
+		cpu_t *sc_cpu = sc_item->cpu;
+		
+		if (sc_cpu->lladdr == addr) {
+			sc_cpu->llbit = false;
+			
+			sc_item_t *tmp = sc_item;
+			sc_item = (sc_item_t *) sc_item->item.next;
+			
+			list_remove(&sc_list, &tmp->item);
+			safe_free(tmp);
+		} else
+			sc_item = (sc_item_t *) sc_item->item.next;
+	}
+}
+
+static inline bool devmem_write8(cpu_t *cpu, ptr36_t addr, uint8_t val)
+{
+	bool written = false;
+	
+	/* List for each device */
+	device_t *dev = NULL;
+	while (dev_next(&dev, DEVICE_FILTER_ALL)) {
+		if (dev->type->write8) {
+			dev->type->write8(cpu, dev, addr, val);
+			written = true;
+		}
+	}
+	
+	return written;
+}
+
+static inline bool devmem_write16(cpu_t *cpu, ptr36_t addr, uint16_t val)
+{
+	bool written = false;
+	
+	/* List for each device */
+	device_t *dev = NULL;
+	while (dev_next(&dev, DEVICE_FILTER_ALL)) {
+		if (dev->type->write16) {
+			dev->type->write16(cpu, dev, addr, val);
+			written = true;
+		}
+	}
+	
+	return written;
+}
+
+static inline bool devmem_write32(cpu_t *cpu, ptr36_t addr, uint32_t val)
+{
+	bool written = false;
+	
+	/* List for each device */
+	device_t *dev = NULL;
+	while (dev_next(&dev, DEVICE_FILTER_ALL)) {
+		if (dev->type->write32) {
+			dev->type->write32(cpu, dev, addr, val);
+			written = true;
+		}
+	}
+	
+	return written;
+}
+
+/** Physical memory write (8 bits)
+ *
+ * Write 8 bits of data to memory at given address. At first try to find
+ * a configured memory region which contains the given address. If there
+ * is no such region, try to write to appropriate device.
+ *
+ * @param cpu       Processor which wants to write.
+ * @param addr      Address of the memory.
+ * @param val       Data to be written.
+ * @param protected False to allow writing to ROM memory and ignore
+ *                  the memory breakpoints check.
+ *
+ * @return False if there is no configured memory region and device for
+ *         given address or the memory is ROM with protected parameter
+ *         set to true.
+ *
+ */
+bool physmem_write8(cpu_t *cpu, ptr36_t addr, uint8_t val, bool protected)
+{
+	physmem_area_t *area = find_physmem_area(addr);
+	
+	/* No region found, try to write the value to appropriate device */
+	if (area == NULL)
+		return devmem_write8(cpu, addr, val);
+	
+	/* Writting to ROM? */
+	if ((!area->writable) && (protected))
+		return false;
+	
+	sc_control(addr);
+	
+	/* Check for memory write breakpoints */
+	if (protected)
+		physmem_breakpoint_find(addr, 1, ACCESS_WRITE);
+	
+	*((uint8_t *) (area->data + (addr - area->start))) =
+	    convert_uint8_t_endian(val);
+	
+	return true;
+}
+
+/** Physical memory write (16 bits)
+ *
+ * Write 16 bits of data to memory at given address. At first try to find
+ * a configured memory region which contains the given address. If there
+ * is no such region, try to write to appropriate device.
+ *
+ * @param cpu       Processor which wants to write.
+ * @param addr      Address of the memory.
+ * @param val       Data to be written.
+ * @param protected False to allow writing to ROM memory and ignore
+ *                  the memory breakpoints check.
+ *
+ * @return False if there is no configured memory region and device for
+ *         given address or the memory is ROM with protected parameter
+ *         set to true.
+ *
+ */
+bool physmem_write16(cpu_t *cpu, ptr36_t addr, uint16_t val, bool protected)
+{
+	physmem_area_t *area = find_physmem_area(addr);
+	
+	/* No region found, try to write the value to appropriate device */
+	if (area == NULL)
+		return devmem_write16(cpu, addr, val);
+	
+	/* Writting to ROM? */
+	if ((!area->writable) && (protected))
+		return false;
+	
+	sc_control(addr);
+	
+	/* Check for memory write breakpoints */
+	if (protected)
+		physmem_breakpoint_find(addr, 2, ACCESS_WRITE);
+	
+	*((uint16_t *) (area->data + (addr - area->start))) =
+	    convert_uint16_t_endian(val);
+	
+	return true;
+}
+
+/** Physical memory write (32 bits)
+ *
+ * Write 32 bits of data to memory at given address. At first try to find
+ * a configured memory region which contains the given address. If there
+ * is no such region, try to write to appropriate device.
+ *
+ * @param cpu       Processor which wants to write.
+ * @param addr      Address of the memory.
+ * @param val       Data to be written.
+ * @param protected False to allow writing to ROM memory and ignore
+ *                  the memory breakpoints check.
+ *
+ * @return False if there is no configured memory region and device for
+ *         given address or the memory is ROM with protected parameter
+ *         set to true.
+ *
+ */
+bool physmem_write32(cpu_t *cpu, ptr36_t addr, uint32_t val, bool protected)
+{
+	physmem_area_t *area = find_physmem_area(addr);
+	
+	/* No region found, try to write the value to appropriate device */
+	if (area == NULL)
+		return devmem_write32(cpu, addr, val);
+	
+	/* Writting to ROM? */
+	if ((!area->writable) && (protected))
+		return false;
+	
+	sc_control(addr);
+	
+	/* Check for memory write breakpoints */
+	if (protected)
+		physmem_breakpoint_find(addr, 4, ACCESS_WRITE);
+	
+	*((uint32_t *) (area->data + (addr - area->start))) =
+	    convert_uint32_t_endian(val);
+	
+	return true;
 }
 
 /** Assert the specified interrupt
@@ -701,6 +1193,8 @@ static exc_t execute(cpu_t *cpu, instr_info_t ii)
 	reg64_t urrs = cpu->regs[ii.rs];
 	reg64_t urrt = cpu->regs[ii.rt];
 	
+	uint8_t utmp8;
+	uint16_t utmp16;
 	uint32_t utmp32;
 	uint32_t utmp32b;
 	uint64_t utmp64;
@@ -1105,16 +1599,16 @@ static exc_t execute(cpu_t *cpu, instr_info_t ii)
 	 */
 	case opcLB:
 		addr.ptr = urrs.val + ((int32_t) ii.imm);
-		res = cpu_read_mem(cpu, addr, BITS_8, &utmp64, true);
+		res = cpu_read_mem8(cpu, addr, &utmp8, true);
 		if (res == excNone)
-			cpu->regs[ii.rt].val = (utmp64 & 0x0080U) ?
-			    (utmp64 | 0xffffff00U) : (utmp64 & 0x00ffU);
+			cpu->regs[ii.rt].val = (utmp8 & 0x80U) ?
+			    ((uint64_t) utmp8 | 0xffffffffffffff00ULL) : utmp8;
 		break;
 	case opcLBU:
 		addr.ptr = urrs.val + ((int32_t) ii.imm);
-		res = cpu_read_mem(cpu, addr, BITS_8, &utmp64, true);
+		res = cpu_read_mem8(cpu, addr, &utmp8, true);
 		if (res == excNone)
-			cpu->regs[ii.rt].val = utmp64 & 0x00ffU;
+			cpu->regs[ii.rt].val = utmp8;
 		break;
 	case opcLD:
 	case opcLDL:
@@ -1124,26 +1618,26 @@ static exc_t execute(cpu_t *cpu, instr_info_t ii)
 		break;
 	case opcLH:
 		addr.ptr = urrs.val + ((int32_t) ii.imm);
-		res = cpu_read_mem(cpu, addr, BITS_16, &utmp64, true);
+		res = cpu_read_mem16(cpu, addr, &utmp16, true);
 		if (res == excNone)
-			cpu->regs[ii.rt].val = (utmp64 & 0x00008000U) ?
-			    (utmp64 | 0xffff0000U) : (utmp64 & 0x0000ffffU);
+			cpu->regs[ii.rt].val = (utmp16 & 0x8000U) ?
+			    ((uint64_t) utmp16 | 0xffffffffffff0000ULL) : utmp16;
 		break;
 	case opcLHU:
 		addr.ptr = urrs.val + ((int32_t) ii.imm);
-		res = cpu_read_mem(cpu, addr, BITS_16, &utmp64, true);
+		res = cpu_read_mem16(cpu, addr, &utmp16, true);
 		if (res == excNone)
-			cpu->regs[ii.rt].val = utmp64 & 0x0000ffffU;
+			cpu->regs[ii.rt].val = utmp16;
 		break;
 	case opcLL:
 		/* Compute virtual target address
 		   and issue read operation */
 		addr.ptr = urrs.val + ((int32_t) ii.imm);
-		res = cpu_read_mem(cpu, addr, BITS_32, &utmp64, true);
+		res = cpu_read_mem32(cpu, addr, &utmp32, true);
 		
 		if (res == excNone) {  /* If the read operation has been successful */
 			/* Store the value */
-			cpu->regs[ii.rt].val = utmp64 & 0xffffffffU;
+			cpu->regs[ii.rt].val = utmp32;
 			
 			/* Since we need physical address to track, issue the
 			   address conversion. It can't fail now. */
@@ -1169,28 +1663,30 @@ static exc_t execute(cpu_t *cpu, instr_info_t ii)
 		break;
 	case opcLW:
 		addr.ptr = urrs.val + ((int32_t) ii.imm);
-		res = cpu_read_mem(cpu, addr, BITS_32, &cpu->regs[ii.rt].val, true);
+		res = cpu_read_mem32(cpu, addr, &utmp32, true);
+		if (res == excNone)
+			cpu->regs[ii.rt].val = utmp32;
 		break;
 	case opcLWL:
-		addr.ptr = (urrs.val + ((int32_t) ii.imm)) & ((uint32_t) ~0x03);
-		res = cpu_read_mem(cpu, addr, BITS_32, &utmp64, true);
+		addr.ptr = (urrs.val + ((int32_t) ii.imm)) & ((uint64_t) ~0x03);
+		res = cpu_read_mem32(cpu, addr, &utmp32, true);
 		
 		if (res == excNone) {
 			unsigned int index = (urrs.val + ((int32_t) ii.imm)) & 0x03;
 			
 			cpu->regs[ii.rt].lo &= shift_tab_left[index].mask;
-			cpu->regs[ii.rt].lo |= utmp64 << shift_tab_left[index].shift;
+			cpu->regs[ii.rt].lo |= utmp32 << shift_tab_left[index].shift;
 		}
 		break;
 	case opcLWR:
-		addr.ptr = (urrs.val + ((int32_t) ii.imm)) & ((uint32_t) ~0x03);
-		res = cpu_read_mem(cpu, addr, BITS_32, &utmp64, true);
+		addr.ptr = (urrs.val + ((int32_t) ii.imm)) & ((uint64_t) ~0x03);
+		res = cpu_read_mem32(cpu, addr, &utmp32, true);
 		
 		if (res == excNone) {
 			unsigned int index = (urrs.val + ((int32_t) ii.imm)) & 0x03;
 			
 			cpu->regs[ii.rt].lo &= shift_tab_right[index].mask;
-			cpu->regs[ii.rt].lo |= (utmp64 >> shift_tab_right[index].shift)
+			cpu->regs[ii.rt].lo |= (utmp32 >> shift_tab_right[index].shift)
 			    & (~shift_tab_right[index].mask);
 		}
 		break;
@@ -1199,7 +1695,7 @@ static exc_t execute(cpu_t *cpu, instr_info_t ii)
 		break;
 	case opcSB:
 		addr.ptr = urrs.val + ((int32_t) ii.imm);
-		res = cpu_write_mem(cpu, addr, BITS_8, cpu->regs[ii.rt].val, true);
+		res = cpu_write_mem8(cpu, addr, (uint8_t) cpu->regs[ii.rt].val, true);
 		break;
 	case opcSC:
 		if (!cpu->llbit) {
@@ -1213,7 +1709,7 @@ static exc_t execute(cpu_t *cpu, instr_info_t ii)
 			addr.ptr = urrs.val + ((int32_t) ii.imm);
 			
 			/* Perform the write operation */
-			res = cpu_write_mem(cpu, addr, BITS_32, cpu->regs[ii.rt].val, true);
+			res = cpu_write_mem32(cpu, addr, cpu->regs[ii.rt].lo, true);
 			if (res == excNone) {
 				/* The operation has been successful,
 				   write the result, but... */
@@ -1249,37 +1745,37 @@ static exc_t execute(cpu_t *cpu, instr_info_t ii)
 		break;
 	case opcSH:
 		addr.ptr = urrs.val + ((int16_t) ii.imm);
-		res = cpu_write_mem(cpu, addr, BITS_16, cpu->regs[ii.rt].val, true);
+		res = cpu_write_mem16(cpu, addr, (uint16_t) cpu->regs[ii.rt].val, true);
 		break;
 	case opcSW:
 		addr.ptr = urrs.val + ((int16_t) ii.imm);
-		res = cpu_write_mem(cpu, addr, BITS_32, cpu->regs[ii.rt].val, true);
+		res = cpu_write_mem32(cpu, addr, cpu->regs[ii.rt].lo, true);
 		break;
 	case opcSWL:
-		addr.ptr = (urrs.val + ((int32_t) ii.imm)) & ((uint32_t) ~0x03);
-		res = cpu_read_mem(cpu, addr, BITS_32, &utmp64, true);
+		addr.ptr = (urrs.val + ((int32_t) ii.imm)) & ((uint64_t) ~0x03);
+		res = cpu_read_mem32(cpu, addr, &utmp32, true);
 		
 		if (res == excNone) {
 			unsigned int index = (urrs.val + ((int32_t) ii.imm)) & 0x03;
 			
-			utmp64 &= shift_tab_left_store[index].mask;
-			utmp64 |= (cpu->regs[ii.rt].val >> shift_tab_left_store[index].shift)
+			utmp32 &= shift_tab_left_store[index].mask;
+			utmp32 |= (cpu->regs[ii.rt].lo >> shift_tab_left_store[index].shift)
 			    & (~shift_tab_left_store[index].mask);
 			
-			res = cpu_write_mem(cpu, addr, BITS_32, utmp64, true);
+			res = cpu_write_mem32(cpu, addr, utmp32, true);
 		}
 		break;
 	case opcSWR:
-		addr.ptr = (urrs.val + ((int32_t) ii.imm)) & ((uint32_t) ~0x03);
-		res = cpu_read_mem(cpu, addr, BITS_32, &utmp64, true);
+		addr.ptr = (urrs.val + ((int32_t) ii.imm)) & ((uint64_t) ~0x03);
+		res = cpu_read_mem32(cpu, addr, &utmp32, true);
 		
 		if (res == excNone) {
 			unsigned int index = (urrs.val + ((int32_t) ii.imm)) & 0x03;
 			
-			utmp64 &= shift_tab_right_store[index].mask;
-			utmp64 |= cpu->regs[ii.rt].val << shift_tab_right_store[index].shift;
+			utmp32 &= shift_tab_right_store[index].mask;
+			utmp32 |= cpu->regs[ii.rt].lo << shift_tab_right_store[index].shift;
 			
-			res = cpu_write_mem(cpu, addr, BITS_32, utmp64, true);
+			res = cpu_write_mem32(cpu, addr, utmp32, true);
 		}
 		break;
 	

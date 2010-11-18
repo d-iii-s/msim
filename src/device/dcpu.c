@@ -183,12 +183,9 @@ device_type_t dcpu = {
 	/* Functions */
 	.done  = dcpu_done,  /* done */
 	.step  = dcpu_step,  /* step */
-	.step4 = NULL,       /* step4 */
-	.read  = NULL,       /* read */
-	.write = NULL,       /* write */
 	
 	/* Commands */
-	dcpu_cmds
+	.cmds = dcpu_cmds
 };
 
 /** Get first available CPU id
@@ -314,7 +311,7 @@ static bool dcpu_md(token_t *parm, device_t *dev)
 		return false;
 	}
 	
-	if (!virt_range(_addr + _cnt * BITS_32)) {
+	if (!virt_range(_addr + _cnt * 4)) {
 		error("Count exceeds virtual memory range");
 		return false;
 	}
@@ -324,17 +321,17 @@ static bool dcpu_md(token_t *parm, device_t *dev)
 	len64_t i;
 	
 	for (addr.ptr = _addr, cnt = _cnt, i = 0;
-	    i < cnt; addr.ptr += BITS_32, i++) {
+	    i < cnt; addr.ptr += 4, i++) {
 		if ((i & 0x03) == 0)
 			printf("  %#018" PRIx64 "    ", addr.ptr);
 		
-		uint64_t val;
-		exc_t res = cpu_read_mem((cpu_t *) dev->data, addr, 4, &val, false);
+		uint32_t val;
+		exc_t res = cpu_read_mem32((cpu_t *) dev->data, addr, &val, false);
 		
 		if (res == excNone)
-			printf("%016" PRIx64 " ", val);
+			printf("%08" PRIx32 " ", val);
 		else
-			printf("xxxxxxxxxxxxxxxx ");
+			printf("xxxxxxxx ");
 		
 		if ((i & 0x03) == 3)
 			printf("\n");
@@ -364,7 +361,7 @@ static bool dcpu_id(token_t *parm, device_t *dev)
 		return false;
 	}
 	
-	if (!virt_range(_addr + _cnt * BITS_32)) {
+	if (!virt_range(_addr + _cnt * 4)) {
 		error("Count exceeds virtual memory range");
 		return false;
 	}
@@ -373,7 +370,7 @@ static bool dcpu_id(token_t *parm, device_t *dev)
 	len64_t cnt;
 	
 	for (addr.ptr = _addr, cnt = _cnt; cnt > 0;
-	    addr.ptr += BITS_32, cnt--) {
+	    addr.ptr += 4, cnt--) {
 		instr_info_t ii;
 		exc_t res = cpu_read_ins((cpu_t *) dev->data, addr, &ii.icode, false);
 		

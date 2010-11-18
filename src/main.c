@@ -21,12 +21,12 @@
 #include "device/device.h"
 #include "device/machine.h"
 #include "assert.h"
-#include "env.h"
-#include "text.h"
-#include "parser.h"
-#include "endian.h"
 #include "cmd.h"
+#include "endian.h"
+#include "env.h"
 #include "fault.h"
+#include "parser.h"
+#include "text.h"
 #include "utils.h"
 
 /** Command line options */

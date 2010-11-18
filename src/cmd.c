@@ -18,16 +18,17 @@
 #include <unistd.h>
 #include <errno.h>
 #include <inttypes.h>
+#include "cpu/r4000.h"
 #include "debug/debug.h"
 #include "debug/breakpoint.h"
 #include "device/device.h"
 #include "device/machine.h"
-#include "main.h"
-#include "cmd.h"
 #include "assert.h"
-#include "fault.h"
-#include "utils.h"
+#include "cmd.h"
 #include "env.h"
+#include "fault.h"
+#include "main.h"
+#include "utils.h"
 
 static cmd_t system_cmds[];
 
@@ -170,7 +171,7 @@ static bool system_dumpins(token_t *parm, void *data)
 		return false;
 	}
 	
-	if (!phys_range(_addr + _cnt * BITS_32)) {
+	if (!phys_range(_addr + _cnt * 4)) {
 		error("Count exceeds physical memory range");
 		return false;
 	}
@@ -179,9 +180,9 @@ static bool system_dumpins(token_t *parm, void *data)
 	len36_t cnt;
 	
 	for (addr = (ptr36_t) _addr, cnt = (len36_t) _cnt; cnt > 0;
-	    addr += BITS_32, cnt--) {
+	    addr += 4, cnt--) {
 		instr_info_t ii;
-		ii.icode = physmem_read(NULL, addr, BITS_32, false);
+		ii.icode = physmem_read32(NULL, addr, false);
 		decode_instr(&ii);
 		iview_phys(addr, &ii, 0);
 	}
@@ -325,7 +326,7 @@ static bool system_dumpmem(token_t *parm, void *data)
 		return false;
 	}
 	
-	if (!phys_range(_addr + _cnt * BITS_32)) {
+	if (!phys_range(_addr + _cnt * 4)) {
 		error("Count exceeds physical memory range");
 		return false;
 	}
@@ -335,11 +336,11 @@ static bool system_dumpmem(token_t *parm, void *data)
 	len36_t i;
 	
 	for (addr = (ptr36_t) _addr, cnt = (len36_t) _cnt, i = 0;
-	    i < cnt; addr += BITS_32, i++) {
+	    i < cnt; addr += 4, i++) {
 		if ((i & 0x03) == 0)
 			printf("  %#011" PRIx64 "   ", addr);
 		
-		uint32_t val = physmem_read(NULL, addr, BITS_32, false);
+		uint32_t val = physmem_read32(NULL, addr, false);
 		printf("%08" PRIx32 " ", val);
 		
 		if ((i & 0x03) == 3)

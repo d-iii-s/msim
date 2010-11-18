@@ -10,6 +10,7 @@
 
 #ifndef __WIN32__
 
+#include <stdio.h>
 #include <signal.h>
 #include <stdlib.h>
 #include "../../device/machine.h"

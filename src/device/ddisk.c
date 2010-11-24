@@ -43,11 +43,11 @@ enum action_e {
 /* \} */
 
 /** \{ \name Status flags */
-#define STATUS_READ   0x01  /**< Read/reading */
-#define STATUS_WRITE  0x02  /**< Write/writting */
-#define STATUS_INT    0x04  /**< Interrupt pending */
-#define STATUS_ERROR  0x08  /**< Command error */
-#define STATUS_MASK   0x0f  /**< Status mask */
+#define STATUS_READ   0x01U  /**< Read/reading */
+#define STATUS_WRITE  0x02U  /**< Write/writting */
+#define STATUS_INT    0x04U  /**< Interrupt pending */
+#define STATUS_ERROR  0x08U  /**< Command error */
+#define STATUS_MASK   0x0fU  /**< Status mask */
 /* \} */
 
 /** Disk types */
@@ -273,7 +273,7 @@ static bool ddisk_init(token_t *parm, device_t *dev)
 		return false;
 	}
 	
-	if (_intno > 6) {
+	if (_intno > MAX_INTR) {
 		error("%s", txt_intnum_range);
 		return false;
 	}
@@ -677,7 +677,7 @@ static void ddisk_read32(cpu_t *cpu, device_t *dev, ptr36_t addr,
 	/* Read internal registers */
 	switch (addr - data->addr) {
 	case REGISTER_ADDR_LO:
-		*val = (uint32_t) (data->disk_ptr & 0xffffffffU);
+		*val = (uint32_t) (data->disk_ptr & UINT32_C(0xffffffff));
 		break;
 	case REGISTER_ADDR_HI:
 		*val = (uint32_t) (data->disk_ptr >> 32);
@@ -692,7 +692,7 @@ static void ddisk_read32(cpu_t *cpu, device_t *dev, ptr36_t addr,
 		*val = data->disk_status;
 		break;
 	case REGISTER_SIZE_LO:
-		*val = (uint32_t) (data->size & 0xffffffffU);
+		*val = (uint32_t) (data->size & UINT32_C(0xffffffff));
 		break;
 	case REGISTER_SIZE_HI:
 		*val = (uint32_t) (data->size >> 32);
@@ -718,11 +718,11 @@ static void ddisk_write32(cpu_t *cpu, device_t *dev, ptr36_t addr,
 	
 	switch (addr - data->addr) {
 	case REGISTER_ADDR_LO:
-		data->disk_ptr &= ~((ptr36_t) 0xffffffffU);
+		data->disk_ptr &= ~((ptr36_t) UINT32_C(0xffffffff));
 		data->disk_ptr |= val;
 		break;
 	case REGISTER_ADDR_HI:
-		data->disk_ptr &= (ptr36_t) 0xffffffffU;
+		data->disk_ptr &= (ptr36_t) UINT32_C(0xffffffff);
 		data->disk_ptr |= ((ptr36_t) val) << 32;
 		break;
 	case REGISTER_SECNO:

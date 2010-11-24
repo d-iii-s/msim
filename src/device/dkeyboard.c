@@ -179,7 +179,7 @@ static bool dkeyboard_init(token_t *parm, device_t *dev)
 		return false;
 	}
 	
-	if (_intno > 6) {
+	if (_intno > MAX_INTR) {
 		error("%s", txt_intnum_range);
 		return false;
 	}

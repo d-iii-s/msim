@@ -388,12 +388,12 @@ char *uint64_human_readable(uint64_t i)
  */
 bool ptr36_word_aligned(ptr36_t addr)
 {
-	return (addr & 0x03) == 0;
+	return (addr & 0x03U) == 0;
 }
 
 bool ptr64_word_aligned(ptr64_t addr)
 {
-	return (addr.ptr & 0x03) == 0;
+	return (addr.ptr & 0x03U) == 0;
 }
 
 bool virt_range(uint64_t addr)
@@ -402,5 +402,5 @@ bool virt_range(uint64_t addr)
 }
 
 bool phys_range(uint64_t addr) {
-	return (addr <= 0xfffffffffULL);
+	return (addr <= UINT64_C(0xfffffffff));
 }

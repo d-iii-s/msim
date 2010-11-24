@@ -640,7 +640,7 @@ static instr_opcode_t opcode_COPx(instr_opcode_t opc, uint32_t icode)
 		    BCx_spec[opc - opcCOP0][(icode & RT_MASK) >> RT_SHIFT];
 		break;
 	case opcC0:
-		opcode = CO_spec[icode & 0x3f];
+		opcode = CO_spec[icode & CO_MASK];
 		break;
 	default:
 		break;
@@ -655,7 +655,7 @@ static instr_opcode_t opcode_COPx(instr_opcode_t opc, uint32_t icode)
 void decode_instr(instr_info_t *ii)
 {
 	/* Instruction name and type */
-	instr_form_t *opc = &instr_table[(ii->icode >> 26) & 0x3f];
+	instr_form_t *opc = &instr_table[(ii->icode >> OP_SHIFT) & CO_MASK];
 	ii->opcode = opc->opcode;
 	
 	switch (opc->opcode) {
@@ -665,14 +665,15 @@ void decode_instr(instr_info_t *ii)
 		else
 			ii->opcode = SPEC_instr_table[ii->icode & FUNCTION_MASK];
 		
-		ii->shift = (ii->icode >> 6) & 0x1f;
+		ii->shift = (ii->icode >> SPEC_SHIFT) & SPEC_MASK;
 		break;
 	case opcSPECIAL2:
 		ii->opcode = SPEC2_instr_table[ii->icode & FUNCTION_MASK];
-		ii->shift = (ii->icode >> 6) & 0x1f;
+		ii->shift = (ii->icode >> SPEC_SHIFT) & SPEC_MASK;
 		break;
 	case opcBCOND:
-		ii->opcode = reg_imm_instr_table[(ii->icode >> 16) & 0x1f];
+		ii->opcode = reg_imm_instr_table[(ii->icode >> BCOND_SHIFT)
+		    & BCOND_MASK];
 		break;
 	case opcCOP0:
 	case opcCOP1:

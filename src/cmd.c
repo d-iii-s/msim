@@ -337,13 +337,13 @@ static bool system_dumpmem(token_t *parm, void *data)
 	
 	for (addr = (ptr36_t) _addr, cnt = (len36_t) _cnt, i = 0;
 	    i < cnt; addr += 4, i++) {
-		if ((i & 0x03) == 0)
+		if ((i & 0x03U) == 0)
 			printf("  %#011" PRIx64 "   ", addr);
 		
 		uint32_t val = physmem_read32(NULL, addr, false);
 		printf("%08" PRIx32 " ", val);
 		
-		if ((i & 0x03) == 3)
+		if ((i & 0x03U) == 3)
 			printf("\n");
 	}
 	

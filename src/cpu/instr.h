@@ -13,11 +13,8 @@
 #define INSTR_H_
 
 #include <stdint.h>
+#include <inttypes.h>
 #include "../main.h"
-
-/** Sign bit */
-#define SBIT   0x80000000U
-#define NSBIT  0x7fffffffU
 
 /** Opcode numbers
  *
@@ -285,25 +282,31 @@ typedef struct {
 } instr_form_t;
 
 /** Various mask and shift settings */
-#define TARGET_MASK      0x03ffffffU
-#define TARGET_SHIFT     2
-#define TARGET_COMB      0xf0000000U
+#define TARGET_MASK   UINT32_C(0x03ffffff)
+#define TARGET_SHIFT  2
+#define TARGET_COMB   UINT32_C(0xf0000000)
 
-#define FUNCTION_MASK  0x3f
+#define FUNCTION_MASK  UINT32_C(0x0000003f)
 
-#define SA_MASK   0x7c0U
+#define SA_MASK   UINT32_C(0x000007c0)
 #define SA_SHIFT  6
-#define RD_MASK   0x0000f800U
+#define RD_MASK   UINT32_C(0x0000f800)
 #define RD_SHIFT  11
-#define RT_MASK   0x001f0000U
+#define RT_MASK   UINT32_C(0x001f0000)
 #define RT_SHIFT  16
-#define RS_MASK   0x03e00000U
+#define RS_MASK   UINT32_C(0x03e00000)
 #define RS_SHIFT  21
-#define OP_MASK   0xfc000000U
+#define OP_MASK   UINT32_C(0xfc000000)
 #define OP_SHIFT  26
 
-#define IMM_MASK      0xffffU
-#define IMM_SIGN_BIT  0x8000U
+#define CO_MASK      UINT32_C(0x0000003f)
+#define SPEC_SHIFT   6
+#define SPEC_MASK    UINT32_C(0x0000001f)
+#define BCOND_SHIFT  16
+#define BCOND_MASK   UINT32_C(0x0000001f)
+
+#define IMM_MASK      UINT32_C(0x0000ffff)
+#define IMM_SIGN_BIT  UINT32_C(0x00008000)
 
 typedef struct {
 	/* Instruction */

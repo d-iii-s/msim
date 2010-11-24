@@ -11,7 +11,8 @@
 
 #include <stdint.h>
 
-#define MAX_CPU  31
+#define MAX_CPU   31
+#define MAX_INTR  6
 
 /** Exception types */
 typedef enum {

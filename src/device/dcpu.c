@@ -275,8 +275,8 @@ static bool dcpu_stat(token_t *parm, device_t *dev)
 static bool dcpu_cp0d(token_t *parm, device_t *dev)
 {
 	uint64_t no = parm_uint(parm);
-	if (no > 31) {
-		error("Out of range (0..31)");
+	if (no > MAX_CPU) {
+		error("Out of range (0..%u)", MAX_CPU);
 		return false;
 	}
 	
@@ -322,7 +322,7 @@ static bool dcpu_md(token_t *parm, device_t *dev)
 	
 	for (addr.ptr = _addr, cnt = _cnt, i = 0;
 	    i < cnt; addr.ptr += 4, i++) {
-		if ((i & 0x03) == 0)
+		if ((i & 0x03U) == 0)
 			printf("  %#018" PRIx64 "    ", addr.ptr);
 		
 		uint32_t val;
@@ -333,7 +333,7 @@ static bool dcpu_md(token_t *parm, device_t *dev)
 		else
 			printf("xxxxxxxx ");
 		
-		if ((i & 0x03) == 3)
+		if ((i & 0x03U) == 3)
 			printf("\n");
 	}
 	

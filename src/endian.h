@@ -12,6 +12,7 @@
 #ifndef ENDIAN_H_
 #define ENDIAN_H_
 
+#include <inttypes.h>
 #include "../config.h"
 
 #ifdef WORDS_BIGENDIAN
@@ -19,17 +20,17 @@
 #define convert_uint8_t_endian(val) (val)
 
 #define convert_uint16_t_endian(val) \
-	((((val) << 8) & 0xff00U) | (((val) >> 8) & 0x00ffU))
+	((((val) << 8) & UINT16_C(0xff00)) | (((val) >> 8) & UINT16_C(0x00ff)))
 
 #define convert_uint32_t_endian(val) \
-	((((val) & 0xffU) << 24) | (((val) & 0xff00U) << 8) | \
-	(((val) & 0xff0000U) >> 8) | (((val) & 0xff000000U) >> 24))
+	((((val) & UINT32_C(0x000000ff)) << 24) | (((val) & UINT32_C(0x0000ff00)) << 8) | \
+	(((val) & UINT32_C(0x00ff0000)) >> 8) | (((val) & UINT32_C(0xff000000)) >> 24))
 
 #define convert_uint64_t_endian(val) \
-	((((val) & 0xffULL) << 56) | (((val) & 0xff00ULL) << 40) | \
-	(((val) & 0xff0000ULL) << 24) | (((val) & 0xff000000ULL) << 8) | \
-	(((val) & 0xff00000000ULL) >> 8) | (((val) & 0xff00000000ULL) >> 24) | \
-	(((val) & 0xff000000000000ULL) >> 40) | (((val) & 0xff000000000000ULL) >> 56))
+	((((val) & UINT64_C(0x00000000000000ff)) << 56) | (((val) & UINT64_C(0x000000000000ff00)) << 40) | \
+	(((val) & UINT64_C(0x0000000000ff0000)) << 24) | (((val) & UINT64_C(0x00000000ff000000)) << 8) | \
+	(((val) & UINT64_C(0x000000ff00000000)) >> 8) | (((val) & UINT64_C(0x000000ff00000000)) >> 24) | \
+	(((val) & UINT64_C(0x00ff000000000000)) >> 40) | (((val) & UINT64_C(0xff00000000000000)) >> 56))
 
 #else /* WORDS_BIGENDIAN */
 

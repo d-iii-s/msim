@@ -27,10 +27,13 @@
 #include "../utils.h"
 #include "r4000.h"
 
+/** Sign bit */
+#define SBIT32   UINT32_C(0x80000000)
+
 /** Initial state */
 #define HARD_RESET_STATUS         (cp0_status_erl_mask | cp0_status_bev_mask)
-#define HARD_RESET_START_ADDRESS  0xffffffffbfc00000ULL
-#define HARD_RESET_PROC_ID        0x0400U
+#define HARD_RESET_START_ADDRESS  UINT64_C(0xffffffffbfc00000)
+#define HARD_RESET_PROC_ID        UINT32_C(0x00000400)
 #define HARD_RESET_CAUSE          0
 #define HARD_RESET_WATCHLO        0
 #define HARD_RESET_WATCHHI        0
@@ -38,7 +41,7 @@
 #define HARD_RESET_RANDOM         47
 #define HARD_RESET_WIRED          0
 
-#define EXCEPTION_OFFSET  0x180
+#define EXCEPTION_OFFSET  UINT64_C(0x0180)
 
 #define TRAP(expr) \
 	if (expr) \
@@ -80,31 +83,31 @@ typedef struct {
 } shift_tab_t;
 
 static shift_tab_t shift_tab_left[] = {
-	{ 0x00ffffffU, 24 },
-	{ 0x0000ffffU, 16 },
-	{ 0x000000ffU, 8 },
-	{ 0x00000000U, 0 }
+	{ UINT32_C(0x00ffffff), 24 },
+	{ UINT32_C(0x0000ffff), 16 },
+	{ UINT32_C(0x000000ff), 8 },
+	{ UINT32_C(0x00000000), 0 }
 };
 
 static shift_tab_t shift_tab_right[] = {
-	{ 0x00000000U, 0 },
-	{ 0xff000000U, 8 },
-	{ 0xffff0000U, 16 },
-	{ 0xffffff00U, 24 }
+	{ UINT32_C(0x00000000), 0 },
+	{ UINT32_C(0xff000000), 8 },
+	{ UINT32_C(0xffff0000), 16 },
+	{ UINT32_C(0xffffff00), 24 }
 };
 
 static shift_tab_t shift_tab_left_store[] = {
-	{ 0xffffff00U, 24 },
-	{ 0xffff0000U, 16 },
-	{ 0xff000000U, 8 },
-	{ 0x00000000U, 0 }
+	{ UINT32_C(0xffffff00), 24 },
+	{ UINT32_C(0xffff0000), 16 },
+	{ UINT32_C(0xff000000), 8 },
+	{ UINT32_C(0x00000000), 0 }
 };
 
 static shift_tab_t shift_tab_right_store[] = {
-	{ 0x00000000U, 0 },
-	{ 0x000000ffU, 8 },
-	{ 0x0000ffffU, 16 },
-	{ 0x00ffffffU, 24 }
+	{ UINT32_C(0x00000000), 0 },
+	{ UINT32_C(0x000000ff), 8 },
+	{ UINT32_C(0x0000ffff), 16 },
+	{ UINT32_C(0x00ffffff), 24 }
 };
 
 /** Initialize simulation environment
@@ -283,7 +286,7 @@ static exc_t convert_addr_user(cpu_t *cpu, ptr64_t virt, ptr36_t *phys,
 	ASSERT(CPU_USER_MODE(cpu));
 	
 	/* Test bit 31 or lookup in TLB */
-	if ((virt.lo & SBIT) != 0) {
+	if ((virt.lo & SBIT32) != 0) {
 		fill_addr_error(cpu, virt, noisy);
 		return excAddrError;
 	}
@@ -302,18 +305,18 @@ static exc_t convert_addr_supervisor(cpu_t *cpu, ptr64_t virt, ptr36_t *phys,
 	ASSERT(phys != NULL);
 	ASSERT(CPU_SUPERVISOR_MODE(cpu));
 	
-	if (virt.lo < 0x80000000U)  /* suseg */
+	if (virt.lo < UINT32_C(0x80000000))  /* suseg */
 		return tlb_hit(cpu, virt, phys, wr, noisy);
 	
-	if (virt.lo < 0xc0000000U) {
+	if (virt.lo < UINT32_C(0xc0000000)) {
 		fill_addr_error(cpu, virt, noisy);
 		return excAddrError;
 	}
 	
-	if (virt.lo < 0xe0000000U)  /* ssseg */
+	if (virt.lo < UINT32_C(0xe0000000))  /* ssseg */
 		return tlb_hit(cpu, virt, phys, wr, noisy);
 	
-	/* virt > 0xe0000000U */
+	/* virt > UINT32_C(0xe0000000) */
 	fill_addr_error(cpu, virt, noisy);
 	return excAddrError;
 }
@@ -328,27 +331,27 @@ static exc_t convert_addr_kernel(cpu_t *cpu, ptr64_t virt, ptr36_t *phys,
 	ASSERT(phys != NULL);
 	ASSERT(CPU_KERNEL_MODE(cpu));
 	
-	if (virt.lo < 0x80000000U) {  /* kuseg */
+	if (virt.lo < UINT32_C(0x80000000)) {  /* kuseg */
 		if (!cp0_status_erl(cpu))
 			return tlb_hit(cpu, virt, phys, wr, noisy);
 		
 		return excNone;
 	}
 	
-	if (virt.lo < 0xa0000000U) {  /* kseg0 */
-		*phys = virt.lo - 0x80000000U;
+	if (virt.lo < UINT32_C(0xa0000000)) {  /* kseg0 */
+		*phys = virt.lo - UINT32_C(0x80000000);
 		return excNone;
 	}
 	
-	if (virt.lo < 0xc0000000U) {  /* kseg1 */
-		*phys = virt.lo - 0xa0000000U;
+	if (virt.lo < UINT32_C(0xc0000000)) {  /* kseg1 */
+		*phys = virt.lo - UINT32_C(0xa0000000);
 		return excNone;
 	}
 	
-	if (virt.lo < 0xe0000000U)  /* kseg2 */
+	if (virt.lo < UINT32_C(0xe0000000))  /* kseg2 */
 		return tlb_hit(cpu, virt, phys, wr, noisy);
 	
-	/* virt > 0xe0000000U (kseg3) */
+	/* virt > UINT32_C(0xe0000000) (kseg3) */
 	return tlb_hit(cpu, virt, phys, wr, noisy);
 }
 
@@ -383,7 +386,7 @@ static inline exc_t align_test16(cpu_t *cpu, ptr64_t addr, bool noisy)
 {
 	ASSERT(cpu != NULL);
 	
-	if ((addr.ptr & 0x01) != 0) {
+	if ((addr.ptr & 0x01U) != 0) {
 		fill_addr_error(cpu, addr, noisy);
 		return excAddrError;
 	}
@@ -400,7 +403,7 @@ static inline exc_t align_test32(cpu_t *cpu, ptr64_t addr, bool noisy)
 {
 	ASSERT(cpu != NULL);
 	
-	if ((addr.ptr & 0x03) != 0) {
+	if ((addr.ptr & 0x03U) != 0) {
 		fill_addr_error(cpu, addr, noisy);
 		return excAddrError;
 	}
@@ -417,7 +420,7 @@ static inline exc_t align_test64(cpu_t *cpu, ptr64_t addr, bool noisy)
 {
 	ASSERT(cpu != NULL);
 	
-	if ((addr.ptr & 0x07) != 0) {
+	if ((addr.ptr & 0x07U) != 0) {
 		fill_addr_error(cpu, addr, noisy);
 		return excAddrError;
 	}
@@ -1113,14 +1116,14 @@ static void multiply(cpu_t *cpu, uint32_t a, uint32_t b, bool sign)
 		int64_t r = ((int64_t) ((int32_t) a)) * ((int64_t) ((int32_t) b));
 		
 		/* Result */
-		cpu->loreg.lo = ((uint64_t) r) & 0xffffffffU;
+		cpu->loreg.lo = ((uint64_t) r) & UINT32_C(0xffffffff);
 		cpu->hireg.lo = ((uint64_t) r) >> 32;
 	} else {
 		/* Unsigned multiplication */
 		uint64_t r = ((uint64_t) a) * ((uint64_t) b);
 		
 		/* Result */
-		cpu->loreg.lo = r & 0xffffffffU;
+		cpu->loreg.lo = r & UINT32_C(0xffffffff);
 		cpu->hireg.lo = r >> 32;
 	}
 }
@@ -1209,7 +1212,7 @@ static exc_t execute(cpu_t *cpu, instr_info_t ii)
 	case opcADD:
 		utmp32 = urrs.lo + urrt.lo;
 		
-		if (!((urrs.lo ^ urrt.lo) & SBIT) && ((urrs.lo ^ utmp32) & SBIT)) {
+		if (!((urrs.lo ^ urrt.lo) & SBIT32) && ((urrs.lo ^ utmp32) & SBIT32)) {
 			res = excOv;
 			break;
 		}
@@ -1219,7 +1222,7 @@ static exc_t execute(cpu_t *cpu, instr_info_t ii)
 	case opcADDI:
 		utmp32 = urrs.lo + ii.imm;
 		
-		if (!((urrs.lo ^ ii.imm) & SBIT) && ((ii.imm ^ utmp32) & SBIT)) {
+		if (!((urrs.lo ^ ii.imm) & SBIT32) && ((ii.imm ^ utmp32) & SBIT32)) {
 			res = excOv;
 			break;
 		}
@@ -1236,13 +1239,13 @@ static exc_t execute(cpu_t *cpu, instr_info_t ii)
 		cpu->regs[ii.rd].lo = urrs.lo & urrt.lo;
 		break;
 	case opcANDI:
-		cpu->regs[ii.rt].lo = urrs.lo & (ii.imm & 0xffffU);
+		cpu->regs[ii.rt].lo = urrs.lo & (ii.imm & UINT32_C(0x0000ffff));
 		break;
 	case opcCLO:
 		utmp32 = 0;
 		utmp32b = urrs.lo;
 		
-		while ((utmp32b & SBIT) && (utmp32 < 32)) {
+		while ((utmp32b & SBIT32) && (utmp32 < 32)) {
 			utmp32++;
 			utmp32b <<= 1;
 		}
@@ -1253,7 +1256,7 @@ static exc_t execute(cpu_t *cpu, instr_info_t ii)
 		utmp32 = 0;
 		utmp32b = urrs.lo;
 		
-		while ((!(utmp32b & SBIT)) && (utmp32 < 32)) {
+		while ((!(utmp32b & SBIT32)) && (utmp32 < 32)) {
 			utmp32++;
 			utmp32b <<= 1;
 		}
@@ -1308,32 +1311,32 @@ static exc_t execute(cpu_t *cpu, instr_info_t ii)
 		multiply(cpu, urrs.lo, urrt.lo, true);
 		utmp64 += ((uint64_t) cpu->hireg.lo << 32) | cpu->loreg.lo;
 		cpu->hireg.lo = utmp64 >> 32;
-		cpu->loreg.lo = utmp64 & 0xffffffffU;
+		cpu->loreg.lo = utmp64 & UINT32_C(0xffffffff);
 		break;
 	case opcMADDU:
 		utmp64 = ((uint64_t) cpu->hireg.lo << 32) | cpu->loreg.lo;
 		multiply(cpu, urrs.lo, urrt.lo, false);
 		utmp64 += ((uint64_t) cpu->hireg.lo << 32) | cpu->loreg.lo;
 		cpu->hireg.lo = utmp64 >> 32;
-		cpu->loreg.lo = utmp64 & 0xffffffffU;
+		cpu->loreg.lo = utmp64 & UINT32_C(0xffffffff);
 		break;
 	case opcMSUB:
 		utmp64 = ((uint64_t) cpu->hireg.lo << 32) | cpu->loreg.lo;
 		multiply(cpu, urrs.lo, urrt.lo, true);
 		utmp64 -= ((uint64_t) cpu->hireg.lo << 32) | cpu->loreg.lo;
 		cpu->hireg.lo = utmp64 >> 32;
-		cpu->loreg.lo = utmp64 & 0xffffffffU;
+		cpu->loreg.lo = utmp64 & UINT32_C(0xffffffff);
 		break;
 	case opcMSUBU:
 		utmp64 = ((uint64_t) cpu->hireg.lo << 32) | cpu->loreg.lo;
 		multiply(cpu, urrs.lo, urrt.lo, false);
 		utmp64 -= ((uint64_t) cpu->hireg.lo << 32) | cpu->loreg.lo;
 		cpu->hireg.lo = utmp64 >> 32;
-		cpu->loreg.lo = utmp64 & 0xffffffffU;
+		cpu->loreg.lo = utmp64 & UINT32_C(0xffffffff);
 		break;
 	case opcMUL:
 		utmp64 = ((uint64_t) urrs.lo) * ((uint64_t) urrt.lo);
-		cpu->regs[ii.rd].lo = utmp64 & 0xffffffffU;
+		cpu->regs[ii.rd].lo = utmp64 & UINT32_C(0xffffffff);
 		break;
 	case opcMOVN:
 		if (urrt.lo != 0)
@@ -1356,13 +1359,13 @@ static exc_t execute(cpu_t *cpu, instr_info_t ii)
 		cpu->regs[ii.rd].lo = urrs.lo | urrt.lo;
 		break;
 	case opcORI:
-		cpu->regs[ii.rt].lo = urrs.lo | (ii.imm & 0xffffU);
+		cpu->regs[ii.rt].lo = urrs.lo | (ii.imm & UINT32_C(0x0000ffff));
 		break;
 	case opcSLL:
 		cpu->regs[ii.rd].lo = urrt.lo << ii.shift;
 		break;
 	case opcSLLV:
-		cpu->regs[ii.rd].lo = urrt.lo << (urrs.lo & 0x001fU);
+		cpu->regs[ii.rd].lo = urrt.lo << (urrs.lo & UINT32_C(0x0000001f));
 		break;
 	case opcSLT:
 		cpu->regs[ii.rd].lo = ((int32_t) urrs.lo) < ((int32_t) urrt.lo);
@@ -1380,18 +1383,18 @@ static exc_t execute(cpu_t *cpu, instr_info_t ii)
 		cpu->regs[ii.rd].lo = (uint32_t) (((int32_t) urrt.lo) >> ii.shift);
 		break;
 	case opcSRAV:
-		cpu->regs[ii.rd].lo = (uint32_t) (((int32_t) urrt.lo) >> (urrs.lo & 0x001fU));
+		cpu->regs[ii.rd].lo = (uint32_t) (((int32_t) urrt.lo) >> (urrs.lo & UINT32_C(0x0000001f)));
 		break;
 	case opcSRL:
 		cpu->regs[ii.rd].lo = urrt.lo >> ii.shift;
 		break;
 	case opcSRLV:
-		cpu->regs[ii.rd].lo = urrt.lo >> (urrs.lo & 0x001fU);
+		cpu->regs[ii.rd].lo = urrt.lo >> (urrs.lo & UINT32_C(0x0000001f));
 		break;
 	case opcSUB:
 		utmp32 = urrs.lo - urrt.lo;
 		
-		if (((urrs.lo ^ urrt.lo) & SBIT) && ((urrs.lo ^ utmp32) & SBIT)) {
+		if (((urrs.lo ^ urrt.lo) & SBIT32) && ((urrs.lo ^ utmp32) & SBIT32)) {
 			res = excOv;
 			break;
 		}
@@ -1405,7 +1408,7 @@ static exc_t execute(cpu_t *cpu, instr_info_t ii)
 		cpu->regs[ii.rd].lo = urrs.lo ^ urrt.lo;
 		break;
 	case opcXORI:
-		cpu->regs[ii.rt].lo = urrs.lo ^ (ii.imm & 0xffffU);
+		cpu->regs[ii.rt].lo = urrs.lo ^ (ii.imm & UINT32_C(0x0000ffff));
 		break;
 	
 	/*
@@ -1496,7 +1499,7 @@ static exc_t execute(cpu_t *cpu, instr_info_t ii)
 		cpu->regs[31].val = cpu->pc.ptr + 8;
 		/* no break */
 	case opcBGEZ:
-		if (!(urrs.lo & SBIT)) {
+		if (!(urrs.lo & SBIT32)) {
 			pca.ptr = cpu->pc_next.ptr + (((int32_t) ii.imm) << TARGET_SHIFT);
 			cpu->branch = BRANCH_COND;
 		}
@@ -1505,7 +1508,7 @@ static exc_t execute(cpu_t *cpu, instr_info_t ii)
 		cpu->regs[31].val = cpu->pc.ptr + 8;
 		/* no break */
 	case opcBGEZL:
-		if (!(urrs.lo & SBIT)) {
+		if (!(urrs.lo & SBIT32)) {
 			pca.ptr = cpu->pc_next.ptr + (((int32_t) ii.imm) << TARGET_SHIFT);
 			cpu->branch = BRANCH_COND;
 		} else {
@@ -1547,7 +1550,7 @@ static exc_t execute(cpu_t *cpu, instr_info_t ii)
 		cpu->regs[31].val = cpu->pc_next.ptr + 4;
 		/* no break */
 	case opcBLTZ:
-		if (urrs.lo & SBIT) {
+		if (urrs.lo & SBIT32) {
 			pca.ptr = cpu->pc_next.ptr + (((int32_t) ii.imm) << TARGET_SHIFT);
 			cpu->branch = BRANCH_COND;
 		}
@@ -1556,7 +1559,7 @@ static exc_t execute(cpu_t *cpu, instr_info_t ii)
 		cpu->regs[31].val = cpu->pc_next.ptr + 4;
 		/* no break */
 	case opcBLTZL:
-		if (urrs.lo & SBIT) {
+		if (urrs.lo & SBIT32) {
 			pca.ptr = cpu->pc_next.ptr + (((int32_t) ii.imm) << TARGET_SHIFT);
 			cpu->branch = BRANCH_COND;
 		} else {
@@ -1602,7 +1605,7 @@ static exc_t execute(cpu_t *cpu, instr_info_t ii)
 		res = cpu_read_mem8(cpu, addr, &utmp8, true);
 		if (res == excNone)
 			cpu->regs[ii.rt].val = (utmp8 & 0x80U) ?
-			    ((uint64_t) utmp8 | 0xffffffffffffff00ULL) : utmp8;
+			    ((uint64_t) utmp8 | UINT64_C(0xffffffffffffff00)) : utmp8;
 		break;
 	case opcLBU:
 		addr.ptr = urrs.val + ((int32_t) ii.imm);
@@ -1621,7 +1624,7 @@ static exc_t execute(cpu_t *cpu, instr_info_t ii)
 		res = cpu_read_mem16(cpu, addr, &utmp16, true);
 		if (res == excNone)
 			cpu->regs[ii.rt].val = (utmp16 & 0x8000U) ?
-			    ((uint64_t) utmp16 | 0xffffffffffff0000ULL) : utmp16;
+			    ((uint64_t) utmp16 | UINT64_C(0xffffffffffff0000)) : utmp16;
 		break;
 	case opcLHU:
 		addr.ptr = urrs.val + ((int32_t) ii.imm);
@@ -1668,22 +1671,22 @@ static exc_t execute(cpu_t *cpu, instr_info_t ii)
 			cpu->regs[ii.rt].val = utmp32;
 		break;
 	case opcLWL:
-		addr.ptr = (urrs.val + ((int32_t) ii.imm)) & ((uint64_t) ~0x03);
+		addr.ptr = (urrs.val + ((int32_t) ii.imm)) & ((uint64_t) ~UINT64_C(0x03));
 		res = cpu_read_mem32(cpu, addr, &utmp32, true);
 		
 		if (res == excNone) {
-			unsigned int index = (urrs.val + ((int32_t) ii.imm)) & 0x03;
+			unsigned int index = (urrs.val + ((int32_t) ii.imm)) & 0x03U;
 			
 			cpu->regs[ii.rt].lo &= shift_tab_left[index].mask;
 			cpu->regs[ii.rt].lo |= utmp32 << shift_tab_left[index].shift;
 		}
 		break;
 	case opcLWR:
-		addr.ptr = (urrs.val + ((int32_t) ii.imm)) & ((uint64_t) ~0x03);
+		addr.ptr = (urrs.val + ((int32_t) ii.imm)) & ((uint64_t) ~UINT64_C(0x03));
 		res = cpu_read_mem32(cpu, addr, &utmp32, true);
 		
 		if (res == excNone) {
-			unsigned int index = (urrs.val + ((int32_t) ii.imm)) & 0x03;
+			unsigned int index = (urrs.val + ((int32_t) ii.imm)) & 0x03U;
 			
 			cpu->regs[ii.rt].lo &= shift_tab_right[index].mask;
 			cpu->regs[ii.rt].lo |= (utmp32 >> shift_tab_right[index].shift)
@@ -1752,11 +1755,11 @@ static exc_t execute(cpu_t *cpu, instr_info_t ii)
 		res = cpu_write_mem32(cpu, addr, cpu->regs[ii.rt].lo, true);
 		break;
 	case opcSWL:
-		addr.ptr = (urrs.val + ((int32_t) ii.imm)) & ((uint64_t) ~0x03);
+		addr.ptr = (urrs.val + ((int32_t) ii.imm)) & ((uint64_t) ~UINT64_C(0x03));
 		res = cpu_read_mem32(cpu, addr, &utmp32, true);
 		
 		if (res == excNone) {
-			unsigned int index = (urrs.val + ((int32_t) ii.imm)) & 0x03;
+			unsigned int index = (urrs.val + ((int32_t) ii.imm)) & 0x03U;
 			
 			utmp32 &= shift_tab_left_store[index].mask;
 			utmp32 |= (cpu->regs[ii.rt].lo >> shift_tab_left_store[index].shift)
@@ -1766,11 +1769,11 @@ static exc_t execute(cpu_t *cpu, instr_info_t ii)
 		}
 		break;
 	case opcSWR:
-		addr.ptr = (urrs.val + ((int32_t) ii.imm)) & ((uint64_t) ~0x03);
+		addr.ptr = (urrs.val + ((int32_t) ii.imm)) & ((uint64_t) ~UINT64_C(0x03));
 		res = cpu_read_mem32(cpu, addr, &utmp32, true);
 		
 		if (res == excNone) {
-			unsigned int index = (urrs.val + ((int32_t) ii.imm)) & 0x03;
+			unsigned int index = (urrs.val + ((int32_t) ii.imm)) & 0x03U;
 			
 			utmp32 &= shift_tab_right_store[index].mask;
 			utmp32 |= cpu->regs[ii.rt].lo << shift_tab_right_store[index].shift;
@@ -1944,36 +1947,36 @@ static exc_t execute(cpu_t *cpu, instr_info_t ii)
 			switch (ii.rd) {
 			/* 0 */
 			case cp0_Index:
-				cp0_index(cpu).val = urrt.val & 0x003fU;
+				cp0_index(cpu).val = urrt.val & UINT32_C(0x003f);
 				break;
 			case cp0_Random:
 				/* Ignored, read-only */
 				break;
 			case cp0_EntryLo0:
-				cp0_entrylo0(cpu).val = urrt.val & 0x3fffffffU;
+				cp0_entrylo0(cpu).val = urrt.val & UINT32_C(0x3fffffff);
 				break;
 			case cp0_EntryLo1:
-				cp0_entrylo1(cpu).val = urrt.val & 0x3fffffffU;
+				cp0_entrylo1(cpu).val = urrt.val & UINT32_C(0x3fffffff);
 				break;
 			case cp0_Context:
-				cp0_context(cpu).val = urrt.val & 0xfffffff0U;
+				cp0_context(cpu).val = urrt.val & UINT32_C(0xfffffff0);
 				break;
 			case cp0_PageMask:
 				cp0_pagemask(cpu).val = 0;
-				if ((urrt.val == 0x0U)
-				    || (urrt.val == 0x6000U)
-				    || (urrt.val == 0x1e000U)
-				    || (urrt.val == 0x7e000U)
-				    || (urrt.val == 0x1fe000U)
-				    || (urrt.val == 0x7fe000U)
-				    || (urrt.val == 0x1ffe000U))
+				if ((urrt.val == UINT32_C(0x0))
+				    || (urrt.val == UINT32_C(0x6000))
+				    || (urrt.val == UINT32_C(0x1e000))
+				    || (urrt.val == UINT32_C(0x7e000))
+				    || (urrt.val == UINT32_C(0x1fe000))
+				    || (urrt.val == UINT32_C(0x7fe000))
+				    || (urrt.val == UINT32_C(0x1ffe000)))
 					cp0_pagemask(cpu).val = urrt.val & cp0_pagemask_mask_mask;
 				else if (errors)
 					alert("R4000: Invalid value for PageMask (MTC0)");
 				break;
 			case cp0_Wired:
 				cp0_random(cpu).val = 47;
-				cp0_wired(cpu).val = urrt.val & 0x003fU;
+				cp0_wired(cpu).val = urrt.val & UINT32_C(0x003f);
 				if (cp0_wired(cpu).val > 47)
 					alert("R4000: Invalid value for Wired (MTC0)");
 				break;
@@ -1988,14 +1991,14 @@ static exc_t execute(cpu_t *cpu, instr_info_t ii)
 				cp0_count(cpu).val = urrt.val;
 				break;
 			case cp0_EntryHi:
-				cp0_entryhi(cpu).val = urrt.val & 0xfffff0ffU;
+				cp0_entryhi(cpu).val = urrt.val & UINT32_C(0xfffff0ff);
 				break;
 			case cp0_Compare:
 				cp0_compare(cpu).val = urrt.val;
 				cp0_cause(cpu).val &= ~(1 << cp0_cause_ip7_shift);
 				break;
 			case cp0_Status:
-				cp0_status(cpu).val = urrt.val & 0xff77ff1fU;
+				cp0_status(cpu).val = urrt.val & UINT32_C(0xff77ff1f);
 				break;
 			case cp0_Cause:
 				cp0_cause(cpu).val &= ~(cp0_cause_ip0_mask | cp0_cause_ip1_mask);
@@ -2010,7 +2013,7 @@ static exc_t execute(cpu_t *cpu, instr_info_t ii)
 			/* 16 */
 			case cp0_Config:
 				/* Ignored for simulation */
-				cp0_config(cpu).val = urrt.val & 0xffffefffU;
+				cp0_config(cpu).val = urrt.val & UINT32_C(0xffffefff);
 				break;
 			case cp0_LLAddr:
 				cp0_lladdr(cpu).val = urrt.val;
@@ -2162,7 +2165,7 @@ static exc_t execute(cpu_t *cpu, instr_info_t ii)
 				cp0_entrylo0(cpu).val = 0;
 				cp0_entrylo1(cpu).val = 0;
 			} else {
-				cp0_pagemask(cpu).val = (~cpu->tlb[i].mask) & 0x01ffe000U;
+				cp0_pagemask(cpu).val = (~cpu->tlb[i].mask) & UINT32_C(0x01ffe000);
 				cp0_entryhi(cpu).val = cpu->tlb[i].vpn2 | cpu->tlb[i].asid;
 				
 				cp0_entrylo0(cpu).val = (cpu->tlb[i].pg[0].pfn >> 6)
@@ -2326,15 +2329,15 @@ static void handle_exception(cpu_t *cpu, exc_t res)
 	if (cp0_status_bev(cpu)) {
 		/* Boot time */
 		if (res != excReset)
-			exc_pc.ptr = 0xffffffffbfc00200ULL;
+			exc_pc.ptr = UINT64_C(0xffffffffbfc00200);
 		else
-			exc_pc.ptr = 0xffffffffbfc00000ULL;
+			exc_pc.ptr = UINT64_C(0xffffffffbfc00000);
 	} else {
 		/* Normal time */
 		if (res != excReset)
-			exc_pc.ptr = 0xffffffff80000000ULL;
+			exc_pc.ptr = UINT64_C(0xffffffff80000000);
 		else
-			exc_pc.ptr = 0xffffffffbfc00000ULL;
+			exc_pc.ptr = UINT64_C(0xffffffffbfc00000);
 	}
 	
 	/* Exception vector offsets */

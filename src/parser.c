@@ -13,6 +13,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
+#include <inttypes.h>
 #include "device/device.h"
 #include "parser.h"
 #include "assert.h"
@@ -52,23 +53,23 @@ static uint64_t read_multiply(const char **str)
 	ASSERT(*str != NULL);
 	
 	const char *tmp = *str;
-	unsigned int mply;
+	uint64_t mply;
 	
 	switch (*tmp) {
 	case 'k':
-		mply = 1000;
+		mply = UINT64_C(1000);
 		tmp++;
 		break;
 	case 'K':
-		mply = 1024;
+		mply = UINT64_C(1024);
 		tmp++;
 		break;
 	case 'M':
-		mply = 1024 * 1024;
+		mply = UINT64_C(1048576);
 		tmp++;
 		break;
 	case 'G':
-		mply = 1024 * 1024 * 1024;
+		mply = UINT64_C(1073741824);
 		tmp++;
 		break;
 	default:

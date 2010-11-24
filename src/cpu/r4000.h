@@ -14,6 +14,7 @@
 
 #include <stdint.h>
 #include <stdbool.h>
+#include <inttypes.h>
 #include <unistd.h>
 #include "../list.h"
 #include "instr.h"
@@ -21,9 +22,9 @@
 #define TLB_ENTRIES   48
 #define REG_COUNT     32
 #define INTR_COUNT    8
-#define TLB_PHYSMASK  0x780000000ULL
+#define TLB_PHYSMASK  UINT64_C(0x780000000)
 
-#define DEFAULT_MEMORY_VALUE  0xffffffffffffffffULL
+#define DEFAULT_MEMORY_VALUE  UINT64_C(0xffffffffffffffff)
 
 /* cp0 registers */
 typedef enum {
@@ -68,9 +69,9 @@ typedef enum {
 	cp0_Res7
 } cp0_regs_t;
 
-#define cp0_index_index_mask 0x0000003fU
-#define cp0_index_res_mask   0x7fffffc0U
-#define cp0_index_p_mask     0x80000000U
+#define cp0_index_index_mask UINT32_C(0x0000003f)
+#define cp0_index_res_mask   UINT32_C(0x7fffffc0)
+#define cp0_index_p_mask     UINT32_C(0x80000000)
 
 #define cp0_index_index_shift  0
 #define cp0_index_res_shift    6
@@ -80,8 +81,8 @@ typedef enum {
 #define cp0_index_res(cpu)    (((cpu)->cp0[cp0_Index].val & cp0_index_res_mask) >> cp0_index_res_shift)
 #define cp0_index_p(cpu)      (((cpu)->cp0[cp0_Index].val & cp0_index_p_mask) >> cp0_index_p_shift)
 
-#define cp0_random_random_mask  0x0000003fU
-#define cp0_random_res_mask     0xffffffc0U
+#define cp0_random_random_mask  UINT32_C(0x0000003f)
+#define cp0_random_res_mask     UINT32_C(0xffffffc0)
 
 #define cp0_random_random_shift  0
 #define cp0_random_res_shift     6
@@ -89,30 +90,30 @@ typedef enum {
 #define cp0_random_random(cpu)  (((cpu)->cp0[cp0_Random].val & cp0_random_random_mask) >> cp0_random_random_shift)
 #define cp0_random_res(cpu)     (((cpu)->cp0[cp0_Random].val & cp0_random_res_mask) >> cp0_random_res_shift)
 
-#define cp0_status_ie_mask    0x00000001U
-#define cp0_status_exl_mask   0x00000002U
-#define cp0_status_erl_mask   0x00000004U
-#define cp0_status_ksu_mask   0x00000018U
-#define cp0_status_ux_mask    0x00000020U
-#define cp0_status_sx_mask    0x00000040U
-#define cp0_status_kx_mask    0x00000080U
-#define cp0_status_im_mask    0x0000ff00U
-#define cp0_status_de_mask    0x00010000U
-#define cp0_status_ce_mask    0x00020000U
-#define cp0_status_ch_mask    0x00040000U
-#define cp0_status_res1_mask  0x00080000U
-#define cp0_status_sr_mask    0x00100000U
-#define cp0_status_ts_mask    0x00200000U
-#define cp0_status_bev_mask   0x00400000U
-#define cp0_status_res2_mask  0x01800000U
-#define cp0_status_re_mask    0x02000000U
-#define cp0_status_fr_mask    0x04000000U
-#define cp0_status_rp_mask    0x08000000U
-#define cp0_status_cu0_mask   0x10000000U
-#define cp0_status_cu1_mask   0x20000000U
-#define cp0_status_cu2_mask   0x40000000U
-#define cp0_status_cu3_mask   0x80000000U
-#define cp0_status_cu_mask    0xf0000000U
+#define cp0_status_ie_mask    UINT32_C(0x00000001)
+#define cp0_status_exl_mask   UINT32_C(0x00000002)
+#define cp0_status_erl_mask   UINT32_C(0x00000004)
+#define cp0_status_ksu_mask   UINT32_C(0x00000018)
+#define cp0_status_ux_mask    UINT32_C(0x00000020)
+#define cp0_status_sx_mask    UINT32_C(0x00000040)
+#define cp0_status_kx_mask    UINT32_C(0x00000080)
+#define cp0_status_im_mask    UINT32_C(0x0000ff00)
+#define cp0_status_de_mask    UINT32_C(0x00010000)
+#define cp0_status_ce_mask    UINT32_C(0x00020000)
+#define cp0_status_ch_mask    UINT32_C(0x00040000)
+#define cp0_status_res1_mask  UINT32_C(0x00080000)
+#define cp0_status_sr_mask    UINT32_C(0x00100000)
+#define cp0_status_ts_mask    UINT32_C(0x00200000)
+#define cp0_status_bev_mask   UINT32_C(0x00400000)
+#define cp0_status_res2_mask  UINT32_C(0x01800000)
+#define cp0_status_re_mask    UINT32_C(0x02000000)
+#define cp0_status_fr_mask    UINT32_C(0x04000000)
+#define cp0_status_rp_mask    UINT32_C(0x08000000)
+#define cp0_status_cu0_mask   UINT32_C(0x10000000)
+#define cp0_status_cu1_mask   UINT32_C(0x20000000)
+#define cp0_status_cu2_mask   UINT32_C(0x40000000)
+#define cp0_status_cu3_mask   UINT32_C(0x80000000)
+#define cp0_status_cu_mask    UINT32_C(0xf0000000)
 
 #define cp0_status_ie_shift    0
 #define cp0_status_exl_shift   1
@@ -164,9 +165,9 @@ typedef enum {
 #define cp0_status_cu3(cpu)  (((cpu)->cp0[cp0_Status].val & cp0_status_cu3_mask) >> 31)
 #define cp0_status_cu(cpu)   (((cpu)->cp0[cp0_Status].val & cp0_status_cu_mask) >> 28)
 
-#define cp0_entryhi_asid_mask  0x000000ffU
-#define cp0_entryhi_res1_mask  0x00001f00U
-#define cp0_entryhi_vpn2_mask  0xffffe000U
+#define cp0_entryhi_asid_mask  UINT32_C(0x000000ff)
+#define cp0_entryhi_res1_mask  UINT32_C(0x00001f00)
+#define cp0_entryhi_vpn2_mask  UINT32_C(0xffffe000)
 
 #define cp0_entryhi_asid_shift  0
 #define cp0_entryhi_res1_shift  8
@@ -176,12 +177,12 @@ typedef enum {
 #define cp0_entryhi_res1(cpu)  (((cpu)->cp0[cp0_EntryHi].val & cp0_entryhi_res1_shift) >> 8)
 #define cp0_entryhi_vpn2(cpu)  (((cpu)->cp0[cp0_EntryHi].val & cp0_entryhi_vpn2_shift) >> 13)
 
-#define cp0_entrylo_g_mask     0x00000001U
-#define cp0_entrylo_v_mask     0x00000002U
-#define cp0_entrylo_d_mask     0x00000004U
-#define cp0_entrylo_c_mask     0x00000038U
-#define cp0_entrylo_pfn_mask   0x3fffffc0U
-#define cp0_entrylo_res1_mask  0xc0000000U
+#define cp0_entrylo_g_mask     UINT32_C(0x00000001)
+#define cp0_entrylo_v_mask     UINT32_C(0x00000002)
+#define cp0_entrylo_d_mask     UINT32_C(0x00000004)
+#define cp0_entrylo_c_mask     UINT32_C(0x00000038)
+#define cp0_entrylo_pfn_mask   UINT32_C(0x3fffffc0)
+#define cp0_entrylo_res1_mask  UINT32_C(0xc0000000)
 
 #define cp0_entrylo_g_shift     0
 #define cp0_entrylo_v_shift     1
@@ -204,8 +205,8 @@ typedef enum {
 #define cp0_entrylo1_pfn(cpu)   (((cpu)->cp0[cp0_EntryLo1].val & cp0_entrylo_pfn_mask) >> cp0_entrylo_pfn_shift)
 #define cp0_entrylo1_res1(cpu)  (((cpu)->cp0[cp0_EntryLo1].val & cp0_entrylo_res1_mask) >> cp0_entrylo_res1_shift)
 
-#define cp0_wired_w_mask     0x0000001fU
-#define cp0_wired_res1_mask  0xffffffe0U
+#define cp0_wired_w_mask     UINT32_C(0x0000001f)
+#define cp0_wired_res1_mask  UINT32_C(0xffffffe0)
 
 #define cp0_wired_w_shift     0
 #define cp0_wired_res1_shift  6
@@ -213,9 +214,9 @@ typedef enum {
 #define cp0_wired_w(cpu)     (((cpu)->cp0[cp0_Wired].val & cp0_wired_w_mask) >> cp0_wired_w_shift)
 #define cp0_wired_res1(cpu)  (((cpu)->cp0[cp0_Wired].val & cp0_wired_res1_mask) >> cp0_wired_res1_shift)
 
-#define cp0_context_res1_mask     0x0000000fU
-#define cp0_context_badvpn2_mask  0x007ffff0U
-#define cp0_context_ptebase_mask  0xff800000U
+#define cp0_context_res1_mask     UINT32_C(0x0000000f)
+#define cp0_context_badvpn2_mask  UINT32_C(0x007ffff0)
+#define cp0_context_ptebase_mask  UINT32_C(0xff800000)
 
 #define cp0_context_res1_shift     0
 #define cp0_context_badvpn2_shift  4
@@ -226,9 +227,9 @@ typedef enum {
 #define cp0_context_badvpn2(cpu)  (((cpu)->cp0[cp0_Context].val & cp0_context_badvpn2_mask) >> cp0_context_badvpn2_shift)
 #define cp0_context_ptebase(cpu)  (((cpu)->cp0[cp0_Context].val & cp0_context_ptebase_mask) >> cp0_context_ptebase_shift)
 
-#define cp0_pagemask_res1_mask  0x00001fffU
-#define cp0_pagemask_mask_mask  0x01ffe000U
-#define cp0_pagemask_res2_mask  0xfe000000U
+#define cp0_pagemask_res1_mask  UINT32_C(0x00001fff)
+#define cp0_pagemask_mask_mask  UINT32_C(0x01ffe000)
+#define cp0_pagemask_res2_mask  UINT32_C(0xfe000000)
 
 #define cp0_pagemask_res1_shift  0
 #define cp0_pagemask_mask_shift  13
@@ -238,20 +239,20 @@ typedef enum {
 #define cp0_pagemask_mask(cpu)  (((cpu)->cp0[cp0_PageMask].val & cp0_pagemask_mask_mask) >> cp0_pagemask_mask_shift)
 #define cp0_pagemask_res2(cpu)  (((cpu)->cp0[cp0_PageMask].val & cp0_pagemask_res2_mask) >> cp0_pagemask_res2_shift)
 
-#define cp0_cause_res1_mask     0x00000003U
-#define cp0_cause_exccode_mask  0x0000007cU
-#define cp0_cause_res2_mask     0x00000080U
-#define cp0_cause_ip0_mask      0x00000100U
-#define cp0_cause_ip1_mask      0x00000200U
-#define cp0_cause_ip_mask       0x0000ff00U
-#define cp0_cause_res3_mask     0x0fff0000U
-#define cp0_cause_ce_mask       0x30000000U
-#define cp0_cause_bd_mask       0x80000000U
-#define cp0_cause_res4_mask     0x40000000U
+#define cp0_cause_res1_mask     UINT32_C(0x00000003)
+#define cp0_cause_exccode_mask  UINT32_C(0x0000007c)
+#define cp0_cause_res2_mask     UINT32_C(0x00000080)
+#define cp0_cause_ip0_mask      UINT32_C(0x00000100)
+#define cp0_cause_ip1_mask      UINT32_C(0x00000200)
+#define cp0_cause_ip_mask       UINT32_C(0x0000ff00)
+#define cp0_cause_res3_mask     UINT32_C(0x0fff0000)
+#define cp0_cause_ce_mask       UINT32_C(0x30000000)
+#define cp0_cause_bd_mask       UINT32_C(0x80000000)
+#define cp0_cause_res4_mask     UINT32_C(0x40000000)
 
-#define cp0_cause_ce_cu1  0x10000000U
-#define cp0_cause_ce_cu2  0x20000000U
-#define cp0_cause_ce_cu3  0x30000000U
+#define cp0_cause_ce_cu1  UINT32_C(0x10000000)
+#define cp0_cause_ce_cu2  UINT32_C(0x20000000)
+#define cp0_cause_ce_cu3  UINT32_C(0x30000000)
 
 #define cp0_cause_res1_shift     0
 #define cp0_cause_exccode_shift  2
@@ -279,9 +280,9 @@ typedef enum {
 #define cp0_cause_res4(cpu)     (((cpu)->cp0[cp0_Cause].val & cp0_cause_res4_mask) >> cp0_cause_res4_shift)
 #define cp0_cause_bd(cpu)       (((cpu)->cp0[cp0_Cause].val & cp0_cause_bd_mask) >> cp0_cause_bd_shift)
 
-#define cp0_prid_rev_mask  0x000000ffU
-#define cp0_prid_imp_mask  0x0000ff00U
-#define cp0_prid_res_mask  0xffff0000U
+#define cp0_prid_rev_mask  UINT32_C(0x000000ff)
+#define cp0_prid_imp_mask  UINT32_C(0x0000ff00)
+#define cp0_prid_res_mask  UINT32_C(0xffff0000)
 
 #define cp0_prid_rev_shift  0
 #define cp0_prid_imp_shift  8
@@ -291,25 +292,25 @@ typedef enum {
 #define cp0_prid_imp(cpu)  (((cpu)->cp0[cp0_PRId].val & cp0_prid_imp_mask) >> cp0_prid_imp_shift)
 #define cp0_prid_res(cpu)  (((cpu)->cp0[cp0_PRId].val & cp0_prid_res_mask) >> cp0_prid_res_shift)
 
-#define cp0_config_k0_mask   0x00000007U
-#define cp0_config_cu_mask   0x00000008U
-#define cp0_config_db_mask   0x00000010U
-#define cp0_config_b_mask    0x00000020U
-#define cp0_config_dc_mask   0x000003c0U
-#define cp0_config_ic_mask   0x00003c00U
-#define cp0_config_res_mask  0x00001000U
-#define cp0_config_eb_mask   0x00002000U
-#define cp0_config_em_mask   0x00004000U
-#define cp0_config_be_mask   0x00008000U
-#define cp0_config_sm_mask   0x00010000U
-#define cp0_config_sc_mask   0x00020000U
-#define cp0_config_ew_mask   0x000c0000U
-#define cp0_config_sw_mask   0x00100000U
-#define cp0_config_ss_mask   0x00200000U
-#define cp0_config_sb_mask   0x00c00000U
-#define cp0_config_ep_mask   0x0f000000U
-#define cp0_config_ec_mask   0x70000000U
-#define cp0_config_cm_mask   0x80000000U
+#define cp0_config_k0_mask   UINT32_C(0x00000007)
+#define cp0_config_cu_mask   UINT32_C(0x00000008)
+#define cp0_config_db_mask   UINT32_C(0x00000010)
+#define cp0_config_b_mask    UINT32_C(0x00000020)
+#define cp0_config_dc_mask   UINT32_C(0x000003c0)
+#define cp0_config_ic_mask   UINT32_C(0x00003c00)
+#define cp0_config_res_mask  UINT32_C(0x00001000)
+#define cp0_config_eb_mask   UINT32_C(0x00002000)
+#define cp0_config_em_mask   UINT32_C(0x00004000)
+#define cp0_config_be_mask   UINT32_C(0x00008000)
+#define cp0_config_sm_mask   UINT32_C(0x00010000)
+#define cp0_config_sc_mask   UINT32_C(0x00020000)
+#define cp0_config_ew_mask   UINT32_C(0x000c0000)
+#define cp0_config_sw_mask   UINT32_C(0x00100000)
+#define cp0_config_ss_mask   UINT32_C(0x00200000)
+#define cp0_config_sb_mask   UINT32_C(0x00c00000)
+#define cp0_config_ep_mask   UINT32_C(0x0f000000)
+#define cp0_config_ec_mask   UINT32_C(0x70000000)
+#define cp0_config_cm_mask   UINT32_C(0x80000000)
 
 #define cp0_config_k0_shift   0
 #define cp0_config_cu_shift   3
@@ -351,10 +352,10 @@ typedef enum {
 #define cp0_config_ec(cpu)  (((cpu)->cp0[cp0_Config].val & cp0_config_ec_mask) >> cp0_config_ec_shift)
 #define cp0_config_cm(cpu)  (((cpu)->cp0[cp0_Config].val & cp0_config_cm_mask) >> cp0_config_cm_shift)
 
-#define cp0_watchlo_w_mask       0x00000001U
-#define cp0_watchlo_r_mask       0x00000002U
-#define cp0_watchlo_res_mask     0x00000004U
-#define cp0_watchlo_paddr0_mask  0xfffffff8U
+#define cp0_watchlo_w_mask       UINT32_C(0x00000001)
+#define cp0_watchlo_r_mask       UINT32_C(0x00000002)
+#define cp0_watchlo_res_mask     UINT32_C(0x00000004)
+#define cp0_watchlo_paddr0_mask  UINT32_C(0xfffffff8)
 
 #define cp0_watchlo_w_shift       0
 #define cp0_watchlo_r_shift       1
@@ -366,8 +367,8 @@ typedef enum {
 #define cp0_watchlo_res(cpu)     (((cpu)->cp0[cp0_WatchLo].val & cp0_watchlo_res_mask) >> cp0_watchlo_res_shift)
 #define cp0_watchlo_paddr0(cpu)  (((cpu)->cp0[cp0_WatchLo].val & cp0_watchlo_paddr0_mask) >> cp0_watchlo_paddr0_shift)
 
-#define cp0_watchhi_paddr1_mask  0x0000000fU
-#define cp0_watchhi_res_mask     0xfffffff0U
+#define cp0_watchhi_paddr1_mask  UINT32_C(0x0000000f)
+#define cp0_watchhi_res_mask     UINT32_C(0xfffffff0)
 
 #define cp0_watchhi_paddr1_shift  0
 #define cp0_watchhi_res_shift     4
@@ -375,8 +376,8 @@ typedef enum {
 #define cp0_watchhi_paddr1(cpu)  (((cpu)->cp0[cp0_WatchHi].val & cp0_watchhi_paddr1_mask) >> cp0_watchhi_paddr1_shift)
 #define cp0_watchhi_res(cpu)     (((cpu)->cp0[cp0_WatchHi].val & cp0_watchhi_res_mask) >> cp0_watchhi_res_shift)
 
-#define cp0_ecc_ecc_mask  0x000000ffU
-#define cp0_ecc_res_mask  0xffffff00U
+#define cp0_ecc_ecc_mask  UINT32_C(0x000000ff)
+#define cp0_ecc_res_mask  UINT32_C(0xffffff00)
 
 #define cp0_ecc_ecc_shift  0
 #define cp0_ecc_res_shift  8
@@ -384,10 +385,10 @@ typedef enum {
 #define cp0_ecc_ecc(cpu)  (((cpu)->cp0[cp0_ECC].val & cp0_ecc_ecc_mask) >> cp0_ecc_ecc_shift)
 #define cp0_ecc_res(cpu)  (((cpu)->cp0[cp0_ECC].val & cp0_ecc_res_mask) >> cp0_ecc_res_shift)
 
-#define cp0_xcontext_res1_mask     0x0000000fU
-#define cd0_xcontext_badvpn2_mask  0x00000000U
-#define cp0_xcontext_r_mask        0x00000000U
-#define cp0_xcontext_ptebase_mask  0x00000000U
+#define cp0_xcontext_res1_mask     UINT32_C(0x0000000f)
+#define cd0_xcontext_badvpn2_mask  UINT32_C(0x00000000)
+#define cp0_xcontext_r_mask        UINT32_C(0x00000000)
+#define cp0_xcontext_ptebase_mask  UINT32_C(0x00000000)
 
 #define cp0_xcontext_res1_shift     0
 #define cp0_xcontext_badvpn2_shift  4
@@ -425,7 +426,7 @@ typedef enum {
 #define cp0_taghi(cpu)     ((cpu)->cp0[cp0_TagHi])
 
 /** cp0 Masks */
-#define cp0_SR_EXLMask  0x00000002U
+#define cp0_SR_EXLMask  UINT32_C(0x00000002)
 
 /** TLB entity definition */
 typedef struct {

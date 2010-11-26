@@ -284,9 +284,10 @@ typedef struct {
 /** Various mask and shift settings */
 #define TARGET_MASK   UINT32_C(0x03ffffff)
 #define TARGET_SHIFT  2
-#define TARGET_COMB   UINT32_C(0xf0000000)
+#define TARGET_COMB   UINT64_C(0xfffffffff0000000)
 
 #define FUNCTION_MASK  UINT32_C(0x0000003f)
+#define IMM_MASK       UINT32_C(0x0000ffff)
 
 #define SA_MASK   UINT32_C(0x000007c0)
 #define SA_SHIFT  6
@@ -300,33 +301,26 @@ typedef struct {
 #define OP_SHIFT  26
 
 #define CO_MASK      UINT32_C(0x0000003f)
-#define SPEC_SHIFT   6
-#define SPEC_MASK    UINT32_C(0x0000001f)
 #define BCOND_SHIFT  16
 #define BCOND_MASK   UINT32_C(0x0000001f)
-
-#define IMM_MASK      UINT32_C(0x0000ffff)
-#define IMM_SIGN_BIT  UINT32_C(0x00008000)
 
 typedef struct {
 	/* Instruction */
 	uint32_t icode;
 	instr_opcode_t opcode;
 	
-	/* Parameters */
-	
 	/* Function */
-	unsigned char function;
+	uint8_t function;
 	
 	/* Registers */
-	uint32_t rs;
-	uint32_t rt;
-	uint32_t rd;
-	uint32_t sa;
+	uint8_t rs;
+	uint8_t rt;
+	uint8_t rd;
+	uint8_t sa;
 	
 	/* Others */
-	uint32_t imm;
-	uint32_t shift;
+	uint32_t target;
+	uint16_t imm;
 } instr_info_t;
 
 typedef struct {

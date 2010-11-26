@@ -350,9 +350,9 @@ static void iview_common(instr_info_t *ii, char *regch)
 			    imm, imm, simm);
 		break;
 	case ifDTS:
-		sprintf(s_parm, "%s, %s, %#" PRIx32, rdn, rtn, ii->shift);
-		if (ii->shift > 9)
-			sprintf(s_cmt, "%#" PRIx32 " = %" PRIu32, ii->shift, ii->shift);
+		sprintf(s_parm, "%s, %s, %#" PRIx8, rdn, rtn, ii->sa);
+		if (ii->sa > 9)
+			sprintf(s_cmt, "%#" PRIx8 " = %" PRIu8, ii->sa, ii->sa);
 		break;
 	case ifRO:
 		if (simm >= 0)

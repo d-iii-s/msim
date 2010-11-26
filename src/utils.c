@@ -379,21 +379,16 @@ char *uint64_human_readable(uint64_t i)
 	return str.str;
 }
 
-/** Test whether the address is word-aligned
+/** Test whether the address is double word-aligned
  *
  * @param addr Address to be tested.
  *
- * @return True if the address is 4-byte aligned.
+ * @return True if the address is 8-byte aligned.
  *
  */
-bool ptr36_word_aligned(ptr36_t addr)
+bool ptr36_dword_aligned(ptr36_t addr)
 {
-	return (addr & 0x03U) == 0;
-}
-
-bool ptr64_word_aligned(ptr64_t addr)
-{
-	return (addr.ptr & 0x03U) == 0;
+	return (addr & 0x07U) == 0;
 }
 
 bool virt_range(uint64_t addr)

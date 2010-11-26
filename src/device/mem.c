@@ -204,8 +204,8 @@ static bool mem_init(token_t *parm, device_t *dev)
 	
 	ptr36_t start = _start;
 	
-	if (!ptr36_word_aligned(start)) {
-		error("Physical memory address must by 4-byte aligned");
+	if (!ptr36_dword_aligned(start)) {
+		error("Physical memory address must be 8-byte aligned");
 		return false;
 	}
 	
@@ -466,8 +466,8 @@ static bool mem_generic(token_t *parm, device_t *dev)
 		return false;
 	}
 	
-	if (!ptr36_word_aligned(size)) {
-		error("Physical memory size must be 4-byte aligned");
+	if (!ptr36_dword_aligned(size)) {
+		error("Physical memory size must be 8-byte aligned");
 		return false;
 	}
 	

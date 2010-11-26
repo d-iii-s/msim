@@ -63,7 +63,6 @@ extern char **cp2name;
 extern char **cp3name;
 extern bool change;
 extern bool interactive;
-extern bool errors;
 extern bool script_stat;
 
 extern bool remote_gdb;

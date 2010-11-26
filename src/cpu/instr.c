@@ -664,12 +664,9 @@ void decode_instr(instr_info_t *ii)
 			ii->opcode = opcNOP;
 		else
 			ii->opcode = SPEC_instr_table[ii->icode & FUNCTION_MASK];
-		
-		ii->shift = (ii->icode >> SPEC_SHIFT) & SPEC_MASK;
 		break;
 	case opcSPECIAL2:
 		ii->opcode = SPEC2_instr_table[ii->icode & FUNCTION_MASK];
-		ii->shift = (ii->icode >> SPEC_SHIFT) & SPEC_MASK;
 		break;
 	case opcBCOND:
 		ii->opcode = reg_imm_instr_table[(ii->icode >> BCOND_SHIFT)
@@ -695,11 +692,9 @@ void decode_instr(instr_info_t *ii)
 		
 		/* Immediate */
 		ii->imm = ii->icode & IMM_MASK;
-		if (ii->imm & IMM_SIGN_BIT)
-			ii->imm |= ~((uint32_t) (IMM_MASK));
 		break;
 	case ifJ:
-		ii->imm = ii->icode & TARGET_MASK;
+		ii->target = ii->icode & TARGET_MASK;
 		ii->rt = 0;
 		ii->rs = 0;
 		ii->rd = 0;

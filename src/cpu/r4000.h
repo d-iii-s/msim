@@ -511,12 +511,15 @@ extern void cpu_step(cpu_t *cpu);
 extern uint8_t physmem_read8(cpu_t *cpu, ptr36_t addr, bool protected);
 extern uint16_t physmem_read16(cpu_t *cpu, ptr36_t addr, bool protected);
 extern uint32_t physmem_read32(cpu_t *cpu, ptr36_t addr, bool protected);
+extern uint64_t physmem_read64(cpu_t *cpu, ptr36_t addr, bool protected);
 
 extern bool physmem_write8(cpu_t *cpu, ptr36_t addr, uint8_t val,
     bool protected);
 extern bool physmem_write16(cpu_t *cpu, ptr36_t addr, uint16_t val,
     bool protected);
 extern bool physmem_write32(cpu_t *cpu, ptr36_t addr, uint32_t val,
+    bool protected);
+extern bool physmem_write64(cpu_t *cpu, ptr36_t addr, uint64_t val,
     bool protected);
 
 /** Addresing function */

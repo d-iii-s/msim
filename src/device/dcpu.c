@@ -234,7 +234,7 @@ static bool dcpu_init(token_t *parm, device_t *dev)
  */
 static bool dcpu_info(token_t *parm, device_t *dev)
 {
-	printf("R4000.32\n");
+	printf("R4000\n");
 	return true;
 }
 
@@ -381,7 +381,6 @@ static bool dcpu_id(token_t *parm, device_t *dev)
 			ii.rd = 0;
 			ii.sa = 0;
 			ii.imm = 0;
-			ii.shift = 0;
 			ii.opcode = opcIllegal;
 		} else
 			decode_instr(&ii);

@@ -29,7 +29,6 @@
 bool tohalt = false;
 bool change = true;
 bool interactive = false;
-bool errors = true;
 bool version = false;
 bool reenter = false;
 

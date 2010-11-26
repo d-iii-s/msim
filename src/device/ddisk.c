@@ -268,8 +268,8 @@ static bool ddisk_init(token_t *parm, device_t *dev)
 	
 	ptr36_t addr = _addr;
 	
-	if (!ptr36_word_aligned(addr)) {
-		error("Physical memory address must by 4-byte aligned");
+	if (!ptr36_dword_aligned(addr)) {
+		error("Physical memory address must be 8-byte aligned");
 		return false;
 	}
 	

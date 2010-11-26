@@ -3102,7 +3102,7 @@ static void handle_exception(cpu_t *cpu, exc_t res)
 	/* User info and register fill */
 	if (totrace) {
 		ASSERT(res <= excVCED);
-		alert("Raised exception %u (%s)", res, txt_exc[res]);
+		alert("Raised exception %u: %s", res, txt_exc[res]);
 	}
 	
 	cp0_cause(cpu).val &= ~cp0_cause_exccode_mask;

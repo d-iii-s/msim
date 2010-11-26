@@ -289,11 +289,10 @@ void cp0_dump(cpu_t *cpu, unsigned int reg)
 	cp0_dump_reg(cpu, reg);
 }
 
-static void iview_common(instr_info_t *ii, char *regch)
+static void iview_common(uint64_t base, instr_info_t *ii, char *regch)
 {
-	const uint32_t imm = ii->imm;
-	const int32_t simm = (int32_t) imm;
-	const uint32_t immh = imm & 0xffffU;
+	const uint16_t imm = ii->imm;
+	const int16_t simm = (int16_t) imm;
 	const uint32_t sysc = (ii->icode >> 6) & 0xfffffU;
 	
 	const char *rtn = regname[ii->rt];
@@ -331,9 +330,9 @@ static void iview_common(instr_info_t *ii, char *regch)
 		break;
 	case ifIMMU:
 	case ifIMMUX:
-		sprintf(s_parm, "%s, %s, %#" PRIx32, rtn, rsn, immh);
-		if (immh > 9)
-			sprintf(s_cmt, "%#" PRIx32 " = %" PRIu32, immh, immh);
+		sprintf(s_parm, "%s, %s, %#" PRIx32, rtn, rsn, imm);
+		if (imm > 9)
+			sprintf(s_cmt, "%#" PRIx32 " = %" PRIu32, imm, imm);
 		break;
 	case ifOFF:
 		sprintf(s_parm, "%#" PRIx32, imm);
@@ -385,14 +384,8 @@ static void iview_common(instr_info_t *ii, char *regch)
 		sprintf(s_parm, "%s, %s", rsn, rtn);
 		break;
 	case ifJ:
-		if (simm >= 0)
-			sprintf(s_parm, "+%#" PRIx32, imm);
-		else
-			sprintf(s_parm, "-%#" PRIx32, (uint32_t) -simm);
-		sprintf(s_parm, "+0x%x", ii->imm);
-		if ((imm > 9) || (simm < 0))
-			sprintf(s_cmt, "%#" PRIx32 " = %" PRIu32 " (%" PRId32 ")",
-			    imm, imm, simm);
+		sprintf(s_parm, "%#0" PRIx64,
+		    (base & TARGET_COMB) | (ii->target << TARGET_SHIFT));
 		break;
 	case ifDS:
 		sprintf(s_parm, "%s, %s", rdn, rsn);
@@ -412,9 +405,9 @@ static void iview_common(instr_info_t *ii, char *regch)
 			    imm, imm, simm);
 		break;
 	case ifRIW:
-		sprintf(s_parm, "%s, %#" PRIx32, rtn, immh);
-		if (immh > 9)
-			sprintf(s_cmt, "%#" PRIx32 " = %" PRIu32, immh, immh);
+		sprintf(s_parm, "%s, %#" PRIx32, rtn, imm);
+		if (imm > 9)
+			sprintf(s_cmt, "%#" PRIx32 " = %" PRIu32, imm, imm);
 		break;
 	case ifD:
 		sprintf(s_parm, "%s", rdn);
@@ -459,7 +452,7 @@ static void iview_common(instr_info_t *ii, char *regch)
 	else
 		s_cmtx = "";
 	
-	printf("%s  %-6s%-18s%-2s%s%s%s\n", s_iopc,
+	printf("%s  %-6s%-20s%-2s%s%s%s\n", s_iopc,
 	    instr_names_acronym[ii->opcode].acronym,
 	    s_parm, s_hash, s_cmt, s_cmtx, regch);
 }
@@ -485,7 +478,7 @@ void iview(cpu_t *cpu, ptr64_t addr, instr_info_t *ii, char *regch)
 		s_addr[0] = 0;
 	
 	printf("%-4s%s", s_cpu, s_addr);
-	iview_common(ii, regch);
+	iview_common(addr.ptr, ii, regch);
 }
 
 void iview_phys(ptr36_t addr, instr_info_t *ii, char *regch)
@@ -497,7 +490,7 @@ void iview_phys(ptr36_t addr, instr_info_t *ii, char *regch)
 		s_addr[0] = 0;
 	
 	printf("%s", s_addr);
-	iview_common(ii, regch);
+	iview_common(addr, ii, regch);
 }
 
 /** Write info about changed registers

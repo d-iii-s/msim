@@ -41,7 +41,7 @@ typedef enum {
 	excTLBSR = 66,
 	
 	/* For internal usage */
-	excNone = 100,
+	excNone = 128,
 	excAddrError,
 	excTLB,
 	excReset

@@ -548,8 +548,18 @@ static exc_t cpu_read_mem8(cpu_t *cpu, ptr64_t addr, uint8_t *val, bool noisy)
 	
 	ptr36_t phys;
 	exc_t res = access_mem(cpu, AM_READ, addr, &phys, noisy);
-	if (res != excNone)
-		return res;
+	switch (res) {
+	case excNone:
+		break;
+	case excAddrError:
+		return excAdEL;
+	case excTLB:
+		return excTLBL;
+	case excTLBR:
+		return excTLBLR;
+	default:
+		ASSERT(false);
+	}
 	
 	*val = physmem_read8(cpu, phys, true);
 	return res;
@@ -566,13 +576,29 @@ static exc_t cpu_read_mem16(cpu_t *cpu, ptr64_t addr, uint16_t *val, bool noisy)
 	ASSERT(val != NULL);
 	
 	exc_t res = align_test16(cpu, addr, noisy);
-	if (res != excNone)
-		return res;
+	switch (res) {
+	case excNone:
+		break;
+	case excAddrError:
+		return excAdEL;
+	default:
+		ASSERT(false);
+	}
 	
 	ptr36_t phys;
 	res = access_mem(cpu, AM_READ, addr, &phys, noisy);
-	if (res != excNone)
-		return res;
+	switch (res) {
+	case excNone:
+		break;
+	case excAddrError:
+		return excAdEL;
+	case excTLB:
+		return excTLBL;
+	case excTLBR:
+		return excTLBLR;
+	default:
+		ASSERT(false);
+	}
 	
 	*val = physmem_read16(cpu, phys, true);
 	return res;
@@ -589,13 +615,29 @@ exc_t cpu_read_mem32(cpu_t *cpu, ptr64_t addr, uint32_t *val, bool noisy)
 	ASSERT(val != NULL);
 	
 	exc_t res = align_test32(cpu, addr, noisy);
-	if (res != excNone)
-		return res;
+	switch (res) {
+	case excNone:
+		break;
+	case excAddrError:
+		return excAdEL;
+	default:
+		ASSERT(false);
+	}
 	
 	ptr36_t phys;
 	res = access_mem(cpu, AM_READ, addr, &phys, noisy);
-	if (res != excNone)
-		return res;
+	switch (res) {
+	case excNone:
+		break;
+	case excAddrError:
+		return excAdEL;
+	case excTLB:
+		return excTLBL;
+	case excTLBR:
+		return excTLBLR;
+	default:
+		ASSERT(false);
+	}
 	
 	*val = physmem_read32(cpu, phys, true);
 	return res;
@@ -612,13 +654,29 @@ static exc_t cpu_read_mem64(cpu_t *cpu, ptr64_t addr, uint64_t *val, bool noisy)
 	ASSERT(val != NULL);
 	
 	exc_t res = align_test64(cpu, addr, noisy);
-	if (res != excNone)
-		return res;
+	switch (res) {
+	case excNone:
+		break;
+	case excAddrError:
+		return excAdEL;
+	default:
+		ASSERT(false);
+	}
 	
 	ptr36_t phys;
 	res = access_mem(cpu, AM_READ, addr, &phys, noisy);
-	if (res != excNone)
-		return res;
+	switch (res) {
+	case excNone:
+		break;
+	case excAddrError:
+		return excAdEL;
+	case excTLB:
+		return excTLBL;
+	case excTLBR:
+		return excTLBLR;
+	default:
+		ASSERT(false);
+	}
 	
 	*val = physmem_read64(cpu, phys, true);
 	return res;
@@ -635,21 +693,18 @@ static exc_t cpu_write_mem8(cpu_t *cpu, ptr64_t addr, uint8_t value, bool noisy)
 	exc_t res = access_mem(cpu, AM_WRITE, addr, &phys, noisy);
 	switch (res) {
 	case excNone:
-		physmem_write8(cpu, phys, value, true);
 		break;
 	case excAddrError:
-		res = excAdES;
-		break;
+		return excAdES;
 	case excTLB:
-		res = excTLBS;
-		break;
+		return excTLBS;
 	case excTLBR:
-		res = excTLBSR;
-		break;
+		return excTLBSR;
 	default:
-		break;
+		ASSERT(false);
 	}
 	
+	physmem_write8(cpu, phys, value, true);
 	return res;
 }
 
@@ -662,28 +717,31 @@ static exc_t cpu_write_mem16(cpu_t *cpu, ptr64_t addr, uint16_t value,
 	ASSERT(cpu != NULL);
 	
 	exc_t res = align_test16(cpu, addr, noisy);
-	if (res != excNone)
-		return res;
+	switch (res) {
+	case excNone:
+		break;
+	case excAddrError:
+		return excAdES;
+	default:
+		ASSERT(false);
+	}
 	
 	ptr36_t phys;
 	res = access_mem(cpu, AM_WRITE, addr, &phys, noisy);
 	switch (res) {
 	case excNone:
-		physmem_write16(cpu, phys, value, true);
 		break;
 	case excAddrError:
-		res = excAdES;
-		break;
+		return excAdES;
 	case excTLB:
-		res = excTLBS;
-		break;
+		return excTLBS;
 	case excTLBR:
-		res = excTLBSR;
-		break;
+		return excTLBSR;
 	default:
-		break;
+		ASSERT(false);
 	}
 	
+	physmem_write16(cpu, phys, value, true);
 	return res;
 }
 
@@ -696,28 +754,31 @@ static exc_t cpu_write_mem32(cpu_t *cpu, ptr64_t addr, uint32_t value,
 	ASSERT(cpu != NULL);
 	
 	exc_t res = align_test32(cpu, addr, noisy);
-	if (res != excNone)
-		return res;
+	switch (res) {
+	case excNone:
+		break;
+	case excAddrError:
+		return excAdES;
+	default:
+		ASSERT(false);
+	}
 	
 	ptr36_t phys;
 	res = access_mem(cpu, AM_WRITE, addr, &phys, noisy);
 	switch (res) {
 	case excNone:
-		physmem_write32(cpu, phys, value, true);
 		break;
 	case excAddrError:
-		res = excAdES;
-		break;
+		return excAdES;
 	case excTLB:
-		res = excTLBS;
-		break;
+		return excTLBS;
 	case excTLBR:
-		res = excTLBSR;
-		break;
+		return excTLBSR;
 	default:
-		break;
+		ASSERT(false);
 	}
 	
+	physmem_write32(cpu, phys, value, true);
 	return res;
 }
 
@@ -730,28 +791,31 @@ static exc_t cpu_write_mem64(cpu_t *cpu, ptr64_t addr, uint64_t value,
 	ASSERT(cpu != NULL);
 	
 	exc_t res = align_test64(cpu, addr, noisy);
-	if (res != excNone)
-		return res;
+	switch (res) {
+	case excNone:
+		break;
+	case excAddrError:
+		return excAdES;
+	default:
+		ASSERT(false);
+	}
 	
 	ptr36_t phys;
 	res = access_mem(cpu, AM_WRITE, addr, &phys, noisy);
 	switch (res) {
 	case excNone:
-		physmem_write64(cpu, phys, value, true);
 		break;
 	case excAddrError:
-		res = excAdES;
-		break;
+		return excAdES;
 	case excTLB:
-		res = excTLBS;
-		break;
+		return excTLBS;
 	case excTLBR:
-		res = excTLBSR;
-		break;
+		return excTLBSR;
 	default:
-		break;
+		ASSERT(false);
 	}
 	
+	physmem_write64(cpu, phys, value, true);
 	return res;
 }
 
@@ -768,8 +832,14 @@ exc_t cpu_read_ins(cpu_t *cpu, ptr64_t addr, uint32_t *icode, bool noisy)
 	ASSERT(icode != NULL);
 	
 	exc_t res = align_test32(cpu, addr, noisy);
-	if (res != excNone)
-		return res;
+	switch (res) {
+	case excNone:
+		break;
+	case excAddrError:
+		return excAdES;
+	default:
+		ASSERT(false);
+	}
 	
 	ptr36_t phys;
 	res = access_mem(cpu, AM_FETCH, addr, &phys, noisy);
@@ -787,7 +857,7 @@ exc_t cpu_read_ins(cpu_t *cpu, ptr64_t addr, uint32_t *icode, bool noisy)
 		res = excTLBLR;
 		break;
 	default:
-		break;
+		ASSERT(false);
 	}
 	
 	if ((noisy) && (res != excNone) && (cpu->branch == BRANCH_NONE))
@@ -3032,7 +3102,7 @@ static void handle_exception(cpu_t *cpu, exc_t res)
 	/* User info and register fill */
 	if (totrace) {
 		ASSERT(res <= excVCED);
-		alert("Raised exception: %s", txt_exc[res]);
+		alert("Raised exception %u (%s)", res, txt_exc[res]);
 	}
 	
 	cp0_cause(cpu).val &= ~cp0_cause_exccode_mask;

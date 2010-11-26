@@ -63,6 +63,7 @@ const char *txt_exc[] = {
 	"Exception 21",
 	"Exception 22",
 	"Reference to WatchHi/WatchLo address",
+	/* 24 */
 	"Exception 24",
 	"Exception 25",
 	"Exception 26",

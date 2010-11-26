@@ -458,11 +458,9 @@ static bool setup_apply(const char *buf)
 	size_t lineno = 1;
 	
 	while ((*buf) && (!tohalt)) {
+		set_lineno(lineno);
 		if (!interpret(buf))
 			return false;
-		
-		lineno++;
-		set_lineno(lineno);
 		
 		/* Move to the next line */
 		while ((*buf) && (*buf != '\n'))
@@ -470,6 +468,8 @@ static bool setup_apply(const char *buf)
 		
 		if (*buf == '\n')
 			buf++;
+		
+		lineno++;
 	}
 	
 	return true;

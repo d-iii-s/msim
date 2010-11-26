@@ -87,10 +87,10 @@ void error(const char *fmt, ...)
 	
 	if (lineno_ptr != NULL) {
 		if (script_name)
-			mferror(COLOR_RED, "Error in %s at line %zu:\n%s",
+			mferror(COLOR_RED, "Error in %s on line %zu:\n%s",
 			    script_name, *lineno_ptr, out.str);
 		else
-			mferror(COLOR_RED, "Error at line %zu:\n%s",
+			mferror(COLOR_RED, "Error on line %zu:\n%s",
 			    *lineno_ptr, out.str);
 	} else
 		mferror(COLOR_RED, "Error: %s", out.str);
@@ -110,10 +110,10 @@ void intr_error(const char *fmt, ...)
 	
 	if (lineno_ptr != NULL) {
 		if (script_name)
-			mferror(COLOR_WHITE, "Internal error in %s at line %zu:\n%s",
+			mferror(COLOR_WHITE, "Internal error in %s on line %zu:\n%s",
 			    script_name, *lineno_ptr, out.str);
 		else
-			mferror(COLOR_WHITE, "Internal error at line %zu:\n%s",
+			mferror(COLOR_WHITE, "Internal error on line %zu:\n%s",
 			    *lineno_ptr, out.str);
 	} else
 		mferror(COLOR_WHITE, "Internal error: %s", out.str);
@@ -133,10 +133,10 @@ void alert(const char *fmt, ...)
 	
 	if (lineno_ptr != NULL) {
 		if (script_name)
-			mferror(COLOR_CYAN, "Alert in %s at line %zu:\n%s",
+			mferror(COLOR_CYAN, "Alert in %s on line %zu:\n%s",
 			    script_name, *lineno_ptr, out.str);
 		else
-			mferror(COLOR_CYAN, "Alert at line %zu:\n%s",
+			mferror(COLOR_CYAN, "Alert on line %zu:\n%s",
 			    *lineno_ptr, out.str);
 	} else
 		mferror(COLOR_CYAN, "Alert: %s", out.str);
@@ -156,10 +156,10 @@ void die(int status, const char *fmt, ...)
 	
 	if (lineno_ptr != NULL) {
 		if (script_name)
-			mferror(COLOR_RED, "Fault in %s at line %zu: %s",
+			mferror(COLOR_RED, "Fault in %s on line %zu: %s",
 			    script_name, *lineno_ptr, out.str);
 		else
-			mferror(COLOR_RED, "Fault at line %zu: %s",
+			mferror(COLOR_RED, "Fault on line %zu: %s",
 			    *lineno_ptr, out.str);
 	} else
 		mferror(COLOR_RED, "Fault: %s", out.str);

@@ -3030,8 +3030,10 @@ static void handle_exception(cpu_t *cpu, exc_t res)
 	cpu->stdby = false;
 	
 	/* User info and register fill */
-	if (totrace)
+	if (totrace) {
+		ASSERT(res <= excVCED);
 		alert("Raised exception: %s", txt_exc[res]);
+	}
 	
 	cp0_cause(cpu).val &= ~cp0_cause_exccode_mask;
 	cp0_cause(cpu).val |= res << cp0_cause_exccode_shift;

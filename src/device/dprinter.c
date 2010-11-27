@@ -16,10 +16,11 @@
 #include <inttypes.h>
 #include "dprinter.h"
 #include "device.h"
-#include "../text.h"
+#include "../assert.h"
 #include "../fault.h"
-#include "../utils.h"
 #include "../parser.h"
+#include "../text.h"
+#include "../utils.h"
 
 /** Registers */
 #define REGISTER_CHAR   0  /**< Output character */
@@ -177,8 +178,10 @@ static void printer_step4(device_t *dev)
 /** Write command implementation
  *
  */
-static void printer_write8(cpu_t *cpu, device_t *dev, ptr36_t addr, uint8_t val)
+static void printer_write32(cpu_t *cpu, device_t *dev, ptr36_t addr, uint32_t val)
 {
+	ASSERT(dev != NULL);
+	
 	printer_data_t *data = (printer_data_t *) dev->data;
 	
 	switch (addr - data->addr) {
@@ -267,7 +270,7 @@ device_type_t dprinter = {
 	/* Functions */
 	.done = printer_done,
 	.step4 = printer_step4,
-	.write8 = printer_write8,
+	.write32 = printer_write32,
 	
 	/* Commands */
 	.cmds = printer_cmds

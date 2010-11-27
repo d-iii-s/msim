@@ -112,7 +112,7 @@ static bool hexadecimal(char c)
 
 /** Test whether the character is a digit or alphabetic
  *
- *  @return True if the character is within 0..9, a..z or _.
+ *  @return True if the character is within 0..9, a..z, _ or =.
  *
  */
 static bool alphanum(char c)
@@ -120,7 +120,7 @@ static bool alphanum(char c)
 	return (((c >= '0') && (c <= '9'))
 	    || ((c >= 'a') && (c <= 'z'))
 	    || ((c >= 'A') && (c <= 'Z'))
-	    || (c == '_'));
+	    || (c == '_') || (c == '='));
 }
 
 /* Move the pointer to the next relevant character
@@ -750,14 +750,14 @@ bool cmd_run_by_spec(const cmd_t *cmd, token_t *parm, void *data)
 		switch (pars[1]) {
 		case INTC:
 			if (parm->ttype != tt_uint) {
-				error("Invalid argument (integer \"%s\" required)",
+				error("Invalid argument (integer <%s> required)",
 				    find_name(pars));
 				return false;
 			}
 			break;
 		case STRC:
 			if (parm->ttype != tt_str) {
-				error("Invalid argument (string \"%s\" required)",
+				error("Invalid argument (string <%s> required)",
 				    find_name(pars));
 				return false;
 			}
@@ -772,7 +772,7 @@ bool cmd_run_by_spec(const cmd_t *cmd, token_t *parm, void *data)
 		case CONC:
 			if ((parm->ttype != tt_str)
 			    || (strcmp(parm_skipq(pars), parm->tval.str))) {
-				error("Invalid argument (string \"%s\" required)",
+				error("Invalid argument (literal \"%s\" required)",
 				    find_name(pars));
 				return false;
 			}

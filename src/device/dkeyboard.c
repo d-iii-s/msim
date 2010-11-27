@@ -19,6 +19,7 @@
 #include "device.h"
 #include "dcpu.h"
 #include "../arch/stdin.h"
+#include "../assert.h"
 #include "../env.h"
 #include "../fault.h"
 #include "../text.h"
@@ -30,95 +31,6 @@
 
 /* Step skip constant */
 #define CYCLE_SKIP  4096
-
-/*
- * Device commands
- */
-
-static bool dkeyboard_init(token_t *parm, device_t *dev);
-static bool dkeyboard_info(token_t *parm, device_t *dev);
-static bool dkeyboard_stat(token_t *parm, device_t *dev);
-static bool dkeyboard_gen(token_t *parm, device_t *dev);
-
-cmd_t keyboard_cmds[] = {
-	{
-		"init",
-		(fcmd_t) dkeyboard_init,
-		DEFAULT,
-		DEFAULT,
-		"Initialization",
-		"Initialization",
-		REQ STR "keyboard name" NEXT
-		REQ INT "register address" NEXT
-		REQ INT "interrupt number" END
-	},
-	{
-		"help",
-		(fcmd_t) dev_generic_help,
-		DEFAULT,
-		DEFAULT,
-		"Display this help text",
-		"Display this help text",
-		OPT STR "cmd/command name" END
-	},
-	{
-		"info",
-		(fcmd_t) dkeyboard_info,
-		DEFAULT,
-		DEFAULT,
-		"Display keyboard state and configuration",
-		"Display keyboard state and configuration",
-		NOCMD
-	},
-	{
-		"stat",
-		(fcmd_t) dkeyboard_stat,
-		DEFAULT,
-		DEFAULT,
-		"Display keyboard statistics",
-		"Display keyboard statistics",
-		NOCMD
-	},
-	{
-		"gen",
-		(fcmd_t) dkeyboard_gen,
-		DEFAULT,
-		DEFAULT,
-		"Generate a key press with specified code",
-		"Generate a key press with specified code",
-		REQ VAR "key code" END
-	},
-	LAST_CMD
-};
-
-static void keyboard_done(device_t *dev);
-static void keyboard_step4(device_t *dev);
-static void keyboard_read8(cpu_t *cpu, device_t *dev, ptr36_t addr, uint8_t *val);
-
-device_type_t dkeyboard = {
-	/* Technically speaking the keyboard
-	   (as any asynchronous input device)
-	   is non-deterministic in principle.
-	   However, without any keypresses there
-	   is no active behaviour which would
-	   result in non-determinism. */
-	.nondet = false,
-	
-	/* Type name and description */
-	.name = "dkeyboard",
-	.brief = "Keyboard simulation",
-	.full = "Device reads key codes from the specified input and sends them to "
-		"the system via the interrrupt assert and a memory-mapped "
-		"register containing a key code.",
-	
-	/* Functions */
-	.done = keyboard_done,
-	.step4 = keyboard_step4,
-	.read8 = keyboard_read8,
-	
-	/* Commands */
-	.cmds = keyboard_cmds
-};
 
 typedef struct {
 	ptr36_t addr;        /* Register address */
@@ -283,14 +195,11 @@ static void keyboard_done(device_t *dev)
 	safe_free(dev->data);
 }
 
-/** Read implementation
- *
- * The read command returns a character in the buffer. Any pending interrupt is
- * deasserted.
- *
- */
-static void keyboard_read8(cpu_t *cpu, device_t *dev, ptr36_t addr, uint8_t *val)
+static void keyboard_read32(cpu_t *cpu, device_t *dev, ptr36_t addr, uint32_t *val)
 {
+	ASSERT(dev != NULL);
+	ASSERT(val != NULL);
+	
 	keyboard_data_s *data = (keyboard_data_s *) dev->data;
 	
 	switch (addr - data->addr) {
@@ -315,3 +224,83 @@ static void keyboard_step4(device_t *dev)
 	if (stdin_poll(&c))
 		gen_key(dev, c);
 }
+
+/*
+ * Device commands
+ */
+
+cmd_t keyboard_cmds[] = {
+	{
+		"init",
+		(fcmd_t) dkeyboard_init,
+		DEFAULT,
+		DEFAULT,
+		"Initialization",
+		"Initialization",
+		REQ STR "keyboard name" NEXT
+		REQ INT "register address" NEXT
+		REQ INT "interrupt number" END
+	},
+	{
+		"help",
+		(fcmd_t) dev_generic_help,
+		DEFAULT,
+		DEFAULT,
+		"Display this help text",
+		"Display this help text",
+		OPT STR "cmd/command name" END
+	},
+	{
+		"info",
+		(fcmd_t) dkeyboard_info,
+		DEFAULT,
+		DEFAULT,
+		"Display keyboard state and configuration",
+		"Display keyboard state and configuration",
+		NOCMD
+	},
+	{
+		"stat",
+		(fcmd_t) dkeyboard_stat,
+		DEFAULT,
+		DEFAULT,
+		"Display keyboard statistics",
+		"Display keyboard statistics",
+		NOCMD
+	},
+	{
+		"gen",
+		(fcmd_t) dkeyboard_gen,
+		DEFAULT,
+		DEFAULT,
+		"Generate a key press with specified code",
+		"Generate a key press with specified code",
+		REQ VAR "key code" END
+	},
+	LAST_CMD
+};
+
+device_type_t dkeyboard = {
+	/* Technically speaking the keyboard
+	   (as any asynchronous input device)
+	   is non-deterministic in principle.
+	   However, without any keypresses there
+	   is no active behaviour which would
+	   result in non-determinism. */
+	.nondet = false,
+	
+	/* Type name and description */
+	.name = "dkeyboard",
+	.brief = "Keyboard simulation",
+	.full = "Device reads key codes from the specified input and sends them to "
+	    "the system via the interrrupt assert and a memory-mapped "
+	    "register containing a key code.",
+	
+	/* Functions */
+	.done = keyboard_done,
+	.step4 = keyboard_step4,
+	.read32 = keyboard_read32,
+	
+	/* Commands */
+	.cmds = keyboard_cmds
+};

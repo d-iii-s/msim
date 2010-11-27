@@ -498,17 +498,14 @@ static bool bool_sanitize(token_t *parm)
 /** Set variable
  *
  */
-static bool set_variable(token_t *parm)
+static bool set_variable(const char *name, token_t *parm)
 {
 	ASSERT(parm != NULL);
 	
-	const env_t *env = search_variable(parm_str(parm));
+	const env_t *env = search_variable(name);
 	
 	if (!env)
 		return false;
-	
-	/* Skip '=' constant */
-	parm_next(&parm);
 	
 	switch (env->type) {
 	case vt_uint:
@@ -563,10 +560,9 @@ bool env_cmd_set(token_t *parm)
 		return true;
 	}
 	
-	const char *name = parm_str(parm);
-	parm_next(&parm);
+	const char *name = parm_str_next(&parm);
 	
-	if (!strcmp(name, "help")) {
+	if (strcmp(name, "help") == 0) {
 		/* Show help */
 		show_help(parm);
 		return true;
@@ -576,8 +572,12 @@ bool env_cmd_set(token_t *parm)
 	if (parm_type(parm) == tt_end)
 		return set_bool_variable(name, true);
 	
+	/* Skip '=' constant */
+	ASSERT(strcmp(parm_str(parm), "=") == 0);
+	parm_next(&parm);
+	
 	/* Set the variable */
-	return set_variable(parm);
+	return set_variable(name, parm);
 }
 
 /** Unset command implementation

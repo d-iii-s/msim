@@ -923,26 +923,26 @@ static physmem_area_t* find_physmem_area(ptr36_t addr)
 
 static uint8_t devmem_read8(cpu_t *cpu, ptr36_t addr)
 {
-	uint8_t val = (uint8_t) DEFAULT_MEMORY_VALUE;
+	uint32_t val = (uint32_t) DEFAULT_MEMORY_VALUE;
 	
 	/* List for each device */
 	device_t *dev = NULL;
 	while (dev_next(&dev, DEVICE_FILTER_ALL))
-		if (dev->type->read8)
-			dev->type->read8(cpu, dev, addr, &val);
+		if (dev->type->read32)
+			dev->type->read32(cpu, dev, addr, &val);
 	
 	return val;
 }
 
 static uint16_t devmem_read16(cpu_t *cpu, ptr36_t addr)
 {
-	uint16_t val = (uint16_t) DEFAULT_MEMORY_VALUE;
+	uint32_t val = (uint32_t) DEFAULT_MEMORY_VALUE;
 	
 	/* List for each device */
 	device_t *dev = NULL;
 	while (dev_next(&dev, DEVICE_FILTER_ALL))
-		if (dev->type->read16)
-			dev->type->read16(cpu, dev, addr, &val);
+		if (dev->type->read32)
+			dev->type->read32(cpu, dev, addr, &val);
 	
 	return val;
 }
@@ -1139,8 +1139,8 @@ static bool devmem_write8(cpu_t *cpu, ptr36_t addr, uint8_t val)
 	/* List for each device */
 	device_t *dev = NULL;
 	while (dev_next(&dev, DEVICE_FILTER_ALL)) {
-		if (dev->type->write8) {
-			dev->type->write8(cpu, dev, addr, val);
+		if (dev->type->write32) {
+			dev->type->write32(cpu, dev, addr, val);
 			written = true;
 		}
 	}
@@ -1155,8 +1155,8 @@ static bool devmem_write16(cpu_t *cpu, ptr36_t addr, uint16_t val)
 	/* List for each device */
 	device_t *dev = NULL;
 	while (dev_next(&dev, DEVICE_FILTER_ALL)) {
-		if (dev->type->write16) {
-			dev->type->write16(cpu, dev, addr, val);
+		if (dev->type->write32) {
+			dev->type->write32(cpu, dev, addr, val);
 			written = true;
 		}
 	}

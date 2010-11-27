@@ -700,6 +700,8 @@ static exc_t cpu_write_mem8(cpu_t *cpu, ptr64_t addr, uint8_t value, bool noisy)
 		return excTLBS;
 	case excTLBR:
 		return excTLBSR;
+	case excMod:
+		return excMod;
 	default:
 		ASSERT(false);
 	}
@@ -737,6 +739,8 @@ static exc_t cpu_write_mem16(cpu_t *cpu, ptr64_t addr, uint16_t value,
 		return excTLBS;
 	case excTLBR:
 		return excTLBSR;
+	case excMod:
+		return excMod;
 	default:
 		ASSERT(false);
 	}
@@ -774,6 +778,8 @@ static exc_t cpu_write_mem32(cpu_t *cpu, ptr64_t addr, uint32_t value,
 		return excTLBS;
 	case excTLBR:
 		return excTLBSR;
+	case excMod:
+		return excMod;
 	default:
 		ASSERT(false);
 	}
@@ -811,6 +817,8 @@ static exc_t cpu_write_mem64(cpu_t *cpu, ptr64_t addr, uint64_t value,
 		return excTLBS;
 	case excTLBR:
 		return excTLBSR;
+	case excMod:
+		return excMod;
 	default:
 		ASSERT(false);
 	}
@@ -1900,7 +1908,7 @@ static exc_t execute(cpu_t *cpu, instr_info_t ii)
 		if (CP0_USABLE(cpu)) {
 			/* Ignore - always true */
 			pca.ptr = cpu->pc_next.ptr +
-			    sign_extend_32_64((uint32_t) ii.imm << TARGET_SHIFT);
+			    (((int64_t) sign_extend_16_64(ii.imm)) << TARGET_SHIFT);
 			cpu->branch = BRANCH_COND;
 		} else
 			CP0_TRAP_UNUSABLE(cpu, res);
@@ -1913,7 +1921,7 @@ static exc_t execute(cpu_t *cpu, instr_info_t ii)
 		
 		if (cond) {
 			pca.ptr = cpu->pc_next.ptr +
-			    sign_extend_32_64((uint32_t) ii.imm << TARGET_SHIFT);
+			    (((int64_t) sign_extend_16_64(ii.imm)) << TARGET_SHIFT);
 			cpu->branch = BRANCH_COND;
 		}
 		break;
@@ -1925,7 +1933,7 @@ static exc_t execute(cpu_t *cpu, instr_info_t ii)
 		
 		if (cond) {
 			pca.ptr = cpu->pc_next.ptr +
-			    sign_extend_32_64((uint32_t) ii.imm << TARGET_SHIFT);
+			    (((int64_t) sign_extend_16_64(ii.imm)) << TARGET_SHIFT);
 			cpu->branch = BRANCH_COND;
 		} else {
 			cpu->pc_next.ptr += 4;
@@ -1943,7 +1951,7 @@ static exc_t execute(cpu_t *cpu, instr_info_t ii)
 		
 		if (cond) {
 			pca.ptr = cpu->pc_next.ptr +
-			    sign_extend_32_64((uint32_t) ii.imm << TARGET_SHIFT);
+			    (((int64_t) sign_extend_16_64(ii.imm)) << TARGET_SHIFT);
 			cpu->branch = BRANCH_COND;
 		}
 		break;
@@ -1958,7 +1966,7 @@ static exc_t execute(cpu_t *cpu, instr_info_t ii)
 		
 		if (cond) {
 			pca.ptr = cpu->pc_next.ptr +
-			    sign_extend_32_64((uint32_t) ii.imm << TARGET_SHIFT);
+			    (((int64_t) sign_extend_16_64(ii.imm)) << TARGET_SHIFT);
 			cpu->branch = BRANCH_COND;
 		} else {
 			cpu->pc_next.ptr += 4;
@@ -1973,7 +1981,7 @@ static exc_t execute(cpu_t *cpu, instr_info_t ii)
 		
 		if (cond) {
 			pca.ptr = cpu->pc_next.ptr +
-			    sign_extend_32_64((uint32_t) ii.imm << TARGET_SHIFT);
+			    (((int64_t) sign_extend_16_64(ii.imm)) << TARGET_SHIFT);
 			cpu->branch = BRANCH_COND;
 		}
 		break;
@@ -1985,7 +1993,7 @@ static exc_t execute(cpu_t *cpu, instr_info_t ii)
 		
 		if (cond) {
 			pca.ptr = cpu->pc_next.ptr +
-			    sign_extend_32_64((uint32_t) ii.imm << TARGET_SHIFT);
+			    (((int64_t) sign_extend_16_64(ii.imm)) << TARGET_SHIFT);
 			cpu->branch = BRANCH_COND;
 		} else {
 			cpu->pc_next.ptr += 4;
@@ -2000,7 +2008,7 @@ static exc_t execute(cpu_t *cpu, instr_info_t ii)
 		
 		if (cond) {
 			pca.ptr = cpu->pc_next.ptr +
-			    sign_extend_32_64((uint32_t) ii.imm << TARGET_SHIFT);
+			    (((int64_t) sign_extend_16_64(ii.imm)) << TARGET_SHIFT);
 			cpu->branch = BRANCH_COND;
 		}
 		break;
@@ -2012,7 +2020,7 @@ static exc_t execute(cpu_t *cpu, instr_info_t ii)
 		
 		if (cond) {
 			pca.ptr = cpu->pc_next.ptr +
-			    sign_extend_32_64((uint32_t) ii.imm << TARGET_SHIFT);
+			    (((int64_t) sign_extend_16_64(ii.imm)) << TARGET_SHIFT);
 			cpu->branch = BRANCH_COND;
 		} else {
 			cpu->pc_next.ptr += 4;
@@ -2030,7 +2038,7 @@ static exc_t execute(cpu_t *cpu, instr_info_t ii)
 		
 		if (cond) {
 			pca.ptr = cpu->pc_next.ptr +
-			    sign_extend_32_64((uint32_t) ii.imm << TARGET_SHIFT);
+			    (((int64_t) sign_extend_16_64(ii.imm)) << TARGET_SHIFT);
 			cpu->branch = BRANCH_COND;
 		}
 		break;
@@ -2045,7 +2053,7 @@ static exc_t execute(cpu_t *cpu, instr_info_t ii)
 		
 		if (cond) {
 			pca.ptr = cpu->pc_next.ptr +
-			    sign_extend_32_64((uint32_t) ii.imm << TARGET_SHIFT);
+			    (((int64_t) sign_extend_16_64(ii.imm)) << TARGET_SHIFT);
 			cpu->branch = BRANCH_COND;
 		} else {
 			cpu->pc_next.ptr += 4;
@@ -2060,7 +2068,7 @@ static exc_t execute(cpu_t *cpu, instr_info_t ii)
 		
 		if (cond) {
 			pca.ptr = cpu->pc_next.ptr +
-			    sign_extend_32_64((uint32_t) ii.imm << TARGET_SHIFT);
+			    (((int64_t) sign_extend_16_64(ii.imm)) << TARGET_SHIFT);
 			cpu->branch = BRANCH_COND;
 		}
 		break;
@@ -2072,7 +2080,7 @@ static exc_t execute(cpu_t *cpu, instr_info_t ii)
 		
 		if (cond) {
 			pca.ptr = cpu->pc_next.ptr +
-			    sign_extend_32_64((uint32_t) ii.imm << TARGET_SHIFT);
+			    (((int64_t) sign_extend_16_64(ii.imm)) << TARGET_SHIFT);
 			cpu->branch = BRANCH_COND;
 		} else {
 			cpu->pc_next.ptr += 4;

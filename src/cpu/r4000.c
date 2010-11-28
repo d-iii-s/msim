@@ -48,7 +48,7 @@
 /** Initial state */
 #define HARD_RESET_STATUS         (cp0_status_erl_mask | cp0_status_bev_mask)
 #define HARD_RESET_START_ADDRESS  UINT64_C(0xffffffffbfc00000)
-#define HARD_RESET_PROC_ID        UINT32_C(0x00000400)
+#define HARD_RESET_PROC_ID        UINT64_C(0x0000000000000400)
 #define HARD_RESET_CAUSE          0
 #define HARD_RESET_WATCHLO        0
 #define HARD_RESET_WATCHHI        0
@@ -56,7 +56,12 @@
 #define HARD_RESET_RANDOM         47
 #define HARD_RESET_WIRED          0
 
-#define EXCEPTION_OFFSET  UINT64_C(0x0180)
+/** Exception handling */
+#define EXCEPTION_BOOT_BASE_ADDRESS     UINT64_C(0xffffffffbfc00200)
+#define EXCEPTION_BOOT_RESET_ADDRESS    HARD_RESET_START_ADDRESS
+#define EXCEPTION_NORMAL_BASE_ADDRESS   UINT64_C(0xffffffff80000000)
+#define EXCEPTION_NORMAL_RESET_ADDRESS  HARD_RESET_START_ADDRESS
+#define EXCEPTION_OFFSET                UINT64_C(0x0180)
 
 #define TRAP(expr, res) \
 	{ \
@@ -89,12 +94,12 @@
 	((cp0_status_cu0(cpu)) || (CPU_KERNEL_MODE(cpu)))
 
 #define CPU_64BIT_MODE(cpu) \
-	((CPU_KERNEL_MODE(cpu)) || \
+	(((CPU_KERNEL_MODE(cpu)) && (cp0_status_kx(cpu))) || \
 	    ((CPU_SUPERVISOR_MODE(cpu)) && (cp0_status_sx(cpu))) || \
 	    ((CPU_USER_MODE(cpu)) && (cp0_status_ux(cpu))))
 
-#define CPU_64BIT_ADDRESSING(cpu) \
-	(((CPU_KERNEL_MODE(cpu)) && (cp0_status_kx(cpu))) || \
+#define CPU_64BIT_INSTRUCTION(cpu) \
+	((CPU_KERNEL_MODE(cpu)) || \
 	    ((CPU_SUPERVISOR_MODE(cpu)) && (cp0_status_sx(cpu))) || \
 	    ((CPU_USER_MODE(cpu)) && (cp0_status_ux(cpu))))
 
@@ -1403,8 +1408,8 @@ static void multiply_u32(cpu_t *cpu, uint32_t a, uint32_t b)
 	
 	/* Quick test */
 	if ((a == 0) || (b == 0)) {
-		cpu->hireg.val = 0;
 		cpu->loreg.val = 0;
+		cpu->hireg.val = 0;
 		return;
 	}
 	
@@ -1419,12 +1424,12 @@ static void multiply_s32(cpu_t *cpu, uint32_t a, uint32_t b)
 	
 	/* Quick test */
 	if ((a == 0) || (b == 0)) {
-		cpu->hireg.val = 0;
 		cpu->loreg.val = 0;
+		cpu->hireg.val = 0;
 		return;
 	}
 	
-	int64_t res = ((int64_t) sign_extend_32_64(a)) * ((int64_t) sign_extend_32_64(b));
+	uint64_t res = ((int64_t) sign_extend_32_64(a)) * ((int64_t) sign_extend_32_64(b));
 	cpu->loreg.val = sign_extend_32_64((uint32_t) res);
 	cpu->hireg.val = sign_extend_32_64((uint32_t) (res >> 32));
 }
@@ -1554,8 +1559,9 @@ static exc_t execute(cpu_t *cpu, instr_info_t ii)
 	case opcANDI:
 		cpu->regs[ii.rt].val = urrs.val & ii.imm;
 		break;
-	/* case opcCLO:
-		utmp32 = 0;
+	case opcCLO:
+		ASSERT(false);
+		/* utmp32 = 0;
 		utmp32b = urrs.lo;
 		
 		while ((utmp32b & SBIT32) && (utmp32 < 32)) {
@@ -1563,10 +1569,11 @@ static exc_t execute(cpu_t *cpu, instr_info_t ii)
 			utmp32b <<= 1;
 		}
 		
-		cpu->regs[ii.rd].lo = utmp32;
+		cpu->regs[ii.rd].lo = utmp32; */
 		break;
 	case opcCLZ:
-		utmp32 = 0;
+		ASSERT(false);
+		/* utmp32 = 0;
 		utmp32b = urrs.lo;
 		
 		while ((!(utmp32b & SBIT32)) && (utmp32 < 32)) {
@@ -1574,10 +1581,10 @@ static exc_t execute(cpu_t *cpu, instr_info_t ii)
 			utmp32b <<= 1;
 		}
 		
-		cpu->regs[ii.rd].lo = utmp32;
-		break; */
+		cpu->regs[ii.rd].lo = utmp32; */
+		break;
 	case opcDADD:
-		if (CPU_64BIT_MODE(cpu)) {
+		if (CPU_64BIT_INSTRUCTION(cpu)) {
 			utmp64 = urrs.val + urrt.val;
 			
 			if (!((urrs.val ^ urrt.val) & SBIT64) &&
@@ -1591,7 +1598,7 @@ static exc_t execute(cpu_t *cpu, instr_info_t ii)
 			res = excRI;
 		break;
 	case opcDADDI:
-		if (CPU_64BIT_MODE(cpu)) {
+		if (CPU_64BIT_INSTRUCTION(cpu)) {
 			utmp64 = sign_extend_16_64(ii.imm);
 			utmp64b = urrs.val + utmp64;
 			
@@ -1606,19 +1613,19 @@ static exc_t execute(cpu_t *cpu, instr_info_t ii)
 			res = excRI;
 		break;
 	case opcDADDIU:
-		if (CPU_64BIT_MODE(cpu))
+		if (CPU_64BIT_INSTRUCTION(cpu))
 			cpu->regs[ii.rt].val = urrs.val + sign_extend_16_64(ii.imm);
 		else
 			res = excRI;
 		break;
 	case opcDADDU:
-		if (CPU_64BIT_MODE(cpu))
+		if (CPU_64BIT_INSTRUCTION(cpu))
 			cpu->regs[ii.rd].val = urrs.val + urrt.val;
 		else
 			res = excRI;
 		break;
 	case opcDDIV:
-		if (CPU_64BIT_MODE(cpu)) {
+		if (CPU_64BIT_INSTRUCTION(cpu)) {
 			if (urrt.val == 0) {
 				cpu->loreg.val = 0;
 				cpu->hireg.val = 0;
@@ -1632,7 +1639,7 @@ static exc_t execute(cpu_t *cpu, instr_info_t ii)
 			res = excRI;
 		break;
 	case opcDDIVU:
-		if (CPU_64BIT_MODE(cpu)) {
+		if (CPU_64BIT_INSTRUCTION(cpu)) {
 			if (urrt.val == 0) {
 				cpu->loreg.val = 0;
 				cpu->hireg.val = 0;
@@ -1644,7 +1651,7 @@ static exc_t execute(cpu_t *cpu, instr_info_t ii)
 			res = excRI;
 		break;
 	case opcDIV:
-		if (urrt.val == 0) {
+		if (urrt.lo == 0) {
 			cpu->loreg.val = 0;
 			cpu->hireg.val = 0;
 		} else {
@@ -1655,7 +1662,7 @@ static exc_t execute(cpu_t *cpu, instr_info_t ii)
 		}
 		break;
 	case opcDIVU:
-		if (urrt.val == 0) {
+		if (urrt.lo == 0) {
 			cpu->loreg.val = 0;
 			cpu->hireg.val = 0;
 		} else {
@@ -1664,76 +1671,76 @@ static exc_t execute(cpu_t *cpu, instr_info_t ii)
 		}
 		break;
 	case opcDMULT:
-		if (CPU_64BIT_MODE(cpu))
+		if (CPU_64BIT_INSTRUCTION(cpu))
 			multiply_s64(cpu, urrs.val, urrt.val);
 		else
 			res = excRI;
 		break;
 	case opcDMULTU:
-		if (CPU_64BIT_MODE(cpu))
+		if (CPU_64BIT_INSTRUCTION(cpu))
 			multiply_u64(cpu, urrs.val, urrt.val);
 		else
 			res = excRI;
 		break;
 	case opcDSLL:
-		if (CPU_64BIT_MODE(cpu))
+		if (CPU_64BIT_INSTRUCTION(cpu))
 			cpu->regs[ii.rd].val = urrt.val << ii.sa;
 		else
 			res = excRI;
 		break;
 	case opcDSLLV:
-		if (CPU_64BIT_MODE(cpu))
+		if (CPU_64BIT_INSTRUCTION(cpu))
 			cpu->regs[ii.rd].val = urrt.val << (urrs.val & UINT64_C(0x003f));
 		else
 			res = excRI;
 		break;
 	case opcDSLL32:
-		if (CPU_64BIT_MODE(cpu))
+		if (CPU_64BIT_INSTRUCTION(cpu))
 			cpu->regs[ii.rd].val = urrt.val << (ii.sa + 32);
 		else
 			res = excRI;
 		break;
 	case opcDSRA:
-		if (CPU_64BIT_MODE(cpu))
+		if (CPU_64BIT_INSTRUCTION(cpu))
 			cpu->regs[ii.rd].val =
 			    (uint64_t) (((int64_t) urrt.val) >> ii.sa);
 		else
 			res = excRI;
 		break;
 	case opcDSRAV:
-		if (CPU_64BIT_MODE(cpu))
+		if (CPU_64BIT_INSTRUCTION(cpu))
 			cpu->regs[ii.rd].val =
 			    (uint64_t) (((int64_t) urrt.val) >> (urrs.val & UINT64_C(0x003f)));
 		else
 			res = excRI;
 		break;
 	case opcDSRA32:
-		if (CPU_64BIT_MODE(cpu))
+		if (CPU_64BIT_INSTRUCTION(cpu))
 			cpu->regs[ii.rd].val =
 			    (uint64_t) (((int64_t) urrt.val) >> (ii.sa + 32));
 		else
 			res = excRI;
 		break;
 	case opcDSRL:
-		if (CPU_64BIT_MODE(cpu))
+		if (CPU_64BIT_INSTRUCTION(cpu))
 			cpu->regs[ii.rd].val = urrt.val >> ii.sa;
 		else
 			res = excRI;
 		break;
 	case opcDSRLV:
-		if (CPU_64BIT_MODE(cpu))
+		if (CPU_64BIT_INSTRUCTION(cpu))
 			cpu->regs[ii.rd].val = urrt.val >> (urrs.val & UINT64_C(0x003f));
 		else
 			res = excRI;
 		break;
 	case opcDSRL32:
-		if (CPU_64BIT_MODE(cpu))
+		if (CPU_64BIT_INSTRUCTION(cpu))
 			cpu->regs[ii.rd].val = urrt.val >> (ii.sa + 32);
 		else
 			res = excRI;
 		break;
 	case opcDSUB:
-		if (CPU_64BIT_MODE(cpu)) {
+		if (CPU_64BIT_INSTRUCTION(cpu)) {
 			utmp64 = urrs.val - urrt.val;
 			
 			if (((urrs.val ^ urrt.val) & SBIT64) && ((urrs.val ^ utmp64) & SBIT64)) {
@@ -1746,51 +1753,58 @@ static exc_t execute(cpu_t *cpu, instr_info_t ii)
 			res = excRI;
 		break;
 	case opcDSUBU:
-		if (CPU_64BIT_MODE(cpu))
+		if (CPU_64BIT_INSTRUCTION(cpu))
 			cpu->regs[ii.rd].val = urrs.val - urrt.val;
 		else
 			res = excRI;
 		break;
-	/* case opcMADD:
-		utmp64 = ((uint64_t) cpu->hireg.lo << 32) | cpu->loreg.lo;
+	case opcMADD:
+		ASSERT(false);
+		/* utmp64 = ((uint64_t) cpu->hireg.lo << 32) | cpu->loreg.lo;
 		multiply(cpu, urrs.lo, urrt.lo, true);
 		utmp64 += ((uint64_t) cpu->hireg.lo << 32) | cpu->loreg.lo;
 		cpu->hireg.lo = utmp64 >> 32;
-		cpu->loreg.lo = utmp64 & UINT32_C(0xffffffff);
+		cpu->loreg.lo = utmp64 & UINT32_C(0xffffffff); */
 		break;
 	case opcMADDU:
-		utmp64 = ((uint64_t) cpu->hireg.lo << 32) | cpu->loreg.lo;
+		ASSERT(false);
+		/* utmp64 = ((uint64_t) cpu->hireg.lo << 32) | cpu->loreg.lo;
 		multiply(cpu, urrs.lo, urrt.lo, false);
 		utmp64 += ((uint64_t) cpu->hireg.lo << 32) | cpu->loreg.lo;
 		cpu->hireg.lo = utmp64 >> 32;
-		cpu->loreg.lo = utmp64 & UINT32_C(0xffffffff);
+		cpu->loreg.lo = utmp64 & UINT32_C(0xffffffff); */
 		break;
 	case opcMSUB:
-		utmp64 = ((uint64_t) cpu->hireg.lo << 32) | cpu->loreg.lo;
+		ASSERT(false);
+		/* utmp64 = ((uint64_t) cpu->hireg.lo << 32) | cpu->loreg.lo;
 		multiply(cpu, urrs.lo, urrt.lo, true);
 		utmp64 -= ((uint64_t) cpu->hireg.lo << 32) | cpu->loreg.lo;
 		cpu->hireg.lo = utmp64 >> 32;
-		cpu->loreg.lo = utmp64 & UINT32_C(0xffffffff);
+		cpu->loreg.lo = utmp64 & UINT32_C(0xffffffff); */
 		break;
 	case opcMSUBU:
-		utmp64 = ((uint64_t) cpu->hireg.lo << 32) | cpu->loreg.lo;
+		ASSERT(false);
+		/* utmp64 = ((uint64_t) cpu->hireg.lo << 32) | cpu->loreg.lo;
 		multiply(cpu, urrs.lo, urrt.lo, false);
 		utmp64 -= ((uint64_t) cpu->hireg.lo << 32) | cpu->loreg.lo;
 		cpu->hireg.lo = utmp64 >> 32;
-		cpu->loreg.lo = utmp64 & UINT32_C(0xffffffff);
+		cpu->loreg.lo = utmp64 & UINT32_C(0xffffffff); */
 		break;
 	case opcMUL:
-		utmp64 = ((uint64_t) urrs.lo) * ((uint64_t) urrt.lo);
-		cpu->regs[ii.rd].lo = utmp64 & UINT32_C(0xffffffff);
+		ASSERT(false);
+		/* utmp64 = ((uint64_t) urrs.lo) * ((uint64_t) urrt.lo);
+		cpu->regs[ii.rd].lo = utmp64 & UINT32_C(0xffffffff); */
 		break;
 	case opcMOVN:
-		if (urrt.lo != 0)
-			cpu->regs[ii.rd].lo = urrs.lo;
+		ASSERT(false);
+		/* if (urrt.lo != 0)
+			cpu->regs[ii.rd].lo = urrs.lo; */
 		break;
 	case opcMOVZ:
-		if (urrt.lo == 0)
-			cpu->regs[ii.rd].lo = urrs.lo;
-		break; */
+		ASSERT(false);
+		/* if (urrt.lo == 0)
+			cpu->regs[ii.rd].lo = urrs.lo; */
+		break;
 	case opcMULT:
 		multiply_s32(cpu, urrs.lo, urrt.lo);
 		break;
@@ -1804,15 +1818,13 @@ static exc_t execute(cpu_t *cpu, instr_info_t ii)
 		cpu->regs[ii.rd].val = urrs.val | urrt.val;
 		break;
 	case opcORI:
-		cpu->regs[ii.rt].val = urrs.val | ((uint64_t) ii.imm);
+		cpu->regs[ii.rt].val = urrs.val | ii.imm;
 		break;
 	case opcSLL:
-		utmp32 = urrt.lo << ii.sa;
-		cpu->regs[ii.rd].val = sign_extend_32_64(utmp32);
+		cpu->regs[ii.rd].val = sign_extend_32_64(urrt.lo << ii.sa);
 		break;
 	case opcSLLV:
-		utmp32 = urrt.lo << (urrs.val & UINT64_C(0x001f));
-		cpu->regs[ii.rd].val = sign_extend_32_64(utmp32);
+		cpu->regs[ii.rd].val = sign_extend_32_64(urrt.lo << (urrs.lo & UINT32_C(0x001f)));
 		break;
 	case opcSLT:
 		if (CPU_64BIT_MODE(cpu))
@@ -1841,17 +1853,17 @@ static exc_t execute(cpu_t *cpu, instr_info_t ii)
 			cpu->regs[ii.rd].val = urrs.lo < urrt.lo;
 		break;
 	case opcSRA:
-		cpu->regs[ii.rd].val = sign_extend_32_64(((int32_t) urrt.val) >> ii.sa);
+		cpu->regs[ii.rd].val = sign_extend_32_64((uint32_t) (((int32_t) urrt.lo) >> ii.sa));
 		break;
 	case opcSRAV:
 		cpu->regs[ii.rd].val =
-		    sign_extend_32_64(((int32_t) urrt.val) >> (urrs.val & UINT64_C(0x001f)));
+		    sign_extend_32_64((uint32_t) (((int32_t) urrt.lo) >> (urrs.lo & UINT32_C(0x001f))));
 		break;
 	case opcSRL:
-		cpu->regs[ii.rd].val = urrt.lo >> ii.sa;
+		cpu->regs[ii.rd].val = sign_extend_32_64(urrt.lo >> ii.sa);
 		break;
 	case opcSRLV:
-		cpu->regs[ii.rd].val = urrt.lo >> (urrs.val & UINT64_C(0x001f));
+		cpu->regs[ii.rd].val = sign_extend_32_64(urrt.lo >> (urrs.lo & UINT32_C(0x001f)));
 		break;
 	case opcSUB:
 		utmp32 = urrs.lo - urrt.lo;
@@ -1871,7 +1883,7 @@ static exc_t execute(cpu_t *cpu, instr_info_t ii)
 		cpu->regs[ii.rd].val = urrs.val ^ urrt.val;
 		break;
 	case opcXORI:
-		cpu->regs[ii.rt].val = urrs.val ^ sign_extend_16_64(ii.imm);
+		cpu->regs[ii.rt].val = urrs.val ^ ii.imm;
 		break;
 	
 	/*
@@ -2014,9 +2026,9 @@ static exc_t execute(cpu_t *cpu, instr_info_t ii)
 		break;
 	case opcBLEZL:
 		if (CPU_64BIT_MODE(cpu))
-			cond = (((int64_t) urrs.val) > 0);
+			cond = (((int64_t) urrs.val) <= 0);
 		else
-			cond = (((int32_t) urrs.lo) > 0);
+			cond = (((int32_t) urrs.lo) <= 0);
 		
 		if (cond) {
 			pca.ptr = cpu->pc_next.ptr +
@@ -2119,7 +2131,7 @@ static exc_t execute(cpu_t *cpu, instr_info_t ii)
 			cpu->regs[ii.rt].val = utmp8;
 		break;
 	case opcLD:
-		if (CPU_64BIT_MODE(cpu)) {
+		if (CPU_64BIT_INSTRUCTION(cpu)) {
 			addr.ptr = urrs.val + sign_extend_16_64(ii.imm);
 			res = cpu_read_mem64(cpu, addr, &utmp64, true);
 			if (res == excNone)
@@ -2173,7 +2185,7 @@ static exc_t execute(cpu_t *cpu, instr_info_t ii)
 		}
 		break;
 	case opcLLD:
-		if (CPU_64BIT_MODE(cpu)) {
+		if (CPU_64BIT_INSTRUCTION(cpu)) {
 			/* Compute virtual target address
 			   and issue read operation */
 			addr.ptr = urrs.val + sign_extend_16_64(ii.imm);
@@ -2239,7 +2251,7 @@ static exc_t execute(cpu_t *cpu, instr_info_t ii)
 		}
 		break;
 	case opcLWU:
-		if (CPU_64BIT_MODE(cpu)) {
+		if (CPU_64BIT_INSTRUCTION(cpu)) {
 			addr.ptr = urrs.val + sign_extend_16_64(ii.imm);
 			res = cpu_read_mem32(cpu, addr, &utmp32, true);
 			if (res == excNone)
@@ -2288,7 +2300,7 @@ static exc_t execute(cpu_t *cpu, instr_info_t ii)
 		}
 		break;
 	case opcSCD:
-		if (CPU_64BIT_MODE(cpu)) {
+		if (CPU_64BIT_INSTRUCTION(cpu)) {
 			if (!cpu->llbit) {
 				/* If we are not tracking LLD-SCD,
 				   then SCD has to fail */
@@ -2327,7 +2339,7 @@ static exc_t execute(cpu_t *cpu, instr_info_t ii)
 			res = excRI;
 		break;
 	case opcSD:
-		if (CPU_64BIT_MODE(cpu)) {
+		if (CPU_64BIT_INSTRUCTION(cpu)) {
 			addr.ptr = urrs.val + sign_extend_16_64(ii.imm);
 			res = cpu_write_mem64(cpu, addr, urrt.val, true);
 		} else
@@ -2417,7 +2429,7 @@ static exc_t execute(cpu_t *cpu, instr_info_t ii)
 		if (CPU_64BIT_MODE(cpu))
 			cond = (urrs.val >= urrt.val);
 		else
-			cond = (urrs.lo >= urrt.val);
+			cond = (urrs.lo >= urrt.lo);
 		TRAP(cond, res);
 		break;
 	case opcTLT:
@@ -2447,7 +2459,7 @@ static exc_t execute(cpu_t *cpu, instr_info_t ii)
 		if (CPU_64BIT_MODE(cpu))
 			cond = (urrs.val < urrt.val);
 		else
-			cond = (urrs.lo < urrt.val);
+			cond = (urrs.lo < urrt.lo);
 		TRAP(cond, res);
 		break;
 	case opcTNE:
@@ -2535,7 +2547,7 @@ static exc_t execute(cpu_t *cpu, instr_info_t ii)
 		}
 		break;
 	case opcDMFC0:
-		if (CPU_64BIT_MODE(cpu)) {
+		if (CPU_64BIT_INSTRUCTION(cpu)) {
 			if (CP0_USABLE(cpu))
 				cpu->regs[ii.rt].val = cpu->cp0[ii.rd].val;
 			else
@@ -2544,7 +2556,7 @@ static exc_t execute(cpu_t *cpu, instr_info_t ii)
 			res = excRI;
 		break;
 	case opcDMFC1:
-		if (CPU_64BIT_MODE(cpu)) {
+		if (CPU_64BIT_INSTRUCTION(cpu)) {
 			if (cp0_status_cu1(cpu)) {
 				/* Ignored */
 			} else {
@@ -2557,7 +2569,7 @@ static exc_t execute(cpu_t *cpu, instr_info_t ii)
 			res = excRI;
 		break;
 	case opcDMFC2:
-		if (CPU_64BIT_MODE(cpu)) {
+		if (CPU_64BIT_INSTRUCTION(cpu)) {
 			if (cp0_status_cu2(cpu)) {
 				/* Ignored */
 			} else {
@@ -2570,7 +2582,7 @@ static exc_t execute(cpu_t *cpu, instr_info_t ii)
 			res = excRI;
 		break;
 	case opcDMFC3:
-		if (CPU_64BIT_MODE(cpu)) {
+		if (CPU_64BIT_INSTRUCTION(cpu)) {
 			if (cp0_status_cu3(cpu)) {
 				/* Ignored */
 			} else {
@@ -2583,7 +2595,7 @@ static exc_t execute(cpu_t *cpu, instr_info_t ii)
 			res = excRI;
 		break;
 	case opcDMTC1:
-		if (CPU_64BIT_MODE(cpu)) {
+		if (CPU_64BIT_INSTRUCTION(cpu)) {
 			if (cp0_status_cu1(cpu)) {
 				/* Ignored */
 			} else {
@@ -2596,7 +2608,7 @@ static exc_t execute(cpu_t *cpu, instr_info_t ii)
 			res = excRI;
 		break;
 	case opcDMTC2:
-		if (CPU_64BIT_MODE(cpu)) {
+		if (CPU_64BIT_INSTRUCTION(cpu)) {
 			if (cp0_status_cu2(cpu)) {
 				/* Ignored */
 			} else {
@@ -2609,7 +2621,7 @@ static exc_t execute(cpu_t *cpu, instr_info_t ii)
 			res = excRI;
 		break;
 	case opcDMTC3:
-		if (CPU_64BIT_MODE(cpu)) {
+		if (CPU_64BIT_INSTRUCTION(cpu)) {
 			if (cp0_status_cu3(cpu)) {
 				/* Ignored */
 			} else {
@@ -2647,10 +2659,7 @@ static exc_t execute(cpu_t *cpu, instr_info_t ii)
 		break;
 	case opcMFC0:
 		if (CP0_USABLE(cpu)) {
-			if (CPU_64BIT_MODE(cpu))
-				cpu->regs[ii.rt].val = cpu->cp0[ii.rd].lo;
-			else
-				cpu->regs[ii.rt].lo = cpu->cp0[ii.rd].lo;
+			cpu->regs[ii.rt].val = sign_extend_32_64(cpu->cp0[ii.rd].lo);
 		} else
 			CP0_TRAP_UNUSABLE(cpu, res);
 		break;
@@ -2691,7 +2700,7 @@ static exc_t execute(cpu_t *cpu, instr_info_t ii)
 		cpu->regs[ii.rd] = cpu->loreg;
 		break;
 	case opcDMTC0:
-		if (!CPU_64BIT_MODE(cpu)) {
+		if (!CPU_64BIT_INSTRUCTION(cpu)) {
 			res = excRI;
 			break;
 		}
@@ -2717,13 +2726,13 @@ static exc_t execute(cpu_t *cpu, instr_info_t ii)
 				break;
 			case cp0_PageMask:
 				cp0_pagemask(cpu).val = 0;
-				if ((urrt.val == UINT32_C(0x0))
-				    || (urrt.val == UINT32_C(0x6000))
-				    || (urrt.val == UINT32_C(0x1e000))
-				    || (urrt.val == UINT32_C(0x7e000))
-				    || (urrt.val == UINT32_C(0x1fe000))
-				    || (urrt.val == UINT32_C(0x7fe000))
-				    || (urrt.val == UINT32_C(0x1ffe000)))
+				if (((urrt.val & cp0_pagemask_mask_mask) == UINT32_C(0x0))
+				    || ((urrt.val & cp0_pagemask_mask_mask) == UINT32_C(0x6000))
+				    || ((urrt.val & cp0_pagemask_mask_mask) == UINT32_C(0x1e000))
+				    || ((urrt.val & cp0_pagemask_mask_mask) == UINT32_C(0x7e000))
+				    || ((urrt.val & cp0_pagemask_mask_mask) == UINT32_C(0x1fe000))
+				    || ((urrt.val & cp0_pagemask_mask_mask) == UINT32_C(0x7fe000))
+				    || ((urrt.val & cp0_pagemask_mask_mask) == UINT32_C(0x1ffe000)))
 					cp0_pagemask(cpu).val = urrt.val & cp0_pagemask_mask_mask;
 				else
 					alert("R4000: Invalid value for PageMask (MTC0)");
@@ -2742,13 +2751,13 @@ static exc_t execute(cpu_t *cpu, instr_info_t ii)
 				/* Ignored, read-only */
 				break;
 			case cp0_Count:
-				cp0_count(cpu).val = urrt.val;
+				cp0_count(cpu).val = urrt.lo;
 				break;
 			case cp0_EntryHi:
 				cp0_entryhi(cpu).val = urrt.val & UINT32_C(0xfffff0ff);
 				break;
 			case cp0_Compare:
-				cp0_compare(cpu).val = urrt.val;
+				cp0_compare(cpu).val = urrt.lo;
 				cp0_cause(cpu).val &= ~(1 << cp0_cause_ip7_shift);
 				break;
 			case cp0_Status:
@@ -3012,10 +3021,11 @@ static exc_t execute(cpu_t *cpu, instr_info_t ii)
 	case opcBREAK:
 		res = excBp;
 		break;
-	/* case opcWAIT:
-		cpu->pc_next.ptr = cpu->pc.ptr;
-		cpu->stdby = true;
-		break; */
+	case opcWAIT:
+		ASSERT(false);
+		/* cpu->pc_next.ptr = cpu->pc.ptr;
+		cpu->stdby = true; */
+		break;
 	case opcNOP:
 		break;
 	
@@ -3132,15 +3142,15 @@ static void handle_exception(cpu_t *cpu, exc_t res)
 	if (cp0_status_bev(cpu)) {
 		/* Boot time */
 		if (res != excReset)
-			exc_pc.ptr = UINT64_C(0xffffffffbfc00200);
+			exc_pc.ptr = EXCEPTION_BOOT_BASE_ADDRESS;
 		else
-			exc_pc.ptr = UINT64_C(0xffffffffbfc00000);
+			exc_pc.ptr = EXCEPTION_BOOT_RESET_ADDRESS;
 	} else {
 		/* Normal time */
 		if (res != excReset)
-			exc_pc.ptr = UINT64_C(0xffffffff80000000);
+			exc_pc.ptr = EXCEPTION_NORMAL_BASE_ADDRESS;
 		else
-			exc_pc.ptr = UINT64_C(0xffffffffbfc00000);
+			exc_pc.ptr = EXCEPTION_NORMAL_RESET_ADDRESS;
 	}
 	
 	/* Exception vector offsets */
@@ -3182,8 +3192,13 @@ static void manage(cpu_t *cpu, exc_t res)
 	if (cp0_random(cpu).val < cp0_wired(cpu).val)
 		cp0_random(cpu).val = 47;
 	
-	/* Timer control */
-	if (cp0_count(cpu).val == cp0_compare(cpu).val)
+	/*
+	 * Timer control.
+	 *
+	 * N.B.: Count and Compare are truly 32 bit CP0
+	 *       registers even in 64-bit mode.
+	 */
+	if (cp0_count(cpu).lo == cp0_compare(cpu).lo)
 		/* Generate interrupt request */
 		cp0_cause(cpu).val |= 1 << cp0_cause_ip7_shift;
 }

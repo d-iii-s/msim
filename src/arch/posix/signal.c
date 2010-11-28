@@ -22,7 +22,7 @@ static void machine_user_break(int signo)
 		printf("\n");
 		alert("Quit");
 		input_back();
-		exit(1);
+		exit(ERR_OK);
 	}
 	
 	tobreak = true;

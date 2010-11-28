@@ -167,7 +167,10 @@ void die(int status, const char *fmt, ...)
 	string_done(&out);
 	
 	input_back();
-	exit(status);
+	if (status == ERR_INTERN)
+		abort();
+	else
+		exit(status);
 }
 
 void io_error(const char *fname)

@@ -153,7 +153,7 @@ void interactive_control(void)
 			printf("\n");
 			alert("Quit");
 			input_back();
-			exit(1);
+			exit(ERR_OK);
 		}
 		
 		if (*cmdline) {

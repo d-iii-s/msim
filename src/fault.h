@@ -13,7 +13,7 @@
 #define FAULT_H_
 
 #define ERR_OK      0  /**< OK */
-#define ERR_IO      1  /**< I/O error occures */
+#define ERR_IO      1  /**< I/O error occured */
 #define ERR_MEM     2  /**< Not enough memory */
 #define ERR_INIT    3  /**< Initial script fails */
 #define ERR_PARM    4  /**< Invalid parameter */

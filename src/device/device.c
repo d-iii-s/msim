@@ -19,6 +19,7 @@
 #include <inttypes.h>
 #include "mem.h"
 #include "dcpu.h"
+#include "dcycle.h"
 #include "dkeyboard.h"
 #include "dorder.h"
 #include "ddisk.h"
@@ -32,11 +33,12 @@
 #include "../fault.h"
 
 /** Count of device types */
-#define DEVICE_TYPE_COUNT  8
+#define DEVICE_TYPE_COUNT  9
 
 /* Implemented peripheral list */
 const device_type_t *device_types[DEVICE_TYPE_COUNT] = {
 	&dcpu,
+	&dcycle,
 	&drwm,
 	&drom,
 	&dprinter,

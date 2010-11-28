@@ -37,6 +37,7 @@ SOURCES = \
 	device/mem.c \
 	device/ddisk.c \
 	device/dcpu.c \
+	device/dcycle.c \
 	device/dkeyboard.c \
 	device/dorder.c \
 	device/dprinter.c \

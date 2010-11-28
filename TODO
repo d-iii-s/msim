@@ -1,11 +1,9 @@
 randomization
-
-input module - move all about input into this module
-add debug features - memory allocation
+add debug features
+	- memory allocation
 	- first and last block check
 	- show all allocated memory blocks
 	- check for unallocated memory at the end of the program or at the free function call
 	- allocation information - function, file and the line number
 serial line
 network
-nonword write via read/write

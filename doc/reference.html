@@ -81,6 +81,7 @@ for <a href="http://d3s.mff.cuni.cz/~holub/sw/msim/">MSIM</a> version 1.4.0.</p>
 			<li><a href="#ddisk">9.7. Block device <code>ddisk</code></a></li>
 			<li><a href="#dorder">9.8. Interprocessor communication device <code>dorder</code></a></li>
 			<li><a href="#dtime">9.9. Real-time clock <code>dtime</code></a></li>
+			<li><a href="#dcycle">9.10. CPU cycle counter <code>dcycle</code></a></li>
 			</ul>
 		</li>
 	<li><a href="#Special_instructions">10. Special instructions</a></li>
@@ -110,9 +111,9 @@ also compiled in Cygwin or MinGW in Windows).</p>
 <ul>
 	<li>MIPS R4000 CPU
 		<ul>
+			<li>full instruction set</li>
 			<li>full memory management (TLB)</li>
 			<li>multiprocessor support</li>
-			<li>the instruction set is restricted to 32 bits</li>
 			<li>CPU cache is not simulated</li>
 		</ul>
 	</li>
@@ -176,7 +177,7 @@ keyboard input, character output, etc.</p>
 
 <p>A POSIX compliant environment is required for MSIM to be compiled and
 executed. It has been succesfully tested on GNU/Linux in various distributions
-(Debian, Feroda, Gentoo) and platforms (x86, AMD64, UltraSPARC, PowerPC).
+(Debian, Fedora, Gentoo) and platforms (x86, AMD64, UltraSPARC, PowerPC).
 MSIM also runs in Solaris, OpenSolaris, FreeBSD and Mac&nbsp;OS&nbsp;X.</p>
 
 <p>Under Windows MSIM can be compiled and executed in Cygwin or using MinGW/MSYS
@@ -936,6 +937,8 @@ properties.</p>
 		<dd>Interprocessor communication device</dd>
 	<dt><a href="#dtime">dtime</a></dt>
 		<dd>Real-time clock</dd>
+	<dt><a href="#dcycle">dcycle</a></dt>
+		<dd>CPU cycle counter</dd>
 </dl>
 
 <h3>9.2. Processor <code>dcpu</code><a name="dcpu"></a></h3>
@@ -1176,10 +1179,15 @@ via the <code>generic</code> command.</p>
 <table>
 	<caption><code>dprinter</code> programming registers</caption>
 	<tr>
-		<th>Offset</th><th>Name</th><th>Operation</th><th>Description</th>
+		<th>Offset</th>
+		<th>Size</th>
+		<th>Name</th>
+		<th>Operation</th>
+		<th>Description</th>
 	</tr>
 	<tr>
 		<td rowspan="2">+0</td>
+		<td rowspan="2">4</td>
 		<td rowspan="2">character</td>
 		<td>read</td>
 		<td>(ignored)</td>
@@ -1256,12 +1264,14 @@ automatically deasserts the pending interrupt.</p>
 	<caption><code>dkeyboard</code> programming registers</caption>
 	<tr>
 		<th>Offset</th>
+		<th>Size</th>
 		<th>Name</th>
 		<th>Operation</th>
 		<th>Description</th>
 	</tr>
 	<tr>
 		<td rowspan="2">+0</td>
+		<td rowspan="2">4</td>
 		<td rowspan="2">keycode</td>
 		<td>read</td>
 		<td>key code of the pressed key (any read operation deasserts the pending interrupt)</td>
@@ -1322,19 +1332,21 @@ running MSIM.</p>
 	<caption><code>ddisk</code> programming registers</caption>
 	<tr>
 		<th>Offset</th>
+		<th>Size</th>
 		<th>Name</th>
 		<th>Operation</th>
 		<th>Description</th>
 	</tr>
 	<tr>
 		<td rowspan="2">+0</td>
-		<td rowspan="2">DMA buffer address</td>
+		<td rowspan="2">4</td>
+		<td rowspan="2">DMA buffer address (lower 32&nbsp;bits)</td>
 		<td>read</td>
-		<td>get the current physical address of the DMA buffer</td>
+		<td>get the current physical address of the DMA buffer (lower 32&nbsp;bits)</td>
 	</tr>
 	<tr>
 		<td>write</td>
-		<td>set the physical address of the DMA buffer
+		<td>set the physical address of the DMA buffer (lower 32&nbsp;bits)
 			<ul>
 				<li>performing a <emph>read operation</emph> will store the data read from the block device to this buffer</li>
 				<li>performing a <emph>write operation</emph> will fetch the data to be written to the block device from this buffer</li>
@@ -1342,6 +1354,7 @@ running MSIM.</p>
 	</tr>
 	<tr>
 		<td rowspan="2">+4</td>
+		<td rowspan="2">4</td>
 		<td rowspan="2">sector number</td>
 		<td>read</td>
 		<td>get the current sector number</td>
@@ -1352,6 +1365,7 @@ running MSIM.</p>
 	</tr>
 	<tr>
 		<td rowspan="2">+8</td>
+		<td rowspan="2">4</td>
 		<td rowspan="2">status/command</td>
 		<td>read</td>
 		<td><p>get a bitfield representing the current status of the device:</p>
@@ -1471,9 +1485,47 @@ running MSIM.</p>
 	</tr>
 	<tr>
 		<td rowspan="2">+12</td>
-		<td rowspan="2">disk size</td>
+		<td rowspan="2">4</td>
+		<td rowspan="2">disk size (lower 32&nbsp;bits)</td>
 		<td>read</td>
-		<td>get the size of the block device in bytes</td>
+		<td>get the size of the block device in bytes (lower 32&nbsp;bits)</td>
+	</tr>
+	<tr>
+		<td>write</td>
+		<td>(ignored)</td>
+	</tr>
+	<tr>
+		<td rowspan="2">+16</td>
+		<td rowspan="2">4</td>
+		<td rowspan="2">DMA buffer address (higher 4&nbsp;bits)</td>
+		<td>read</td>
+		<td>get the current physical address of the DMA buffer (higher 4&nbsp;bits)</td>
+	</tr>
+	<tr>
+		<td>write</td>
+		<td>set the physical address of the DMA buffer (higher 4&nbsp;bits)
+			<ul>
+				<li>performing a <emph>read operation</emph> will store the data read from the block device to this buffer</li>
+				<li>performing a <emph>write operation</emph> will fetch the data to be written to the block device from this buffer</li>
+			</ul></td>
+	</tr>
+	<tr>
+		<td rowspan="2">+20</td>
+		<td rowspan="2">4</td>
+		<td rowspan="2">reserved</td>
+		<td>read</td>
+		<td>(do not read, reserved for future extensions)</td>
+	</tr>
+	<tr>
+		<td>write</td>
+		<td>(do not write, reserved for future extensions)</td>
+	</tr>
+	<tr>
+		<td rowspan="2">+24</td>
+		<td rowspan="2">4</td>
+		<td rowspan="2">disk size (higher 32&nbsp;bits)</td>
+		<td>read</td>
+		<td>get the size of the block device in bytes (higher 32&nbsp;bits)</td>
 	</tr>
 	<tr>
 		<td>write</td>
@@ -1520,12 +1572,14 @@ configuration and asserting an interprocessor interrupt on a specified processor
 	<caption><code>dorder</code> programming registers</caption>
 	<tr>
 		<th>Offset</td>
+		<th>Size</th>
 		<th>Name</th>
 		<th>Operation</th>
 		<th>Description</th>
 	</tr>
 	<tr>
 		<td rowspan="2">+0</td>
+		<td rowspan="2">4</td>
 		<td>processor number</td>
 		<td>read</td>
 		<td>get the unique number of the processor performing the read operation</td>
@@ -1537,6 +1591,7 @@ configuration and asserting an interprocessor interrupt on a specified processor
 	</tr>
 	<tr>
 		<td rowspan="2">+4</td>
+		<td rowspan="2">4</td>
 		<td rowspan="2">interrupt down</td>
 		<td>read</td>
 		<td>(ignored)</td>
@@ -1608,15 +1663,52 @@ on the physical address 0x10000000.</p>
 	<caption><code>dtime</code> programming registers</caption>
 	<tr>
 		<th>Offset</th>
+		<th>Size</th>
 		<th>Name</th>
 		<th>Operation</th>
 		<th>Description</th>
 	</tr>
 	<tr>
 		<td rowspan="2">+0</td>
+		<td rowspan="2">4</td>
+		<td rowspan="2">seconds</td>
+		<td>read</td>
+		<td>number of seconds since the epoch, i.&nbsp;e. 00:00:00 January 1st 1970 UTC (equivalent to the <code>tv_sec</code> field returned by POSIX <code>gettimeofday()</code> function)</td>
+	</tr>
+	<tr>
+		<td>write</td>
+		<td>(ignored)</td>
+	</tr>
+	<tr>
+		<td rowspan="2">+4</td>
+		<td rowspan="2">4</td>
+		<td rowspan="2">useconds</td>
+		<td>read</td>
+		<td>number of microseconds past the number of seconds since the epoch (equivalent to the <code>tv_usec</code> field returned by POSIX <code>gettimeofday()</code> function)</td>
+	</tr>
+	<tr>
+		<td>write</td>
+		<td>(ignored)</td>
+	</tr>
+	<tr>
+		<th>Offset</th>
+		<th>Size</th>
+		<th>Name</th>
+		<th>Operation</th>
+		<th>Description</th>
+	</tr>
+	<tr>
+		<td rowspan="2">+0</td>
+		<td rowspan="2">8</td>
 		<td rowspan="2">time</td>
 		<td>read</td>
-		<td>number of seconds since the epoch, i.e. 00:00:00 January 1st 1970 UTC (equivalent to the POSIX <code>time()</code> function)</td>
+		<td><p>number of seconds and microseconds since the epoch, i.&nbsp;e. 00:00:00 January 1st 1970 UTC</p>
+			<dl>
+				<dt>bits <code>0</code> &ndash; <code>31</code></dt>
+					<dd>equivalent to the <code>tv_sec</code> field returned by POSIX <code>gettimeofday()</code> function</dd>
+				<dt>bits <code>32</code> &ndash; <code>63</code></dt>
+					<dd>equivalent to the <code>tv_usec</code> field returned by POSIX <code>gettimeofday()</code> function</dd>
+			</dl></td>
 	</tr>
 	<tr>
 		<td>write</td>
@@ -1632,6 +1724,78 @@ on the physical address 0x10000000.</p>
 		<dd>Print configuration information (assigned register address).</dd>
 	<dt><code><strong>stat</strong></code></dt>
 		<dd>Print device statistics (none).</dd>
+</dl>
+
+<h3>9.10. CPU cycle counter <code>dcycle</code><a name="dcycle"></a></h3>
+<p>This device returns a 64-bit CPU cycle counter.</p>
+
+<h4>Initialization parameters: <code>address</code></h4>
+<p>where</p>
+<dl>
+	<dt><code>address</code></dt>
+		<dd>Physical address of the device register.</dd>
+</dl>
+
+<h4>Registers</h4>
+<table>
+	<caption><code>dcycle</code> programming registers</caption>
+	<tr>
+		<th>Offset</th>
+		<th>Size</th>
+		<th>Name</th>
+		<th>Operation</th>
+		<th>Description</th>
+	</tr>
+	<tr>
+		<td rowspan="2">+0</td>
+		<td rowspan="2">4</td>
+		<td rowspan="2">cycles (lower 32&nbsp;bits)</td>
+		<td>read</td>
+		<td>number of CPU cycles since device initialization (lower 32&nbsp;bits)</td>
+	</tr>
+	<tr>
+		<td>write</td>
+		<td>(ignored)</td>
+	</tr>
+	<tr>
+		<td rowspan="2">+4</td>
+		<td rowspan="2">4</td>
+		<td rowspan="2">cycles (higher 32&nbsp;bits)</td>
+		<td>read</td>
+		<td>number of CPU cycles since device initialization (higher 32&nbsp;bits)</td>
+	</tr>
+	<tr>
+		<td>write</td>
+		<td>(ignored)</td>
+	</tr>
+	<tr>
+		<th>Offset</th>
+		<th>Size</th>
+		<th>Name</th>
+		<th>Operation</th>
+		<th>Description</th>
+	</tr>
+	<tr>
+		<td rowspan="2">+0</td>
+		<td rowspan="2">8</td>
+		<td rowspan="2">cycles (64 bits)</td>
+		<td>read</td>
+		<td>number of CPU cycles since device initialization</td>
+	</tr>
+	<tr>
+		<td>write</td>
+		<td>(ignored)</td>
+	</tr>
+</table>
+
+<h4>Commands</h4>
+<dl>
+	<dt><code><strong>help</strong> [cmd]</code></dt>
+		<dd>Print a help on the command specified or a list of available commands.</dd>
+	<dt><code><strong>info</strong></code></dt>
+		<dd>Print configuration information (assigned register address).</dd>
+	<dt><code><strong>stat</strong></code></dt>
+		<dd>Print device statistics (current cycle counter).</dd>
 </dl>
 
 <h2>10. Special instructions<a name="Special_instructions"></a></h2>

@@ -114,11 +114,11 @@ static void dtime_done(device_t *dev)
 	safe_free(dev->data);
 }
 
-/** Read command implementation
+/** Read command implementation (32 bits)
  *
  * Read host time via gettimeofday().
  *
- * @param dev  Ddisk device pointer
+ * @param dev  Device pointer
  * @param addr Address of the read operation
  * @param val  Read (returned) value
  *
@@ -141,6 +141,36 @@ static void dtime_read32(cpu_t *cpu, device_t *dev, ptr36_t addr, uint32_t *val)
 	case REGISTER_USEC:
 		gettimeofday(&timeval, NULL);
 		*val = (uint32_t) timeval.tv_usec;
+		break;
+	}
+}
+
+/** Read command implementation (64 bits)
+ *
+ * Read host time via gettimeofday().
+ *
+ * @param dev  Device pointer
+ * @param addr Address of the read operation
+ * @param val  Read (returned) value
+ *
+ */
+static void dtime_read64(cpu_t *cpu, device_t *dev, ptr36_t addr, uint64_t *val)
+{
+	ASSERT(dev != NULL);
+	ASSERT(val != NULL);
+	
+	dtime_data_t *data = (dtime_data_t *) dev->data;
+	
+	/* Get actual time */
+	struct timeval timeval;
+	uint32_t sec = (uint32_t) timeval.tv_sec;
+	uint32_t usec = (uint32_t) timeval.tv_usec;
+	
+	/* Pack the values in little-endian fashion */
+	switch (addr - data->addr) {
+	case REGISTER_SEC:
+		gettimeofday(&timeval, NULL);
+		*val = ((uint64_t) sec) | ((uint64_t) usec << 32);
 		break;
 	}
 }
@@ -202,6 +232,7 @@ device_type_t dtime = {
 	/* Functions */
 	.done = dtime_done,
 	.read32 = dtime_read32,
+	.read64 = dtime_read64,
 	
 	/* Commands */
 	.cmds = dtime_cmds

@@ -45,13 +45,13 @@
 #define EXTEND_POSITIVE_32_64  UINT64_C(0x00000000ffffffff)
 #define EXTEND_NEGATIVE_32_64  UINT64_C(0xffffffff00000000)
 
-/** User mode physical zones */
+/** User mode segments */
 #define USEG_MASK   UINT32_C(0x80000000)
 #define USEG_BITS   UINT32_C(0x00000000)
 #define XUSEG_MASK  UINT64_C(0xffffff0000000000)
 #define XUSEG_BITS  UINT64_C(0x0000000000000000)
 
-/** Supervisor mode physical zones */
+/** Supervisor mode segments */
 #define SUSEG_MASK   USEG_MASK
 #define SUSEG_BITS   USEG_BITS
 #define XSUSEG_MASK  XUSEG_MASK
@@ -65,7 +65,7 @@
 #define CSSEG_MASK  UINT64_C(0xffffffffe0000000)
 #define CSSEG_BITS  UINT64_C(0xffffffffc0000000)
 
-/** Kernel mode physical zones */
+/** Kernel mode segments */
 #define KUSEG_MASK    USEG_MASK
 #define KUSEG_BITS    USEG_BITS
 #define XKSUSEG_MASK  XUSEG_MASK

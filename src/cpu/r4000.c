@@ -45,6 +45,61 @@
 #define EXTEND_POSITIVE_32_64  UINT64_C(0x00000000ffffffff)
 #define EXTEND_NEGATIVE_32_64  UINT64_C(0xffffffff00000000)
 
+/** User mode physical zones */
+#define USEG_MASK   UINT32_C(0x80000000)
+#define USEG_BITS   UINT32_C(0x00000000)
+#define XUSEG_MASK  UINT64_C(0xffffff0000000000)
+#define XUSEG_BITS  UINT64_C(0x0000000000000000)
+
+/** Supervisor mode physical zones */
+#define SUSEG_MASK   USEG_MASK
+#define SUSEG_BITS   USEG_BITS
+#define XSUSEG_MASK  XUSEG_MASK
+#define XSUSEG_BITS  XUSEG_BITS
+
+#define SSEG_MASK   UINT32_C(0xe0000000)
+#define SSEG_BITS   UINT32_C(0xc0000000)
+#define XSSEG_MASK  UINT64_C(0xffffff0000000000)
+#define XSSEG_BITS  UINT64_C(0xc000000000000000)
+
+#define CSSEG_MASK  UINT64_C(0xffffffffe0000000)
+#define CSSEG_BITS  UINT64_C(0xffffffffc0000000)
+
+/** Kernel mode physical zones */
+#define KUSEG_MASK    USEG_MASK
+#define KUSEG_BITS    USEG_BITS
+#define XKSUSEG_MASK  XUSEG_MASK
+#define XKSUSEG_BITS  XUSEG_BITS
+
+#define KSEG0_MASK   UINT32_C(0xe0000000)
+#define KSEG0_BITS   UINT32_C(0x80000000)
+#define CKSEG0_MASK  UINT64_C(0xffffffffe0000000)
+#define CKSEG0_BITS  UINT64_C(0xffffffff80000000)
+
+#define KSEG1_MASK   UINT32_C(0xe0000000)
+#define KSEG1_BITS   UINT32_C(0xa0000000)
+#define CKSEG1_MASK  UINT32_C(0xffffffffe0000000)
+#define CKSEG1_BITS  UINT32_C(0xffffffffa0000000)
+
+#define KSSEG_MASK  SSEG_MASK
+#define KSSEG_BITS  SSEG_BITS
+#define CKSSEG_MASK  CSSEG_MASK
+#define CKSSEG_BITS  CSSEG_BITS
+
+#define KSEG3_MASK  UINT32_C(0xe0000000)
+#define KSEG3_BITS  UINT32_C(0xe0000000)
+#define CKSEG3_MASK  UINT32_C(0xffffffffe0000000)
+#define CKSEG3_BITS  UINT32_C(0xffffffffe0000000)
+
+#define XKSSEG_MASK  UINT64_C(0xffffff0000000000)
+#define XKSSEG_BITS  UINT64_C(0x4000000000000000)
+
+#define XKPHYS_MASK  UINT64_C(0xc000000000000000)
+#define XKPHYS_BITS  UINT64_C(0x8000000000000000)
+
+#define XKSEG_MASK  UINT64_C(0xffffff0080000000)
+#define XKSEG_BITS  UINT64_C(0xc000000000000000)
+
 /** Initial state */
 #define HARD_RESET_STATUS         (cp0_status_erl_mask | cp0_status_bev_mask)
 #define HARD_RESET_START_ADDRESS  UINT64_C(0xffffffffbfc00000)
@@ -286,7 +341,8 @@ static void fill_tlb_error(cpu_t *cpu, ptr64_t addr)
 	cp0_badvaddr(cpu).val = addr.ptr;
 	
 	cp0_context(cpu).val &= cp0_context_ptebase_mask;
-	cp0_context(cpu).val |= (addr.ptr >> cp0_context_addr_shift) & ~cp0_context_res1_mask;
+	cp0_context(cpu).val |= (addr.ptr >> cp0_context_addr_shift)
+	    & ~cp0_context_res1_mask;
 	
 	cp0_entryhi(cpu).val &= cp0_entryhi_asid_mask;
 	cp0_entryhi(cpu).val |= addr.ptr & cp0_entryhi_vpn2_mask;
@@ -306,10 +362,10 @@ static void fill_addr_error(cpu_t *cpu, ptr64_t addr, bool noisy)
 	}
 }
 
-/** Search through TLB and generates apropriate exception
+/** Search through TLB and generates apropriate exception (32 bits)
  *
  */
-static exc_t tlb_hit(cpu_t *cpu, ptr64_t virt, ptr36_t *phys, bool wr,
+static exc_t tlb_hit32(cpu_t *cpu, ptr64_t virt, ptr36_t *phys, bool wr,
     bool noisy)
 {
 	ASSERT(cpu != NULL);
@@ -344,84 +400,178 @@ static exc_t tlb_hit(cpu_t *cpu, ptr64_t virt, ptr36_t *phys, bool wr,
 	return excNone;
 }
 
-/** The user mode address conversion
+/** Search through TLB and generates apropriate exception (64 bits)
  *
  */
-static exc_t convert_addr_user(cpu_t *cpu, ptr64_t virt, ptr36_t *phys,
+static exc_t tlb_hit64(cpu_t *cpu, ptr64_t virt, ptr36_t *phys, bool wr,
+    bool noisy)
+{
+	ASSERT(cpu != NULL);
+	ASSERT(phys != NULL);
+	
+	ASSERT(false);
+	
+	return excNone;
+}
+
+/** The user mode address conversion (32 bits)
+ *
+ */
+static exc_t convert_addr_user32(cpu_t *cpu, ptr64_t virt, ptr36_t *phys,
     bool wr, bool noisy)
 {
 	ASSERT(cpu != NULL);
 	ASSERT(phys != NULL);
 	ASSERT(CPU_USER_MODE(cpu));
 	
-	/* Test bit 31 or lookup in TLB */
-	if ((virt.lo & SBIT32) != 0) {
-		fill_addr_error(cpu, virt, noisy);
-		return excAddrError;
-	}
+	if ((virt.lo & USEG_MASK) == USEG_BITS)
+		return tlb_hit32(cpu, virt, phys, wr, noisy);
 	
-	/* useg */
-	return tlb_hit(cpu, virt, phys, wr, noisy);
+	fill_addr_error(cpu, virt, noisy);
+	return excAddrError;
 }
 
-/** The supervisor mode address conversion
+/** The user mode address conversion (64 bits)
  *
  */
-static exc_t convert_addr_supervisor(cpu_t *cpu, ptr64_t virt, ptr36_t *phys,
+static exc_t convert_addr_user64(cpu_t *cpu, ptr64_t virt, ptr36_t *phys,
+    bool wr, bool noisy)
+{
+	ASSERT(cpu != NULL);
+	ASSERT(phys != NULL);
+	ASSERT(CPU_USER_MODE(cpu));
+	
+	if ((virt.ptr & XUSEG_MASK) == XUSEG_BITS)
+		return tlb_hit64(cpu, virt, phys, wr, noisy);
+	
+	fill_addr_error(cpu, virt, noisy);
+	return excAddrError;
+}
+
+/** The supervisor mode address conversion (32 bits)
+ *
+ */
+static exc_t convert_addr_supervisor32(cpu_t *cpu, ptr64_t virt, ptr36_t *phys,
     bool wr, bool noisy)
 {
 	ASSERT(cpu != NULL);
 	ASSERT(phys != NULL);
 	ASSERT(CPU_SUPERVISOR_MODE(cpu));
 	
-	if (virt.lo < UINT32_C(0x80000000))  /* suseg */
-		return tlb_hit(cpu, virt, phys, wr, noisy);
+	if ((virt.lo & SUSEG_MASK) == SUSEG_BITS)
+		return tlb_hit32(cpu, virt, phys, wr, noisy);
 	
-	if (virt.lo < UINT32_C(0xc0000000)) {
-		fill_addr_error(cpu, virt, noisy);
-		return excAddrError;
-	}
+	if ((virt.lo & SSEG_MASK) == SSEG_BITS)
+		return tlb_hit32(cpu, virt, phys, wr, noisy);
 	
-	if (virt.lo < UINT32_C(0xe0000000))  /* ssseg */
-		return tlb_hit(cpu, virt, phys, wr, noisy);
-	
-	/* virt > UINT32_C(0xe0000000) */
 	fill_addr_error(cpu, virt, noisy);
 	return excAddrError;
 }
 
-/** The kernel mode address conversion
+/** The supervisor mode address conversion (64 bits)
  *
  */
-static exc_t convert_addr_kernel(cpu_t *cpu, ptr64_t virt, ptr36_t *phys,
+static exc_t convert_addr_supervisor64(cpu_t *cpu, ptr64_t virt, ptr36_t *phys,
+    bool wr, bool noisy)
+{
+	ASSERT(cpu != NULL);
+	ASSERT(phys != NULL);
+	ASSERT(CPU_SUPERVISOR_MODE(cpu));
+	
+	if ((virt.ptr & XSUSEG_MASK) == XSUSEG_BITS)
+		return tlb_hit64(cpu, virt, phys, wr, noisy);
+	
+	if ((virt.ptr & XSSEG_MASK) == XSSEG_BITS)
+		return tlb_hit64(cpu, virt, phys, wr, noisy);
+	
+	if ((virt.ptr & CSSEG_MASK) == CSSEG_BITS)
+		return tlb_hit64(cpu, virt, phys, wr, noisy);
+	
+	fill_addr_error(cpu, virt, noisy);
+	return excAddrError;
+}
+
+/** The kernel mode address conversion (32 bits)
+ *
+ */
+static exc_t convert_addr_kernel32(cpu_t *cpu, ptr64_t virt, ptr36_t *phys,
     bool wr, bool noisy)
 {
 	ASSERT(cpu != NULL);
 	ASSERT(phys != NULL);
 	ASSERT(CPU_KERNEL_MODE(cpu));
 	
-	if (virt.lo < UINT32_C(0x80000000)) {  /* kuseg */
+	if ((virt.lo & KUSEG_MASK) == KUSEG_BITS) {
 		if (!cp0_status_erl(cpu))
-			return tlb_hit(cpu, virt, phys, wr, noisy);
+			return tlb_hit32(cpu, virt, phys, wr, noisy);
 		
 		return excNone;
 	}
 	
-	if (virt.lo < UINT32_C(0xa0000000)) {  /* kseg0 */
+	if ((virt.lo & KSEG0_MASK) == KSEG0_BITS) {
 		*phys = virt.lo - UINT32_C(0x80000000);
 		return excNone;
 	}
 	
-	if (virt.lo < UINT32_C(0xc0000000)) {  /* kseg1 */
+	if ((virt.lo & KSEG1_MASK) == KSEG1_BITS) {
 		*phys = virt.lo - UINT32_C(0xa0000000);
 		return excNone;
 	}
 	
-	if (virt.lo < UINT32_C(0xe0000000))  /* kseg2 */
-		return tlb_hit(cpu, virt, phys, wr, noisy);
+	if ((virt.lo & KSSEG_MASK) == KSSEG_BITS)
+		return tlb_hit32(cpu, virt, phys, wr, noisy);
 	
-	/* virt > UINT32_C(0xe0000000) (kseg3) */
-	return tlb_hit(cpu, virt, phys, wr, noisy);
+	if ((virt.lo & KSEG3_MASK) == KSEG3_BITS)
+		return tlb_hit32(cpu, virt, phys, wr, noisy);
+	
+	fill_addr_error(cpu, virt, noisy);
+	return excAddrError;
+}
+
+/** The kernel mode address conversion (64 bits)
+ *
+ */
+static exc_t convert_addr_kernel64(cpu_t *cpu, ptr64_t virt, ptr36_t *phys,
+    bool wr, bool noisy)
+{
+	ASSERT(cpu != NULL);
+	ASSERT(phys != NULL);
+	ASSERT(CPU_KERNEL_MODE(cpu));
+	
+	if ((virt.ptr & XKSUSEG_MASK) == XKSUSEG_BITS) {
+		if (!cp0_status_erl(cpu))
+			return tlb_hit64(cpu, virt, phys, wr, noisy);
+		
+		return excNone;
+	}
+	
+	if ((virt.ptr & XKSSEG_MASK) == XKSSEG_BITS)
+		return tlb_hit64(cpu, virt, phys, wr, noisy);
+	
+	if ((virt.ptr & XKPHYS_MASK) == XKPHYS_BITS)
+		ASSERT(false);
+	
+	if ((virt.ptr & XKSEG_MASK) == XKSEG_BITS)
+		return tlb_hit64(cpu, virt, phys, wr, noisy);
+	
+	if ((virt.ptr & CKSEG0_MASK) == CKSEG0_BITS) {
+		*phys = virt.ptr - UINT64_C(0x80000000);
+		return excNone;
+	}
+	
+	if ((virt.ptr & CKSEG1_MASK) == CKSEG1_BITS) {
+		*phys = virt.ptr - UINT64_C(0xa0000000);
+		return excNone;
+	}
+	
+	if ((virt.lo & CKSSEG_MASK) == CKSSEG_BITS)
+		return tlb_hit64(cpu, virt, phys, wr, noisy);
+	
+	if ((virt.lo & CKSEG3_MASK) == CKSEG3_BITS)
+		return tlb_hit64(cpu, virt, phys, wr, noisy);
+	
+	fill_addr_error(cpu, virt, noisy);
+	return excAddrError;
 }
 
 /** The conversion of virtual addresses
@@ -437,13 +587,23 @@ exc_t convert_addr(cpu_t *cpu, ptr64_t virt, ptr36_t *phys, bool write,
 	ASSERT(cpu != NULL);
 	ASSERT(phys != NULL);
 	
-	if (CPU_USER_MODE(cpu))
-		return convert_addr_user(cpu, virt, phys, write, noisy);
-	
-	if (CPU_SUPERVISOR_MODE(cpu))
-		return convert_addr_supervisor(cpu, virt, phys, write, noisy);
-	
-	return convert_addr_kernel(cpu, virt, phys, write, noisy);
+	if (CPU_64BIT_MODE(cpu)) {
+		if (CPU_USER_MODE(cpu))
+			return convert_addr_user64(cpu, virt, phys, write, noisy);
+		
+		if (CPU_SUPERVISOR_MODE(cpu))
+			return convert_addr_supervisor64(cpu, virt, phys, write, noisy);
+		
+		return convert_addr_kernel64(cpu, virt, phys, write, noisy);
+	} else {
+		if (CPU_USER_MODE(cpu))
+			return convert_addr_user32(cpu, virt, phys, write, noisy);
+		
+		if (CPU_SUPERVISOR_MODE(cpu))
+			return convert_addr_supervisor32(cpu, virt, phys, write, noisy);
+		
+		return convert_addr_kernel32(cpu, virt, phys, write, noisy);
+	}
 }
 
 /** Test for correct alignment (16 bits)

@@ -1,0 +1,1 @@
+multiply_u32(cpu, urrs.lo, urrt.lo);

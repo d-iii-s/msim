@@ -1684,299 +1684,54 @@ static exc_t execute(cpu_t *cpu, instr_info_t ii)
 	 */
 	
 	case opcADD:
-		utmp32 = urrs.lo + urrt.lo;
-		
-		if (!((urrs.lo ^ urrt.lo) & SBIT32) &&
-		    ((urrs.lo ^ utmp32) & SBIT32)) {
-			res = excOv;
-			break;
-		}
-		
-		cpu->regs[ii.rd].val = sign_extend_32_64(utmp32);
-		break;
 	case opcADDI:
-		utmp32 = sign_extend_16_32(ii.imm);
-		utmp32b = urrs.lo + utmp32;
-		
-		if (!((urrs.lo ^ utmp32) & SBIT32) &&
-		    ((urrs.lo ^ utmp32b) & SBIT32)) {
-			res = excOv;
-			break;
-		}
-		
-		cpu->regs[ii.rt].val = sign_extend_32_64(utmp32b);
-		break;
 	case opcADDIU:
-		cpu->regs[ii.rt].val =
-		    sign_extend_32_64(urrs.lo + sign_extend_16_32(ii.imm));
-		break;
 	case opcADDU:
-		cpu->regs[ii.rd].val = sign_extend_32_64(urrs.lo + urrt.lo);
-		break;
 	case opcAND:
-		cpu->regs[ii.rd].val = urrs.val & urrt.val;
-		break;
 	case opcANDI:
-		cpu->regs[ii.rt].val = urrs.val & ii.imm;
-		break;
 	case opcCLO:
 		ASSERT(false);
-		/* utmp32 = 0;
-		utmp32b = urrs.lo;
-		
-		while ((utmp32b & SBIT32) && (utmp32 < 32)) {
-			utmp32++;
-			utmp32b <<= 1;
-		}
-		
-		cpu->regs[ii.rd].lo = utmp32; */
-		break;
 	case opcCLZ:
 		ASSERT(false);
-		/* utmp32 = 0;
-		utmp32b = urrs.lo;
-		
-		while ((!(utmp32b & SBIT32)) && (utmp32 < 32)) {
-			utmp32++;
-			utmp32b <<= 1;
-		}
-		
-		cpu->regs[ii.rd].lo = utmp32; */
-		break;
 	case opcDADD:
-		if (CPU_64BIT_INSTRUCTION(cpu)) {
-			utmp64 = urrs.val + urrt.val;
-			
-			if (!((urrs.val ^ urrt.val) & SBIT64) &&
-			    ((urrs.val ^ utmp64) & SBIT64)) {
-				res = excOv;
-				break;
-			}
-			
-			cpu->regs[ii.rd].val = utmp64;
-		} else
-			res = excRI;
-		break;
 	case opcDADDI:
-		if (CPU_64BIT_INSTRUCTION(cpu)) {
-			utmp64 = sign_extend_16_64(ii.imm);
-			utmp64b = urrs.val + utmp64;
-			
-			if (!((urrs.val ^ utmp64) & SBIT64) &&
-			    ((urrs.val ^ utmp64b) & SBIT64)) {
-				res = excOv;
-				break;
-			}
-			
-			cpu->regs[ii.rt].val = utmp64b;
-		} else
-			res = excRI;
-		break;
 	case opcDADDIU:
-		if (CPU_64BIT_INSTRUCTION(cpu))
-			cpu->regs[ii.rt].val = urrs.val + sign_extend_16_64(ii.imm);
-		else
-			res = excRI;
-		break;
 	case opcDADDU:
-		if (CPU_64BIT_INSTRUCTION(cpu))
-			cpu->regs[ii.rd].val = urrs.val + urrt.val;
-		else
-			res = excRI;
-		break;
 	case opcDDIV:
-		if (CPU_64BIT_INSTRUCTION(cpu)) {
-			if (urrt.val == 0) {
-				cpu->loreg.val = 0;
-				cpu->hireg.val = 0;
-			} else {
-				cpu->loreg.val = (uint64_t)
-				    (((int64_t) urrs.val) / ((int64_t) urrt.val));
-				cpu->hireg.val = (uint64_t)
-				    (((int64_t) urrs.val) % ((int64_t) urrt.val));
-			}
-		} else
-			res = excRI;
-		break;
 	case opcDDIVU:
-		if (CPU_64BIT_INSTRUCTION(cpu)) {
-			if (urrt.val == 0) {
-				cpu->loreg.val = 0;
-				cpu->hireg.val = 0;
-			} else {
-				cpu->loreg.val = urrs.val / urrt.val;
-				cpu->hireg.val = urrs.val % urrt.val;
-			}
-		} else
-			res = excRI;
-		break;
 	case opcDIV:
-		if (urrt.lo == 0) {
-			cpu->loreg.val = 0;
-			cpu->hireg.val = 0;
-		} else {
-			cpu->loreg.val = sign_extend_32_64((uint32_t)
-			    (((int32_t) urrs.lo) / ((int32_t) urrt.lo)));
-			cpu->hireg.val = sign_extend_32_64((uint32_t)
-			    (((int32_t) urrs.lo) % ((int32_t) urrt.lo)));
-		}
-		break;
 	case opcDIVU:
-		if (urrt.lo == 0) {
-			cpu->loreg.val = 0;
-			cpu->hireg.val = 0;
-		} else {
-			cpu->loreg.val = sign_extend_32_64(urrs.lo / urrt.lo);
-			cpu->hireg.val = sign_extend_32_64(urrs.lo % urrt.lo);
-		}
-		break;
 	case opcDMULT:
-		if (CPU_64BIT_INSTRUCTION(cpu))
-			multiply_s64(cpu, urrs.val, urrt.val);
-		else
-			res = excRI;
-		break;
 	case opcDMULTU:
-		if (CPU_64BIT_INSTRUCTION(cpu))
-			multiply_u64(cpu, urrs.val, urrt.val);
-		else
-			res = excRI;
-		break;
 	case opcDSLL:
-		if (CPU_64BIT_INSTRUCTION(cpu))
-			cpu->regs[ii.rd].val = urrt.val << ii.sa;
-		else
-			res = excRI;
-		break;
 	case opcDSLLV:
-		if (CPU_64BIT_INSTRUCTION(cpu))
-			cpu->regs[ii.rd].val = urrt.val << (urrs.val & UINT64_C(0x003f));
-		else
-			res = excRI;
-		break;
 	case opcDSLL32:
-		if (CPU_64BIT_INSTRUCTION(cpu))
-			cpu->regs[ii.rd].val = urrt.val << (ii.sa + 32);
-		else
-			res = excRI;
-		break;
 	case opcDSRA:
-		if (CPU_64BIT_INSTRUCTION(cpu))
-			cpu->regs[ii.rd].val =
-			    (uint64_t) (((int64_t) urrt.val) >> ii.sa);
-		else
-			res = excRI;
-		break;
 	case opcDSRAV:
-		if (CPU_64BIT_INSTRUCTION(cpu))
-			cpu->regs[ii.rd].val =
-			    (uint64_t) (((int64_t) urrt.val) >> (urrs.val & UINT64_C(0x003f)));
-		else
-			res = excRI;
-		break;
 	case opcDSRA32:
-		if (CPU_64BIT_INSTRUCTION(cpu))
-			cpu->regs[ii.rd].val =
-			    (uint64_t) (((int64_t) urrt.val) >> (ii.sa + 32));
-		else
-			res = excRI;
-		break;
 	case opcDSRL:
-		if (CPU_64BIT_INSTRUCTION(cpu))
-			cpu->regs[ii.rd].val = urrt.val >> ii.sa;
-		else
-			res = excRI;
-		break;
 	case opcDSRLV:
-		if (CPU_64BIT_INSTRUCTION(cpu))
-			cpu->regs[ii.rd].val = urrt.val >> (urrs.val & UINT64_C(0x003f));
-		else
-			res = excRI;
-		break;
 	case opcDSRL32:
-		if (CPU_64BIT_INSTRUCTION(cpu))
-			cpu->regs[ii.rd].val = urrt.val >> (ii.sa + 32);
-		else
-			res = excRI;
-		break;
 	case opcDSUB:
-		if (CPU_64BIT_INSTRUCTION(cpu)) {
-			utmp64 = urrs.val - urrt.val;
-			
-			if (((urrs.val ^ urrt.val) & SBIT64) && ((urrs.val ^ utmp64) & SBIT64)) {
-				res = excOv;
-				break;
-			}
-			
-			cpu->regs[ii.rd].val = utmp64;
-		} else
-			res = excRI;
-		break;
 	case opcDSUBU:
-		if (CPU_64BIT_INSTRUCTION(cpu))
-			cpu->regs[ii.rd].val = urrs.val - urrt.val;
-		else
-			res = excRI;
-		break;
 	case opcMADD:
 		ASSERT(false);
-		/* utmp64 = ((uint64_t) cpu->hireg.lo << 32) | cpu->loreg.lo;
-		multiply(cpu, urrs.lo, urrt.lo, true);
-		utmp64 += ((uint64_t) cpu->hireg.lo << 32) | cpu->loreg.lo;
-		cpu->hireg.lo = utmp64 >> 32;
-		cpu->loreg.lo = utmp64 & UINT32_C(0xffffffff); */
-		break;
 	case opcMADDU:
 		ASSERT(false);
-		/* utmp64 = ((uint64_t) cpu->hireg.lo << 32) | cpu->loreg.lo;
-		multiply(cpu, urrs.lo, urrt.lo, false);
-		utmp64 += ((uint64_t) cpu->hireg.lo << 32) | cpu->loreg.lo;
-		cpu->hireg.lo = utmp64 >> 32;
-		cpu->loreg.lo = utmp64 & UINT32_C(0xffffffff); */
-		break;
 	case opcMSUB:
 		ASSERT(false);
-		/* utmp64 = ((uint64_t) cpu->hireg.lo << 32) | cpu->loreg.lo;
-		multiply(cpu, urrs.lo, urrt.lo, true);
-		utmp64 -= ((uint64_t) cpu->hireg.lo << 32) | cpu->loreg.lo;
-		cpu->hireg.lo = utmp64 >> 32;
-		cpu->loreg.lo = utmp64 & UINT32_C(0xffffffff); */
-		break;
 	case opcMSUBU:
 		ASSERT(false);
-		/* utmp64 = ((uint64_t) cpu->hireg.lo << 32) | cpu->loreg.lo;
-		multiply(cpu, urrs.lo, urrt.lo, false);
-		utmp64 -= ((uint64_t) cpu->hireg.lo << 32) | cpu->loreg.lo;
-		cpu->hireg.lo = utmp64 >> 32;
-		cpu->loreg.lo = utmp64 & UINT32_C(0xffffffff); */
-		break;
 	case opcMUL:
 		ASSERT(false);
-		/* utmp64 = ((uint64_t) urrs.lo) * ((uint64_t) urrt.lo);
-		cpu->regs[ii.rd].lo = utmp64 & UINT32_C(0xffffffff); */
-		break;
 	case opcMOVN:
 		ASSERT(false);
-		/* if (urrt.lo != 0)
-			cpu->regs[ii.rd].lo = urrs.lo; */
-		break;
 	case opcMOVZ:
 		ASSERT(false);
-		/* if (urrt.lo == 0)
-			cpu->regs[ii.rd].lo = urrs.lo; */
-		break;
 	case opcMULT:
-		multiply_s32(cpu, urrs.lo, urrt.lo);
-		break;
 	case opcMULTU:
-		multiply_u32(cpu, urrs.lo, urrt.lo);
-		break;
 	case opcNOR:
-		cpu->regs[ii.rd].val = ~(urrs.val | urrt.val);
-		break;
 	case opcOR:
-		cpu->regs[ii.rd].val = urrs.val | urrt.val;
-		break;
 	case opcORI:
 		cpu->regs[ii.rt].val = urrs.val | ii.imm;
 		break;

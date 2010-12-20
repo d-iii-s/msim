@@ -25,9 +25,12 @@
 #include "../main.h"
 #include "../text.h"
 #include "../utils.h"
+#include "instr.h"
 #include "r4000.h"
 
-/** Sign processing */
+/** Sign extensions
+ *
+ */
 #define SBIT8    UINT8_C(0x80)
 #define SBIT16   UINT16_C(0x8000)
 #define SBIT32   UINT32_C(0x80000000)
@@ -44,6 +47,141 @@
 
 #define EXTEND_POSITIVE_32_64  UINT64_C(0x00000000ffffffff)
 #define EXTEND_NEGATIVE_32_64  UINT64_C(0xffffffff00000000)
+
+static uint32_t sign_extend_16_32(uint16_t val)
+{
+	return ((val & SBIT16) ?
+	    (((uint32_t) val) | EXTEND_NEGATIVE_16_32) :
+	    (((uint32_t) val) & EXTEND_POSITIVE_16_32));
+}
+
+static uint64_t sign_extend_8_64(uint8_t val)
+{
+	return ((val & SBIT8) ?
+	    (((uint64_t) val) | EXTEND_NEGATIVE_8_64) :
+	    (((uint64_t) val) & EXTEND_POSITIVE_8_64));
+}
+
+static uint64_t sign_extend_16_64(uint16_t val)
+{
+	return ((val & SBIT16) ?
+	    (((uint64_t) val) | EXTEND_NEGATIVE_16_64) :
+	    (((uint64_t) val) & EXTEND_POSITIVE_16_64));
+}
+
+static uint64_t sign_extend_32_64(uint32_t val)
+{
+	return ((val & SBIT32) ?
+	    (((uint64_t) val) | EXTEND_NEGATIVE_32_64) :
+	    (((uint64_t) val) & EXTEND_POSITIVE_32_64));
+}
+
+/** Bitfield operations
+ *
+ */
+
+#define TARGET_SHIFT  2
+#define TARGET_COMB   UINT64_C(0xfffffffff0000000)
+
+/** Implementation of instructions of R4000
+ *
+ * Include those instructions which are supported
+ * by R4000.
+ *
+ */
+
+#include "instr/add.c"
+#include "instr/addi.c"
+
+/** Instruction decoding tables
+ *
+ */
+typedef exc_t *instr_fnc_t(cpu_t *, instr_t);
+
+static instr_fnc_t opcode_map[64] = {
+	/* 0 */
+	instr_reserved,  /* opcSPECIAL */
+	instr_reserved,  /* opcREGIMM */
+	instr_j,
+	instr_jal,
+	instr_beq,
+	instr_bne,
+	instr_blez,
+	instr_bgtz,
+	
+	/* 8 */
+	instr_addi,
+	instr_addiu,
+	instr_slti,
+	instr_sltiu,
+	instr_andi,
+	instr_ori,
+	instr_xori,
+	instr_lui,
+	
+	/* 16 */
+	instr_cop0,
+	instr_cop1,
+	instr_cop2,
+	instr_reserved,  /* unused */
+	instr_beql,
+	instr_bnel,
+	instr_blezl,
+	instr_bgtzl,
+	
+	/* 24 */
+	instr_daddi,
+	instr_daddiu,
+	instr_ldl,
+	instr_ldr,
+	instr_reserved,  /* unused */
+	instr_reserved,  /* unused */
+	instr_reserved,  /* unused */
+	instr_reserved,  /* unused */
+	
+	/* 32 */
+	instr_lb,
+	instr_lh,
+	instr_lwl,
+	instr_lw,
+	instr_lbu,
+	instr_lhu,
+	instr_lwr,
+	instr_lwu,
+	
+	/* 40 */
+	instr_sb,
+	instr_sh,
+	instr_swl,
+	instr_sw,
+	instr_sdl,
+	instr_sdr,
+	instr_swr,
+	instr_cache,
+	
+	/* 48 */
+	instr_ll,
+	instr_lwc1,
+	instr_lwc2,
+	instr_reserved,  /* unused */
+	instr_lld,
+	instr_ldc1,
+	instr_ldc2,
+	instr_ld,
+	
+	instr_sc,
+	instr_swc1
+	instr_swc2
+	instr_reserved,  /* unused */
+	instr_scd
+	instr_sdc1
+	instr_sdc2
+	instr_sd
+};
+
+/** Virtual memory segments
+ *
+ */
 
 /** User mode segments */
 #define USEG_MASK   UINT32_C(0x80000000)
@@ -124,12 +262,6 @@
 			res = excTr; \
 	}
 
-#define CP0_TRAP_UNUSABLE(cpu, res) \
-	{ \
-		res = excCpU; \
-		cp0_cause(cpu).val &= ~cp0_cause_ce_mask; \
-	}
-
 #define CPU_TLB_SHUTDOWN(cpu) \
 	(cp0_status_ts(cpu) == 1)
 
@@ -206,33 +338,7 @@ static shift_tab_t shift_tab_right_store[] = {
 	{ UINT32_C(0x00ffffff), 24 }
 };
 
-static uint32_t sign_extend_16_32(uint16_t val)
-{
-	return ((val & SBIT16) ?
-	    (((uint32_t) val) | EXTEND_NEGATIVE_16_32) :
-	    (((uint32_t) val) & EXTEND_POSITIVE_16_32));
-}
 
-static uint64_t sign_extend_8_64(uint8_t val)
-{
-	return ((val & SBIT8) ?
-	    (((uint64_t) val) | EXTEND_NEGATIVE_8_64) :
-	    (((uint64_t) val) & EXTEND_POSITIVE_8_64));
-}
-
-static uint64_t sign_extend_16_64(uint16_t val)
-{
-	return ((val & SBIT16) ?
-	    (((uint64_t) val) | EXTEND_NEGATIVE_16_64) :
-	    (((uint64_t) val) & EXTEND_POSITIVE_16_64));
-}
-
-static uint64_t sign_extend_32_64(uint32_t val)
-{
-	return ((val & SBIT32) ?
-	    (((uint64_t) val) | EXTEND_NEGATIVE_32_64) :
-	    (((uint64_t) val) & EXTEND_POSITIVE_32_64));
-}
 
 /** Initialize simulation environment
  *
@@ -1562,50 +1668,6 @@ static void cpu_update_debug(cpu_t *cpu)
 	cpu->old_hireg = cpu->hireg;
 }
 
-static void multiply_u32(cpu_t *cpu, uint32_t a, uint32_t b)
-{
-	ASSERT(cpu != NULL);
-	
-	/* Quick test */
-	if ((a == 0) || (b == 0)) {
-		cpu->loreg.val = 0;
-		cpu->hireg.val = 0;
-		return;
-	}
-	
-	uint64_t res = ((uint64_t) a) * ((uint64_t) b);
-	cpu->loreg.val = sign_extend_32_64((uint32_t) res);
-	cpu->hireg.val = sign_extend_32_64((uint32_t) (res >> 32));
-}
-
-static void multiply_s32(cpu_t *cpu, uint32_t a, uint32_t b)
-{
-	ASSERT(cpu != NULL);
-	
-	/* Quick test */
-	if ((a == 0) || (b == 0)) {
-		cpu->loreg.val = 0;
-		cpu->hireg.val = 0;
-		return;
-	}
-	
-	uint64_t res = ((int64_t) sign_extend_32_64(a)) * ((int64_t) sign_extend_32_64(b));
-	cpu->loreg.val = sign_extend_32_64((uint32_t) res);
-	cpu->hireg.val = sign_extend_32_64((uint32_t) (res >> 32));
-}
-
-static void multiply_u64(cpu_t *cpu, uint64_t a, uint64_t b)
-{
-	ASSERT(cpu != NULL);
-	ASSERT(false);  // FIXME TODO
-}
-
-static void multiply_s64(cpu_t *cpu, uint64_t a, uint64_t b)
-{
-	ASSERT(cpu != NULL);
-	ASSERT(false);  // FIXME TODO
-}
-
 /** Write a new entry into the TLB
  *
  * The entry index is determined by either
@@ -1660,375 +1722,8 @@ static exc_t execute(cpu_t *cpu, instr_info_t ii)
 {
 	ASSERT(cpu != NULL);
 	
-	exc_t res = excNone;
-	
 	ptr64_t pca;
 	pca.ptr = cpu->pc_next.ptr + 4;
-	
-	reg64_t urrs = cpu->regs[ii.rs];
-	reg64_t urrt = cpu->regs[ii.rt];
-	
-	bool cond;
-	uint8_t utmp8;
-	uint16_t utmp16;
-	uint32_t utmp32;
-	uint32_t utmp32b;
-	uint64_t utmp64;
-	uint64_t utmp64b;
-	ptr64_t addr;
-	
-	switch (ii.opcode) {
-	
-	/*
-	 * Aritmetic, logic, shifts
-	 */
-	
-	case opcADD:
-	case opcADDI:
-	case opcADDIU:
-	case opcADDU:
-	case opcAND:
-	case opcANDI:
-	case opcCLO:
-		ASSERT(false);
-	case opcCLZ:
-		ASSERT(false);
-	case opcDADD:
-	case opcDADDI:
-	case opcDADDIU:
-	case opcDADDU:
-	case opcDDIV:
-	case opcDDIVU:
-	case opcDIV:
-	case opcDIVU:
-	case opcDMULT:
-	case opcDMULTU:
-	case opcDSLL:
-	case opcDSLLV:
-	case opcDSLL32:
-	case opcDSRA:
-	case opcDSRAV:
-	case opcDSRA32:
-	case opcDSRL:
-	case opcDSRLV:
-	case opcDSRL32:
-	case opcDSUB:
-	case opcDSUBU:
-	case opcMADD:
-		ASSERT(false);
-	case opcMADDU:
-		ASSERT(false);
-	case opcMSUB:
-		ASSERT(false);
-	case opcMSUBU:
-		ASSERT(false);
-	case opcMUL:
-		ASSERT(false);
-	case opcMOVN:
-		ASSERT(false);
-	case opcMOVZ:
-		ASSERT(false);
-	case opcMULT:
-	case opcMULTU:
-	case opcNOR:
-	case opcOR:
-	case opcORI:
-		cpu->regs[ii.rt].val = urrs.val | ii.imm;
-		break;
-	case opcSLL:
-		cpu->regs[ii.rd].val = sign_extend_32_64(urrt.lo << ii.sa);
-		break;
-	case opcSLLV:
-		cpu->regs[ii.rd].val = sign_extend_32_64(urrt.lo << (urrs.lo & UINT32_C(0x001f)));
-		break;
-	case opcSLT:
-		if (CPU_64BIT_MODE(cpu))
-			cpu->regs[ii.rd].val = ((int64_t) urrs.val) < ((int64_t) urrt.val);
-		else
-			cpu->regs[ii.rd].val = ((int32_t) urrs.lo) < ((int32_t) urrt.lo);
-		break;
-	case opcSLTI:
-		if (CPU_64BIT_MODE(cpu))
-			cpu->regs[ii.rt].val =
-			    ((int64_t) urrs.val) < ((int64_t) sign_extend_16_64(ii.imm));
-		else
-			cpu->regs[ii.rt].val =
-			    ((int32_t) urrs.lo) < ((int32_t) sign_extend_16_32(ii.imm));
-		break;
-	case opcSLTIU:
-		if (CPU_64BIT_MODE(cpu))
-			cpu->regs[ii.rt].val = urrs.val < sign_extend_16_64(ii.imm);
-		else
-			cpu->regs[ii.rt].val = urrs.lo < sign_extend_16_32(ii.imm);
-		break;
-	case opcSLTU:
-		if (CPU_64BIT_MODE(cpu))
-			cpu->regs[ii.rd].val = urrs.val < urrt.val;
-		else
-			cpu->regs[ii.rd].val = urrs.lo < urrt.lo;
-		break;
-	case opcSRA:
-		cpu->regs[ii.rd].val = sign_extend_32_64((uint32_t) (((int32_t) urrt.lo) >> ii.sa));
-		break;
-	case opcSRAV:
-		cpu->regs[ii.rd].val =
-		    sign_extend_32_64((uint32_t) (((int32_t) urrt.lo) >> (urrs.lo & UINT32_C(0x001f))));
-		break;
-	case opcSRL:
-		cpu->regs[ii.rd].val = sign_extend_32_64(urrt.lo >> ii.sa);
-		break;
-	case opcSRLV:
-		cpu->regs[ii.rd].val = sign_extend_32_64(urrt.lo >> (urrs.lo & UINT32_C(0x001f)));
-		break;
-	case opcSUB:
-		utmp32 = urrs.lo - urrt.lo;
-		
-		if (((urrs.lo ^ urrt.lo) & SBIT32) &&
-		    ((urrs.lo ^ utmp32) & SBIT32)) {
-			res = excOv;
-			break;
-		}
-		
-		cpu->regs[ii.rd].val = sign_extend_32_64(utmp32);
-		break;
-	case opcSUBU:
-		cpu->regs[ii.rd].val = sign_extend_32_64(urrs.lo - urrt.lo);
-		break;
-	case opcXOR:
-		cpu->regs[ii.rd].val = urrs.val ^ urrt.val;
-		break;
-	case opcXORI:
-		cpu->regs[ii.rt].val = urrs.val ^ ii.imm;
-		break;
-	
-	/*
-	 * Branches and jumps
-	 */
-	case opcBC0F:
-	case opcBC1F:
-	case opcBC2F:
-	case opcBC3F:
-		if (CP0_USABLE(cpu)) {
-			/* Ignore - always false */
-		} else
-			CP0_TRAP_UNUSABLE(cpu, res);
-		break;
-	case opcBC0FL:
-	case opcBC1FL:
-	case opcBC2FL:
-	case opcBC3FL:
-		if (CP0_USABLE(cpu)) {
-			/* Ignore - always false */
-			cpu->pc_next.ptr += 4;
-			pca.ptr = cpu->pc_next.ptr + 4;
-		} else
-			CP0_TRAP_UNUSABLE(cpu, res);
-		break;
-	case opcBC0T:
-	case opcBC1T:
-	case opcBC2T:
-	case opcBC3T:
-	case opcBC0TL:
-	case opcBC1TL:
-	case opcBC2TL:
-	case opcBC3TL:
-		if (CP0_USABLE(cpu)) {
-			/* Ignore - always true */
-			pca.ptr = cpu->pc_next.ptr +
-			    (((int64_t) sign_extend_16_64(ii.imm)) << TARGET_SHIFT);
-			cpu->branch = BRANCH_COND;
-		} else
-			CP0_TRAP_UNUSABLE(cpu, res);
-		break;
-	case opcBEQ:
-		if (CPU_64BIT_MODE(cpu))
-			cond = (urrs.val == urrt.val);
-		else
-			cond = (urrs.lo == urrt.lo);
-		
-		if (cond) {
-			pca.ptr = cpu->pc_next.ptr +
-			    (((int64_t) sign_extend_16_64(ii.imm)) << TARGET_SHIFT);
-			cpu->branch = BRANCH_COND;
-		}
-		break;
-	case opcBEQL:
-		if (CPU_64BIT_MODE(cpu))
-			cond = (urrs.val == urrt.val);
-		else
-			cond = (urrs.lo == urrt.lo);
-		
-		if (cond) {
-			pca.ptr = cpu->pc_next.ptr +
-			    (((int64_t) sign_extend_16_64(ii.imm)) << TARGET_SHIFT);
-			cpu->branch = BRANCH_COND;
-		} else {
-			cpu->pc_next.ptr += 4;
-			pca.ptr = cpu->pc_next.ptr + 4;
-		}
-		break;
-	case opcBGEZAL:
-		cpu->regs[31].val = cpu->pc.ptr + 8;
-		/* no break */
-	case opcBGEZ:
-		if (CPU_64BIT_MODE(cpu))
-			cond = ((urrs.val & SBIT64) == 0);
-		else
-			cond = ((urrs.lo & SBIT32) == 0);
-		
-		if (cond) {
-			pca.ptr = cpu->pc_next.ptr +
-			    (((int64_t) sign_extend_16_64(ii.imm)) << TARGET_SHIFT);
-			cpu->branch = BRANCH_COND;
-		}
-		break;
-	case opcBGEZALL:
-		cpu->regs[31].val = cpu->pc.ptr + 8;
-		/* no break */
-	case opcBGEZL:
-		if (CPU_64BIT_MODE(cpu))
-			cond = ((urrs.val & SBIT64) == 0);
-		else
-			cond = ((urrs.lo & SBIT32) == 0);
-		
-		if (cond) {
-			pca.ptr = cpu->pc_next.ptr +
-			    (((int64_t) sign_extend_16_64(ii.imm)) << TARGET_SHIFT);
-			cpu->branch = BRANCH_COND;
-		} else {
-			cpu->pc_next.ptr += 4;
-			pca.ptr = cpu->pc_next.ptr + 4;
-		}
-		break;
-	case opcBGTZ:
-		if (CPU_64BIT_MODE(cpu))
-			cond = (((int64_t) urrs.val) > 0);
-		else
-			cond = (((int32_t) urrs.lo) > 0);
-		
-		if (cond) {
-			pca.ptr = cpu->pc_next.ptr +
-			    (((int64_t) sign_extend_16_64(ii.imm)) << TARGET_SHIFT);
-			cpu->branch = BRANCH_COND;
-		}
-		break;
-	case opcBGTZL:
-		if (CPU_64BIT_MODE(cpu))
-			cond = (((int64_t) urrs.val) > 0);
-		else
-			cond = (((int32_t) urrs.lo) > 0);
-		
-		if (cond) {
-			pca.ptr = cpu->pc_next.ptr +
-			    (((int64_t) sign_extend_16_64(ii.imm)) << TARGET_SHIFT);
-			cpu->branch = BRANCH_COND;
-		} else {
-			cpu->pc_next.ptr += 4;
-			pca.ptr = cpu->pc_next.ptr + 4;
-		}
-		break;
-	case opcBLEZ:
-		if (CPU_64BIT_MODE(cpu))
-			cond = (((int64_t) urrs.val) <= 0);
-		else
-			cond = (((int32_t) urrs.lo) <= 0);
-		
-		if (cond) {
-			pca.ptr = cpu->pc_next.ptr +
-			    (((int64_t) sign_extend_16_64(ii.imm)) << TARGET_SHIFT);
-			cpu->branch = BRANCH_COND;
-		}
-		break;
-	case opcBLEZL:
-		if (CPU_64BIT_MODE(cpu))
-			cond = (((int64_t) urrs.val) <= 0);
-		else
-			cond = (((int32_t) urrs.lo) <= 0);
-		
-		if (cond) {
-			pca.ptr = cpu->pc_next.ptr +
-			    (((int64_t) sign_extend_16_64(ii.imm)) << TARGET_SHIFT);
-			cpu->branch = BRANCH_COND;
-		} else {
-			cpu->pc_next.ptr += 4;
-			pca.ptr = cpu->pc_next.ptr + 4;
-		}
-		break;
-	case opcBLTZAL:
-		cpu->regs[31].val = cpu->pc_next.ptr + 4;
-		/* no break */
-	case opcBLTZ:
-		if (CPU_64BIT_MODE(cpu))
-			cond = (((int64_t) urrs.val) < 0);
-		else
-			cond = (((int32_t) urrs.lo) < 0);
-		
-		if (cond) {
-			pca.ptr = cpu->pc_next.ptr +
-			    (((int64_t) sign_extend_16_64(ii.imm)) << TARGET_SHIFT);
-			cpu->branch = BRANCH_COND;
-		}
-		break;
-	case opcBLTZALL:
-		cpu->regs[31].val = cpu->pc_next.ptr + 4;
-		/* no break */
-	case opcBLTZL:
-		if (CPU_64BIT_MODE(cpu))
-			cond = (((int64_t) urrs.val) < 0);
-		else
-			cond = (((int32_t) urrs.lo) < 0);
-		
-		if (cond) {
-			pca.ptr = cpu->pc_next.ptr +
-			    (((int64_t) sign_extend_16_64(ii.imm)) << TARGET_SHIFT);
-			cpu->branch = BRANCH_COND;
-		} else {
-			cpu->pc_next.ptr += 4;
-			pca.ptr = cpu->pc_next.ptr + 4;
-		}
-		break;
-	case opcBNE:
-		if (CPU_64BIT_MODE(cpu))
-			cond = (urrs.val != urrt.val);
-		else
-			cond = (urrs.lo != urrt.lo);
-		
-		if (cond) {
-			pca.ptr = cpu->pc_next.ptr +
-			    (((int64_t) sign_extend_16_64(ii.imm)) << TARGET_SHIFT);
-			cpu->branch = BRANCH_COND;
-		}
-		break;
-	case opcBNEL:
-		if (CPU_64BIT_MODE(cpu))
-			cond = (urrs.val != urrt.val);
-		else
-			cond = (urrs.lo != urrt.lo);
-		
-		if (cond) {
-			pca.ptr = cpu->pc_next.ptr +
-			    (((int64_t) sign_extend_16_64(ii.imm)) << TARGET_SHIFT);
-			cpu->branch = BRANCH_COND;
-		} else {
-			cpu->pc_next.ptr += 4;
-			pca.ptr = cpu->pc_next.ptr + 4;
-		}
-		break;
-	case opcJAL:
-		cpu->regs[31].val = cpu->pc_next.ptr + 4;
-		/* no break */
-	case opcJ:
-		pca.ptr =
-		    (cpu->pc_next.ptr & TARGET_COMB) | (ii.target << TARGET_SHIFT);
-		cpu->branch = BRANCH_COND;
-		break;
-	case opcJALR:
-		cpu->regs[ii.rd].val = cpu->pc_next.ptr + 4;
-		/* no break */
-	case opcJR:
-		pca.ptr = urrs.val;
-		cpu->branch = BRANCH_COND;
-		break;
 	
 	/*
 	 * Load, store
@@ -2932,9 +2627,6 @@ static exc_t execute(cpu_t *cpu, instr_info_t ii)
 		break;
 	case opcTLBWR:
 		TLBW(cpu, true, &res);
-		break;
-	case opcBREAK:
-		res = excBp;
 		break;
 	case opcWAIT:
 		ASSERT(false);

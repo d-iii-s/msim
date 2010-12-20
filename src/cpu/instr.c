@@ -11,88 +11,6 @@
 
 #include "instr.h"
 
-static instr_form_t instr_table[64] = {
-	/* 0x00 */
-	{ opcSPECIAL, ifREG },
-	{ opcBCOND,   ifIMM },
-	{ opcJ,       ifJ },
-	{ opcJAL,     ifJ },
-	{ opcBEQ,     ifIMM },
-	{ opcBNE,     ifIMM },
-	{ opcBLEZ,    ifIMM },
-	{ opcBGTZ,    ifIMM },
-	
-	/* 0x08 */
-	{ opcADDI,  ifIMM },
-	{ opcADDIU, ifIMM },
-	{ opcSLTI,  ifIMM },
-	{ opcSLTIU, ifIMM },
-	{ opcANDI,  ifIMM },
-	{ opcORI,   ifIMM },
-	{ opcXORI,  ifIMM },
-	{ opcLUI,   ifIMM },
-	
-	/* 0x10 */
-	{ opcCOP0,  ifREG },
-	{ opcCOP1,  ifREG },
-	{ opcCOP2,  ifREG },
-	{ opcCOP3,  ifIMM },
-	{ opcBEQL,  ifIMM },
-	{ opcBNEL,  ifIMM },
-	{ opcBLEZL, ifIMM },
-	{ opcBGTZL, ifIMM },
-	
-	/* 0x18 */
-	{ opcDADDI,    ifIMM },
-	{ opcDADDIU,   ifIMM },
-	{ opcLDL,      ifIMM },
-	{ opcLDR,      ifIMM },
-	{ opcSPECIAL2, ifREG },
-	{ opcRES,      ifIMM },
-	{ opcRES,      ifIMM },
-	{ opcRES,      ifIMM },
-	
-	/* 0x20 */
-	{ opcLB,  ifIMM },
-	{ opcLH,  ifIMM },
-	{ opcLWL, ifIMM },
-	{ opcLW,  ifIMM },
-	{ opcLBU, ifIMM },
-	{ opcLHU, ifIMM },
-	{ opcLWR, ifIMM },
-	{ opcLWU, ifIMM },
-	
-	/* 0x28 */
-	{ opcSB,    ifIMM },
-	{ opcSH,    ifIMM },
-	{ opcSWL,   ifIMM },
-	{ opcSW,    ifIMM },
-	{ opcSDL,   ifIMM },
-	{ opcSDR,   ifIMM },
-	{ opcSWR,   ifIMM },
-	{ opcCACHE, ifIMM },
-	
-	/* 0x30 */
-	{ opcLL,   ifIMM },
-	{ opcLWC1, ifIMM },
-	{ opcLWC2, ifIMM },
-	{ opcRES,  ifIMM },
-	{ opcLLD,  ifIMM },
-	{ opcLDC1, ifIMM },
-	{ opcLDC2, ifIMM },
-	{ opcLD,   ifIMM },
-	
-	/* 0x38 */
-	{ opcSC,   ifIMM },
-	{ opcSWC1, ifIMM },
-	{ opcSWC2, ifIMM },
-	{ opcRES,  ifIMM },
-	{ opcSCD,  ifIMM },
-	{ opcSDC1, ifIMM },
-	{ opcSDC2, ifIMM },
-	{ opcSD,   ifIMM }
-};
-
 /** Sub-codes for SPECIAL code, all of there are ifREG */
 static instr_opcode_t SPEC_instr_table[64] = {
 	/* 0x00 */
@@ -118,33 +36,6 @@ static instr_opcode_t SPEC_instr_table[64] = {
 	opcTEQ,    opcDVAL, opcTNE,    opcDRV,
 	opcDSLL,   opcDTRC, opcDSRL,   opcDSRA,
 	opcDSLL32, opcDTRO, opcDSRL32, opcDSRA32
-};
-
-/** Sub-codes for SPECIAL2 code */
-static instr_opcode_t SPEC2_instr_table[64] = {
-	/* 0x00 */
-	opcMADD, opcMADDU, opcMUL, opcRES,
-	opcMSUB, opcMSUBU, opcRES, opcRES,
-	opcRES,  opcRES,   opcRES, opcRES,
-	opcRES,  opcRES,   opcRES, opcRES,
-	
-	/* 0x10 */
-	opcRES, opcRES, opcRES, opcRES,
-	opcRES, opcRES, opcRES, opcRES,
-	opcRES, opcRES, opcRES, opcRES,
-	opcRES, opcRES, opcRES, opcRES,
-	
-	/* 0x20 */
-	opcCLZ, opcCLO, opcRES, opcRES,
-	opcRES, opcRES, opcRES, opcRES,
-	opcRES, opcRES, opcRES, opcRES,
-	opcRES, opcRES, opcRES, opcRES,
-	
-	/* 0x30 */
-	opcRES, opcRES, opcRES, opcRES,
-	opcRES, opcRES, opcRES, opcRES,
-	opcRES, opcRES, opcRES, opcRES,
-	opcRES, opcRES, opcRES, opcRES
 };
 
 /** Sub-codes for COPz */
@@ -654,19 +545,12 @@ static instr_opcode_t opcode_COPx(instr_opcode_t opc, uint32_t icode)
  */
 void decode_instr(instr_info_t *ii)
 {
-	/* Instruction name and type */
-	instr_form_t *opc = &instr_table[(ii->icode >> OP_SHIFT) & CO_MASK];
-	ii->opcode = opc->opcode;
-	
 	switch (opc->opcode) {
 	case opcSPECIAL:
 		if (ii->icode == 0)
 			ii->opcode = opcNOP;
 		else
 			ii->opcode = SPEC_instr_table[ii->icode & FUNCTION_MASK];
-		break;
-	case opcSPECIAL2:
-		ii->opcode = SPEC2_instr_table[ii->icode & FUNCTION_MASK];
 		break;
 	case opcBCOND:
 		ii->opcode = reg_imm_instr_table[(ii->icode >> BCOND_SHIFT)
@@ -678,34 +562,6 @@ void decode_instr(instr_info_t *ii)
 	case opcCOP3:
 		ii->opcode = opcode_COPx(ii->opcode, ii->icode);
 		break;
-	default:
-		break;
-	}
-	
-	/* Parse parameters */
-	switch (opc->format) {
-	case ifIMM:
-		/* Registers */
-		ii->rs = (ii->icode & RS_MASK) >> RS_SHIFT;
-		ii->rt = (ii->icode & RT_MASK) >> RT_SHIFT;
-		ii->rd = 0;
-		
-		/* Immediate */
-		ii->imm = ii->icode & IMM_MASK;
-		break;
-	case ifJ:
-		ii->target = ii->icode & TARGET_MASK;
-		ii->rt = 0;
-		ii->rs = 0;
-		ii->rd = 0;
-		break;
-	case ifREG:
-		/* Registers */
-		ii->rs = (ii->icode & RS_MASK) >> RS_SHIFT;
-		ii->rt = (ii->icode & RT_MASK) >> RT_SHIFT;
-		ii->rd = (ii->icode & RD_MASK) >> RD_SHIFT;
-		ii->sa = (ii->icode & SA_MASK) >> SA_SHIFT;
-		ii->function = (ii->icode & FUNCTION_MASK);
 	default:
 		break;
 	}

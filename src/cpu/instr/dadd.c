@@ -1,12 +1,16 @@
-if (CPU_64BIT_INSTRUCTION(cpu)) {
-			utmp64 = urrs.val + urrt.val;
-			
-			if (!((urrs.val ^ urrt.val) & SBIT64) &&
-			    ((urrs.val ^ utmp64) & SBIT64)) {
-				res = excOv;
-				break;
-			}
-			
-			cpu->regs[ii.rd].val = utmp64;
-		} else
-			res = excRI;
+static exc_t instr_dadd(cpu_t *cpu, instr_t instr)
+{
+	if (CPU_64BIT_INSTRUCTION(cpu)) {
+		uint64_t rs = cpu->regs[instr.r.rs].val;
+		uint64_t rt = cpu->regs[instr.r.rt].val;
+		uint64_t sum = rs + rt;
+		
+		if (!((rs ^ rt) & SBIT64) && ((rs ^ sum) & SBIT64))
+			return excOv;
+		
+		cpu->regs[instr.r.rd].val = sum;
+	} else
+		return excRI;
+	
+	return excNone;
+}

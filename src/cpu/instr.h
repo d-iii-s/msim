@@ -18,326 +18,243 @@
 
 /** Opcode numbers
  *
- * Warning: Do NOT change the order
+ */
+typedef enum {
+	/* 0 */
+	opcSPECIAL = 0,
+	opcREGIMM = 1,
+	opcJ = 2,
+	opcJAL = 3,
+	opcBEQ = 4,
+	opcBNE = 5,
+	opcBLEZ = 6,
+	opcBGTZ = 7,
+	
+	/* 8 */
+	opcADDI = 8
+	opcADDIU = 9,
+	opcSLTI = 10,
+	opcSLTIU = 11,
+	opcANDI = 12,
+	opcORI = 13,
+	opcXORi = 14,
+	opcLUI = 15,
+	
+	/* 16 */
+	opcCOP0 = 16,
+	opcCOP1 = 17,
+	opcCOP2 = 18,
+	/* opcode 19 unused */
+	opcBEQL = 20,
+	opcBNEL = 21,
+	opcBLEZL = 22,
+	opcBGTZL = 23,
+	
+	/* 24 */
+	opcDADDI = 24,
+	opcDADDIU = 25,
+	opcLDL = 26,
+	opcLDR = 27,
+	/* opcode 28 unused */
+	/* opcode 29 unused */
+	/* opcode 30 unused */
+	/* opcode 31 unused */
+	
+	/* 32 */
+	opcLB = 32,
+	opcLH = 33,
+	opcLWL = 34,
+	opcLW = 35,
+	opcLBU = 36,
+	opcLHU = 37,
+	opcLWR = 38,
+	opcLWU = 39,
+	
+	/* 40 */
+	opcSB = 40,
+	opcSH = 41,
+	opcSWL = 42,
+	opcSW = 43,
+	opcSDL = 44,
+	opcSDR = 45,
+	opcSWR = 46,
+	opcCACHE = 47,
+	
+	/* 48 */
+	opcLL = 48,
+	opcLWC1 = 49,
+	opcLWC2 = 50,
+	/* opcode 51 unused */
+	opcLDD = 52,
+	opcLDC1 = 53,
+	opcLDC2 = 54,
+	opcLD = 55,
+	
+	/* 56 */
+	opcSC = 56,
+	opcSWC1 = 57,
+	opcSWC2 = 58,
+	/* opcode 59 unused */
+	opcSCD = 60,
+	opcSDC1 = 61,
+	opcSDC2 = 62,
+	opcSD = 63
+} instr_opcode_t;
+
+/** Function numbers
+ *
+ * For opcSPECIAL instructions.
  *
  */
 typedef enum {
-	/* Special names for blocks of instructions */
-	opcSPECIAL,
-	opcBCOND,
-	opcSPECIAL2,
+	/* 0 */
+	funcSLL = 0,
+	/* function 1 unused */
+	funcSRL = 2,
+	funcSRA = 3,
+	funcSLLV = 4,
+	/* function 5 unused */
+	funcSRLV = 6,
+	funcSRAV = 7,
 	
-	/* Real instructions */
-	opcADD,
-	opcADDI,
-	opcADDIU,
-	opcADDU,
-	opcAND,
-	opcANDI,
+	/* 8 */
+	funcJR = 8,
+	funcJALR = 9,
+	/* function 10 unused */
+	/* function 11 unused */
+	funcSYSCALL = 12,
+	funcBREAK = 13,
+	/* function 14 unused */
+	funcSYNC = 15,
 	
-	opcBC0F,
-	opcBC1F,
-	opcBC2F,
-	opcBC3F,
-	opcBC0FL,
-	opcBC1FL,
-	opcBC2FL,
-	opcBC3FL,
-	opcBC0T,
-	opcBC1T,
-	opcBC2T,
-	opcBC3T,
-	opcBC0TL,
-	opcBC1TL,
-	opcBC2TL,
-	opcBC3TL,
+	/* 16 */
+	funcMFHI = 16,
+	funcMTHI = 17,
+	funcMTLO = 18,
+	funcMTLO = 19,
+	funcDSLLV = 20,
+	/* function 21 unused */
+	funcDSRLV = 22,
+	funcDSRAV = 23,
 	
-	opcBEQ,
-	opcBEQL,
-	opcBGEZ,
-	opcBGEZAL,
-	opcBGEZALL,
-	opcBGEZL,
-	opcBGTZ,
-	opcBGTZL,
-	opcBLEZ,
-	opcBLEZL,
-	opcBLTZ,
-	opcBLTZAL,
-	opcBLTZALL,
-	opcBLTZL,
-	opcBNE,
-	opcBNEL,
-	opcBREAK,
+	/* 24 */
+	funcMULT = 24,
+	funcMULTU = 25,
+	funcDIV = 26,
+	funcDIVU = 27,
+	funcDMULT = 28,
+	funcDMULTU = 29,
+	funcDDIV = 30,
+	funcDDIVU = 31,
 	
-	opcCACHE,
-	opcCFC0,
-	opcCFC1,
-	opcCFC2,
-	opcCFC3,
-	opcCLO,
-	opcCLZ,
-	opcCOP0,
-	opcCOP1,
-	opcCOP2,
-	opcCOP3,
-	opcCTC0,
-	opcCTC1,
-	opcCTC2,
-	opcCTC3,
+	/* 32 */
+	funcADD = 32,
+	funcADDU = 33,
+	funcSUB = 34,
+	funcSUBU = 35,
+	funcAND = 36,
+	funcOR = 37,
+	funcXOR = 38,
+	funcNOR = 39,
 	
-	opcDADD,
-	opcDADDI,
-	opcDADDIU,
-	opcDADDU,
-	opcDDIV,
-	opcDDIVU,
-	opcDIV,
-	opcDIVU,
-	opcDMFC0,
-	opcDMFC1,
-	opcDMFC2,
-	opcDMFC3,
-	opcDMTC0,
-	opcDMTC1,
-	opcDMTC2,
-	opcDMTC3,
-	opcDMULT,
-	opcDMULTU,
-	opcDSLL,
-	opcDSLLV,
-	opcDSLL32,
-	opcDSRA,
-	opcDSRAV,
-	opcDSRA32,
-	opcDSRL,
-	opcDSRLV,
-	opcDSRL32,
-	opcDSUB,
-	opcDSUBU,
+	/* 40 */
+	/* function 40 unused */
+	/* function 41 unused */
+	funcSLT = 42,
+	funcSLTU = 43,
+	funcDADD = 44,
+	funcDADDU = 45,
+	funcDSUB = 46,
+	funcDSUBu = 47,
 	
-	opcERET,
+	/* 48 */
+	funcTGE = 48,
+	funcTGEU = 49,
+	funcTLT = 50,
+	funcTLTU = 51,
+	funcTEQ = 52,
+	/* function 53 unused */
+	funcTNE = 54,
+	/* function 55 unused */
 	
-	opcJ,
-	opcJAL,
-	opcJALR,
-	opcJR,
-	
-	opcLB,
-	opcLBU,
-	opcLD,
-	opcLDC1,
-	opcLDC2,
-	opcLDL,
-	opcLDR,
-	opcLH,
-	opcLHU,
-	opcLL,
-	opcLLD,
-	opcLUI,
-	opcLW,
-	opcLWC1,
-	opcLWC2,
-	opcLWL,
-	opcLWR,
-	opcLWU,
-	
-	opcMADD,
-	opcMADDU,
-	opcMFC0,
-	opcMFC1,
-	opcMFC2,
-	opcMFC3,
-	opcMFHI,
-	opcMFLO,
-	opcMOVN,
-	opcMOVZ,
-	opcMSUB,
-	opcMSUBU,
-	opcMTC0,
-	opcMTC1,
-	opcMTC2,
-	opcMTC3,
-	opcMTHI,
-	opcMTLO,
-	opcMUL,
-	opcMULT,
-	opcMULTU,
-	
-	opcNOR,
-	
-	opcOR,
-	opcORI,
-	
-	opcSB,
-	opcSC,
-	opcSCD,
-	opcSD,
-	opcSDC1,
-	opcSDC2,
-	opcSDL,
-	opcSDR,
-	opcSH,
-	opcSLL,
-	opcSLLV,
-	opcSLT,
-	opcSLTI,
-	opcSLTIU,
-	opcSLTU,
-	opcSRA,
-	opcSRAV,
-	opcSRL,
-	opcSRLV,
-	opcSUB,
-	opcSUBU,
-	opcSW,
-	opcSWC1,
-	opcSWC2,
-	opcSWL,
-	opcSWR,
-	opcSYNC,
-	opcSYSCALL,
-	
-	opcTEQ,
-	opcTEQI,
-	opcTGE,
-	opcTGEI,
-	opcTGEIU,
-	opcTGEU,
-	opcTLBP,
-	opcTLBR,
-	opcTLBWI,
-	opcTLBWR,
-	opcTLT,
-	opcTLTI,
-	opcTLTIU,
-	opcTLTU,
-	opcTNE,
-	opcTNEI,
-	
-	opcWAIT,
-	
-	opcXOR,
-	opcXORI,
-	
-	opcNOP,
-	
-	opcUNIMP,
-	
-	opcRES,
-	opcQRES,
-	
-	/* Debugging features */
-	opcDVAL,
-	opcDTRC,
-	opcDTRO,
-	opcDRV,
-	opcDHLT,
-	opcDINT,
-	
-	opcIllegal,
-	
-	/* For decoding */
-	opcBC,
-	opcC0
-} instr_opcode_t;
+	/* 56 */
+	funcDSLL = 56,
+	/* function 57 unused */
+	funcDSRL = 58,
+	funcDSRA = 59,
+	funcSLL32 = 60,
+	/* function 61 unused */
+	funcDSRL32 = 62,
+	funcDSRA32 = 63
+} instr_function_t;
 
-/** Instruction formats */
+/** Register rt numbers
+ *
+ * For opcREGIMM instructions.
+ *
+ */
 typedef enum {
-	ifX,       /**< undefined */
-	ifNONE,    /**< no parameters */
-	ifERR,     /**< invalid */
-	ifR4,      /**< not implemented */
-	ifIMM,     /**< immediate */
-	ifIMMS,    /**< immediate signed */
-	ifIMMU,    /**< immediate unsigned */
-	ifIMMUX,   /**< immediate unsigned, hex 4 */
+	/* 0 */
+	rtBLTZ = 0,
+	rtBGEZ = 1,
+	rtBLTZL = 2,
+	rtBGEZL = 3,
+	/* rt 4 unused */
+	/* rt 5 unused */
+	/* rt 6 unused */
+	/* rt 7 unused */
 	
-	ifJ,       /**< jump */
-	ifREG,     /**< register */
-	ifOFF,     /**< offset */
-	ifCND,     /**< cond */
-	ifRO,      /**< reg + off */
-	ifTD,      /**< rt, rd */
-	ifTDX0,    /**< rt, rd as number cp0 */
-	ifTDX1,    /**< rt, rd as number cp1 */
-	ifTDX2,    /**< rt, rd as number cp2 */
-	ifTDX3,    /**< rt, rd as number cp3 */
-	ifOP,
-	ifST,
-	ifDS,
-	ifS,
-	ifTOB,
-	ifRIW,
-	ifD,
-	ifSI,
-	ifSIW,
-	ifDTS,
-	ifSYSCALL  /**< syscall */
-} instr_form_basic_t;
-
-typedef struct {
-	instr_opcode_t opcode;
-	instr_form_basic_t format;
-} instr_form_t;
-
-/** Various mask and shift settings */
-#define TARGET_MASK   UINT32_C(0x03ffffff)
-#define TARGET_SHIFT  2
-#define TARGET_COMB   UINT64_C(0xfffffffff0000000)
-
-#define FUNCTION_MASK  UINT32_C(0x0000003f)
-#define IMM_MASK       UINT32_C(0x0000ffff)
-
-#define SA_MASK   UINT32_C(0x000007c0)
-#define SA_SHIFT  6
-#define RD_MASK   UINT32_C(0x0000f800)
-#define RD_SHIFT  11
-#define RT_MASK   UINT32_C(0x001f0000)
-#define RT_SHIFT  16
-#define RS_MASK   UINT32_C(0x03e00000)
-#define RS_SHIFT  21
-#define OP_MASK   UINT32_C(0xfc000000)
-#define OP_SHIFT  26
-
-#define CO_MASK      UINT32_C(0x0000003f)
-#define BCOND_SHIFT  16
-#define BCOND_MASK   UINT32_C(0x0000001f)
-
-typedef struct {
-	/* Instruction */
-	uint32_t icode;
-	instr_opcode_t opcode;
+	/* 8 */
+	rtTGEI = 8,
+	rtTGEIU = 9,
+	rtTLTI = 10,
+	rtTLTIU = 11,
+	rtTEQI = 12,
+	/* rt 13 unused */
+	rtTNEI = 14,
+	/* rt 15 unused */
 	
-	/* Function */
-	uint8_t function;
-	
-	/* Registers */
-	uint8_t rs;
-	uint8_t rt;
-	uint8_t rd;
-	uint8_t sa;
-	
-	/* Others */
-	uint32_t target;
-	uint16_t imm;
-} instr_info_t;
+	/* 16 */
+	rtBLTZAL = 16,
+	rtBGEZAL = 17,
+	rtBLTZALL = 18,
+	rtBGEZALL = 19
+} instr_rt_t;
 
-typedef struct {
-	char *acronym;
-	instr_form_basic_t itype;
-} instr_text_t;
+typedef union {
+	uint32_t val;
+	struct {
+		unsigned int opcode : 6;
+		unsigned int rs : 5;
+		unsigned int rt : 5;
+		unsigned int imm : 16;
+	} i;
+	struct {
+		unsigned int opcode : 6;
+		unsigned int target : 26;
+	} j;
+	struct {
+		unsigned int opcode : 6;
+		unsigned int rs : 5;
+		unsigned int rt : 5;
+		unsigned int rd : 5;
+		unsigned int sa : 5;
+		unsigned int func : 6;
+	} r;
+} instr_t;
 
-extern instr_text_t instr_names_acronym[];
+//typedef struct {
+//	const char *acronym;
+//	instr_form_basic_t itype;
+//} instr_text_t;
+
+//extern instr_text_t instr_names_acronym[];
 
 /** Register and coprocessor names */
-extern char *reg_name[][32];
-extern char *cp0_name[][32];
-extern char *cp1_name[][32];
-extern char *cp2_name[][32];
-extern char *cp3_name[][32];
-
-/** Convert opcode to instruction description */
-extern void decode_instr(instr_info_t *ii);
+//extern char *reg_name[][32];
+//extern char *cp0_name[][32];
+//extern char *cp1_name[][32];
+//extern char *cp2_name[][32];
+//extern char *cp3_name[][32];
 
 #endif

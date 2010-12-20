@@ -1,10 +1,12 @@
-utmp32 = sign_extend_16_32(ii.imm);
-		utmp32b = urrs.lo + utmp32;
-		
-		if (!((urrs.lo ^ utmp32) & SBIT32) &&
-		    ((urrs.lo ^ utmp32b) & SBIT32)) {
-			res = excOv;
-			break;
-		}
-		
-		cpu->regs[ii.rt].val = sign_extend_32_64(utmp32b);
+static exc_t instr_addi(cpu_t *cpu, instr_t instr)
+{
+	uint32_t rs = cpu->regs[instr.i.rs].lo;
+	uint32_t imm = sign_extend_16_32(instr.i.imm);
+	uint32_t sum = rs + imm;
+	
+	if (!((rs ^ imm) & SBIT32) && ((rs ^ sum) & SBIT32))
+		return excOv;
+	
+	cpu->regs[instr.i.rt].val = sign_extend_32_64(utmp32b);
+	return excNone;
+}

@@ -1,0 +1,1 @@
+cpu->hireg.val = urrs.val;

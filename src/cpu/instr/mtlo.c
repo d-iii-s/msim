@@ -1,0 +1,1 @@
+cpu->loreg.val = urrs.val;

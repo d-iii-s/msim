@@ -1,0 +1,1 @@
+/* No synchronisation is needed */

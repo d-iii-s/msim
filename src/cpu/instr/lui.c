@@ -1,0 +1,1 @@
+cpu->regs[ii.rt].val = sign_extend_32_64(((uint32_t) ii.imm) << 16);

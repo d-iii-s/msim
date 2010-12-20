@@ -1,0 +1,1 @@
+cpu->regs[ii.rd] = cpu->loreg;

@@ -27,7 +27,6 @@
 #include "../arch/network.h"
 #include "../cpu/r4000.h"
 #include "../device/dcpu.h"
-#include "../device/machine.h"
 #include "../assert.h"
 #include "../endian.h"
 #include "../fault.h"
@@ -601,7 +600,7 @@ static void gdb_process_query(char *req)
 	if (strcmp(query, "C") == 0) {
 		char reply[5];
 		
-		ASSERT(cpuno_global <= MAX_CPU);
+		ASSERT(cpuno_global < MAX_CPUS);
 		
 		/* Represent processors as threads */
 		snprintf(reply, 5, "QC%02x", cpuno_global);

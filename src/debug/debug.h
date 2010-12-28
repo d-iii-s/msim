@@ -23,13 +23,13 @@ extern bool dump_addr;
 extern bool dump_instr;
 extern bool dump_inum;
 
-extern void reg_view(cpu_t *cpu);
+extern void reg_dump(cpu_t *cpu);
 extern void tlb_dump(cpu_t *cpu);
 extern void cp0_dump_all(cpu_t *cpu);
 extern void cp0_dump(cpu_t *cpu, unsigned int reg);
 
-extern void iview_phys(ptr36_t addr, instr_info_t *ii, char *regch);
-extern void iview(cpu_t *cpu, ptr64_t addr, instr_info_t *ii, char *regch);
+extern void idump_phys(ptr36_t addr, instr_t instr);
+extern void idump(cpu_t *cpu, ptr64_t addr, instr_t instr, bool modregs);
 
 extern char *modified_regs_dump(cpu_t *cpu);
 

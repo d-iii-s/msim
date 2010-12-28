@@ -1,5 +1,16 @@
-if (CPU_64BIT_MODE(cpu))
-			cond = (((int64_t) urrs.val) >= ((int64_t) urrt.val));
-		else
-			cond = (((int32_t) urrs.lo) >= ((int32_t) urrt.lo));
-		TRAP(cond, res);
+static exc_t instr_tge(cpu_t *cpu, instr_t instr)
+{
+	bool cond;
+	
+	if (CPU_64BIT_MODE(cpu))
+		cond = (((int64_t) cpu->regs[instr.r.rs].val) >=
+		    ((int64_t) cpu->regs[instr.r.rt].val));
+	else
+		cond = (((int32_t) cpu->regs[instr.r.rs].lo) >=
+		    ((int32_t) cpu->regs[instr.r.rt].lo));
+	
+	if (cond)
+		return excTr;
+	
+	return excNone;
+}

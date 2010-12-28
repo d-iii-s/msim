@@ -1,15 +1,25 @@
-utmp64 = urrs.val + sign_extend_16_64(ii.imm);
-		addr.ptr = utmp64 & ((uint64_t) ~UINT64_C(0x03));
-		res = cpu_read_mem32(cpu, addr, &utmp32, true);
+static exc_t instr_lwr(cpu_t *cpu, instr_t instr)
+{
+	ptr64_t base;
+	base.ptr = cpu->regs[instr.i.rs].val + sign_extend_16_64(instr.i.imm);
+	
+	ptr64_t addr;
+	addr.ptr = base.ptr & ((uint64_t) ~UINT64_C(0x03));
+	
+	uint32_t val;
+	exc_t res = cpu_read_mem32(cpu, addr, &val, true);
+	
+	if (res == excNone) {
+		unsigned int index = base.ptr & 0x03U;
+		uint32_t comb = cpu->regs[instr.i.rt].lo & shift_tab_right[index].mask;
+		comb |= (val >> shift_tab_right[index].shift)
+		    & (~shift_tab_right[index].mask);
 		
-		if (res == excNone) {
-			unsigned int index = utmp64 & 0x03U;
-			utmp32b = cpu->regs[ii.rt].lo & shift_tab_right[index].mask;
-			utmp32b |= (utmp32 >> shift_tab_right[index].shift)
-			    & (~shift_tab_right[index].mask);
-			
-			if (index == 0)
-				cpu->regs[ii.rt].val = sign_extend_32_64(utmp32b);
-			else
-				cpu->regs[ii.rt].val = utmp32b;
-		}
+		if (index == 0)
+			cpu->regs[instr.i.rt].val = sign_extend_32_64(comb);
+		else
+			cpu->regs[instr.i.rt].val = comb;
+	}
+	
+	return res;
+}

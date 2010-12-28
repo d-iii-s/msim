@@ -27,14 +27,6 @@ bool iopc = false;
 bool icmt = true;
 bool iregch = true;
 unsigned int ireg = 2;
-bool nondet = false;
-
-/*
- * Debugging
- */
-bool totrace = false;
-
-char **regname;
 
 /*
  * Boolean constants
@@ -125,8 +117,8 @@ typedef bool (*set_str_t)(const char *);
  */
 static bool change_ireg(unsigned int i)
 {
-	if (i > 2) {
-		error("Index out of range 0..2");
+	if (i >= REG_VARIANTS) {
+		error("Index out of range 0..%u", REG_VARIANTS - 1);
 		return false;
 	}
 	
@@ -146,15 +138,6 @@ const env_t global_env[] = {
 		NULL,
 		vt_uint,
 		NULL,
-		NULL
-	},
-	{
-		"nondet",
-		"Enable non-determinism",
-		"Enable features and devices which break "
-		    "determinism of the simulation.",
-		vt_bool,
-		&nondet,
 		NULL
 	},
 	{
@@ -230,7 +213,7 @@ const env_t global_env[] = {
 		"Disassemble instructions as they are executed",
 		"Disassemble and display instructions as they are executed.",
 		vt_bool,
-		&totrace,
+		&machine_trace,
 		NULL
 	},
 	LAST_ENV

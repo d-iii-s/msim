@@ -7,6 +7,6 @@ static exc_t instr_addi(cpu_t *cpu, instr_t instr)
 	if (!((rs ^ imm) & SBIT32) && ((rs ^ sum) & SBIT32))
 		return excOv;
 	
-	cpu->regs[instr.i.rt].val = sign_extend_32_64(utmp32b);
+	cpu->regs[instr.i.rt].val = sign_extend_32_64(sum);
 	return excNone;
 }

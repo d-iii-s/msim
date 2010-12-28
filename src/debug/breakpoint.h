@@ -63,8 +63,6 @@ typedef struct {
 /** List of all the memory breakpoints */
 extern list_t physmem_breakpoints;
 
-extern void breakpoint_init_framework(void);
-
 /* Memory breakpoints interface */
 
 extern void physmem_breakpoint_add(ptr36_t address, len36_t size,

@@ -1,4 +1,4 @@
-static exc_t instr_ddiv(cpu_t *cpu, instr_t instr)
+static exc_t instr_ddivu(cpu_t *cpu, instr_t instr)
 {
 	if (CPU_64BIT_INSTRUCTION(cpu)) {
 		uint64_t rt = cpu->regs[instr.r.rt].val;
@@ -12,8 +12,9 @@ static exc_t instr_ddiv(cpu_t *cpu, instr_t instr)
 			cpu->loreg.val = rs / rt;
 			cpu->hireg.val = rs % rt;
 		}
-	} else
-		return excRI;
+		
+		return excNone;
+	}
 	
-	return excNone;
+	return excRI;
 }

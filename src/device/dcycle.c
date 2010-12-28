@@ -163,15 +163,15 @@ static void dcycle_read64(cpu_t *cpu, device_t *dev, ptr36_t addr, uint64_t *val
 	}
 }
 
-/** Count one processor step
+/** Cycle device implementation
  *
  */
-static void dcycle_step(device_t *dev)
+static void dcycle_step4k(device_t *dev)
 {
 	ASSERT(dev != NULL);
 	
 	dcycle_data_t *data = (dcycle_data_t *) dev->data;
-	data->cycle++;
+	data->cycle += 4096;
 }
 
 static cmd_t dcycle_cmds[] = {
@@ -228,7 +228,7 @@ device_type_t dcycle = {
 	.done = dcycle_done,
 	.read32 = dcycle_read32,
 	.read64 = dcycle_read64,
-	.step = dcycle_step,
+	.step4k = dcycle_step4k,
 	
 	/* Commands */
 	.cmds = dcycle_cmds

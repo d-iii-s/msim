@@ -12,6 +12,8 @@
 #ifndef FAULT_H_
 #define FAULT_H_
 
+#include <stdio.h>
+
 #define ERR_OK      0  /**< OK */
 #define ERR_IO      1  /**< I/O error occured */
 #define ERR_MEM     2  /**< Not enough memory */

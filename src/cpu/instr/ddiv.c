@@ -12,8 +12,9 @@ static exc_t instr_ddiv(cpu_t *cpu, instr_t instr)
 			cpu->loreg.val = (uint64_t) (((int64_t) rs) / ((int64_t) rt));
 			cpu->hireg.val = (uint64_t) (((int64_t) rs) % ((int64_t) rt));
 		}
-	} else
-		return excRI;
+		
+		return excNone;
+	}
 	
-	return excNone;
+	return excRI;
 }

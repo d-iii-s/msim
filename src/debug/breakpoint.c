@@ -33,7 +33,7 @@
 #include "breakpoint.h"
 
 #include <inttypes.h>
-#include "../device/machine.h"
+#include "../device/device.h"
 #include "../assert.h"
 #include "../fault.h"
 #include "../main.h"
@@ -41,17 +41,11 @@
 #include "breakpoint.h"
 #include "gdb.h"
 
-list_t physmem_breakpoints;
+list_t physmem_breakpoints = LIST_INITIALIZER;
 
 /************************************************************************/
 /* Memory breakpoints                                                   */
 /************************************************************************/
-
-/** Routine for initializing global variables in this module */
-void breakpoint_init_framework(void)
-{
-	list_init(&physmem_breakpoints);
-}
 
 /** Allocate and initialize a memory breakpoint
  *
@@ -189,7 +183,7 @@ void physmem_breakpoint_hit(physmem_breakpoint_t *breakpoint,
 			    breakpoint->addr);
 		
 		breakpoint->hits++;
-		interactive = true;
+		machine_interactive = true;
 		break;
 	case BREAKPOINT_KIND_DEBUGGER:
 		gdb_handle_event(GDB_EVENT_BREAKPOINT);
@@ -236,7 +230,7 @@ static void breakpoint_hit(breakpoint_t *breakpoint)
 	switch (breakpoint->kind) {
 	case BREAKPOINT_KIND_SIMULATOR:
 		alert("Debug: Hit breakpoint at %#0" PRIx64, breakpoint->pc.ptr);
-		interactive = true;
+		machine_interactive = true;
 		break;
 	case BREAKPOINT_KIND_DEBUGGER:
 		gdb_handle_event(GDB_EVENT_BREAKPOINT);

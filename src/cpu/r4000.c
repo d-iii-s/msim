@@ -17,7 +17,6 @@
 #include "../debug/debug.h"
 #include "../debug/gdb.h"
 #include "../device/device.h"
-#include "../device/machine.h"
 #include "../assert.h"
 #include "../endian.h"
 #include "../env.h"
@@ -28,13 +27,63 @@
 #include "instr.h"
 #include "r4000.h"
 
+/** Physical memory management
+ *
+ */
+
+#define PTL2_COUNT  4096
+#define PTL1_COUNT  4096
+
+#define PTL2_SHIFT  12
+#define PTL1_SHIFT  24
+
+#define PTL2_MASK   0x0FFFU
+#define PTL1_MASK   0x0FFFU
+
+typedef enum {
+	MEMT_NONE = 0,  /**< Uninitialized */
+	MEMT_MEM  = 1,  /**< Generic */
+	MEMT_FMAP = 2   /**< File mapped */
+} physmem_type_t;
+
+typedef struct {
+	/* Memory area type */
+	physmem_type_t type;
+	bool writable;
+	
+	/* Starting physical frame */
+	uint32_t start;
+	
+	/* Number of physical frames */
+	uint32_t count;
+	
+	/* Memory content */
+	unsigned char *data;
+} physmem_area_t;
+
+/** Instruction implementation */
+typedef exc_t (*instr_fnc_t)(cpu_t *, instr_t);
+
+typedef struct {
+	/* Physical memory area containing the frame */
+	physmem_area_t *area;
+	
+	/* Decoded instructions */
+	instr_fnc_t *decoded;
+} frame_t;
+
+typedef frame_t *ptl1_t[PTL2_COUNT];
+typedef ptl1_t *ptl0_t[PTL1_COUNT];
+
+static ptl0_t ptl0;
+
 /** Sign extensions
  *
  */
-#define SBIT8    UINT8_C(0x80)
-#define SBIT16   UINT16_C(0x8000)
-#define SBIT32   UINT32_C(0x80000000)
-#define SBIT64   UINT64_C(0x8000000000000000)
+#define SBIT8   UINT8_C(0x80)
+#define SBIT16  UINT16_C(0x8000)
+#define SBIT32  UINT32_C(0x80000000)
+#define SBIT64  UINT64_C(0x8000000000000000)
 
 #define EXTEND_POSITIVE_16_32  UINT32_C(0x0000ffff)
 #define EXTEND_NEGATIVE_16_32  UINT32_C(0xffff0000)
@@ -83,101 +132,37 @@ static uint64_t sign_extend_32_64(uint32_t val)
 #define TARGET_SHIFT  2
 #define TARGET_COMB   UINT64_C(0xfffffffff0000000)
 
-/** Implementation of instructions of R4000
- *
- * Include those instructions which are supported
- * by R4000.
+/** CPU mode macros
  *
  */
 
-#include "instr/add.c"
-#include "instr/addi.c"
+#define CPU_TLB_SHUTDOWN(cpu) \
+	(cp0_status_ts(cpu) == 1)
 
-/** Instruction decoding tables
- *
- */
-typedef exc_t *instr_fnc_t(cpu_t *, instr_t);
+#define CPU_USER_MODE(cpu) \
+	((cp0_status_ksu(cpu) == 2) && (!cp0_status_exl(cpu)) && \
+	    (!cp0_status_erl(cpu)))
 
-static instr_fnc_t opcode_map[64] = {
-	/* 0 */
-	instr_reserved,  /* opcSPECIAL */
-	instr_reserved,  /* opcREGIMM */
-	instr_j,
-	instr_jal,
-	instr_beq,
-	instr_bne,
-	instr_blez,
-	instr_bgtz,
-	
-	/* 8 */
-	instr_addi,
-	instr_addiu,
-	instr_slti,
-	instr_sltiu,
-	instr_andi,
-	instr_ori,
-	instr_xori,
-	instr_lui,
-	
-	/* 16 */
-	instr_cop0,
-	instr_cop1,
-	instr_cop2,
-	instr_reserved,  /* unused */
-	instr_beql,
-	instr_bnel,
-	instr_blezl,
-	instr_bgtzl,
-	
-	/* 24 */
-	instr_daddi,
-	instr_daddiu,
-	instr_ldl,
-	instr_ldr,
-	instr_reserved,  /* unused */
-	instr_reserved,  /* unused */
-	instr_reserved,  /* unused */
-	instr_reserved,  /* unused */
-	
-	/* 32 */
-	instr_lb,
-	instr_lh,
-	instr_lwl,
-	instr_lw,
-	instr_lbu,
-	instr_lhu,
-	instr_lwr,
-	instr_lwu,
-	
-	/* 40 */
-	instr_sb,
-	instr_sh,
-	instr_swl,
-	instr_sw,
-	instr_sdl,
-	instr_sdr,
-	instr_swr,
-	instr_cache,
-	
-	/* 48 */
-	instr_ll,
-	instr_lwc1,
-	instr_lwc2,
-	instr_reserved,  /* unused */
-	instr_lld,
-	instr_ldc1,
-	instr_ldc2,
-	instr_ld,
-	
-	instr_sc,
-	instr_swc1
-	instr_swc2
-	instr_reserved,  /* unused */
-	instr_scd
-	instr_sdc1
-	instr_sdc2
-	instr_sd
-};
+#define CPU_SUPERVISOR_MODE(cpu) \
+	((cp0_status_ksu(cpu) == 1) && (!cp0_status_exl(cpu)) && \
+	    (!cp0_status_erl(cpu)))
+
+#define CPU_KERNEL_MODE(cpu) \
+	((cp0_status_ksu(cpu) == 0) || (cp0_status_exl(cpu)) || \
+	    (cp0_status_erl(cpu)))
+
+#define CP0_USABLE(cpu) \
+	((cp0_status_cu0(cpu)) || (CPU_KERNEL_MODE(cpu)))
+
+#define CPU_64BIT_MODE(cpu) \
+	(((CPU_KERNEL_MODE(cpu)) && (cp0_status_kx(cpu))) || \
+	    ((CPU_SUPERVISOR_MODE(cpu)) && (cp0_status_sx(cpu))) || \
+	    ((CPU_USER_MODE(cpu)) && (cp0_status_ux(cpu))))
+
+#define CPU_64BIT_INSTRUCTION(cpu) \
+	((CPU_KERNEL_MODE(cpu)) || \
+	    ((CPU_SUPERVISOR_MODE(cpu)) && (cp0_status_sx(cpu))) || \
+	    ((CPU_USER_MODE(cpu)) && (cp0_status_ux(cpu))))
 
 /** Virtual memory segments
  *
@@ -238,58 +223,6 @@ static instr_fnc_t opcode_map[64] = {
 #define XKSEG_MASK  UINT64_C(0xffffff0080000000)
 #define XKSEG_BITS  UINT64_C(0xc000000000000000)
 
-/** Initial state */
-#define HARD_RESET_STATUS         (cp0_status_erl_mask | cp0_status_bev_mask)
-#define HARD_RESET_START_ADDRESS  UINT64_C(0xffffffffbfc00000)
-#define HARD_RESET_PROC_ID        UINT64_C(0x0000000000000400)
-#define HARD_RESET_CAUSE          0
-#define HARD_RESET_WATCHLO        0
-#define HARD_RESET_WATCHHI        0
-#define HARD_RESET_CONFIG         0
-#define HARD_RESET_RANDOM         47
-#define HARD_RESET_WIRED          0
-
-/** Exception handling */
-#define EXCEPTION_BOOT_BASE_ADDRESS     UINT64_C(0xffffffffbfc00200)
-#define EXCEPTION_BOOT_RESET_ADDRESS    HARD_RESET_START_ADDRESS
-#define EXCEPTION_NORMAL_BASE_ADDRESS   UINT64_C(0xffffffff80000000)
-#define EXCEPTION_NORMAL_RESET_ADDRESS  HARD_RESET_START_ADDRESS
-#define EXCEPTION_OFFSET                UINT64_C(0x0180)
-
-#define TRAP(expr, res) \
-	{ \
-		if (expr) \
-			res = excTr; \
-	}
-
-#define CPU_TLB_SHUTDOWN(cpu) \
-	(cp0_status_ts(cpu) == 1)
-
-#define CPU_USER_MODE(cpu) \
-	((cp0_status_ksu(cpu) == 2) && (!cp0_status_exl(cpu)) && \
-	    (!cp0_status_erl(cpu)))
-
-#define CPU_SUPERVISOR_MODE(cpu) \
-	((cp0_status_ksu(cpu) == 1) && (!cp0_status_exl(cpu)) && \
-	    (!cp0_status_erl(cpu)))
-
-#define CPU_KERNEL_MODE(cpu) \
-	((cp0_status_ksu(cpu) == 0) || (cp0_status_exl(cpu)) || \
-	    (cp0_status_erl(cpu)))
-
-#define CP0_USABLE(cpu) \
-	((cp0_status_cu0(cpu)) || (CPU_KERNEL_MODE(cpu)))
-
-#define CPU_64BIT_MODE(cpu) \
-	(((CPU_KERNEL_MODE(cpu)) && (cp0_status_kx(cpu))) || \
-	    ((CPU_SUPERVISOR_MODE(cpu)) && (cp0_status_sx(cpu))) || \
-	    ((CPU_USER_MODE(cpu)) && (cp0_status_ux(cpu))))
-
-#define CPU_64BIT_INSTRUCTION(cpu) \
-	((CPU_KERNEL_MODE(cpu)) || \
-	    ((CPU_SUPERVISOR_MODE(cpu)) && (cp0_status_sx(cpu))) || \
-	    ((CPU_USER_MODE(cpu)) && (cp0_status_ux(cpu))))
-
 /** TLB lookup result */
 typedef enum {
 	TLBL_OK,
@@ -298,12 +231,16 @@ typedef enum {
 	TLBL_MODIFIED
 } tlb_look_t;
 
-/** Memory access mode */
+/** Memory access modes */
 typedef enum {
 	AM_FETCH,
 	AM_READ,
 	AM_WRITE
 } acc_mode_t;
+
+/** Partial memory access shift tables
+ *
+ */
 
 typedef struct {
 	uint32_t mask;
@@ -337,50 +274,6 @@ static shift_tab_t shift_tab_right_store[] = {
 	{ UINT32_C(0x0000ffff), 16 },
 	{ UINT32_C(0x00ffffff), 24 }
 };
-
-/** Initialize simulation environment
- *
- */
-void cpu_init(cpu_t *cpu, unsigned int procno)
-{
-	ASSERT(cpu != NULL);
-	
-	ptr64_t start_address;
-	start_address.ptr = HARD_RESET_START_ADDRESS;
-	
-	/* Initially set all members to zero */
-	memset(cpu, 0, sizeof(cpu_t));
-	
-	cpu->procno = procno;
-	cpu_set_pc(cpu, start_address);
-	
-	/* Inicialize cp0 registers */
-	cp0_config(cpu).val = HARD_RESET_CONFIG;
-	cp0_random(cpu).val = HARD_RESET_RANDOM;
-	cp0_wired(cpu).val = HARD_RESET_WIRED;
-	cp0_prid(cpu).val = HARD_RESET_PROC_ID;
-	
-	/* Initial status value */
-	cp0_status(cpu).val = HARD_RESET_STATUS;
-	
-	cp0_cause(cpu).val = HARD_RESET_CAUSE;
-	cp0_watchlo(cpu).val = HARD_RESET_WATCHLO;
-	cp0_watchhi(cpu).val = HARD_RESET_WATCHHI;
-	
-	/* Breakpoints */
-	list_init(&cpu->bps);
-}
-
-/** Set the PC register
- *
- */
-void cpu_set_pc(cpu_t *cpu, ptr64_t value)
-{
-	ASSERT(cpu != NULL);
-	
-	cpu->pc.ptr = value.ptr;
-	cpu->pc_next.ptr = value.ptr + 4;
-}
 
 /** Address traslation through the TLB table
  *
@@ -1096,6 +989,887 @@ static exc_t cpu_write_mem64(cpu_t *cpu, ptr64_t addr, uint64_t value,
 	return res;
 }
 
+/** Probe TLB entry
+ *
+ */
+static exc_t TLBP(cpu_t *cpu)
+{
+	ASSERT(cpu != NULL);
+	
+	if (CP0_USABLE(cpu)) {
+		cp0_index(cpu).val = 1 << cp0_index_p_shift;
+		uint32_t xvpn2 = cp0_entryhi(cpu).val & cp0_entryhi_vpn2_mask;
+		uint32_t xasid = cp0_entryhi(cpu).val & cp0_entryhi_asid_mask;
+		unsigned int i;
+		
+		for (i = 0; i < TLB_ENTRIES; i++) {
+			if ((cpu->tlb[i].vpn2 == xvpn2) &&
+			    ((cpu->tlb[i].global) || (cpu->tlb[i].asid == xasid))) {
+				cp0_index(cpu).val = i;
+				break;
+			}
+		}
+		
+		return excNone;
+	}
+	
+	cp0_cause(cpu).val &= ~cp0_cause_ce_mask;
+	return excCpU;
+}
+
+/** Read entry from the TLB
+ *
+ */
+static exc_t TLBR(cpu_t *cpu)
+{
+	ASSERT(cpu != NULL);
+	
+	if (CP0_USABLE(cpu)) {
+		unsigned int i = cp0_index_index(cpu);
+		
+		if (i > 47) {
+			alert("R4000: Invalid value in Index (TLBR)");
+			cp0_pagemask(cpu).val = 0;
+			cp0_entryhi(cpu).val = 0;
+			cp0_entrylo0(cpu).val = 0;
+			cp0_entrylo1(cpu).val = 0;
+		} else {
+			cp0_pagemask(cpu).val = (~cpu->tlb[i].mask) & UINT32_C(0x01ffe000);
+			cp0_entryhi(cpu).val = cpu->tlb[i].vpn2 | cpu->tlb[i].asid;
+			
+			cp0_entrylo0(cpu).val = (cpu->tlb[i].pg[0].pfn >> 6)
+			    | (cpu->tlb[i].pg[0].cohh << 3)
+			    | ((cpu->tlb[i].pg[0].dirty ? 1 : 0) << 2)
+			    | ((cpu->tlb[i].pg[0].valid ? 1 : 0) << 1)
+			    | (cpu->tlb[i].global ? 1 : 0);
+			
+			cp0_entrylo1(cpu).val = (cpu->tlb[i].pg[1].pfn >> 6)
+			    | (cpu->tlb[i].pg[1].cohh << 3)
+			    | ((cpu->tlb[i].pg[1].dirty ? 1 : 0) << 2)
+			    | ((cpu->tlb[i].pg[1].valid ? 1 : 0) << 1)
+			    | (cpu->tlb[i].global ? 1 : 0);
+		}
+		
+		return excNone;
+	}
+	
+	cp0_cause(cpu).val &= ~cp0_cause_ce_mask;
+	return excCpU;
+}
+
+/** Write a new entry into the TLB
+ *
+ * The entry index is determined by either
+ * the random register (TLBWR) or index (TLBWI).
+ *
+ */
+static exc_t TLBW(cpu_t *cpu, bool random)
+{
+	ASSERT(cpu != NULL);
+	
+	if (CP0_USABLE(cpu)) {
+		
+		unsigned int index =
+		    random ? cp0_random_random(cpu) : cp0_index_index(cpu);
+		
+		if (index > 47) {
+			/*
+			 * Undefined behavior, doing nothing complies.
+			 * Random is read-only, its index should be always fine.
+			 */
+			alert("R4000: Invalid value in Index (TLBWI)");
+		} else {
+			/* Fill TLB */
+			tlb_entry_t *entry = &cpu->tlb[index];
+			
+			entry->mask = cp0_entryhi_vpn2_mask & ~cp0_pagemask(cpu).val;
+			entry->vpn2 = cp0_entryhi(cpu).val & entry->mask;
+			entry->global = cp0_entrylo0_g(cpu) & cp0_entrylo1_g(cpu);
+			entry->asid = cp0_entryhi_asid(cpu);
+			
+			entry->pg[0].pfn = (ptr36_t) cp0_entrylo0_pfn(cpu) << 12;
+			entry->pg[0].cohh = cp0_entrylo0_c(cpu);
+			entry->pg[0].dirty = cp0_entrylo0_d(cpu);
+			entry->pg[0].valid = cp0_entrylo0_v(cpu);
+			
+			entry->pg[1].pfn = (ptr36_t) cp0_entrylo1_pfn(cpu) << 12;
+			entry->pg[1].cohh = cp0_entrylo1_c(cpu);
+			entry->pg[1].dirty = cp0_entrylo1_d(cpu);
+			entry->pg[1].valid = cp0_entrylo1_v(cpu);
+		}
+		
+		return excNone;
+	}
+	
+	cp0_cause(cpu).val &= ~cp0_cause_ce_mask;
+	return excCpU;
+}
+
+/** SC-LL tracking
+ *
+ */
+
+typedef struct {
+	item_t item;
+	cpu_t *cpu;
+} sc_item_t;
+
+static list_t sc_list = LIST_INITIALIZER;
+
+/** Register current processor in LL-SC tracking list
+ *
+ */
+static void sc_register(cpu_t *cpu)
+{
+	/* Ignore if already registered. */
+	sc_item_t *sc_item;
+	
+	for_each(sc_list, sc_item, sc_item_t) {
+		if (sc_item->cpu == cpu)
+			return;
+	}
+	
+	sc_item = safe_malloc_t(sc_item_t);
+	item_init(&sc_item->item);
+	sc_item->cpu = cpu;
+	list_append(&sc_list, &sc_item->item);
+}
+
+/** Remove current processor from the LL-SC tracking list
+ *
+ */
+static void sc_unregister(cpu_t *cpu)
+{
+	sc_item_t *sc_item;
+	
+	for_each(sc_list, sc_item, sc_item_t) {
+		if (sc_item->cpu == cpu) {
+			list_remove(&sc_list, &sc_item->item);
+			safe_free(sc_item);
+			break;
+		}
+	}
+}
+
+/** Implementation of instructions of R4000
+ *
+ * Include those instructions which are supported
+ * by R4000.
+ *
+ */
+
+#include "instr/_reserved.c"
+#include "instr/_warning.c"
+#include "instr/add.c"
+#include "instr/addi.c"
+#include "instr/addiu.c"
+#include "instr/addu.c"
+#include "instr/and.c"
+#include "instr/andi.c"
+#include "instr/bc0f.c"
+#include "instr/bc0fl.c"
+#include "instr/bc0t.c"
+#include "instr/bc0tl.c"
+#include "instr/bc1f.c"
+#include "instr/bc1fl.c"
+#include "instr/bc1t.c"
+#include "instr/bc1tl.c"
+#include "instr/bc2f.c"
+#include "instr/bc2fl.c"
+#include "instr/bc2t.c"
+#include "instr/bc2tl.c"
+#include "instr/beq.c"
+#include "instr/beql.c"
+#include "instr/bgez.c"
+#include "instr/bgezal.c"
+#include "instr/bgezall.c"
+#include "instr/bgezl.c"
+#include "instr/bgtz.c"
+#include "instr/bgtzl.c"
+#include "instr/blez.c"
+#include "instr/blezl.c"
+#include "instr/bltz.c"
+#include "instr/bltzal.c"
+#include "instr/bltzall.c"
+#include "instr/bltzl.c"
+#include "instr/bne.c"
+#include "instr/bnel.c"
+#include "instr/break.c"
+#include "instr/cache.c"
+#include "instr/cfc1.c"
+#include "instr/cfc2.c"
+#include "instr/ctc1.c"
+#include "instr/ctc2.c"
+#include "instr/dadd.c"
+#include "instr/daddi.c"
+#include "instr/daddiu.c"
+#include "instr/daddu.c"
+#include "instr/ddiv.c"
+#include "instr/ddivu.c"
+#include "instr/div.c"
+#include "instr/divu.c"
+#include "instr/dsll.c"
+#include "instr/dsllv.c"
+#include "instr/dsll32.c"
+#include "instr/dsra.c"
+#include "instr/dsrav.c"
+#include "instr/dsra32.c"
+#include "instr/dsrl.c"
+#include "instr/dsrlv.c"
+#include "instr/dsrl32.c"
+#include "instr/dsub.c"
+#include "instr/dsubu.c"
+#include "instr/dmfc0.c"
+#include "instr/dmfc1.c"
+#include "instr/dmtc0.c"
+#include "instr/dmtc1.c"
+#include "instr/dmult.c"
+#include "instr/dmultu.c"
+#include "instr/eret.c"
+#include "instr/j.c"
+#include "instr/jal.c"
+#include "instr/jalr.c"
+#include "instr/jr.c"
+#include "instr/lb.c"
+#include "instr/lbu.c"
+#include "instr/ld.c"
+#include "instr/ldc1.c"
+#include "instr/ldc2.c"
+#include "instr/ldl.c"
+#include "instr/ldr.c"
+#include "instr/lh.c"
+#include "instr/lhu.c"
+#include "instr/ll.c"
+#include "instr/lld.c"
+#include "instr/lui.c"
+#include "instr/lw.c"
+#include "instr/lwc1.c"
+#include "instr/lwc2.c"
+#include "instr/lwl.c"
+#include "instr/lwr.c"
+#include "instr/lwu.c"
+#include "instr/mfc0.c"
+#include "instr/mfc1.c"
+#include "instr/mfc2.c"
+#include "instr/mfhi.c"
+#include "instr/mflo.c"
+#include "instr/mtc0.c"
+#include "instr/mtc1.c"
+#include "instr/mthi.c"
+#include "instr/mtlo.c"
+#include "instr/mult.c"
+#include "instr/multu.c"
+#include "instr/nor.c"
+#include "instr/or.c"
+#include "instr/ori.c"
+#include "instr/sb.c"
+#include "instr/sc.c"
+#include "instr/scd.c"
+#include "instr/sd.c"
+#include "instr/sdc1.c"
+#include "instr/sdc2.c"
+#include "instr/sdl.c"
+#include "instr/sdr.c"
+#include "instr/sh.c"
+#include "instr/sll.c"
+#include "instr/sllv.c"
+#include "instr/slt.c"
+#include "instr/slti.c"
+#include "instr/sltiu.c"
+#include "instr/sltu.c"
+#include "instr/sra.c"
+#include "instr/srav.c"
+#include "instr/srl.c"
+#include "instr/srlv.c"
+#include "instr/sub.c"
+#include "instr/subu.c"
+#include "instr/sw.c"
+#include "instr/swc1.c"
+#include "instr/swc2.c"
+#include "instr/swl.c"
+#include "instr/swr.c"
+#include "instr/sync.c"
+#include "instr/syscall.c"
+#include "instr/teq.c"
+#include "instr/teqi.c"
+#include "instr/tge.c"
+#include "instr/tgei.c"
+#include "instr/tgeiu.c"
+#include "instr/tgeu.c"
+#include "instr/tlbp.c"
+#include "instr/tlbr.c"
+#include "instr/tlbwi.c"
+#include "instr/tlbwr.c"
+#include "instr/tlt.c"
+#include "instr/tlti.c"
+#include "instr/tltiu.c"
+#include "instr/tltu.c"
+#include "instr/tne.c"
+#include "instr/tnei.c"
+#include "instr/xor.c"
+#include "instr/xori.c"
+
+/** Instruction decoding tables
+ *
+ */
+
+static instr_fnc_t opcode_map[64] = {
+	/* 0 */
+	instr__reserved,  /* opcSPECIAL */
+	instr__reserved,  /* opcREGIMM */
+	instr_j,
+	instr_jal,
+	instr_beq,
+	instr_bne,
+	instr_blez,
+	instr_bgtz,
+	
+	/* 8 */
+	instr_addi,
+	instr_addiu,
+	instr_slti,
+	instr_sltiu,
+	instr_andi,
+	instr_ori,
+	instr_xori,
+	instr_lui,
+	
+	/* 16 */
+	instr__reserved,  /* opcCOP0 */
+	instr__reserved,  /* opcCOP1 */
+	instr__reserved,  /* opcCOP2 */
+	instr__reserved,  /* unused */
+	instr_beql,
+	instr_bnel,
+	instr_blezl,
+	instr_bgtzl,
+	
+	/* 24 */
+	instr_daddi,
+	instr_daddiu,
+	instr_ldl,
+	instr_ldr,
+	instr__reserved,  /* unused */
+	instr__reserved,  /* unused */
+	instr__reserved,  /* unused */
+	instr__reserved,  /* unused */
+	
+	/* 32 */
+	instr_lb,
+	instr_lh,
+	instr_lwl,
+	instr_lw,
+	instr_lbu,
+	instr_lhu,
+	instr_lwr,
+	instr_lwu,
+	
+	/* 40 */
+	instr_sb,
+	instr_sh,
+	instr_swl,
+	instr_sw,
+	instr_sdl,
+	instr_sdr,
+	instr_swr,
+	instr_cache,
+	
+	/* 48 */
+	instr_ll,
+	instr_lwc1,
+	instr_lwc2,
+	instr__reserved,  /* unused */
+	instr_lld,
+	instr_ldc1,
+	instr_ldc2,
+	instr_ld,
+	
+	instr_sc,
+	instr_swc1,
+	instr_swc2,
+	instr__reserved,  /* unused */
+	instr_scd,
+	instr_sdc1,
+	instr_sdc2,
+	instr_sd
+};
+
+static instr_fnc_t func_map[64] = {
+	instr_sll,
+	instr__reserved,  /* unused */
+	instr_srl,
+	instr_sra,
+	instr_sllv,
+	instr__reserved,  /* unused */
+	instr_srlv,
+	instr_srav,
+	
+	instr_jr,
+	instr_jalr,
+	instr__reserved,  /* unused */
+	instr__reserved,  /* unused */
+	instr_syscall,
+	instr_break,
+	instr__reserved,  /* unused */
+	instr_sync,
+	
+	instr_mfhi,
+	instr_mthi,
+	instr_mflo,
+	instr_mtlo,
+	instr_dsllv,
+	instr__reserved,  /* unused */
+	instr_dsrlv,
+	instr_dsrav,
+	
+	instr_mult,
+	instr_multu,
+	instr_div,
+	instr_divu,
+	instr_dmult,
+	instr_dmultu,
+	instr_ddiv,
+	instr_ddivu,
+	
+	instr_add,
+	instr_addu,
+	instr_sub,
+	instr_subu,
+	instr_and,
+	instr_or,
+	instr_xor,
+	instr_nor,
+	
+	instr__reserved,  /* unused */
+	instr__reserved,  /* unused */
+	instr_slt,
+	instr_sltu,
+	instr_dadd,
+	instr_daddu,
+	instr_dsub,
+	instr_dsubu,
+	
+	instr_tge,
+	instr_tgeu,
+	instr_tlt,
+	instr_tltu,
+	instr_teq,
+	instr__reserved,  /* unused */
+	instr_tne,
+	instr__reserved,  /* unused */
+	
+	instr_dsll,
+	instr__reserved,  /* unused */
+	instr_dsrl,
+	instr_dsra,
+	instr_dsll32,
+	instr__reserved,  /* unused */
+	instr_dsrl32,
+	instr_dsra32
+};
+
+static instr_fnc_t rt_map[32] = {
+	instr_bltz,
+	instr_bgez,
+	instr_bltzl,
+	instr_bgezl,
+	instr__reserved,  /* unused */
+	instr__reserved,  /* unused */
+	instr__reserved,  /* unused */
+	instr__reserved,  /* unused */
+	
+	instr_tgei,
+	instr_tgeiu,
+	instr_tlti,
+	instr_tltiu,
+	instr_teqi,
+	instr__reserved,  /* unused */
+	instr_tnei,
+	instr__reserved,  /* unused */
+	
+	instr_bltzal,
+	instr_bgezal,
+	instr_bltzall,
+	instr_bgezall,
+	instr__reserved,  /* unused */
+	instr__reserved,  /* unused */
+	instr__reserved,  /* unused */
+	instr__reserved,  /* unused */
+	
+	instr__reserved,  /* unused */
+	instr__reserved,  /* unused */
+	instr__reserved,  /* unused */
+	instr__reserved,  /* unused */
+	instr__reserved,  /* unused */
+	instr__reserved,  /* unused */
+	instr__reserved,  /* unused */
+	instr__reserved   /* unused */
+};
+
+static instr_fnc_t cop0_rs_map[32] = {
+	instr_mfc0,
+	instr_dmfc0,
+	instr__reserved,  /* unused */
+	instr__reserved,  /* unused */
+	instr_mtc0,
+	instr_dmtc0,
+	instr__reserved,  /* unused */
+	instr__reserved,  /* unused */
+	
+	instr__reserved,  /* cop0rsBC */
+	instr__reserved,  /* unused */
+	instr__reserved,  /* unused */
+	instr__reserved,  /* unused */
+	instr__reserved,  /* unused */
+	instr__reserved,  /* unused */
+	instr__reserved,  /* unused */
+	instr__reserved,  /* unused */
+	
+	instr__reserved,  /* cop0rsCO */
+	instr__reserved,  /* unused */
+	instr__reserved,  /* unused */
+	instr__reserved,  /* unused */
+	instr__reserved,  /* unused */
+	instr__reserved,  /* unused */
+	instr__reserved,  /* unused */
+	instr__reserved,  /* unused */
+	
+	instr__reserved,  /* unused */
+	instr__reserved,  /* unused */
+	instr__reserved,  /* unused */
+	instr__reserved,  /* unused */
+	instr__reserved,  /* unused */
+	instr__reserved,  /* unused */
+	instr__reserved,  /* unused */
+	instr__reserved   /* unused */
+};
+
+static instr_fnc_t cop1_rs_map[32] = {
+	instr_mfc1,
+	instr_dmfc1,
+	instr_cfc1,
+	instr__reserved,  /* unused */
+	instr_mtc1,
+	instr_dmtc1,
+	instr_ctc1,
+	instr__reserved,  /* unused */
+	
+	instr__reserved,  /* cop1rsBC */
+	instr__reserved,  /* unused */
+	instr__reserved,  /* unused */
+	instr__reserved,  /* unused */
+	instr__reserved,  /* unused */
+	instr__reserved,  /* unused */
+	instr__reserved,  /* unused */
+	instr__reserved,  /* unused */
+	
+	instr__reserved,  /* unused */
+	instr__reserved,  /* unused */
+	instr__reserved,  /* unused */
+	instr__reserved,  /* unused */
+	instr__reserved,  /* unused */
+	instr__reserved,  /* unused */
+	instr__reserved,  /* unused */
+	instr__reserved,  /* unused */
+	
+	instr__reserved,  /* unused */
+	instr__reserved,  /* unused */
+	instr__reserved,  /* unused */
+	instr__reserved,  /* unused */
+	instr__reserved,  /* unused */
+	instr__reserved,  /* unused */
+	instr__reserved,  /* unused */
+	instr__reserved   /* unused */
+};
+
+static instr_fnc_t cop2_rs_map[32] = {
+	instr_mfc2,
+	instr__reserved,  /* unused */
+	instr_cfc2,
+	instr__reserved,  /* unused */
+	instr__reserved,  /* unused */
+	instr__reserved,  /* unused */
+	instr_ctc2,
+	instr__reserved,  /* unused */
+	
+	instr__reserved,  /* cop2rsBC */
+	instr__reserved,  /* unused */
+	instr__reserved,  /* unused */
+	instr__reserved,  /* unused */
+	instr__reserved,  /* unused */
+	instr__reserved,  /* unused */
+	instr__reserved,  /* unused */
+	instr__reserved,  /* unused */
+	
+	instr__reserved,  /* unused */
+	instr__reserved,  /* unused */
+	instr__reserved,  /* unused */
+	instr__reserved,  /* unused */
+	instr__reserved,  /* unused */
+	instr__reserved,  /* unused */
+	instr__reserved,  /* unused */
+	instr__reserved,  /* unused */
+	
+	instr__reserved,  /* unused */
+	instr__reserved,  /* unused */
+	instr__reserved,  /* unused */
+	instr__reserved,  /* unused */
+	instr__reserved,  /* unused */
+	instr__reserved,  /* unused */
+	instr__reserved,  /* unused */
+	instr__reserved   /* unused */
+};
+
+static instr_fnc_t cop0_rt_map[32] = {
+	instr_bc0f,
+	instr_bc0t,
+	instr_bc0fl,
+	instr_bc0tl,
+	instr__reserved,  /* unused */
+	instr__reserved,  /* unused */
+	instr__reserved,  /* unused */
+	instr__reserved,  /* unused */
+	
+	instr__reserved,  /* unused */
+	instr__reserved,  /* unused */
+	instr__reserved,  /* unused */
+	instr__reserved,  /* unused */
+	instr__reserved,  /* unused */
+	instr__reserved,  /* unused */
+	instr__reserved,  /* unused */
+	instr__reserved,  /* unused */
+	
+	instr__reserved,  /* unused */
+	instr__reserved,  /* unused */
+	instr__reserved,  /* unused */
+	instr__reserved,  /* unused */
+	instr__reserved,  /* unused */
+	instr__reserved,  /* unused */
+	instr__reserved,  /* unused */
+	instr__reserved,  /* unused */
+	
+	instr__reserved,  /* unused */
+	instr__reserved,  /* unused */
+	instr__reserved,  /* unused */
+	instr__reserved,  /* unused */
+	instr__reserved,  /* unused */
+	instr__reserved,  /* unused */
+	instr__reserved,  /* unused */
+	instr__reserved   /* unused */
+};
+
+static instr_fnc_t cop1_rt_map[32] = {
+	instr_bc1f,
+	instr_bc1t,
+	instr_bc1fl,
+	instr_bc1tl,
+	instr__reserved,  /* unused */
+	instr__reserved,  /* unused */
+	instr__reserved,  /* unused */
+	instr__reserved,  /* unused */
+	
+	instr__reserved,  /* unused */
+	instr__reserved,  /* unused */
+	instr__reserved,  /* unused */
+	instr__reserved,  /* unused */
+	instr__reserved,  /* unused */
+	instr__reserved,  /* unused */
+	instr__reserved,  /* unused */
+	instr__reserved,  /* unused */
+	
+	instr__reserved,  /* unused */
+	instr__reserved,  /* unused */
+	instr__reserved,  /* unused */
+	instr__reserved,  /* unused */
+	instr__reserved,  /* unused */
+	instr__reserved,  /* unused */
+	instr__reserved,  /* unused */
+	instr__reserved,  /* unused */
+	
+	instr__reserved,  /* unused */
+	instr__reserved,  /* unused */
+	instr__reserved,  /* unused */
+	instr__reserved,  /* unused */
+	instr__reserved,  /* unused */
+	instr__reserved,  /* unused */
+	instr__reserved,  /* unused */
+	instr__reserved   /* unused */
+};
+
+static instr_fnc_t cop2_rt_map[32] = {
+	instr_bc2f,
+	instr_bc2t,
+	instr_bc2fl,
+	instr_bc2tl,
+	instr__reserved,  /* unused */
+	instr__reserved,  /* unused */
+	instr__reserved,  /* unused */
+	instr__reserved,  /* unused */
+	
+	instr__reserved,  /* unused */
+	instr__reserved,  /* unused */
+	instr__reserved,  /* unused */
+	instr__reserved,  /* unused */
+	instr__reserved,  /* unused */
+	instr__reserved,  /* unused */
+	instr__reserved,  /* unused */
+	instr__reserved,  /* unused */
+	
+	instr__reserved,  /* unused */
+	instr__reserved,  /* unused */
+	instr__reserved,  /* unused */
+	instr__reserved,  /* unused */
+	instr__reserved,  /* unused */
+	instr__reserved,  /* unused */
+	instr__reserved,  /* unused */
+	instr__reserved,  /* unused */
+	
+	instr__reserved,  /* unused */
+	instr__reserved,  /* unused */
+	instr__reserved,  /* unused */
+	instr__reserved,  /* unused */
+	instr__reserved,  /* unused */
+	instr__reserved,  /* unused */
+	instr__reserved,  /* unused */
+	instr__reserved   /* unused */
+};
+
+static instr_fnc_t cop0_func_map[64] = {
+	instr__warning,   /* unused */
+	instr_tlbr,
+	instr_tlbwi,
+	instr__warning,   /* unused */
+	instr__warning,   /* unused */
+	instr__warning,   /* unused */
+	instr_tlbwr,
+	instr__warning,   /* unused */
+	
+	instr_tlbp,
+	instr__warning,   /* unused */
+	instr__warning,   /* unused */
+	instr__warning,   /* unused */
+	instr__warning,   /* unused */
+	instr__warning,   /* unused */
+	instr__warning,   /* unused */
+	instr__warning,   /* unused */
+	
+	instr__reserved,  /* unused */
+	instr__warning,   /* unused */
+	instr__warning,   /* unused */
+	instr__warning,   /* unused */
+	instr__warning,   /* unused */
+	instr__warning,   /* unused */
+	instr__warning,   /* unused */
+	instr__warning,   /* unused */
+	
+	instr_eret,
+	instr__warning,   /* unused */
+	instr__warning,   /* unused */
+	instr__warning,   /* unused */
+	instr__warning,   /* unused */
+	instr__warning,   /* unused */
+	instr__warning,   /* unused */
+	instr__warning,   /* unused */
+	
+	instr__warning,   /* unused */
+	instr__warning,   /* unused */
+	instr__warning,   /* unused */
+	instr__warning,   /* unused */
+	instr__warning,   /* unused */
+	instr__warning,   /* unused */
+	instr__warning,   /* unused */
+	instr__warning,   /* unused */
+	
+	instr__warning,   /* unused */
+	instr__warning,   /* unused */
+	instr__warning,   /* unused */
+	instr__warning,   /* unused */
+	instr__warning,   /* unused */
+	instr__warning,   /* unused */
+	instr__warning,   /* unused */
+	instr__warning,   /* unused */
+	
+	instr__warning,   /* unused */
+	instr__warning,   /* unused */
+	instr__warning,   /* unused */
+	instr__warning,   /* unused */
+	instr__warning,   /* unused */
+	instr__warning,   /* unused */
+	instr__warning,   /* unused */
+	instr__warning,   /* unused */
+	
+	instr__warning,   /* unused */
+	instr__warning,   /* unused */
+	instr__warning,   /* unused */
+	instr__warning,   /* unused */
+	instr__warning,   /* unused */
+	instr__warning,   /* unused */
+	instr__warning,   /* unused */
+	instr__warning    /* unused */
+};
+
+/** Initial state */
+#define HARD_RESET_STATUS         (cp0_status_erl_mask | cp0_status_bev_mask)
+#define HARD_RESET_START_ADDRESS  UINT64_C(0xffffffffbfc00000)
+#define HARD_RESET_PROC_ID        UINT64_C(0x0000000000000400)
+#define HARD_RESET_CAUSE          0
+#define HARD_RESET_WATCHLO        0
+#define HARD_RESET_WATCHHI        0
+#define HARD_RESET_CONFIG         0
+#define HARD_RESET_RANDOM         47
+#define HARD_RESET_WIRED          0
+
+/** Exception handling */
+#define EXCEPTION_BOOT_BASE_ADDRESS     UINT64_C(0xffffffffbfc00200)
+#define EXCEPTION_BOOT_RESET_ADDRESS    HARD_RESET_START_ADDRESS
+#define EXCEPTION_NORMAL_BASE_ADDRESS   UINT64_C(0xffffffff80000000)
+#define EXCEPTION_NORMAL_RESET_ADDRESS  HARD_RESET_START_ADDRESS
+#define EXCEPTION_OFFSET                UINT64_C(0x0180)
+
+/** Initialize simulation environment
+ *
+ */
+void cpu_init(cpu_t *cpu, unsigned int procno)
+{
+	ASSERT(cpu != NULL);
+	
+	ptr64_t start_address;
+	start_address.ptr = HARD_RESET_START_ADDRESS;
+	
+	/* Initially set all members to zero */
+	memset(cpu, 0, sizeof(cpu_t));
+	
+	cpu->procno = procno;
+	cpu_set_pc(cpu, start_address);
+	
+	/* Inicialize cp0 registers */
+	cp0_config(cpu).val = HARD_RESET_CONFIG;
+	cp0_random(cpu).val = HARD_RESET_RANDOM;
+	cp0_wired(cpu).val = HARD_RESET_WIRED;
+	cp0_prid(cpu).val = HARD_RESET_PROC_ID;
+	
+	/* Initial status value */
+	cp0_status(cpu).val = HARD_RESET_STATUS;
+	
+	cp0_cause(cpu).val = HARD_RESET_CAUSE;
+	cp0_watchlo(cpu).val = HARD_RESET_WATCHLO;
+	cp0_watchhi(cpu).val = HARD_RESET_WATCHHI;
+	
+	/* Breakpoints */
+	list_init(&cpu->bps);
+}
+
+/** Set the PC register
+ *
+ */
+void cpu_set_pc(cpu_t *cpu, ptr64_t value)
+{
+	ASSERT(cpu != NULL);
+	
+	cpu->pc.ptr = value.ptr;
+	cpu->pc_next.ptr = value.ptr + 4;
+}
+
 /** Read an instruction
  *
  * Does not change the value if an exception occurs.
@@ -1177,14 +1951,14 @@ static void physmem_breakpoint_find(ptr36_t addr, len36_t size,
 
 static physmem_area_t* find_physmem_area(ptr36_t addr)
 {
-	physmem_area_t *area;
-	
-	for_each(physmem_areas, area, physmem_area_t) {
-		ptr36_t area_start = area->start;
-		ptr36_t area_end = area_start + area->size;
-		
-		if ((addr >= area_start) && (addr < area_end))
-			return area;
+	ptl1_t *ptl1 = ptl0[(addr >> PTL1_SHIFT) & PTL1_MASK];
+	if (ptl1 != NULL) {
+		frame_t *frame = (*ptl1)[(addr >> PTL2_SHIFT) & PTL2_MASK];
+		if (frame != NULL) {
+			physmem_area_t *area = frame->area;
+			if (area != NULL)
+				return area;
+		}
 	}
 	
 	return NULL;
@@ -1273,7 +2047,7 @@ uint8_t physmem_read8(cpu_t *cpu, ptr36_t addr, bool protected)
 		physmem_breakpoint_find(addr, 1, ACCESS_READ);
 	
 	return convert_uint8_t_endian(*((uint8_t *)
-	    (area->data + (addr - area->start))));
+	    (area->data + (addr - FRAME2ADDR(area->start)))));
 }
 
 /** Physical memory read (16 bits)
@@ -1307,7 +2081,7 @@ uint16_t physmem_read16(cpu_t *cpu, ptr36_t addr, bool protected)
 		physmem_breakpoint_find(addr, 2, ACCESS_READ);
 	
 	return convert_uint16_t_endian(*((uint16_t *)
-	    (area->data + (addr - area->start))));
+	    (area->data + (addr - FRAME2ADDR(area->start)))));
 }
 
 /** Physical memory read (32 bits)
@@ -1341,7 +2115,7 @@ uint32_t physmem_read32(cpu_t *cpu, ptr36_t addr, bool protected)
 		physmem_breakpoint_find(addr, 4, ACCESS_READ);
 	
 	return convert_uint32_t_endian(*((uint32_t *)
-	    (area->data + (addr - area->start))));
+	    (area->data + (addr - FRAME2ADDR(area->start)))));
 }
 
 /** Physical memory read (64 bits)
@@ -1375,7 +2149,7 @@ uint64_t physmem_read64(cpu_t *cpu, ptr36_t addr, bool protected)
 		physmem_breakpoint_find(addr, 8, ACCESS_READ);
 	
 	return convert_uint64_t_endian(*((uint64_t *)
-	    (area->data + (addr - area->start))));
+	    (area->data + (addr - FRAME2ADDR(area->start)))));
 }
 
 /** Load Linked and Store Conditional control
@@ -1500,7 +2274,7 @@ bool physmem_write8(cpu_t *cpu, ptr36_t addr, uint8_t val, bool protected)
 	if (protected)
 		physmem_breakpoint_find(addr, 1, ACCESS_WRITE);
 	
-	*((uint8_t *) (area->data + (addr - area->start))) =
+	*((uint8_t *) (area->data + (addr - FRAME2ADDR(area->start)))) =
 	    convert_uint8_t_endian(val);
 	
 	return true;
@@ -1541,7 +2315,7 @@ bool physmem_write16(cpu_t *cpu, ptr36_t addr, uint16_t val, bool protected)
 	if (protected)
 		physmem_breakpoint_find(addr, 2, ACCESS_WRITE);
 	
-	*((uint16_t *) (area->data + (addr - area->start))) =
+	*((uint16_t *) (area->data + (addr - FRAME2ADDR(area->start)))) =
 	    convert_uint16_t_endian(val);
 	
 	return true;
@@ -1582,7 +2356,7 @@ bool physmem_write32(cpu_t *cpu, ptr36_t addr, uint32_t val, bool protected)
 	if (protected)
 		physmem_breakpoint_find(addr, 4, ACCESS_WRITE);
 	
-	*((uint32_t *) (area->data + (addr - area->start))) =
+	*((uint32_t *) (area->data + (addr - FRAME2ADDR(area->start)))) =
 	    convert_uint32_t_endian(val);
 	
 	return true;
@@ -1623,7 +2397,7 @@ bool physmem_write64(cpu_t *cpu, ptr36_t addr, uint64_t val, bool protected)
 	if (protected)
 		physmem_breakpoint_find(addr, 8, ACCESS_WRITE);
 	
-	*((uint64_t *) (area->data + (addr - area->start))) =
+	*((uint64_t *) (area->data + (addr - FRAME2ADDR(area->start)))) =
 	    convert_uint64_t_endian(val);
 	
 	return true;
@@ -1652,161 +2426,143 @@ void cpu_interrupt_down(cpu_t *cpu, unsigned int no)
 	cp0_cause(cpu).val &= ~(1 << (cp0_cause_ip0_shift + no));
 }
 
-/** Update the copy of registers
+/** Decode MIPS R4000 instruction
+ *
+ * @return Instruction implementation.
  *
  */
-static void cpu_update_debug(cpu_t *cpu)
+static instr_fnc_t decode(instr_t instr)
 {
-	ASSERT(cpu != NULL);
+	instr_fnc_t fnc;
 	
-	memcpy(cpu->old_regs, cpu->regs, sizeof(cpu->regs));
-	memcpy(cpu->old_cp0, cpu->cp0, sizeof(cpu->cp0));
-	
-	cpu->old_loreg = cpu->loreg;
-	cpu->old_hireg = cpu->hireg;
-}
-
-/** Write a new entry into the TLB
- *
- * The entry index is determined by either
- * the random register (TLBWR) or index (TLBWI).
- *
- */
-static void TLBW(cpu_t *cpu, bool random, exc_t *res)
-{
-	ASSERT(cpu != NULL);
-	ASSERT(res != NULL);
-	
-	if (CP0_USABLE(cpu)) {
-		
-		unsigned int index =
-		    random ? cp0_random_random(cpu) : cp0_index_index(cpu);
-		
-		if (index > 47) {
+	/*
+	 * Basic opcode decoding based
+	 * on the opcode field.
+	 */
+	switch (instr.r.opcode) {
+	case opcSPECIAL:
+		/*
+		 * SPECIAL opcode decoding based
+		 * on the func field.
+		 */
+		fnc = func_map[instr.r.func];
+		break;
+	case opcREGIMM:
+		/*
+		 * REGIMM opcode decoding based
+		 * on the rt field.
+		 */
+		fnc = rt_map[instr.r.rt];
+		break;
+	case opcCOP0:
+		/*
+		 * COP0 opcode decoding based
+		 * on the rs field.
+		 */
+		switch (instr.r.rs) {
+		case cop0rsBC:
 			/*
-			 * Undefined behavior, doing nothing complies.
-			 * Random is read-only, its index should be always fine.
+			 * COP0/BC opcode decoding
+			 * based on the rt field.
 			 */
-			alert("R4000: Invalid value in Index (TLBWI)");
-		} else {
-			/* Fill TLB */
-			tlb_entry_t *entry = &cpu->tlb[index];
-			
-			entry->mask = cp0_entryhi_vpn2_mask & ~cp0_pagemask(cpu).val;
-			entry->vpn2 = cp0_entryhi(cpu).val & entry->mask;
-			entry->global = cp0_entrylo0_g(cpu) & cp0_entrylo1_g(cpu);
-			entry->asid = cp0_entryhi_asid(cpu);
-			
-			entry->pg[0].pfn = (ptr36_t) cp0_entrylo0_pfn(cpu) << 12;
-			entry->pg[0].cohh = cp0_entrylo0_c(cpu);
-			entry->pg[0].dirty = cp0_entrylo0_d(cpu);
-			entry->pg[0].valid = cp0_entrylo0_v(cpu);
-			
-			entry->pg[1].pfn = (ptr36_t) cp0_entrylo1_pfn(cpu) << 12;
-			entry->pg[1].cohh = cp0_entrylo1_c(cpu);
-			entry->pg[1].dirty = cp0_entrylo1_d(cpu);
-			entry->pg[1].valid = cp0_entrylo1_v(cpu);
+			fnc = cop0_rt_map[instr.r.rt];
+			break;
+		case cop0rsCO:
+			/*
+			 * COP0/CO opcode decoding
+			 * based on the 8-bit func field.
+			 */
+			fnc = cop0_func_map[instr.cop.func];
+			break;
+		default:
+			fnc = cop0_rs_map[instr.r.rs];
 		}
-	} else
-		CP0_TRAP_UNUSABLE(cpu, *res);
+		break;
+	case opcCOP1:
+		/*
+		 * COP1 opcode decoding based
+		 * on the rs field.
+		 */
+		switch (instr.r.rs) {
+		case cop1rsBC:
+			/*
+			 * COP1/BC opcode decoding
+			 * based on the rt field.
+			 */
+			fnc = cop1_rt_map[instr.r.rt];
+			break;
+		default:
+			fnc = cop1_rs_map[instr.r.rs];
+		}
+		break;
+	case opcCOP2:
+		/*
+		 * COP2 opcode decoding based
+		 * on the rs field.
+		 */
+		switch (instr.r.rs) {
+		case cop2rsBC:
+			/*
+			 * COP2/BC opcode decoding
+			 * based on the rt field.
+			 */
+			fnc = cop2_rt_map[instr.r.rt];
+			break;
+		default:
+			fnc = cop2_rs_map[instr.r.rs];
+		}
+		break;
+	default:
+		fnc = opcode_map[instr.r.opcode];
+	}
+	
+	return fnc;
 }
 
 /** Execute the instruction specified by the opcode
  *
- * A really huge one, isn't it.
- *
  */
-static exc_t execute(cpu_t *cpu, instr_info_t ii)
+static exc_t execute(cpu_t *cpu, instr_t instr)
 {
 	ASSERT(cpu != NULL);
 	
-	ptr64_t pca;
-	pca.ptr = cpu->pc_next.ptr + 4;
-	
-	/*
-	 * Special instructions
-	 */
-	case opcCTC0:
-		alert("R4000: Invalid instruction CTC0");
-		break;
-	case opcCTC1:
-		if (cp0_status_cu1(cpu)) {
-			/* Ignored */
-		} else {
-			/* Coprocessor unusable */
-			res = excCpU;
-			cp0_cause(cpu).val &= ~cp0_cause_ce_mask;
-			cp0_cause(cpu).val |= cp0_cause_ce_cu1;
-		}
-		break;
-	case opcCTC2:
-		if (cp0_status_cu2(cpu)) {
-			/* Ignored */
-		} else {
-			/* Coprocessor unusable */
-			res = excCpU;
-			cp0_cause(cpu).val &= ~cp0_cause_ce_mask;
-			cp0_cause(cpu).val |= cp0_cause_ce_cu2;
-		}
-		break;
-	case opcCTC3:
-		if (cp0_status_cu3(cpu)) {
-			/* Ignored */
-		} else {
-			/* Coprocessor unusable */
-			res = excCpU;
-			cp0_cause(cpu).val &= ~cp0_cause_ce_mask;
-			cp0_cause(cpu).val |= cp0_cause_ce_cu3;
-		}
-		break;
-	case opcMTC1:
-		if (cp0_status_cu1(cpu)) {
-			/* Ignored */
-		} else {
-			/* Coprocessor unusable */
-			res = excCpU;
-			cp0_cause(cpu).val &= ~cp0_cause_ce_mask;
-			cp0_cause(cpu).val |= cp0_cause_ce_cu1;
-		}
-		break;
-	case opcMTC2:
-		if (cp0_status_cu2(cpu)) {
-			/* Ignored */
-		} else {
-			/* Coprocessor unusable */
-			res = excCpU;
-			cp0_cause(cpu).val &= ~cp0_cause_ce_mask;
-			cp0_cause(cpu).val |= cp0_cause_ce_cu2;
-		}
-		break;
-	case opcMTC3:
-		if (cp0_status_cu3(cpu)) {
-			/* Ignored */
-		} else {
-			/* Coprocessor unusable */
-			res = excCpU;
-			cp0_cause(cpu).val &= ~cp0_cause_ce_mask;
-			cp0_cause(cpu).val |= cp0_cause_ce_cu3;
-		}
-		break;
-	case opcRES:
-		res = excRI;
-		break;
-	case opcQRES:
-		/* Quiet reserved */
-		break;
+	instr_fnc_t fnc = decode(instr);
+	exc_t res = fnc(cpu, instr);
 	
 	/* Branch test */
 	if ((cpu->branch == BRANCH_COND) || (cpu->branch == BRANCH_NONE))
 		cpu->excaddr.ptr = cpu->pc.ptr;
 	
 	/* PC update */
-	if (res == excNone) {
+	switch (res) {
+	case excJump:
+		/*
+		 * Execute the instruction in the branch
+		 * delay slot. The jump target is stored
+		 * in pc_next.
+		 */
+		res = excNone;
+		cpu->pc.ptr += 4;
+		break;
+	case excLikely:
+		/*
+		 * Nullify the instruction in the branch
+		 * delay slot by ignoring it completely.
+		 */
+		res = excNone;
+		cpu->pc_next.ptr += 4;
+		/* No break */
+	default:
+		/*
+		 * Advance to the next instruction
+		 * as usual.
+		 */
 		cpu->pc.ptr = cpu->pc_next.ptr;
-		cpu->pc_next.ptr = pca.ptr;
+		cpu->pc_next.ptr += 4;
+		break;
 	}
 	
-	/* Register 0 is hardwired zero */
+	/* Register 0 contains a hardwired zero value */
 	cpu->regs[0].val = 0;
 	
 	return res;
@@ -1833,7 +2589,7 @@ static void handle_exception(cpu_t *cpu, exc_t res)
 	cpu->stdby = false;
 	
 	/* User info and register fill */
-	if (totrace) {
+	if (machine_trace) {
 		ASSERT(res <= excVCED);
 		alert("Raised exception %u: %s", res, txt_exc[res]);
 	}
@@ -1916,79 +2672,61 @@ static void manage(cpu_t *cpu, exc_t res)
 	if (cp0_count(cpu).lo == cp0_compare(cpu).lo)
 		/* Generate interrupt request */
 		cp0_cause(cpu).val |= 1 << cp0_cause_ip7_shift;
-}
-
-/* Simulate one instruction
- *
- * Four main stages are performed:
- *  - instruction fetch
- *  - instruction decode
- *  - instruction execution
- *  - debugging output
- *
- */
-static void instruction(cpu_t *cpu, exc_t *res)
-{
-	ASSERT(cpu != NULL);
-	
-	/* Fetch instruction */
-	instr_info_t ii;
-	*res = cpu_read_ins(cpu, cpu->pc, &ii.icode, true);
-	
-	if (*res == excNone) {
-		/* Decode instruction */
-		decode_instr(&ii);
-		
-		/* Execute instruction */
-		ptr64_t old_pc = cpu->pc;
-		*res = execute(cpu, ii);
-		
-		/* Debugging output */
-		if (totrace) {
-			char *modified_regs;
-			
-			if (iregch)
-				modified_regs = modified_regs_dump(cpu);
-			else
-				modified_regs = NULL;
-			
-			iview(cpu, old_pc, &ii, modified_regs);
-			
-			if (modified_regs != NULL)
-				safe_free(modified_regs);
-		}
-	}
-}
-
-/* Simulate one step of the processor
- *
- * This is just one instruction.
- *
- */
-void cpu_step(cpu_t *cpu)
-{
-	ASSERT(cpu != NULL);
-	
-	exc_t res = excNone;
-	
-	/* Instruction execute */
-	if (!cpu->stdby)
-		instruction(cpu, &res);
-	
-	/* Processor control */
-	manage(cpu, res);
-	
-	/* Cycle accounting */
-	if (cpu->stdby)
-		cpu->w_cycles++;
-	else {
-		if (CPU_KERNEL_MODE(cpu))
-			cpu->k_cycles++;
-		else
-			cpu->u_cycles++;
-	}
 	
 	/* Branch delay slot control */
 	if (cpu->branch > BRANCH_NONE)
 		cpu->branch--;
+}
+
+/* Simulate one instruction
+ *
+ */
+static void instruction(cpu_t *cpu)
+{
+	ASSERT(cpu != NULL);
+	
+	/* Fetch instruction */
+	instr_t instr;
+	exc_t res = cpu_read_ins(cpu, cpu->pc, &instr.val, true);
+	
+	if (res == excNone) {
+		/* Execute instruction */
+		ptr64_t old_pc = cpu->pc;
+		res = execute(cpu, instr);
+		
+		/* Tracing output */
+		if (machine_trace)
+			idump(cpu, old_pc, instr, true);
+	}
+	
+	/* Manage CPU state */
+	manage(cpu, res);
+}
+
+/* Simulate 4096 cycles of the processor
+ *
+ * This is just one instruction.
+ *
+ */
+void cpu_step4k(cpu_t *cpu)
+{
+	ASSERT(cpu != NULL);
+	
+	unsigned int i;
+	
+	for (i = 0; i < 4096; i++) {
+		/*
+		 * Execute one instruction and update
+		 * CPU cycle accounting.
+		 */
+		if (!cpu->stdby) {
+			instruction(cpu);
+			
+			if (CPU_KERNEL_MODE(cpu))
+				cpu->k_cycles++;
+			else
+				cpu->u_cycles++;
+		} else
+			cpu->w_cycles++;
+	}
 }

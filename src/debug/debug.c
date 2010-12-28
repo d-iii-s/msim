@@ -17,7 +17,6 @@
 #include "../cpu/instr.h"
 #include "../cpu/r4000.h"
 #include "../device/dcpu.h"
-#include "../device/machine.h"
 #include "../device/mem.h"
 #include "../assert.h"
 #include "../env.h"
@@ -27,6 +26,1401 @@
 #define CP0_PM_ITEMS  7
 #define REG_BUF       1024
 
+/** Instruction decoding tables and mnemonics
+ *
+ */
+typedef void (*mnemonics_fnc_t)(string_t *, string_t *, cpu_t *, instr_t);
+
+static void mnemonics__reserved(string_t *mnemonics, string_t *comments,
+    cpu_t *cpu, instr_t instr)
+{
+	string_printf(mnemonics, "(reserved)");
+}
+
+static void mnemonics_beq(string_t *mnemonics, string_t *comments,
+    cpu_t *cpu, instr_t instr)
+{
+	string_printf(mnemonics, "beq");
+}
+
+static void mnemonics_bne(string_t *mnemonics, string_t *comments,
+    cpu_t *cpu, instr_t instr)
+{
+	string_printf(mnemonics, "bne");
+}
+
+static void mnemonics_blez(string_t *mnemonics, string_t *comments,
+    cpu_t *cpu, instr_t instr)
+{
+	string_printf(mnemonics, "blez");
+}
+
+static void mnemonics_bgtz(string_t *mnemonics, string_t *comments,
+    cpu_t *cpu, instr_t instr)
+{
+	string_printf(mnemonics, "bgtz");
+}
+
+static void mnemonics_add(string_t *mnemonics, string_t *comments,
+    cpu_t *cpu, instr_t instr)
+{
+	string_printf(mnemonics, "add");
+}
+
+static void mnemonics_addi(string_t *mnemonics, string_t *comments,
+    cpu_t *cpu, instr_t instr)
+{
+	string_printf(mnemonics, "addi");
+}
+
+static void mnemonics_addiu(string_t *mnemonics, string_t *comments,
+    cpu_t *cpu, instr_t instr)
+{
+	string_printf(mnemonics, "addiu");
+}
+
+static void mnemonics_addu(string_t *mnemonics, string_t *comments,
+    cpu_t *cpu, instr_t instr)
+{
+	string_printf(mnemonics, "addu");
+}
+
+static void mnemonics_and(string_t *mnemonics, string_t *comments,
+    cpu_t *cpu, instr_t instr)
+{
+	string_printf(mnemonics, "and");
+}
+
+static void mnemonics_andi(string_t *mnemonics, string_t *comments,
+    cpu_t *cpu, instr_t instr)
+{
+	string_printf(mnemonics, "andi");
+}
+
+static void mnemonics_bc0f(string_t *mnemonics, string_t *comments,
+    cpu_t *cpu, instr_t instr)
+{
+	string_printf(mnemonics, "bc0f");
+}
+
+static void mnemonics_bc0fl(string_t *mnemonics, string_t *comments,
+    cpu_t *cpu, instr_t instr)
+{
+	string_printf(mnemonics, "bc0fl");
+}
+
+static void mnemonics_bc0t(string_t *mnemonics, string_t *comments,
+    cpu_t *cpu, instr_t instr)
+{
+	string_printf(mnemonics, "bc0t");
+}
+
+static void mnemonics_bc0tl(string_t *mnemonics, string_t *comments,
+    cpu_t *cpu, instr_t instr)
+{
+	string_printf(mnemonics, "bc0tl");
+}
+
+static void mnemonics_bc1f(string_t *mnemonics, string_t *comments,
+    cpu_t *cpu, instr_t instr)
+{
+	string_printf(mnemonics, "bc1f");
+}
+
+static void mnemonics_bc1fl(string_t *mnemonics, string_t *comments,
+    cpu_t *cpu, instr_t instr)
+{
+	string_printf(mnemonics, "bc1fl");
+}
+
+static void mnemonics_bc1t(string_t *mnemonics, string_t *comments,
+    cpu_t *cpu, instr_t instr)
+{
+	string_printf(mnemonics, "bc1t");
+}
+
+static void mnemonics_bc1tl(string_t *mnemonics, string_t *comments,
+    cpu_t *cpu, instr_t instr)
+{
+	string_printf(mnemonics, "bc1tl");
+}
+
+static void mnemonics_bc2f(string_t *mnemonics, string_t *comments,
+    cpu_t *cpu, instr_t instr)
+{
+	string_printf(mnemonics, "bc2f");
+}
+
+static void mnemonics_bc2fl(string_t *mnemonics, string_t *comments,
+    cpu_t *cpu, instr_t instr)
+{
+	string_printf(mnemonics, "bc2fl");
+}
+
+static void mnemonics_bc2t(string_t *mnemonics, string_t *comments,
+    cpu_t *cpu, instr_t instr)
+{
+	string_printf(mnemonics, "bc2t");
+}
+
+static void mnemonics_bc2tl(string_t *mnemonics, string_t *comments,
+    cpu_t *cpu, instr_t instr)
+{
+	string_printf(mnemonics, "bc2tl");
+}
+
+static void mnemonics_beql(string_t *mnemonics, string_t *comments,
+    cpu_t *cpu, instr_t instr)
+{
+	string_printf(mnemonics, "beql");
+}
+
+static void mnemonics_bgez(string_t *mnemonics, string_t *comments,
+    cpu_t *cpu, instr_t instr)
+{
+	string_printf(mnemonics, "bgez");
+}
+
+static void mnemonics_bgezal(string_t *mnemonics, string_t *comments,
+    cpu_t *cpu, instr_t instr)
+{
+	string_printf(mnemonics, "bgezal");
+}
+
+static void mnemonics_bgezall(string_t *mnemonics, string_t *comments,
+    cpu_t *cpu, instr_t instr)
+{
+	string_printf(mnemonics, "bgezall");
+}
+
+static void mnemonics_bgezl(string_t *mnemonics, string_t *comments,
+    cpu_t *cpu, instr_t instr)
+{
+	string_printf(mnemonics, "bgezl");
+}
+
+static void mnemonics_bgtzl(string_t *mnemonics, string_t *comments,
+    cpu_t *cpu, instr_t instr)
+{
+	string_printf(mnemonics, "bgtzl");
+}
+
+static void mnemonics_blezl(string_t *mnemonics, string_t *comments,
+    cpu_t *cpu, instr_t instr)
+{
+	string_printf(mnemonics, "blezl");
+}
+
+static void mnemonics_bltz(string_t *mnemonics, string_t *comments,
+    cpu_t *cpu, instr_t instr)
+{
+	string_printf(mnemonics, "bltz");
+}
+
+static void mnemonics_bltzal(string_t *mnemonics, string_t *comments,
+    cpu_t *cpu, instr_t instr)
+{
+	string_printf(mnemonics, "bltzal");
+}
+
+static void mnemonics_bltzall(string_t *mnemonics, string_t *comments,
+    cpu_t *cpu, instr_t instr)
+{
+	string_printf(mnemonics, "bltzall");
+}
+
+static void mnemonics_bltzl(string_t *mnemonics, string_t *comments,
+    cpu_t *cpu, instr_t instr)
+{
+	string_printf(mnemonics, "bltzl");
+}
+
+static void mnemonics_bnel(string_t *mnemonics, string_t *comments,
+    cpu_t *cpu, instr_t instr)
+{
+	string_printf(mnemonics, "bnel");
+}
+
+static void mnemonics_break(string_t *mnemonics, string_t *comments,
+    cpu_t *cpu, instr_t instr)
+{
+	string_printf(mnemonics, "break");
+}
+
+static void mnemonics_cache(string_t *mnemonics, string_t *comments,
+    cpu_t *cpu, instr_t instr)
+{
+	string_printf(mnemonics, "cache");
+}
+
+static void mnemonics_cfc1(string_t *mnemonics, string_t *comments,
+    cpu_t *cpu, instr_t instr)
+{
+	string_printf(mnemonics, "cfc1");
+}
+
+static void mnemonics_cfc2(string_t *mnemonics, string_t *comments,
+    cpu_t *cpu, instr_t instr)
+{
+	string_printf(mnemonics, "cfc2");
+}
+
+static void mnemonics_ctc1(string_t *mnemonics, string_t *comments,
+    cpu_t *cpu, instr_t instr)
+{
+	string_printf(mnemonics, "ctc1");
+}
+
+static void mnemonics_ctc2(string_t *mnemonics, string_t *comments,
+    cpu_t *cpu, instr_t instr)
+{
+	string_printf(mnemonics, "ctc2");
+}
+
+static void mnemonics_dadd(string_t *mnemonics, string_t *comments,
+    cpu_t *cpu, instr_t instr)
+{
+	string_printf(mnemonics, "dadd");
+}
+
+static void mnemonics_daddi(string_t *mnemonics, string_t *comments,
+    cpu_t *cpu, instr_t instr)
+{
+	string_printf(mnemonics, "daddi");
+}
+
+static void mnemonics_daddiu(string_t *mnemonics, string_t *comments,
+    cpu_t *cpu, instr_t instr)
+{
+	string_printf(mnemonics, "daddiu");
+}
+
+static void mnemonics_daddu(string_t *mnemonics, string_t *comments,
+    cpu_t *cpu, instr_t instr)
+{
+	string_printf(mnemonics, "daddu");
+}
+
+static void mnemonics_ddiv(string_t *mnemonics, string_t *comments,
+    cpu_t *cpu, instr_t instr)
+{
+	string_printf(mnemonics, "ddiv");
+}
+
+static void mnemonics_ddivu(string_t *mnemonics, string_t *comments,
+    cpu_t *cpu, instr_t instr)
+{
+	string_printf(mnemonics, "ddivu");
+}
+
+static void mnemonics_div(string_t *mnemonics, string_t *comments,
+    cpu_t *cpu, instr_t instr)
+{
+	string_printf(mnemonics, "div");
+}
+
+static void mnemonics_divu(string_t *mnemonics, string_t *comments,
+    cpu_t *cpu, instr_t instr)
+{
+	string_printf(mnemonics, "divu");
+}
+
+static void mnemonics_dmfc0(string_t *mnemonics, string_t *comments,
+    cpu_t *cpu, instr_t instr)
+{
+	string_printf(mnemonics, "dmfc0");
+}
+
+static void mnemonics_dmfc1(string_t *mnemonics, string_t *comments,
+    cpu_t *cpu, instr_t instr)
+{
+	string_printf(mnemonics, "dmfc1");
+}
+
+static void mnemonics_dmtc0(string_t *mnemonics, string_t *comments,
+    cpu_t *cpu, instr_t instr)
+{
+	string_printf(mnemonics, "dmtc0");
+}
+
+static void mnemonics_dmtc1(string_t *mnemonics, string_t *comments,
+    cpu_t *cpu, instr_t instr)
+{
+	string_printf(mnemonics, "dmtc1");
+}
+
+static void mnemonics_dmult(string_t *mnemonics, string_t *comments,
+    cpu_t *cpu, instr_t instr)
+{
+	string_printf(mnemonics, "dmult");
+}
+
+static void mnemonics_dmultu(string_t *mnemonics, string_t *comments,
+    cpu_t *cpu, instr_t instr)
+{
+	string_printf(mnemonics, "dmultu");
+}
+
+static void mnemonics_dsll(string_t *mnemonics, string_t *comments,
+    cpu_t *cpu, instr_t instr)
+{
+	string_printf(mnemonics, "dsll");
+}
+
+static void mnemonics_dsll32(string_t *mnemonics, string_t *comments,
+    cpu_t *cpu, instr_t instr)
+{
+	string_printf(mnemonics, "dsll32");
+}
+
+static void mnemonics_dsllv(string_t *mnemonics, string_t *comments,
+    cpu_t *cpu, instr_t instr)
+{
+	string_printf(mnemonics, "dsllv");
+}
+
+static void mnemonics_dsra(string_t *mnemonics, string_t *comments,
+    cpu_t *cpu, instr_t instr)
+{
+	string_printf(mnemonics, "dsra");
+}
+
+static void mnemonics_dsra32(string_t *mnemonics, string_t *comments,
+    cpu_t *cpu, instr_t instr)
+{
+	string_printf(mnemonics, "dsra32");
+}
+
+static void mnemonics_dsrav(string_t *mnemonics, string_t *comments,
+    cpu_t *cpu, instr_t instr)
+{
+	string_printf(mnemonics, "dsrav");
+}
+
+static void mnemonics_dsrl(string_t *mnemonics, string_t *comments,
+    cpu_t *cpu, instr_t instr)
+{
+	string_printf(mnemonics, "dsrl");
+}
+
+static void mnemonics_dsrl32(string_t *mnemonics, string_t *comments,
+    cpu_t *cpu, instr_t instr)
+{
+	string_printf(mnemonics, "dsrl32");
+}
+
+static void mnemonics_dsrlv(string_t *mnemonics, string_t *comments,
+    cpu_t *cpu, instr_t instr)
+{
+	string_printf(mnemonics, "dsrlv");
+}
+
+static void mnemonics_dsub(string_t *mnemonics, string_t *comments,
+    cpu_t *cpu, instr_t instr)
+{
+	string_printf(mnemonics, "dsub");
+}
+
+static void mnemonics_dsubu(string_t *mnemonics, string_t *comments,
+    cpu_t *cpu, instr_t instr)
+{
+	string_printf(mnemonics, "dsubu");
+}
+
+static void mnemonics_eret(string_t *mnemonics, string_t *comments,
+    cpu_t *cpu, instr_t instr)
+{
+	string_printf(mnemonics, "eret");
+}
+
+static void mnemonics_j(string_t *mnemonics, string_t *comments,
+    cpu_t *cpu, instr_t instr)
+{
+	string_printf(mnemonics, "j");
+}
+
+static void mnemonics_jal(string_t *mnemonics, string_t *comments,
+    cpu_t *cpu, instr_t instr)
+{
+	string_printf(mnemonics, "jal");
+}
+
+static void mnemonics_jalr(string_t *mnemonics, string_t *comments,
+    cpu_t *cpu, instr_t instr)
+{
+	string_printf(mnemonics, "jalr");
+}
+
+static void mnemonics_jr(string_t *mnemonics, string_t *comments,
+    cpu_t *cpu, instr_t instr)
+{
+	string_printf(mnemonics, "jr");
+}
+
+static void mnemonics_lb(string_t *mnemonics, string_t *comments,
+    cpu_t *cpu, instr_t instr)
+{
+	string_printf(mnemonics, "lb");
+}
+
+static void mnemonics_lbu(string_t *mnemonics, string_t *comments,
+    cpu_t *cpu, instr_t instr)
+{
+	string_printf(mnemonics, "lbu");
+}
+
+static void mnemonics_ld(string_t *mnemonics, string_t *comments,
+    cpu_t *cpu, instr_t instr)
+{
+	string_printf(mnemonics, "ld");
+}
+
+static void mnemonics_ldc1(string_t *mnemonics, string_t *comments,
+    cpu_t *cpu, instr_t instr)
+{
+	string_printf(mnemonics, "ldc1");
+}
+
+static void mnemonics_ldc2(string_t *mnemonics, string_t *comments,
+    cpu_t *cpu, instr_t instr)
+{
+	string_printf(mnemonics, "ldc2");
+}
+
+static void mnemonics_ldl(string_t *mnemonics, string_t *comments,
+    cpu_t *cpu, instr_t instr)
+{
+	string_printf(mnemonics, "ldl");
+}
+
+static void mnemonics_ldr(string_t *mnemonics, string_t *comments,
+    cpu_t *cpu, instr_t instr)
+{
+	string_printf(mnemonics, "ldr");
+}
+
+static void mnemonics_lh(string_t *mnemonics, string_t *comments,
+    cpu_t *cpu, instr_t instr)
+{
+	string_printf(mnemonics, "lh");
+}
+
+static void mnemonics_lhu(string_t *mnemonics, string_t *comments,
+    cpu_t *cpu, instr_t instr)
+{
+	string_printf(mnemonics, "lhu");
+}
+
+static void mnemonics_ll(string_t *mnemonics, string_t *comments,
+    cpu_t *cpu, instr_t instr)
+{
+	string_printf(mnemonics, "ll");
+}
+
+static void mnemonics_lld(string_t *mnemonics, string_t *comments,
+    cpu_t *cpu, instr_t instr)
+{
+	string_printf(mnemonics, "lld");
+}
+
+static void mnemonics_lui(string_t *mnemonics, string_t *comments,
+    cpu_t *cpu, instr_t instr)
+{
+	string_printf(mnemonics, "lui");
+}
+
+static void mnemonics_lw(string_t *mnemonics, string_t *comments,
+    cpu_t *cpu, instr_t instr)
+{
+	string_printf(mnemonics, "lw");
+}
+
+static void mnemonics_lwc1(string_t *mnemonics, string_t *comments,
+    cpu_t *cpu, instr_t instr)
+{
+	string_printf(mnemonics, "lwc1");
+}
+
+static void mnemonics_lwc2(string_t *mnemonics, string_t *comments,
+    cpu_t *cpu, instr_t instr)
+{
+	string_printf(mnemonics, "lwc2");
+}
+
+static void mnemonics_lwl(string_t *mnemonics, string_t *comments,
+    cpu_t *cpu, instr_t instr)
+{
+	string_printf(mnemonics, "lwl");
+}
+
+static void mnemonics_lwr(string_t *mnemonics, string_t *comments,
+    cpu_t *cpu, instr_t instr)
+{
+	string_printf(mnemonics, "lwr");
+}
+
+static void mnemonics_lwu(string_t *mnemonics, string_t *comments,
+    cpu_t *cpu, instr_t instr)
+{
+	string_printf(mnemonics, "lwu");
+}
+
+static void mnemonics_mfc0(string_t *mnemonics, string_t *comments,
+    cpu_t *cpu, instr_t instr)
+{
+	string_printf(mnemonics, "mfc0");
+}
+
+static void mnemonics_mfc1(string_t *mnemonics, string_t *comments,
+    cpu_t *cpu, instr_t instr)
+{
+	string_printf(mnemonics, "mfc1");
+}
+
+static void mnemonics_mfc2(string_t *mnemonics, string_t *comments,
+    cpu_t *cpu, instr_t instr)
+{
+	string_printf(mnemonics, "mfc2");
+}
+
+static void mnemonics_mfhi(string_t *mnemonics, string_t *comments,
+    cpu_t *cpu, instr_t instr)
+{
+	string_printf(mnemonics, "mfhi");
+}
+
+static void mnemonics_mflo(string_t *mnemonics, string_t *comments,
+    cpu_t *cpu, instr_t instr)
+{
+	string_printf(mnemonics, "mflo");
+}
+
+static void mnemonics_mtc0(string_t *mnemonics, string_t *comments,
+    cpu_t *cpu, instr_t instr)
+{
+	string_printf(mnemonics, "mtc0");
+}
+
+static void mnemonics_mtc1(string_t *mnemonics, string_t *comments,
+    cpu_t *cpu, instr_t instr)
+{
+	string_printf(mnemonics, "mtc1");
+}
+
+static void mnemonics_mthi(string_t *mnemonics, string_t *comments,
+    cpu_t *cpu, instr_t instr)
+{
+	string_printf(mnemonics, "mthi");
+}
+
+static void mnemonics_mtlo(string_t *mnemonics, string_t *comments,
+    cpu_t *cpu, instr_t instr)
+{
+	string_printf(mnemonics, "mtlo");
+}
+
+static void mnemonics_mult(string_t *mnemonics, string_t *comments,
+    cpu_t *cpu, instr_t instr)
+{
+	string_printf(mnemonics, "mult");
+}
+
+static void mnemonics_multu(string_t *mnemonics, string_t *comments,
+    cpu_t *cpu, instr_t instr)
+{
+	string_printf(mnemonics, "multu");
+}
+
+static void mnemonics_nor(string_t *mnemonics, string_t *comments,
+    cpu_t *cpu, instr_t instr)
+{
+	string_printf(mnemonics, "nor");
+}
+
+static void mnemonics_or(string_t *mnemonics, string_t *comments,
+    cpu_t *cpu, instr_t instr)
+{
+	string_printf(mnemonics, "or");
+}
+
+static void mnemonics_ori(string_t *mnemonics, string_t *comments,
+    cpu_t *cpu, instr_t instr)
+{
+	string_printf(mnemonics, "ori");
+}
+
+static void mnemonics_sb(string_t *mnemonics, string_t *comments,
+    cpu_t *cpu, instr_t instr)
+{
+	string_printf(mnemonics, "sb");
+}
+
+static void mnemonics_sc(string_t *mnemonics, string_t *comments,
+    cpu_t *cpu, instr_t instr)
+{
+	string_printf(mnemonics, "sc");
+}
+
+static void mnemonics_scd(string_t *mnemonics, string_t *comments,
+    cpu_t *cpu, instr_t instr)
+{
+	string_printf(mnemonics, "scd");
+}
+
+static void mnemonics_sd(string_t *mnemonics, string_t *comments,
+    cpu_t *cpu, instr_t instr)
+{
+	string_printf(mnemonics, "sd");
+}
+
+static void mnemonics_sdc1(string_t *mnemonics, string_t *comments,
+    cpu_t *cpu, instr_t instr)
+{
+	string_printf(mnemonics, "sdc1");
+}
+
+static void mnemonics_sdc2(string_t *mnemonics, string_t *comments,
+    cpu_t *cpu, instr_t instr)
+{
+	string_printf(mnemonics, "sdc2");
+}
+
+static void mnemonics_sdl(string_t *mnemonics, string_t *comments,
+    cpu_t *cpu, instr_t instr)
+{
+	string_printf(mnemonics, "sdl");
+}
+
+static void mnemonics_sdr(string_t *mnemonics, string_t *comments,
+    cpu_t *cpu, instr_t instr)
+{
+	string_printf(mnemonics, "sdr");
+}
+
+static void mnemonics_sh(string_t *mnemonics, string_t *comments,
+    cpu_t *cpu, instr_t instr)
+{
+	string_printf(mnemonics, "sh");
+}
+
+static void mnemonics_sll(string_t *mnemonics, string_t *comments,
+    cpu_t *cpu, instr_t instr)
+{
+	string_printf(mnemonics, "sll");
+}
+
+static void mnemonics_sllv(string_t *mnemonics, string_t *comments,
+    cpu_t *cpu, instr_t instr)
+{
+	string_printf(mnemonics, "sllv");
+}
+
+static void mnemonics_slt(string_t *mnemonics, string_t *comments,
+    cpu_t *cpu, instr_t instr)
+{
+	string_printf(mnemonics, "slt");
+}
+
+static void mnemonics_slti(string_t *mnemonics, string_t *comments,
+    cpu_t *cpu, instr_t instr)
+{
+	string_printf(mnemonics, "slti");
+}
+
+static void mnemonics_sltiu(string_t *mnemonics, string_t *comments,
+    cpu_t *cpu, instr_t instr)
+{
+	string_printf(mnemonics, "sltiu");
+}
+
+static void mnemonics_sltu(string_t *mnemonics, string_t *comments,
+    cpu_t *cpu, instr_t instr)
+{
+	string_printf(mnemonics, "sltu");
+}
+
+static void mnemonics_sra(string_t *mnemonics, string_t *comments,
+    cpu_t *cpu, instr_t instr)
+{
+	string_printf(mnemonics, "sra");
+}
+
+static void mnemonics_srav(string_t *mnemonics, string_t *comments,
+    cpu_t *cpu, instr_t instr)
+{
+	string_printf(mnemonics, "srav");
+}
+
+static void mnemonics_srl(string_t *mnemonics, string_t *comments,
+    cpu_t *cpu, instr_t instr)
+{
+	string_printf(mnemonics, "srl");
+}
+
+static void mnemonics_srlv(string_t *mnemonics, string_t *comments,
+    cpu_t *cpu, instr_t instr)
+{
+	string_printf(mnemonics, "srlv");
+}
+
+static void mnemonics_sub(string_t *mnemonics, string_t *comments,
+    cpu_t *cpu, instr_t instr)
+{
+	string_printf(mnemonics, "sub");
+}
+
+static void mnemonics_subu(string_t *mnemonics, string_t *comments,
+    cpu_t *cpu, instr_t instr)
+{
+	string_printf(mnemonics, "subu");
+}
+
+static void mnemonics_sw(string_t *mnemonics, string_t *comments,
+    cpu_t *cpu, instr_t instr)
+{
+	string_printf(mnemonics, "sw");
+}
+
+static void mnemonics_swc1(string_t *mnemonics, string_t *comments,
+    cpu_t *cpu, instr_t instr)
+{
+	string_printf(mnemonics, "swc1");
+}
+
+static void mnemonics_swc2(string_t *mnemonics, string_t *comments,
+    cpu_t *cpu, instr_t instr)
+{
+	string_printf(mnemonics, "swc2");
+}
+
+static void mnemonics_swl(string_t *mnemonics, string_t *comments,
+    cpu_t *cpu, instr_t instr)
+{
+	string_printf(mnemonics, "swl");
+}
+
+static void mnemonics_swr(string_t *mnemonics, string_t *comments,
+    cpu_t *cpu, instr_t instr)
+{
+	string_printf(mnemonics, "swr");
+}
+
+static void mnemonics_sync(string_t *mnemonics, string_t *comments,
+    cpu_t *cpu, instr_t instr)
+{
+	string_printf(mnemonics, "sync");
+}
+
+static void mnemonics_syscall(string_t *mnemonics, string_t *comments,
+    cpu_t *cpu, instr_t instr)
+{
+	string_printf(mnemonics, "syscall");
+}
+
+static void mnemonics_teq(string_t *mnemonics, string_t *comments,
+    cpu_t *cpu, instr_t instr)
+{
+	string_printf(mnemonics, "teq");
+}
+
+static void mnemonics_teqi(string_t *mnemonics, string_t *comments,
+    cpu_t *cpu, instr_t instr)
+{
+	string_printf(mnemonics, "teqi");
+}
+
+static void mnemonics_tge(string_t *mnemonics, string_t *comments,
+    cpu_t *cpu, instr_t instr)
+{
+	string_printf(mnemonics, "tge");
+}
+
+static void mnemonics_tgei(string_t *mnemonics, string_t *comments,
+    cpu_t *cpu, instr_t instr)
+{
+	string_printf(mnemonics, "tgei");
+}
+
+static void mnemonics_tgeiu(string_t *mnemonics, string_t *comments,
+    cpu_t *cpu, instr_t instr)
+{
+	string_printf(mnemonics, "tgeiu");
+}
+
+static void mnemonics_tgeu(string_t *mnemonics, string_t *comments,
+    cpu_t *cpu, instr_t instr)
+{
+	string_printf(mnemonics, "tgeu");
+}
+
+static void mnemonics_tlbp(string_t *mnemonics, string_t *comments,
+    cpu_t *cpu, instr_t instr)
+{
+	string_printf(mnemonics, "tlbp");
+}
+
+static void mnemonics_tlbr(string_t *mnemonics, string_t *comments,
+    cpu_t *cpu, instr_t instr)
+{
+	string_printf(mnemonics, "tlbr");
+}
+
+static void mnemonics_tlbwi(string_t *mnemonics, string_t *comments,
+    cpu_t *cpu, instr_t instr)
+{
+	string_printf(mnemonics, "tlbwi");
+}
+
+static void mnemonics_tlbwr(string_t *mnemonics, string_t *comments,
+    cpu_t *cpu, instr_t instr)
+{
+	string_printf(mnemonics, "tlbwr");
+}
+
+static void mnemonics_tlt(string_t *mnemonics, string_t *comments,
+    cpu_t *cpu, instr_t instr)
+{
+	string_printf(mnemonics, "tlt");
+}
+
+static void mnemonics_tlti(string_t *mnemonics, string_t *comments,
+    cpu_t *cpu, instr_t instr)
+{
+	string_printf(mnemonics, "tlti");
+}
+
+static void mnemonics_tltiu(string_t *mnemonics, string_t *comments,
+    cpu_t *cpu, instr_t instr)
+{
+	string_printf(mnemonics, "tltiu");
+}
+
+static void mnemonics_tltu(string_t *mnemonics, string_t *comments,
+    cpu_t *cpu, instr_t instr)
+{
+	string_printf(mnemonics, "tltu");
+}
+
+static void mnemonics_tne(string_t *mnemonics, string_t *comments,
+    cpu_t *cpu, instr_t instr)
+{
+	string_printf(mnemonics, "tne");
+}
+
+static void mnemonics_tnei(string_t *mnemonics, string_t *comments,
+    cpu_t *cpu, instr_t instr)
+{
+	string_printf(mnemonics, "tnei");
+}
+
+static void mnemonics_xor(string_t *mnemonics, string_t *comments,
+    cpu_t *cpu, instr_t instr)
+{
+	string_printf(mnemonics, "xor");
+}
+
+static void mnemonics_xori(string_t *mnemonics, string_t *comments,
+    cpu_t *cpu, instr_t instr)
+{
+	string_printf(mnemonics, "xori");
+}
+
+
+
+static mnemonics_fnc_t opcode_map[64] = {
+	/* 0 */
+	mnemonics__reserved,  /* opcSPECIAL */
+	mnemonics__reserved,  /* opcREGIMM */
+	mnemonics_j,
+	mnemonics_jal,
+	mnemonics_beq,
+	mnemonics_bne,
+	mnemonics_blez,
+	mnemonics_bgtz,
+	
+	/* 8 */
+	mnemonics_addi,
+	mnemonics_addiu,
+	mnemonics_slti,
+	mnemonics_sltiu,
+	mnemonics_andi,
+	mnemonics_ori,
+	mnemonics_xori,
+	mnemonics_lui,
+	
+	/* 16 */
+	mnemonics__reserved,  /* opcCOP0 */
+	mnemonics__reserved,  /* opcCOP1 */
+	mnemonics__reserved,  /* opcCOP2 */
+	mnemonics__reserved,  /* unused */
+	mnemonics_beql,
+	mnemonics_bnel,
+	mnemonics_blezl,
+	mnemonics_bgtzl,
+	
+	/* 24 */
+	mnemonics_daddi,
+	mnemonics_daddiu,
+	mnemonics_ldl,
+	mnemonics_ldr,
+	mnemonics__reserved,  /* unused */
+	mnemonics__reserved,  /* unused */
+	mnemonics__reserved,  /* unused */
+	mnemonics__reserved,  /* unused */
+	
+	/* 32 */
+	mnemonics_lb,
+	mnemonics_lh,
+	mnemonics_lwl,
+	mnemonics_lw,
+	mnemonics_lbu,
+	mnemonics_lhu,
+	mnemonics_lwr,
+	mnemonics_lwu,
+	
+	/* 40 */
+	mnemonics_sb,
+	mnemonics_sh,
+	mnemonics_swl,
+	mnemonics_sw,
+	mnemonics_sdl,
+	mnemonics_sdr,
+	mnemonics_swr,
+	mnemonics_cache,
+	
+	/* 48 */
+	mnemonics_ll,
+	mnemonics_lwc1,
+	mnemonics_lwc2,
+	mnemonics__reserved,  /* unused */
+	mnemonics_lld,
+	mnemonics_ldc1,
+	mnemonics_ldc2,
+	mnemonics_ld,
+	
+	mnemonics_sc,
+	mnemonics_swc1,
+	mnemonics_swc2,
+	mnemonics__reserved,  /* unused */
+	mnemonics_scd,
+	mnemonics_sdc1,
+	mnemonics_sdc2,
+	mnemonics_sd
+};
+
+static mnemonics_fnc_t func_map[64] = {
+	mnemonics_sll,
+	mnemonics__reserved,  /* unused */
+	mnemonics_srl,
+	mnemonics_sra,
+	mnemonics_sllv,
+	mnemonics__reserved,  /* unused */
+	mnemonics_srlv,
+	mnemonics_srav,
+	
+	mnemonics_jr,
+	mnemonics_jalr,
+	mnemonics__reserved,  /* unused */
+	mnemonics__reserved,  /* unused */
+	mnemonics_syscall,
+	mnemonics_break,
+	mnemonics__reserved,  /* unused */
+	mnemonics_sync,
+	
+	mnemonics_mfhi,
+	mnemonics_mthi,
+	mnemonics_mflo,
+	mnemonics_mtlo,
+	mnemonics_dsllv,
+	mnemonics__reserved,  /* unused */
+	mnemonics_dsrlv,
+	mnemonics_dsrav,
+	
+	mnemonics_mult,
+	mnemonics_multu,
+	mnemonics_div,
+	mnemonics_divu,
+	mnemonics_dmult,
+	mnemonics_dmultu,
+	mnemonics_ddiv,
+	mnemonics_ddivu,
+	
+	mnemonics_add,
+	mnemonics_addu,
+	mnemonics_sub,
+	mnemonics_subu,
+	mnemonics_and,
+	mnemonics_or,
+	mnemonics_xor,
+	mnemonics_nor,
+	
+	mnemonics__reserved,  /* unused */
+	mnemonics__reserved,  /* unused */
+	mnemonics_slt,
+	mnemonics_sltu,
+	mnemonics_dadd,
+	mnemonics_daddu,
+	mnemonics_dsub,
+	mnemonics_dsubu,
+	
+	mnemonics_tge,
+	mnemonics_tgeu,
+	mnemonics_tlt,
+	mnemonics_tltu,
+	mnemonics_teq,
+	mnemonics__reserved,  /* unused */
+	mnemonics_tne,
+	mnemonics__reserved,  /* unused */
+	
+	mnemonics_dsll,
+	mnemonics__reserved,  /* unused */
+	mnemonics_dsrl,
+	mnemonics_dsra,
+	mnemonics_dsll32,
+	mnemonics__reserved,  /* unused */
+	mnemonics_dsrl32,
+	mnemonics_dsra32
+};
+
+static mnemonics_fnc_t rt_map[32] = {
+	mnemonics_bltz,
+	mnemonics_bgez,
+	mnemonics_bltzl,
+	mnemonics_bgezl,
+	mnemonics__reserved,  /* unused */
+	mnemonics__reserved,  /* unused */
+	mnemonics__reserved,  /* unused */
+	mnemonics__reserved,  /* unused */
+	
+	mnemonics_tgei,
+	mnemonics_tgeiu,
+	mnemonics_tlti,
+	mnemonics_tltiu,
+	mnemonics_teqi,
+	mnemonics__reserved,  /* unused */
+	mnemonics_tnei,
+	mnemonics__reserved,  /* unused */
+	
+	mnemonics_bltzal,
+	mnemonics_bgezal,
+	mnemonics_bltzall,
+	mnemonics_bgezall,
+	mnemonics__reserved,  /* unused */
+	mnemonics__reserved,  /* unused */
+	mnemonics__reserved,  /* unused */
+	mnemonics__reserved,  /* unused */
+	
+	mnemonics__reserved,  /* unused */
+	mnemonics__reserved,  /* unused */
+	mnemonics__reserved,  /* unused */
+	mnemonics__reserved,  /* unused */
+	mnemonics__reserved,  /* unused */
+	mnemonics__reserved,  /* unused */
+	mnemonics__reserved,  /* unused */
+	mnemonics__reserved   /* unused */
+};
+
+static mnemonics_fnc_t cop0_rs_map[32] = {
+	mnemonics_mfc0,
+	mnemonics_dmfc0,
+	mnemonics__reserved,  /* unused */
+	mnemonics__reserved,  /* unused */
+	mnemonics_mtc0,
+	mnemonics_dmtc0,
+	mnemonics__reserved,  /* unused */
+	mnemonics__reserved,  /* unused */
+	
+	mnemonics__reserved,  /* cop0rsBC */
+	mnemonics__reserved,  /* unused */
+	mnemonics__reserved,  /* unused */
+	mnemonics__reserved,  /* unused */
+	mnemonics__reserved,  /* unused */
+	mnemonics__reserved,  /* unused */
+	mnemonics__reserved,  /* unused */
+	mnemonics__reserved,  /* unused */
+	
+	mnemonics__reserved,  /* cop0rsCO */
+	mnemonics__reserved,  /* unused */
+	mnemonics__reserved,  /* unused */
+	mnemonics__reserved,  /* unused */
+	mnemonics__reserved,  /* unused */
+	mnemonics__reserved,  /* unused */
+	mnemonics__reserved,  /* unused */
+	mnemonics__reserved,  /* unused */
+	
+	mnemonics__reserved,  /* unused */
+	mnemonics__reserved,  /* unused */
+	mnemonics__reserved,  /* unused */
+	mnemonics__reserved,  /* unused */
+	mnemonics__reserved,  /* unused */
+	mnemonics__reserved,  /* unused */
+	mnemonics__reserved,  /* unused */
+	mnemonics__reserved   /* unused */
+};
+
+static mnemonics_fnc_t cop1_rs_map[32] = {
+	mnemonics_mfc1,
+	mnemonics_dmfc1,
+	mnemonics_cfc1,
+	mnemonics__reserved,  /* unused */
+	mnemonics_mtc1,
+	mnemonics_dmtc1,
+	mnemonics_ctc1,
+	mnemonics__reserved,  /* unused */
+	
+	mnemonics__reserved,  /* cop1rsBC */
+	mnemonics__reserved,  /* unused */
+	mnemonics__reserved,  /* unused */
+	mnemonics__reserved,  /* unused */
+	mnemonics__reserved,  /* unused */
+	mnemonics__reserved,  /* unused */
+	mnemonics__reserved,  /* unused */
+	mnemonics__reserved,  /* unused */
+	
+	mnemonics__reserved,  /* unused */
+	mnemonics__reserved,  /* unused */
+	mnemonics__reserved,  /* unused */
+	mnemonics__reserved,  /* unused */
+	mnemonics__reserved,  /* unused */
+	mnemonics__reserved,  /* unused */
+	mnemonics__reserved,  /* unused */
+	mnemonics__reserved,  /* unused */
+	
+	mnemonics__reserved,  /* unused */
+	mnemonics__reserved,  /* unused */
+	mnemonics__reserved,  /* unused */
+	mnemonics__reserved,  /* unused */
+	mnemonics__reserved,  /* unused */
+	mnemonics__reserved,  /* unused */
+	mnemonics__reserved,  /* unused */
+	mnemonics__reserved   /* unused */
+};
+
+static mnemonics_fnc_t cop2_rs_map[32] = {
+	mnemonics_mfc2,
+	mnemonics__reserved,  /* unused */
+	mnemonics_cfc2,
+	mnemonics__reserved,  /* unused */
+	mnemonics__reserved,  /* unused */
+	mnemonics__reserved,  /* unused */
+	mnemonics_ctc2,
+	mnemonics__reserved,  /* unused */
+	
+	mnemonics__reserved,  /* cop2rsBC */
+	mnemonics__reserved,  /* unused */
+	mnemonics__reserved,  /* unused */
+	mnemonics__reserved,  /* unused */
+	mnemonics__reserved,  /* unused */
+	mnemonics__reserved,  /* unused */
+	mnemonics__reserved,  /* unused */
+	mnemonics__reserved,  /* unused */
+	
+	mnemonics__reserved,  /* unused */
+	mnemonics__reserved,  /* unused */
+	mnemonics__reserved,  /* unused */
+	mnemonics__reserved,  /* unused */
+	mnemonics__reserved,  /* unused */
+	mnemonics__reserved,  /* unused */
+	mnemonics__reserved,  /* unused */
+	mnemonics__reserved,  /* unused */
+	
+	mnemonics__reserved,  /* unused */
+	mnemonics__reserved,  /* unused */
+	mnemonics__reserved,  /* unused */
+	mnemonics__reserved,  /* unused */
+	mnemonics__reserved,  /* unused */
+	mnemonics__reserved,  /* unused */
+	mnemonics__reserved,  /* unused */
+	mnemonics__reserved   /* unused */
+};
+
+static mnemonics_fnc_t cop0_rt_map[32] = {
+	mnemonics_bc0f,
+	mnemonics_bc0t,
+	mnemonics_bc0fl,
+	mnemonics_bc0tl,
+	mnemonics__reserved,  /* unused */
+	mnemonics__reserved,  /* unused */
+	mnemonics__reserved,  /* unused */
+	mnemonics__reserved,  /* unused */
+	
+	mnemonics__reserved,  /* unused */
+	mnemonics__reserved,  /* unused */
+	mnemonics__reserved,  /* unused */
+	mnemonics__reserved,  /* unused */
+	mnemonics__reserved,  /* unused */
+	mnemonics__reserved,  /* unused */
+	mnemonics__reserved,  /* unused */
+	mnemonics__reserved,  /* unused */
+	
+	mnemonics__reserved,  /* unused */
+	mnemonics__reserved,  /* unused */
+	mnemonics__reserved,  /* unused */
+	mnemonics__reserved,  /* unused */
+	mnemonics__reserved,  /* unused */
+	mnemonics__reserved,  /* unused */
+	mnemonics__reserved,  /* unused */
+	mnemonics__reserved,  /* unused */
+	
+	mnemonics__reserved,  /* unused */
+	mnemonics__reserved,  /* unused */
+	mnemonics__reserved,  /* unused */
+	mnemonics__reserved,  /* unused */
+	mnemonics__reserved,  /* unused */
+	mnemonics__reserved,  /* unused */
+	mnemonics__reserved,  /* unused */
+	mnemonics__reserved   /* unused */
+};
+
+static mnemonics_fnc_t cop1_rt_map[32] = {
+	mnemonics_bc1f,
+	mnemonics_bc1t,
+	mnemonics_bc1fl,
+	mnemonics_bc1tl,
+	mnemonics__reserved,  /* unused */
+	mnemonics__reserved,  /* unused */
+	mnemonics__reserved,  /* unused */
+	mnemonics__reserved,  /* unused */
+	
+	mnemonics__reserved,  /* unused */
+	mnemonics__reserved,  /* unused */
+	mnemonics__reserved,  /* unused */
+	mnemonics__reserved,  /* unused */
+	mnemonics__reserved,  /* unused */
+	mnemonics__reserved,  /* unused */
+	mnemonics__reserved,  /* unused */
+	mnemonics__reserved,  /* unused */
+	
+	mnemonics__reserved,  /* unused */
+	mnemonics__reserved,  /* unused */
+	mnemonics__reserved,  /* unused */
+	mnemonics__reserved,  /* unused */
+	mnemonics__reserved,  /* unused */
+	mnemonics__reserved,  /* unused */
+	mnemonics__reserved,  /* unused */
+	mnemonics__reserved,  /* unused */
+	
+	mnemonics__reserved,  /* unused */
+	mnemonics__reserved,  /* unused */
+	mnemonics__reserved,  /* unused */
+	mnemonics__reserved,  /* unused */
+	mnemonics__reserved,  /* unused */
+	mnemonics__reserved,  /* unused */
+	mnemonics__reserved,  /* unused */
+	mnemonics__reserved   /* unused */
+};
+
+static mnemonics_fnc_t cop2_rt_map[32] = {
+	mnemonics_bc2f,
+	mnemonics_bc2t,
+	mnemonics_bc2fl,
+	mnemonics_bc2tl,
+	mnemonics__reserved,  /* unused */
+	mnemonics__reserved,  /* unused */
+	mnemonics__reserved,  /* unused */
+	mnemonics__reserved,  /* unused */
+	
+	mnemonics__reserved,  /* unused */
+	mnemonics__reserved,  /* unused */
+	mnemonics__reserved,  /* unused */
+	mnemonics__reserved,  /* unused */
+	mnemonics__reserved,  /* unused */
+	mnemonics__reserved,  /* unused */
+	mnemonics__reserved,  /* unused */
+	mnemonics__reserved,  /* unused */
+	
+	mnemonics__reserved,  /* unused */
+	mnemonics__reserved,  /* unused */
+	mnemonics__reserved,  /* unused */
+	mnemonics__reserved,  /* unused */
+	mnemonics__reserved,  /* unused */
+	mnemonics__reserved,  /* unused */
+	mnemonics__reserved,  /* unused */
+	mnemonics__reserved,  /* unused */
+	
+	mnemonics__reserved,  /* unused */
+	mnemonics__reserved,  /* unused */
+	mnemonics__reserved,  /* unused */
+	mnemonics__reserved,  /* unused */
+	mnemonics__reserved,  /* unused */
+	mnemonics__reserved,  /* unused */
+	mnemonics__reserved,  /* unused */
+	mnemonics__reserved   /* unused */
+};
+
+static mnemonics_fnc_t cop0_func_map[64] = {
+	mnemonics__reserved,  /* unused */
+	mnemonics_tlbr,
+	mnemonics_tlbwi,
+	mnemonics__reserved,  /* unused */
+	mnemonics__reserved,  /* unused */
+	mnemonics__reserved,  /* unused */
+	mnemonics_tlbwr,
+	mnemonics__reserved,  /* unused */
+	
+	mnemonics_tlbp,
+	mnemonics__reserved,  /* unused */
+	mnemonics__reserved,  /* unused */
+	mnemonics__reserved,  /* unused */
+	mnemonics__reserved,  /* unused */
+	mnemonics__reserved,  /* unused */
+	mnemonics__reserved,  /* unused */
+	mnemonics__reserved,  /* unused */
+	
+	mnemonics__reserved,  /* unused */
+	mnemonics__reserved,  /* unused */
+	mnemonics__reserved,  /* unused */
+	mnemonics__reserved,  /* unused */
+	mnemonics__reserved,  /* unused */
+	mnemonics__reserved,  /* unused */
+	mnemonics__reserved,  /* unused */
+	mnemonics__reserved,  /* unused */
+	
+	mnemonics_eret,
+	mnemonics__reserved,  /* unused */
+	mnemonics__reserved,  /* unused */
+	mnemonics__reserved,  /* unused */
+	mnemonics__reserved,  /* unused */
+	mnemonics__reserved,  /* unused */
+	mnemonics__reserved,  /* unused */
+	mnemonics__reserved,  /* unused */
+	
+	mnemonics__reserved,  /* unused */
+	mnemonics__reserved,  /* unused */
+	mnemonics__reserved,  /* unused */
+	mnemonics__reserved,  /* unused */
+	mnemonics__reserved,  /* unused */
+	mnemonics__reserved,  /* unused */
+	mnemonics__reserved,  /* unused */
+	mnemonics__reserved,  /* unused */
+	
+	mnemonics__reserved,  /* unused */
+	mnemonics__reserved,  /* unused */
+	mnemonics__reserved,  /* unused */
+	mnemonics__reserved,  /* unused */
+	mnemonics__reserved,  /* unused */
+	mnemonics__reserved,  /* unused */
+	mnemonics__reserved,  /* unused */
+	mnemonics__reserved,  /* unused */
+	
+	mnemonics__reserved,  /* unused */
+	mnemonics__reserved,  /* unused */
+	mnemonics__reserved,  /* unused */
+	mnemonics__reserved,  /* unused */
+	mnemonics__reserved,  /* unused */
+	mnemonics__reserved,  /* unused */
+	mnemonics__reserved,  /* unused */
+	mnemonics__reserved,  /* unused */
+	
+	mnemonics__reserved,  /* unused */
+	mnemonics__reserved,  /* unused */
+	mnemonics__reserved,  /* unused */
+	mnemonics__reserved,  /* unused */
+	mnemonics__reserved,  /* unused */
+	mnemonics__reserved,  /* unused */
+	mnemonics__reserved,  /* unused */
+	mnemonics__reserved   /* unused */
+};
 
 static struct {
 	uint32_t no;
@@ -41,7 +1435,6 @@ static struct {
 	{ 0xfffU, "16M" },
 	{ -1,     "err" }
 };
-
 
 static char *cp0_dump_str[] = {
 	"  00 Index\t%08X  index: %02X res: %x p: %01x \n",
@@ -84,8 +1477,7 @@ static char *cp0_dump_str[] = {
 	"  1f Reserved\n"
 };
 
-
-void reg_view(cpu_t *cpu)
+void reg_dump(cpu_t *cpu)
 {
 	printf("processor %u\n", cpu->procno);
 	
@@ -105,7 +1497,6 @@ void reg_view(cpu_t *cpu)
 	    cpu->pc.ptr, cpu->loreg.val, cpu->hireg.val);
 }
 
-
 static const char *get_pagemask_name(unsigned int pm)
 {
 	unsigned int i;
@@ -116,7 +1507,6 @@ static const char *get_pagemask_name(unsigned int pm)
 	/* Error */
 	return pagemask_name[CP0_PM_ITEMS].s;
 }
-
 
 void tlb_dump(cpu_t *cpu)
 {
@@ -289,208 +1679,182 @@ void cp0_dump(cpu_t *cpu, unsigned int reg)
 	cp0_dump_reg(cpu, reg);
 }
 
-static void iview_common(uint64_t base, instr_info_t *ii, char *regch)
-{
-	const uint16_t imm = ii->imm;
-	const int16_t simm = (int16_t) imm;
-	const uint32_t sysc = (ii->icode >> 6) & 0xfffffU;
-	
-	const char *rtn = regname[ii->rt];
-	const char *rsn = regname[ii->rs];
-	const char *rdn = regname[ii->rd];
-	
-	char s_iopc[16];
-	if (iopc)
-		sprintf(s_iopc, "%08" PRIx32 "  ", ii->icode);
-	else
-		s_iopc[0] = 0;
-	
-	char s_parm[32];
-	s_parm[0] = 0;
-	
-	char s_cmt[32];
-	s_cmt[0] = 0;
-	
-	switch (instr_names_acronym[ii->opcode].itype) {
-	case ifNONE:
-		break;
-	case ifR4:
-		sprintf(s_parm, "...");
-		sprintf(s_cmt, "not implemented");
-		break;
-	case ifREG:
-		sprintf(s_parm, "%s, %s, %s", rdn, rsn, rtn);
-		break;
-	case ifIMM:
-	case ifIMMS:
-		sprintf(s_parm, "%s, %s, %#" PRIx32, rtn, rsn, imm);
-		if (imm > 9)
-			sprintf(s_cmt, "%#" PRIx32 " = %" PRIu32 " (%" PRId32 ")",
-			    imm, imm, simm);
-		break;
-	case ifIMMU:
-	case ifIMMUX:
-		sprintf(s_parm, "%s, %s, %#" PRIx32, rtn, rsn, imm);
-		if (imm > 9)
-			sprintf(s_cmt, "%#" PRIx32 " = %" PRIu32, imm, imm);
-		break;
-	case ifOFF:
-		sprintf(s_parm, "%#" PRIx32, imm);
-		if (imm > 9)
-			sprintf(s_cmt, "%#" PRIx32 " = %" PRIu32, imm, imm);
-		break;
-	case ifCND:
-		if (simm >= 0)
-			sprintf(s_parm, "%s, %s, %#" PRIx32, rsn, rtn, imm);
-		else
-			sprintf(s_parm, "%s, %s, -%#" PRIx32, rsn, rtn, (uint32_t) -simm);
-		if ((imm > 9) || (simm < 0))
-			sprintf(s_cmt, "%#" PRIx32 " = %" PRIu32 " (%" PRId32 ")",
-			    imm, imm, simm);
-		break;
-	case ifDTS:
-		sprintf(s_parm, "%s, %s, %#" PRIx8, rdn, rtn, ii->sa);
-		if (ii->sa > 9)
-			sprintf(s_cmt, "%#" PRIx8 " = %" PRIu8, ii->sa, ii->sa);
-		break;
-	case ifRO:
-		if (simm >= 0)
-			sprintf(s_parm, "%s, %#" PRIx32, rsn, imm);
-		else
-			sprintf(s_parm, "%s, -%#" PRIx32, rsn, (uint32_t) -simm);
-		if ((imm > 9) || (simm < 0))
-			sprintf(s_cmt, "%#" PRIx32 " = %" PRIu32 " (%" PRId32 ")",
-			    imm, imm, simm);
-		break;
-	case ifTD:
-		sprintf(s_parm, "%s, %s", rtn, rdn);
-		break;
-	case ifTDX0:
-		sprintf(s_parm, "%s, %s", rtn, cp0name[ii->rd]);
-		break;
-	case ifTDX1:
-		sprintf(s_parm, "%s, %s", rtn, cp1name[ii->rd]);
-		break;
-	case ifTDX2:
-		sprintf(s_parm, "%s, %s", rtn, cp2name[ii->rd]);
-		break;
-	case ifTDX3:
-		sprintf(s_parm, "%s, %s", rtn, cp3name[ii->rd]);
-		break;
-	case ifOP:
-		sprintf(s_parm, "%#" PRIx32, ii->icode & 0x01ffffffU);
-		break;
-	case ifST:
-		sprintf(s_parm, "%s, %s", rsn, rtn);
-		break;
-	case ifJ:
-		sprintf(s_parm, "%#0" PRIx64,
-		    (base & TARGET_COMB) | (ii->target << TARGET_SHIFT));
-		break;
-	case ifDS:
-		sprintf(s_parm, "%s, %s", rdn, rsn);
-		break;
-	case ifS:
-		sprintf(s_parm, "%s", rsn);
-		break;
-	case ifTOB:
-		if (simm > 0)
-			sprintf(s_parm, "%s, %#" PRIx32 "(%s)", rtn, imm, rsn);
-		else if (simm < 0)
-			sprintf(s_parm, "%s, -%#" PRIx32 "(%s)", rtn, (uint32_t) -simm, rsn);
-		else
-			sprintf(s_parm, "%s, (%s)", rtn, rsn);
-		if ((imm > 9) || (simm < 0))
-			sprintf(s_cmt, "%#" PRIx32 " = %" PRIu32 " (%" PRId32 ")",
-			    imm, imm, simm);
-		break;
-	case ifRIW:
-		sprintf(s_parm, "%s, %#" PRIx32, rtn, imm);
-		if (imm > 9)
-			sprintf(s_cmt, "%#" PRIx32 " = %" PRIu32, imm, imm);
-		break;
-	case ifD:
-		sprintf(s_parm, "%s", rdn);
-		break;
-	case ifSI:
-		sprintf(s_parm, "%s, %#" PRIx32, rsn, imm);
-		if (imm > 9)
-			sprintf(s_cmt, "%#" PRIx32 " = %" PRIu32 " (%" PRId32 ")",
-			    imm, imm, simm);
-		break;
-	case ifSIW:
-		sprintf(s_parm, "%s, %#" PRIx32 " [%u]", rsn, imm, imm);
-		if (imm > 9)
-			sprintf(s_cmt, "%#" PRIx32 " = %" PRIu32, imm, imm);
-		break;
-	case ifSYSCALL:
-		sprintf(s_parm, "%#" PRIx32, sysc);
-		if (sysc > 9)
-			sprintf(s_cmt, "%#" PRIx32 " = %" PRIu32, sysc, sysc);
-		break;
-	case ifX:
-	case ifERR:
-		/* Internal only */
-		break;
-	}
-	
-	if (!icmt)
-		s_cmt[0] = 0;
-	
-	if (!regch)
-		regch = "";
-	
-	char *s_hash;
-	if ((s_cmt[0] != 0) || (regch[0] != 0))
-		s_hash = "#";
-	else
-		s_hash = "";
-	
-	char *s_cmtx;
-	if ((s_cmt[0] != 0) && (regch[0] != 0))
-		s_cmtx = ", ";
-	else
-		s_cmtx = "";
-	
-	printf("%s  %-6s%-20s%-2s%s%s%s\n", s_iopc,
-	    instr_names_acronym[ii->opcode].acronym,
-	    s_parm, s_hash, s_cmt, s_cmtx, regch);
-}
-
-/** Convert an opcode to text
+/** Decode MIPS R4000 instruction mnemonics
  *
- * @param pr If not NULL then the dump is
- *           processor-dependent (with processor number)
+ * @return Instruction mnemonics function.
  *
  */
-void iview(cpu_t *cpu, ptr64_t addr, instr_info_t *ii, char *regch)
+static mnemonics_fnc_t decode(instr_t instr)
 {
-	char s_cpu[16];
-	if (cpu != NULL)
-		sprintf(s_cpu, "%2u  ", cpu->procno);
-	else
-		s_cpu[0] = 0;
+	mnemonics_fnc_t fnc;
 	
-	char s_addr[32];
-	if (iaddr)
-		sprintf(s_addr, "%#018" PRIx64 "  ", addr.ptr);
-	else
-		s_addr[0] = 0;
+	/*
+	 * Basic opcode decoding based
+	 * on the opcode field.
+	 */
+	switch (instr.r.opcode) {
+	case opcSPECIAL:
+		/*
+		 * SPECIAL opcode decoding based
+		 * on the func field.
+		 */
+		fnc = func_map[instr.r.func];
+		break;
+	case opcREGIMM:
+		/*
+		 * REGIMM opcode decoding based
+		 * on the rt field.
+		 */
+		fnc = rt_map[instr.r.rt];
+		break;
+	case opcCOP0:
+		/*
+		 * COP0 opcode decoding based
+		 * on the rs field.
+		 */
+		switch (instr.r.rs) {
+		case cop0rsBC:
+			/*
+			 * COP0/BC opcode decoding
+			 * based on the rt field.
+			 */
+			fnc = cop0_rt_map[instr.r.rt];
+			break;
+		case cop0rsCO:
+			/*
+			 * COP0/CO opcode decoding
+			 * based on the 8-bit func field.
+			 */
+			fnc = cop0_func_map[instr.cop.func];
+			break;
+		default:
+			fnc = cop0_rs_map[instr.r.rs];
+		}
+		break;
+	case opcCOP1:
+		/*
+		 * COP1 opcode decoding based
+		 * on the rs field.
+		 */
+		switch (instr.r.rs) {
+		case cop1rsBC:
+			/*
+			 * COP1/BC opcode decoding
+			 * based on the rt field.
+			 */
+			fnc = cop1_rt_map[instr.r.rt];
+			break;
+		default:
+			fnc = cop1_rs_map[instr.r.rs];
+		}
+		break;
+	case opcCOP2:
+		/*
+		 * COP2 opcode decoding based
+		 * on the rs field.
+		 */
+		switch (instr.r.rs) {
+		case cop2rsBC:
+			/*
+			 * COP2/BC opcode decoding
+			 * based on the rt field.
+			 */
+			fnc = cop2_rt_map[instr.r.rt];
+			break;
+		default:
+			fnc = cop2_rs_map[instr.r.rs];
+		}
+		break;
+	default:
+		fnc = opcode_map[instr.r.opcode];
+	}
 	
-	printf("%-4s%s", s_cpu, s_addr);
-	iview_common(addr.ptr, ii, regch);
+	return fnc;
 }
 
-void iview_phys(ptr36_t addr, instr_info_t *ii, char *regch)
+static void idump_common(cpu_t *cpu, string_t *s_opc, string_t *s_mnemonics,
+    string_t *s_comments, instr_t instr)
 {
-	char s_addr[16];
-	if (iaddr)
-		sprintf(s_addr, "%#011" PRIx64 "  ", addr);
-	else
-		s_addr[0] = 0;
+	string_printf(s_opc, "%08" PRIx32, instr.val);
 	
-	printf("%s", s_addr);
-	iview_common(addr, ii, regch);
+	mnemonics_fnc_t fnc = decode(instr);
+	fnc(s_mnemonics, s_comments, cpu, instr);
+}
+
+/** Dump instruction mnemonics
+ *
+ * @param cpu     If not NULL, then the dump is processor-dependent
+ *                (with processor number).
+ * @param addr    Virtual address of the instruction.
+ * @param instr   Instruction to dump.
+ * @param modregs If true, then modified registers are also dumped.
+ *
+ */
+void idump(cpu_t *cpu, ptr64_t addr, instr_t instr, bool modregs)
+{
+	string_t s_cpu;
+	string_t s_addr;
+	string_t s_opc;
+	string_t s_mnemonics;
+	string_t s_comments;
+	
+	string_init(&s_cpu);
+	string_init(&s_addr);
+	string_init(&s_opc);
+	string_init(&s_mnemonics);
+	string_init(&s_comments);
+	
+	if (cpu != NULL)
+		string_printf(&s_cpu, "cpu%u", cpu->procno);
+	
+	string_printf(&s_addr, "%#018" PRIx64, addr.ptr);
+	idump_common(cpu, &s_opc, &s_mnemonics, &s_comments, instr);
+	
+	if (cpu != NULL)
+		printf("%-5s ", s_cpu.str);
+	
+	if (iaddr)
+		printf("%-18s ", s_addr.str);
+	
+	if (iopc)
+		printf("%-8s ", s_opc.str);
+	
+	printf("%s\n", s_mnemonics.str);
+	
+	string_done(&s_cpu);
+	string_done(&s_addr);
+	string_done(&s_opc);
+	string_done(&s_mnemonics);
+	string_done(&s_comments);
+}
+
+/** Dump instruction mnemonics
+ *
+ * @param addr  Physical address of the instruction.
+ * @param instr Instruction to dump.
+ *
+ */
+void idump_phys(ptr36_t addr, instr_t instr)
+{
+	string_t s_addr;
+	string_t s_iopc;
+	string_t s_mnemonics;
+	string_t s_comments;
+	
+	string_init(&s_addr);
+	string_init(&s_iopc);
+	string_init(&s_mnemonics);
+	string_init(&s_comments);
+	
+	if (iaddr)
+		string_printf(&s_addr, "%#011" PRIx64, addr);
+	
+	idump_common(NULL, &s_iopc, &s_mnemonics, &s_comments, instr);
+	
+	string_done(&s_addr);
+	string_done(&s_iopc);
+	string_done(&s_mnemonics);
+	string_done(&s_comments);
 }
 
 /** Write info about changed registers

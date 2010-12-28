@@ -57,134 +57,6 @@ enum disk_type_e {
 	DISKT_FMAP   /**< File-mapped */
 };
 
-/*
- * Device commands
- */
-
-static bool ddisk_init(token_t *parm, device_t *dev);
-static bool ddisk_info(token_t *parm, device_t *dev);
-static bool ddisk_stat(token_t *parm, device_t *dev);
-static bool ddisk_generic(token_t *parm, device_t *dev);
-static bool ddisk_fmap(token_t *parm, device_t *dev);
-static bool ddisk_fill(token_t *parm, device_t *dev);
-static bool ddisk_load(token_t *parm, device_t *dev);
-static bool ddisk_save(token_t *parm, device_t *dev);
-
-cmd_t ddisk_cmds[] = {
-	{
-		"init",
-		(fcmd_t) ddisk_init,
-		DEFAULT,
-		DEFAULT,
-		"Initialization",
-		"Initialization",
-		REQ STR "name/disk name" NEXT
-		REQ INT "addr/register block address" NEXT
-		REQ INT "intno/interrupt number within 0..6" END
-	},
-	{
-		"help",
-		(fcmd_t) dev_generic_help,
-		DEFAULT,
-		DEFAULT,
-		"Display help",
-		"Display help",
-		OPT STR "cmd/command name" END
-	},
-	{
-		"info",
-		(fcmd_t) ddisk_info,
-		DEFAULT,
-		DEFAULT,
-		"Configuration information",
-		"Configuration information",
-		NOCMD
-	},
-	{
-		"stat",
-		(fcmd_t) ddisk_stat,
-		DEFAULT,
-		DEFAULT,
-		"Statistics",
-		"Statistics",
-		NOCMD
-	},
-	{
-		"generic",
-		(fcmd_t) ddisk_generic,
-		DEFAULT,
-		DEFAULT,
-		"Generic memory type",
-		"Generic memory type",
-		REQ INT "size" END
-	},
-	{
-		"fmap",
-		(fcmd_t) ddisk_fmap,
-		DEFAULT,
-		DEFAULT,
-		"Map the memory as the file specified",
-		"Map the memory as the file specified",
-		REQ STR "fname/file name" END
-	},
-	{
-		"fill",
-		(fcmd_t) ddisk_fill,
-		DEFAULT,
-		DEFAULT,
-		"Fill the memory with specified character",
-		"Fill the memory with specified character",
-		OPT INT "value" END
-	},
-	{
-		"load",
-		(fcmd_t) ddisk_load,
-		DEFAULT,
-		DEFAULT,
-		"Load the memory image from the file specified",
-		"Load the memory image from the file specified",
-		REQ STR "fname/file name" END
-	},
-	{
-		"save",
-		(fcmd_t) ddisk_save,
-		DEFAULT,
-		DEFAULT,
-		"Save the memory image into the file specified",
-		"Save the memory image into the file specified",
-		REQ STR "fname/file name" END
-	},
-	LAST_CMD
-};
-
-/**< Name of the disk device as presented to the user */
-const char id_ddisk[] = "ddisk";
-
-static void ddisk_done(device_t *dev);
-static void ddisk_step(device_t *dev);
-static void ddisk_read32(cpu_t *cpu, device_t *dev, ptr36_t addr, uint32_t *val);
-static void ddisk_write32(cpu_t *cpu, device_t *dev, ptr36_t addr, uint32_t val);
-
-/**< Ddisk object structure */
-device_type_t ddisk = {
-	/* Disk is simulated deterministically */
-	.nondet = false,
-	
-	/* Type name and description */
-	.name = id_ddisk,
-	.brief = "Disk simulation",
-	.full = "Implementation of a simple disk with DMA",
-	
-	/* Functions */
-	.done = ddisk_done,
-	.step = ddisk_step,
-	.read32 = ddisk_read32,
-	.write32 = ddisk_write32,
-	
-	/* Commands */
-	.cmds = ddisk_cmds
-};
-
 /** Disk instance data structure */
 typedef struct {
 	uint32_t *img;  /**< Disk image memory */
@@ -273,7 +145,7 @@ static bool ddisk_init(token_t *parm, device_t *dev)
 		return false;
 	}
 	
-	if (_intno > MAX_INTR) {
+	if (_intno >= MAX_INTRS) {
 		error("%s", txt_intnum_range);
 		return false;
 	}
@@ -780,44 +652,152 @@ static void ddisk_write32(cpu_t *cpu, device_t *dev, ptr36_t addr,
 	}
 }
 
-/** One step implementation
+/** Disk implementation
  *
  * @param dev Device pointer
  *
  */
-static void ddisk_step(device_t *dev)
+static void ddisk_step4k(device_t *dev)
 {
-	disk_data_s *data = (disk_data_s *) dev->data;
-	size_t pos;
-	
-	/* Reading */
-	switch (data->action) {
-	case ACTION_READ:
-		pos = data->secno * 128 + data->cnt;
-		physmem_write32(NULL, data->disk_ptr, data->img[pos], true);
-		
-		/* Next word */
-		data->disk_ptr += 4;
-		data->cnt++;
-		break;
-	case ACTION_WRITE:
-		pos = data->secno * 128 + data->cnt;
-		data->img[pos] = physmem_read32(NULL, data->disk_ptr, true);
-		
-		/* Next word */
-		data->disk_ptr += 4;
-		data->cnt++;
-		break;
-	default:
-		/* No further processing */
-		return;
-	}
-	
-	if (data->cnt == 128) {
-		data->action = ACTION_NONE;
-		data->disk_status = STATUS_INT;
-		dcpu_interrupt_up(0, data->intno);
-		data->ig = true;
-		data->intrcount++;
-	}
+	// FIXME
+	// disk_data_s *data = (disk_data_s *) dev->data;
+	// size_t pos;
+	// 
+	// /* Reading */
+	// switch (data->action) {
+	// case ACTION_READ:
+	// 	pos = data->secno * 128 + data->cnt;
+	// 	physmem_write32(NULL, data->disk_ptr, data->img[pos], true);
+	// 	
+	// 	/* Next word */
+	// 	data->disk_ptr += 4;
+	// 	data->cnt++;
+	// 	break;
+	// case ACTION_WRITE:
+	// 	pos = data->secno * 128 + data->cnt;
+	// 	data->img[pos] = physmem_read32(NULL, data->disk_ptr, true);
+	// 	
+	// 	/* Next word */
+	// 	data->disk_ptr += 4;
+	// 	data->cnt++;
+	// 	break;
+	// default:
+	// 	/* No further processing */
+	// 	return;
+	// }
+	// 
+	// if (data->cnt == 128) {
+	// 	data->action = ACTION_NONE;
+	// 	data->disk_status = STATUS_INT;
+	// 	dcpu_interrupt_up(0, data->intno);
+	// 	data->ig = true;
+	// 	data->intrcount++;
+	// }
 }
+
+cmd_t ddisk_cmds[] = {
+	{
+		"init",
+		(fcmd_t) ddisk_init,
+		DEFAULT,
+		DEFAULT,
+		"Initialization",
+		"Initialization",
+		REQ STR "name/disk name" NEXT
+		REQ INT "addr/register block address" NEXT
+		REQ INT "intno/interrupt number within 0..6" END
+	},
+	{
+		"help",
+		(fcmd_t) dev_generic_help,
+		DEFAULT,
+		DEFAULT,
+		"Display help",
+		"Display help",
+		OPT STR "cmd/command name" END
+	},
+	{
+		"info",
+		(fcmd_t) ddisk_info,
+		DEFAULT,
+		DEFAULT,
+		"Configuration information",
+		"Configuration information",
+		NOCMD
+	},
+	{
+		"stat",
+		(fcmd_t) ddisk_stat,
+		DEFAULT,
+		DEFAULT,
+		"Statistics",
+		"Statistics",
+		NOCMD
+	},
+	{
+		"generic",
+		(fcmd_t) ddisk_generic,
+		DEFAULT,
+		DEFAULT,
+		"Generic memory type",
+		"Generic memory type",
+		REQ INT "size" END
+	},
+	{
+		"fmap",
+		(fcmd_t) ddisk_fmap,
+		DEFAULT,
+		DEFAULT,
+		"Map the memory as the file specified",
+		"Map the memory as the file specified",
+		REQ STR "fname/file name" END
+	},
+	{
+		"fill",
+		(fcmd_t) ddisk_fill,
+		DEFAULT,
+		DEFAULT,
+		"Fill the memory with specified character",
+		"Fill the memory with specified character",
+		OPT INT "value" END
+	},
+	{
+		"load",
+		(fcmd_t) ddisk_load,
+		DEFAULT,
+		DEFAULT,
+		"Load the memory image from the file specified",
+		"Load the memory image from the file specified",
+		REQ STR "fname/file name" END
+	},
+	{
+		"save",
+		(fcmd_t) ddisk_save,
+		DEFAULT,
+		DEFAULT,
+		"Save the memory image into the file specified",
+		"Save the memory image into the file specified",
+		REQ STR "fname/file name" END
+	},
+	LAST_CMD
+};
+
+/**< Ddisk object structure */
+device_type_t ddisk = {
+	/* Disk is simulated deterministically */
+	.nondet = false,
+	
+	/* Type name and description */
+	.name = "ddisk",
+	.brief = "Disk simulation",
+	.full = "Implementation of a simple disk with DMA",
+	
+	/* Functions */
+	.done = ddisk_done,
+	.step4k = ddisk_step4k,
+	.read32 = ddisk_read32,
+	.write32 = ddisk_write32,
+	
+	/* Commands */
+	.cmds = ddisk_cmds
+};

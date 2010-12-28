@@ -1,5 +1,6 @@
 /*
  * Copyright (c) 2004-2007 Viliam Holub
+ * Copyright (c) 2008-2011 Martin Decky
  * All rights reserved.
  *
  * Distributed under the terms of GPL.

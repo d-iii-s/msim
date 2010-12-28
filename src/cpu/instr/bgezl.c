@@ -5,7 +5,7 @@ static exc_t instr_bgezl(cpu_t *cpu, instr_t instr)
 	if (CPU_64BIT_MODE(cpu))
 		cond = ((cpu->regs[instr.i.rs].val & SBIT64) == 0);
 	else
-		cond = (cpu->regs[instr.i.rs].lo & SBIT32) == 0);
+		cond = ((cpu->regs[instr.i.rs].lo & SBIT32) == 0);
 	
 	if (cond) {
 		cpu->pc_next.ptr +=

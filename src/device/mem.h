@@ -14,9 +14,6 @@
 
 #include "device.h"
 
-extern const char id_rom[];
-extern const char id_rwm[];
-
 extern device_type_t drom;
 extern device_type_t drwm;
 

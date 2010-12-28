@@ -20,139 +20,12 @@
 #include <errno.h>
 #include <inttypes.h>
 #include "device.h"
-#include "machine.h"
 #include "mem.h"
 #include "../arch/mmap.h"
 #include "../fault.h"
 #include "../parser.h"
 #include "../text.h"
 #include "../utils.h"
-
-/*
- * Device structure initialization
- */
-
-static bool mem_init(token_t *parm, device_t *dev);
-static bool mem_info(token_t *parm, device_t *dev);
-static bool mem_generic(token_t *parm, device_t *dev);
-static bool mem_fmap(token_t *parm, device_t *dev);
-static bool mem_fill(token_t *parm, device_t *dev);
-static bool mem_load(token_t *parm, device_t *dev);
-static bool mem_save(token_t *parm, device_t *dev);
-
-cmd_t dmem_cmds[] = {
-	{
-		"init",
-		(fcmd_t) mem_init,
-		DEFAULT,
-		DEFAULT,
-		"Initialization",
-		"Initialization",
-		REQ STR "memory name" NEXT
-		REQ INT "memory start address" END
-	},
-	{
-		"help",
-		(fcmd_t) dev_generic_help,
-		DEFAULT,
-		DEFAULT,
-		"Usage help",
-		"Usage help",
-		NOCMD
-	},
-	{
-		"info",
-		(fcmd_t) mem_info,
-		DEFAULT,
-		DEFAULT,
-		"Configuration information",
-		"Configuration information",
-		NOCMD
-	},
-	{
-		"generic",
-		(fcmd_t) mem_generic,
-		DEFAULT,
-		DEFAULT,
-		"Generic memory type.",
-		"Generic memory type.",
-		REQ INT "size" END
-	},
-	{
-		"fmap",
-		(fcmd_t) mem_fmap,
-		DEFAULT,
-		DEFAULT,
-		"Map the memory into the file.",
-		"Map the memory into the file.",
-		REQ STR "File name" END
-	},
-	{
-		"fill",
-		(fcmd_t) mem_fill,
-		DEFAULT,
-		DEFAULT,
-		"Fill the memory with specified character",
-		"Fill the memory with specified character",
-		OPT VAR "value" END
-	},
-	{
-		"load",
-		(fcmd_t) mem_load,
-		DEFAULT,
-		DEFAULT,
-		"Load the file into the memory",
-		"Load the file into the memory",
-		REQ STR "File name" END
-	},
-	{
-		"save",
-		(fcmd_t) mem_save,
-		DEFAULT,
-		DEFAULT,
-		"Save the context of the memory into the file specified",
-		"Save the context of the memory into the file specified",
-		REQ STR "File name" END
-	},
-	LAST_CMD
-};
-
-const char id_rom[] = "rom";
-const char id_rwm[] = "rwm";
-
-static void mem_done(device_t *d);
-
-device_type_t drom = {
-	/* ROM is simulated deterministically */
-	.nondet = false,
-	
-	/* Type name and description */
-	.name = id_rom,
-	.brief = "Read-only memory",
-	.full = "Read-only memory",
-	
-	/* Functions */
-	.done = mem_done,
-	
-	/* Commands */
-	.cmds = dmem_cmds
-};
-
-device_type_t drwm = {
-	/* RAM is simulated deterministically */
-	.nondet = false,
-	
-	/* Type name and description */
-	.name = id_rwm,
-	.brief = "Read/write memory",
-	.full = "Read/write memory",
-	
-	/* Functions */
-	.done = mem_done,
-	
-	/* Commands */
-	.cmds = dmem_cmds
-};
 
 /*
  * String constants
@@ -213,7 +86,7 @@ static bool mem_init(token_t *parm, device_t *dev)
 	item_init(&area->item);
 	
 	area->type = MEMT_NONE;
-	area->writable = (dev->type->name == id_rwm);
+	area->writable = (strcmp(dev->type->name, "rwm") == 0);
 	
 	area->start = start;
 	area->size = 0;
@@ -538,3 +411,112 @@ static void mem_done(device_t *dev)
 	safe_free(area);
 	safe_free(dev->name);
 }
+
+cmd_t dmem_cmds[] = {
+	{
+		"init",
+		(fcmd_t) mem_init,
+		DEFAULT,
+		DEFAULT,
+		"Initialization",
+		"Initialization",
+		REQ STR "memory name" NEXT
+		REQ INT "memory start address" END
+	},
+	{
+		"help",
+		(fcmd_t) dev_generic_help,
+		DEFAULT,
+		DEFAULT,
+		"Usage help",
+		"Usage help",
+		NOCMD
+	},
+	{
+		"info",
+		(fcmd_t) mem_info,
+		DEFAULT,
+		DEFAULT,
+		"Configuration information",
+		"Configuration information",
+		NOCMD
+	},
+	{
+		"generic",
+		(fcmd_t) mem_generic,
+		DEFAULT,
+		DEFAULT,
+		"Generic memory type.",
+		"Generic memory type.",
+		REQ INT "size" END
+	},
+	{
+		"fmap",
+		(fcmd_t) mem_fmap,
+		DEFAULT,
+		DEFAULT,
+		"Map the memory into the file.",
+		"Map the memory into the file.",
+		REQ STR "File name" END
+	},
+	{
+		"fill",
+		(fcmd_t) mem_fill,
+		DEFAULT,
+		DEFAULT,
+		"Fill the memory with specified character",
+		"Fill the memory with specified character",
+		OPT VAR "value" END
+	},
+	{
+		"load",
+		(fcmd_t) mem_load,
+		DEFAULT,
+		DEFAULT,
+		"Load the file into the memory",
+		"Load the file into the memory",
+		REQ STR "File name" END
+	},
+	{
+		"save",
+		(fcmd_t) mem_save,
+		DEFAULT,
+		DEFAULT,
+		"Save the context of the memory into the file specified",
+		"Save the context of the memory into the file specified",
+		REQ STR "File name" END
+	},
+	LAST_CMD
+};
+
+device_type_t drom = {
+	/* ROM is simulated deterministically */
+	.nondet = false,
+	
+	/* Type name and description */
+	.name = "rom",
+	.brief = "Read-only memory",
+	.full = "Read-only memory",
+	
+	/* Functions */
+	.done = mem_done,
+	
+	/* Commands */
+	.cmds = dmem_cmds
+};
+
+device_type_t drwm = {
+	/* RAM is simulated deterministically */
+	.nondet = false,
+	
+	/* Type name and description */
+	.name = "rwm",
+	.brief = "Read/write memory",
+	.full = "Read/write memory",
+	
+	/* Functions */
+	.done = mem_done,
+	
+	/* Commands */
+	.cmds = dmem_cmds
+};

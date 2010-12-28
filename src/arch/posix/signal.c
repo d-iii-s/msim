@@ -13,22 +13,24 @@
 #include <stdio.h>
 #include <signal.h>
 #include <stdlib.h>
-#include "../../device/machine.h"
 #include "../../fault.h"
+#include "../../main.h"
 
 static void machine_user_break(int signo)
 {
-	if ((tobreak) || (interactive)) {
+	if ((machine_break) || (machine_interactive)) {
 		printf("\n");
 		alert("Quit");
 		input_back();
 		exit(ERR_OK);
 	}
 	
-	tobreak = true;
-	if (!interactive)
-		reenter = true;
-	interactive = true;
+	machine_break = true;
+	
+	if (!machine_interactive)
+		machine_newline = true;
+	
+	machine_interactive = true;
 }
 
 void register_sigint(void)

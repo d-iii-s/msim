@@ -14,7 +14,11 @@
 
 #include <stdint.h>
 #include <inttypes.h>
+#include "../../config.h"
 #include "../main.h"
+
+#define REG_COUNT     32
+#define REG_VARIANTS  3
 
 /** Opcode numbers
  *
@@ -31,7 +35,7 @@ typedef enum {
 	opcBGTZ = 7,
 	
 	/* 8 */
-	opcADDI = 8
+	opcADDI = 8,
 	opcADDIU = 9,
 	opcSLTI = 10,
 	opcSLTIU = 11,
@@ -130,7 +134,7 @@ typedef enum {
 	/* 16 */
 	funcMFHI = 16,
 	funcMTHI = 17,
-	funcMTLO = 18,
+	funcMFLO = 18,
 	funcMTLO = 19,
 	funcDSLLV = 20,
 	/* function 21 unused */
@@ -186,7 +190,7 @@ typedef enum {
 	/* function 61 unused */
 	funcDSRL32 = 62,
 	funcDSRA32 = 63
-} instr_function_t;
+} instr_func_t;
 
 /** Register rt numbers
  *
@@ -221,8 +225,113 @@ typedef enum {
 	rtBGEZALL = 19
 } instr_rt_t;
 
+typedef enum {
+	/* 0 */
+	cop0rsMFC0 = 0,
+	cop0rsDMFC0 = 1,
+	/* rs 2 unused */
+	/* rs 3 unused */
+	cop0rsMTC0 = 4,
+	cop0rsDMTC0 = 5,
+	/* rs 6 unused */
+	/* rs 7 unused */
+	
+	/* 8 */
+	cop0rsBC = 8,
+	/* rs 9 unused */
+	/* rs 10 unused */
+	/* rs 11 unused */
+	/* rs 12 unused */
+	/* rs 13 unused */
+	/* rs 14 unused */
+	/* rs 15 unused */
+	
+	/* 16 */
+	cop0rsCO = 16
+} instr_cop0rs_t;
+
+typedef enum {
+	/* 0 */
+	cop1rsMFC1 = 0,
+	cop1rsDMFC1 = 1,
+	cop1rsCFC1 = 2,
+	/* rs 3 unused */
+	cop1rsMTC1 = 4,
+	cop1rsDMTC1 = 5,
+	cop1rsCTC1 = 6,
+	/* rs 7 unused */
+	
+	/* 8 */
+	cop1rsBC = 8
+} instr_cop1rs_t;
+
+typedef enum {
+	/* 0 */
+	cop2rsMFC2 = 0,
+	/* rs 1 unused */
+	cop2rsCFC2 = 2,
+	/* rs 3 unused */
+	/* rs 4 unused */
+	/* rs 5 unused */
+	cop2rsCTC2 = 6,
+	/* rs 7 unused */
+	
+	/* 8 */
+	cop2rsBC = 8
+} instr_cop2rs_t;
+
+typedef enum {
+	/* 0 */
+	cop0rtBC0F = 0,
+	cop0rtBC0T = 1,
+	cop0rtBC0FL = 2,
+	cop0rtBC0TL = 3
+} instr_cop0rt_t;
+
+typedef enum {
+	/* 0 */
+	cop1rtBC1F = 0,
+	cop1rtBC1T = 1,
+	cop1rtBC1FL = 2,
+	cop1rtBC1TL = 3
+} instr_cop1rt_t;
+
+typedef enum {
+	/* 0 */
+	cop2rtBC2F = 0,
+	cop2rtBC2T = 1,
+	cop2rtBC2FL = 2,
+	cop2rtBC2TL = 3
+} instr_cop2rt_t;
+
+typedef enum {
+	/* 0 */
+	/* function 0 unused */
+	cop0funcTLBR = 1,
+	cop0funcTLBWI = 2,
+	/* function 3 unused */
+	/* function 4 unused */
+	/* function 5 unused */
+	cop0funcTLBWR = 6,
+	/* function 7 unused */
+	
+	/* 8 */
+	cop0funcTLBP = 8,
+	/* function 9 unused */
+	/* function 10 unused */
+	/* function 11 unused */
+	/* function 12 unused */
+	/* function 13 unused */
+	/* function 14 unused */
+	/* function 15 unused */
+	
+	/* 16 */
+	cop0funcERET = 16
+} instr_cop0func_t;
+
 typedef union {
 	uint32_t val;
+#ifdef WORDS_BIGENDIAN
 	struct {
 		unsigned int opcode : 6;
 		unsigned int rs : 5;
@@ -241,20 +350,47 @@ typedef union {
 		unsigned int sa : 5;
 		unsigned int func : 6;
 	} r;
+	struct {
+		unsigned int opcode : 6;
+		unsigned int rs : 5;
+		unsigned int rt : 5;
+		unsigned int data : 24;
+		unsigned int func : 8;
+	} cop;
+#else
+	struct {
+		unsigned int imm : 16;
+		unsigned int rt : 5;
+		unsigned int rs : 5;
+		unsigned int opcode : 6;
+	} i;
+	struct {
+		unsigned int target : 26;
+		unsigned int opcode : 6;
+	} j;
+	struct {
+		unsigned int func : 6;
+		unsigned int sa : 5;
+		unsigned int rd : 5;
+		unsigned int rt : 5;
+		unsigned int rs : 5;
+		unsigned int opcode : 6;
+	} r;
+	struct {
+		unsigned int func : 8;
+		unsigned int data : 24;
+		unsigned int rt : 5;
+		unsigned int rs : 5;
+		unsigned int opcode : 6;
+	} cop;
+#endif
 } instr_t;
 
-//typedef struct {
-//	const char *acronym;
-//	instr_form_basic_t itype;
-//} instr_text_t;
-
-//extern instr_text_t instr_names_acronym[];
-
 /** Register and coprocessor names */
-//extern char *reg_name[][32];
-//extern char *cp0_name[][32];
-//extern char *cp1_name[][32];
-//extern char *cp2_name[][32];
-//extern char *cp3_name[][32];
+extern char *reg_name[REG_VARIANTS][REG_COUNT];
+extern char *cp0_name[REG_VARIANTS][REG_COUNT];
+extern char *cp1_name[REG_VARIANTS][REG_COUNT];
+extern char *cp2_name[REG_VARIANTS][REG_COUNT];
+extern char *cp3_name[REG_VARIANTS][REG_COUNT];
 
 #endif

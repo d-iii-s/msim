@@ -1,6 +1,6 @@
 /*
  * Copyright (c) 2003-2008 Viliam Holub
- * Copyright (c) 2008 Martin Decky
+ * Copyright (c) 2008-2011 Martin Decky
  * All rights reserved.
  *
  * Distributed under the terms of GPL.
@@ -16,18 +16,76 @@
 #include <unistd.h>
 #include <getopt.h>
 #include <string.h>
+#include <stdbool.h>
+#include "arch/signal.h"
 #include "cpu/r4000.h"
 #include "debug/gdb.h"
+#include "device/dcpu.h"
 #include "device/device.h"
-#include "device/machine.h"
 #include "assert.h"
 #include "cmd.h"
 #include "endian.h"
 #include "env.h"
 #include "fault.h"
+#include "input.h"
 #include "parser.h"
 #include "text.h"
 #include "utils.h"
+
+/** Debugging register names */
+char **regname;
+char **cp0name;
+char **cp1name;
+char **cp2name;
+char **cp3name;
+
+/** Configuration file name */
+char *config_file = NULL;
+
+/** Enable remote GDB debugging globally */
+bool remote_gdb = false;
+
+/** TCP port for GDB listening socket */
+unsigned int remote_gdb_port = 0;
+
+/** Remote GDB conection indication */
+bool remote_gdb_conn = false;
+
+/** Ready for remote GDB command */
+bool remote_gdb_listen = false;
+
+/** Remote GDB stepping */
+bool remote_gdb_step = false;
+
+/** Enable non-deterministic behaviour */
+bool machine_nondet = false;
+
+/** Trace instructions */
+bool machine_trace = false;
+
+/** Halt the simulation */
+bool machine_halt = false;
+
+/** Break the simulation */
+bool machine_break = false;
+
+/** Interactive mode */
+bool machine_interactive = false;
+
+/** Print newline on entering interactive mode */
+bool machine_newline = false;
+
+/**
+ * Number of steps to run before switching
+ * to interactive mode. Zero means infinite.
+ */
+uint64_t stepping = 0;
+
+/** SC-LL tracking */
+list_t sc_list;
+
+/** Total number of machine steps completed */
+static uint64_t steps = 0;
 
 /** Command line options */
 static struct option long_options[] = {
@@ -76,7 +134,7 @@ static struct option long_options[] = {
 	{ NULL, 0, NULL, 0 }
 };
 
-static void conf_remote_gdb(const char *opt)
+static void setup_remote_gdb(const char *opt)
 {
 	ASSERT(opt != NULL);
 	
@@ -109,13 +167,13 @@ static bool parse_cmdline(int argc, char *args[])
 		
 		switch (c) {
 		case 't':
-			totrace = true;
+			machine_trace = true;
 			break;
 		case 'V':
 			printf(txt_version);
 			return false;
 		case 'i':
-			interactive = true;
+			machine_interactive = true;
 			break;
 		case 'c':
 			if (config_file)
@@ -127,10 +185,10 @@ static bool parse_cmdline(int argc, char *args[])
 			printf(txt_help);
 			return false;
 		case 'g':
-			conf_remote_gdb(optarg);
+			setup_remote_gdb(optarg);
 			break;
 		case 'n':
-			nondet = true;
+			machine_nondet = true;
 			break;
 		case '?':
 			die(ERR_PARM, "Unknown parameter or argument required");
@@ -145,14 +203,133 @@ static bool parse_cmdline(int argc, char *args[])
 	return true;
 }
 
+/** Try to startup remote GDB communication.
+ *
+ * @return True if the connection was opened.
+ *
+ */
+static bool gdb_startup(void) {
+	if (dcpu_find_no(0) == NULL) {
+		error("Cannot debug without any processor");
+		return false;
+	}
+	
+	remote_gdb_conn = gdb_remote_init();
+	
+	if (!remote_gdb_conn)
+		return false;
+	
+	/*
+	 * In case of succesfull opening the debugging session will start
+	 * in stopped state and in case of unsuccesfull opening the
+	 * connection will not be initialized again.
+	 */
+	remote_gdb_listen = remote_gdb_conn;
+	remote_gdb = remote_gdb_conn;
+	
+	return true;
+}
+
+/** Run 4096 machine cycles
+ *
+ */
+static void machine_step4k(void)
+{
+	device_t *dev = NULL;
+	while (dev_next(&dev, DEVICE_FILTER_STEP4K))
+		dev->type->step4k(dev);
+	
+	/* Increase machine cycle counter */
+	steps += 4096;
+}
+
+/** Main simulator loop
+ *
+ */
+static void machine_run(void)
+{
+	while (!machine_halt) {
+		/*
+		 * Check for code breakpoints. Interactive
+		 * or gdb flags will be set if a breakpoint
+		 * is hit.
+		 */
+		// FIXME breakpoint_check_for_code_breakpoints();
+		
+		/*
+		 * If the remote GDB debugging is allowed and the
+		 * connection has not been opened yet, then wait
+		 * for the connection from the remote GDB.
+		 */
+		
+		if ((remote_gdb) && (!remote_gdb_conn))
+			machine_interactive = !gdb_startup();
+		
+		/*
+		 * If the simulation was stopped due to the remote
+		 * GDB debugging session, then read a command from
+		 * the remote GDB. The read is blocking.
+		 */
+		if ((remote_gdb) && (remote_gdb_conn) && (remote_gdb_listen)) {
+			remote_gdb_listen = false;
+			gdb_session();
+		}
+		
+		// FIXME
+		/* Debug - step check */
+		// if (stepping > 0) {
+		// 	stepping--;
+		// 	
+		// 	if (stepping == 0)
+		// 		machine_interactive = true;
+		// }
+		
+		/* Interactive mode control */
+		if (machine_interactive)
+			interactive_control();
+		
+		/*
+		 * Continue with the simulation
+		 */
+		if (!machine_halt)
+			machine_step4k();
+	}
+}
+
 int main(int argc, char *args[])
 {
-	init_machine();
-	if (parse_cmdline(argc, args)) {
-		script();
-		go_machine();
-	}
-	done_machine();
+	/*
+	 * Initialization
+	 */
+	regname = reg_name[ireg];
+	cp0name = cp0_name[ireg];
+	cp1name = cp1_name[ireg];
+	cp2name = cp2_name[ireg];
+	cp3name = cp3_name[ireg];
+	
+	input_init();
+	input_shadow();
+	register_sigint();
+	
+	/*
+	 * Run-time configuration
+	 */
+	if (!parse_cmdline(argc, args))
+		return 0;
+	
+	script();
+	
+	/*
+	 * Main simulation loop
+	 */
+	machine_run();
+	
+	/*
+	 * Finalization
+	 */
+	input_back();
+	if (steps > 0)
+		printf("\nCycles: %" PRIu64 "\n", steps);
 	
 	return 0;
 }

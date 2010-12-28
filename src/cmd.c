@@ -22,7 +22,6 @@
 #include "debug/debug.h"
 #include "debug/breakpoint.h"
 #include "device/device.h"
-#include "device/machine.h"
 #include "assert.h"
 #include "cmd.h"
 #include "env.h"
@@ -96,8 +95,7 @@ static bool system_add(token_t *parm, void *data)
 static bool system_continue(token_t *parm, void *data)
 {
 	ASSERT(parm != NULL);
-	
-	interactive = false;
+	machine_interactive = false;
 	return true;
 }
 
@@ -113,11 +111,11 @@ static bool system_step(token_t *parm, void *data)
 	switch (parm_type(parm)) {
 	case tt_end:
 		stepping = 1;
-		interactive = false;
+		machine_interactive = false;
 		break;
 	case tt_uint:
 		stepping = parm_uint(parm);
-		interactive = false;
+		machine_interactive = false;
 		break;
 	default:
 		intr_error("Unexpected parameter type");
@@ -181,10 +179,9 @@ static bool system_dumpins(token_t *parm, void *data)
 	
 	for (addr = (ptr36_t) _addr, cnt = (len36_t) _cnt; cnt > 0;
 	    addr += 4, cnt--) {
-		instr_info_t ii;
-		ii.icode = physmem_read32(NULL, addr, false);
-		decode_instr(&ii);
-		iview_phys(addr, &ii, 0);
+		instr_t instr;
+		instr.val = physmem_read32(NULL, addr, false);
+		idump_phys(addr, instr);
 	}
 	
 	return true;
@@ -361,10 +358,8 @@ static bool system_dumpmem(token_t *parm, void *data)
 static bool system_quit(token_t *parm, void *data)
 {
 	ASSERT(parm != NULL);
-	
-	interactive = false;
-	tohalt = true;
-	
+	machine_interactive = false;
+	machine_halt = true;
 	return true;
 }
 
@@ -457,7 +452,7 @@ static bool setup_apply(const char *buf)
 	
 	size_t lineno = 1;
 	
-	while ((*buf) && (!tohalt)) {
+	while ((*buf) && (!machine_halt)) {
 		set_lineno(lineno);
 		if (!interpret(buf))
 			return false;
@@ -496,14 +491,14 @@ void script(void)
 		else
 			io_die(ERR_IO, config_file);
 		
-		interactive = true;
+		machine_interactive = true;
 		return;
 	}
 	
 	if (check_isdir(file)) {
 		alert("Path \"%s\" is a directory, skipping", config_file);
 		safe_fclose(file, config_file);
-		interactive = true;
+		machine_interactive = true;
 		return;
 	}
 	

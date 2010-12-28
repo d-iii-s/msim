@@ -161,10 +161,10 @@ static void printer_done(device_t *dev)
 	safe_free(dev->data);
 }
 
-/** One step4 implementation
+/** Printer implementation
  *
  */
-static void printer_step4(device_t *dev)
+static void printer_step4k(device_t *dev)
 {
 	printer_data_t *data = (printer_data_t *) dev->data;
 	
@@ -269,7 +269,7 @@ device_type_t dprinter = {
 	
 	/* Functions */
 	.done = printer_done,
-	.step4 = printer_step4,
+	.step4k = printer_step4k,
 	.write32 = printer_write32,
 	
 	/* Commands */

@@ -33,11 +33,8 @@ typedef struct {
 	/** Dispose internal data. */
 	void (*done)(struct device *dev);
 	
-	/** Called every machine cycle. */
-	void (*step)(struct device *dev);
-	
 	/** Called every 4096th machine cycle. */
-	void (*step4)(struct device *dev);
+	void (*step4k)(struct device *dev);
 	
 	/** Device memory read */
 	void (*read32)(cpu_t *cpu, struct device *dev, ptr36_t addr,
@@ -67,14 +64,15 @@ typedef struct device {
 	item_t item;
 	
 	const device_type_t *type;  /**< Pointer to the device type description. */
-	char *name;                 /**< Device name given by the user. Must be unique. */
-	void *data;                 /**< Device specific pointer where internal data are stored. */
+	char *name;                 /**< Device name given by the user.
+	                                 Must be unique. */
+	void *data;                 /**< Device specific pointer where
+	                                 internal data are stored. */
 } device_t;
 
 typedef enum {
 	DEVICE_FILTER_ALL,
-	DEVICE_FILTER_STEP,
-	DEVICE_FILTER_STEP4,
+	DEVICE_FILTER_STEP4K,
 	DEVICE_FILTER_MEMORY,
 	DEVICE_FILTER_PROCESSOR,
 } device_filter_t;
@@ -85,8 +83,6 @@ typedef enum {
  */
 #define LAST_CMD \
 	{ NULL, NULL, NULL, 0, NULL, NULL, NULL }
-
-extern void dev_init_framework(void);
 
 /*
  * Functions on device structures

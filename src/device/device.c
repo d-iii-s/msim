@@ -49,13 +49,7 @@ const device_type_t *device_types[DEVICE_TYPE_COUNT] = {
 };
 
 /* List of all devices */
-list_t device_list;
-
-/** Initialize internal global variables. */
-void dev_init_framework(void)
-{
-	list_init(&device_list);
-}
+list_t device_list = LIST_INITIALIZER;
 
 /** Search for device type and allocates device structure
  *
@@ -85,9 +79,10 @@ device_t *alloc_device(const char *type_string, const char *device_name)
 		return NULL;
 	}
 	
-	if ((!nondet) && (device_type->nondet)) {
-		error("Device induces non-deterministic behaviour. This is currently disabled.\n"
-		    "Set the variable \"nondet\" to \"on\" to enable adding this device.");
+	if ((!machine_nondet) && (device_type->nondet)) {
+		error("Device \"%s\" results in non-deterministic behaviour.\n"
+		    "This is currently disabled. Use the command-line option\n"
+		    "-n to enable non-determinism.", type_string);
 		return NULL;
 	}
 	
@@ -129,14 +124,13 @@ static bool dev_match_to_filter(device_t* device, device_filter_t filter)
 	switch (filter) {
 	case DEVICE_FILTER_ALL:
 		return true;
-	case DEVICE_FILTER_STEP:
-		return device->type->step != NULL;
-	case DEVICE_FILTER_STEP4:
-		return device->type->step4 != NULL;
+	case DEVICE_FILTER_STEP4K:
+		return device->type->step4k != NULL;
 	case DEVICE_FILTER_MEMORY:
-		return (device->type->name == id_rom) || (device->type->name == id_rwm);
+		return (strcmp(device->type->name, "rom") == 0) ||
+		    (strcmp(device->type->name, "rwm") == 0);
 	case DEVICE_FILTER_PROCESSOR:
-		return device->type->name == id_dcpu;
+		return (strcmp(device->type->name, "dcpu") == 0);
 	default:
 		die(ERR_INTERN, "Unexpected device filter");
 	}

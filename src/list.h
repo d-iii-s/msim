@@ -39,6 +39,12 @@ typedef struct item {
 	struct item *next;
 } item_t;
 
+/** Statically initialize a list.
+ *
+ */
+#define LIST_INITIALIZER \
+	{ .head = NULL, .tail = NULL }
+
 #define for_each(list, member, type) \
 	for ((member) = (type *) (list).head; \
 		(member) != NULL; \

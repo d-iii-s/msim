@@ -33,7 +33,6 @@ SOURCES = \
 	debug/debug.c \
 	debug/gdb.c \
 	debug/breakpoint.c \
-	device/machine.c \
 	device/mem.c \
 	device/ddisk.c \
 	device/dcpu.c \

@@ -7,7 +7,7 @@ static exc_t instr_mult(cpu_t *cpu, instr_t instr)
 	if ((rs == 0) || (rt == 0)) {
 		cpu->loreg.val = 0;
 		cpu->hireg.val = 0;
-		return;
+		return excNone;
 	}
 	
 	uint64_t res = ((int64_t) sign_extend_32_64(rs)) *

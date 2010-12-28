@@ -30,9 +30,10 @@ static size_t lineno = 0;
 static size_t *lineno_ptr = NULL;
 
 typedef enum {
-	COLOR_RED   = 1,
-	COLOR_CYAN  = 6,
-	COLOR_WHITE = 7
+	COLOR_RED    = 1,
+	COLOR_YELLOW = 3,
+	COLOR_CYAN   = 6,
+	COLOR_WHITE  = 7
 } tty_color_t;
 
 typedef enum {
@@ -87,13 +88,13 @@ void error(const char *fmt, ...)
 	
 	if (lineno_ptr != NULL) {
 		if (script_name)
-			mferror(COLOR_RED, "Error in %s on line %zu:\n%s",
+			mferror(COLOR_YELLOW, "Error in %s on line %zu:\n%s",
 			    script_name, *lineno_ptr, out.str);
 		else
-			mferror(COLOR_RED, "Error on line %zu:\n%s",
+			mferror(COLOR_YELLOW, "Error on line %zu:\n%s",
 			    *lineno_ptr, out.str);
 	} else
-		mferror(COLOR_RED, "Error: %s", out.str);
+		mferror(COLOR_YELLOW, "Error: %s", out.str);
 	
 	string_done(&out);
 }
@@ -156,10 +157,10 @@ void die(int status, const char *fmt, ...)
 	
 	if (lineno_ptr != NULL) {
 		if (script_name)
-			mferror(COLOR_RED, "Fault in %s on line %zu: %s",
+			mferror(COLOR_RED, "Fault in %s on line %zu:\n%s",
 			    script_name, *lineno_ptr, out.str);
 		else
-			mferror(COLOR_RED, "Fault on line %zu: %s",
+			mferror(COLOR_RED, "Fault on line %zu:\n%s",
 			    *lineno_ptr, out.str);
 	} else
 		mferror(COLOR_RED, "Fault: %s", out.str);

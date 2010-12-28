@@ -16,11 +16,12 @@
 #include <readline/readline.h>
 #include <readline/history.h>
 #include "arch/console.h"
-#include "device/machine.h"
+#include "../config.h"
 #include "assert.h"
 #include "cmd.h"
 #include "fault.h"
 #include "input.h"
+#include "main.h"
 #include "parser.h"
 #include "utils.h"
 
@@ -134,16 +135,16 @@ void input_back(void)
  */
 void interactive_control(void)
 {
-	tobreak = false;
+	machine_break = false;
 	
-	if (reenter) {
+	if (machine_newline) {
 		printf("\n");
-		reenter = false;
+		machine_newline = false;
 	}
 	
 	stepping = 0;
 	
-	while (interactive) {
+	while (machine_interactive) {
 		input_back();
 		char *cmdline = readline(PROMPT);
 		input_shadow();

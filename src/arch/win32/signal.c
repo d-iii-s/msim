@@ -14,6 +14,7 @@
 #include <windows.h>
 #include <stdlib.h>
 #include "../../fault.h"
+#include "../../input.h"
 #include "../../main.h"
 
 static BOOL machine_user_break(DWORD fdwCtrlType)

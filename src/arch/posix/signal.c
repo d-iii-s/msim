@@ -14,6 +14,7 @@
 #include <signal.h>
 #include <stdlib.h>
 #include "../../fault.h"
+#include "../../input.h"
 #include "../../main.h"
 
 static void machine_user_break(int signo)

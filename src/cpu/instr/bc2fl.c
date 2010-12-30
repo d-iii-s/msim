@@ -1,8 +1,10 @@
 static exc_t instr_bc2fl(cpu_t *cpu, instr_t instr)
 {
-	if (cp0_status_cu2(cpu))
+	if (cp0_status_cu2(cpu)) {
 		/* Ignore (always false) */
-		return excLikely;
+		cpu->pc_next.ptr += 4;
+		return excNone;
+	}
 	
 	/* Coprocessor unusable */
 	cp0_cause(cpu).val &= ~cp0_cause_ce_mask;

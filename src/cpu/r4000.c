@@ -31,51 +31,357 @@
  *
  */
 
-#define PTL2_COUNT  4096
-#define PTL1_COUNT  4096
+#define FTL2_WIDTH  12
+#define FTL1_WIDTH  12
 
-#define PTL2_SHIFT  12
-#define PTL1_SHIFT  24
+#define FTL2_COUNT  (1 << FTL2_WIDTH)
+#define FTL1_COUNT  (1 << FTL1_WIDTH)
 
-#define PTL2_MASK   0x0FFFU
-#define PTL1_MASK   0x0FFFU
+#define FTL2_SHIFT  (FRAME_WIDTH)
+#define FTL1_SHIFT  (FRAME_WIDTH + FTL2_WIDTH)
 
-typedef enum {
-	MEMT_NONE = 0,  /**< Uninitialized */
-	MEMT_MEM  = 1,  /**< Generic */
-	MEMT_FMAP = 2   /**< File mapped */
-} physmem_type_t;
+#define FTL2_MASK   (FTL2_COUNT - 1)
+#define FTL1_MASK   (FTL1_COUNT - 1)
 
-typedef struct {
-	/* Memory area type */
-	physmem_type_t type;
-	bool writable;
+typedef frame_t *ftl1_t[FTL2_COUNT];
+typedef ftl1_t *ftl0_t[FTL1_COUNT];
+
+static ftl0_t ftl0 = {
+	NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
+	NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
+	NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
+	NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
+	NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
+	NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
+	NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
+	NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
+	NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
+	NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
+	NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
+	NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
+	NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
+	NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
+	NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
+	NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
+	NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
+	NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
+	NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
+	NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
+	NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
+	NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
+	NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
+	NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
+	NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
+	NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
+	NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
+	NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
+	NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
+	NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
+	NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
+	NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
+	NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
+	NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
+	NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
+	NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
+	NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
+	NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
+	NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
+	NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
+	NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
+	NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
+	NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
+	NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
+	NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
+	NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
+	NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
+	NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
+	NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
+	NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
+	NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
+	NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
+	NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
+	NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
+	NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
+	NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
+	NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
+	NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
+	NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
+	NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
+	NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
+	NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
+	NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
+	NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
+	NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
+	NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
+	NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
+	NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
+	NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
+	NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
+	NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
+	NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
+	NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
+	NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
+	NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
+	NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
+	NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
+	NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
+	NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
+	NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
+	NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
+	NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
+	NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
+	NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
+	NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
+	NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
+	NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
+	NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
+	NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
+	NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
+	NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
+	NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
+	NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
+	NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
+	NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
+	NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
+	NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
+	NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
+	NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
+	NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
+	NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
+	NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
+	NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
+	NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
+	NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
+	NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
+	NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
+	NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
+	NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
+	NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
+	NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
+	NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
+	NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
+	NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
+	NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
+	NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
+	NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
+	NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
+	NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
+	NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
+	NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
+	NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
+	NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
+	NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
+	NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
+	NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
+	NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
+	NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
+	NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
+	NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
+	NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
+	NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
+	NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
+	NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
+	NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
+	NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
+	NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
+	NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
+	NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
+	NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
+	NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
+	NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
+	NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
+	NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
+	NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
+	NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
+	NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
+	NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
+	NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
+	NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
+	NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
+	NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
+	NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
+	NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
+	NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
+	NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
+	NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
+	NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
+	NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
+	NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
+	NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
+	NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
+	NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
+	NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
+	NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
+	NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
+	NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
+	NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
+	NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
+	NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
+	NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
+	NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
+	NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
+	NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
+	NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
+	NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
+	NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
+	NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
+	NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
+	NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
+	NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
+	NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
+	NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
+	NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
+	NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
+	NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
+	NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
+	NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
+	NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
+	NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
+	NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
+	NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
+	NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
+	NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
+	NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
+	NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
+	NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
+	NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
+	NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
+	NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
+	NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
+	NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
+	NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
+	NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
+	NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
+	NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
+	NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
+	NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
+	NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
+	NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
+	NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
+	NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
+	NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
+	NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
+	NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
+	NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
+	NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
+	NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
+	NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
+	NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
+	NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
+	NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
+	NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
+	NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
+	NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
+	NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
+	NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
+	NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
+	NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
+	NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
+	NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
+	NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
+	NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
+	NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
+	NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
+	NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
+	NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
+	NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
+	NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
+	NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
+	NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
+	NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
+	NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
+	NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
+	NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
+	NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
+	NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
+	NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
+	NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
+	NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
+	NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
+	NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
+	NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
+	NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
+	NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
+	NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL
+};
+
+void physmem_wire(physmem_area_t *area)
+{
+	ASSERT(area != NULL);
+	ASSERT(area->type != MEMT_NONE);
+	ASSERT(area->count > 0);
+	ASSERT(area->data != NULL);
+	ASSERT(area->trans != NULL);
 	
-	/* Starting physical frame */
-	uint32_t start;
+	pfn_t pfn;
+	for (pfn = 0; pfn < area->count; pfn++) {
+		ptr36_t addr = FRAME2ADDR(area->start + pfn);
+		
+		/* 1st level frame table */
+		ftl1_t *ftl1 = ftl0[(addr >> FTL1_SHIFT) & FTL1_MASK];
+		if (ftl1 == NULL) {
+			/* Allocate new 2nd level frame table */
+			ftl1 = safe_malloc_t(ftl1_t);
+			memset(ftl1, 0, sizeof(ftl1_t));
+			ftl0[(addr >> FTL1_SHIFT) & FTL1_MASK] = ftl1;
+		}
+		
+		/* 2nd level frame table */
+		frame_t *frame = (*ftl1)[(addr >> FTL2_SHIFT) & FTL2_MASK];
+		if (frame == NULL) {
+			/* Allocate new frame descriptor */
+			frame = safe_malloc_t(frame_t);
+			memset(frame, 0, sizeof(frame_t));
+			(*ftl1)[(addr >> FTL2_SHIFT) & FTL2_MASK] = frame;
+		}
+		
+		/* Frame descriptor */
+		frame->area = area;
+		frame->data = area->data + FRAMES2SIZE(pfn);
+		frame->trans = area->trans + SIZE2INSTRS(FRAMES2SIZE(pfn));
+		frame->valid = false;
+	}
+}
+
+void physmem_unwire(physmem_area_t *area)
+{
+	ASSERT(area != NULL);
+	ASSERT(area->type != MEMT_NONE);
+	ASSERT(area->count > 0);
+	ASSERT(area->data != NULL);
+	ASSERT(area->trans != NULL);
 	
-	/* Number of physical frames */
-	uint32_t count;
+	// FIXME TODO
+	// Deallocate also the ftl1 if no longer needed
 	
-	/* Memory content */
-	unsigned char *data;
-} physmem_area_t;
+	uint32_t pfn;
+	for (pfn = 0; pfn < area->count; pfn++) {
+		ptr36_t addr = FRAME2ADDR(area->start + pfn);
+		
+		/* 1st level frame table */
+		ftl1_t *ftl1 = ftl0[(addr >> FTL1_SHIFT) & FTL1_MASK];
+		ASSERT(ftl1 != NULL);
+		
+		/* 2nd level frame table */
+		frame_t **frame_ref = &((*ftl1)[(addr >> FTL2_SHIFT) & FTL2_MASK]);
+		ASSERT(*frame_ref != NULL);
+		
+		/* Remove frame */
+		safe_free(*frame_ref);
+	}
+}
 
-/** Instruction implementation */
-typedef exc_t (*instr_fnc_t)(cpu_t *, instr_t);
-
-typedef struct {
-	/* Physical memory area containing the frame */
-	physmem_area_t *area;
+static frame_t* physmem_find_frame(ptr36_t addr)
+{
+	ftl1_t *ftl1 = ftl0[(addr >> FTL1_SHIFT) & FTL1_MASK];
+	if (ftl1 != NULL) {
+		frame_t *frame = (*ftl1)[(addr >> FTL2_SHIFT) & FTL2_MASK];
+		if (frame != NULL)
+			return frame;
+	}
 	
-	/* Decoded instructions */
-	instr_fnc_t *decoded;
-} frame_t;
-
-typedef frame_t *ptl1_t[PTL2_COUNT];
-typedef ptl1_t *ptl0_t[PTL1_COUNT];
-
-static ptl0_t ptl0;
+	return NULL;
+}
 
 /** Sign extensions
  *
@@ -1098,6 +1404,15 @@ static exc_t TLBW(cpu_t *cpu, bool random)
 			entry->pg[1].valid = cp0_entrylo1_v(cpu);
 		}
 		
+		/*
+		 * Invalidate current CPU binary translation frame.
+		 * This should be actually only necessary if the page
+		 * with the current PC is affected by the TLB change.
+		 * But let's take this conservative precaution in order
+		 * not to miss any corner cases.
+		 */
+		cpu->frame = NULL;
+		
 		return excNone;
 	}
 	
@@ -1877,45 +2192,45 @@ void cpu_set_pc(cpu_t *cpu, ptr64_t value)
  * the WATCH exception.
  *
  */
-exc_t cpu_read_ins(cpu_t *cpu, ptr64_t addr, uint32_t *icode, bool noisy)
-{
-	ASSERT(cpu != NULL);
-	ASSERT(icode != NULL);
-	
-	exc_t res = align_test32(cpu, addr, noisy);
-	switch (res) {
-	case excNone:
-		break;
-	case excAddrError:
-		return excAdES;
-	default:
-		ASSERT(false);
-	}
-	
-	ptr36_t phys;
-	res = access_mem(cpu, AM_FETCH, addr, &phys, noisy);
-	switch (res) {
-	case excNone:
-		*icode = physmem_read32(cpu, phys, true);
-		break;
-	case excAddrError:
-		res = excAdEL;
-		break;
-	case excTLB:
-		res = excTLBL;
-		break;
-	case excTLBR:
-		res = excTLBLR;
-		break;
-	default:
-		ASSERT(false);
-	}
-	
-	if ((noisy) && (res != excNone) && (cpu->branch == BRANCH_NONE))
-		cpu->excaddr = cpu->pc;
-	
-	return res;
-}
+//exc_t cpu_read_ins(cpu_t *cpu, ptr64_t addr, uint32_t *icode, bool noisy)
+//{
+//	ASSERT(cpu != NULL);
+//	ASSERT(icode != NULL);
+//	
+//	exc_t res = align_test32(cpu, addr, noisy);
+//	switch (res) {
+//	case excNone:
+//		break;
+//	case excAddrError:
+//		return excAdES;
+//	default:
+//		ASSERT(false);
+//	}
+//	
+//	ptr36_t phys;
+//	res = access_mem(cpu, AM_FETCH, addr, &phys, noisy);
+//	switch (res) {
+//	case excNone:
+//		*icode = physmem_read32(cpu, phys, true);
+//		break;
+//	case excAddrError:
+//		res = excAdEL;
+//		break;
+//	case excTLB:
+//		res = excTLBL;
+//		break;
+//	case excTLBR:
+//		res = excTLBLR;
+//		break;
+//	default:
+//		ASSERT(false);
+//	}
+//	
+//	if ((noisy) && (res != excNone) && (cpu->branch == BRANCH_NONE))
+//		cpu->excaddr = cpu->pc;
+//	
+//	return res;
+//}
 
 /** Find an activated memory breakpoint
  *
@@ -1947,21 +2262,6 @@ static void physmem_breakpoint_find(ptr36_t addr, len36_t size,
 			break;
 		}
 	}
-}
-
-static physmem_area_t* find_physmem_area(ptr36_t addr)
-{
-	ptl1_t *ptl1 = ptl0[(addr >> PTL1_SHIFT) & PTL1_MASK];
-	if (ptl1 != NULL) {
-		frame_t *frame = (*ptl1)[(addr >> PTL2_SHIFT) & PTL2_MASK];
-		if (frame != NULL) {
-			physmem_area_t *area = frame->area;
-			if (area != NULL)
-				return area;
-		}
-	}
-	
-	return NULL;
 }
 
 static uint8_t devmem_read8(cpu_t *cpu, ptr36_t addr)
@@ -2033,21 +2333,23 @@ static uint64_t devmem_read64(cpu_t *cpu, ptr36_t addr)
  */
 uint8_t physmem_read8(cpu_t *cpu, ptr36_t addr, bool protected)
 {
-	physmem_area_t *area = find_physmem_area(addr);
+	frame_t *frame = physmem_find_frame(addr);
 	
 	/*
-	 * No memory area found, try to read the value
+	 * No memory frame found, try to read the value
 	 * from appropriate device or return the default value.
 	 */
-	if (area == NULL)
+	if (frame == NULL)
 		return devmem_read8(cpu, addr);
 	
 	/* Check for memory read breakpoints */
 	if (protected)
 		physmem_breakpoint_find(addr, 1, ACCESS_READ);
 	
-	return convert_uint8_t_endian(*((uint8_t *)
-	    (area->data + (addr - FRAME2ADDR(area->start)))));
+	ASSERT(frame->data);
+	uint8_t *data = frame->data + (addr & FRAME_MASK);
+	
+	return convert_uint8_t_endian(*data);
 }
 
 /** Physical memory read (16 bits)
@@ -2067,21 +2369,23 @@ uint8_t physmem_read8(cpu_t *cpu, ptr36_t addr, bool protected)
  */
 uint16_t physmem_read16(cpu_t *cpu, ptr36_t addr, bool protected)
 {
-	physmem_area_t *area = find_physmem_area(addr);
+	frame_t *frame = physmem_find_frame(addr);
 	
 	/*
-	 * No memory area found, try to read the value
+	 * No memory frame found, try to read the value
 	 * from appropriate device or return the default value.
 	 */
-	if (area == NULL)
+	if (frame == NULL)
 		return devmem_read16(cpu, addr);
 	
 	/* Check for memory read breakpoints */
 	if (protected)
 		physmem_breakpoint_find(addr, 2, ACCESS_READ);
 	
-	return convert_uint16_t_endian(*((uint16_t *)
-	    (area->data + (addr - FRAME2ADDR(area->start)))));
+	ASSERT(frame->data);
+	uint16_t *data = (uint16_t *) (frame->data + (addr & FRAME_MASK));
+	
+	return convert_uint16_t_endian(*data);
 }
 
 /** Physical memory read (32 bits)
@@ -2101,21 +2405,23 @@ uint16_t physmem_read16(cpu_t *cpu, ptr36_t addr, bool protected)
  */
 uint32_t physmem_read32(cpu_t *cpu, ptr36_t addr, bool protected)
 {
-	physmem_area_t *area = find_physmem_area(addr);
+	frame_t *frame = physmem_find_frame(addr);
 	
 	/*
-	 * No memory area found, try to read the value
+	 * No memory frame found, try to read the value
 	 * from appropriate device or return the default value.
 	 */
-	if (area == NULL)
+	if (frame == NULL)
 		return devmem_read32(cpu, addr);
 	
 	/* Check for memory read breakpoints */
 	if (protected)
 		physmem_breakpoint_find(addr, 4, ACCESS_READ);
 	
-	return convert_uint32_t_endian(*((uint32_t *)
-	    (area->data + (addr - FRAME2ADDR(area->start)))));
+	ASSERT(frame->data);
+	uint32_t *data = (uint32_t *) (frame->data + (addr & FRAME_MASK));
+	
+	return convert_uint32_t_endian(*data);
 }
 
 /** Physical memory read (64 bits)
@@ -2135,21 +2441,23 @@ uint32_t physmem_read32(cpu_t *cpu, ptr36_t addr, bool protected)
  */
 uint64_t physmem_read64(cpu_t *cpu, ptr36_t addr, bool protected)
 {
-	physmem_area_t *area = find_physmem_area(addr);
+	frame_t *frame = physmem_find_frame(addr);
 	
 	/*
-	 * No memory area found, try to read the value
+	 * No memory frame found, try to read the value
 	 * from appropriate device or return the default value.
 	 */
-	if (area == NULL)
+	if (frame == NULL)
 		return devmem_read64(cpu, addr);
 	
 	/* Check for memory read breakpoints */
 	if (protected)
 		physmem_breakpoint_find(addr, 8, ACCESS_READ);
 	
-	return convert_uint64_t_endian(*((uint64_t *)
-	    (area->data + (addr - FRAME2ADDR(area->start)))));
+	ASSERT(frame->data);
+	uint64_t *data = (uint64_t *) (frame->data + (addr & FRAME_MASK));
+	
+	return convert_uint64_t_endian(*data);
 }
 
 /** Load Linked and Store Conditional control
@@ -2258,14 +2566,17 @@ static bool devmem_write64(cpu_t *cpu, ptr36_t addr, uint64_t val)
  */
 bool physmem_write8(cpu_t *cpu, ptr36_t addr, uint8_t val, bool protected)
 {
-	physmem_area_t *area = find_physmem_area(addr);
+	frame_t *frame = physmem_find_frame(addr);
 	
-	/* No region found, try to write the value to appropriate device */
-	if (area == NULL)
+	/* No frame found, try to write the value to appropriate device */
+	if (frame == NULL)
 		return devmem_write8(cpu, addr, val);
 	
+	ASSERT(frame->area);
+	ASSERT(frame->data);
+	
 	/* Writting to ROM? */
-	if ((!area->writable) && (protected))
+	if ((!frame->area->writable) && (protected))
 		return false;
 	
 	sc_control(addr);
@@ -2274,8 +2585,11 @@ bool physmem_write8(cpu_t *cpu, ptr36_t addr, uint8_t val, bool protected)
 	if (protected)
 		physmem_breakpoint_find(addr, 1, ACCESS_WRITE);
 	
-	*((uint8_t *) (area->data + (addr - FRAME2ADDR(area->start)))) =
-	    convert_uint8_t_endian(val);
+	/* Invalidate binary translation */
+	frame->valid = false;
+	
+	uint8_t *data = frame->data + (addr & FRAME_MASK);
+	*data = convert_uint8_t_endian(val);
 	
 	return true;
 }
@@ -2299,14 +2613,17 @@ bool physmem_write8(cpu_t *cpu, ptr36_t addr, uint8_t val, bool protected)
  */
 bool physmem_write16(cpu_t *cpu, ptr36_t addr, uint16_t val, bool protected)
 {
-	physmem_area_t *area = find_physmem_area(addr);
+	frame_t *frame = physmem_find_frame(addr);
 	
-	/* No region found, try to write the value to appropriate device */
-	if (area == NULL)
+	/* No frame found, try to write the value to appropriate device */
+	if (frame == NULL)
 		return devmem_write16(cpu, addr, val);
 	
+	ASSERT(frame->area);
+	ASSERT(frame->data);
+	
 	/* Writting to ROM? */
-	if ((!area->writable) && (protected))
+	if ((!frame->area->writable) && (protected))
 		return false;
 	
 	sc_control(addr);
@@ -2315,8 +2632,11 @@ bool physmem_write16(cpu_t *cpu, ptr36_t addr, uint16_t val, bool protected)
 	if (protected)
 		physmem_breakpoint_find(addr, 2, ACCESS_WRITE);
 	
-	*((uint16_t *) (area->data + (addr - FRAME2ADDR(area->start)))) =
-	    convert_uint16_t_endian(val);
+	/* Invalidate binary translation */
+	frame->valid = false;
+	
+	uint16_t *data = (uint16_t *) (frame->data + (addr & FRAME_MASK));
+	*data = convert_uint16_t_endian(val);
 	
 	return true;
 }
@@ -2340,14 +2660,17 @@ bool physmem_write16(cpu_t *cpu, ptr36_t addr, uint16_t val, bool protected)
  */
 bool physmem_write32(cpu_t *cpu, ptr36_t addr, uint32_t val, bool protected)
 {
-	physmem_area_t *area = find_physmem_area(addr);
+	frame_t *frame = physmem_find_frame(addr);
 	
-	/* No region found, try to write the value to appropriate device */
-	if (area == NULL)
+	/* No frame found, try to write the value to appropriate device */
+	if (frame == NULL)
 		return devmem_write32(cpu, addr, val);
 	
+	ASSERT(frame->area);
+	ASSERT(frame->data);
+	
 	/* Writting to ROM? */
-	if ((!area->writable) && (protected))
+	if ((!frame->area->writable) && (protected))
 		return false;
 	
 	sc_control(addr);
@@ -2356,8 +2679,11 @@ bool physmem_write32(cpu_t *cpu, ptr36_t addr, uint32_t val, bool protected)
 	if (protected)
 		physmem_breakpoint_find(addr, 4, ACCESS_WRITE);
 	
-	*((uint32_t *) (area->data + (addr - FRAME2ADDR(area->start)))) =
-	    convert_uint32_t_endian(val);
+	/* Invalidate binary translation */
+	frame->valid = false;
+	
+	uint32_t *data = (uint32_t *) (frame->data + (addr & FRAME_MASK));
+	*data = convert_uint32_t_endian(val);
 	
 	return true;
 }
@@ -2381,14 +2707,17 @@ bool physmem_write32(cpu_t *cpu, ptr36_t addr, uint32_t val, bool protected)
  */
 bool physmem_write64(cpu_t *cpu, ptr36_t addr, uint64_t val, bool protected)
 {
-	physmem_area_t *area = find_physmem_area(addr);
+	frame_t *frame = physmem_find_frame(addr);
 	
-	/* No region found, try to write the value to appropriate device */
-	if (area == NULL)
+	/* No frame found, try to write the value to appropriate device */
+	if (frame == NULL)
 		return devmem_write64(cpu, addr, val);
 	
+	ASSERT(frame->area);
+	ASSERT(frame->data);
+	
 	/* Writting to ROM? */
-	if ((!area->writable) && (protected))
+	if ((!frame->area->writable) && (protected))
 		return false;
 	
 	sc_control(addr);
@@ -2397,8 +2726,11 @@ bool physmem_write64(cpu_t *cpu, ptr36_t addr, uint64_t val, bool protected)
 	if (protected)
 		physmem_breakpoint_find(addr, 8, ACCESS_WRITE);
 	
-	*((uint64_t *) (area->data + (addr - FRAME2ADDR(area->start)))) =
-	    convert_uint64_t_endian(val);
+	/* Invalidate binary translation */
+	frame->valid = false;
+	
+	uint64_t *data = (uint64_t *) (frame->data + (addr & FRAME_MASK));
+	*data = convert_uint64_t_endian(val);
 	
 	return true;
 }
@@ -2519,53 +2851,56 @@ static instr_fnc_t decode(instr_t instr)
 	return fnc;
 }
 
-/** Execute the instruction specified by the opcode
- *
- */
-static exc_t execute(cpu_t *cpu, instr_t instr)
+static exc_t cpu_frame(cpu_t *cpu)
 {
 	ASSERT(cpu != NULL);
 	
-	instr_fnc_t fnc = decode(instr);
-	exc_t res = fnc(cpu, instr);
+	ptr64_t virt;
+	virt.ptr = cpu->pc.ptr;
+	virt.lo &= ~((uint32_t) FRAME_MASK);
 	
-	/* Branch test */
-	if ((cpu->branch == BRANCH_COND) || (cpu->branch == BRANCH_NONE))
-		cpu->excaddr.ptr = cpu->pc.ptr;
-	
-	/* PC update */
+	ptr36_t phys;
+	exc_t res = convert_addr(cpu, virt, &phys, false, true);
 	switch (res) {
-	case excJump:
-		/*
-		 * Execute the instruction in the branch
-		 * delay slot. The jump target is stored
-		 * in pc_next.
-		 */
-		res = excNone;
-		cpu->pc.ptr += 4;
+	case excNone:
 		break;
-	case excLikely:
-		/*
-		 * Nullify the instruction in the branch
-		 * delay slot by ignoring it completely.
-		 */
-		res = excNone;
-		cpu->pc_next.ptr += 4;
-		/* No break */
+	case excAddrError:
+		if (cpu->branch == BRANCH_NONE)
+			cpu->excaddr = cpu->pc;
+		return excAdEL;
+	case excTLB:
+		if (cpu->branch == BRANCH_NONE)
+			cpu->excaddr = cpu->pc;
+		return excTLBL;
+	case excTLBR:
+		if (cpu->branch == BRANCH_NONE)
+			cpu->excaddr = cpu->pc;
+		return excTLBLR;
 	default:
-		/*
-		 * Advance to the next instruction
-		 * as usual.
-		 */
-		cpu->pc.ptr = cpu->pc_next.ptr;
-		cpu->pc_next.ptr += 4;
-		break;
+		ASSERT(false);
 	}
 	
-	/* Register 0 contains a hardwired zero value */
-	cpu->regs[0].val = 0;
+	cpu->frame = physmem_find_frame(phys);
+	if (cpu->frame == NULL) {
+		alert("Trying to fetch instructions from outside of physical memory");
+		return excAdEL;
+	}
 	
-	return res;
+	return excNone;
+}
+
+static void frame_decode(frame_t *frame)
+{
+	ASSERT(frame != NULL);
+	ASSERT(!frame->valid);
+	
+	unsigned int i;
+	for (i = 0; i < ADDR2INSTR(FRAME_SIZE); i++) {
+		instr_t instr = *((instr_t *) (frame->data + INSTR2ADDR(i)));
+		*(frame->trans + i) = decode(instr);
+	}
+	
+	frame->valid = true;
 }
 
 /** Change the processor state according to the exception type
@@ -2586,13 +2921,14 @@ static void handle_exception(cpu_t *cpu, exc_t res)
 			res = excTLBS;
 	}
 	
+	ASSERT(res <= excVCED);
+	
 	cpu->stdby = false;
 	
 	/* User info and register fill */
-	if (machine_trace) {
-		ASSERT(res <= excVCED);
-		alert("Raised exception %u: %s", res, txt_exc[res]);
-	}
+	if (machine_trace)
+		alert("cpu%u raised exception %u: %s", cpu->procno,
+		    res, txt_exc[res]);
 	
 	cp0_cause(cpu).val &= ~cp0_cause_exccode_mask;
 	cp0_cause(cpu).val |= res << cp0_cause_exccode_shift;
@@ -2634,12 +2970,65 @@ static void handle_exception(cpu_t *cpu, exc_t res)
 	cp0_status(cpu).val |= cp0_status_exl_mask;
 }
 
-/** React on interrupt requests, updates internal timer, random register
+/** Execute one CPU instruction
+ *
+ * @return True if the execution frame has changed.
  *
  */
-static void manage(cpu_t *cpu, exc_t res)
+static void execute(cpu_t *cpu)
 {
 	ASSERT(cpu != NULL);
+	
+	/* Binary translation */
+	if (cpu->frame == NULL) {
+		exc_t res;
+		
+		do {
+			res = cpu_frame(cpu);
+			if (res != excNone)
+				handle_exception(cpu, res);
+		} while (res != excNone);
+	}
+	
+	if (!cpu->frame->valid)
+		frame_decode(cpu->frame);
+	
+	/* Fetch decoded instruction */
+	unsigned int i = cpu->pc.ptr & FRAME_MASK;
+	instr_t instr = *((instr_t *) (cpu->frame->data + i));
+	instr_fnc_t fnc = *(cpu->frame->trans + ADDR2INSTR(i));
+	
+	/* Execute instruction */
+	ptr64_t old_pc = cpu->pc;
+	exc_t res = fnc(cpu, instr);
+	
+	if (machine_trace)
+		idump(cpu, old_pc, instr, true);
+	
+	/* Branch test */
+	if ((cpu->branch == BRANCH_COND) || (cpu->branch == BRANCH_NONE))
+		cpu->excaddr.ptr = cpu->pc.ptr;
+	
+	/* PC update */
+	if (res == excJump) {
+		/*
+		 * Execute the instruction in the branch
+		 * delay slot. The jump target is stored
+		 * in pc_next.
+		 */
+		res = excNone;
+		cpu->pc.ptr += 4;
+	} else {
+		/*
+		 * Advance to the next instruction
+		 * as usual.
+		 */
+		cpu->pc.ptr = cpu->pc_next.ptr;
+		cpu->pc_next.ptr += 4;
+	}
+	
+	/* Register 0 contains a hardwired zero value */
+	cpu->regs[0].val = 0;
 	
 	/* Test for interrupt request */
 	if ((res == excNone)
@@ -2676,57 +3065,29 @@ static void manage(cpu_t *cpu, exc_t res)
 	/* Branch delay slot control */
 	if (cpu->branch > BRANCH_NONE)
 		cpu->branch--;
-}
-
-/* Simulate one instruction
- *
- */
-static void instruction(cpu_t *cpu)
-{
-	ASSERT(cpu != NULL);
 	
-	/* Fetch instruction */
-	instr_t instr;
-	exc_t res = cpu_read_ins(cpu, cpu->pc, &instr.val, true);
+	if (CPU_KERNEL_MODE(cpu))
+		cpu->k_cycles++;
+	else
+		cpu->u_cycles++;
 	
-	if (res == excNone) {
-		/* Execute instruction */
-		ptr64_t old_pc = cpu->pc;
-		res = execute(cpu, instr);
-		
-		/* Tracing output */
-		if (machine_trace)
-			idump(cpu, old_pc, instr, true);
-	}
-	
-	/* Manage CPU state */
-	manage(cpu, res);
+	if ((old_pc.ptr | FRAME_MASK) != (cpu->pc.ptr | FRAME_MASK))
+		cpu->frame = NULL;
 }
 
 /* Simulate 4096 cycles of the processor
- *
- * This is just one instruction.
  *
  */
 void cpu_step4k(cpu_t *cpu)
 {
 	ASSERT(cpu != NULL);
 	
-	unsigned int i;
-	
-	for (i = 0; i < 4096; i++) {
-		/*
-		 * Execute one instruction and update
-		 * CPU cycle accounting.
-		 */
-		if (!cpu->stdby) {
-			instruction(cpu);
-			
-			if (CPU_KERNEL_MODE(cpu))
-				cpu->k_cycles++;
-			else
-				cpu->u_cycles++;
-		} else
-			cpu->w_cycles++;
+	if (cpu->stdby) {
+		cpu->w_cycles += 4096;
+		return;
 	}
+	
+	unsigned int i;
+	for (i = 0; i < 4096; i++)
+		execute(cpu);
 }

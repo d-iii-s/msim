@@ -16,6 +16,7 @@
 #include <string.h>
 #include <inttypes.h>
 #include <unistd.h>
+#include "cpu/r4000.h"
 #include "arch/mmap.h"
 #include "text.h"
 #include "utils.h"
@@ -389,6 +390,11 @@ char *uint64_human_readable(uint64_t i)
 bool ptr36_dword_aligned(ptr36_t addr)
 {
 	return (addr & 0x07U) == 0;
+}
+
+bool ptr36_frame_aligned(ptr36_t addr)
+{
+	return (addr & FRAME_MASK) == 0;
 }
 
 bool virt_range(uint64_t addr)

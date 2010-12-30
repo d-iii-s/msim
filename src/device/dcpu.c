@@ -206,7 +206,9 @@ static bool dcpu_id(token_t *parm, device_t *dev)
 	for (addr.ptr = _addr, cnt = _cnt; cnt > 0;
 	    addr.ptr += 4, cnt--) {
 		instr_t instr;
-		exc_t res = cpu_read_ins((cpu_t *) dev->data, addr, &instr.val, false);
+		// FIXME
+		exc_t res = excNone;
+		// exc_t res = cpu_read_ins((cpu_t *) dev->data, addr, &instr.val, false);
 		
 		if (res != excNone)
 			instr.val = 0;

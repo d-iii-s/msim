@@ -17,7 +17,7 @@
 
 #ifdef WORDS_BIGENDIAN
 
-#define convert_uint8_t_endian(val) (val)
+#define convert_uint8_t_endian(val)  (val)
 
 #define convert_uint16_t_endian(val) \
 	((((val) << 8) & UINT16_C(0xff00)) | (((val) >> 8) & UINT16_C(0x00ff)))
@@ -34,10 +34,10 @@
 
 #else /* WORDS_BIGENDIAN */
 
-#define convert_uint8_t_endian(val)  (val)
-#define convert_uint16_t_endian(val) (val)
-#define convert_uint32_t_endian(val) (val)
-#define convert_uint64_t_endian(val) (val)
+#define convert_uint8_t_endian(val)   (val)
+#define convert_uint16_t_endian(val)  (val)
+#define convert_uint32_t_endian(val)  (val)
+#define convert_uint64_t_endian(val)  (val)
 
 #endif /* WORDS_BIGENDIAN */
 

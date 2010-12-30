@@ -22,6 +22,7 @@
 #include "device.h"
 #include "mem.h"
 #include "../arch/mmap.h"
+#include "../cpu/r4000.h"
 #include "../fault.h"
 #include "../parser.h"
 #include "../text.h"
@@ -40,23 +41,26 @@ const char *txt_mem_type[] = {
 /** Cleanup the memory
  *
  */
-static void mem_cleanup(physmem_area_t *area)
+static void physmem_cleanup(physmem_area_t *area)
 {
 	switch (area->type) {
 	case MEMT_NONE:
-		/* Nothing to do. */
+		/* Nothing to do */
 		break;
 	case MEMT_MEM:
-		/* Free old memory block. */
+		physmem_unwire(area);
 		safe_free(area->data);
+		safe_free(area->trans);
 		break;
 	case MEMT_FMAP:
-		try_munmap(area->data, area->size);
+		physmem_unwire(area);
+		try_munmap(area->data, FRAMES2SIZE(area->count));
+		safe_free(area->trans);
 		break;
 	}
 	
 	area->type = MEMT_NONE;
-	area->size = 0;
+	area->count = 0;
 }
 
 /** Init command implementation
@@ -77,22 +81,21 @@ static bool mem_init(token_t *parm, device_t *dev)
 	
 	ptr36_t start = _start;
 	
-	if (!ptr36_dword_aligned(start)) {
-		error("Physical memory address must be 8-byte aligned");
+	if (!ptr36_frame_aligned(start)) {
+		error("Physical memory address must be aligned on frame boundary "
+		    "(%u bytes)", FRAME_SIZE);
 		return false;
 	}
 	
 	physmem_area_t *area = safe_malloc_t(physmem_area_t);
-	item_init(&area->item);
 	
 	area->type = MEMT_NONE;
 	area->writable = (strcmp(dev->type->name, "rwm") == 0);
-	
-	area->start = start;
-	area->size = 0;
+	area->start = ADDR2FRAME(start);
+	area->count = 0;
 	area->data = NULL;
+	area->trans = NULL;
 	
-	list_append(&physmem_areas, &area->item);
 	dev->data = area;
 	
 	return true;
@@ -104,11 +107,12 @@ static bool mem_init(token_t *parm, device_t *dev)
 static bool mem_info(token_t *parm, device_t *dev)
 {
 	physmem_area_t *area = (physmem_area_t *) dev->data;
-	char *size = uint64_human_readable(area->size);
+	char *size = uint64_human_readable(FRAMES2SIZE(area->count));
 	
 	printf("[Start    ] [Size      ] [Type]\n"
 	    "%#011" PRIx64 " %12s %s\n",
-	    area->start, size, txt_mem_type[area->type]);
+	    FRAME2ADDR(area->start), size,
+	    txt_mem_type[area->type]);
 	
 	safe_free(size);
 	
@@ -125,8 +129,13 @@ static bool mem_load(token_t *parm, device_t *dev)
 	physmem_area_t *area = (physmem_area_t *) dev->data;
 	const char *const path = parm_str(parm);
 	
-	if (area->type != MEMT_MEM) {
-		error("Physical memory area already established");
+	if (area->type == MEMT_NONE) {
+		error("Physical memory area not established yet");
+		return false;
+	}
+	
+	if (area->type == MEMT_FMAP) {
+		error("Physical memory area mapped to a file already");
 		return false;
 	}
 	
@@ -148,7 +157,7 @@ static bool mem_load(token_t *parm, device_t *dev)
 		return false;
 	}
 	
-	if (fsize > area->size) {
+	if (fsize > FRAMES2SIZE(area->count)) {
 		error("File size exceeds memory area size");
 		safe_fclose(file, path);
 		return false;
@@ -157,6 +166,7 @@ static bool mem_load(token_t *parm, device_t *dev)
 	if (!try_fseek(file, 0, SEEK_SET, path))
 		return false;
 	
+	// FIXME: invalidate binary translation
 	size_t rd = fread(area->data, 1, fsize, file);
 	if (rd != fsize) {
 		io_error(path);
@@ -207,14 +217,14 @@ static bool mem_fill(token_t *parm, device_t *dev)
 		return false;
 	}
 	
-	memset(area->data, c, area->size);
+	// FIXME: invalidate binary translation
+	memset(area->data, c, FRAMES2SIZE(area->count));
 	return true;
 }
 
 /** Fmap command implementation
  *
- * Map memory to a file. Allocated memory block is disposed. When the file
- * size is less than memory size it is enlarged.
+ * Map memory to a file.
  *
  */
 static bool mem_fmap(token_t *parm, device_t *dev)
@@ -245,6 +255,9 @@ static bool mem_fmap(token_t *parm, device_t *dev)
 	if (!try_ftell(file, path, &fsize))
 		return false;
 	
+	/* Align the size to frame boundary */
+	fsize = ALIGN_UP(fsize, FRAME_SIZE);
+	
 	if (fsize == 0) {
 		error("Empty file");
 		safe_fclose(file, path);
@@ -265,7 +278,7 @@ static bool mem_fmap(token_t *parm, device_t *dev)
 		return false;
 	}
 	
-	if (!phys_range(area->start + size)) {
+	if (!phys_range(FRAME2ADDR(area->start) + size)) {
 		error("File size exceeds physical memory range");
 		safe_fclose(file, path);
 		return false;
@@ -299,10 +312,12 @@ static bool mem_fmap(token_t *parm, device_t *dev)
 	/* Close file */
 	safe_fclose(file, path);
 	
-	/* Upgrade structure */
+	/* Update structures */
 	area->type = MEMT_FMAP;
-	area->size = fsize;
-	area->data = (unsigned char *) ptr;
+	area->count = SIZE2FRAMES(size);
+	area->data = (uint8_t *) ptr;
+	area->trans = safe_malloc(sizeof(instr_fnc_t) * SIZE2INSTRS(size));
+	physmem_wire(area);
 	
 	return true;
 }
@@ -328,19 +343,20 @@ static bool mem_generic(token_t *parm, device_t *dev)
 	}
 	
 	if (!phys_range(_size)) {
-		error("Size out of physical memory range");
+		error("Physical memory area size out of physical memory range");
 		return false;
 	}
 	
 	len36_t size = (len36_t) _size;
 	
-	if (!phys_range(area->start + size)) {
-		error("Size exceeds physical memory range");
+	if (!phys_range(FRAME2ADDR(area->start) + size)) {
+		error("Physical memory area size exceeds physical memory range");
 		return false;
 	}
 	
-	if (!ptr36_dword_aligned(size)) {
-		error("Physical memory size must be 8-byte aligned");
+	if (!ptr36_frame_aligned(_size)) {
+		error("Physical memory area size must be aligned on frame boundary "
+		    "(%u bytes)", FRAME_SIZE);
 		return false;
 	}
 	
@@ -352,8 +368,10 @@ static bool mem_generic(token_t *parm, device_t *dev)
 	}
 	
 	area->type = MEMT_MEM;
-	area->size = size;
+	area->count = SIZE2FRAMES(size);
 	area->data = safe_malloc(host_size);
+	area->trans = safe_malloc(sizeof(instr_fnc_t) * SIZE2INSTRS(host_size));
+	physmem_wire(area);
 	
 	return true;
 }
@@ -373,9 +391,10 @@ static bool mem_save(token_t *parm, device_t *dev)
 		return false;
 	}
 	
-	size_t host_size = (size_t) area->size;
+	len36_t size = FRAMES2SIZE(area->count);
+	size_t host_size = (size_t) size;
 	
-	if (host_size != area->size) {
+	if (host_size != size) {
 		error("Incompatible host and guest address space sizes");
 		return false;
 	}
@@ -405,9 +424,7 @@ static void mem_done(device_t *dev)
 {
 	physmem_area_t *area = (physmem_area_t *) dev->data;
 	
-	mem_cleanup(area);
-	list_remove(&physmem_areas, &area->item);
-	
+	physmem_cleanup(area);
 	safe_free(area);
 	safe_free(dev->name);
 }

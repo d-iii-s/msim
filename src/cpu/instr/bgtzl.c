@@ -14,5 +14,6 @@ static exc_t instr_bgtzl(cpu_t *cpu, instr_t instr)
 		return excJump;
 	}
 	
-	return excLikely;
+	cpu->pc_next.ptr += 4;
+	return excNone;
 }

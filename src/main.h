@@ -15,7 +15,6 @@
 #include "list.h"
 
 #define MAX_CPUS   32
-#define MAX_DEVS   128
 #define MAX_INTRS  6
 
 /** Exception types */
@@ -47,15 +46,18 @@ typedef enum {
 	/* For internal use */
 	excNone = 128,
 	excJump = 129,
-	excLikely = 130,
-	excAddrError = 131,
-	excTLB = 132,
-	excReset = 133
+	excAddrError = 130,
+	excTLB = 131,
+	excReset = 132
 } exc_t;
 
+/** Physical frame number type */
+typedef uint32_t pfn_t;
+
 /** Address and length types */
-typedef uint64_t ptr36_t;
 typedef uint64_t len36_t;
+typedef uint64_t len64_t;
+typedef uint64_t ptr36_t;
 
 typedef union {
 	uint64_t ptr;
@@ -86,8 +88,6 @@ typedef union {
 	};
 #endif
 } __attribute__((packed)) reg64_t;
-
-typedef uint64_t len64_t;
 
 /** Debugging register names */
 extern char **regname;

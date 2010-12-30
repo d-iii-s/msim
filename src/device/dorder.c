@@ -28,108 +28,6 @@
 #define REGISTER_LIMIT     8  /**< Register block size */
 /* \} */
 
-/*
- * Device commands
- */
-
-static bool dorder_init(token_t *parm, device_t *dev);
-static bool dorder_info(token_t *parm, device_t *dev);
-static bool dorder_stat(token_t *parm, device_t *dev);
-static bool dorder_synchup(token_t *parm, device_t *dev);
-static bool dorder_synchdown(token_t *parm, device_t *dev);
-
-/** Dorder command-line commands and parameters */
-cmd_t dorder_cmds[] = {
-	{
-		"init",
-		(fcmd_t) dorder_init,
-		DEFAULT,
-		DEFAULT,
-		"Initialization",
-		"Initialization",
-		REQ STR "name/order name" NEXT
-		REQ INT "addr/order register address" NEXT
-		REQ INT "int_no/interrupt number within 0..6" END
-	},
-	{
-		"help",
-		(fcmd_t) dev_generic_help,
-		DEFAULT,
-		DEFAULT,
-		"Display help",
-		"Display help",
-		OPT STR "cmd/command name" END
-	},
-	{
-		"info",
-		(fcmd_t) dorder_info,
-		DEFAULT,
-		DEFAULT,
-		"Display device state",
-		"Display device state",
-		NOCMD
-	},
-	{
-		"stat",
-		(fcmd_t) dorder_stat,
-		DEFAULT,
-		DEFAULT,
-		"Display device statistics",
-		"Display device statistics",
-		NOCMD
-	},
-	{
-		"synchup",
-		(fcmd_t) dorder_synchup,
-		DEFAULT,
-		DEFAULT,
-		"Write to the synchronization register",
-		"Write the synchronization register - enables interrupt pending "
-			"on processors with nonzero bits in the mask",
-		REQ INT "mask" END
-	},
-	{
-		"synchdown",
-		(fcmd_t) dorder_synchdown,
-		DEFAULT,
-		DEFAULT,
-		"Write to the synchronization register",
-		"Write the synchronization register - disables interrupt pending "
-			"on processors with nonzero bits in the mask",
-		REQ INT "mask" END
-	},
-	LAST_CMD
-};
-
-/** Name of the dorder device as presented to the user */
-const char id_dorder[] = "dorder";
-
-static void dorder_done(device_t *dev);
-static void dorder_read32(cpu_t *cpu, device_t *dev, ptr36_t addr, uint32_t *val);
-static void dorder_write32(cpu_t *cpu, device_t *dev, ptr36_t addr, uint32_t val);
-
-/** Doder object structure */
-device_type_t dorder = {
-	/* Order device is simulated deterministically */
-	.nondet = false,
-	
-	/* Type name and description */
-	.name = id_dorder,
-	.brief = "Synchronization device",
-	.full =
-	    "The order device allows to acquire a unique processor number "
-	    "(a serial number) and assert an interrupt to the specified "
-	    "processor in the multiprocessor machine.",
-	
-	/* Functions */
-	.done = dorder_done,
-	.read32 = dorder_read32,
-	.write32 = dorder_write32,
-	
-	/* Commands */
-	.cmds = dorder_cmds
-};
-
 /** Dorder instance data structure */
 typedef struct {
 	ptr36_t addr;        /**< Dorder address */
@@ -337,3 +235,88 @@ static void dorder_write32(cpu_t *cpu, device_t *dev, ptr36_t addr, uint32_t val
 		break;
 	}
 }
+
+/** Dorder command-line commands and parameters */
+cmd_t dorder_cmds[] = {
+	{
+		"init",
+		(fcmd_t) dorder_init,
+		DEFAULT,
+		DEFAULT,
+		"Initialization",
+		"Initialization",
+		REQ STR "name/order name" NEXT
+		REQ INT "addr/order register address" NEXT
+		REQ INT "int_no/interrupt number within 0..6" END
+	},
+	{
+		"help",
+		(fcmd_t) dev_generic_help,
+		DEFAULT,
+		DEFAULT,
+		"Display help",
+		"Display help",
+		OPT STR "cmd/command name" END
+	},
+	{
+		"info",
+		(fcmd_t) dorder_info,
+		DEFAULT,
+		DEFAULT,
+		"Display device state",
+		"Display device state",
+		NOCMD
+	},
+	{
+		"stat",
+		(fcmd_t) dorder_stat,
+		DEFAULT,
+		DEFAULT,
+		"Display device statistics",
+		"Display device statistics",
+		NOCMD
+	},
+	{
+		"synchup",
+		(fcmd_t) dorder_synchup,
+		DEFAULT,
+		DEFAULT,
+		"Write to the synchronization register",
+		"Write the synchronization register - enables interrupt pending "
+			"on processors with nonzero bits in the mask",
+		REQ INT "mask" END
+	},
+	{
+		"synchdown",
+		(fcmd_t) dorder_synchdown,
+		DEFAULT,
+		DEFAULT,
+		"Write to the synchronization register",
+		"Write the synchronization register - disables interrupt pending "
+			"on processors with nonzero bits in the mask",
+		REQ INT "mask" END
+	},
+	LAST_CMD
+};
+
+/** Doder object structure */
+device_type_t dorder = {
+	/* Order device is simulated deterministically */
+	.nondet = false,
+	
+	/* Type name and description */
+	.name = "dorder",
+	.brief = "Synchronization device",
+	.full =
+	    "The order device allows to acquire a unique processor number "
+	    "(a serial number) and assert an interrupt to the specified "
+	    "processor in the multiprocessor machine.",
+	
+	/* Functions */
+	.done = dorder_done,
+	.read32 = dorder_read32,
+	.write32 = dorder_write32,
+	
+	/* Commands */
+	.cmds = dorder_cmds
+};

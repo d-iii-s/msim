@@ -3078,16 +3078,14 @@ static void execute(cpu_t *cpu)
 /* Simulate 4096 cycles of the processor
  *
  */
-void cpu_step4k(cpu_t *cpu)
+void cpu_step(cpu_t *cpu)
 {
 	ASSERT(cpu != NULL);
 	
 	if (cpu->stdby) {
-		cpu->w_cycles += 4096;
+		cpu->w_cycles++;
 		return;
 	}
 	
-	unsigned int i;
-	for (i = 0; i < 4096; i++)
-		execute(cpu);
+	execute(cpu);
 }

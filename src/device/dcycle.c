@@ -166,12 +166,12 @@ static void dcycle_read64(cpu_t *cpu, device_t *dev, ptr36_t addr, uint64_t *val
 /** Cycle device implementation
  *
  */
-static void dcycle_step4k(device_t *dev)
+static void dcycle_step(device_t *dev)
 {
 	ASSERT(dev != NULL);
 	
 	dcycle_data_t *data = (dcycle_data_t *) dev->data;
-	data->cycle += 4096;
+	data->cycle++;
 }
 
 static cmd_t dcycle_cmds[] = {
@@ -228,7 +228,7 @@ device_type_t dcycle = {
 	.done = dcycle_done,
 	.read32 = dcycle_read32,
 	.read64 = dcycle_read64,
-	.step4k = dcycle_step4k,
+	.step = dcycle_step,
 	
 	/* Commands */
 	.cmds = dcycle_cmds

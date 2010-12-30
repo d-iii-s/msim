@@ -582,7 +582,7 @@ extern void physmem_unwire(physmem_area_t *area);
 /** Basic CPU routines */
 extern void cpu_init(cpu_t *cpu, unsigned int procno);
 extern void cpu_set_pc(cpu_t *cpu, ptr64_t value);
-extern void cpu_step4k(cpu_t *cpu);
+extern void cpu_step(cpu_t *cpu);
 
 /** Physical memory access */
 extern uint8_t physmem_read8(cpu_t *cpu, ptr36_t addr, bool protected);

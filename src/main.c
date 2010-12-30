@@ -233,14 +233,23 @@ static bool gdb_startup(void) {
 /** Run 4096 machine cycles
  *
  */
-static void machine_step4k(void)
+static void machine_step(void)
 {
+	/* Execute device cycles */
 	device_t *dev = NULL;
-	while (dev_next(&dev, DEVICE_FILTER_STEP4K))
-		dev->type->step4k(dev);
+	while (dev_next(&dev, DEVICE_FILTER_STEP))
+		dev->type->step(dev);
 	
 	/* Increase machine cycle counter */
-	steps += 4096;
+	steps++;
+	
+	/* Every 4096th cycle execute
+	   the step4k device functions */
+	if ((steps % 4096) == 0) {
+		dev = NULL;
+		while (dev_next(&dev, DEVICE_FILTER_STEP4K))
+			dev->type->step4k(dev);
+	}
 }
 
 /** Main simulator loop
@@ -275,14 +284,13 @@ static void machine_run(void)
 			gdb_session();
 		}
 		
-		// FIXME
-		/* Debug - step check */
-		// if (stepping > 0) {
-		// 	stepping--;
-		// 	
-		// 	if (stepping == 0)
-		// 		machine_interactive = true;
-		// }
+		/* Stepping check */
+		if (stepping > 0) {
+			stepping--;
+			
+			if (stepping == 0)
+				machine_interactive = true;
+		}
 		
 		/* Interactive mode control */
 		if (machine_interactive)
@@ -292,7 +300,7 @@ static void machine_run(void)
 		 * Continue with the simulation
 		 */
 		if (!machine_halt)
-			machine_step4k();
+			machine_step();
 	}
 }
 

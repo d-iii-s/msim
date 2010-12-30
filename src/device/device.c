@@ -124,6 +124,8 @@ static bool dev_match_to_filter(device_t* device, device_filter_t filter)
 	switch (filter) {
 	case DEVICE_FILTER_ALL:
 		return true;
+	case DEVICE_FILTER_STEP:
+		return device->type->step != NULL;
 	case DEVICE_FILTER_STEP4K:
 		return device->type->step4k != NULL;
 	case DEVICE_FILTER_MEMORY:

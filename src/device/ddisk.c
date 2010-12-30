@@ -657,42 +657,41 @@ static void ddisk_write32(cpu_t *cpu, device_t *dev, ptr36_t addr,
  * @param dev Device pointer
  *
  */
-static void ddisk_step4k(device_t *dev)
+static void ddisk_step(device_t *dev)
 {
-	// FIXME
-	// disk_data_s *data = (disk_data_s *) dev->data;
-	// size_t pos;
-	// 
-	// /* Reading */
-	// switch (data->action) {
-	// case ACTION_READ:
-	// 	pos = data->secno * 128 + data->cnt;
-	// 	physmem_write32(NULL, data->disk_ptr, data->img[pos], true);
-	// 	
-	// 	/* Next word */
-	// 	data->disk_ptr += 4;
-	// 	data->cnt++;
-	// 	break;
-	// case ACTION_WRITE:
-	// 	pos = data->secno * 128 + data->cnt;
-	// 	data->img[pos] = physmem_read32(NULL, data->disk_ptr, true);
-	// 	
-	// 	/* Next word */
-	// 	data->disk_ptr += 4;
-	// 	data->cnt++;
-	// 	break;
-	// default:
-	// 	/* No further processing */
-	// 	return;
-	// }
-	// 
-	// if (data->cnt == 128) {
-	// 	data->action = ACTION_NONE;
-	// 	data->disk_status = STATUS_INT;
-	// 	dcpu_interrupt_up(0, data->intno);
-	// 	data->ig = true;
-	// 	data->intrcount++;
-	// }
+	disk_data_s *data = (disk_data_s *) dev->data;
+	size_t pos;
+	
+	/* Reading */
+	switch (data->action) {
+	case ACTION_READ:
+		pos = data->secno * 128 + data->cnt;
+		physmem_write32(NULL, data->disk_ptr, data->img[pos], true);
+		
+		/* Next word */
+		data->disk_ptr += 4;
+		data->cnt++;
+		break;
+	case ACTION_WRITE:
+		pos = data->secno * 128 + data->cnt;
+		data->img[pos] = physmem_read32(NULL, data->disk_ptr, true);
+		
+		/* Next word */
+		data->disk_ptr += 4;
+		data->cnt++;
+		break;
+	default:
+		/* No further processing */
+		return;
+	}
+	
+	if (data->cnt == 128) {
+		data->action = ACTION_NONE;
+		data->disk_status = STATUS_INT;
+		dcpu_interrupt_up(0, data->intno);
+		data->ig = true;
+		data->intrcount++;
+	}
 }
 
 cmd_t ddisk_cmds[] = {
@@ -794,7 +793,7 @@ device_type_t ddisk = {
 	
 	/* Functions */
 	.done = ddisk_done,
-	.step4k = ddisk_step4k,
+	.step = ddisk_step,
 	.read32 = ddisk_read32,
 	.write32 = ddisk_write32,
 	

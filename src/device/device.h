@@ -33,6 +33,9 @@ typedef struct {
 	/** Dispose internal data. */
 	void (*done)(struct device *dev);
 	
+	/** Called every machine cycle. */
+	void (*step)(struct device *dev);
+	
 	/** Called every 4096th machine cycle. */
 	void (*step4k)(struct device *dev);
 	
@@ -72,6 +75,7 @@ typedef struct device {
 
 typedef enum {
 	DEVICE_FILTER_ALL,
+	DEVICE_FILTER_STEP,
 	DEVICE_FILTER_STEP4K,
 	DEVICE_FILTER_MEMORY,
 	DEVICE_FILTER_PROCESSOR,

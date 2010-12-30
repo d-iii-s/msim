@@ -333,12 +333,12 @@ static void dcpu_done(device_t *dev)
 	safe_free(dev->data);
 }
 
-/** Execute 4096 processor steps
+/** Execute one processor step
  *
  */
-static void dcpu_step4k(device_t *dev)
+static void dcpu_step(device_t *dev)
 {
-	cpu_step4k((cpu_t *) dev->data);
+	cpu_step((cpu_t *) dev->data);
 }
 
 cpu_t *dcpu_find_no(unsigned int no)
@@ -508,7 +508,7 @@ device_type_t dcpu = {
 	
 	/* Functions */
 	.done = dcpu_done,
-	.step4k = dcpu_step4k,
+	.step = dcpu_step,
 	
 	/* Commands */
 	.cmds = dcpu_cmds

@@ -386,6 +386,7 @@ static frame_t* physmem_find_frame(ptr36_t addr)
 /** Sign extensions
  *
  */
+
 #define SBIT8   UINT8_C(0x80)
 #define SBIT16  UINT16_C(0x8000)
 #define SBIT32  UINT32_C(0x80000000)
@@ -510,13 +511,13 @@ static uint64_t sign_extend_32_64(uint32_t val)
 #define CKSEG1_MASK  UINT32_C(0xffffffffe0000000)
 #define CKSEG1_BITS  UINT32_C(0xffffffffa0000000)
 
-#define KSSEG_MASK  SSEG_MASK
-#define KSSEG_BITS  SSEG_BITS
+#define KSSEG_MASK   SSEG_MASK
+#define KSSEG_BITS   SSEG_BITS
 #define CKSSEG_MASK  CSSEG_MASK
 #define CKSSEG_BITS  CSSEG_BITS
 
-#define KSEG3_MASK  UINT32_C(0xe0000000)
-#define KSEG3_BITS  UINT32_C(0xe0000000)
+#define KSEG3_MASK   UINT32_C(0xe0000000)
+#define KSEG3_BITS   UINT32_C(0xe0000000)
 #define CKSEG3_MASK  UINT32_C(0xffffffffe0000000)
 #define CKSEG3_BITS  UINT32_C(0xffffffffe0000000)
 
@@ -647,6 +648,10 @@ static void fill_tlb_error(cpu_t *cpu, ptr64_t addr)
 	cp0_context(cpu).val |= (addr.ptr >> cp0_context_addr_shift)
 	    & ~cp0_context_res1_mask;
 	
+	cp0_xcontext(cpu).val &= cp0_xcontext_ptebase_mask;
+	cp0_xcontext(cpu).val |= (addr.ptr >> cp0_xcontext_addr_shift)
+	    & ~cp0_xcontext_res1_mask;
+	
 	cp0_entryhi(cpu).val &= cp0_entryhi_asid_mask;
 	cp0_entryhi(cpu).val |= addr.ptr & cp0_entryhi_vpn2_mask;
 }
@@ -660,8 +665,9 @@ static void fill_addr_error(cpu_t *cpu, ptr64_t addr, bool noisy)
 	
 	if (noisy) {
 		cp0_badvaddr(cpu).val = addr.ptr;
-		cp0_context(cpu).val &= ~cp0_context_badvpn2_mask;  /* Undefined */
-		cp0_entryhi(cpu).val &= ~cp0_entryhi_vpn2_mask;     /* Undefined */
+		cp0_context(cpu).val &= ~cp0_context_badvpn2_mask;    /* Undefined */
+		cp0_xcontext(cpu).val &= ~cp0_xcontext_badvpn2_mask;  /* Undefined */
+		cp0_entryhi(cpu).val &= ~cp0_entryhi_vpn2_mask;       /* Undefined */
 	}
 }
 

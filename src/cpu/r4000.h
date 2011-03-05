@@ -193,9 +193,9 @@ typedef enum {
 #define cp0_status_cu3(cpu)  (((cpu)->cp0[cp0_Status].val & cp0_status_cu3_mask) >> 31)
 #define cp0_status_cu(cpu)   (((cpu)->cp0[cp0_Status].val & cp0_status_cu_mask) >> 28)
 
-#define cp0_entryhi_asid_mask  UINT32_C(0x000000ff)
-#define cp0_entryhi_res1_mask  UINT32_C(0x00001f00)
-#define cp0_entryhi_vpn2_mask  UINT32_C(0xffffe000)
+#define cp0_entryhi_asid_mask  UINT64_C(0x00000000000000ff)
+#define cp0_entryhi_res1_mask  UINT64_C(0x0000000000001f00)
+#define cp0_entryhi_vpn2_mask  UINT64_C(0xc00000ffffffe000)
 
 #define cp0_entryhi_asid_shift  0
 #define cp0_entryhi_res1_shift  8
@@ -242,9 +242,9 @@ typedef enum {
 #define cp0_wired_w(cpu)     (((cpu)->cp0[cp0_Wired].val & cp0_wired_w_mask) >> cp0_wired_w_shift)
 #define cp0_wired_res1(cpu)  (((cpu)->cp0[cp0_Wired].val & cp0_wired_res1_mask) >> cp0_wired_res1_shift)
 
-#define cp0_context_res1_mask     UINT32_C(0x0000000f)
-#define cp0_context_badvpn2_mask  UINT32_C(0x007ffff0)
-#define cp0_context_ptebase_mask  UINT32_C(0xff800000)
+#define cp0_context_res1_mask     UINT64_C(0x000000000000000f)
+#define cp0_context_badvpn2_mask  UINT64_C(0x00000000007ffff0)
+#define cp0_context_ptebase_mask  UINT64_C(0xffffffffff800000)
 
 #define cp0_context_res1_shift     0
 #define cp0_context_badvpn2_shift  4
@@ -413,15 +413,16 @@ typedef enum {
 #define cp0_ecc_ecc(cpu)  (((cpu)->cp0[cp0_ECC].val & cp0_ecc_ecc_mask) >> cp0_ecc_ecc_shift)
 #define cp0_ecc_res(cpu)  (((cpu)->cp0[cp0_ECC].val & cp0_ecc_res_mask) >> cp0_ecc_res_shift)
 
-#define cp0_xcontext_res1_mask     UINT32_C(0x0000000f)
-#define cd0_xcontext_badvpn2_mask  UINT32_C(0x00000000)
-#define cp0_xcontext_r_mask        UINT32_C(0x00000000)
-#define cp0_xcontext_ptebase_mask  UINT32_C(0x00000000)
+#define cp0_xcontext_res1_mask     UINT64_C(0x000000000000000f)
+#define cp0_xcontext_badvpn2_mask  UINT64_C(0x000000007ffffff8)
+#define cp0_xcontext_r_mask        UINT64_C(0x0000000180000000)
+#define cp0_xcontext_ptebase_mask  UINT64_C(0xfffffffe00000000)
 
 #define cp0_xcontext_res1_shift     0
 #define cp0_xcontext_badvpn2_shift  4
 #define cp0_xcontext_r_shift        31
 #define cp0_xcontext_ptebase_shift  33
+#define cp0_xcontext_addr_shift     9
 
 #define cp0_xcontext_res1(cpu)     (((cpu)->cp0[cp0_XContext].val & cp0_xcontext_res1_mask) >> cp0_xcontext_res1_shift)
 #define cp0_xcontext_badvpn2(cpu)  (((cpu)->cp0[cp0_XContext].val & cp0_xcontext_badvpn2_mask) >> cp0_xcontext_badvpn2_shift)
@@ -450,6 +451,7 @@ typedef enum {
 #define cp0_watchlo(cpu)   ((cpu)->cp0[cp0_WatchLo])
 #define cp0_watchhi(cpu)   ((cpu)->cp0[cp0_WatchHi])
 #define cp0_ecc(cpu)       ((cpu)->cp0[cp0_ECC])
+#define cp0_xcontext(cpu)  ((cpu)->cp0[cp0_XContext])
 #define cp0_taglo(cpu)     ((cpu)->cp0[cp0_TagLo])
 #define cp0_taghi(cpu)     ((cpu)->cp0[cp0_TagHi])
 
@@ -458,18 +460,18 @@ typedef enum {
 
 /** TLB entity definition */
 typedef struct {
-	ptr36_t pfn;   /**< Physical page no (shifted << 12) */
+	ptr36_t pfn;   /**< Physical page number (shifted << 12) */
 	uint8_t cohh;  /**< Coherency number */
 	bool dirty;    /**< Dirty bit */
 	bool valid;    /**< Valid bit */
-} tlb_ent_value_t;
+} tlb_rec_t;
 
 typedef struct {
-	uint32_t mask;          /**< Enhanced mask */
-	uint32_t vpn2;          /**< Virtual page no (shifted << 7) */
-	bool global;            /**< Global bit */
-	uint8_t asid;           /**< Address Space ID */
-	tlb_ent_value_t pg[2];  /**< Subpages */
+	uint32_t mask;    /**< Enhanced mask */
+	uint32_t vpn2;    /**< Virtual page no (shifted << 7) */
+	bool global;      /**< Global bit */
+	uint8_t asid;     /**< Address Space ID */
+	tlb_rec_t pg[2];  /**< Subpages */
 } tlb_entry_t;
 
 typedef enum {

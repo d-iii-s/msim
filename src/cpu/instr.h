@@ -163,7 +163,7 @@ typedef enum {
 	
 	/* 40 */
 	/* function 40 unused */
-	/* function 41 unused */
+	func_XINT = 41,
 	funcSLT = 42,
 	funcSLTU = 43,
 	funcDADD = 44,

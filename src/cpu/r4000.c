@@ -1581,6 +1581,7 @@ static void sc_unregister(cpu_t *cpu)
 #include "instr/mult.c"
 #include "instr/multu.c"
 #include "instr/nor.c"
+#include "instr/_xint.c"
 #include "instr/or.c"
 #include "instr/ori.c"
 #include "instr/sb.c"
@@ -1762,7 +1763,7 @@ static instr_fnc_t func_map[64] = {
 	instr_nor,
 	
 	instr__reserved,  /* unused */
-	instr__reserved,  /* unused */
+	instr__xint,
 	instr_slt,
 	instr_sltu,
 	instr_dadd,

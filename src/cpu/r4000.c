@@ -1523,8 +1523,7 @@ static void disassemble_target(ptr64_t addr, instr_t instr,
 static void disassemble_rt_offset_base(instr_t instr, string_t *mnemonics,
     string_t *comments)
 {
-	int64_t offset =
-	    (((int64_t) sign_extend_16_64(instr.i.imm)) << TARGET_SHIFT);
+	int64_t offset = (int64_t) sign_extend_16_64(instr.i.imm);
 	
 	string_printf(mnemonics, " %s, %" PRId64 "(%s)",
 	    regname[instr.i.rt], offset, regname[instr.i.rs]);

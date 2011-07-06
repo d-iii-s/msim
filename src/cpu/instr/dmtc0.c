@@ -148,3 +148,10 @@ static exc_t instr_dmtc0(cpu_t *cpu, instr_t instr)
 	
 	return excRI;
 }
+
+static void mnemonics_dmtc0(ptr64_t addr, instr_t instr,
+    string_t *mnemonics, string_t *comments)
+{
+	string_printf(mnemonics, "dmtc0");
+	disassemble_rt_cp0(instr, mnemonics, comments);
+}

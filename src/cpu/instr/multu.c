@@ -16,3 +16,10 @@ static exc_t instr_multu(cpu_t *cpu, instr_t instr)
 	
 	return excNone;
 }
+
+static void mnemonics_multu(ptr64_t addr, instr_t instr,
+    string_t *mnemonics, string_t *comments)
+{
+	string_printf(mnemonics, "multu");
+	disassemble_rs_rt(instr, mnemonics, comments);
+}

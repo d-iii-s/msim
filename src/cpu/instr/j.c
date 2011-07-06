@@ -5,3 +5,10 @@ static exc_t instr_j(cpu_t *cpu, instr_t instr)
 	cpu->branch = BRANCH_COND;
 	return excJump;
 }
+
+static void mnemonics_j(ptr64_t addr, instr_t instr,
+    string_t *mnemonics, string_t *comments)
+{
+	string_printf(mnemonics, "j");
+	disassemble_target(addr, instr, mnemonics, comments);
+}

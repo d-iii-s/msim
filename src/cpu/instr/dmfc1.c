@@ -14,3 +14,10 @@ static exc_t instr_dmfc1(cpu_t *cpu, instr_t instr)
 	
 	return excRI;
 }
+
+static void mnemonics_dmfc1(ptr64_t addr, instr_t instr,
+    string_t *mnemonics, string_t *comments)
+{
+	string_printf(mnemonics, "dmfc1");
+	disassemble_rt_fs(instr, mnemonics, comments);
+}

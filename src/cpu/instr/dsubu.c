@@ -10,3 +10,10 @@ static exc_t instr_dsubu(cpu_t *cpu, instr_t instr)
 	
 	return excNone;
 }
+
+static void mnemonics_dsubu(ptr64_t addr, instr_t instr,
+    string_t *mnemonics, string_t *comments)
+{
+	string_printf(mnemonics, "dsubu");
+	disassemble_rd_rs_rt(instr, mnemonics, comments);
+}

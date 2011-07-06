@@ -16,3 +16,10 @@ static exc_t instr_bltz(cpu_t *cpu, instr_t instr)
 	
 	return excNone;
 }
+
+static void mnemonics_bltz(ptr64_t addr, instr_t instr,
+    string_t *mnemonics, string_t *comments)
+{
+	string_printf(mnemonics, "bltz");
+	disassemble_rs_offset(addr, instr, mnemonics, comments);
+}

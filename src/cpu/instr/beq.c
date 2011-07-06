@@ -16,3 +16,10 @@ static exc_t instr_beq(cpu_t *cpu, instr_t instr)
 	
 	return excNone;
 }
+
+static void mnemonics_beq(ptr64_t addr, instr_t instr,
+    string_t *mnemonics, string_t *comments)
+{
+	string_printf(mnemonics, "beq");
+	disassemble_rs_rt_offset(addr, instr, mnemonics, comments);
+}

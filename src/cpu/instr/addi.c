@@ -10,3 +10,10 @@ static exc_t instr_addi(cpu_t *cpu, instr_t instr)
 	cpu->regs[instr.i.rt].val = sign_extend_32_64(sum);
 	return excNone;
 }
+
+static void mnemonics_addi(ptr64_t addr, instr_t instr,
+    string_t *mnemonics, string_t *comments)
+{
+	string_printf(mnemonics, "addi");
+	disassemble_rt_rs_imm(instr, mnemonics, comments);
+}

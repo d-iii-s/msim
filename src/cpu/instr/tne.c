@@ -12,3 +12,10 @@ static exc_t instr_tne(cpu_t *cpu, instr_t instr)
 	
 	return excNone;
 }
+
+static void mnemonics_tne(ptr64_t addr, instr_t instr,
+    string_t *mnemonics, string_t *comments)
+{
+	string_printf(mnemonics, "tne");
+	disassemble_rs_rt(instr, mnemonics, comments);
+}

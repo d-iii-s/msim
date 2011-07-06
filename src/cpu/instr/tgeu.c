@@ -12,3 +12,10 @@ static exc_t instr_tgeu(cpu_t *cpu, instr_t instr)
 	
 	return excNone;
 }
+
+static void mnemonics_tgeu(ptr64_t addr, instr_t instr,
+    string_t *mnemonics, string_t *comments)
+{
+	string_printf(mnemonics, "tgeu");
+	disassemble_rs_rt(instr, mnemonics, comments);
+}

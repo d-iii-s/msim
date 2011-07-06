@@ -357,6 +357,11 @@ typedef union {
 		unsigned int data : 24;
 		unsigned int func : 8;
 	} cop;
+	struct {
+		unsigned int opcode : 6;
+		unsigned int code : 20;
+		unsigned int func : 6;
+	} sys;
 #else
 	struct {
 		unsigned int imm : 16;
@@ -383,6 +388,11 @@ typedef union {
 		unsigned int rs : 5;
 		unsigned int opcode : 6;
 	} cop;
+	struct {
+		unsigned int func : 6;
+		unsigned int code : 20;
+		unsigned int opcode : 6;
+	} sys;
 #endif
 } instr_t;
 

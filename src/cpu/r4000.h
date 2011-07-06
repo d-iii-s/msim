@@ -17,6 +17,7 @@
 #include <inttypes.h>
 #include <unistd.h>
 #include "../list.h"
+#include "../utils.h"
 #include "instr.h"
 
 #define FRAME_WIDTH   12
@@ -576,6 +577,14 @@ typedef struct frame {
 	/* Binary translation valid flag */
 	bool valid;
 } frame_t;
+
+/** Instruction decoding tables and mnemonics
+ *
+ */
+typedef void (*mnemonics_fnc_t)(ptr64_t, instr_t, string_t *, string_t *);
+
+/** Decode instruction mnemonics */
+extern mnemonics_fnc_t decode_mnemonics(instr_t);
 
 /** Physical memory management */
 extern void physmem_wire(physmem_area_t *area);

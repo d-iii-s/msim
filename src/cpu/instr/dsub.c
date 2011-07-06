@@ -14,3 +14,10 @@ static exc_t instr_dsub(cpu_t *cpu, instr_t instr)
 	
 	return excNone;
 }
+
+static void mnemonics_dsub(ptr64_t addr, instr_t instr,
+    string_t *mnemonics, string_t *comments)
+{
+	string_printf(mnemonics, "dsub");
+	disassemble_rd_rs_rt(instr, mnemonics, comments);
+}

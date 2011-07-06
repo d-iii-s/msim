@@ -14,3 +14,10 @@ static exc_t instr_slt(cpu_t *cpu, instr_t instr)
 	
 	return excNone;
 }
+
+static void mnemonics_slt(ptr64_t addr, instr_t instr,
+    string_t *mnemonics, string_t *comments)
+{
+	string_printf(mnemonics, "slt");
+	disassemble_rd_rs_rt(instr, mnemonics, comments);
+}

@@ -18,6 +18,7 @@
 #include "../cpu/instr.h"
 #include "../cpu/r4000.h"
 #include "../device/device.h"
+#include "../utils.h"
 
 extern bool dump_addr;
 extern bool dump_instr;

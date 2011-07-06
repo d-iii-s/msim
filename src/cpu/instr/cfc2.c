@@ -10,3 +10,10 @@ static exc_t instr_cfc2(cpu_t *cpu, instr_t instr)
 	cp0_cause(cpu).val |= cp0_cause_ce_cu2;
 	return excCpU;
 }
+
+static void mnemonics_cfc2(ptr64_t addr, instr_t instr,
+    string_t *mnemonics, string_t *comments)
+{
+	string_printf(mnemonics, "cfc2");
+	disassemble_rt_rs(instr, mnemonics, comments);
+}

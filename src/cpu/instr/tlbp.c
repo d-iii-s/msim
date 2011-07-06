@@ -2,3 +2,9 @@ static exc_t instr_tlbp(cpu_t *cpu, instr_t instr)
 {
 	return TLBP(cpu);
 }
+
+static void mnemonics_tlbp(ptr64_t addr, instr_t instr,
+    string_t *mnemonics, string_t *comments)
+{
+	string_printf(mnemonics, "tlbp");
+}

@@ -14,3 +14,10 @@ static exc_t instr_tge(cpu_t *cpu, instr_t instr)
 	
 	return excNone;
 }
+
+static void mnemonics_tge(ptr64_t addr, instr_t instr,
+    string_t *mnemonics, string_t *comments)
+{
+	string_printf(mnemonics, "tge");
+	disassemble_rs_rt(instr, mnemonics, comments);
+}

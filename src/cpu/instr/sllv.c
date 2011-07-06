@@ -8,3 +8,10 @@ static exc_t instr_sllv(cpu_t *cpu, instr_t instr)
 	
 	return excNone;
 }
+
+static void mnemonics_sllv(ptr64_t addr, instr_t instr,
+    string_t *mnemonics, string_t *comments)
+{
+	string_printf(mnemonics, "sllv");
+	disassemble_rd_rt_rs(instr, mnemonics, comments);
+}

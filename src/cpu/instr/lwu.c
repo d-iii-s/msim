@@ -14,3 +14,10 @@ static exc_t instr_lwu(cpu_t *cpu, instr_t instr)
 	
 	return excRI;
 }
+
+static void mnemonics_lwu(ptr64_t addr, instr_t instr,
+    string_t *mnemonics, string_t *comments)
+{
+	string_printf(mnemonics, "lwu");
+	disassemble_rt_offset_base(instr, mnemonics, comments);
+}

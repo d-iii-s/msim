@@ -12,3 +12,10 @@ static exc_t instr_bc0tl(cpu_t *cpu, instr_t instr)
 	cp0_cause(cpu).val &= ~cp0_cause_ce_mask;
 	return excCpU;
 }
+
+static void mnemonics_bc0tl(ptr64_t addr, instr_t instr,
+    string_t *mnemonics, string_t *comments)
+{
+	string_printf(mnemonics, "bc0tl");
+	disassemble_offset(addr, instr, mnemonics, comments);
+}

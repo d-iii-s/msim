@@ -1472,6 +1472,180 @@ static void sc_unregister(cpu_t *cpu)
 	}
 }
 
+/** Disassemble aid routines
+ *
+ */
+
+static void disassemble_offset(ptr64_t addr, instr_t instr,
+    string_t *mnemonics, string_t *comments)
+{
+	int64_t offset =
+	    (((int64_t) sign_extend_16_64(instr.i.imm)) << TARGET_SHIFT);
+	
+	ptr64_t target;
+	target.ptr = addr.ptr + offset + 4;
+	
+	string_printf(mnemonics, " %#" PRIx64, target.ptr);
+	
+	if (offset + 4 > 0)
+		string_printf(comments, "forward");
+	else if (offset + 4 < 0)
+		string_printf(comments, "backward");
+	else
+		string_printf(comments, "here");
+}
+
+static void disassemble_rs_offset(ptr64_t addr, instr_t instr,
+    string_t *mnemonics, string_t *comments)
+{
+	string_printf(mnemonics, " %s,", regname[instr.i.rs]);
+	disassemble_offset(addr, instr, mnemonics, comments);
+}
+
+static void disassemble_rs_rt_offset(ptr64_t addr, instr_t instr,
+    string_t *mnemonics, string_t *comments)
+{
+	string_printf(mnemonics, " %s, %s,",
+	    regname[instr.i.rs], regname[instr.i.rt]);
+	disassemble_offset(addr, instr, mnemonics, comments);
+}
+
+static void disassemble_target(ptr64_t addr, instr_t instr,
+    string_t *mnemonics, string_t *comments)
+{
+	ptr64_t target;
+	target.ptr =
+	    ((addr.ptr + 4) & TARGET_COMB) | (instr.j.target << TARGET_SHIFT);
+	
+	string_printf(mnemonics, " %#" PRIx64, target.ptr);
+}
+
+static void disassemble_rt_offset_base(instr_t instr, string_t *mnemonics,
+    string_t *comments)
+{
+	int64_t offset =
+	    (((int64_t) sign_extend_16_64(instr.i.imm)) << TARGET_SHIFT);
+	
+	string_printf(mnemonics, " %s, %" PRId64 "(%s)",
+	    regname[instr.i.rt], offset, regname[instr.i.rs]);
+}
+
+static void disassemble_rs_rt(instr_t instr, string_t *mnemonics,
+    string_t *comments)
+{
+	string_printf(mnemonics, " %s, %s,",
+	    regname[instr.i.rs], regname[instr.i.rt]);
+}
+
+static void disassemble_rd_rs_rt(instr_t instr, string_t *mnemonics,
+    string_t *comments)
+{
+	string_printf(mnemonics, " %s, %s, %s",
+	    regname[instr.r.rd], regname[instr.r.rs], regname[instr.r.rt]);
+}
+
+static void disassemble_rt_rs(instr_t instr, string_t *mnemonics,
+    string_t *comments)
+{
+	string_printf(mnemonics, " %s, %s",
+	    regname[instr.r.rt], regname[instr.r.rs]);
+}
+
+static void disassemble_rt_cp0(instr_t instr, string_t *mnemonics,
+    string_t *comments)
+{
+	string_printf(mnemonics, " %s, %s",
+	    regname[instr.r.rt], cp0name[instr.r.rs]);
+}
+
+static void disassemble_rt_fs(instr_t instr, string_t *mnemonics,
+    string_t *comments)
+{
+	string_printf(mnemonics, " %s, %s",
+	    regname[instr.r.rt], cp1name[instr.r.rs]);
+}
+
+static void disassemble_rt_cp2(instr_t instr, string_t *mnemonics,
+    string_t *comments)
+{
+	string_printf(mnemonics, " %s, %s",
+	    regname[instr.r.rt], cp2name[instr.r.rs]);
+}
+
+static void disassemble_rt_rs_imm(instr_t instr, string_t *mnemonics,
+    string_t *comments)
+{
+	int32_t imm = (int32_t) sign_extend_16_32(instr.i.imm);
+	
+	string_printf(mnemonics, " %s, %s, %" PRId32,
+	    regname[instr.i.rt], regname[instr.i.rs], imm);
+}
+
+static void disassemble_rt_rs_uimm(instr_t instr, string_t *mnemonics,
+    string_t *comments)
+{
+	string_printf(mnemonics, " %s, %s, %#x",
+	    regname[instr.i.rt], regname[instr.i.rs], instr.i.imm);
+}
+
+static void disassemble_rt_imm(instr_t instr, string_t *mnemonics,
+    string_t *comments)
+{
+	int32_t imm = (int32_t) sign_extend_16_32(instr.i.imm);
+	
+	string_printf(mnemonics, " %s, %" PRId32,
+	    regname[instr.i.rt], imm);
+}
+
+static void disassemble_rt_uimm(instr_t instr, string_t *mnemonics,
+    string_t *comments)
+{
+	string_printf(mnemonics, " %s, %#x",
+	    regname[instr.i.rt], instr.i.imm);
+}
+
+static void disassemble_rs_imm(instr_t instr, string_t *mnemonics,
+    string_t *comments)
+{
+	int32_t imm = (int32_t) sign_extend_16_32(instr.i.imm);
+	
+	string_printf(mnemonics, " %s, %" PRId32,
+	    regname[instr.i.rs], imm);
+}
+
+static void disassemble_rd_rt_sa(instr_t instr, string_t *mnemonics,
+    string_t *comments)
+{
+	string_printf(mnemonics, " %s, %s, %u",
+	    regname[instr.r.rd], regname[instr.r.rt], instr.r.sa);
+}
+
+static void disassemble_rd_rt_rs(instr_t instr, string_t *mnemonics,
+    string_t *comments)
+{
+	string_printf(mnemonics, " %s, %s, %s",
+	    regname[instr.r.rd], regname[instr.r.rt], regname[instr.r.rs]);
+}
+
+static void disassemble_rd_rs(instr_t instr, string_t *mnemonics,
+    string_t *comments)
+{
+	string_printf(mnemonics, " %s, %s",
+	    regname[instr.r.rd], regname[instr.r.rs]);
+}
+
+static void disassemble_rs(instr_t instr, string_t *mnemonics,
+    string_t *comments)
+{
+	string_printf(mnemonics, " %s", regname[instr.r.rs]);
+}
+
+static void disassemble_rd(instr_t instr, string_t *mnemonics,
+    string_t *comments)
+{
+	string_printf(mnemonics, " %s", regname[instr.r.rd]);
+}
+
 /** Implementation of instructions of R4000
  *
  * Include those instructions which are supported
@@ -2129,6 +2303,594 @@ static instr_fnc_t cop0_func_map[64] = {
 	instr__warning,   /* unused */
 	instr__warning    /* unused */
 };
+
+static mnemonics_fnc_t mnemonics_opcode_map[64] = {
+	/* 0 */
+	mnemonics__reserved,  /* opcSPECIAL */
+	mnemonics__reserved,  /* opcREGIMM */
+	mnemonics_j,
+	mnemonics_jal,
+	mnemonics_beq,
+	mnemonics_bne,
+	mnemonics_blez,
+	mnemonics_bgtz,
+	
+	/* 8 */
+	mnemonics_addi,
+	mnemonics_addiu,
+	mnemonics_slti,
+	mnemonics_sltiu,
+	mnemonics_andi,
+	mnemonics_ori,
+	mnemonics_xori,
+	mnemonics_lui,
+	
+	/* 16 */
+	mnemonics__reserved,  /* opcCOP0 */
+	mnemonics__reserved,  /* opcCOP1 */
+	mnemonics__reserved,  /* opcCOP2 */
+	mnemonics__reserved,  /* unused */
+	mnemonics_beql,
+	mnemonics_bnel,
+	mnemonics_blezl,
+	mnemonics_bgtzl,
+	
+	/* 24 */
+	mnemonics_daddi,
+	mnemonics_daddiu,
+	mnemonics_ldl,
+	mnemonics_ldr,
+	mnemonics__reserved,  /* unused */
+	mnemonics__reserved,  /* unused */
+	mnemonics__reserved,  /* unused */
+	mnemonics__reserved,  /* unused */
+	
+	/* 32 */
+	mnemonics_lb,
+	mnemonics_lh,
+	mnemonics_lwl,
+	mnemonics_lw,
+	mnemonics_lbu,
+	mnemonics_lhu,
+	mnemonics_lwr,
+	mnemonics_lwu,
+	
+	/* 40 */
+	mnemonics_sb,
+	mnemonics_sh,
+	mnemonics_swl,
+	mnemonics_sw,
+	mnemonics_sdl,
+	mnemonics_sdr,
+	mnemonics_swr,
+	mnemonics_cache,
+	
+	/* 48 */
+	mnemonics_ll,
+	mnemonics_lwc1,
+	mnemonics_lwc2,
+	mnemonics__reserved,  /* unused */
+	mnemonics_lld,
+	mnemonics_ldc1,
+	mnemonics_ldc2,
+	mnemonics_ld,
+	
+	mnemonics_sc,
+	mnemonics_swc1,
+	mnemonics_swc2,
+	mnemonics__reserved,  /* unused */
+	mnemonics_scd,
+	mnemonics_sdc1,
+	mnemonics_sdc2,
+	mnemonics_sd
+};
+
+static mnemonics_fnc_t mnemonics_func_map[64] = {
+	mnemonics_sll,
+	mnemonics__reserved,  /* unused */
+	mnemonics_srl,
+	mnemonics_sra,
+	mnemonics_sllv,
+	mnemonics__reserved,  /* unused */
+	mnemonics_srlv,
+	mnemonics_srav,
+	
+	mnemonics_jr,
+	mnemonics_jalr,
+	mnemonics__reserved,  /* unused */
+	mnemonics__reserved,  /* unused */
+	mnemonics_syscall,
+	mnemonics_break,
+	mnemonics__reserved,  /* unused */
+	mnemonics_sync,
+	
+	mnemonics_mfhi,
+	mnemonics_mthi,
+	mnemonics_mflo,
+	mnemonics_mtlo,
+	mnemonics_dsllv,
+	mnemonics__reserved,  /* unused */
+	mnemonics_dsrlv,
+	mnemonics_dsrav,
+	
+	mnemonics_mult,
+	mnemonics_multu,
+	mnemonics_div,
+	mnemonics_divu,
+	mnemonics_dmult,
+	mnemonics_dmultu,
+	mnemonics_ddiv,
+	mnemonics_ddivu,
+	
+	mnemonics_add,
+	mnemonics_addu,
+	mnemonics_sub,
+	mnemonics_subu,
+	mnemonics_and,
+	mnemonics_or,
+	mnemonics_xor,
+	mnemonics_nor,
+	
+	mnemonics__reserved,  /* unused */
+	mnemonics__xint,
+	mnemonics_slt,
+	mnemonics_sltu,
+	mnemonics_dadd,
+	mnemonics_daddu,
+	mnemonics_dsub,
+	mnemonics_dsubu,
+	
+	mnemonics_tge,
+	mnemonics_tgeu,
+	mnemonics_tlt,
+	mnemonics_tltu,
+	mnemonics_teq,
+	mnemonics__reserved,  /* unused */
+	mnemonics_tne,
+	mnemonics__reserved,  /* unused */
+	
+	mnemonics_dsll,
+	mnemonics__reserved,  /* unused */
+	mnemonics_dsrl,
+	mnemonics_dsra,
+	mnemonics_dsll32,
+	mnemonics__reserved,  /* unused */
+	mnemonics_dsrl32,
+	mnemonics_dsra32
+};
+
+static mnemonics_fnc_t mnemonics_rt_map[32] = {
+	mnemonics_bltz,
+	mnemonics_bgez,
+	mnemonics_bltzl,
+	mnemonics_bgezl,
+	mnemonics__reserved,  /* unused */
+	mnemonics__reserved,  /* unused */
+	mnemonics__reserved,  /* unused */
+	mnemonics__reserved,  /* unused */
+	
+	mnemonics_tgei,
+	mnemonics_tgeiu,
+	mnemonics_tlti,
+	mnemonics_tltiu,
+	mnemonics_teqi,
+	mnemonics__reserved,  /* unused */
+	mnemonics_tnei,
+	mnemonics__reserved,  /* unused */
+	
+	mnemonics_bltzal,
+	mnemonics_bgezal,
+	mnemonics_bltzall,
+	mnemonics_bgezall,
+	mnemonics__reserved,  /* unused */
+	mnemonics__reserved,  /* unused */
+	mnemonics__reserved,  /* unused */
+	mnemonics__reserved,  /* unused */
+	
+	mnemonics__reserved,  /* unused */
+	mnemonics__reserved,  /* unused */
+	mnemonics__reserved,  /* unused */
+	mnemonics__reserved,  /* unused */
+	mnemonics__reserved,  /* unused */
+	mnemonics__reserved,  /* unused */
+	mnemonics__reserved,  /* unused */
+	mnemonics__reserved   /* unused */
+};
+
+static mnemonics_fnc_t mnemonics_cop0_rs_map[32] = {
+	mnemonics_mfc0,
+	mnemonics_dmfc0,
+	mnemonics__reserved,  /* unused */
+	mnemonics__reserved,  /* unused */
+	mnemonics_mtc0,
+	mnemonics_dmtc0,
+	mnemonics__reserved,  /* unused */
+	mnemonics__reserved,  /* unused */
+	
+	mnemonics__reserved,  /* cop0rsBC */
+	mnemonics__reserved,  /* unused */
+	mnemonics__reserved,  /* unused */
+	mnemonics__reserved,  /* unused */
+	mnemonics__reserved,  /* unused */
+	mnemonics__reserved,  /* unused */
+	mnemonics__reserved,  /* unused */
+	mnemonics__reserved,  /* unused */
+	
+	mnemonics__reserved,  /* cop0rsCO */
+	mnemonics__reserved,  /* unused */
+	mnemonics__reserved,  /* unused */
+	mnemonics__reserved,  /* unused */
+	mnemonics__reserved,  /* unused */
+	mnemonics__reserved,  /* unused */
+	mnemonics__reserved,  /* unused */
+	mnemonics__reserved,  /* unused */
+	
+	mnemonics__reserved,  /* unused */
+	mnemonics__reserved,  /* unused */
+	mnemonics__reserved,  /* unused */
+	mnemonics__reserved,  /* unused */
+	mnemonics__reserved,  /* unused */
+	mnemonics__reserved,  /* unused */
+	mnemonics__reserved,  /* unused */
+	mnemonics__reserved   /* unused */
+};
+
+static mnemonics_fnc_t mnemonics_cop1_rs_map[32] = {
+	mnemonics_mfc1,
+	mnemonics_dmfc1,
+	mnemonics_cfc1,
+	mnemonics__reserved,  /* unused */
+	mnemonics_mtc1,
+	mnemonics_dmtc1,
+	mnemonics_ctc1,
+	mnemonics__reserved,  /* unused */
+	
+	mnemonics__reserved,  /* cop1rsBC */
+	mnemonics__reserved,  /* unused */
+	mnemonics__reserved,  /* unused */
+	mnemonics__reserved,  /* unused */
+	mnemonics__reserved,  /* unused */
+	mnemonics__reserved,  /* unused */
+	mnemonics__reserved,  /* unused */
+	mnemonics__reserved,  /* unused */
+	
+	mnemonics__reserved,  /* unused */
+	mnemonics__reserved,  /* unused */
+	mnemonics__reserved,  /* unused */
+	mnemonics__reserved,  /* unused */
+	mnemonics__reserved,  /* unused */
+	mnemonics__reserved,  /* unused */
+	mnemonics__reserved,  /* unused */
+	mnemonics__reserved,  /* unused */
+	
+	mnemonics__reserved,  /* unused */
+	mnemonics__reserved,  /* unused */
+	mnemonics__reserved,  /* unused */
+	mnemonics__reserved,  /* unused */
+	mnemonics__reserved,  /* unused */
+	mnemonics__reserved,  /* unused */
+	mnemonics__reserved,  /* unused */
+	mnemonics__reserved   /* unused */
+};
+
+static mnemonics_fnc_t mnemonics_cop2_rs_map[32] = {
+	mnemonics_mfc2,
+	mnemonics__reserved,  /* unused */
+	mnemonics_cfc2,
+	mnemonics__reserved,  /* unused */
+	mnemonics__reserved,  /* unused */
+	mnemonics__reserved,  /* unused */
+	mnemonics_ctc2,
+	mnemonics__reserved,  /* unused */
+	
+	mnemonics__reserved,  /* cop2rsBC */
+	mnemonics__reserved,  /* unused */
+	mnemonics__reserved,  /* unused */
+	mnemonics__reserved,  /* unused */
+	mnemonics__reserved,  /* unused */
+	mnemonics__reserved,  /* unused */
+	mnemonics__reserved,  /* unused */
+	mnemonics__reserved,  /* unused */
+	
+	mnemonics__reserved,  /* unused */
+	mnemonics__reserved,  /* unused */
+	mnemonics__reserved,  /* unused */
+	mnemonics__reserved,  /* unused */
+	mnemonics__reserved,  /* unused */
+	mnemonics__reserved,  /* unused */
+	mnemonics__reserved,  /* unused */
+	mnemonics__reserved,  /* unused */
+	
+	mnemonics__reserved,  /* unused */
+	mnemonics__reserved,  /* unused */
+	mnemonics__reserved,  /* unused */
+	mnemonics__reserved,  /* unused */
+	mnemonics__reserved,  /* unused */
+	mnemonics__reserved,  /* unused */
+	mnemonics__reserved,  /* unused */
+	mnemonics__reserved   /* unused */
+};
+
+static mnemonics_fnc_t mnemonics_cop0_rt_map[32] = {
+	mnemonics_bc0f,
+	mnemonics_bc0t,
+	mnemonics_bc0fl,
+	mnemonics_bc0tl,
+	mnemonics__reserved,  /* unused */
+	mnemonics__reserved,  /* unused */
+	mnemonics__reserved,  /* unused */
+	mnemonics__reserved,  /* unused */
+	
+	mnemonics__reserved,  /* unused */
+	mnemonics__reserved,  /* unused */
+	mnemonics__reserved,  /* unused */
+	mnemonics__reserved,  /* unused */
+	mnemonics__reserved,  /* unused */
+	mnemonics__reserved,  /* unused */
+	mnemonics__reserved,  /* unused */
+	mnemonics__reserved,  /* unused */
+	
+	mnemonics__reserved,  /* unused */
+	mnemonics__reserved,  /* unused */
+	mnemonics__reserved,  /* unused */
+	mnemonics__reserved,  /* unused */
+	mnemonics__reserved,  /* unused */
+	mnemonics__reserved,  /* unused */
+	mnemonics__reserved,  /* unused */
+	mnemonics__reserved,  /* unused */
+	
+	mnemonics__reserved,  /* unused */
+	mnemonics__reserved,  /* unused */
+	mnemonics__reserved,  /* unused */
+	mnemonics__reserved,  /* unused */
+	mnemonics__reserved,  /* unused */
+	mnemonics__reserved,  /* unused */
+	mnemonics__reserved,  /* unused */
+	mnemonics__reserved   /* unused */
+};
+
+static mnemonics_fnc_t mnemonics_cop1_rt_map[32] = {
+	mnemonics_bc1f,
+	mnemonics_bc1t,
+	mnemonics_bc1fl,
+	mnemonics_bc1tl,
+	mnemonics__reserved,  /* unused */
+	mnemonics__reserved,  /* unused */
+	mnemonics__reserved,  /* unused */
+	mnemonics__reserved,  /* unused */
+	
+	mnemonics__reserved,  /* unused */
+	mnemonics__reserved,  /* unused */
+	mnemonics__reserved,  /* unused */
+	mnemonics__reserved,  /* unused */
+	mnemonics__reserved,  /* unused */
+	mnemonics__reserved,  /* unused */
+	mnemonics__reserved,  /* unused */
+	mnemonics__reserved,  /* unused */
+	
+	mnemonics__reserved,  /* unused */
+	mnemonics__reserved,  /* unused */
+	mnemonics__reserved,  /* unused */
+	mnemonics__reserved,  /* unused */
+	mnemonics__reserved,  /* unused */
+	mnemonics__reserved,  /* unused */
+	mnemonics__reserved,  /* unused */
+	mnemonics__reserved,  /* unused */
+	
+	mnemonics__reserved,  /* unused */
+	mnemonics__reserved,  /* unused */
+	mnemonics__reserved,  /* unused */
+	mnemonics__reserved,  /* unused */
+	mnemonics__reserved,  /* unused */
+	mnemonics__reserved,  /* unused */
+	mnemonics__reserved,  /* unused */
+	mnemonics__reserved   /* unused */
+};
+
+static mnemonics_fnc_t mnemonics_cop2_rt_map[32] = {
+	mnemonics_bc2f,
+	mnemonics_bc2t,
+	mnemonics_bc2fl,
+	mnemonics_bc2tl,
+	mnemonics__reserved,  /* unused */
+	mnemonics__reserved,  /* unused */
+	mnemonics__reserved,  /* unused */
+	mnemonics__reserved,  /* unused */
+	
+	mnemonics__reserved,  /* unused */
+	mnemonics__reserved,  /* unused */
+	mnemonics__reserved,  /* unused */
+	mnemonics__reserved,  /* unused */
+	mnemonics__reserved,  /* unused */
+	mnemonics__reserved,  /* unused */
+	mnemonics__reserved,  /* unused */
+	mnemonics__reserved,  /* unused */
+	
+	mnemonics__reserved,  /* unused */
+	mnemonics__reserved,  /* unused */
+	mnemonics__reserved,  /* unused */
+	mnemonics__reserved,  /* unused */
+	mnemonics__reserved,  /* unused */
+	mnemonics__reserved,  /* unused */
+	mnemonics__reserved,  /* unused */
+	mnemonics__reserved,  /* unused */
+	
+	mnemonics__reserved,  /* unused */
+	mnemonics__reserved,  /* unused */
+	mnemonics__reserved,  /* unused */
+	mnemonics__reserved,  /* unused */
+	mnemonics__reserved,  /* unused */
+	mnemonics__reserved,  /* unused */
+	mnemonics__reserved,  /* unused */
+	mnemonics__reserved   /* unused */
+};
+
+static mnemonics_fnc_t mnemonics_cop0_func_map[64] = {
+	mnemonics__reserved,  /* unused */
+	mnemonics_tlbr,
+	mnemonics_tlbwi,
+	mnemonics__reserved,  /* unused */
+	mnemonics__reserved,  /* unused */
+	mnemonics__reserved,  /* unused */
+	mnemonics_tlbwr,
+	mnemonics__reserved,  /* unused */
+	
+	mnemonics_tlbp,
+	mnemonics__reserved,  /* unused */
+	mnemonics__reserved,  /* unused */
+	mnemonics__reserved,  /* unused */
+	mnemonics__reserved,  /* unused */
+	mnemonics__reserved,  /* unused */
+	mnemonics__reserved,  /* unused */
+	mnemonics__reserved,  /* unused */
+	
+	mnemonics__reserved,  /* unused */
+	mnemonics__reserved,  /* unused */
+	mnemonics__reserved,  /* unused */
+	mnemonics__reserved,  /* unused */
+	mnemonics__reserved,  /* unused */
+	mnemonics__reserved,  /* unused */
+	mnemonics__reserved,  /* unused */
+	mnemonics__reserved,  /* unused */
+	
+	mnemonics_eret,
+	mnemonics__reserved,  /* unused */
+	mnemonics__reserved,  /* unused */
+	mnemonics__reserved,  /* unused */
+	mnemonics__reserved,  /* unused */
+	mnemonics__reserved,  /* unused */
+	mnemonics__reserved,  /* unused */
+	mnemonics__reserved,  /* unused */
+	
+	mnemonics__reserved,  /* unused */
+	mnemonics__reserved,  /* unused */
+	mnemonics__reserved,  /* unused */
+	mnemonics__reserved,  /* unused */
+	mnemonics__reserved,  /* unused */
+	mnemonics__reserved,  /* unused */
+	mnemonics__reserved,  /* unused */
+	mnemonics__reserved,  /* unused */
+	
+	mnemonics__reserved,  /* unused */
+	mnemonics__reserved,  /* unused */
+	mnemonics__reserved,  /* unused */
+	mnemonics__reserved,  /* unused */
+	mnemonics__reserved,  /* unused */
+	mnemonics__reserved,  /* unused */
+	mnemonics__reserved,  /* unused */
+	mnemonics__reserved,  /* unused */
+	
+	mnemonics__reserved,  /* unused */
+	mnemonics__reserved,  /* unused */
+	mnemonics__reserved,  /* unused */
+	mnemonics__reserved,  /* unused */
+	mnemonics__reserved,  /* unused */
+	mnemonics__reserved,  /* unused */
+	mnemonics__reserved,  /* unused */
+	mnemonics__reserved,  /* unused */
+	
+	mnemonics__reserved,  /* unused */
+	mnemonics__reserved,  /* unused */
+	mnemonics__reserved,  /* unused */
+	mnemonics__reserved,  /* unused */
+	mnemonics__reserved,  /* unused */
+	mnemonics__reserved,  /* unused */
+	mnemonics__reserved,  /* unused */
+	mnemonics__reserved   /* unused */
+};
+
+/** Decode MIPS R4000 instruction mnemonics
+ *
+ * @return Instruction mnemonics function.
+ *
+ */
+mnemonics_fnc_t decode_mnemonics(instr_t instr)
+{
+	mnemonics_fnc_t fnc;
+	
+	/*
+	 * Basic opcode decoding based
+	 * on the opcode field.
+	 */
+	switch (instr.r.opcode) {
+	case opcSPECIAL:
+		/*
+		 * SPECIAL opcode decoding based
+		 * on the func field.
+		 */
+		fnc = mnemonics_func_map[instr.r.func];
+		break;
+	case opcREGIMM:
+		/*
+		 * REGIMM opcode decoding based
+		 * on the rt field.
+		 */
+		fnc = mnemonics_rt_map[instr.r.rt];
+		break;
+	case opcCOP0:
+		/*
+		 * COP0 opcode decoding based
+		 * on the rs field.
+		 */
+		switch (instr.r.rs) {
+		case cop0rsBC:
+			/*
+			 * COP0/BC opcode decoding
+			 * based on the rt field.
+			 */
+			fnc = mnemonics_cop0_rt_map[instr.r.rt];
+			break;
+		case cop0rsCO:
+			/*
+			 * COP0/CO opcode decoding
+			 * based on the 8-bit func field.
+			 */
+			fnc = mnemonics_cop0_func_map[instr.cop.func];
+			break;
+		default:
+			fnc = mnemonics_cop0_rs_map[instr.r.rs];
+		}
+		break;
+	case opcCOP1:
+		/*
+		 * COP1 opcode decoding based
+		 * on the rs field.
+		 */
+		switch (instr.r.rs) {
+		case cop1rsBC:
+			/*
+			 * COP1/BC opcode decoding
+			 * based on the rt field.
+			 */
+			fnc = mnemonics_cop1_rt_map[instr.r.rt];
+			break;
+		default:
+			fnc = mnemonics_cop1_rs_map[instr.r.rs];
+		}
+		break;
+	case opcCOP2:
+		/*
+		 * COP2 opcode decoding based
+		 * on the rs field.
+		 */
+		switch (instr.r.rs) {
+		case cop2rsBC:
+			/*
+			 * COP2/BC opcode decoding
+			 * based on the rt field.
+			 */
+			fnc = mnemonics_cop2_rt_map[instr.r.rt];
+			break;
+		default:
+			fnc = mnemonics_cop2_rs_map[instr.r.rs];
+		}
+		break;
+	default:
+		fnc = mnemonics_opcode_map[instr.r.opcode];
+	}
+	
+	return fnc;
+}
 
 /** Initial state */
 #define HARD_RESET_STATUS         (cp0_status_erl_mask | cp0_status_bev_mask)

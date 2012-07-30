@@ -3619,6 +3619,9 @@ static instr_fnc_t decode(instr_t instr)
 	return fnc;
 }
 
+/**
+ *
+ */
 static exc_t cpu_frame(cpu_t *cpu)
 {
 	ASSERT(cpu != NULL);

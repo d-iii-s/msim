@@ -836,7 +836,7 @@ static cmd_t system_cmds[] = {
 		"Add a new physical memory breakpoint",
 		"Add a new physical memory breakpoint",
 		REQ INT "addr/memory address" NEXT
-		REQ INT "cnt/count" END
+		REQ INT "cnt/count" NEXT
 		REQ STR "type/Read or write breakpoint" END
 	},
 	{

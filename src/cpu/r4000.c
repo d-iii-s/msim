@@ -1315,7 +1315,16 @@ static exc_t TLBP(cpu_t *cpu)
 		unsigned int i;
 		
 		for (i = 0; i < TLB_ENTRIES; i++) {
-			if ((cpu->tlb[i].vpn2 == xvpn2) &&
+			/*
+			 * Mask the VPN2 value from EntryHi with the PageMask
+			 * value from the TLB before comparing with the VPN2
+			 * value from the TLB. This does not respect the official
+			 * R4000 documentation, but it is compliant with the
+			 * behaviour of other MIPS CPUs and it is actually
+			 * necessary for proper support for multiple page
+			 * sizes.
+			 */
+			if ((cpu->tlb[i].vpn2 == (xvpn2 & cpu->tlb[i].mask)) &&
 			    ((cpu->tlb[i].global) || (cpu->tlb[i].asid == xasid))) {
 				cp0_index(cpu).val = i;
 				break;

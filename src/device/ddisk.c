@@ -35,6 +35,7 @@ enum action_e {
 #define REGISTER_ADDR_LO   0   /**< Address (bits 0 .. 31) */
 #define REGISTER_SECNO     4   /**< Sector number */
 #define REGISTER_STATUS    8   /**< Status/commands */
+#define REGISTER_COMMAND   8   /**< Status */
 #define REGISTER_SIZE_LO   12  /**< Disk size in bytes (bits 0 .. 31) */
 #define REGISTER_ADDR_HI   16  /**< Address (bits 32 .. 35) */
 #define REGISTER_SECNO_HI  20  /**< Reserved for future extension */
@@ -43,11 +44,16 @@ enum action_e {
 /* \} */
 
 /** \{ \name Status flags */
-#define STATUS_READ   0x01U  /**< Read/reading */
-#define STATUS_WRITE  0x02U  /**< Write/writting */
-#define STATUS_INT    0x04U  /**< Interrupt pending */
-#define STATUS_ERROR  0x08U  /**< Command error */
-#define STATUS_MASK   0x0fU  /**< Status mask */
+#define STATUS_INT    0x04  /**< Interrupt pending */
+#define STATUS_ERROR  0x08  /**< Command error */
+#define STATUS_MASK   0x0c  /**< Status mask */
+/* \} */
+
+/** \{ \name Command flags */
+#define COMMAND_READ     0x01  /**< Read */
+#define COMMAND_WRITE    0x02  /**< Write */
+#define COMMAND_INT_ACK  0x04  /**< Interrupt acknowledge */
+#define COMMAND_MASK     0x07  /**< Command mask */
 /* \} */
 
 /** Disk types */
@@ -68,9 +74,10 @@ typedef struct {
 	uint64_t size;               /**< Disk size */
 	
 	/* Registers */
-	ptr36_t disk_ptr;      /**< Current DMA pointer */
-	uint32_t disk_secno;   /**< Active sector to read/write */
-	uint32_t disk_status;  /**< Disk status register */
+	ptr36_t disk_ptr;       /**< Current DMA pointer */
+	uint32_t disk_secno;    /**< Active sector to read/write */
+	uint32_t disk_status;   /**< Disk status register */
+	uint32_t disk_command;  /**< Disk command register */
 	
 	/* Current action variables */
 	enum action_e action;  /**< Action type */
@@ -161,6 +168,7 @@ static bool ddisk_init(token_t *parm, device_t *dev)
 	data->disk_ptr = 0;
 	data->disk_secno = 0;
 	data->disk_status = 0;
+	data->disk_command = 0;
 	data->img = (uint32_t *) MAP_FAILED;
 	data->action = ACTION_NONE;
 	data->secno = 0;
@@ -203,10 +211,10 @@ static bool ddisk_info(token_t *parm, device_t *dev)
 	}
 	
 	printf("[address  ] [int] [size      ] [type] [pointer] [sector] "
-	    "[status] [ig]\n"
-	    "%#011" PRIx64 " %-5u %12s %7s %#011" PRIx64 " %8u %8u %u\n",
+	    "[status] [command] [ig]\n"
+	    "%#011" PRIx64 " %-5u %12s %7s %#011" PRIx64 " %8u %8u %9u %u\n",
 	    data->addr, data->intno, size, stype, data->disk_ptr, data->disk_secno,
-	    data->disk_status, data->ig);
+	    data->disk_status, data->disk_command, data->ig);
 	
 	safe_free(size);
 	return true;
@@ -600,24 +608,39 @@ static void ddisk_write32(cpu_t *cpu, device_t *dev, ptr36_t addr,
 	case REGISTER_SECNO:
 		data->disk_secno = val;
 		break;
-	case REGISTER_STATUS:
+	case REGISTER_COMMAND:
 		/* Remove unused bits */
-		data->disk_status = val & STATUS_MASK;
+		data->disk_command = val & COMMAND_MASK;
 		
 		/* Request for interrupt deactivation */
-		if (data->disk_status & STATUS_INT) {
+		if (data->disk_command & COMMAND_INT_ACK) {
+			data->disk_status &= ~STATUS_INT;
 			data->ig = false;
 			dcpu_interrupt_down(0, data->intno);
 		}
 		
-		/* Simultaneous read/write command */
-		if ((val & STATUS_READ) && (val & STATUS_WRITE))
+		/* Check general errors */
+		if ((data->disk_command & COMMAND_READ) &&
+		    (data->disk_command & COMMAND_WRITE)) {
+			/* Simultaneous read/write command */
+			data->disk_status = STATUS_INT | STATUS_ERROR;
+			dcpu_interrupt_up(0, data->intno);
+			data->ig = true;
+			data->intrcount++;
+			data->cmds_error++;
 			return;
+		}
 		
-		/* Command in progress */
-		if ((val & (STATUS_READ | STATUS_WRITE)) &&
-		    (data->action != ACTION_NONE))
+		if ((data->disk_command & (COMMAND_READ | COMMAND_WRITE)) &&
+		    (data->action != ACTION_NONE)) {
+			/* Command in progress */
+			data->disk_status = STATUS_INT | STATUS_ERROR;
+			dcpu_interrupt_up(0, data->intno);
+			data->ig = true;
+			data->intrcount++;
+			data->cmds_error++;
 			return;
+		}
 		
 		/* Check bound */
 		if (((uint64_t) data->disk_secno + 1) * 512 > data->size) {
@@ -631,7 +654,7 @@ static void ddisk_write32(cpu_t *cpu, device_t *dev, ptr36_t addr,
 		}
 		
 		/* Read command */
-		if (val & STATUS_READ) {
+		if (data->disk_command & COMMAND_READ) {
 			/* Reading in progress */
 			data->action = ACTION_READ;
 			data->cnt = 0;
@@ -640,7 +663,7 @@ static void ddisk_write32(cpu_t *cpu, device_t *dev, ptr36_t addr,
 		}
 		
 		/* Write command */
-		if (val & STATUS_WRITE) {
+		if (data->disk_command & COMMAND_WRITE) {
 			/* Writing in progress */
 			data->action = ACTION_WRITE;
 			data->cnt = 0;

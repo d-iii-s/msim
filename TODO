@@ -7,3 +7,4 @@ add debug features
 	- allocation information - function, file and the line number
 serial line
 network
+graphics

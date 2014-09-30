@@ -49,6 +49,18 @@ rm -rf $RPM_BUILD_ROOT
 * ??? ??? ?? 2010 Martin Decky <decky@d3s.mff.cuni.cz> - 1.4.0
 - Bump to 1.4.0
 
+* Tue Sep 30 2014 Martin Decky <decky@d3s.mff.cuni.cz> - 1.3.8.4
+- Bump to 1.3.8.4
+
+* Tue Feb 28 2013 Martin Decky <decky@d3s.mff.cuni.cz> - 1.3.8.3
+- Bump to 1.3.8.3
+
+* Tue Oct 09 2012 Martin Decky <decky@d3s.mff.cuni.cz> - 1.3.8.2
+- Bump to 1.3.8.2
+
+* Mon Oct 14 2011 Martin Decky <decky@d3s.mff.cuni.cz> - 1.3.8.1
+- Bump to 1.3.8.1
+
 * Thu Oct 05 2010 Martin Decky <decky@d3s.mff.cuni.cz> - 1.3.8
 - Bump to 1.3.8
 

@@ -3628,7 +3628,7 @@ static instr_fnc_t decode(instr_t instr)
 	return fnc;
 }
 
-/**
+/** Translate instruction virtual address to physical memory frame
  *
  */
 static exc_t cpu_frame(cpu_t *cpu)
@@ -3669,6 +3669,9 @@ static exc_t cpu_frame(cpu_t *cpu)
 	return excNone;
 }
 
+/** Decode instructions in a physical memory frame
+ *
+ */
 static void frame_decode(frame_t *frame)
 {
 	ASSERT(frame != NULL);
@@ -3702,6 +3705,10 @@ static void handle_exception(cpu_t *cpu, exc_t res)
 	}
 	
 	ASSERT(res <= excVCED);
+	
+	/* The standby mode is cancelled by the exception */
+	if (cpu->stdby)
+		cpu_set_pc(cpu, cpu->pc_next);
 	
 	cpu->stdby = false;
 	
@@ -3752,10 +3759,8 @@ static void handle_exception(cpu_t *cpu, exc_t res)
 
 /** Execute one CPU instruction
  *
- * @return True if the execution frame has changed.
- *
  */
-static void execute(cpu_t *cpu)
+static exc_t execute(cpu_t *cpu)
 {
 	ASSERT(cpu != NULL);
 	
@@ -3779,24 +3784,26 @@ static void execute(cpu_t *cpu)
 	instr_fnc_t fnc = *(cpu->frame->trans + ADDR2INSTR(i));
 	
 	/* Execute instruction */
-	ptr64_t old_pc = cpu->pc;
-	exc_t res = fnc(cpu, instr);
+	exc_t exc = fnc(cpu, instr);
 	
 	if (machine_trace)
-		idump(cpu, old_pc, instr, true);
+		idump(cpu, cpu->pc, instr, true);
 	
 	/* Branch test */
 	if ((cpu->branch == BRANCH_COND) || (cpu->branch == BRANCH_NONE))
 		cpu->excaddr.ptr = cpu->pc.ptr;
 	
+	/* Register 0 contains a hardwired zero value */
+	cpu->regs[0].val = 0;
+	
 	/* PC update */
-	if (res == excJump) {
+	if (exc == excJump) {
 		/*
 		 * Execute the instruction in the branch
 		 * delay slot. The jump target is stored
 		 * in pc_next.
 		 */
-		res = excNone;
+		exc = excNone;
 		cpu->pc.ptr += 4;
 	} else {
 		/*
@@ -3807,20 +3814,27 @@ static void execute(cpu_t *cpu)
 		cpu->pc_next.ptr += 4;
 	}
 	
-	/* Register 0 contains a hardwired zero value */
-	cpu->regs[0].val = 0;
+	return exc;
+}
+
+/** CPU management
+ *
+ */
+static void manage(cpu_t *cpu, exc_t exc, ptr64_t old_pc)
+{
+	ASSERT(cpu != NULL);
 	
 	/* Test for interrupt request */
-	if ((res == excNone)
-	    && (!cp0_status_exl(cpu))
-	    && (!cp0_status_erl(cpu))
-	    && (cp0_status_ie(cpu))
-	    && ((cp0_cause(cpu).val & cp0_status(cpu).val) & cp0_cause_ip_mask) != 0)
-		res = excInt;
+	if ((exc == excNone) &&
+	    (!cp0_status_exl(cpu)) &&
+	    (!cp0_status_erl(cpu)) &&
+	    (cp0_status_ie(cpu)) &&
+	    ((cp0_cause(cpu).val & cp0_status(cpu).val) & cp0_cause_ip_mask) != 0)
+		exc = excInt;
 	
 	/* Exception control */
-	if (res != excNone)
-		handle_exception(cpu, res);
+	if (exc != excNone)
+		handle_exception(cpu, exc);
 	
 	/* Increase counter */
 	cp0_count(cpu).val++;
@@ -3846,26 +3860,48 @@ static void execute(cpu_t *cpu)
 	if (cpu->branch > BRANCH_NONE)
 		cpu->branch--;
 	
-	if (CPU_KERNEL_MODE(cpu))
-		cpu->k_cycles++;
-	else
-		cpu->u_cycles++;
-	
+	/*
+	 * Reset the binary translation if we are outside
+	 * the original frame.
+	 */
 	if ((old_pc.ptr | FRAME_MASK) != (cpu->pc.ptr | FRAME_MASK))
 		cpu->frame = NULL;
 }
 
-/* Simulate 4096 cycles of the processor
+/** CPU cycle accounting after one instruction execution
+ *
+ */
+static void account(cpu_t *cpu)
+{
+	ASSERT(cpu != NULL);
+	
+	if (cpu->stdby) {
+		cpu->w_cycles++;
+	} else {
+		if (CPU_KERNEL_MODE(cpu))
+			cpu->k_cycles++;
+		else
+			cpu->u_cycles++;
+	}
+}
+
+/* Simulate one cycle of the processor
  *
  */
 void cpu_step(cpu_t *cpu)
 {
 	ASSERT(cpu != NULL);
 	
-	if (cpu->stdby) {
-		cpu->w_cycles++;
-		return;
-	}
+	/* Instruction execute */
+	exc_t exc = excNone;
+	ptr64_t old_pc = cpu->pc;
 	
-	execute(cpu);
+	if (!cpu->stdby)
+		exc = execute(cpu);
+	
+	/* Processor management */
+	manage(cpu, exc, old_pc);
+	
+	/* Cycle accounting */
+	account(cpu);
 }

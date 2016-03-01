@@ -929,7 +929,7 @@ bool gdb_remote_init(void)
 	}
 	
 	struct sockaddr_in sa_srv;
-	memset(&sa_srv, sizeof(sa_srv), 0);
+	memset(&sa_srv, 0, sizeof(sa_srv));
 	
 	sa_srv.sin_family = AF_INET;
 	sa_srv.sin_addr.s_addr = htonl(INADDR_ANY);

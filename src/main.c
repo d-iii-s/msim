@@ -75,6 +75,9 @@ bool machine_interactive = false;
 /** Print newline on entering interactive mode */
 bool machine_newline = false;
 
+/** Undefined instruction silent exception */
+bool machine_undefined = false;
+
 /**
  * Number of steps to run before switching
  * to interactive mode. Zero means infinite.

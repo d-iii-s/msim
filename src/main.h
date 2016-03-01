@@ -113,6 +113,7 @@ extern bool machine_halt;
 extern bool machine_break;
 extern bool machine_interactive;
 extern bool machine_newline;
+extern bool machine_undefined;
 extern uint64_t stepping;
 
 #endif

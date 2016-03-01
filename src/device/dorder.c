@@ -100,7 +100,7 @@ static bool dorder_init(token_t *parm, device_t *dev)
 		return false;
 	}
 	
-	if (_intno >= MAX_INTRS) {
+	if (_intno > MAX_INTRS) {
 		error("%s", txt_intnum_range);
 		return false;
 	}

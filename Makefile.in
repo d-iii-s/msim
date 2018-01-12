@@ -9,7 +9,7 @@ INSTALL = @INSTALL@
 RM = @RM@
 PREFIX = @prefix@
 
-BINARY = bin/msim
+BINARY = msim
 
 .PHONY: all install uninstall clean distclean
 

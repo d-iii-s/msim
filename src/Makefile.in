@@ -16,7 +16,7 @@ MAKEDEPEND = @MAKEDEPEND@
 
 DEPEND = Makefile.depend
 DEPEND_PREV = $(DEPEND).prev
-TARGET = ./../bin/msim
+TARGET = ../msim
 
 SOURCES = \
 	utils.c \

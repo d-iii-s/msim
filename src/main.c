@@ -18,7 +18,7 @@
 #include <string.h>
 #include <stdbool.h>
 #include "arch/signal.h"
-#include "cpu/r4000.h"
+#include "device/cpu/mips_r4000/cpu.h"
 #include "debug/gdb.h"
 #include "device/dcpu.h"
 #include "device/device.h"

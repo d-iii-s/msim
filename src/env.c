@@ -12,7 +12,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <stdbool.h>
-#include "cpu/instr.h"
+#include "device/cpu/mips_r4000/instr.h"
 #include "fault.h"
 #include "parser.h"
 #include "assert.h"

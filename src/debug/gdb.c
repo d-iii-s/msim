@@ -25,7 +25,7 @@
 #include "breakpoint.h"
 #include "gdb.h"
 #include "../arch/network.h"
-#include "../cpu/r4000.h"
+#include "../device/cpu/mips_r4000/cpu.h"
 #include "../device/dcpu.h"
 #include "../assert.h"
 #include "../endian.h"

@@ -9,15 +9,15 @@
  *
  */
 
-#ifndef R4000_H_
-#define R4000_H_
+#ifndef MIPS_R4000_CPU_H_
+#define MIPS_R4000_CPU_H_
 
 #include <stdint.h>
 #include <stdbool.h>
 #include <inttypes.h>
 #include <unistd.h>
-#include "../list.h"
-#include "../utils.h"
+#include "../../../list.h"
+#include "../../../utils.h"
 #include "instr.h"
 
 #define FRAME_WIDTH   12

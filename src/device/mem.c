@@ -22,7 +22,6 @@
 #include "device.h"
 #include "mem.h"
 #include "../arch/mmap.h"
-#include "../cpu/r4000.h"
 #include "../fault.h"
 #include "../parser.h"
 #include "../text.h"

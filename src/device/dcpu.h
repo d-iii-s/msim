@@ -13,7 +13,7 @@
 #define DCPU_H_
 
 #include "device.h"
-#include "../cpu/r4000.h"
+#include "cpu/mips_r4000/cpu.h"
 
 extern device_type_t dcpu;
 

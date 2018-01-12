@@ -9,13 +9,13 @@
  *
  */
 
-#ifndef INSTR_H_
-#define INSTR_H_
+#ifndef MIPS_R4000_INSTR_H_
+#define MIPS_R4000_INSTR_H_
 
 #include <stdint.h>
 #include <inttypes.h>
-#include "../../config.h"
-#include "../main.h"
+#include "../../../../config.h"
+#include "../../../main.h"
 
 #define REG_COUNT     32
 #define REG_VARIANTS  3

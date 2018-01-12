@@ -15,7 +15,7 @@
 #include <stdint.h>
 
 #include "../parser.h"
-#include "../cpu/r4000.h"
+#include "cpu/mips_r4000/cpu.h"
 
 struct device;
 

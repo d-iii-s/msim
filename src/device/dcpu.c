@@ -15,7 +15,7 @@
 #include <inttypes.h>
 #include "dcpu.h"
 #include "device.h"
-#include "../cpu/r4000.h"
+#include "cpu/mips_r4000/cpu.h"
 #include "../debug/debug.h"
 #include "../debug/breakpoint.h"
 #include "../fault.h"

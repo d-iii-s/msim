@@ -15,8 +15,8 @@
 #include <stdlib.h>
 #include <stdbool.h>
 #include <stdint.h>
-#include "../cpu/instr.h"
-#include "../cpu/r4000.h"
+#include "../device/cpu/mips_r4000/instr.h"
+#include "../device/cpu/mips_r4000/cpu.h"
 #include "../device/device.h"
 #include "../utils.h"
 

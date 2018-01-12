@@ -16,7 +16,7 @@
 #include <string.h>
 #include <inttypes.h>
 #include <unistd.h>
-#include "cpu/r4000.h"
+#include "device/cpu/mips_r4000/cpu.h"
 #include "arch/mmap.h"
 #include "text.h"
 #include "utils.h"

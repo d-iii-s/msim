@@ -18,7 +18,7 @@
 #include <unistd.h>
 #include <errno.h>
 #include <inttypes.h>
-#include "cpu/r4000.h"
+#include "device/cpu/mips_r4000/cpu.h"
 #include "debug/debug.h"
 #include "debug/breakpoint.h"
 #include "device/device.h"

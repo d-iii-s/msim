@@ -13,19 +13,19 @@
 #include <stdio.h>
 #include <string.h>
 #include <inttypes.h>
-#include "../debug/breakpoint.h"
-#include "../debug/debug.h"
-#include "../debug/gdb.h"
-#include "../device/device.h"
-#include "../assert.h"
-#include "../endian.h"
-#include "../env.h"
-#include "../fault.h"
-#include "../main.h"
-#include "../text.h"
-#include "../utils.h"
+#include "../../../debug/breakpoint.h"
+#include "../../../debug/debug.h"
+#include "../../../debug/gdb.h"
+#include "../../device.h"
+#include "../../../assert.h"
+#include "../../../endian.h"
+#include "../../../env.h"
+#include "../../../fault.h"
+#include "../../../main.h"
+#include "../../../text.h"
+#include "../../../utils.h"
 #include "instr.h"
-#include "r4000.h"
+#include "cpu.h"
 
 /** Physical memory management
  *

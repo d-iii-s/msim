@@ -28,11 +28,11 @@ SOURCES = \
 	parser.c \
 	list.c \
 	input.c \
-	cpu/instr.c \
-	cpu/r4000.c \
 	debug/debug.c \
 	debug/gdb.c \
 	debug/breakpoint.c \
+	device/cpu/mips_r4000/instr.c \
+	device/cpu/mips_r4000/cpu.c \
 	device/mem.c \
 	device/ddisk.c \
 	device/dcpu.c \

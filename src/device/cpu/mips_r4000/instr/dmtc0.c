@@ -1,4 +1,4 @@
-static exc_t instr_dmtc0(cpu_t *cpu, instr_t instr)
+static exc_t instr_dmtc0(r4k_cpu_t *cpu, instr_t instr)
 {
 	ASSERT(false);
 	

@@ -587,7 +587,7 @@ static shift_tab_t shift_tab_right_store[] = {
  * See tlb_look_t definition
  *
  */
-static tlb_look_t tlb_look(cpu_t *cpu, ptr64_t virt, ptr36_t *phys, bool wr)
+static tlb_look_t tlb_look(r4k_cpu_t *cpu, ptr64_t virt, ptr36_t *phys, bool wr)
 {
 	ASSERT(cpu != NULL);
 	ASSERT(phys != NULL);
@@ -638,7 +638,7 @@ static tlb_look_t tlb_look(cpu_t *cpu, ptr64_t virt, ptr36_t *phys, bool wr)
 /** Fill up cp0 registers with specified address
  *
  */
-static void fill_tlb_error(cpu_t *cpu, ptr64_t addr)
+static void fill_tlb_error(r4k_cpu_t *cpu, ptr64_t addr)
 {
 	ASSERT(cpu != NULL);
 	
@@ -659,7 +659,7 @@ static void fill_tlb_error(cpu_t *cpu, ptr64_t addr)
 /** Fill registers as the Address error exception occures
  *
  */
-static void fill_addr_error(cpu_t *cpu, ptr64_t addr, bool noisy)
+static void fill_addr_error(r4k_cpu_t *cpu, ptr64_t addr, bool noisy)
 {
 	ASSERT(cpu != NULL);
 	
@@ -674,7 +674,7 @@ static void fill_addr_error(cpu_t *cpu, ptr64_t addr, bool noisy)
 /** Search through TLB and generates apropriate exception (32 bits)
  *
  */
-static exc_t tlb_hit32(cpu_t *cpu, ptr64_t virt, ptr36_t *phys, bool wr,
+static exc_t tlb_hit32(r4k_cpu_t *cpu, ptr64_t virt, ptr36_t *phys, bool wr,
     bool noisy)
 {
 	ASSERT(cpu != NULL);
@@ -712,7 +712,7 @@ static exc_t tlb_hit32(cpu_t *cpu, ptr64_t virt, ptr36_t *phys, bool wr,
 /** Search through TLB and generates apropriate exception (64 bits)
  *
  */
-static exc_t tlb_hit64(cpu_t *cpu, ptr64_t virt, ptr36_t *phys, bool wr,
+static exc_t tlb_hit64(r4k_cpu_t *cpu, ptr64_t virt, ptr36_t *phys, bool wr,
     bool noisy)
 {
 	ASSERT(cpu != NULL);
@@ -726,7 +726,7 @@ static exc_t tlb_hit64(cpu_t *cpu, ptr64_t virt, ptr36_t *phys, bool wr,
 /** The user mode address conversion (32 bits)
  *
  */
-static exc_t convert_addr_user32(cpu_t *cpu, ptr64_t virt, ptr36_t *phys,
+static exc_t convert_addr_user32(r4k_cpu_t *cpu, ptr64_t virt, ptr36_t *phys,
     bool wr, bool noisy)
 {
 	ASSERT(cpu != NULL);
@@ -743,7 +743,7 @@ static exc_t convert_addr_user32(cpu_t *cpu, ptr64_t virt, ptr36_t *phys,
 /** The user mode address conversion (64 bits)
  *
  */
-static exc_t convert_addr_user64(cpu_t *cpu, ptr64_t virt, ptr36_t *phys,
+static exc_t convert_addr_user64(r4k_cpu_t *cpu, ptr64_t virt, ptr36_t *phys,
     bool wr, bool noisy)
 {
 	ASSERT(cpu != NULL);
@@ -760,7 +760,7 @@ static exc_t convert_addr_user64(cpu_t *cpu, ptr64_t virt, ptr36_t *phys,
 /** The supervisor mode address conversion (32 bits)
  *
  */
-static exc_t convert_addr_supervisor32(cpu_t *cpu, ptr64_t virt, ptr36_t *phys,
+static exc_t convert_addr_supervisor32(r4k_cpu_t *cpu, ptr64_t virt, ptr36_t *phys,
     bool wr, bool noisy)
 {
 	ASSERT(cpu != NULL);
@@ -780,7 +780,7 @@ static exc_t convert_addr_supervisor32(cpu_t *cpu, ptr64_t virt, ptr36_t *phys,
 /** The supervisor mode address conversion (64 bits)
  *
  */
-static exc_t convert_addr_supervisor64(cpu_t *cpu, ptr64_t virt, ptr36_t *phys,
+static exc_t convert_addr_supervisor64(r4k_cpu_t *cpu, ptr64_t virt, ptr36_t *phys,
     bool wr, bool noisy)
 {
 	ASSERT(cpu != NULL);
@@ -803,7 +803,7 @@ static exc_t convert_addr_supervisor64(cpu_t *cpu, ptr64_t virt, ptr36_t *phys,
 /** The kernel mode address conversion (32 bits)
  *
  */
-static exc_t convert_addr_kernel32(cpu_t *cpu, ptr64_t virt, ptr36_t *phys,
+static exc_t convert_addr_kernel32(r4k_cpu_t *cpu, ptr64_t virt, ptr36_t *phys,
     bool wr, bool noisy)
 {
 	ASSERT(cpu != NULL);
@@ -840,7 +840,7 @@ static exc_t convert_addr_kernel32(cpu_t *cpu, ptr64_t virt, ptr36_t *phys,
 /** The kernel mode address conversion (64 bits)
  *
  */
-static exc_t convert_addr_kernel64(cpu_t *cpu, ptr64_t virt, ptr36_t *phys,
+static exc_t convert_addr_kernel64(r4k_cpu_t *cpu, ptr64_t virt, ptr36_t *phys,
     bool wr, bool noisy)
 {
 	ASSERT(cpu != NULL);
@@ -890,7 +890,7 @@ static exc_t convert_addr_kernel64(cpu_t *cpu, ptr64_t virt, ptr36_t *phys,
  *              if the address is incorrect.
  *
  */
-exc_t convert_addr(cpu_t *cpu, ptr64_t virt, ptr36_t *phys, bool write,
+exc_t convert_addr(r4k_cpu_t *cpu, ptr64_t virt, ptr36_t *phys, bool write,
     bool noisy)
 {
 	ASSERT(cpu != NULL);
@@ -920,7 +920,7 @@ exc_t convert_addr(cpu_t *cpu, ptr64_t virt, ptr36_t *phys, bool write,
  * Fill BadVAddr if the alignment is not correct.
  *
  */
-static exc_t align_test16(cpu_t *cpu, ptr64_t addr, bool noisy)
+static exc_t align_test16(r4k_cpu_t *cpu, ptr64_t addr, bool noisy)
 {
 	ASSERT(cpu != NULL);
 	
@@ -937,7 +937,7 @@ static exc_t align_test16(cpu_t *cpu, ptr64_t addr, bool noisy)
  * Fill BadVAddr if the alignment is not correct.
  *
  */
-static exc_t align_test32(cpu_t *cpu, ptr64_t addr, bool noisy)
+static exc_t align_test32(r4k_cpu_t *cpu, ptr64_t addr, bool noisy)
 {
 	ASSERT(cpu != NULL);
 	
@@ -954,7 +954,7 @@ static exc_t align_test32(cpu_t *cpu, ptr64_t addr, bool noisy)
  * Fill BadVAddr if the alignment is not correct.
  *
  */
-static exc_t align_test64(cpu_t *cpu, ptr64_t addr, bool noisy)
+static exc_t align_test64(r4k_cpu_t *cpu, ptr64_t addr, bool noisy)
 {
 	ASSERT(cpu != NULL);
 	
@@ -979,7 +979,7 @@ static exc_t align_test64(cpu_t *cpu, ptr64_t addr, bool noisy)
  * @param noisy Generate exception in case of invalid operation
  *
  */
-static exc_t access_mem(cpu_t *cpu, acc_mode_t mode, ptr64_t virt,
+static exc_t access_mem(r4k_cpu_t *cpu, acc_mode_t mode, ptr64_t virt,
     ptr36_t *phys, bool noisy)
 {
 	ASSERT(cpu != NULL);
@@ -1015,7 +1015,7 @@ static exc_t access_mem(cpu_t *cpu, acc_mode_t mode, ptr64_t virt,
  * Does not change the value if an exception occurs.
  *
  */
-static exc_t cpu_read_mem8(cpu_t *cpu, ptr64_t addr, uint8_t *val, bool noisy)
+static exc_t cpu_read_mem8(r4k_cpu_t *cpu, ptr64_t addr, uint8_t *val, bool noisy)
 {
 	ASSERT(cpu != NULL);
 	ASSERT(val != NULL);
@@ -1044,7 +1044,7 @@ static exc_t cpu_read_mem8(cpu_t *cpu, ptr64_t addr, uint8_t *val, bool noisy)
  * Does not change the value if an exception occurs.
  *
  */
-static exc_t cpu_read_mem16(cpu_t *cpu, ptr64_t addr, uint16_t *val, bool noisy)
+static exc_t cpu_read_mem16(r4k_cpu_t *cpu, ptr64_t addr, uint16_t *val, bool noisy)
 {
 	ASSERT(cpu != NULL);
 	ASSERT(val != NULL);
@@ -1083,7 +1083,7 @@ static exc_t cpu_read_mem16(cpu_t *cpu, ptr64_t addr, uint16_t *val, bool noisy)
  * Does not change the value if an exception occurs.
  *
  */
-exc_t cpu_read_mem32(cpu_t *cpu, ptr64_t addr, uint32_t *val, bool noisy)
+exc_t cpu_read_mem32(r4k_cpu_t *cpu, ptr64_t addr, uint32_t *val, bool noisy)
 {
 	ASSERT(cpu != NULL);
 	ASSERT(val != NULL);
@@ -1122,7 +1122,7 @@ exc_t cpu_read_mem32(cpu_t *cpu, ptr64_t addr, uint32_t *val, bool noisy)
  * Does not change the value if an exception occurs.
  *
  */
-static exc_t cpu_read_mem64(cpu_t *cpu, ptr64_t addr, uint64_t *val, bool noisy)
+static exc_t cpu_read_mem64(r4k_cpu_t *cpu, ptr64_t addr, uint64_t *val, bool noisy)
 {
 	ASSERT(cpu != NULL);
 	ASSERT(val != NULL);
@@ -1159,7 +1159,7 @@ static exc_t cpu_read_mem64(cpu_t *cpu, ptr64_t addr, uint64_t *val, bool noisy)
 /** Perform write operation to the virtual memory (8 bits)
  *
  */
-static exc_t cpu_write_mem8(cpu_t *cpu, ptr64_t addr, uint8_t value, bool noisy)
+static exc_t cpu_write_mem8(r4k_cpu_t *cpu, ptr64_t addr, uint8_t value, bool noisy)
 {
 	ASSERT(cpu != NULL);
 	
@@ -1187,7 +1187,7 @@ static exc_t cpu_write_mem8(cpu_t *cpu, ptr64_t addr, uint8_t value, bool noisy)
 /** Perform write operation to the virtual memory (16 bits)
  *
  */
-static exc_t cpu_write_mem16(cpu_t *cpu, ptr64_t addr, uint16_t value,
+static exc_t cpu_write_mem16(r4k_cpu_t *cpu, ptr64_t addr, uint16_t value,
     bool noisy)
 {
 	ASSERT(cpu != NULL);
@@ -1226,7 +1226,7 @@ static exc_t cpu_write_mem16(cpu_t *cpu, ptr64_t addr, uint16_t value,
 /** Perform write operation to the virtual memory (32 bits)
  *
  */
-static exc_t cpu_write_mem32(cpu_t *cpu, ptr64_t addr, uint32_t value,
+static exc_t cpu_write_mem32(r4k_cpu_t *cpu, ptr64_t addr, uint32_t value,
     bool noisy)
 {
 	ASSERT(cpu != NULL);
@@ -1265,7 +1265,7 @@ static exc_t cpu_write_mem32(cpu_t *cpu, ptr64_t addr, uint32_t value,
 /** Perform write operation to the virtual memory (64 bits)
  *
  */
-static exc_t cpu_write_mem64(cpu_t *cpu, ptr64_t addr, uint64_t value,
+static exc_t cpu_write_mem64(r4k_cpu_t *cpu, ptr64_t addr, uint64_t value,
     bool noisy)
 {
 	ASSERT(cpu != NULL);
@@ -1304,7 +1304,7 @@ static exc_t cpu_write_mem64(cpu_t *cpu, ptr64_t addr, uint64_t value,
 /** Probe TLB entry
  *
  */
-static exc_t TLBP(cpu_t *cpu)
+static exc_t TLBP(r4k_cpu_t *cpu)
 {
 	ASSERT(cpu != NULL);
 	
@@ -1341,7 +1341,7 @@ static exc_t TLBP(cpu_t *cpu)
 /** Read entry from the TLB
  *
  */
-static exc_t TLBR(cpu_t *cpu)
+static exc_t TLBR(r4k_cpu_t *cpu)
 {
 	ASSERT(cpu != NULL);
 	
@@ -1384,7 +1384,7 @@ static exc_t TLBR(cpu_t *cpu)
  * the random register (TLBWR) or index (TLBWI).
  *
  */
-static exc_t TLBW(cpu_t *cpu, bool random)
+static exc_t TLBW(r4k_cpu_t *cpu, bool random)
 {
 	ASSERT(cpu != NULL);
 	
@@ -1441,7 +1441,7 @@ static exc_t TLBW(cpu_t *cpu, bool random)
 
 typedef struct {
 	item_t item;
-	cpu_t *cpu;
+	r4k_cpu_t *cpu;
 } sc_item_t;
 
 static list_t sc_list = LIST_INITIALIZER;
@@ -1449,7 +1449,7 @@ static list_t sc_list = LIST_INITIALIZER;
 /** Register current processor in LL-SC tracking list
  *
  */
-static void sc_register(cpu_t *cpu)
+static void sc_register(r4k_cpu_t *cpu)
 {
 	/* Ignore if already registered. */
 	sc_item_t *sc_item;
@@ -1468,7 +1468,7 @@ static void sc_register(cpu_t *cpu)
 /** Remove current processor from the LL-SC tracking list
  *
  */
-static void sc_unregister(cpu_t *cpu)
+static void sc_unregister(r4k_cpu_t *cpu)
 {
 	sc_item_t *sc_item;
 	
@@ -2921,7 +2921,7 @@ mnemonics_fnc_t decode_mnemonics(instr_t instr)
 /** Initialize simulation environment
  *
  */
-void cpu_init(cpu_t *cpu, unsigned int procno)
+void cpu_init(r4k_cpu_t *cpu, unsigned int procno)
 {
 	ASSERT(cpu != NULL);
 	
@@ -2929,7 +2929,7 @@ void cpu_init(cpu_t *cpu, unsigned int procno)
 	start_address.ptr = HARD_RESET_START_ADDRESS;
 	
 	/* Initially set all members to zero */
-	memset(cpu, 0, sizeof(cpu_t));
+	memset(cpu, 0, sizeof(r4k_cpu_t));
 	
 	cpu->procno = procno;
 	cpu_set_pc(cpu, start_address);
@@ -2954,7 +2954,7 @@ void cpu_init(cpu_t *cpu, unsigned int procno)
 /** Set the PC register
  *
  */
-void cpu_set_pc(cpu_t *cpu, ptr64_t value)
+void cpu_set_pc(r4k_cpu_t *cpu, ptr64_t value)
 {
 	ASSERT(cpu != NULL);
 	
@@ -2969,7 +2969,7 @@ void cpu_set_pc(cpu_t *cpu, ptr64_t value)
  * the WATCH exception.
  *
  */
-//exc_t cpu_read_ins(cpu_t *cpu, ptr64_t addr, uint32_t *icode, bool noisy)
+//exc_t cpu_read_ins(r4k_cpu_t *cpu, ptr64_t addr, uint32_t *icode, bool noisy)
 //{
 //	ASSERT(cpu != NULL);
 //	ASSERT(icode != NULL);
@@ -3041,7 +3041,7 @@ static void physmem_breakpoint_find(ptr36_t addr, len36_t size,
 	}
 }
 
-static uint8_t devmem_read8(cpu_t *cpu, ptr36_t addr)
+static uint8_t devmem_read8(r4k_cpu_t *cpu, ptr36_t addr)
 {
 	uint32_t val = (uint32_t) DEFAULT_MEMORY_VALUE;
 	
@@ -3054,7 +3054,7 @@ static uint8_t devmem_read8(cpu_t *cpu, ptr36_t addr)
 	return val;
 }
 
-static uint16_t devmem_read16(cpu_t *cpu, ptr36_t addr)
+static uint16_t devmem_read16(r4k_cpu_t *cpu, ptr36_t addr)
 {
 	uint32_t val = (uint32_t) DEFAULT_MEMORY_VALUE;
 	
@@ -3067,7 +3067,7 @@ static uint16_t devmem_read16(cpu_t *cpu, ptr36_t addr)
 	return val;
 }
 
-static uint32_t devmem_read32(cpu_t *cpu, ptr36_t addr)
+static uint32_t devmem_read32(r4k_cpu_t *cpu, ptr36_t addr)
 {
 	uint32_t val = (uint32_t) DEFAULT_MEMORY_VALUE;
 	
@@ -3080,7 +3080,7 @@ static uint32_t devmem_read32(cpu_t *cpu, ptr36_t addr)
 	return val;
 }
 
-static uint64_t devmem_read64(cpu_t *cpu, ptr36_t addr)
+static uint64_t devmem_read64(r4k_cpu_t *cpu, ptr36_t addr)
 {
 	uint64_t val = (uint64_t) DEFAULT_MEMORY_VALUE;
 	
@@ -3108,7 +3108,7 @@ static uint64_t devmem_read64(cpu_t *cpu, ptr36_t addr)
  *         if the address is not valid.
  *
  */
-uint8_t physmem_read8(cpu_t *cpu, ptr36_t addr, bool protected)
+uint8_t physmem_read8(r4k_cpu_t *cpu, ptr36_t addr, bool protected)
 {
 	frame_t *frame = physmem_find_frame(addr);
 	
@@ -3144,7 +3144,7 @@ uint8_t physmem_read8(cpu_t *cpu, ptr36_t addr, bool protected)
  *         if the address is not valid.
  *
  */
-uint16_t physmem_read16(cpu_t *cpu, ptr36_t addr, bool protected)
+uint16_t physmem_read16(r4k_cpu_t *cpu, ptr36_t addr, bool protected)
 {
 	frame_t *frame = physmem_find_frame(addr);
 	
@@ -3180,7 +3180,7 @@ uint16_t physmem_read16(cpu_t *cpu, ptr36_t addr, bool protected)
  *         if the address is not valid.
  *
  */
-uint32_t physmem_read32(cpu_t *cpu, ptr36_t addr, bool protected)
+uint32_t physmem_read32(r4k_cpu_t *cpu, ptr36_t addr, bool protected)
 {
 	frame_t *frame = physmem_find_frame(addr);
 	
@@ -3216,7 +3216,7 @@ uint32_t physmem_read32(cpu_t *cpu, ptr36_t addr, bool protected)
  *         if the address is not valid.
  *
  */
-uint64_t physmem_read64(cpu_t *cpu, ptr36_t addr, bool protected)
+uint64_t physmem_read64(r4k_cpu_t *cpu, ptr36_t addr, bool protected)
 {
 	frame_t *frame = physmem_find_frame(addr);
 	
@@ -3245,7 +3245,7 @@ static void sc_control(ptr36_t addr)
 	sc_item_t *sc_item = (sc_item_t *) sc_list.head;
 	
 	while (sc_item != NULL) {
-		cpu_t *sc_cpu = sc_item->cpu;
+		r4k_cpu_t *sc_cpu = sc_item->cpu;
 		
 		if (sc_cpu->lladdr == addr) {
 			sc_cpu->llbit = false;
@@ -3260,7 +3260,7 @@ static void sc_control(ptr36_t addr)
 	}
 }
 
-static bool devmem_write8(cpu_t *cpu, ptr36_t addr, uint8_t val)
+static bool devmem_write8(r4k_cpu_t *cpu, ptr36_t addr, uint8_t val)
 {
 	bool written = false;
 	
@@ -3276,7 +3276,7 @@ static bool devmem_write8(cpu_t *cpu, ptr36_t addr, uint8_t val)
 	return written;
 }
 
-static bool devmem_write16(cpu_t *cpu, ptr36_t addr, uint16_t val)
+static bool devmem_write16(r4k_cpu_t *cpu, ptr36_t addr, uint16_t val)
 {
 	bool written = false;
 	
@@ -3292,7 +3292,7 @@ static bool devmem_write16(cpu_t *cpu, ptr36_t addr, uint16_t val)
 	return written;
 }
 
-static bool devmem_write32(cpu_t *cpu, ptr36_t addr, uint32_t val)
+static bool devmem_write32(r4k_cpu_t *cpu, ptr36_t addr, uint32_t val)
 {
 	bool written = false;
 	
@@ -3308,7 +3308,7 @@ static bool devmem_write32(cpu_t *cpu, ptr36_t addr, uint32_t val)
 	return written;
 }
 
-static bool devmem_write64(cpu_t *cpu, ptr36_t addr, uint64_t val)
+static bool devmem_write64(r4k_cpu_t *cpu, ptr36_t addr, uint64_t val)
 {
 	bool written = false;
 	
@@ -3341,7 +3341,7 @@ static bool devmem_write64(cpu_t *cpu, ptr36_t addr, uint64_t val)
  *         set to true.
  *
  */
-bool physmem_write8(cpu_t *cpu, ptr36_t addr, uint8_t val, bool protected)
+bool physmem_write8(r4k_cpu_t *cpu, ptr36_t addr, uint8_t val, bool protected)
 {
 	frame_t *frame = physmem_find_frame(addr);
 	
@@ -3388,7 +3388,7 @@ bool physmem_write8(cpu_t *cpu, ptr36_t addr, uint8_t val, bool protected)
  *         set to true.
  *
  */
-bool physmem_write16(cpu_t *cpu, ptr36_t addr, uint16_t val, bool protected)
+bool physmem_write16(r4k_cpu_t *cpu, ptr36_t addr, uint16_t val, bool protected)
 {
 	frame_t *frame = physmem_find_frame(addr);
 	
@@ -3435,7 +3435,7 @@ bool physmem_write16(cpu_t *cpu, ptr36_t addr, uint16_t val, bool protected)
  *         set to true.
  *
  */
-bool physmem_write32(cpu_t *cpu, ptr36_t addr, uint32_t val, bool protected)
+bool physmem_write32(r4k_cpu_t *cpu, ptr36_t addr, uint32_t val, bool protected)
 {
 	frame_t *frame = physmem_find_frame(addr);
 	
@@ -3482,7 +3482,7 @@ bool physmem_write32(cpu_t *cpu, ptr36_t addr, uint32_t val, bool protected)
  *         set to true.
  *
  */
-bool physmem_write64(cpu_t *cpu, ptr36_t addr, uint64_t val, bool protected)
+bool physmem_write64(r4k_cpu_t *cpu, ptr36_t addr, uint64_t val, bool protected)
 {
 	frame_t *frame = physmem_find_frame(addr);
 	
@@ -3515,7 +3515,7 @@ bool physmem_write64(cpu_t *cpu, ptr36_t addr, uint64_t val, bool protected)
 /** Assert the specified interrupt
  *
  */
-void cpu_interrupt_up(cpu_t *cpu, unsigned int no)
+void cpu_interrupt_up(r4k_cpu_t *cpu, unsigned int no)
 {
 	ASSERT(cpu != NULL);
 	ASSERT(no < INTR_COUNT);
@@ -3527,7 +3527,7 @@ void cpu_interrupt_up(cpu_t *cpu, unsigned int no)
 /* Deassert the specified interrupt
  *
  */
-void cpu_interrupt_down(cpu_t *cpu, unsigned int no)
+void cpu_interrupt_down(r4k_cpu_t *cpu, unsigned int no)
 {
 	ASSERT(cpu != NULL);
 	ASSERT(no < INTR_COUNT);
@@ -3631,7 +3631,7 @@ static instr_fnc_t decode(instr_t instr)
 /** Translate instruction virtual address to physical memory frame
  *
  */
-static exc_t cpu_frame(cpu_t *cpu)
+static exc_t cpu_frame(r4k_cpu_t *cpu)
 {
 	ASSERT(cpu != NULL);
 	
@@ -3689,7 +3689,7 @@ static void frame_decode(frame_t *frame)
 /** Change the processor state according to the exception type
  *
  */
-static void handle_exception(cpu_t *cpu, exc_t res)
+static void handle_exception(r4k_cpu_t *cpu, exc_t res)
 {
 	ASSERT(cpu != NULL);
 	
@@ -3760,7 +3760,7 @@ static void handle_exception(cpu_t *cpu, exc_t res)
 /** Execute one CPU instruction
  *
  */
-static exc_t execute(cpu_t *cpu)
+static exc_t execute(r4k_cpu_t *cpu)
 {
 	ASSERT(cpu != NULL);
 	
@@ -3820,7 +3820,7 @@ static exc_t execute(cpu_t *cpu)
 /** CPU management
  *
  */
-static void manage(cpu_t *cpu, exc_t exc, ptr64_t old_pc)
+static void manage(r4k_cpu_t *cpu, exc_t exc, ptr64_t old_pc)
 {
 	ASSERT(cpu != NULL);
 	
@@ -3871,7 +3871,7 @@ static void manage(cpu_t *cpu, exc_t exc, ptr64_t old_pc)
 /** CPU cycle accounting after one instruction execution
  *
  */
-static void account(cpu_t *cpu)
+static void account(r4k_cpu_t *cpu)
 {
 	ASSERT(cpu != NULL);
 	
@@ -3888,7 +3888,7 @@ static void account(cpu_t *cpu)
 /* Simulate one cycle of the processor
  *
  */
-void cpu_step(cpu_t *cpu)
+void cpu_step(r4k_cpu_t *cpu)
 {
 	ASSERT(cpu != NULL);
 	

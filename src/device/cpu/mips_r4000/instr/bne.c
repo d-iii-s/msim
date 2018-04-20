@@ -1,4 +1,4 @@
-static exc_t instr_bne(cpu_t *cpu, instr_t instr)
+static exc_t instr_bne(r4k_cpu_t *cpu, instr_t instr)
 {
 	bool cond;
 	

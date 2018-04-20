@@ -187,7 +187,7 @@ static void keyboard_done(device_t *dev)
 	safe_free(dev->data);
 }
 
-static void keyboard_read32(cpu_t *cpu, device_t *dev, ptr36_t addr, uint32_t *val)
+static void keyboard_read32(r4k_cpu_t *cpu, device_t *dev, ptr36_t addr, uint32_t *val)
 {
 	ASSERT(dev != NULL);
 	ASSERT(val != NULL);

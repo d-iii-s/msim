@@ -1,4 +1,4 @@
-static exc_t instr_ldl(cpu_t *cpu, instr_t instr)
+static exc_t instr_ldl(r4k_cpu_t *cpu, instr_t instr)
 {
 	ASSERT(false);
 	return excNone;

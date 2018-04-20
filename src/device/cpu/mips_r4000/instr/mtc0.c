@@ -1,4 +1,4 @@
-static exc_t instr_mtc0(cpu_t *cpu, instr_t instr)
+static exc_t instr_mtc0(r4k_cpu_t *cpu, instr_t instr)
 {
 	if (CP0_USABLE(cpu)) {
 		reg64_t reg = cpu->regs[instr.r.rt];

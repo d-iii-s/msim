@@ -1,4 +1,4 @@
-static exc_t instr_tlbr(cpu_t *cpu, instr_t instr)
+static exc_t instr_tlbr(r4k_cpu_t *cpu, instr_t instr)
 {
 	return TLBR(cpu);
 }

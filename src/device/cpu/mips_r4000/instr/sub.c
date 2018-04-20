@@ -1,4 +1,4 @@
-static exc_t instr_sub(cpu_t *cpu, instr_t instr)
+static exc_t instr_sub(r4k_cpu_t *cpu, instr_t instr)
 {
 	uint32_t rs = cpu->regs[instr.r.rs].lo;
 	uint32_t rt = cpu->regs[instr.r.rt].lo;

@@ -1,4 +1,4 @@
-static exc_t instr_sllv(cpu_t *cpu, instr_t instr)
+static exc_t instr_sllv(r4k_cpu_t *cpu, instr_t instr)
 {
 	uint32_t rs = cpu->regs[instr.r.rs].lo;
 	uint32_t rt = cpu->regs[instr.r.rt].lo;

@@ -81,7 +81,7 @@ static char *cp0_dump_str[] = {
 	"  1f Reserved\n"
 };
 
-void reg_dump(cpu_t *cpu)
+void reg_dump(r4k_cpu_t *cpu)
 {
 	printf("processor %u\n", cpu->procno);
 	
@@ -112,7 +112,7 @@ static const char *get_pagemask_name(unsigned int pm)
 	return pagemask_name[CP0_PM_ITEMS].s;
 }
 
-void tlb_dump(cpu_t *cpu)
+void tlb_dump(r4k_cpu_t *cpu)
 {
 	printf(" [             general             ][    subp 0     ][     subp 1    ]\n"
 	    "  no    vpn      mask        g asid  v d   pfn     c  v d   pfn     c\n");
@@ -130,7 +130,7 @@ void tlb_dump(cpu_t *cpu)
 	}
 }
 
-static void cp0_dump_reg(cpu_t *cpu, unsigned int reg)
+static void cp0_dump_reg(r4k_cpu_t *cpu, unsigned int reg)
 {
 	const char *s = cp0_dump_str[reg];
 	
@@ -247,7 +247,7 @@ static void cp0_dump_reg(cpu_t *cpu, unsigned int reg)
 	}
 }
 
-void cp0_dump_all(cpu_t *cpu)
+void cp0_dump_all(r4k_cpu_t *cpu)
 {
 	ASSERT(cpu != NULL);
 	
@@ -275,7 +275,7 @@ void cp0_dump_all(cpu_t *cpu)
 	cp0_dump_reg(cpu, 30);
 }
 
-void cp0_dump(cpu_t *cpu, unsigned int reg)
+void cp0_dump(r4k_cpu_t *cpu, unsigned int reg)
 {
 	ASSERT(cpu != NULL);
 	
@@ -301,7 +301,7 @@ static void idump_common(ptr64_t addr, instr_t instr, string_t *s_opc,
  * @param modregs If true, then modified registers are also dumped.
  *
  */
-void idump(cpu_t *cpu, ptr64_t addr, instr_t instr, bool modregs)
+void idump(r4k_cpu_t *cpu, ptr64_t addr, instr_t instr, bool modregs)
 {
 	string_t s_cpu;
 	string_t s_addr;
@@ -378,7 +378,7 @@ void idump_phys(ptr36_t addr, instr_t instr)
  * Each modified register is included to the output.
  *
  */
-char *modified_regs_dump(cpu_t *cpu)
+char *modified_regs_dump(r4k_cpu_t *cpu)
 {
 	unsigned int i;
 	char *s1;

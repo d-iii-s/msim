@@ -1,4 +1,4 @@
-static exc_t instr_bc2f(cpu_t *cpu, instr_t instr)
+static exc_t instr_bc2f(r4k_cpu_t *cpu, instr_t instr)
 {
 	if (cp0_status_cu2(cpu))
 		/* Ignore (always false) */

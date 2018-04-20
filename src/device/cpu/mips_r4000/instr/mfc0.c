@@ -1,4 +1,4 @@
-static exc_t instr_mfc0(cpu_t *cpu, instr_t instr)
+static exc_t instr_mfc0(r4k_cpu_t *cpu, instr_t instr)
 {
 	if (CP0_USABLE(cpu)) {
 		cpu->regs[instr.r.rt].val = sign_extend_32_64(cpu->cp0[instr.r.rd].lo);

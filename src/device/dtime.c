@@ -123,7 +123,7 @@ static void dtime_done(device_t *dev)
  * @param val  Read (returned) value
  *
  */
-static void dtime_read32(cpu_t *cpu, device_t *dev, ptr36_t addr, uint32_t *val)
+static void dtime_read32(r4k_cpu_t *cpu, device_t *dev, ptr36_t addr, uint32_t *val)
 {
 	ASSERT(dev != NULL);
 	ASSERT(val != NULL);
@@ -154,7 +154,7 @@ static void dtime_read32(cpu_t *cpu, device_t *dev, ptr36_t addr, uint32_t *val)
  * @param val  Read (returned) value
  *
  */
-static void dtime_read64(cpu_t *cpu, device_t *dev, ptr36_t addr, uint64_t *val)
+static void dtime_read64(r4k_cpu_t *cpu, device_t *dev, ptr36_t addr, uint64_t *val)
 {
 	ASSERT(dev != NULL);
 	ASSERT(val != NULL);

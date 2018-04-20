@@ -1,4 +1,4 @@
-static exc_t instr_daddi(cpu_t *cpu, instr_t instr)
+static exc_t instr_daddi(r4k_cpu_t *cpu, instr_t instr)
 {
 	if (CPU_64BIT_INSTRUCTION(cpu)) {
 		uint64_t rs = cpu->regs[instr.i.rs].val;

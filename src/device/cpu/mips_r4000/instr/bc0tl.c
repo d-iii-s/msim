@@ -1,4 +1,4 @@
-static exc_t instr_bc0tl(cpu_t *cpu, instr_t instr)
+static exc_t instr_bc0tl(r4k_cpu_t *cpu, instr_t instr)
 {
 	if (CP0_USABLE(cpu)) {
 		/* Ignore (always true) */

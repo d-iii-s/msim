@@ -1,4 +1,4 @@
-static exc_t instr_teqi(cpu_t *cpu, instr_t instr)
+static exc_t instr_teqi(r4k_cpu_t *cpu, instr_t instr)
 {
 	bool cond;
 	

@@ -1,4 +1,4 @@
-static exc_t instr_bgtz(cpu_t *cpu, instr_t instr)
+static exc_t instr_bgtz(r4k_cpu_t *cpu, instr_t instr)
 {
 	bool cond;
 	

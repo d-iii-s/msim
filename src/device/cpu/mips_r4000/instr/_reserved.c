@@ -1,4 +1,4 @@
-static exc_t instr__reserved(cpu_t *cpu, instr_t instr)
+static exc_t instr__reserved(r4k_cpu_t *cpu, instr_t instr)
 {
 	return excRI;
 }

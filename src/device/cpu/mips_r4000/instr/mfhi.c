@@ -1,4 +1,4 @@
-static exc_t instr_mfhi(cpu_t *cpu, instr_t instr)
+static exc_t instr_mfhi(r4k_cpu_t *cpu, instr_t instr)
 {
 	cpu->regs[instr.r.rd].val = cpu->hireg.val;
 	return excNone;

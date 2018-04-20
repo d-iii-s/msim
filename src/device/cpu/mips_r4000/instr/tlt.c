@@ -1,4 +1,4 @@
-static exc_t instr_tlt(cpu_t *cpu, instr_t instr)
+static exc_t instr_tlt(r4k_cpu_t *cpu, instr_t instr)
 {
 	bool cond;
 	

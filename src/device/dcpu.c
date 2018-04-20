@@ -35,7 +35,7 @@ static unsigned int dcpu_get_free_id(void)
 	device_t *dev = NULL;
 	
 	while (dev_next(&dev, DEVICE_FILTER_PROCESSOR))
-		id_mask |= 1 << ((cpu_t *) dev->data)->procno;
+		id_mask |= 1 << ((r4k_cpu_t *) dev->data)->procno;
 	
 	for (c = 0; c < MAX_CPUS; c++, id_mask >>= 1)
 		if (!(id_mask & 1))
@@ -56,7 +56,7 @@ static bool dcpu_init(token_t *parm, device_t *dev)
 		return false;
 	}
 	
-	cpu_t *cpu = safe_malloc_t(cpu_t);
+	r4k_cpu_t *cpu = safe_malloc_t(r4k_cpu_t);
 	cpu_init(cpu, id);
 	dev->data = cpu;
 	
@@ -77,7 +77,7 @@ static bool dcpu_info(token_t *parm, device_t *dev)
  */
 static bool dcpu_stat(token_t *parm, device_t *dev)
 {
-	cpu_t *cpu = (cpu_t *) dev->data;
+	r4k_cpu_t *cpu = (r4k_cpu_t *) dev->data;
 	
 	printf("[Total cycles      ] [In kernel space   ] [In user space     ]\n");
 	printf("%20" PRIu64 " %20" PRIu64 " %20" PRIu64 "\n\n",
@@ -114,7 +114,7 @@ static bool dcpu_cp0d(token_t *parm, device_t *dev)
 		return false;
 	}
 	
-	cp0_dump((cpu_t *) dev->data, no);
+	cp0_dump((r4k_cpu_t *) dev->data, no);
 	return true;
 }
 
@@ -123,7 +123,7 @@ static bool dcpu_cp0d(token_t *parm, device_t *dev)
  */
 static bool dcpu_tlbd(token_t *parm, device_t *dev)
 {
-	tlb_dump((cpu_t *) dev->data);
+	tlb_dump((r4k_cpu_t *) dev->data);
 	return true;
 }
 
@@ -160,7 +160,7 @@ static bool dcpu_md(token_t *parm, device_t *dev)
 			printf("  %#018" PRIx64 "    ", addr.ptr);
 		
 		uint32_t val;
-		exc_t res = cpu_read_mem32((cpu_t *) dev->data, addr, &val, false);
+		exc_t res = cpu_read_mem32((r4k_cpu_t *) dev->data, addr, &val, false);
 		
 		if (res == excNone)
 			printf("%08" PRIx32 " ", val);
@@ -208,12 +208,12 @@ static bool dcpu_id(token_t *parm, device_t *dev)
 		instr_t instr;
 		// FIXME
 		exc_t res = excNone;
-		// exc_t res = cpu_read_ins((cpu_t *) dev->data, addr, &instr.val, false);
+		// exc_t res = cpu_read_ins((r4k_cpu_t *) dev->data, addr, &instr.val, false);
 		
 		if (res != excNone)
 			instr.val = 0;
 		
-		idump((cpu_t *) dev->data, addr, instr, false);
+		idump((r4k_cpu_t *) dev->data, addr, instr, false);
 	}
 	
 	return true;
@@ -224,7 +224,7 @@ static bool dcpu_id(token_t *parm, device_t *dev)
  */
 static bool dcpu_rd(token_t *parm, device_t *dev)
 {
-	reg_dump((cpu_t *) dev->data);
+	reg_dump((r4k_cpu_t *) dev->data);
 	return true;
 }
 
@@ -233,7 +233,7 @@ static bool dcpu_rd(token_t *parm, device_t *dev)
  */
 static bool dcpu_goto(token_t *parm, device_t *dev)
 {
-	cpu_t *cpu = (cpu_t *) dev->data;
+	r4k_cpu_t *cpu = (r4k_cpu_t *) dev->data;
 	uint64_t _addr = ALIGN_DOWN(parm_uint_next(&parm), 4);
 	
 	if (!virt_range(_addr)) {
@@ -253,7 +253,7 @@ static bool dcpu_goto(token_t *parm, device_t *dev)
  */
 static bool dcpu_break(token_t *parm, device_t *dev)
 {
-	cpu_t *cpu = (cpu_t *) dev->data;
+	r4k_cpu_t *cpu = (r4k_cpu_t *) dev->data;
 	uint64_t _addr = ALIGN_DOWN(parm_uint_next(&parm), 4);
 	
 	if (!virt_range(_addr)) {
@@ -276,7 +276,7 @@ static bool dcpu_break(token_t *parm, device_t *dev)
  */
 static bool dcpu_bd(token_t *parm, device_t *dev)
 {
-	cpu_t *cpu = (cpu_t *) dev->data;
+	r4k_cpu_t *cpu = (r4k_cpu_t *) dev->data;
 	breakpoint_t *bp;
 	
 	printf("[address ] [hits              ] [kind    ]\n");
@@ -297,7 +297,7 @@ static bool dcpu_bd(token_t *parm, device_t *dev)
  */
 static bool dcpu_br(token_t *parm, device_t *dev)
 {
-	cpu_t *cpu = (cpu_t *) dev->data;
+	r4k_cpu_t *cpu = (r4k_cpu_t *) dev->data;
 	uint64_t addr = ALIGN_DOWN(parm_uint_next(&parm), 4);
 	
 	if (!virt_range(addr)) {
@@ -338,15 +338,15 @@ static void dcpu_done(device_t *dev)
  */
 static void dcpu_step(device_t *dev)
 {
-	cpu_step((cpu_t *) dev->data);
+	cpu_step((r4k_cpu_t *) dev->data);
 }
 
-cpu_t *dcpu_find_no(unsigned int no)
+r4k_cpu_t *dcpu_find_no(unsigned int no)
 {
 	device_t *dev = NULL;
 	
 	while (dev_next(&dev, DEVICE_FILTER_PROCESSOR)) {
-		cpu_t* cpu = (cpu_t *) dev->data;
+		r4k_cpu_t* cpu = (r4k_cpu_t *) dev->data;
 		if (cpu->procno == no)
 			return cpu;
 	}
@@ -356,7 +356,7 @@ cpu_t *dcpu_find_no(unsigned int no)
 
 void dcpu_interrupt_up(unsigned int cpuno, unsigned int no)
 {
-	cpu_t *cpu = dcpu_find_no(cpuno);
+	r4k_cpu_t *cpu = dcpu_find_no(cpuno);
 	
 	if (cpu != NULL)
 		cpu_interrupt_up(cpu, no);
@@ -364,7 +364,7 @@ void dcpu_interrupt_up(unsigned int cpuno, unsigned int no)
 
 void dcpu_interrupt_down(unsigned int cpuno, unsigned int no)
 {
-	cpu_t *cpu = dcpu_find_no(cpuno);
+	r4k_cpu_t *cpu = dcpu_find_no(cpuno);
 	
 	if (cpu != NULL)
 		cpu_interrupt_down(cpu, no);
@@ -418,7 +418,7 @@ cmd_t dcpu_cmds[] = {
 	},
 	{
 		"tlbd",
-		(fcmd_t)dcpu_tlbd,
+		(fcmd_t) dcpu_tlbd,
 		DEFAULT,
 		DEFAULT,
 		"Dump content of TLB",

@@ -1,4 +1,4 @@
-static exc_t instr_lwl(cpu_t *cpu, instr_t instr)
+static exc_t instr_lwl(r4k_cpu_t *cpu, instr_t instr)
 {
 	ptr64_t base;
 	base.ptr = cpu->regs[instr.i.rs].val + sign_extend_16_64(instr.i.imm);

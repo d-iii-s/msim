@@ -1,4 +1,4 @@
-static exc_t instr_sd(cpu_t *cpu, instr_t instr)
+static exc_t instr_sd(r4k_cpu_t *cpu, instr_t instr)
 {
 	if (CPU_64BIT_INSTRUCTION(cpu)) {
 		ptr64_t addr;

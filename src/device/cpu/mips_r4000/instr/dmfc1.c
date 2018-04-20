@@ -1,4 +1,4 @@
-static exc_t instr_dmfc1(cpu_t *cpu, instr_t instr)
+static exc_t instr_dmfc1(r4k_cpu_t *cpu, instr_t instr)
 {
 	if (CPU_64BIT_INSTRUCTION(cpu)) {
 		if (cp0_status_cu1(cpu)) {

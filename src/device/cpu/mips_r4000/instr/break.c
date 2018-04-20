@@ -1,4 +1,4 @@
-static exc_t instr_break(cpu_t *cpu, instr_t instr)
+static exc_t instr_break(r4k_cpu_t *cpu, instr_t instr)
 {
 	return excBp;
 }

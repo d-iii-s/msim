@@ -1,4 +1,4 @@
-static exc_t instr_ll(cpu_t *cpu, instr_t instr)
+static exc_t instr_ll(r4k_cpu_t *cpu, instr_t instr)
 {
 	/* Compute virtual target address
 	   and issue read operation */

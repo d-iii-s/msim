@@ -40,15 +40,15 @@ typedef struct {
 	void (*step4k)(struct device *dev);
 	
 	/** Device memory read */
-	void (*read32)(cpu_t *cpu, struct device *dev, ptr36_t addr,
+	void (*read32)(r4k_cpu_t *cpu, struct device *dev, ptr36_t addr,
 	    uint32_t *val);
-	void (*read64)(cpu_t *cpu, struct device *dev, ptr36_t addr,
+	void (*read64)(r4k_cpu_t *cpu, struct device *dev, ptr36_t addr,
 	    uint64_t *val);
 	
 	/** Device memory write */
-	void (*write32)(cpu_t *cpu, struct device *dev, ptr36_t addr,
+	void (*write32)(r4k_cpu_t *cpu, struct device *dev, ptr36_t addr,
 	    uint32_t val);
-	void (*write64)(cpu_t *cpu, struct device *dev, ptr36_t addr,
+	void (*write64)(r4k_cpu_t *cpu, struct device *dev, ptr36_t addr,
 	    uint64_t val);
 	
 	/**

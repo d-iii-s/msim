@@ -1,4 +1,4 @@
-static exc_t instr_xor(cpu_t *cpu, instr_t instr)
+static exc_t instr_xor(r4k_cpu_t *cpu, instr_t instr)
 {
 	uint64_t rs = cpu->regs[instr.r.rs].val;
 	uint64_t rt = cpu->regs[instr.r.rt].val;

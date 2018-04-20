@@ -1,4 +1,4 @@
-static exc_t instr__xtrc(cpu_t *cpu, instr_t instr)
+static exc_t instr__xtrc(r4k_cpu_t *cpu, instr_t instr)
 {
 	alert("XTRC: Trace mode");
 	

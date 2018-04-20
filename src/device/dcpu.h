@@ -17,7 +17,7 @@
 
 extern device_type_t dcpu;
 
-extern cpu_t *dcpu_find_no(unsigned int no);
+extern r4k_cpu_t *dcpu_find_no(unsigned int no);
 extern void dcpu_interrupt_up(unsigned int cpuno, unsigned int no);
 extern void dcpu_interrupt_down(unsigned int cpuno, unsigned int no);
 

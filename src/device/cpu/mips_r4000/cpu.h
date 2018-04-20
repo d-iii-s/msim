@@ -535,10 +535,10 @@ typedef struct {
 	
 	/* breakpoints */
 	list_t bps;
-} cpu_t;
+} r4k_cpu_t;
 
 /** Instruction implementation */
-typedef exc_t (*instr_fnc_t)(cpu_t *, instr_t);
+typedef exc_t (*instr_fnc_t)(r4k_cpu_t *, instr_t);
 
 typedef enum {
 	MEMT_NONE = 0,  /**< Uninitialized */
@@ -591,35 +591,35 @@ extern void physmem_wire(physmem_area_t *area);
 extern void physmem_unwire(physmem_area_t *area);
 
 /** Basic CPU routines */
-extern void cpu_init(cpu_t *cpu, unsigned int procno);
-extern void cpu_set_pc(cpu_t *cpu, ptr64_t value);
-extern void cpu_step(cpu_t *cpu);
+extern void cpu_init(r4k_cpu_t *cpu, unsigned int procno);
+extern void cpu_set_pc(r4k_cpu_t *cpu, ptr64_t value);
+extern void cpu_step(r4k_cpu_t *cpu);
 
 /** Physical memory access */
-extern uint8_t physmem_read8(cpu_t *cpu, ptr36_t addr, bool protected);
-extern uint16_t physmem_read16(cpu_t *cpu, ptr36_t addr, bool protected);
-extern uint32_t physmem_read32(cpu_t *cpu, ptr36_t addr, bool protected);
-extern uint64_t physmem_read64(cpu_t *cpu, ptr36_t addr, bool protected);
+extern uint8_t physmem_read8(r4k_cpu_t *cpu, ptr36_t addr, bool protected);
+extern uint16_t physmem_read16(r4k_cpu_t *cpu, ptr36_t addr, bool protected);
+extern uint32_t physmem_read32(r4k_cpu_t *cpu, ptr36_t addr, bool protected);
+extern uint64_t physmem_read64(r4k_cpu_t *cpu, ptr36_t addr, bool protected);
 
-extern bool physmem_write8(cpu_t *cpu, ptr36_t addr, uint8_t val,
+extern bool physmem_write8(r4k_cpu_t *cpu, ptr36_t addr, uint8_t val,
     bool protected);
-extern bool physmem_write16(cpu_t *cpu, ptr36_t addr, uint16_t val,
+extern bool physmem_write16(r4k_cpu_t *cpu, ptr36_t addr, uint16_t val,
     bool protected);
-extern bool physmem_write32(cpu_t *cpu, ptr36_t addr, uint32_t val,
+extern bool physmem_write32(r4k_cpu_t *cpu, ptr36_t addr, uint32_t val,
     bool protected);
-extern bool physmem_write64(cpu_t *cpu, ptr36_t addr, uint64_t val,
+extern bool physmem_write64(r4k_cpu_t *cpu, ptr36_t addr, uint64_t val,
     bool protected);
 
 /** Addresing function */
-extern exc_t convert_addr(cpu_t *cpu, ptr64_t virt, ptr36_t *phys, bool write,
+extern exc_t convert_addr(r4k_cpu_t *cpu, ptr64_t virt, ptr36_t *phys, bool write,
     bool noisy);
 
 /** Virtual memory access */
-extern exc_t cpu_read_mem32(cpu_t *cpu, ptr64_t addr, uint32_t *value,
+extern exc_t cpu_read_mem32(r4k_cpu_t *cpu, ptr64_t addr, uint32_t *value,
     bool noisy);
 
 /** Interrupts */
-extern void cpu_interrupt_up(cpu_t *cpu, unsigned int no);
-extern void cpu_interrupt_down(cpu_t *cpu, unsigned int no);
+extern void cpu_interrupt_up(r4k_cpu_t *cpu, unsigned int no);
+extern void cpu_interrupt_down(r4k_cpu_t *cpu, unsigned int no);
 
 #endif

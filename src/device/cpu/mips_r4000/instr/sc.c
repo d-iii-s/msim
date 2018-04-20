@@ -1,4 +1,4 @@
-static exc_t instr_sc(cpu_t *cpu, instr_t instr)
+static exc_t instr_sc(r4k_cpu_t *cpu, instr_t instr)
 {
 	if (!cpu->llbit) {
 		/* If we are not tracking LL-SC,

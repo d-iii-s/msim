@@ -435,7 +435,7 @@ void gdb_handle_event(gdb_event_t event)
 	string_t msg;
 	string_init(&msg);
 	
-	cpu_t *cpu = dcpu_find_no(cpuno_global);
+	r4k_cpu_t *cpu = dcpu_find_no(cpuno_global);
 	
 	string_printf(&msg, "T%02x%02x:", event, GDB_REGISTER_PC);
 	gdb_register_dump(&msg, cpu->pc.ptr);
@@ -455,7 +455,7 @@ void gdb_handle_event(gdb_event_t event)
  */
 static void gdb_read_registers(void)
 {
-	cpu_t *cpu = dcpu_find_no(cpuno_global);
+	r4k_cpu_t *cpu = dcpu_find_no(cpuno_global);
 	string_t str;
 	string_init(&str);
 	
@@ -482,7 +482,7 @@ static void gdb_read_registers(void)
 static void gdb_write_registers(char *req)
 {
 	char *query = req + 1;
-	cpu_t *cpu = dcpu_find_no(cpuno_global);
+	r4k_cpu_t *cpu = dcpu_find_no(cpuno_global);
 	
 	if (!gdb_registers_upload(&query, cpu->regs, 32))
 		return;
@@ -528,7 +528,7 @@ static void gdb_cmd_mem_operation(char *req, bool read)
 	}
 	
 	/* Addresses are physical */
-	cpu_t *cpu = dcpu_find_no(cpuno_global);
+	r4k_cpu_t *cpu = dcpu_find_no(cpuno_global);
 	
 	ptr64_t virt;
 	virt.ptr = address;
@@ -576,7 +576,7 @@ static void gdb_cmd_step(char *req, bool step)
 	if (matched == 1) {
 		ptr64_t addr;
 		addr.ptr = address;
-		cpu_t *cpu = dcpu_find_no(cpuno_step);
+		r4k_cpu_t *cpu = dcpu_find_no(cpuno_step);
 		cpu_set_pc(cpu, addr);
 	}
 	
@@ -686,7 +686,7 @@ static void gdb_reply_event(gdb_event_t event)
 /** Activate code breakpoint
  *
  */
-static void gdb_insert_code_breakpoint(cpu_t *cpu, ptr64_t addr)
+static void gdb_insert_code_breakpoint(r4k_cpu_t *cpu, ptr64_t addr)
 {
 	/*
 	 * Breakpoint insertion should be done in an idempotent way,
@@ -710,7 +710,7 @@ static void gdb_insert_code_breakpoint(cpu_t *cpu, ptr64_t addr)
 /** Deactivate code breakpoint
  *
  */
-static void gdb_remove_code_breakpoint(cpu_t *cpu, ptr64_t addr)
+static void gdb_remove_code_breakpoint(r4k_cpu_t *cpu, ptr64_t addr)
 {
 	breakpoint_t *breakpoint = breakpoint_find_by_address(cpu->bps,
 	    addr, BREAKPOINT_FILTER_DEBUGGER);
@@ -773,7 +773,7 @@ static void gdb_breakpoint(char *req, bool insert)
 	
 	ptr64_t virt;
 	virt.ptr = address;
-	cpu_t* cpu = dcpu_find_no(cpuno_global);
+	r4k_cpu_t* cpu = dcpu_find_no(cpuno_global);
 	
 	if (code_breakpoint) {
 		if (length != 4) {
@@ -808,7 +808,7 @@ static void gdb_breakpoint(char *req, bool insert)
  */
 static void gdb_remote_done(bool fail, bool remote_request)
 {
-	cpu_t *cpu = dcpu_find_no(cpuno_global);
+	r4k_cpu_t *cpu = dcpu_find_no(cpuno_global);
 	
 	if (!fail)
 		gdb_send_reply(remote_request ? GDB_REPLY_OK : GDB_REPLY_WARNING);

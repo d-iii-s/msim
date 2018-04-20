@@ -1,4 +1,4 @@
-static exc_t instr_ddiv(cpu_t *cpu, instr_t instr)
+static exc_t instr_ddiv(r4k_cpu_t *cpu, instr_t instr)
 {
 	if (CPU_64BIT_INSTRUCTION(cpu)) {
 		uint64_t rt = cpu->regs[instr.r.rt].val;

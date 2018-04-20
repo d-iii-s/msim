@@ -14,6 +14,7 @@
 
 #include "device.h"
 #include "cpu/mips_r4000/cpu.h"
+#include "cpu/risvc_rv64g/cpu.h"
 
 extern device_type_t dcpu;
 

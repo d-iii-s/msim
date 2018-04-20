@@ -16,6 +16,7 @@
 
 #include "../parser.h"
 #include "cpu/mips_r4000/cpu.h"
+#include "cpu/risvc_rv64g/cpu.h"
 
 struct device;
 

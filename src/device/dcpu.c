@@ -16,6 +16,7 @@
 #include "dcpu.h"
 #include "device.h"
 #include "cpu/mips_r4000/cpu.h"
+#include "cpu/risvc_rv64g/cpu.h"
 #include "../debug/debug.h"
 #include "../debug/breakpoint.h"
 #include "../fault.h"

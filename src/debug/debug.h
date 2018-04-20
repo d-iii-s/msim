@@ -16,6 +16,7 @@
 #include <stdbool.h>
 #include <stdint.h>
 #include "../device/cpu/mips_r4000/cpu.h"
+#include "../device/cpu/risvc_rv64g/cpu.h"
 #include "../device/device.h"
 #include "../utils.h"
 

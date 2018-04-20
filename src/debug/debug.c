@@ -14,7 +14,6 @@
 #include <stdbool.h>
 #include <inttypes.h>
 #include "debug.h"
-#include "../device/cpu/mips_r4000/instr.h"
 #include "../device/cpu/mips_r4000/cpu.h"
 #include "../device/dcpu.h"
 #include "../device/mem.h"

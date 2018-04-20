@@ -31,7 +31,6 @@ SOURCES = \
 	debug/debug.c \
 	debug/gdb.c \
 	debug/breakpoint.c \
-	device/cpu/mips_r4000/instr.c \
 	device/cpu/mips_r4000/cpu.c \
 	device/mem.c \
 	device/ddisk.c \

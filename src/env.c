@@ -12,7 +12,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <stdbool.h>
-#include "device/cpu/mips_r4000/instr.h"
+#include "device/cpu/mips_r4000/cpu.h"
 #include "fault.h"
 #include "parser.h"
 #include "assert.h"
@@ -117,8 +117,8 @@ typedef bool (*set_str_t)(const char *);
  */
 static bool change_ireg(unsigned int i)
 {
-	if (i >= REG_VARIANTS) {
-		error("Index out of range 0..%u", REG_VARIANTS - 1);
+	if (i >= R4K_REG_VARIANTS) {
+		error("Index out of range 0..%u", R4K_REG_VARIANTS - 1);
 		return false;
 	}
 	

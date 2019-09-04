@@ -1,0 +1,9 @@
+/Makefile
+/config.h
+/config.log
+/config.status
+/msim
+/src/Makefile
+/src/Makefile.depend
+/src/Makefile.depend.prev
+*.o

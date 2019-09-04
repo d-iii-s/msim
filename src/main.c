@@ -325,8 +325,10 @@ int main(int argc, char *args[])
 	/*
 	 * Run-time configuration
 	 */
-	if (!parse_cmdline(argc, args))
+	if (!parse_cmdline(argc, args)) {
+		input_back();
 		return 0;
+	}
 	
 	script();
 	

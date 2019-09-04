@@ -7,7 +7,9 @@
 
 INSTALL = @INSTALL@
 RM = @RM@
-PREFIX = @prefix@
+prefix = @prefix@
+exec_prefix = @exec_prefix@
+bindir = @bindir@
 
 BINARY = msim
 
@@ -17,11 +19,11 @@ all:
 	$(MAKE) -C src
 
 install: all
-	$(INSTALL) -d $(DESTDIR)$(PREFIX)/bin
-	$(INSTALL) -s -m 755 $(BINARY) $(DESTDIR)$(PREFIX)/$(BINARY)
+	$(INSTALL) -d $(DESTDIR)$(bindir)
+	$(INSTALL) -s -m 755 $(BINARY) $(DESTDIR)$(bindir)/$(BINARY)
 
 uninstall:
-	$(RM) -f $(DESTDIR)$(PREFIX)/$(BINARY)
+	$(RM) -f $(DESTDIR)$(bindir)/$(BINARY)
 
 clean:
 	$(MAKE) -C src clean

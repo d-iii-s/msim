@@ -1,0 +1,21 @@
+language: c
+addons:
+   apt:
+     packages:
+       - xutils-dev
+       - libreadline-dev
+install:
+  - 'if [ "${TRAVIS_OS_NAME}" = "windows" ]; then choco install unxutils make; fi'
+script:
+  - ./configure
+  - make
+  - ./msim --version
+compiler:
+  - gcc
+  - clang
+os:
+  - linux
+  - osx
+# Windows build not enabled as we need readline that is currently
+# not available via choco manager
+#  - windows

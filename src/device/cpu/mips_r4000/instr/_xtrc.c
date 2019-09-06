@@ -1,7 +1,11 @@
 static exc_t instr__xtrc(cpu_t *cpu, instr_t instr)
 {
+	if (!machine_specific_instructions) {
+		return instr__reserved(cpu, instr);
+	}
+
 	alert("XTRC: Trace mode");
-	
+
 	if (!machine_trace)
 		reg_dump(cpu);
 	

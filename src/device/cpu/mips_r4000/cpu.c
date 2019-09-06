@@ -2443,7 +2443,7 @@ static mnemonics_fnc_t mnemonics_func_map[64] = {
 	mnemonics_xor,
 	mnemonics_nor,
 	
-	mnemonics__reserved,  /* unused */
+	mnemonics__xhlt,
 	mnemonics__xint,
 	mnemonics_slt,
 	mnemonics_sltu,
@@ -2459,14 +2459,14 @@ static mnemonics_fnc_t mnemonics_func_map[64] = {
 	mnemonics_teq,
 	mnemonics__reserved,  /* unused */
 	mnemonics_tne,
-	mnemonics__reserved,  /* unused */
+	mnemonics__xrd,
 	
 	mnemonics_dsll,
-	mnemonics__reserved,  /* unused */
+	mnemonics__xtrc,
 	mnemonics_dsrl,
 	mnemonics_dsra,
 	mnemonics_dsll32,
-	mnemonics__reserved,  /* unused */
+	mnemonics__xtr0,
 	mnemonics_dsrl32,
 	mnemonics_dsra32
 };

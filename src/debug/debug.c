@@ -360,13 +360,25 @@ void idump_phys(ptr36_t addr, instr_t instr)
 	string_init(&s_comments);
 	
 	if (iaddr)
-		string_printf(&s_addr, "%#011" PRIx64, addr);
+		string_printf(&s_addr, "%#011" PRIx64 "  ", addr);
 	
 	ptr64_t vaddr;
 	vaddr.ptr = addr;
 	
 	idump_common(vaddr, instr, &s_iopc, &s_mnemonics, &s_comments);
 	
+	if (!iopc)
+		string_clear(&s_iopc);
+
+	const char *comment_sep = string_is_empty(&s_comments) ? "" : " # ";
+	const char *iopc_sep_after = iopc ? "  " : "";
+
+	printf("  %s%s  %s%-20s%s%s\n",
+	    s_addr.str,
+	    s_iopc.str, iopc_sep_after,
+	    s_mnemonics.str,
+	    comment_sep, s_comments.str);
+
 	string_done(&s_addr);
 	string_done(&s_iopc);
 	string_done(&s_mnemonics);

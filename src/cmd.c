@@ -252,8 +252,9 @@ static bool system_break(token_t *parm, void *data)
 		return false;
 	}
 	
-	physmem_breakpoint_add((ptr36_t) addr, (len36_t) size, access_flags,
-	    BREAKPOINT_KIND_SIMULATOR);
+	physmem_breakpoint_add((ptr36_t) addr, (len36_t) size,
+	    BREAKPOINT_KIND_SIMULATOR, access_flags);
+
 	return true;
 }
 

@@ -1663,6 +1663,10 @@ static void disassemble_rd(instr_t instr, string_t *mnemonics,
 
 #include "instr/_reserved.c"
 #include "instr/_warning.c"
+#include "instr/_xhlt.c"
+#include "instr/_xrd.c"
+#include "instr/_xtrc.c"
+#include "instr/_xtr0.c"
 #include "instr/add.c"
 #include "instr/addi.c"
 #include "instr/addiu.c"
@@ -1944,7 +1948,7 @@ static instr_fnc_t func_map[64] = {
 	instr_xor,
 	instr_nor,
 	
-	instr__reserved,  /* unused */
+	instr__xhlt,
 	instr__xint,
 	instr_slt,
 	instr_sltu,
@@ -1960,14 +1964,14 @@ static instr_fnc_t func_map[64] = {
 	instr_teq,
 	instr__reserved,  /* unused */
 	instr_tne,
-	instr__reserved,  /* unused */
+	instr__xrd,
 	
 	instr_dsll,
-	instr__reserved,  /* unused */
+	instr__xtrc,
 	instr_dsrl,
 	instr_dsra,
 	instr_dsll32,
-	instr__reserved,  /* unused */
+	instr__xtr0,  /* unused */
 	instr_dsrl32,
 	instr_dsra32
 };
@@ -2439,7 +2443,7 @@ static mnemonics_fnc_t mnemonics_func_map[64] = {
 	mnemonics_xor,
 	mnemonics_nor,
 	
-	mnemonics__reserved,  /* unused */
+	mnemonics__xhlt,
 	mnemonics__xint,
 	mnemonics_slt,
 	mnemonics_sltu,
@@ -2455,14 +2459,14 @@ static mnemonics_fnc_t mnemonics_func_map[64] = {
 	mnemonics_teq,
 	mnemonics__reserved,  /* unused */
 	mnemonics_tne,
-	mnemonics__reserved,  /* unused */
+	mnemonics__xrd,
 	
 	mnemonics_dsll,
-	mnemonics__reserved,  /* unused */
+	mnemonics__xtrc,
 	mnemonics_dsrl,
 	mnemonics_dsra,
 	mnemonics_dsll32,
-	mnemonics__reserved,  /* unused */
+	mnemonics__xtr0,
 	mnemonics_dsrl32,
 	mnemonics_dsra32
 };

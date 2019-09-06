@@ -78,6 +78,9 @@ bool machine_newline = false;
 /** Undefined instruction silent exception */
 bool machine_undefined = false;
 
+/** Allow MSIM-specific instructions. */
+bool machine_specific_instructions = false;
+
 /**
  * Number of steps to run before switching
  * to interactive mode. Zero means infinite.
@@ -134,6 +137,12 @@ static struct option long_options[] = {
 		0,
 		'n'
 	},
+	{
+		"extra-instructions",
+		no_argument,
+		0,
+		'x'
+	},
 	{ NULL, 0, NULL, 0 }
 };
 
@@ -162,7 +171,7 @@ static bool parse_cmdline(int argc, char *args[])
 	while (true) {
 		int option_index = 0;
 		
-		int c = getopt_long(argc, args, "tVic:hg:n",
+		int c = getopt_long(argc, args, "tVic:hg:nx",
 		    long_options, &option_index);
 		
 		if (c == -1)
@@ -192,6 +201,9 @@ static bool parse_cmdline(int argc, char *args[])
 			break;
 		case 'n':
 			machine_nondet = true;
+			break;
+		case 'x':
+			machine_specific_instructions = true;
 			break;
 		case '?':
 			die(ERR_PARM, "Unknown parameter or argument required");

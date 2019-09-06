@@ -114,6 +114,7 @@ extern bool machine_break;
 extern bool machine_interactive;
 extern bool machine_newline;
 extern bool machine_undefined;
+extern bool machine_specific_instructions;
 extern uint64_t stepping;
 
 #endif

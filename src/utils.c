@@ -69,6 +69,13 @@ void string_clear(string_t *str)
 	str->str[str->pos] = 0;
 }
 
+bool string_is_empty(string_t *str)
+{
+	ASSERT(str != NULL);
+
+	return str->pos == 0;
+}
+
 void string_push(string_t *str, char c)
 {
 	ASSERT(str != NULL);

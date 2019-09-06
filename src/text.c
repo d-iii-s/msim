@@ -83,6 +83,8 @@ const char txt_help[] =
 	"  -i, --interactive        enter interactive mode\n"
 	"  -t, --trace              enter trace mode\n"
 	"  -g, --remote-gdb=port    enter gdb mode\n"
-	"  -n, --non-deterministic  enable non-deterministic behaviour\n";
+	"  -n, --non-deterministic  enable non-deterministic behaviour\n"
+	"  -x, --extra-instructions enable MSIM-specific instructions\n"
+	;
 
 const char hexchar[] = "0123456789abcdef";

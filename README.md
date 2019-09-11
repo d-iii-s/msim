@@ -27,7 +27,7 @@ MSIM provides following features (along others):
 MSIM does not aim to be a speed-optimized real hardware simulator, but
 rather a fully deterministic simulator useful for kernel debugging.
 There are several other projects which aim speed-optimized simulation
-(e.g. [GXemul](http://gavare.se/gxemul/), but they are more complex to use.
+(e.g. [GXemul](http://gavare.se/gxemul/)), but they are more complex to use.
 
 Project homepage is at http://d3s.mff.cuni.cz/~holub/sw/msim/.
 

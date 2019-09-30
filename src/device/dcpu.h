@@ -15,6 +15,8 @@
 #include "device.h"
 #include "cpu/mips_r4000/cpu.h"
 
+#define MAX_CP0_REGISTERS 32
+
 extern device_type_t dcpu;
 
 extern cpu_t *dcpu_find_no(unsigned int no);

@@ -108,9 +108,13 @@ static bool dcpu_stat(token_t *parm, device_t *dev)
  */
 static bool dcpu_cp0d(token_t *parm, device_t *dev)
 {
+	if (parm->ttype != tt_uint) {
+		error("Register number required");
+		return false;
+	}
 	uint64_t no = parm_uint(parm);
-	if (no >= MAX_CPUS) {
-		error("Out of range (0..%u)", MAX_CPUS - 1);
+	if (no >= MAX_CP0_REGISTERS) {
+		error("Out of range (0..%u)", MAX_CP0_REGISTERS - 1);
 		return false;
 	}
 	

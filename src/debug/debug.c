@@ -482,19 +482,23 @@ void dbg_print_device_stat(device_t *dev)
 
 void dbg_print_devices(device_filter_t filter)
 {
-	// FIXME
-	// device_t *device = NULL;
-	// bool device_found = false;
-	// 
-	// printf(header);
-	// 
-	// while (dev_next(&device, filter)) {
-	// 	device_found = true;
-	// 	print_function(device);
-	// }
-	// 
-	// if (!device_found)
-	// 	printf(nothing_msg);
+	printf("[  name  ] [  type  ] [ parameters...\n");
+
+	device_t *device = NULL;
+	bool device_found = false;
+	token_t token_end[] = {
+		{ .ttype = tt_end }
+	};
+
+	while (dev_next(&device, filter)) {
+		device_found = true;
+		printf("%-10s %-10s ", device->name, device->type->name);
+		cmd_run_by_name("info", &token_end, device->type->cmds, device);
+	}
+
+	if (!device_found) {
+		printf("No matching devices found.\n");
+	}
 }
 
 void dbg_print_devices_stat(device_filter_t filter)

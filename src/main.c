@@ -278,7 +278,8 @@ static void machine_run(void)
 		 * or gdb flags will be set if a breakpoint
 		 * is hit.
 		 */
-		// FIXME breakpoint_check_for_code_breakpoints();
+		if (breakpoint_check_for_code_breakpoints())
+			machine_interactive = true;
 		
 		/*
 		 * If the remote GDB debugging is allowed and the

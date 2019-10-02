@@ -345,6 +345,11 @@ int main(int argc, char *args[])
 	
 	script();
 	
+	if (machine_interactive) {
+		alert("MSIM %s", VERSION);
+		alert("Entering interactive mode, type `help' for help.");
+	}
+
 	/*
 	 * Main simulation loop
 	 */

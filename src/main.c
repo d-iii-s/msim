@@ -79,7 +79,7 @@ bool machine_newline = false;
 bool machine_undefined = false;
 
 /** Allow MSIM-specific instructions. */
-bool machine_specific_instructions = false;
+bool machine_specific_instructions = true;
 
 /**
  * Number of steps to run before switching
@@ -138,10 +138,10 @@ static struct option long_options[] = {
 		'n'
 	},
 	{
-		"extra-instructions",
+		"no-extra-instructions",
 		no_argument,
 		0,
-		'x'
+		'X'
 	},
 	{ NULL, 0, NULL, 0 }
 };
@@ -171,7 +171,7 @@ static bool parse_cmdline(int argc, char *args[])
 	while (true) {
 		int option_index = 0;
 		
-		int c = getopt_long(argc, args, "tVic:hg:nx",
+		int c = getopt_long(argc, args, "tVic:hg:nX",
 		    long_options, &option_index);
 		
 		if (c == -1)
@@ -202,8 +202,8 @@ static bool parse_cmdline(int argc, char *args[])
 		case 'n':
 			machine_nondet = true;
 			break;
-		case 'x':
-			machine_specific_instructions = true;
+		case 'X':
+			machine_specific_instructions = false;
 			break;
 		case '?':
 			die(ERR_PARM, "Unknown parameter or argument required");

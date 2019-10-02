@@ -278,8 +278,7 @@ static void machine_run(void)
 		 * or gdb flags will be set if a breakpoint
 		 * is hit.
 		 */
-		if (breakpoint_check_for_code_breakpoints())
-			machine_interactive = true;
+		breakpoint_check_for_code_breakpoints();
 		
 		/*
 		 * If the remote GDB debugging is allowed and the

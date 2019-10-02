@@ -266,7 +266,9 @@ static bool dcpu_break(token_t *parm, device_t *dev)
 	}
 	
 	ptr64_t addr;
-	addr.ptr = _addr;
+	// Extend the address as the user will not enter it in 64bit mode
+	// when the emulated CPU is 32bit.
+	addr.ptr = UINT64_C(0xffffffff00000000) | _addr;
 	
 	breakpoint_t *bp = breakpoint_init(addr,
 	    BREAKPOINT_KIND_SIMULATOR);

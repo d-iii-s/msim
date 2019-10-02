@@ -772,7 +772,8 @@ static void gdb_breakpoint(char *req, bool insert)
 	}
 	
 	ptr64_t virt;
-	virt.ptr = address;
+	// Extend the address as the GDB sends the address in 32bits.
+	virt.ptr = UINT64_C(0xffffffff00000000) | address;
 	cpu_t* cpu = dcpu_find_no(cpuno_global);
 	
 	if (code_breakpoint) {

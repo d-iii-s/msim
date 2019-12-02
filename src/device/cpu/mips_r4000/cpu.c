@@ -1563,7 +1563,7 @@ static void disassemble_rt_cp0(instr_t instr, string_t *mnemonics,
     string_t *comments)
 {
 	string_printf(mnemonics, " %s, %s",
-	    regname[instr.r.rt], cp0name[instr.r.rs]);
+	    regname[instr.r.rt], cp0name[instr.r.rd]);
 }
 
 static void disassemble_rt_fs(instr_t instr, string_t *mnemonics,

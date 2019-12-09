@@ -108,6 +108,10 @@ static bool dcpu_stat(token_t *parm, device_t *dev)
  */
 static bool dcpu_cp0d(token_t *parm, device_t *dev)
 {
+	if (parm->ttype == tt_end) {
+		cp0_dump_all((cpu_t *) dev->data);
+		return true;
+	}
 	if (parm->ttype != tt_uint) {
 		error("Register number required");
 		return false;

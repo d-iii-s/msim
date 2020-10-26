@@ -57,7 +57,7 @@ static char *cp0_dump_str[] = {
 		"ux: %x sx: %x kx: %x\n\t\t\t  im: %02X de: %x "
 		"ce: %x ch: %x res1: %x sr: %x ts: %x\n\t\t\t  "
 		"bev: %x res2: %x re: %x fr: %x rp: %x cu: %x\n",
-	"  0d Cause\t%08X  res1: %x exccode: %02X res2: %x "
+	"  0d Cause\t%08X  res1: %x exccode: %02X (%s) res2: %x "
 		"ip: %02X res3: %02X\n\t\t\t  ce: %d res4: %d bd: %d\n",
 	"  0e EPC\t%08X\n",
 	"  0f PRId\t%08X  rev: %02X imp: %02X res: %04X\n",
@@ -81,10 +81,21 @@ static char *cp0_dump_str[] = {
 	"  1f Reserved\n"
 };
 
+static char *cp0_cause_exccode_str[] = {
+	"Interrupt", "TLB Modification", "TLB Exception (Load)", "TLB Exception (Store)",
+	"Address Error (Load)", "Address Error (Store)", "Bus Error (Code)", "Bus Error (Data)",
+	"System Call", "Breakpoint", "Reserved Instruction", "Coprocessor Unusable",
+	"Arithmetic Overflow", "Trap", "Virtual Coherency (Code)", "Floating Point",
+	"Reserved", "Reserved", "Reserved", "Reserved",
+	"Reserved", "Reserved", "Reserved", "Watch",
+	"Reserved", "Reserved", "Reserved", "Reserved",
+	"Reserved", "Reserved", "Reserved", "Virtual Coherency (Data)"
+};
+
 void reg_dump(cpu_t *cpu)
 {
 	printf("processor %u\n", cpu->procno);
-	
+
 	unsigned int i;
 	for (i = 0; i < 30; i += 5) {
 		printf(" %3s %16" PRIx64 "  %3s %16" PRIx64 "  %3s %16" PRIx64 "  %3s %16" PRIx64 "  %3s %16" PRIx64 "\n",
@@ -94,7 +105,7 @@ void reg_dump(cpu_t *cpu)
 		    regname[i + 3], cpu->regs[i + 3].val,
 		    regname[i + 4], cpu->regs[i + 4].val);
 	}
-	
+
 	printf(" %3s %16" PRIx64 "  %3s %16" PRIx64 "   pc %16" PRIx64 "   lo %16" PRIx64 "   hi %16" PRIx64 "\n",
 	    regname[i],     cpu->regs[i].val,
 	    regname[i + 1], cpu->regs[i + 1].val,
@@ -107,7 +118,7 @@ static const char *get_pagemask_name(unsigned int pm)
 	for (i = 0; i < CP0_PM_ITEMS; i++)
 		if (pm == pagemask_name[i].no)
 			return pagemask_name[i].s;
-	
+
 	/* Error */
 	return pagemask_name[CP0_PM_ITEMS].s;
 }
@@ -116,11 +127,11 @@ void tlb_dump(cpu_t *cpu)
 {
 	printf(" [             general             ][    subp 0     ][     subp 1    ]\n"
 	    "  no    vpn      mask        g asid  v d   pfn     c  v d   pfn     c\n");
-	
+
 	unsigned int i;
 	for (i = 0; i < 48; i++) {
 		tlb_entry_t *e = &(cpu->tlb[i]);
-		
+
 		printf("  %02x  %08" PRIx32 " %08" PRIx32 ":%-4s %u  %02x   %u %u %09" PRIx64 " %1x  %u %u %09" PRIx64 " %1x\n",
 		    i, e->vpn2, e->mask,
 		    get_pagemask_name((~e->mask) >> cp0_pagemask_mask_shift),
@@ -133,7 +144,7 @@ void tlb_dump(cpu_t *cpu)
 static void cp0_dump_reg(cpu_t *cpu, unsigned int reg)
 {
 	const char *s = cp0_dump_str[reg];
-	
+
 	switch (reg) {
 	case cp0_Index:
 		printf(s,
@@ -204,7 +215,8 @@ static void cp0_dump_reg(cpu_t *cpu, unsigned int reg)
 		break;
 	case cp0_Cause:
 		printf(s,
-		    cp0_cause(cpu), cp0_cause_res1(cpu), cp0_cause_exccode(cpu),
+		    cp0_cause(cpu), cp0_cause_res1(cpu),
+		    cp0_cause_exccode(cpu), cp0_cause_exccode_str[cp0_cause_exccode(cpu)],
 		    cp0_cause_res2(cpu), cp0_cause_ip(cpu), cp0_cause_res3(cpu),
 		    cp0_cause_ce(cpu), cp0_cause_res4(cpu), cp0_cause_bd(cpu));
 		break;
@@ -250,7 +262,7 @@ static void cp0_dump_reg(cpu_t *cpu, unsigned int reg)
 void cp0_dump_all(cpu_t *cpu)
 {
 	ASSERT(cpu != NULL);
-	
+
 	printf("  no name       hex dump  readable dump\n");
 	cp0_dump_reg(cpu, 0);
 	cp0_dump_reg(cpu, 1);
@@ -278,7 +290,7 @@ void cp0_dump_all(cpu_t *cpu)
 void cp0_dump(cpu_t *cpu, unsigned int reg)
 {
 	ASSERT(cpu != NULL);
-	
+
 	printf("  no name       hex dump  readable dump\n");
 	cp0_dump_reg(cpu, reg);
 }
@@ -287,7 +299,7 @@ static void idump_common(ptr64_t addr, instr_t instr, string_t *s_opc,
     string_t *s_mnemonics, string_t *s_comments)
 {
 	string_printf(s_opc, "%08" PRIx32, instr.val);
-	
+
 	mnemonics_fnc_t fnc = decode_mnemonics(instr);
 	fnc(addr, instr, s_mnemonics, s_comments);
 }
@@ -308,32 +320,32 @@ void idump(cpu_t *cpu, ptr64_t addr, instr_t instr, bool modregs)
 	string_t s_opc;
 	string_t s_mnemonics;
 	string_t s_comments;
-	
+
 	string_init(&s_cpu);
 	string_init(&s_addr);
 	string_init(&s_opc);
 	string_init(&s_mnemonics);
 	string_init(&s_comments);
-	
+
 	if (cpu != NULL)
 		string_printf(&s_cpu, "cpu%u", cpu->procno);
-	
+
 	string_printf(&s_addr, "%#018" PRIx64, addr.ptr);
 	idump_common(addr, instr, &s_opc, &s_mnemonics, &s_comments);
-	
+
 	if (cpu != NULL)
 		printf("%-5s ", s_cpu.str);
-	
+
 	if (iaddr)
 		printf("%-18s ", s_addr.str);
-	
+
 	if (iopc)
 		printf("%-8s ", s_opc.str);
-	
+
 	printf("%s\n", s_mnemonics.str);
-	
+
 	// FIXME print comments
-	
+
 	string_done(&s_cpu);
 	string_done(&s_addr);
 	string_done(&s_opc);
@@ -353,20 +365,20 @@ void idump_phys(ptr36_t addr, instr_t instr)
 	string_t s_iopc;
 	string_t s_mnemonics;
 	string_t s_comments;
-	
+
 	string_init(&s_addr);
 	string_init(&s_iopc);
 	string_init(&s_mnemonics);
 	string_init(&s_comments);
-	
+
 	if (iaddr)
 		string_printf(&s_addr, "%#011" PRIx64 "  ", addr);
-	
+
 	ptr64_t vaddr;
 	vaddr.ptr = addr;
-	
+
 	idump_common(vaddr, instr, &s_iopc, &s_mnemonics, &s_comments);
-	
+
 	if (!iopc)
 		string_clear(&s_iopc);
 
@@ -398,27 +410,27 @@ char *modified_regs_dump(cpu_t *cpu)
 	char *s3;
 	char sc1[REG_BUF];
 	char sc2[REG_BUF];
-	
+
 	char *sx = safe_malloc(REG_BUF);
 	size_t size = REG_BUF;
-	
+
 	sc1[0] = 0;
 	sc2[0] = 0;
 	s1 = sc1;
 	s2 = sc2;
-	
+
 	/* Test for general registers */
 	for (i = 0; i < 32; i++)
 		if (cpu->regs[i].val != cpu->old_regs[i].val) {
 			snprintf(s1, size, "%s, %s: %#" PRIx64 "->%#" PRIx64,
 			    s2, regname[i], cpu->old_regs[i].val, cpu->regs[i].val);
-			
+
 			s3 = s1;
 			s1 = s2;
 			s2 = s3;
 			cpu->old_regs[i] = cpu->regs[i];
 		}
-		
+
 	/* Test for cp0 */
 	for (i = 0; i < 32; i++)
 		if ((cpu->cp0[i].val != cpu->old_cp0[i].val) && (i != cp0_Random) && (i != cp0_Count)) {
@@ -428,40 +440,40 @@ char *modified_regs_dump(cpu_t *cpu)
 			else
 				snprintf(s1, size, "%s, cp0[%u]: %#" PRIx64 "->%#" PRIx64,
 				    s2, i, cpu->old_cp0[i].val, cpu->cp0[i].val);
-			
+
 			s3 = s1;
 			s1 = s2;
 			s2 = s3;
 			cpu->old_cp0[i] = cpu->cp0[i];
 		}
-	
+
 	/* Test for loreg */
 	if (cpu->loreg.val != cpu->old_loreg.val) {
 		snprintf(s1, size, "%s, loreg: %#" PRIx64 "->%#" PRIx64,
 		    s2, cpu->old_loreg.val, cpu->loreg.val);
-		
+
 		s3 = s1;
 		s1 = s2;
 		s2 = s3;
 		cpu->old_loreg = cpu->loreg;
 	}
-	
+
 	/* Test for hireg */
 	if (cpu->hireg.val != cpu->old_hireg.val) {
 		snprintf(s1, size, "%s, hireg: %#" PRIx64 "->%#" PRIx64,
 		    s2, cpu->old_hireg.val, cpu->hireg.val);
-		
+
 		s3 = s1;
 		s1 = s2;
 		s2 = s3;
 		cpu->old_hireg = cpu->hireg;
 	}
-	
+
 	if (*s2 == 0)
 		*sx = 0;
 	else
 		strcpy(sx, s2 + 2);
-	
+
 	return sx;
 }
 

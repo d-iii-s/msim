@@ -1663,6 +1663,7 @@ static void disassemble_rd(instr_t instr, string_t *mnemonics,
 
 #include "instr/_reserved.c"
 #include "instr/_warning.c"
+#include "instr/_xcrd.c"
 #include "instr/_xhlt.c"
 #include "instr/_xrd.c"
 #include "instr/_xtrc.c"
@@ -1919,7 +1920,7 @@ static instr_fnc_t func_map[64] = {
 	instr__reserved,  /* unused */
 	instr_syscall,
 	instr_break,
-	instr__reserved,  /* unused */
+	instr__xcrd,  /* unused */
 	instr_sync,
 	
 	instr_mfhi,
@@ -2414,7 +2415,7 @@ static mnemonics_fnc_t mnemonics_func_map[64] = {
 	mnemonics__reserved,  /* unused */
 	mnemonics_syscall,
 	mnemonics_break,
-	mnemonics__reserved,  /* unused */
+	mnemonics__xcrd,
 	mnemonics_sync,
 	
 	mnemonics_mfhi,

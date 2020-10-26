@@ -1972,7 +1972,7 @@ static instr_fnc_t func_map[64] = {
 	instr_dsrl,
 	instr_dsra,
 	instr_dsll32,
-	instr__xtr0,  /* unused */
+	instr__xtr0,
 	instr_dsrl32,
 	instr_dsra32
 };

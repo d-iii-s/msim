@@ -1667,6 +1667,7 @@ static void disassemble_rd(instr_t instr, string_t *mnemonics,
 #include "instr/_xrd.c"
 #include "instr/_xtrc.c"
 #include "instr/_xtr0.c"
+#include "instr/_xval.c"
 #include "instr/add.c"
 #include "instr/addi.c"
 #include "instr/addiu.c"
@@ -1962,7 +1963,7 @@ static instr_fnc_t func_map[64] = {
 	instr_tlt,
 	instr_tltu,
 	instr_teq,
-	instr__reserved,  /* unused */
+	instr__xval,
 	instr_tne,
 	instr__xrd,
 	
@@ -2457,7 +2458,7 @@ static mnemonics_fnc_t mnemonics_func_map[64] = {
 	mnemonics_tlt,
 	mnemonics_tltu,
 	mnemonics_teq,
-	mnemonics__reserved,  /* unused */
+	mnemonics__xval,
 	mnemonics_tne,
 	mnemonics__xrd,
 	

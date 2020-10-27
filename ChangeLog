@@ -1,3 +1,9 @@
+2020-10-27 Vojtech Horky <horky@d3s.mff.cuni.cz>
+    Version 1.4.1
+    * improved CP0 register dump
+    * reintroduce DVAL instruction
+    * add DCRV instruction for CP0 register dump
+
 2012-??-?? Martin Decky <decky@d3s.mff.cuni.cz>
 	Version 1.4.0
 	* improve command line processing code

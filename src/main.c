@@ -81,6 +81,9 @@ bool machine_undefined = false;
 /** Allow MSIM-specific instructions. */
 bool machine_specific_instructions = true;
 
+/** Allow XINT even when terminal is not available. */
+bool machine_allow_interactive_without_tty = false;
+
 /**
  * Number of steps to run before switching
  * to interactive mode. Zero means infinite.
@@ -112,6 +115,12 @@ static struct option long_options[] = {
 		no_argument,
 		0,
 		'i'
+	},
+	{
+		"allow-xint-without-tty",
+		no_argument,
+		0,
+		'I'
 	},
 	{
 		"config",
@@ -171,7 +180,7 @@ static bool parse_cmdline(int argc, char *args[])
 	while (true) {
 		int option_index = 0;
 		
-		int c = getopt_long(argc, args, "tVic:hg:nX",
+		int c = getopt_long(argc, args, "tVic:hg:nXI",
 		    long_options, &option_index);
 		
 		if (c == -1)
@@ -186,6 +195,9 @@ static bool parse_cmdline(int argc, char *args[])
 			return false;
 		case 'i':
 			machine_interactive = true;
+			break;
+		case 'I':
+			machine_allow_interactive_without_tty = true;
 			break;
 		case 'c':
 			if (config_file)

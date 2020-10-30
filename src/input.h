@@ -16,5 +16,6 @@ extern void input_init(void);
 extern void input_shadow(void);
 extern void input_back(void);
 extern void interactive_control(void);
+extern int input_is_terminal(void);
 
 #endif

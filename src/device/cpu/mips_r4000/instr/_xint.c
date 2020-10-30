@@ -4,7 +4,9 @@ static exc_t instr__xint(cpu_t *cpu, instr_t instr)
 		alert("XINT: Interactive mode");
 		machine_interactive = true;
 	} else {
-		alert("Ignoring XINT as no tty is available.");
+		
+		alert("XINT: Machine halt when no tty available.");
+		machine_halt = true;
 	}
 	return excNone;
 }

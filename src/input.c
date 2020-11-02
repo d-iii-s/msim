@@ -166,3 +166,10 @@ void interactive_control(void)
 		free(cmdline);
 	}
 }
+
+/**
+ * Tells whether stdin is connected to interactive terminal.
+ */
+int input_is_terminal(void) {
+	return input_term;
+}

@@ -21,6 +21,7 @@
 #include "../../../endian.h"
 #include "../../../env.h"
 #include "../../../fault.h"
+#include "../../../input.h"
 #include "../../../main.h"
 #include "../../../text.h"
 #include "../../../utils.h"

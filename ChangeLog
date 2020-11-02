@@ -1,3 +1,7 @@
+2020-11-02 Vojtech Horky <horky@d3s.mff.cuni.cz>
+    Version 1.4.2
+    * halt simulation when XINT invoked without TTY
+
 2020-10-27 Vojtech Horky <horky@d3s.mff.cuni.cz>
     Version 1.4.1
     * improved CP0 register dump

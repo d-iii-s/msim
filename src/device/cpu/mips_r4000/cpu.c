@@ -3720,9 +3720,14 @@ static void handle_exception(cpu_t *cpu, exc_t res)
 	cpu->stdby = false;
 	
 	/* User info and register fill */
-	if (machine_trace)
-		alert("cpu%u raised exception %u: %s", cpu->procno,
-		    res, txt_exc[res]);
+	if (machine_trace) {
+		if (tlb_refill)
+			alert("cpu%u raised TLB refill exception %u: %s", cpu->procno,
+			    res, txt_exc[res]);
+		else
+			alert("cpu%u raised exception %u: %s", cpu->procno,
+			    res, txt_exc[res]);
+	}
 	
 	cp0_cause(cpu).val &= ~cp0_cause_exccode_mask;
 	cp0_cause(cpu).val |= res << cp0_cause_exccode_shift;

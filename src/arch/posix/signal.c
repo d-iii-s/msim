@@ -34,7 +34,7 @@ static void machine_user_break(int signo)
 	machine_interactive = true;
 }
 
-void register_sigint(void)
+void register_signal_handlers(void)
 {
 	struct sigaction act;
 	

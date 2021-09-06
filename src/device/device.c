@@ -349,9 +349,9 @@ gen_t dev_find_generator(token_t **parm, const device_t *dev,
 	
 	switch (res) {
 	case CMP_NO_HIT:
-	case CMP_PARTIAL_HIT:
 		break;
 	case CMP_HIT:
+	case CMP_PARTIAL_HIT:
 	case CMP_MULTIPLE_HIT:
 		if (parm_last(*parm)) {
 			/* Ignore the hardwired INIT command */

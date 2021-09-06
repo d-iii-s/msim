@@ -344,7 +344,7 @@ int main(int argc, char *args[])
 	
 	input_init();
 	input_shadow();
-	register_sigint();
+	register_signal_handlers();
 	
 	/*
 	 * Run-time configuration

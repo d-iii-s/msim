@@ -41,7 +41,7 @@ static BOOL machine_user_break(DWORD fdwCtrlType)
 	return false;
 }
 
-void register_sigint(void)
+void register_signal_handlers(void)
 {
 	SetConsoleCtrlHandler((PHANDLER_ROUTINE) machine_user_break, true);
 }

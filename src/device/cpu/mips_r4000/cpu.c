@@ -896,23 +896,39 @@ exc_t convert_addr(cpu_t *cpu, ptr64_t virt, ptr36_t *phys, bool write,
 {
 	ASSERT(cpu != NULL);
 	ASSERT(phys != NULL);
-	
+
+	/*
+	 * The manual does not explicitly specify what to do
+	 * if the KSU bits are 0b11 (i.e. neither user, supervisor
+	 * or kernel).
+	 * For debugging purposes we deem it best to announce address
+	 * error as the translation cannot be completed.
+	 */
+
 	if (CPU_64BIT_MODE(cpu)) {
 		if (CPU_USER_MODE(cpu))
 			return convert_addr_user64(cpu, virt, phys, write, noisy);
 		
 		if (CPU_SUPERVISOR_MODE(cpu))
 			return convert_addr_supervisor64(cpu, virt, phys, write, noisy);
-		
-		return convert_addr_kernel64(cpu, virt, phys, write, noisy);
+
+		if (CPU_KERNEL_MODE(cpu))
+			convert_addr_kernel64(cpu, virt, phys, write, noisy);
+
+		fill_addr_error(cpu, virt, noisy);
+		return excAddrError;
 	} else {
 		if (CPU_USER_MODE(cpu))
 			return convert_addr_user32(cpu, virt, phys, write, noisy);
 		
 		if (CPU_SUPERVISOR_MODE(cpu))
 			return convert_addr_supervisor32(cpu, virt, phys, write, noisy);
-		
-		return convert_addr_kernel32(cpu, virt, phys, write, noisy);
+
+		if (CPU_KERNEL_MODE(cpu))
+			return convert_addr_kernel32(cpu, virt, phys, write, noisy);
+
+		fill_addr_error(cpu, virt, noisy);
+		return excAddrError;
 	}
 }
 

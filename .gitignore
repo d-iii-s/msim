@@ -2,6 +2,7 @@
 /config.h
 /config.log
 /config.status
+/debian-package
 /msim
 /src/Makefile
 /src/Makefile.depend

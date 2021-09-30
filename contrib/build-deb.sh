@@ -44,4 +44,4 @@ make
 
 # And create a package from it
 make install DESTDIR="$( pwd )/debian-package/msim/"
-dpkg-deb --build debian-package/msim
+dpkg-deb --build debian-package/msim "debian-package/msim_${msim_version}-git_$( dpkg-architecture -q DEB_HOST_ARCH).deb"

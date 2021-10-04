@@ -25,7 +25,7 @@ Standards-Version: $msim_version
 Homepage: https://github.com/d-iii-s/msim
 Vcs-Git: https://github.com/d-iii-s/msim.git
 Architecture: all
-Depends: libc6, libreadline7
+Depends: libc6, libreadline-dev
 Description: Light-weight computer simulator based on MIPS R4000
  MSIM is a light-weight computer simulator based on MIPS R4000.
  It is used for education and research purposes, mainly to teach

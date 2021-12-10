@@ -203,8 +203,8 @@ typedef enum {
 #define cp0_entryhi_vpn2_shift  13
 
 #define cp0_entryhi_asid(cpu)  (((cpu)->cp0[cp0_EntryHi].val & cp0_entryhi_asid_mask) >> 0)
-#define cp0_entryhi_res1(cpu)  (((cpu)->cp0[cp0_EntryHi].val & cp0_entryhi_res1_shift) >> 8)
-#define cp0_entryhi_vpn2(cpu)  (((cpu)->cp0[cp0_EntryHi].val & cp0_entryhi_vpn2_shift) >> 13)
+#define cp0_entryhi_res1(cpu)  (((cpu)->cp0[cp0_EntryHi].val & cp0_entryhi_res1_mask) >> 8)
+#define cp0_entryhi_vpn2(cpu)  (((cpu)->cp0[cp0_EntryHi].val & cp0_entryhi_vpn2_mask) >> 13)
 
 #define cp0_entrylo_g_mask     UINT32_C(0x00000001)
 #define cp0_entrylo_v_mask     UINT32_C(0x00000002)

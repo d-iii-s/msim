@@ -91,7 +91,7 @@ void list_remove(list_t *list, item_t *item)
 
 void list_insert_after(item_t *anchor, item_t *item)
 {
-	ASSERT(item->list != NULL);
+	ASSERT(anchor->list != NULL);
 	ASSERT(item->list == NULL);
 	
 	if (anchor->list->tail == anchor)

@@ -49,6 +49,7 @@ extern char *safe_strdup(const char *str);
 
 extern void string_init(string_t *str);
 extern void string_clear(string_t *str);
+extern bool string_is_empty(string_t *str);
 extern void string_push(string_t *str, char c);
 extern void string_append(string_t *str, const char *val);
 extern void string_vprintf(string_t *str, const char *fmt, va_list va);

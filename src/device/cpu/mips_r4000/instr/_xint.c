@@ -1,7 +1,12 @@
 static exc_t instr__xint(r4k_cpu_t *cpu, instr_t instr)
 {
-	alert("XINT: Interactive mode");
-	machine_interactive = true;
+	if (input_is_terminal() || machine_allow_interactive_without_tty) {
+		alert("XINT: Interactive mode");
+		machine_interactive = true;
+	} else {
+		alert("XINT: Machine halt when no tty available.");
+		machine_halt = true;
+	}
 	return excNone;
 }
 

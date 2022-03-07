@@ -958,6 +958,7 @@ void cmd_print_help(const cmd_t *cmds)
 		safe_free(syntax);
 		cmds++;
 	}
+	printf("%-30s %s\n", "<device> <cmd>", "Commands of each added device");
 }
 
 /** Print help text about a command.

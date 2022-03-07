@@ -1,7 +1,11 @@
 static exc_t instr__xtrc(r4k_cpu_t *cpu, instr_t instr)
 {
+	if (!machine_specific_instructions) {
+		return instr__reserved(cpu, instr);
+	}
+
 	alert("XTRC: Trace mode");
-	
+
 	if (!machine_trace)
 		reg_dump(cpu);
 	
@@ -15,4 +19,14 @@ static exc_t instr__xtrc(r4k_cpu_t *cpu, instr_t instr)
 	machine_trace = true;
 	
 	return excNone;
+}
+
+static void mnemonics__xtrc(ptr64_t addr, instr_t instr,
+    string_t *mnemonics, string_t *comments)
+{
+	if (!machine_specific_instructions) {
+		return mnemonics__reserved(addr, instr, mnemonics, comments);
+	}
+
+	string_printf(mnemonics, "_xtrc");
 }

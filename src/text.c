@@ -78,11 +78,13 @@ const char txt_version[] =
 	"MSIM version " VERSION "\nCopyright (c) 2000-2011 Viliam Holub, Martin Decky\n";
 
 const char txt_help[] =
-	"  -V, --version            display version info\n"
-	"  -c, --config=file_name   configuration file name\n"
-	"  -i, --interactive        enter interactive mode\n"
-	"  -t, --trace              enter trace mode\n"
-	"  -g, --remote-gdb=port    enter gdb mode\n"
-	"  -n, --non-deterministic  enable non-deterministic behaviour\n";
+	"  -V, --version               display version info\n"
+	"  -c, --config=file_name      configuration file name\n"
+	"  -i, --interactive           enter interactive mode\n"
+	"  -t, --trace                 enter trace mode\n"
+	"  -g, --remote-gdb=port       enter gdb mode\n"
+	"  -n, --non-deterministic     enable non-deterministic behaviour\n"
+	"  -X, --no-extra-instructions disable MSIM-specific instructions\n"
+	;
 
 const char hexchar[] = "0123456789abcdef";

@@ -63,7 +63,7 @@ distclean: clean
 -include $(DEPEND)
 
 $(TARGET): $(OBJECTS) $(DEPEND)
-	$(CC) $(CFLAGS) $(LIBS) -o $@ $(OBJECTS)
+	$(CC) $(CFLAGS) -o $@ $(OBJECTS) $(LIBS)
 
 %.o: %.c $(DEPEND)
 	$(CC) -c $(CFLAGS) -o $@ $<

@@ -21,6 +21,7 @@
 #include "../../../endian.h"
 #include "../../../env.h"
 #include "../../../fault.h"
+#include "../../../input.h"
 #include "../../../main.h"
 #include "../../../text.h"
 #include "../../../utils.h"
@@ -1009,23 +1010,39 @@ exc_t convert_addr(r4k_cpu_t *cpu, ptr64_t virt, ptr36_t *phys, bool write,
 {
 	ASSERT(cpu != NULL);
 	ASSERT(phys != NULL);
-	
+
+	/*
+	 * The manual does not explicitly specify what to do
+	 * if the KSU bits are 0b11 (i.e. neither user, supervisor
+	 * or kernel).
+	 * For debugging purposes we deem it best to announce address
+	 * error as the translation cannot be completed.
+	 */
+
 	if (CPU_64BIT_MODE(cpu)) {
 		if (CPU_USER_MODE(cpu))
 			return convert_addr_user64(cpu, virt, phys, write, noisy);
 		
 		if (CPU_SUPERVISOR_MODE(cpu))
 			return convert_addr_supervisor64(cpu, virt, phys, write, noisy);
-		
-		return convert_addr_kernel64(cpu, virt, phys, write, noisy);
+
+		if (CPU_KERNEL_MODE(cpu))
+			convert_addr_kernel64(cpu, virt, phys, write, noisy);
+
+		fill_addr_error(cpu, virt, noisy);
+		return excAddrError;
 	} else {
 		if (CPU_USER_MODE(cpu))
 			return convert_addr_user32(cpu, virt, phys, write, noisy);
 		
 		if (CPU_SUPERVISOR_MODE(cpu))
 			return convert_addr_supervisor32(cpu, virt, phys, write, noisy);
-		
-		return convert_addr_kernel32(cpu, virt, phys, write, noisy);
+
+		if (CPU_KERNEL_MODE(cpu))
+			return convert_addr_kernel32(cpu, virt, phys, write, noisy);
+
+		fill_addr_error(cpu, virt, noisy);
+		return excAddrError;
 	}
 }
 
@@ -1677,7 +1694,7 @@ static void disassemble_rt_cp0(instr_t instr, string_t *mnemonics,
     string_t *comments)
 {
 	string_printf(mnemonics, " %s, %s",
-	    regname[instr.r.rt], cp0name[instr.r.rs]);
+	    regname[instr.r.rt], cp0name[instr.r.rd]);
 }
 
 static void disassemble_rt_fs(instr_t instr, string_t *mnemonics,
@@ -1777,6 +1794,12 @@ static void disassemble_rd(instr_t instr, string_t *mnemonics,
 
 #include "instr/_reserved.c"
 #include "instr/_warning.c"
+#include "instr/_xcrd.c"
+#include "instr/_xhlt.c"
+#include "instr/_xrd.c"
+#include "instr/_xtrc.c"
+#include "instr/_xtr0.c"
+#include "instr/_xval.c"
 #include "instr/add.c"
 #include "instr/addi.c"
 #include "instr/addiu.c"
@@ -2028,7 +2051,7 @@ static instr_fnc_t func_map[64] = {
 	instr__reserved,  /* unused */
 	instr_syscall,
 	instr_break,
-	instr__reserved,  /* unused */
+	instr__xcrd,  /* unused */
 	instr_sync,
 	
 	instr_mfhi,
@@ -2058,7 +2081,7 @@ static instr_fnc_t func_map[64] = {
 	instr_xor,
 	instr_nor,
 	
-	instr__reserved,  /* unused */
+	instr__xhlt,
 	instr__xint,
 	instr_slt,
 	instr_sltu,
@@ -2072,16 +2095,16 @@ static instr_fnc_t func_map[64] = {
 	instr_tlt,
 	instr_tltu,
 	instr_teq,
-	instr__reserved,  /* unused */
+	instr__xval,
 	instr_tne,
-	instr__reserved,  /* unused */
+	instr__xrd,
 	
 	instr_dsll,
-	instr__reserved,  /* unused */
+	instr__xtrc,
 	instr_dsrl,
 	instr_dsra,
 	instr_dsll32,
-	instr__reserved,  /* unused */
+	instr__xtr0,
 	instr_dsrl32,
 	instr_dsra32
 };
@@ -2523,7 +2546,7 @@ static mnemonics_fnc_t mnemonics_func_map[64] = {
 	mnemonics__reserved,  /* unused */
 	mnemonics_syscall,
 	mnemonics_break,
-	mnemonics__reserved,  /* unused */
+	mnemonics__xcrd,
 	mnemonics_sync,
 	
 	mnemonics_mfhi,
@@ -2553,7 +2576,7 @@ static mnemonics_fnc_t mnemonics_func_map[64] = {
 	mnemonics_xor,
 	mnemonics_nor,
 	
-	mnemonics__reserved,  /* unused */
+	mnemonics__xhlt,
 	mnemonics__xint,
 	mnemonics_slt,
 	mnemonics_sltu,
@@ -2567,16 +2590,16 @@ static mnemonics_fnc_t mnemonics_func_map[64] = {
 	mnemonics_tlt,
 	mnemonics_tltu,
 	mnemonics_teq,
-	mnemonics__reserved,  /* unused */
+	mnemonics__xval,
 	mnemonics_tne,
-	mnemonics__reserved,  /* unused */
+	mnemonics__xrd,
 	
 	mnemonics_dsll,
-	mnemonics__reserved,  /* unused */
+	mnemonics__xtrc,
 	mnemonics_dsrl,
 	mnemonics_dsra,
 	mnemonics_dsll32,
-	mnemonics__reserved,  /* unused */
+	mnemonics__xtr0,
 	mnemonics_dsrl32,
 	mnemonics_dsra32
 };
@@ -3827,9 +3850,14 @@ static void handle_exception(r4k_cpu_t *cpu, exc_t res)
 	cpu->stdby = false;
 	
 	/* User info and register fill */
-	if (machine_trace)
-		alert("cpu%u raised exception %u: %s", cpu->procno,
-		    res, txt_exc[res]);
+	if (machine_trace) {
+		if (tlb_refill)
+			alert("cpu%u raised TLB refill exception %u: %s", cpu->procno,
+			    res, txt_exc[res]);
+		else
+			alert("cpu%u raised exception %u: %s", cpu->procno,
+			    res, txt_exc[res]);
+	}
 	
 	cp0_cause(cpu).val &= ~cp0_cause_exccode_mask;
 	cp0_cause(cpu).val |= res << cp0_cause_exccode_shift;

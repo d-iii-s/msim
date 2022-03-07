@@ -1,0 +1,14 @@
+/Makefile
+/config.h
+/config.log
+/config.status
+/debian-package
+/msim
+/src/Makefile
+/src/Makefile.depend
+/src/Makefile.depend.prev
+*.o
+.github
+.vscode
+doxygen/
+stamp-h

@@ -109,9 +109,17 @@ static bool dcpu_stat(token_t *parm, device_t *dev)
  */
 static bool dcpu_cp0d(token_t *parm, device_t *dev)
 {
+	if (parm->ttype == tt_end) {
+		cp0_dump_all((cpu_t *) dev->data);
+		return true;
+	}
+	if (parm->ttype != tt_uint) {
+		error("Register number required");
+		return false;
+	}
 	uint64_t no = parm_uint(parm);
-	if (no >= MAX_CPUS) {
-		error("Out of range (0..%u)", MAX_CPUS - 1);
+	if (no >= MAX_CP0_REGISTERS) {
+		error("Out of range (0..%u)", MAX_CP0_REGISTERS - 1);
 		return false;
 	}
 	
@@ -263,7 +271,9 @@ static bool dcpu_break(token_t *parm, device_t *dev)
 	}
 	
 	ptr64_t addr;
-	addr.ptr = _addr;
+	// Extend the address as the user will not enter it in 64bit mode
+	// when the emulated CPU is 32bit.
+	addr.ptr = UINT64_C(0xffffffff00000000) | _addr;
 	
 	breakpoint_t *bp = breakpoint_init(addr,
 	    BREAKPOINT_KIND_SIMULATOR);

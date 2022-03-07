@@ -34,7 +34,15 @@ static void machine_user_break(int signo)
 	machine_interactive = true;
 }
 
-void register_sigint(void)
+static void termination_signals_handler(int signo)
+{
+	printf("\n");
+	alert("Caught signal %d, terminating.", signo);
+	input_back();
+	exit(ERR_OK);
+}
+
+void register_signal_handlers(void)
 {
 	struct sigaction act;
 	
@@ -42,6 +50,13 @@ void register_sigint(void)
 	(void) sigemptyset(&act.sa_mask);
 	act.sa_flags = 0;
 	sigaction(SIGINT, &act, NULL);
+
+	struct sigaction act_term;
+	act_term.sa_handler = termination_signals_handler;
+	(void) sigemptyset(&act_term.sa_mask);
+	act_term.sa_flags = 0;
+	sigaction(SIGTERM, &act_term, NULL);
+	sigaction(SIGQUIT, &act_term, NULL);
 }
 
 #endif /* !__WIN32__ */

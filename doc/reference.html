@@ -30,7 +30,7 @@ for <a href="http://d3s.mff.cuni.cz/~holub/sw/msim/">MSIM</a> version 1.4.0.</p>
 	</li>
 	<li><a href="#Deployment">2. Deployment</a><br />
 		<ul>
-			<li><a href="#Downlaod">2.1. Download</a></li>
+			<li><a href="#Download">2.1. Download</a></li>
 			<li><a href="#Configuration">2.2. Configuration</a></li>
 			<li><a href="#Compilation">2.3. Compilation</a></li>
 			<li><a href="#Installation">2.4. Installation</a></li>
@@ -92,6 +92,7 @@ for <a href="http://d3s.mff.cuni.cz/~holub/sw/msim/">MSIM</a> version 1.4.0.</p>
 			<li><a href="#drv">10.4. Register view <code>DRV</code></a></li>
 			<li><a href="#dhlt">10.5. Halt machine <code>DHLT</code></a></li>
 			<li><a href="#dval">10.6. View value <code>DVAL</code></a></li>
+			<li><a href="#dcrv">10.7. CP0 Register view <code>DCRV</code></a></li>
 		</ul>
 	</li>
 	<li><a href="#GDB_support">11. GDB support</a></li>
@@ -1821,11 +1822,12 @@ place of code required, with only a minimal influence to the debugged code.</p>
 
 <h4>Example</h4>
 <p>The following example shows an implementation in GCC:</p>
-<pre class="c"><span class="lnr"> 1 </span><span class="preproc">#define ___trace_on()   asm volatile ( &quot;.word 0x39\n&quot;);</span>
-<span class="lnr"> 2 </span><span class="preproc">#define ___trace_off()  asm volatile ( &quot;.word 0x3d\n&quot;);</span>
-<span class="lnr"> 3 </span><span class="preproc">#define ___reg_dump()   asm volatile ( &quot;.word 0x37\n&quot;);</span>
-<span class="lnr"> 4 </span><span class="preproc">#define ___halt()       asm volatile ( &quot;.word 0x28\n&quot;);</span>
-<span class="lnr"> 5 </span><span class="preproc">#define ___val(i)       asm volatile ( &quot;.word 0x35\n&quot; :: &quot;r&quot; (i));</span></pre>
+<pre class="c"><span class="lnr"> 1 </span><span class="preproc">#define ___trace_on()      asm volatile ( &quot;.word 0x39\n&quot;);</span>
+<span class="lnr"> 2 </span><span class="preproc">#define ___trace_off()     asm volatile ( &quot;.word 0x3d\n&quot;);</span>
+<span class="lnr"> 3 </span><span class="preproc">#define ___reg_dump()      asm volatile ( &quot;.word 0x37\n&quot;);</span>
+<span class="lnr"> 3 </span><span class="preproc">#define ___cp0_reg_dump()  asm volatile ( &quot;.word 0x0e\n&quot;);</span>
+<span class="lnr"> 4 </span><span class="preproc">#define ___halt()          asm volatile ( &quot;.word 0x28\n&quot;);</span>
+<span class="lnr"> 5 </span><span class="preproc">#define ___val(i)          asm volatile ( &quot;.word 0x35\n&quot; :: &quot;r&quot; (i));</span></pre>
 
 <h3>10.1. Trace on <code>DTRC</code><a name="dtrc"></a></h3>
 <p>Enable the trace mode. Together with <a href="#dtro">DTRO</a> instruction, DTRC is useful to show a part of executed code.</p>
@@ -1851,6 +1853,10 @@ place of code required, with only a minimal influence to the debugged code.</p>
 <p>Print the content of the <code>a0</code> (<code>r4</code>) register.
 The instruction can be used to instantly print a value of a variable.</p>
 <h4>Opcode: <code><strong>0x35</strong></code></h4>
+
+<h3>10.7. CP0 Register view <code>DCRV</code><a name="dcrv"></a></h3>
+<p>The instruction dumps the content of all the registers of CP0 coprocessor to the screen.</p>
+<h4>Opcode: <code><strong>0x0e</strong></code></h4>
 
 <h2>11. GDB support<a name="GDB_support"></a></h2>
 

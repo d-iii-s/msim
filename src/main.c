@@ -79,6 +79,12 @@ bool machine_newline = false;
 /** Undefined instruction silent exception */
 bool machine_undefined = false;
 
+/** Allow MSIM-specific instructions. */
+bool machine_specific_instructions = true;
+
+/** Allow XINT even when terminal is not available. */
+bool machine_allow_interactive_without_tty = false;
+
 /**
  * Number of steps to run before switching
  * to interactive mode. Zero means infinite.
@@ -112,6 +118,12 @@ static struct option long_options[] = {
 		'i'
 	},
 	{
+		"allow-xint-without-tty",
+		no_argument,
+		0,
+		'I'
+	},
+	{
 		"config",
 		required_argument,
 		0,
@@ -134,6 +146,12 @@ static struct option long_options[] = {
 		no_argument,
 		0,
 		'n'
+	},
+	{
+		"no-extra-instructions",
+		no_argument,
+		0,
+		'X'
 	},
 	{ NULL, 0, NULL, 0 }
 };
@@ -163,7 +181,7 @@ static bool parse_cmdline(int argc, char *args[])
 	while (true) {
 		int option_index = 0;
 		
-		int c = getopt_long(argc, args, "tVic:hg:n",
+		int c = getopt_long(argc, args, "tVic:hg:nXI",
 		    long_options, &option_index);
 		
 		if (c == -1)
@@ -179,6 +197,9 @@ static bool parse_cmdline(int argc, char *args[])
 		case 'i':
 			machine_interactive = true;
 			break;
+		case 'I':
+			machine_allow_interactive_without_tty = true;
+			break;
 		case 'c':
 			if (config_file)
 				safe_free(config_file);
@@ -193,6 +214,9 @@ static bool parse_cmdline(int argc, char *args[])
 			break;
 		case 'n':
 			machine_nondet = true;
+			break;
+		case 'X':
+			machine_specific_instructions = false;
 			break;
 		case '?':
 			die(ERR_PARM, "Unknown parameter or argument required");
@@ -267,7 +291,7 @@ static void machine_run(void)
 		 * or gdb flags will be set if a breakpoint
 		 * is hit.
 		 */
-		// FIXME breakpoint_check_for_code_breakpoints();
+		breakpoint_check_for_code_breakpoints();
 		
 		/*
 		 * If the remote GDB debugging is allowed and the
@@ -321,16 +345,23 @@ int main(int argc, char *args[])
 	
 	input_init();
 	input_shadow();
-	register_sigint();
+	register_signal_handlers();
 	
 	/*
 	 * Run-time configuration
 	 */
-	if (!parse_cmdline(argc, args))
+	if (!parse_cmdline(argc, args)) {
+		input_back();
 		return 0;
+	}
 	
 	script();
 	
+	if (machine_interactive) {
+		alert("MSIM %s", VERSION);
+		alert("Entering interactive mode, type `help' for help.");
+	}
+
 	/*
 	 * Main simulation loop
 	 */

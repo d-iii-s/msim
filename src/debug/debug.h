@@ -29,8 +29,8 @@ extern void tlb_dump(r4k_cpu_t *cpu);
 extern void cp0_dump_all(r4k_cpu_t *cpu);
 extern void cp0_dump(r4k_cpu_t *cpu, unsigned int reg);
 
-extern void idump_phys(ptr36_t addr, instr_t instr);
-extern void idump(r4k_cpu_t *cpu, ptr64_t addr, instr_t instr, bool modregs);
+extern void idump_phys(ptr36_t addr, r4k_instr_t instr);
+extern void idump(r4k_cpu_t *cpu, ptr64_t addr, r4k_instr_t instr, bool modregs);
 
 extern char *modified_regs_dump(r4k_cpu_t *cpu);
 

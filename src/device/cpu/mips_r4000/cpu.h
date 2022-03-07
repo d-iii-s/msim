@@ -604,10 +604,10 @@ typedef union {
 		unsigned int opcode : 6;
 	} sys;
 #endif
-} instr_t;
+} r4k_instr_t;
 
 /** Instruction implementation */
-typedef exc_t (*instr_fnc_t)(r4k_cpu_t *, instr_t);
+typedef exc_t (*instr_fnc_t)(r4k_cpu_t *, r4k_instr_t);
 
 typedef enum {
 	MEMT_NONE = 0,  /**< Uninitialized */
@@ -959,7 +959,7 @@ typedef enum {
 /** Instruction decoding tables and mnemonics
  *
  */
-typedef void (*mnemonics_fnc_t)(ptr64_t, instr_t, string_t *, string_t *);
+typedef void (*mnemonics_fnc_t)(ptr64_t, r4k_instr_t, string_t *, string_t *);
 
 /** Register and coprocessor names */
 extern char *reg_name[R4K_REG_VARIANTS][R4K_REG_COUNT];
@@ -969,7 +969,7 @@ extern char *cp2_name[R4K_REG_VARIANTS][R4K_REG_COUNT];
 extern char *cp3_name[R4K_REG_VARIANTS][R4K_REG_COUNT];
 
 /** Decode instruction mnemonics */
-extern mnemonics_fnc_t decode_mnemonics(instr_t);
+extern mnemonics_fnc_t decode_mnemonics(r4k_instr_t);
 
 /** Physical memory management */
 extern void physmem_wire(physmem_area_t *area);

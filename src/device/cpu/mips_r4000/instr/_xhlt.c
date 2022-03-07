@@ -1,4 +1,4 @@
-static exc_t instr__xhlt(r4k_cpu_t *cpu, instr_t instr)
+static exc_t instr__xhlt(r4k_cpu_t *cpu, r4k_instr_t instr)
 {
 	if (!machine_specific_instructions) {
 		return instr__reserved(cpu, instr);
@@ -8,7 +8,7 @@ static exc_t instr__xhlt(r4k_cpu_t *cpu, instr_t instr)
 	return excNone;
 }
 
-static void mnemonics__xhlt(ptr64_t addr, instr_t instr,
+static void mnemonics__xhlt(ptr64_t addr, r4k_instr_t instr,
     string_t *mnemonics, string_t *comments)
 {
 	if (!machine_specific_instructions) {

@@ -1,4 +1,4 @@
-static exc_t instr__xhtl(r4k_cpu_t *cpu, instr_t instr)
+static exc_t instr__xhlt(r4k_cpu_t *cpu, instr_t instr)
 {
 	if (!machine_specific_instructions) {
 		return instr__reserved(cpu, instr);

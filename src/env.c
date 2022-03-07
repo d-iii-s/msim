@@ -13,7 +13,7 @@
 #include <string.h>
 #include <stdbool.h>
 #include "device/cpu/mips_r4000/cpu.h"
-#include "device/cpu/risvc_rv64g/cpu.h"
+#include "device/cpu/riscv_rv32ima/cpu.h"
 #include "fault.h"
 #include "parser.h"
 #include "assert.h"

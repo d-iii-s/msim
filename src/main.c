@@ -19,7 +19,7 @@
 #include <stdbool.h>
 #include "arch/signal.h"
 #include "device/cpu/mips_r4000/cpu.h"
-#include "device/cpu/risvc_rv64g/cpu.h"
+#include "device/cpu/riscv_rv32ima/cpu.h"
 #include "debug/gdb.h"
 #include "device/dcpu.h"
 #include "device/device.h"

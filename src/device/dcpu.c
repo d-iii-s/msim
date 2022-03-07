@@ -16,7 +16,7 @@
 #include "dcpu.h"
 #include "device.h"
 #include "cpu/mips_r4000/cpu.h"
-#include "cpu/risvc_rv64g/cpu.h"
+#include "cpu/riscv_rv32ima/cpu.h"
 #include "../debug/debug.h"
 #include "../debug/breakpoint.h"
 #include "../fault.h"
@@ -110,7 +110,7 @@ static bool dcpu_stat(token_t *parm, device_t *dev)
 static bool dcpu_cp0d(token_t *parm, device_t *dev)
 {
 	if (parm->ttype == tt_end) {
-		cp0_dump_all((cpu_t *) dev->data);
+		cp0_dump_all((r4k_cpu_t *) dev->data);
 		return true;
 	}
 	if (parm->ttype != tt_uint) {

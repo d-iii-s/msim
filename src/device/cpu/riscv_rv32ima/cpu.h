@@ -15,6 +15,8 @@
 
 #include <stdint.h>
 
+#include "instr.h"
+
 #define RV32IMA_REG_COUNT	32
 
 // TODO: CSR
@@ -58,9 +60,6 @@ typedef struct {
 
 } rv32ima_cpu_t;
 
-typedef union {
-
-} instr_t;
 
 /** Basic CPU routines */
 extern void cpu_init(rv32ima_cpu_t *cpu, unsigned int procno);

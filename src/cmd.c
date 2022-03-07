@@ -19,7 +19,7 @@
 #include <errno.h>
 #include <inttypes.h>
 #include "device/cpu/mips_r4000/cpu.h"
-#include "device/cpu/risvc_rv64g/cpu.h"
+#include "device/cpu/riscv_rv32ima/cpu.h"
 #include "debug/debug.h"
 #include "debug/breakpoint.h"
 #include "device/device.h"

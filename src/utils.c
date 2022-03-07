@@ -17,7 +17,7 @@
 #include <inttypes.h>
 #include <unistd.h>
 #include "device/cpu/mips_r4000/cpu.h"
-#include "device/cpu/risvc_rv64g/cpu.h"
+#include "device/cpu/riscv_rv32ima/cpu.h"
 #include "arch/mmap.h"
 #include "text.h"
 #include "utils.h"

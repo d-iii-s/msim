@@ -62,12 +62,12 @@ typedef struct {
 
 
 /** Basic CPU routines */
-extern void cpu_init(rv32ima_cpu_t *cpu, unsigned int procno);
-extern void cpu_set_pc(rv32ima_cpu_t *cpu, uint32_t value);
-extern void cpu_step(rv32ima_cpu_t *cpu);
+extern void rv32ima_cpu_init(rv32ima_cpu_t *cpu, unsigned int procno);
+extern void rv32ima_cpu_set_pc(rv32ima_cpu_t *cpu, uint32_t value);
+extern void rv32ima_cpu_step(rv32ima_cpu_t *cpu);
 
 /** Interrupts */
-extern void cpu_interrupt_up(rv32ima_cpu_t *cpu, unsigned int no);
-extern void cpu_interrupt_down(rv32ima_cpu_t *cpu, unsigned int no);
+extern void rv32ima_cpu_interrupt_up(rv32ima_cpu_t *cpu, unsigned int no);
+extern void rv32ima_cpu_interrupt_down(rv32ima_cpu_t *cpu, unsigned int no);
 
 #endif //RISCV_RV32IMA_CPU_H_

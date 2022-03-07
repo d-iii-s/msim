@@ -1,4 +1,4 @@
-static exc_t instr_addiu(r4k_cpu_t *cpu, instr_t instr)
+static exc_t instr_addiu(r4k_cpu_t *cpu, r4k_instr_t instr)
 {
 	uint32_t rs = cpu->regs[instr.i.rs].lo;
 	uint32_t imm = sign_extend_16_32(instr.i.imm);
@@ -7,7 +7,7 @@ static exc_t instr_addiu(r4k_cpu_t *cpu, instr_t instr)
 	return excNone;
 }
 
-static void mnemonics_addiu(ptr64_t addr, instr_t instr,
+static void mnemonics_addiu(ptr64_t addr, r4k_instr_t instr,
     string_t *mnemonics, string_t *comments)
 {
 	if (instr.i.rs == 0) {

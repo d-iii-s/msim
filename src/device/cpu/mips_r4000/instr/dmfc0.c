@@ -1,4 +1,4 @@
-static exc_t instr_dmfc0(r4k_cpu_t *cpu, instr_t instr)
+static exc_t instr_dmfc0(r4k_cpu_t *cpu, r4k_instr_t instr)
 {
 	if (CPU_64BIT_INSTRUCTION(cpu)) {
 		if (CP0_USABLE(cpu)) {
@@ -14,7 +14,7 @@ static exc_t instr_dmfc0(r4k_cpu_t *cpu, instr_t instr)
 	return excRI;
 }
 
-static void mnemonics_dmfc0(ptr64_t addr, instr_t instr,
+static void mnemonics_dmfc0(ptr64_t addr, r4k_instr_t instr,
     string_t *mnemonics, string_t *comments)
 {
 	string_printf(mnemonics, "dmfc0");

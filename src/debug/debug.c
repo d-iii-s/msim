@@ -296,7 +296,7 @@ void cp0_dump(r4k_cpu_t *cpu, unsigned int reg)
 	cp0_dump_reg(cpu, reg);
 }
 
-static void idump_common(ptr64_t addr, instr_t instr, string_t *s_opc,
+static void idump_common(ptr64_t addr, r4k_instr_t instr, string_t *s_opc,
     string_t *s_mnemonics, string_t *s_comments)
 {
 	string_printf(s_opc, "%08" PRIx32, instr.val);
@@ -314,7 +314,7 @@ static void idump_common(ptr64_t addr, instr_t instr, string_t *s_opc,
  * @param modregs If true, then modified registers are also dumped.
  *
  */
-void idump(r4k_cpu_t *cpu, ptr64_t addr, instr_t instr, bool modregs)
+void idump(r4k_cpu_t *cpu, ptr64_t addr, r4k_instr_t instr, bool modregs)
 {
 	string_t s_cpu;
 	string_t s_addr;
@@ -360,7 +360,7 @@ void idump(r4k_cpu_t *cpu, ptr64_t addr, instr_t instr, bool modregs)
  * @param instr Instruction to dump.
  *
  */
-void idump_phys(ptr36_t addr, instr_t instr)
+void idump_phys(ptr36_t addr, r4k_instr_t instr)
 {
 	string_t s_addr;
 	string_t s_iopc;

@@ -1616,7 +1616,7 @@ static void sc_unregister(r4k_cpu_t *cpu)
  *
  */
 
-static void disassemble_offset(ptr64_t addr, instr_t instr,
+static void disassemble_offset(ptr64_t addr, r4k_instr_t instr,
     string_t *mnemonics, string_t *comments)
 {
 	int64_t offset =
@@ -1635,14 +1635,14 @@ static void disassemble_offset(ptr64_t addr, instr_t instr,
 		string_printf(comments, "here");
 }
 
-static void disassemble_rs_offset(ptr64_t addr, instr_t instr,
+static void disassemble_rs_offset(ptr64_t addr, r4k_instr_t instr,
     string_t *mnemonics, string_t *comments)
 {
 	string_printf(mnemonics, " %s,", regname[instr.i.rs]);
 	disassemble_offset(addr, instr, mnemonics, comments);
 }
 
-static void disassemble_rs_rt_offset(ptr64_t addr, instr_t instr,
+static void disassemble_rs_rt_offset(ptr64_t addr, r4k_instr_t instr,
     string_t *mnemonics, string_t *comments)
 {
 	string_printf(mnemonics, " %s, %s,",
@@ -1650,7 +1650,7 @@ static void disassemble_rs_rt_offset(ptr64_t addr, instr_t instr,
 	disassemble_offset(addr, instr, mnemonics, comments);
 }
 
-static void disassemble_target(ptr64_t addr, instr_t instr,
+static void disassemble_target(ptr64_t addr, r4k_instr_t instr,
     string_t *mnemonics, string_t *comments)
 {
 	ptr64_t target;
@@ -1660,7 +1660,7 @@ static void disassemble_target(ptr64_t addr, instr_t instr,
 	string_printf(mnemonics, " %#" PRIx64, target.ptr);
 }
 
-static void disassemble_rt_offset_base(instr_t instr, string_t *mnemonics,
+static void disassemble_rt_offset_base(r4k_instr_t instr, string_t *mnemonics,
     string_t *comments)
 {
 	int64_t offset = (int64_t) sign_extend_16_64(instr.i.imm);
@@ -1669,49 +1669,49 @@ static void disassemble_rt_offset_base(instr_t instr, string_t *mnemonics,
 	    regname[instr.i.rt], offset, regname[instr.i.rs]);
 }
 
-static void disassemble_rs_rt(instr_t instr, string_t *mnemonics,
+static void disassemble_rs_rt(r4k_instr_t instr, string_t *mnemonics,
     string_t *comments)
 {
 	string_printf(mnemonics, " %s, %s,",
 	    regname[instr.i.rs], regname[instr.i.rt]);
 }
 
-static void disassemble_rd_rs_rt(instr_t instr, string_t *mnemonics,
+static void disassemble_rd_rs_rt(r4k_instr_t instr, string_t *mnemonics,
     string_t *comments)
 {
 	string_printf(mnemonics, " %s, %s, %s",
 	    regname[instr.r.rd], regname[instr.r.rs], regname[instr.r.rt]);
 }
 
-static void disassemble_rt_rs(instr_t instr, string_t *mnemonics,
+static void disassemble_rt_rs(r4k_instr_t instr, string_t *mnemonics,
     string_t *comments)
 {
 	string_printf(mnemonics, " %s, %s",
 	    regname[instr.r.rt], regname[instr.r.rs]);
 }
 
-static void disassemble_rt_cp0(instr_t instr, string_t *mnemonics,
+static void disassemble_rt_cp0(r4k_instr_t instr, string_t *mnemonics,
     string_t *comments)
 {
 	string_printf(mnemonics, " %s, %s",
 	    regname[instr.r.rt], cp0name[instr.r.rd]);
 }
 
-static void disassemble_rt_fs(instr_t instr, string_t *mnemonics,
+static void disassemble_rt_fs(r4k_instr_t instr, string_t *mnemonics,
     string_t *comments)
 {
 	string_printf(mnemonics, " %s, %s",
 	    regname[instr.r.rt], cp1name[instr.r.rs]);
 }
 
-static void disassemble_rt_cp2(instr_t instr, string_t *mnemonics,
+static void disassemble_rt_cp2(r4k_instr_t instr, string_t *mnemonics,
     string_t *comments)
 {
 	string_printf(mnemonics, " %s, %s",
 	    regname[instr.r.rt], cp2name[instr.r.rs]);
 }
 
-static void disassemble_rt_rs_imm(instr_t instr, string_t *mnemonics,
+static void disassemble_rt_rs_imm(r4k_instr_t instr, string_t *mnemonics,
     string_t *comments)
 {
 	int32_t imm = (int32_t) sign_extend_16_32(instr.i.imm);
@@ -1720,14 +1720,14 @@ static void disassemble_rt_rs_imm(instr_t instr, string_t *mnemonics,
 	    regname[instr.i.rt], regname[instr.i.rs], imm);
 }
 
-static void disassemble_rt_rs_uimm(instr_t instr, string_t *mnemonics,
+static void disassemble_rt_rs_uimm(r4k_instr_t instr, string_t *mnemonics,
     string_t *comments)
 {
 	string_printf(mnemonics, " %s, %s, %#x",
 	    regname[instr.i.rt], regname[instr.i.rs], instr.i.imm);
 }
 
-static void disassemble_rt_imm(instr_t instr, string_t *mnemonics,
+static void disassemble_rt_imm(r4k_instr_t instr, string_t *mnemonics,
     string_t *comments)
 {
 	int32_t imm = (int32_t) sign_extend_16_32(instr.i.imm);
@@ -1736,14 +1736,14 @@ static void disassemble_rt_imm(instr_t instr, string_t *mnemonics,
 	    regname[instr.i.rt], imm);
 }
 
-static void disassemble_rt_uimm(instr_t instr, string_t *mnemonics,
+static void disassemble_rt_uimm(r4k_instr_t instr, string_t *mnemonics,
     string_t *comments)
 {
 	string_printf(mnemonics, " %s, %#x",
 	    regname[instr.i.rt], instr.i.imm);
 }
 
-static void disassemble_rs_imm(instr_t instr, string_t *mnemonics,
+static void disassemble_rs_imm(r4k_instr_t instr, string_t *mnemonics,
     string_t *comments)
 {
 	int32_t imm = (int32_t) sign_extend_16_32(instr.i.imm);
@@ -1752,34 +1752,34 @@ static void disassemble_rs_imm(instr_t instr, string_t *mnemonics,
 	    regname[instr.i.rs], imm);
 }
 
-static void disassemble_rd_rt_sa(instr_t instr, string_t *mnemonics,
+static void disassemble_rd_rt_sa(r4k_instr_t instr, string_t *mnemonics,
     string_t *comments)
 {
 	string_printf(mnemonics, " %s, %s, %u",
 	    regname[instr.r.rd], regname[instr.r.rt], instr.r.sa);
 }
 
-static void disassemble_rd_rt_rs(instr_t instr, string_t *mnemonics,
+static void disassemble_rd_rt_rs(r4k_instr_t instr, string_t *mnemonics,
     string_t *comments)
 {
 	string_printf(mnemonics, " %s, %s, %s",
 	    regname[instr.r.rd], regname[instr.r.rt], regname[instr.r.rs]);
 }
 
-static void disassemble_rd_rs(instr_t instr, string_t *mnemonics,
+static void disassemble_rd_rs(r4k_instr_t instr, string_t *mnemonics,
     string_t *comments)
 {
 	string_printf(mnemonics, " %s, %s",
 	    regname[instr.r.rd], regname[instr.r.rs]);
 }
 
-static void disassemble_rs(instr_t instr, string_t *mnemonics,
+static void disassemble_rs(r4k_instr_t instr, string_t *mnemonics,
     string_t *comments)
 {
 	string_printf(mnemonics, " %s", regname[instr.r.rs]);
 }
 
-static void disassemble_rd(instr_t instr, string_t *mnemonics,
+static void disassemble_rd(r4k_instr_t instr, string_t *mnemonics,
     string_t *comments)
 {
 	string_printf(mnemonics, " %s", regname[instr.r.rd]);
@@ -2949,7 +2949,7 @@ static mnemonics_fnc_t mnemonics_cop0_func_map[64] = {
  * @return Instruction mnemonics function.
  *
  */
-mnemonics_fnc_t decode_mnemonics(instr_t instr)
+mnemonics_fnc_t decode_mnemonics(r4k_instr_t instr)
 {
 	mnemonics_fnc_t fnc;
 	
@@ -3677,7 +3677,7 @@ void cpu_interrupt_down(r4k_cpu_t *cpu, unsigned int no)
  * @return Instruction implementation.
  *
  */
-static instr_fnc_t decode(instr_t instr)
+static instr_fnc_t decode(r4k_instr_t instr)
 {
 	instr_fnc_t fnc;
 	
@@ -3816,7 +3816,7 @@ static void frame_decode(frame_t *frame)
 	
 	unsigned int i;
 	for (i = 0; i < ADDR2INSTR(FRAME_SIZE); i++) {
-		instr_t instr = *((instr_t *) (frame->data + INSTR2ADDR(i)));
+		r4k_instr_t instr = *((r4k_instr_t *) (frame->data + INSTR2ADDR(i)));
 		*(frame->trans + i) = decode(instr);
 	}
 	
@@ -3922,7 +3922,7 @@ static exc_t execute(r4k_cpu_t *cpu)
 	
 	/* Fetch decoded instruction */
 	unsigned int i = cpu->pc.ptr & FRAME_MASK;
-	instr_t instr = *((instr_t *) (cpu->frame->data + i));
+	r4k_instr_t instr = *((r4k_instr_t *) (cpu->frame->data + i));
 	instr_fnc_t fnc = *(cpu->frame->trans + ADDR2INSTR(i));
 	
 	/* Execute instruction */

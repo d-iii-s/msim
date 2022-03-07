@@ -1,4 +1,4 @@
-static exc_t instr_dsra32(r4k_cpu_t *cpu, instr_t instr)
+static exc_t instr_dsra32(r4k_cpu_t *cpu, r4k_instr_t instr)
 {
 	if (CPU_64BIT_INSTRUCTION(cpu)) {
 		uint64_t rt = cpu->regs[instr.r.rt].val;
@@ -10,7 +10,7 @@ static exc_t instr_dsra32(r4k_cpu_t *cpu, instr_t instr)
 	return excNone;
 }
 
-static void mnemonics_dsra32(ptr64_t addr, instr_t instr,
+static void mnemonics_dsra32(ptr64_t addr, r4k_instr_t instr,
     string_t *mnemonics, string_t *comments)
 {
 	string_printf(mnemonics, "dsra32");

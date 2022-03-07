@@ -180,7 +180,7 @@ static bool system_dumpins(token_t *parm, void *data)
 	
 	for (addr = (ptr36_t) _addr, cnt = (len36_t) _cnt; cnt > 0;
 	    addr += 4, cnt--) {
-		instr_t instr;
+		r4k_instr_t instr;
 		instr.val = physmem_read32(NULL, addr, false);
 		idump_phys(addr, instr);
 	}

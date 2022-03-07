@@ -976,9 +976,9 @@ extern void physmem_wire(physmem_area_t *area);
 extern void physmem_unwire(physmem_area_t *area);
 
 /** Basic CPU routines */
-extern void cpu_init(r4k_cpu_t *cpu, unsigned int procno);
-extern void cpu_set_pc(r4k_cpu_t *cpu, ptr64_t value);
-extern void cpu_step(r4k_cpu_t *cpu);
+extern void r4k_cpu_init(r4k_cpu_t *cpu, unsigned int procno);
+extern void r4k_cpu_set_pc(r4k_cpu_t *cpu, ptr64_t value);
+extern void r4k_cpu_step(r4k_cpu_t *cpu);
 
 /** Physical memory access */
 extern uint8_t physmem_read8(r4k_cpu_t *cpu, ptr36_t addr, bool protected);
@@ -1004,7 +1004,7 @@ extern exc_t cpu_read_mem32(r4k_cpu_t *cpu, ptr64_t addr, uint32_t *value,
     bool noisy);
 
 /** Interrupts */
-extern void cpu_interrupt_up(r4k_cpu_t *cpu, unsigned int no);
-extern void cpu_interrupt_down(r4k_cpu_t *cpu, unsigned int no);
+extern void r4k_cpu_interrupt_up(r4k_cpu_t *cpu, unsigned int no);
+extern void r4k_cpu_interrupt_down(r4k_cpu_t *cpu, unsigned int no);
 
 #endif

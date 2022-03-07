@@ -3058,7 +3058,7 @@ mnemonics_fnc_t decode_mnemonics(r4k_instr_t instr)
 /** Initialize simulation environment
  *
  */
-void cpu_init(r4k_cpu_t *cpu, unsigned int procno)
+void r4k_cpu_init(r4k_cpu_t *cpu, unsigned int procno)
 {
 	ASSERT(cpu != NULL);
 	
@@ -3069,7 +3069,7 @@ void cpu_init(r4k_cpu_t *cpu, unsigned int procno)
 	memset(cpu, 0, sizeof(r4k_cpu_t));
 	
 	cpu->procno = procno;
-	cpu_set_pc(cpu, start_address);
+	r4k_cpu_set_pc(cpu, start_address);
 	
 	/* Inicialize cp0 registers */
 	cp0_config(cpu).val = HARD_RESET_CONFIG;
@@ -3091,7 +3091,7 @@ void cpu_init(r4k_cpu_t *cpu, unsigned int procno)
 /** Set the PC register
  *
  */
-void cpu_set_pc(r4k_cpu_t *cpu, ptr64_t value)
+void r4k_cpu_set_pc(r4k_cpu_t *cpu, ptr64_t value)
 {
 	ASSERT(cpu != NULL);
 	
@@ -3652,7 +3652,7 @@ bool physmem_write64(r4k_cpu_t *cpu, ptr36_t addr, uint64_t val, bool protected)
 /** Assert the specified interrupt
  *
  */
-void cpu_interrupt_up(r4k_cpu_t *cpu, unsigned int no)
+void r4k_cpu_interrupt_up(r4k_cpu_t *cpu, unsigned int no)
 {
 	ASSERT(cpu != NULL);
 	ASSERT(no < INTR_COUNT);
@@ -3664,7 +3664,7 @@ void cpu_interrupt_up(r4k_cpu_t *cpu, unsigned int no)
 /* Deassert the specified interrupt
  *
  */
-void cpu_interrupt_down(r4k_cpu_t *cpu, unsigned int no)
+void r4k_cpu_interrupt_down(r4k_cpu_t *cpu, unsigned int no)
 {
 	ASSERT(cpu != NULL);
 	ASSERT(no < INTR_COUNT);
@@ -3845,7 +3845,7 @@ static void handle_exception(r4k_cpu_t *cpu, exc_t res)
 	
 	/* The standby mode is cancelled by the exception */
 	if (cpu->stdby)
-		cpu_set_pc(cpu, cpu->pc_next);
+		r4k_cpu_set_pc(cpu, cpu->pc_next);
 	
 	cpu->stdby = false;
 	
@@ -3893,7 +3893,7 @@ static void handle_exception(r4k_cpu_t *cpu, exc_t res)
 	if ((cp0_status_exl(cpu)) || (!tlb_refill))
 		exc_pc.ptr += EXCEPTION_OFFSET;
 	
-	cpu_set_pc(cpu, exc_pc);
+	r4k_cpu_set_pc(cpu, exc_pc);
 	
 	/* Switch to kernel mode */
 	cp0_status(cpu).val |= cp0_status_exl_mask;
@@ -4030,7 +4030,7 @@ static void account(r4k_cpu_t *cpu)
 /* Simulate one cycle of the processor
  *
  */
-void cpu_step(r4k_cpu_t *cpu)
+void r4k_cpu_step(r4k_cpu_t *cpu)
 {
 	ASSERT(cpu != NULL);
 	

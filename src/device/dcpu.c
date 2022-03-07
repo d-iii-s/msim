@@ -58,7 +58,7 @@ static bool dcpu_init(token_t *parm, device_t *dev)
 	}
 	
 	r4k_cpu_t *cpu = safe_malloc_t(r4k_cpu_t);
-	cpu_init(cpu, id);
+	r4k_cpu_init(cpu, id);
 	dev->data = cpu;
 	
 	return true;
@@ -253,7 +253,7 @@ static bool dcpu_goto(token_t *parm, device_t *dev)
 	ptr64_t addr;
 	addr.ptr = _addr;
 	
-	cpu_set_pc(cpu, addr);
+	r4k_cpu_set_pc(cpu, addr);
 	return true;
 }
 
@@ -349,7 +349,7 @@ static void dcpu_done(device_t *dev)
  */
 static void dcpu_step(device_t *dev)
 {
-	cpu_step((r4k_cpu_t *) dev->data);
+	r4k_cpu_step((r4k_cpu_t *) dev->data);
 }
 
 r4k_cpu_t *dcpu_find_no(unsigned int no)
@@ -370,7 +370,7 @@ void dcpu_interrupt_up(unsigned int cpuno, unsigned int no)
 	r4k_cpu_t *cpu = dcpu_find_no(cpuno);
 	
 	if (cpu != NULL)
-		cpu_interrupt_up(cpu, no);
+		r4k_cpu_interrupt_up(cpu, no);
 }
 
 void dcpu_interrupt_down(unsigned int cpuno, unsigned int no)
@@ -378,7 +378,7 @@ void dcpu_interrupt_down(unsigned int cpuno, unsigned int no)
 	r4k_cpu_t *cpu = dcpu_find_no(cpuno);
 	
 	if (cpu != NULL)
-		cpu_interrupt_down(cpu, no);
+		r4k_cpu_interrupt_down(cpu, no);
 }
 
 cmd_t dcpu_cmds[] = {

@@ -26,6 +26,7 @@
 #include "../parser.h"
 #include "../text.h"
 #include "../utils.h"
+#include "../physmem.h"
 
 /*
  * String constants
@@ -49,12 +50,12 @@ static void physmem_cleanup(physmem_area_t *area)
 	case MEMT_MEM:
 		physmem_unwire(area);
 		safe_free(area->data);
-		safe_free(area->trans);
+		//safe_free(area->trans);
 		break;
 	case MEMT_FMAP:
 		physmem_unwire(area);
 		try_munmap(area->data, FRAMES2SIZE(area->count));
-		safe_free(area->trans);
+		//safe_free(area->trans);
 		break;
 	}
 	
@@ -93,7 +94,7 @@ static bool mem_init(token_t *parm, device_t *dev)
 	area->start = ADDR2FRAME(start);
 	area->count = 0;
 	area->data = NULL;
-	area->trans = NULL;
+	//area->trans = NULL;
 	
 	dev->data = area;
 	
@@ -315,7 +316,7 @@ static bool mem_fmap(token_t *parm, device_t *dev)
 	area->type = MEMT_FMAP;
 	area->count = SIZE2FRAMES(size);
 	area->data = (uint8_t *) ptr;
-	area->trans = safe_malloc(sizeof(instr_fnc_t) * SIZE2INSTRS(size));
+	//area->trans = safe_malloc(sizeof(instr_fnc_t) * SIZE2INSTRS(size));
 	physmem_wire(area);
 	
 	return true;
@@ -369,7 +370,7 @@ static bool mem_generic(token_t *parm, device_t *dev)
 	area->type = MEMT_MEM;
 	area->count = SIZE2FRAMES(size);
 	area->data = safe_malloc(host_size);
-	area->trans = safe_malloc(sizeof(instr_fnc_t) * SIZE2INSTRS(host_size));
+	//area->trans = safe_malloc(sizeof(instr_fnc_t) * SIZE2INSTRS(host_size));
 	physmem_wire(area);
 	
 	return true;

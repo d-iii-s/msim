@@ -18,10 +18,7 @@
 #include <unistd.h>
 #include "../../../list.h"
 #include "../../../utils.h"
-
-#define FRAME_WIDTH   12
-#define FRAME_SIZE    (1 << FRAME_WIDTH)
-#define FRAME_MASK    (FRAME_SIZE - 1)
+#include "../../../physmem.h"
 
 #define R4K_REG_COUNT     32
 #define R4K_REG_VARIANTS  3
@@ -29,18 +26,6 @@
 #define TLB_ENTRIES   48
 #define INTR_COUNT    8
 #define TLB_PHYSMASK  UINT64_C(0x780000000)
-
-#define FRAMES2SIZE(frames) \
-	(((len36_t) (frames)) << FRAME_WIDTH)
-
-#define SIZE2FRAMES(size) \
-	((size) >> FRAME_WIDTH)
-
-#define FRAME2ADDR(frame) \
-	(((ptr36_t) (frame)) << FRAME_WIDTH)
-
-#define ADDR2FRAME(addr) \
-	((addr) >> FRAME_WIDTH)
 
 #define INSTR2ADDR(instr) \
 	((instr) << 2)
@@ -53,8 +38,6 @@
 
 #define SIZE2INSTRS(size) \
 	((size) >> 2)
-
-#define DEFAULT_MEMORY_VALUE  UINT64_C(0xffffffffffffffff)
 
 /* cp0 registers */
 typedef enum {
@@ -483,13 +466,19 @@ typedef enum {
 } branch_state_t;
 
 struct frame;
+struct r4k_cpu;
+union r4k_instr;
+
+/** Instruction implementation */
+typedef exc_t (*instr_fnc_t)(struct r4k_cpu *, union r4k_instr);
 
 /** Main processor structure */
-typedef struct {
+typedef struct r4k_cpu {
 	/* Basic run-time support */
 	unsigned int procno;
 	bool stdby;
 	struct frame *frame;
+	instr_fnc_t trans[FRAME_SIZE/sizeof(instr_fnc_t)];
 	
 	/* Standard registers */
 	reg64_t regs[R4K_REG_COUNT];
@@ -539,7 +528,7 @@ typedef struct {
 } r4k_cpu_t;
 
 /** Instruction decoding structure */
-typedef union {
+typedef union r4k_instr {
 	uint32_t val;
 #ifdef WORDS_BIGENDIAN
 	struct {
@@ -606,46 +595,7 @@ typedef union {
 #endif
 } r4k_instr_t;
 
-/** Instruction implementation */
-typedef exc_t (*instr_fnc_t)(r4k_cpu_t *, r4k_instr_t);
 
-typedef enum {
-	MEMT_NONE = 0,  /**< Uninitialized */
-	MEMT_MEM  = 1,  /**< Generic */
-	MEMT_FMAP = 2   /**< File mapped */
-} physmem_type_t;
-
-typedef struct {
-	/* Memory area type */
-	physmem_type_t type;
-	bool writable;
-	
-	/* Starting physical frame */
-	pfn_t start;
-	
-	/* Number of physical frames */
-	pfn_t count;
-	
-	/* Memory content */
-	uint8_t *data;
-	
-	/* Binary translated memory content */
-	instr_fnc_t *trans;
-} physmem_area_t;
-
-typedef struct frame {
-	/* Physical memory area containing the frame */
-	physmem_area_t *area;
-	
-	/* Frame data (with displacement) */
-	uint8_t *data;
-	
-	/* Binary translated instructions (with displacement) */
-	instr_fnc_t *trans;
-	
-	/* Binary translation valid flag */
-	bool valid;
-} frame_t;
 
 /** Opcode numbers
  *
@@ -971,29 +921,10 @@ extern char *cp3_name[R4K_REG_VARIANTS][R4K_REG_COUNT];
 /** Decode instruction mnemonics */
 extern mnemonics_fnc_t decode_mnemonics(r4k_instr_t);
 
-/** Physical memory management */
-extern void physmem_wire(physmem_area_t *area);
-extern void physmem_unwire(physmem_area_t *area);
-
 /** Basic CPU routines */
 extern void r4k_cpu_init(r4k_cpu_t *cpu, unsigned int procno);
 extern void r4k_cpu_set_pc(r4k_cpu_t *cpu, ptr64_t value);
 extern void r4k_cpu_step(r4k_cpu_t *cpu);
-
-/** Physical memory access */
-extern uint8_t physmem_read8(r4k_cpu_t *cpu, ptr36_t addr, bool protected);
-extern uint16_t physmem_read16(r4k_cpu_t *cpu, ptr36_t addr, bool protected);
-extern uint32_t physmem_read32(r4k_cpu_t *cpu, ptr36_t addr, bool protected);
-extern uint64_t physmem_read64(r4k_cpu_t *cpu, ptr36_t addr, bool protected);
-
-extern bool physmem_write8(r4k_cpu_t *cpu, ptr36_t addr, uint8_t val,
-    bool protected);
-extern bool physmem_write16(r4k_cpu_t *cpu, ptr36_t addr, uint16_t val,
-    bool protected);
-extern bool physmem_write32(r4k_cpu_t *cpu, ptr36_t addr, uint32_t val,
-    bool protected);
-extern bool physmem_write64(r4k_cpu_t *cpu, ptr36_t addr, uint64_t val,
-    bool protected);
 
 /** Addresing function */
 extern exc_t convert_addr(r4k_cpu_t *cpu, ptr64_t virt, ptr36_t *phys, bool write,

@@ -26,6 +26,7 @@
 #include "../../../text.h"
 #include "../../../utils.h"
 #include "cpu.h"
+#include "../../../physmem.h"
 
 /** Physical memory management
  *
@@ -426,7 +427,7 @@ void physmem_wire(physmem_area_t *area)
 	ASSERT(area->type != MEMT_NONE);
 	ASSERT(area->count > 0);
 	ASSERT(area->data != NULL);
-	ASSERT(area->trans != NULL);
+	//ASSERT(area->trans != NULL);
 	
 	pfn_t pfn;
 	for (pfn = 0; pfn < area->count; pfn++) {
@@ -453,7 +454,7 @@ void physmem_wire(physmem_area_t *area)
 		/* Frame descriptor */
 		frame->area = area;
 		frame->data = area->data + FRAMES2SIZE(pfn);
-		frame->trans = area->trans + SIZE2INSTRS(FRAMES2SIZE(pfn));
+		//frame->trans = area->trans + SIZE2INSTRS(FRAMES2SIZE(pfn));
 		frame->valid = false;
 	}
 }
@@ -464,7 +465,7 @@ void physmem_unwire(physmem_area_t *area)
 	ASSERT(area->type != MEMT_NONE);
 	ASSERT(area->count > 0);
 	ASSERT(area->data != NULL);
-	ASSERT(area->trans != NULL);
+	//ASSERT(area->trans != NULL);
 	
 	// FIXME TODO
 	// Deallocate also the ftl1 if no longer needed
@@ -1166,7 +1167,7 @@ static exc_t cpu_read_mem8(r4k_cpu_t *cpu, ptr64_t addr, uint8_t *val, bool nois
 		ASSERT(false);
 	}
 	
-	*val = physmem_read8(cpu, phys, true);
+	*val = physmem_read8(cpu->procno, phys, true);
 	return res;
 }
 
@@ -1205,7 +1206,7 @@ static exc_t cpu_read_mem16(r4k_cpu_t *cpu, ptr64_t addr, uint16_t *val, bool no
 		ASSERT(false);
 	}
 	
-	*val = physmem_read16(cpu, phys, true);
+	*val = physmem_read16(cpu->procno, phys, true);
 	return res;
 }
 
@@ -1244,7 +1245,7 @@ exc_t cpu_read_mem32(r4k_cpu_t *cpu, ptr64_t addr, uint32_t *val, bool noisy)
 		ASSERT(false);
 	}
 	
-	*val = physmem_read32(cpu, phys, true);
+	*val = physmem_read32(cpu->procno, phys, true);
 	return res;
 }
 
@@ -1283,7 +1284,7 @@ static exc_t cpu_read_mem64(r4k_cpu_t *cpu, ptr64_t addr, uint64_t *val, bool no
 		ASSERT(false);
 	}
 	
-	*val = physmem_read64(cpu, phys, true);
+	*val = physmem_read64(cpu->procno, phys, true);
 	return res;
 }
 
@@ -1311,7 +1312,7 @@ static exc_t cpu_write_mem8(r4k_cpu_t *cpu, ptr64_t addr, uint8_t value, bool no
 		ASSERT(false);
 	}
 	
-	physmem_write8(cpu, phys, value, true);
+	physmem_write8(cpu->procno, phys, value, true);
 	return res;
 }
 
@@ -1350,7 +1351,7 @@ static exc_t cpu_write_mem16(r4k_cpu_t *cpu, ptr64_t addr, uint16_t value,
 		ASSERT(false);
 	}
 	
-	physmem_write16(cpu, phys, value, true);
+	physmem_write16(cpu->procno, phys, value, true);
 	return res;
 }
 
@@ -1389,7 +1390,7 @@ static exc_t cpu_write_mem32(r4k_cpu_t *cpu, ptr64_t addr, uint32_t value,
 		ASSERT(false);
 	}
 	
-	physmem_write32(cpu, phys, value, true);
+	physmem_write32(cpu->procno, phys, value, true);
 	return res;
 }
 
@@ -1428,7 +1429,7 @@ static exc_t cpu_write_mem64(r4k_cpu_t *cpu, ptr64_t addr, uint64_t value,
 		ASSERT(false);
 	}
 	
-	physmem_write64(cpu, phys, value, true);
+	physmem_write64(cpu->procno, phys, value, true);
 	return res;
 }
 
@@ -3245,7 +3246,7 @@ static uint64_t devmem_read64(r4k_cpu_t *cpu, ptr36_t addr)
  *         if the address is not valid.
  *
  */
-uint8_t physmem_read8(r4k_cpu_t *cpu, ptr36_t addr, bool protected)
+uint8_t physmem_read8(unsigned int cpu, ptr36_t addr, bool protected)
 {
 	frame_t *frame = physmem_find_frame(addr);
 	
@@ -3253,8 +3254,10 @@ uint8_t physmem_read8(r4k_cpu_t *cpu, ptr36_t addr, bool protected)
 	 * No memory frame found, try to read the value
 	 * from appropriate device or return the default value.
 	 */
-	if (frame == NULL)
-		return devmem_read8(cpu, addr);
+	if (frame == NULL){
+		//TODO: fixme
+		return devmem_read8(NULL, addr);
+	}
 	
 	/* Check for memory read breakpoints */
 	if (protected)
@@ -3281,7 +3284,7 @@ uint8_t physmem_read8(r4k_cpu_t *cpu, ptr36_t addr, bool protected)
  *         if the address is not valid.
  *
  */
-uint16_t physmem_read16(r4k_cpu_t *cpu, ptr36_t addr, bool protected)
+uint16_t physmem_read16(unsigned int cpu, ptr36_t addr, bool protected)
 {
 	frame_t *frame = physmem_find_frame(addr);
 	
@@ -3289,8 +3292,10 @@ uint16_t physmem_read16(r4k_cpu_t *cpu, ptr36_t addr, bool protected)
 	 * No memory frame found, try to read the value
 	 * from appropriate device or return the default value.
 	 */
-	if (frame == NULL)
-		return devmem_read16(cpu, addr);
+	if (frame == NULL){
+		//TODO: fix me
+		return devmem_read16(NULL, addr);
+	}
 	
 	/* Check for memory read breakpoints */
 	if (protected)
@@ -3317,7 +3322,7 @@ uint16_t physmem_read16(r4k_cpu_t *cpu, ptr36_t addr, bool protected)
  *         if the address is not valid.
  *
  */
-uint32_t physmem_read32(r4k_cpu_t *cpu, ptr36_t addr, bool protected)
+uint32_t physmem_read32(unsigned int cpu, ptr36_t addr, bool protected)
 {
 	frame_t *frame = physmem_find_frame(addr);
 	
@@ -3325,8 +3330,10 @@ uint32_t physmem_read32(r4k_cpu_t *cpu, ptr36_t addr, bool protected)
 	 * No memory frame found, try to read the value
 	 * from appropriate device or return the default value.
 	 */
-	if (frame == NULL)
-		return devmem_read32(cpu, addr);
+	if (frame == NULL){
+		//todo: fix me
+		return devmem_read32(NULL, addr);
+	}
 	
 	/* Check for memory read breakpoints */
 	if (protected)
@@ -3353,7 +3360,7 @@ uint32_t physmem_read32(r4k_cpu_t *cpu, ptr36_t addr, bool protected)
  *         if the address is not valid.
  *
  */
-uint64_t physmem_read64(r4k_cpu_t *cpu, ptr36_t addr, bool protected)
+uint64_t physmem_read64(unsigned int cpu, ptr36_t addr, bool protected)
 {
 	frame_t *frame = physmem_find_frame(addr);
 	
@@ -3361,8 +3368,10 @@ uint64_t physmem_read64(r4k_cpu_t *cpu, ptr36_t addr, bool protected)
 	 * No memory frame found, try to read the value
 	 * from appropriate device or return the default value.
 	 */
-	if (frame == NULL)
-		return devmem_read64(cpu, addr);
+	if (frame == NULL){
+		//todo: fix me
+		return devmem_read64(NULL, addr);
+	}
 	
 	/* Check for memory read breakpoints */
 	if (protected)
@@ -3478,13 +3487,15 @@ static bool devmem_write64(r4k_cpu_t *cpu, ptr36_t addr, uint64_t val)
  *         set to true.
  *
  */
-bool physmem_write8(r4k_cpu_t *cpu, ptr36_t addr, uint8_t val, bool protected)
+bool physmem_write8(unsigned int cpu, ptr36_t addr, uint8_t val, bool protected)
 {
 	frame_t *frame = physmem_find_frame(addr);
 	
 	/* No frame found, try to write the value to appropriate device */
-	if (frame == NULL)
-		return devmem_write8(cpu, addr, val);
+	if (frame == NULL){
+		//todo: fix me
+		return devmem_write8(NULL, addr, val);
+	}
 	
 	ASSERT(frame->area);
 	ASSERT(frame->data);
@@ -3525,13 +3536,15 @@ bool physmem_write8(r4k_cpu_t *cpu, ptr36_t addr, uint8_t val, bool protected)
  *         set to true.
  *
  */
-bool physmem_write16(r4k_cpu_t *cpu, ptr36_t addr, uint16_t val, bool protected)
+bool physmem_write16(unsigned int cpu, ptr36_t addr, uint16_t val, bool protected)
 {
 	frame_t *frame = physmem_find_frame(addr);
 	
 	/* No frame found, try to write the value to appropriate device */
-	if (frame == NULL)
-		return devmem_write16(cpu, addr, val);
+	if (frame == NULL){
+		//todo: fix me
+		return devmem_write16(NULL, addr, val);
+	}
 	
 	ASSERT(frame->area);
 	ASSERT(frame->data);
@@ -3572,13 +3585,15 @@ bool physmem_write16(r4k_cpu_t *cpu, ptr36_t addr, uint16_t val, bool protected)
  *         set to true.
  *
  */
-bool physmem_write32(r4k_cpu_t *cpu, ptr36_t addr, uint32_t val, bool protected)
+bool physmem_write32(unsigned int cpu, ptr36_t addr, uint32_t val, bool protected)
 {
 	frame_t *frame = physmem_find_frame(addr);
 	
 	/* No frame found, try to write the value to appropriate device */
-	if (frame == NULL)
-		return devmem_write32(cpu, addr, val);
+	if (frame == NULL){
+		//todo: fix me
+		return devmem_write32(NULL, addr, val);
+	}
 	
 	ASSERT(frame->area);
 	ASSERT(frame->data);
@@ -3619,13 +3634,15 @@ bool physmem_write32(r4k_cpu_t *cpu, ptr36_t addr, uint32_t val, bool protected)
  *         set to true.
  *
  */
-bool physmem_write64(r4k_cpu_t *cpu, ptr36_t addr, uint64_t val, bool protected)
+bool physmem_write64(unsigned int cpu, ptr36_t addr, uint64_t val, bool protected)
 {
 	frame_t *frame = physmem_find_frame(addr);
 	
 	/* No frame found, try to write the value to appropriate device */
-	if (frame == NULL)
+	if (frame == NULL) {
+		//todo: fix me
 		return devmem_write64(cpu, addr, val);
+	}
 	
 	ASSERT(frame->area);
 	ASSERT(frame->data);
@@ -3809,7 +3826,7 @@ static exc_t cpu_frame(r4k_cpu_t *cpu)
 /** Decode instructions in a physical memory frame
  *
  */
-static void frame_decode(frame_t *frame)
+static void frame_decode(frame_t *frame, instr_fnc_t* out)
 {
 	ASSERT(frame != NULL);
 	ASSERT(!frame->valid);
@@ -3817,7 +3834,7 @@ static void frame_decode(frame_t *frame)
 	unsigned int i;
 	for (i = 0; i < ADDR2INSTR(FRAME_SIZE); i++) {
 		r4k_instr_t instr = *((r4k_instr_t *) (frame->data + INSTR2ADDR(i)));
-		*(frame->trans + i) = decode(instr);
+		*(out + i) = decode(instr);
 	}
 	
 	frame->valid = true;
@@ -3918,12 +3935,12 @@ static exc_t execute(r4k_cpu_t *cpu)
 	}
 	
 	if (!cpu->frame->valid)
-		frame_decode(cpu->frame);
+		frame_decode(cpu->frame, cpu->trans);
 	
 	/* Fetch decoded instruction */
 	unsigned int i = cpu->pc.ptr & FRAME_MASK;
 	r4k_instr_t instr = *((r4k_instr_t *) (cpu->frame->data + i));
-	instr_fnc_t fnc = *(cpu->frame->trans + ADDR2INSTR(i));
+	instr_fnc_t fnc = *(cpu->trans + ADDR2INSTR(i));
 	
 	/* Execute instruction */
 	exc_t exc = fnc(cpu, instr);

@@ -102,3 +102,4 @@ they need to cooperate with mips cpu, so the SC control should work in general p
 ## random msim facts
 
 - all device interrupts are handled on cpu with id 0
+- LL and SC only do checks on the address and are not based on size, so 64 bit write on address 0x00 would not trigger an 32 bit LL on address 0x04.

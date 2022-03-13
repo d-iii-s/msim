@@ -57,6 +57,7 @@ common interface should be:
 - set_pc
 - interrupt_up
 - interrupt_down
+- lr(ll) check (checks if given address is tracked, if so, triggers the ll and then returns if it was tracked)
 
 The interface can take the proc id as an argument, or take the cpu* directly...
 

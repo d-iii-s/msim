@@ -689,7 +689,7 @@ static void ddisk_step(device_t *dev)
 	switch (data->action) {
 	case ACTION_READ:
 		pos = data->secno * 128 + data->cnt;
-		physmem_write32(NULL, data->disk_ptr, data->img[pos], true);
+		physmem_write32(-1 /*NULL*/, data->disk_ptr, data->img[pos], true);
 		
 		/* Next word */
 		data->disk_ptr += 4;

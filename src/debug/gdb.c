@@ -282,7 +282,7 @@ static void gdb_read_physmem(ptr36_t addr, len36_t length)
 	 * endianess.
 	 */
 	while (length > 0) {
-		uint8_t value = physmem_read8(NULL, addr, false);
+		uint8_t value = physmem_read8(-1 /*NULL*/, addr, false);
 		string_printf(&str, "%02" PRIx8, value);
 		
 		length--;
@@ -308,7 +308,7 @@ static void gdb_write_physmem(ptr36_t addr, len36_t length, char *data)
 		}
 		
 		/* Write it */
-		if (!physmem_write8(NULL, addr, (uint8_t) value, false)) {
+		if (!physmem_write8(-1 /*NULL*/, addr, (uint8_t) value, false)) {
 			gdb_send_reply(GDB_REPLY_MEMORY_WRITE_FAIL);
 			return;
 		}

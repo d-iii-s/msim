@@ -84,15 +84,19 @@ This does not work for a system of multiple architectures.
 Although, the two processors should not execute from same piece of memory in practice.
 For now, I have changed it, so the processor holds itself 1 frame of decoded data, but it could be changed later, that the frames themselves hold the decoded data with information, which architecture are they decoded into.
 
+This is untested as of now on mips (!!!)
+
 ### mem
 
 `mem.h` and `mem.c` are named unfortunately, they shoudl be named dmem.
 
+### LR and SC
+
+they need to cooperate with mips cpu, so the SC control should work in general physmem manager.
+
 ## data types
 
 36 bit physical space can be supported. RISC-V has only 34-bit physical addresses, but the spec states, that they can be zero-extended to any length used by the implementation, so we can satisfy shis interface.
-
-
 
 ## random msim facts
 

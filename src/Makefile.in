@@ -28,6 +28,7 @@ SOURCES = \
 	parser.c \
 	list.c \
 	input.c \
+	physmem.c \
 	debug/debug.c \
 	debug/gdb.c \
 	debug/breakpoint.c \

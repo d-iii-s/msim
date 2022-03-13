@@ -64,6 +64,8 @@ typedef struct frame {
 extern void physmem_wire(physmem_area_t *area);
 extern void physmem_unwire(physmem_area_t *area);
 
+extern frame_t* physmem_find_frame(ptr36_t addr);
+
 /** Physical memory access */
 extern uint8_t physmem_read8(unsigned int cpu, ptr36_t addr, bool protected);
 extern uint16_t physmem_read16(unsigned int cpu, ptr36_t addr, bool protected);
@@ -78,5 +80,11 @@ extern bool physmem_write32(unsigned int cpu, ptr36_t addr, uint32_t val,
     bool protected);
 extern bool physmem_write64(unsigned int cpu, ptr36_t addr, uint64_t val,
     bool protected);
+
+//remove after refactor
+struct r4k_cpu;
+
+extern void sc_register(struct r4k_cpu *cpu);
+extern void sc_unregister(struct r4k_cpu *cpu);
 
 #endif /* PHYSMEM_H_ */

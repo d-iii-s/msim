@@ -31,13 +31,14 @@ typedef struct {
 
 typedef struct {
     item_t item;
-
+    unsigned int cpuno;
     const cpu_type_t *type;
     void *data;
 } general_cpu_t;
 
 
 extern general_cpu_t* get_cpu(unsigned int no);
+
 
 
 extern void cpu_interrupt_up(general_cpu_t *cpu, unsigned int no);

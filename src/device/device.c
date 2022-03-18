@@ -285,16 +285,6 @@ device_t *dev_by_name(const char *searched_name)
 	return device;
 }
 
-/** Add a new device to the machine.
- *
- * @param device Device to be added.
- *
- */
-void dev_add(device_t *device)
-{
-	list_append(&device_list, &device->item);
-}
-
 /** Remove a device from the machine.
  *
  * @param Device to be removed.

@@ -467,10 +467,78 @@ typedef enum {
 
 struct frame;
 struct r4k_cpu;
-union r4k_instr;
+
+
+/** Instruction decoding structure */
+typedef union r4k_instr {
+	uint32_t val;
+#ifdef WORDS_BIGENDIAN
+	struct {
+		unsigned int opcode : 6;
+		unsigned int rs : 5;
+		unsigned int rt : 5;
+		unsigned int imm : 16;
+	} i;
+	struct {
+		unsigned int opcode : 6;
+		unsigned int target : 26;
+	} j;
+	struct {
+		unsigned int opcode : 6;
+		unsigned int rs : 5;
+		unsigned int rt : 5;
+		unsigned int rd : 5;
+		unsigned int sa : 5;
+		unsigned int func : 6;
+	} r;
+	struct {
+		unsigned int opcode : 6;
+		unsigned int rs : 5;
+		unsigned int rt : 5;
+		unsigned int data : 8;
+		unsigned int func : 8;
+	} cop;
+	struct {
+		unsigned int opcode : 6;
+		unsigned int code : 20;
+		unsigned int func : 6;
+	} sys;
+#else
+	struct {
+		unsigned int imm : 16;
+		unsigned int rt : 5;
+		unsigned int rs : 5;
+		unsigned int opcode : 6;
+	} i;
+	struct {
+		unsigned int target : 26;
+		unsigned int opcode : 6;
+	} j;
+	struct {
+		unsigned int func : 6;
+		unsigned int sa : 5;
+		unsigned int rd : 5;
+		unsigned int rt : 5;
+		unsigned int rs : 5;
+		unsigned int opcode : 6;
+	} r;
+	struct {
+		unsigned int func : 8;
+		unsigned int data : 8;
+		unsigned int rt : 5;
+		unsigned int rs : 5;
+		unsigned int opcode : 6;
+	} cop;
+	struct {
+		unsigned int func : 6;
+		unsigned int code : 20;
+		unsigned int opcode : 6;
+	} sys;
+#endif
+} r4k_instr_t;
 
 /** Instruction implementation */
-typedef exc_t (*instr_fnc_t)(struct r4k_cpu *, union r4k_instr);
+typedef exc_t (*instr_fnc_t)(struct r4k_cpu *, r4k_instr_t);
 
 /** Main processor structure */
 typedef struct r4k_cpu {
@@ -478,7 +546,7 @@ typedef struct r4k_cpu {
 	unsigned int procno;
 	bool stdby;
 	struct frame *frame;
-	instr_fnc_t trans[FRAME_SIZE/sizeof(instr_fnc_t)];
+	instr_fnc_t trans[FRAME_SIZE/sizeof(r4k_instr_t)];
 	
 	/* Standard registers */
 	reg64_t regs[R4K_REG_COUNT];
@@ -526,74 +594,6 @@ typedef struct r4k_cpu {
 	/* breakpoints */
 	list_t bps;
 } r4k_cpu_t;
-
-/** Instruction decoding structure */
-typedef union r4k_instr {
-	uint32_t val;
-#ifdef WORDS_BIGENDIAN
-	struct {
-		unsigned int opcode : 6;
-		unsigned int rs : 5;
-		unsigned int rt : 5;
-		unsigned int imm : 16;
-	} i;
-	struct {
-		unsigned int opcode : 6;
-		unsigned int target : 26;
-	} j;
-	struct {
-		unsigned int opcode : 6;
-		unsigned int rs : 5;
-		unsigned int rt : 5;
-		unsigned int rd : 5;
-		unsigned int sa : 5;
-		unsigned int func : 6;
-	} r;
-	struct {
-		unsigned int opcode : 6;
-		unsigned int rs : 5;
-		unsigned int rt : 5;
-		unsigned int data : 24;
-		unsigned int func : 8;
-	} cop;
-	struct {
-		unsigned int opcode : 6;
-		unsigned int code : 20;
-		unsigned int func : 6;
-	} sys;
-#else
-	struct {
-		unsigned int imm : 16;
-		unsigned int rt : 5;
-		unsigned int rs : 5;
-		unsigned int opcode : 6;
-	} i;
-	struct {
-		unsigned int target : 26;
-		unsigned int opcode : 6;
-	} j;
-	struct {
-		unsigned int func : 6;
-		unsigned int sa : 5;
-		unsigned int rd : 5;
-		unsigned int rt : 5;
-		unsigned int rs : 5;
-		unsigned int opcode : 6;
-	} r;
-	struct {
-		unsigned int func : 8;
-		unsigned int data : 24;
-		unsigned int rt : 5;
-		unsigned int rs : 5;
-		unsigned int opcode : 6;
-	} cop;
-	struct {
-		unsigned int func : 6;
-		unsigned int code : 20;
-		unsigned int opcode : 6;
-	} sys;
-#endif
-} r4k_instr_t;
 
 
 

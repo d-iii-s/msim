@@ -96,6 +96,7 @@ extern device_t *alloc_device(const char *type_string,
     const char *device_name);
 extern void free_device(device_t *dev);
 extern void add_device(device_t *dev);
+extern void dev_remove(device_t *dev);
 
 extern device_t *dev_by_name(const char *name);
 extern const char *dev_type_by_partial_name(const char *prefix_name,
@@ -106,12 +107,6 @@ extern size_t dev_count_by_partial_name(const char *prefix_name,
     device_t **device);
 
 extern bool dev_next(device_t **dev, device_filter_t filter);
-
-/*
- * Link/unlink device functions
- */
-extern void dev_add(device_t *dev);
-extern void dev_remove(device_t *dev);
 
 /*
  * General utilities

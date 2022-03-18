@@ -39,7 +39,10 @@ typedef struct {
 
 extern general_cpu_t* get_cpu(unsigned int no);
 
+extern unsigned int get_free_cpuno();
 
+extern void add_cpu(general_cpu_t *cpu);
+extern void remove_cpu(general_cpu_t *cpu);
 
 extern void cpu_interrupt_up(general_cpu_t *cpu, unsigned int no);
 extern void cpu_interrupt_down(general_cpu_t *cpu, unsigned int no);

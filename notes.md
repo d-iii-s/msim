@@ -113,6 +113,12 @@ but with specific functionality.
 the `general_cpu_t` type provides the abstraction, and the `general_cpu.h` file
 provides a better interface for calling the functions.
 
+### device->data
+
+The `general_cpu` has to be allocated and freed, somewhere, somehow.
+
+I would suggest, that the device (dr4kcpu,...) alloc and free them
+
 ## data types
 
 36 bit physical space can be supported. RISC-V has only 34-bit physical addresses, but the spec states, that they can be zero-extended to any length used by the implementation, so we can satisfy shis interface.

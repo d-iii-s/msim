@@ -536,7 +536,7 @@ static void gdb_cmd_mem_operation(char *req, bool read)
 	len64_t len = length;
 	ptr36_t phys;
 	
-	if (convert_addr(cpu, virt, &phys, false, false) == excNone) {
+	if (r4k_convert_addr(cpu, virt, &phys, false, false) == excNone) {
 		if (!read) {
 			/* Move the pointer to the data to be written */
 			query = strchr(query, ':');
@@ -790,7 +790,7 @@ static void gdb_breakpoint(char *req, bool insert)
 	} else {
 		ptr36_t phys;
 		
-		if (convert_addr(cpu, virt, &phys, false, false) == excNone) {
+		if (r4k_convert_addr(cpu, virt, &phys, false, false) == excNone) {
 			if (insert)
 				physmem_breakpoint_add(phys, length,
 				    BREAKPOINT_KIND_DEBUGGER, memory_access);

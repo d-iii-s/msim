@@ -15,7 +15,7 @@ static exc_t instr_ll(r4k_cpu_t *cpu, r4k_instr_t instr)
 		/* Since we need physical address to track, issue the
 		   address conversion. It can't fail now. */
 		ptr36_t phys;
-		convert_addr(cpu, addr, &phys, false, false);
+		r4k_convert_addr(cpu, addr, &phys, false, false);
 		
 		/* Register address for tracking. */
 		sc_register(cpu);

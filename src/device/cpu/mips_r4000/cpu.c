@@ -650,7 +650,7 @@ static exc_t convert_addr_kernel64(r4k_cpu_t *cpu, ptr64_t virt, ptr36_t *phys,
  *              if the address is incorrect.
  *
  */
-exc_t convert_addr(r4k_cpu_t *cpu, ptr64_t virt, ptr36_t *phys, bool write,
+exc_t r4k_convert_addr(r4k_cpu_t *cpu, ptr64_t virt, ptr36_t *phys, bool write,
     bool noisy)
 {
 	ASSERT(cpu != NULL);
@@ -761,7 +761,7 @@ static exc_t access_mem(r4k_cpu_t *cpu, acc_mode_t mode, ptr64_t virt,
 	ASSERT(cpu != NULL);
 	ASSERT(phys != NULL);
 	
-	exc_t res = convert_addr(cpu, virt, phys, mode == AM_WRITE, noisy);
+	exc_t res = r4k_convert_addr(cpu, virt, phys, mode == AM_WRITE, noisy);
 	
 	/* Check for watched address */
 	if (((cp0_watchlo_r(cpu)) && (mode == AM_READ))
@@ -2873,7 +2873,7 @@ static exc_t cpu_frame(r4k_cpu_t *cpu)
 	virt.lo &= ~((uint32_t) FRAME_MASK);
 	
 	ptr36_t phys;
-	exc_t res = convert_addr(cpu, virt, &phys, false, true);
+	exc_t res = r4k_convert_addr(cpu, virt, &phys, false, true);
 	switch (res) {
 	case excNone:
 		break;

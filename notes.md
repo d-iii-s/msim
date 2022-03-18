@@ -26,6 +26,9 @@ gdb reads physical memory, but does not specify cpu
 
 TODO: look into physmem read and find why is the cpu there.
 
+Done: physmem calls r/w on memory mapped IO, and some devices need
+the proc id.
+
 reg dumps - 64 bit registers are implemented, convert or implement 32 bit?
 
 handle event - dumps registers of r4k
@@ -53,7 +56,7 @@ common interface should be:
 - remove breakpoint
 - convert_addr
 - reg dump
-- reg upload
+- reg set/read
 - set_pc
 - interrupt_up
 - interrupt_down
@@ -63,7 +66,9 @@ The interface can take the proc id as an argument, or take the cpu* directly...
 
 I think, that using the proc/hart id is better, as it hides the implementation details of cpus and delegates the dispatching to the cpu managing code.
 
-this interface should be returned from the call to dcpu_find_no(id) (maybe rename this function)
+~~this interface should be returned from the call to dcpu_find_no(id) (maybe rename this function)~~
+
+this interface will be accessed via the cpu no.
 
 ### device type
 
@@ -89,11 +94,24 @@ This is untested as of now on mips (!!!)
 
 ### mem
 
-`mem.h` and `mem.c` are named unfortunately, they shoudl be named dmem.
+`mem.h` and `mem.c` are named unfortunately, they should be named dmem.
 
 ### LR and SC
 
 they need to cooperate with mips cpu, so the SC control should work in general physmem manager.
+
+### exceptions
+
+## interface viewpoint
+
+`device` is an interface, that the cpu implements (partially)
+
+`cpu` can a another interface, that the processors will implement.
+The implementation will be similar to the device abstraction,
+but with specific functionality.
+
+the `general_cpu_t` type provides the abstraction, and the `general_cpu.h` file
+provides a better interface for calling the functions.
 
 ## data types
 

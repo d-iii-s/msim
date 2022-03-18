@@ -16,7 +16,7 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <inttypes.h>
-#include "dcpu.h"
+#include "dr4kcpu.h"
 #include "ddisk.h"
 #include "../arch/mmap.h"
 #include "../text.h"

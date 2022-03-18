@@ -15,7 +15,7 @@
 #include <inttypes.h>
 #include "dorder.h"
 #include "device.h"
-#include "dcpu.h"
+#include "dr4kcpu.h"
 #include "../fault.h"
 #include "../parser.h"
 #include "../text.h"

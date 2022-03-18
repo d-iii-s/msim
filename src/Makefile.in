@@ -35,7 +35,7 @@ SOURCES = \
 	device/cpu/mips_r4000/cpu.c \
 	device/mem.c \
 	device/ddisk.c \
-	device/dcpu.c \
+	device/dr4kcpu.c \
 	device/dcycle.c \
 	device/dkeyboard.c \
 	device/dorder.c \

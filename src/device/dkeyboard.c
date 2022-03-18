@@ -17,7 +17,7 @@
 #include <inttypes.h>
 #include "dkeyboard.h"
 #include "device.h"
-#include "dcpu.h"
+#include "dr4kcpu.h"
 #include "../arch/stdin.h"
 #include "../assert.h"
 #include "../env.h"

@@ -14,11 +14,10 @@
 
 #include "device.h"
 #include "cpu/mips_r4000/cpu.h"
-#include "cpu/riscv_rv32ima/cpu.h"
 
 #define MAX_CP0_REGISTERS 32
 
-extern device_type_t dcpu;
+extern device_type_t dr4kcpu;
 
 extern r4k_cpu_t *dcpu_find_no(unsigned int no);
 

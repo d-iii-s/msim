@@ -13,7 +13,7 @@
 #include <string.h>
 #include <stdbool.h>
 #include <inttypes.h>
-#include "dcpu.h"
+#include "dr4kcpu.h"
 #include "device.h"
 #include "cpu/mips_r4000/cpu.h"
 #include "cpu/riscv_rv32ima/cpu.h"
@@ -48,7 +48,7 @@ static unsigned int dcpu_get_free_id(void)
 /** Initialization
  *
  */
-static bool dcpu_init(token_t *parm, device_t *dev)
+static bool dr4kcpu_init(token_t *parm, device_t *dev)
 {
 	unsigned int id = dcpu_get_free_id();
 	
@@ -67,7 +67,7 @@ static bool dcpu_init(token_t *parm, device_t *dev)
 /** Info command implementation
  *
  */
-static bool dcpu_info(token_t *parm, device_t *dev)
+static bool dr4kcpu_info(token_t *parm, device_t *dev)
 {
 	printf("R4000\n");
 	return true;
@@ -76,7 +76,7 @@ static bool dcpu_info(token_t *parm, device_t *dev)
 /** Stat command implementation
  *
  */
-static bool dcpu_stat(token_t *parm, device_t *dev)
+static bool dr4kcpu_stat(token_t *parm, device_t *dev)
 {
 	r4k_cpu_t *cpu = (r4k_cpu_t *) dev->data;
 	
@@ -107,7 +107,7 @@ static bool dcpu_stat(token_t *parm, device_t *dev)
 /** Cp0d command implementation
  *
  */
-static bool dcpu_cp0d(token_t *parm, device_t *dev)
+static bool dr4kcpu_cp0d(token_t *parm, device_t *dev)
 {
 	if (parm->ttype == tt_end) {
 		cp0_dump_all((r4k_cpu_t *) dev->data);
@@ -130,7 +130,7 @@ static bool dcpu_cp0d(token_t *parm, device_t *dev)
 /** Tlbd command implementation
  *
  */
-static bool dcpu_tlbd(token_t *parm, device_t *dev)
+static bool dr4kcpu_tlbd(token_t *parm, device_t *dev)
 {
 	tlb_dump((r4k_cpu_t *) dev->data);
 	return true;
@@ -139,7 +139,7 @@ static bool dcpu_tlbd(token_t *parm, device_t *dev)
 /** Md command implementation
  *
  */
-static bool dcpu_md(token_t *parm, device_t *dev)
+static bool dr4kcpu_md(token_t *parm, device_t *dev)
 {
 	uint64_t _addr = ALIGN_DOWN(parm_uint_next(&parm), 4);
 	uint64_t _cnt = parm_uint(parm);
@@ -189,7 +189,7 @@ static bool dcpu_md(token_t *parm, device_t *dev)
 /** Id command implementation
  *
  */
-static bool dcpu_id(token_t *parm, device_t *dev)
+static bool dr4kcpu_id(token_t *parm, device_t *dev)
 {
 	uint64_t _addr = ALIGN_DOWN(parm_uint_next(&parm), 4);
 	uint64_t _cnt = parm_uint(parm);
@@ -231,7 +231,7 @@ static bool dcpu_id(token_t *parm, device_t *dev)
 /** Rd command implementation
  *
  */
-static bool dcpu_rd(token_t *parm, device_t *dev)
+static bool dr4kcpu_rd(token_t *parm, device_t *dev)
 {
 	reg_dump((r4k_cpu_t *) dev->data);
 	return true;
@@ -240,7 +240,7 @@ static bool dcpu_rd(token_t *parm, device_t *dev)
 /** Goto command implementation
  *
  */
-static bool dcpu_goto(token_t *parm, device_t *dev)
+static bool dr4kcpu_goto(token_t *parm, device_t *dev)
 {
 	r4k_cpu_t *cpu = (r4k_cpu_t *) dev->data;
 	uint64_t _addr = ALIGN_DOWN(parm_uint_next(&parm), 4);
@@ -260,7 +260,7 @@ static bool dcpu_goto(token_t *parm, device_t *dev)
 /** Break command implementation
  *
  */
-static bool dcpu_break(token_t *parm, device_t *dev)
+static bool dr4kcpu_break(token_t *parm, device_t *dev)
 {
 	r4k_cpu_t *cpu = (r4k_cpu_t *) dev->data;
 	uint64_t _addr = ALIGN_DOWN(parm_uint_next(&parm), 4);
@@ -285,7 +285,7 @@ static bool dcpu_break(token_t *parm, device_t *dev)
 /** Bd command implementation
  *
  */
-static bool dcpu_bd(token_t *parm, device_t *dev)
+static bool dr4kcpu_bd(token_t *parm, device_t *dev)
 {
 	r4k_cpu_t *cpu = (r4k_cpu_t *) dev->data;
 	breakpoint_t *bp;
@@ -306,7 +306,7 @@ static bool dcpu_bd(token_t *parm, device_t *dev)
 /** Br command implementation
  *
  */
-static bool dcpu_br(token_t *parm, device_t *dev)
+static bool dr4kcpu_br(token_t *parm, device_t *dev)
 {
 	r4k_cpu_t *cpu = (r4k_cpu_t *) dev->data;
 	uint64_t addr = ALIGN_DOWN(parm_uint_next(&parm), 4);
@@ -338,7 +338,7 @@ static bool dcpu_br(token_t *parm, device_t *dev)
 /** Done
  *
  */
-static void dcpu_done(device_t *dev)
+static void dr4kcpu_done(device_t *dev)
 {
 	safe_free(dev->name);
 	safe_free(dev->data);
@@ -347,7 +347,7 @@ static void dcpu_done(device_t *dev)
 /** Execute one processor step
  *
  */
-static void dcpu_step(device_t *dev)
+static void dr4kcpu_step(device_t *dev)
 {
 	r4k_cpu_step((r4k_cpu_t *) dev->data);
 }
@@ -381,10 +381,10 @@ void dcpu_interrupt_down(unsigned int cpuno, unsigned int no)
 		r4k_cpu_interrupt_down(cpu, no);
 }
 
-cmd_t dcpu_cmds[] = {
+cmd_t dr4kcpu_cmds[] = {
 	{
 		"init",
-		(fcmd_t) dcpu_init,
+		(fcmd_t) dr4kcpu_init,
 		DEFAULT,
 		DEFAULT,
 		"Initialization",
@@ -402,7 +402,7 @@ cmd_t dcpu_cmds[] = {
 	},
 	{
 		"info",
-		(fcmd_t) dcpu_info,
+		(fcmd_t) dr4kcpu_info,
 		DEFAULT,
 		DEFAULT,
 		"Display configuration information",
@@ -411,7 +411,7 @@ cmd_t dcpu_cmds[] = {
 	},
 	{
 		"stat",
-		(fcmd_t) dcpu_stat,
+		(fcmd_t) dr4kcpu_stat,
 		DEFAULT,
 		DEFAULT,
 		"Display processor statistics",
@@ -420,7 +420,7 @@ cmd_t dcpu_cmds[] = {
 	},
 	{
 		"cp0d",
-		(fcmd_t) dcpu_cp0d,
+		(fcmd_t) dr4kcpu_cp0d,
 		DEFAULT,
 		DEFAULT,
 		"Dump contents of the coprocessor 0 register(s)",
@@ -429,7 +429,7 @@ cmd_t dcpu_cmds[] = {
 	},
 	{
 		"tlbd",
-		(fcmd_t) dcpu_tlbd,
+		(fcmd_t) dr4kcpu_tlbd,
 		DEFAULT,
 		DEFAULT,
 		"Dump content of TLB",
@@ -438,7 +438,7 @@ cmd_t dcpu_cmds[] = {
 	},
 	{
 		"md",
-		(fcmd_t) dcpu_md,
+		(fcmd_t) dr4kcpu_md,
 		DEFAULT,
 		DEFAULT,
 		"Dump specified TLB mapped memory block",
@@ -448,7 +448,7 @@ cmd_t dcpu_cmds[] = {
 	},
 	{
 		"id",
-		(fcmd_t) dcpu_id,
+		(fcmd_t) dr4kcpu_id,
 		DEFAULT,
 		DEFAULT,
 		"Dump instructions from specified TLB mapped memory",
@@ -458,7 +458,7 @@ cmd_t dcpu_cmds[] = {
 	},
 	{
 		"rd",
-		(fcmd_t) dcpu_rd,
+		(fcmd_t) dr4kcpu_rd,
 		DEFAULT,
 		DEFAULT,
 		"Dump contents of CPU general registers",
@@ -467,7 +467,7 @@ cmd_t dcpu_cmds[] = {
 	},
 	{
 		"goto",
-		(fcmd_t) dcpu_goto,
+		(fcmd_t) dr4kcpu_goto,
 		DEFAULT,
 		DEFAULT,
 		"Go to address",
@@ -476,7 +476,7 @@ cmd_t dcpu_cmds[] = {
 	},
 	{
 		"break",
-		(fcmd_t) dcpu_break,
+		(fcmd_t) dr4kcpu_break,
 		DEFAULT,
 		DEFAULT,
 		"Add code breakpoint",
@@ -485,7 +485,7 @@ cmd_t dcpu_cmds[] = {
 	},
 	{
 		"bd",
-		(fcmd_t) dcpu_bd,
+		(fcmd_t) dr4kcpu_bd,
 		DEFAULT,
 		DEFAULT,
 		"Dump code breakpoints",
@@ -494,7 +494,7 @@ cmd_t dcpu_cmds[] = {
 	},
 	{
 		"br",
-		(fcmd_t) dcpu_br,
+		(fcmd_t) dr4kcpu_br,
 		DEFAULT,
 		DEFAULT,
 		"Remove code breakpoint",
@@ -504,7 +504,7 @@ cmd_t dcpu_cmds[] = {
 	LAST_CMD
 };
 
-device_type_t dcpu = {
+device_type_t dr4kcpu = {
 	/* CPU is simulated deterministically */
 	.nondet = false,
 	
@@ -518,9 +518,9 @@ device_type_t dcpu = {
 	.full = "MIPS R4000 processor restricted to 32 bits without FPU",
 	
 	/* Functions */
-	.done = dcpu_done,
-	.step = dcpu_step,
+	.done = dr4kcpu_done,
+	.step = dr4kcpu_step,
 	
 	/* Commands */
-	.cmds = dcpu_cmds
+	.cmds = dr4kcpu_cmds
 };

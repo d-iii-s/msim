@@ -21,7 +21,7 @@
 #include "device/cpu/mips_r4000/cpu.h"
 #include "device/cpu/riscv_rv32ima/cpu.h"
 #include "debug/gdb.h"
-#include "device/dcpu.h"
+#include "device/dr4kcpu.h"
 #include "device/device.h"
 #include "assert.h"
 #include "cmd.h"

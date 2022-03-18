@@ -18,7 +18,7 @@
 #include <stdbool.h>
 #include <inttypes.h>
 #include "mem.h"
-#include "dcpu.h"
+#include "dr4kcpu.h"
 #include "dcycle.h"
 #include "dkeyboard.h"
 #include "dorder.h"
@@ -37,7 +37,7 @@
 
 /* Implemented peripheral list */
 const device_type_t *device_types[DEVICE_TYPE_COUNT] = {
-	&dcpu,
+	&dr4kcpu,
 	&dcycle,
 	&drwm,
 	&drom,

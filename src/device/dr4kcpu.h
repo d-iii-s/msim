@@ -19,6 +19,7 @@
 
 extern device_type_t dr4kcpu;
 
+// todo: remove
 extern r4k_cpu_t *dcpu_find_no(unsigned int no);
 
 extern void dcpu_interrupt_up(unsigned int cpuno, unsigned int no);

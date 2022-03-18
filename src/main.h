@@ -18,6 +18,7 @@
 #define MAX_INTRS  6
 
 /** Exception types */
+// todo: mips specific, move elsewhere
 typedef enum {
 	excInt   = 0,
 	excMod   = 1,

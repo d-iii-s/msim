@@ -927,7 +927,7 @@ extern void r4k_cpu_set_pc(r4k_cpu_t *cpu, ptr64_t value);
 extern void r4k_cpu_step(r4k_cpu_t *cpu);
 
 /** Addresing function */
-extern exc_t convert_addr(r4k_cpu_t *cpu, ptr64_t virt, ptr36_t *phys, bool write,
+extern exc_t r4k_convert_addr(r4k_cpu_t *cpu, ptr64_t virt, ptr36_t *phys, bool write,
     bool noisy);
 
 /** Virtual memory access */

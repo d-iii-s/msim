@@ -25,7 +25,7 @@ static exc_t instr_scd(r4k_cpu_t *cpu, r4k_instr_t instr)
 			   In such a case, the behaviour of SCD is undefined.
 			   Let's check that. */
 			ptr36_t phys;
-			convert_addr(cpu, addr, &phys, false, false);
+			r4k_convert_addr(cpu, addr, &phys, false, false);
 		
 			/* sc_addr now contains physical target address */
 			if (phys != cpu->lladdr) {

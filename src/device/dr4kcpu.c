@@ -15,13 +15,14 @@
 #include <inttypes.h>
 #include "dr4kcpu.h"
 #include "device.h"
+#include "cpu/general_cpu.h"
 #include "cpu/mips_r4000/cpu.h"
-#include "cpu/riscv_rv32ima/cpu.h"
 #include "../debug/debug.h"
 #include "../debug/breakpoint.h"
 #include "../fault.h"
 #include "../main.h"
 #include "../utils.h"
+
 
 /** Get first available CPU id
  *
@@ -524,3 +525,22 @@ device_type_t dr4kcpu = {
 	/* Commands */
 	.cmds = dr4kcpu_cmds
 };
+
+//? rename?
+static bool r4k_cpu_convert_addr(r4k_cpu_t *cpu, ptr64_t virt, ptr36_t *phys, bool write){
+	return r4k_convert_addr(cpu, virt, phys, write, false);
+}
+
+// surpress wrong pointer type warnings
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wincompatible-pointer-types"
+
+cpu_type_t r4k_cpu = {
+	.interrupt_up = r4k_cpu_interrupt_up,
+	.interrupt_down = r4k_cpu_interrupt_down,
+	
+	.convert_addr = r4k_cpu_convert_addr,
+	.set_pc = r4k_cpu_set_pc	
+};
+
+#pragma GCC diagnostic pop

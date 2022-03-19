@@ -16,6 +16,7 @@
 #include <stdbool.h>
 #include <inttypes.h>
 #include <unistd.h>
+#include <assert.h>
 #include "../../../list.h"
 #include "../../../utils.h"
 #include "../../../physmem.h"
@@ -533,6 +534,8 @@ typedef union r4k_instr {
 	} sys;
 #endif
 } r4k_instr_t;
+
+static_assert(sizeof(r4k_instr_t) == 4, "wrong r4k_instr_t size!");
 
 struct frame;
 struct r4k_cpu;

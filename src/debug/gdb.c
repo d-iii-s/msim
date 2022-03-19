@@ -542,7 +542,7 @@ static void gdb_cmd_mem_operation(char *req, bool read)
 	len64_t len = length;
 	ptr36_t phys;
 	
-	if (cpu_convert_addr(get_cpu(cpuno_global), virt, &phys, write)) {
+	if (cpu_convert_addr(get_cpu(cpuno_global), virt, &phys, !read)) {
 		if (!read) {
 			/* Move the pointer to the data to be written */
 			query = strchr(query, ':');

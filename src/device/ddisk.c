@@ -17,6 +17,7 @@
 #include <sys/stat.h>
 #include <inttypes.h>
 #include "cpu/general_cpu.h"
+#include "../physmem.h"
 #include "ddisk.h"
 #include "../arch/mmap.h"
 #include "../text.h"

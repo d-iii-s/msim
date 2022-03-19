@@ -14,7 +14,7 @@
 
 
 #include <stdint.h>
-
+#include <stdbool.h>
 #include "instr.h"
 
 #define RV32IMA_REG_COUNT	32

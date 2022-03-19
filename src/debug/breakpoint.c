@@ -40,6 +40,7 @@
 #include "../utils.h"
 #include "breakpoint.h"
 #include "../device/cpu/general_cpu.h"
+#include "../device/cpu/mips_r4000/cpu.h"
 #include "gdb.h"
 
 list_t physmem_breakpoints = LIST_INITIALIZER;

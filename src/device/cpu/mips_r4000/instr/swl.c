@@ -7,7 +7,7 @@ static exc_t instr_swl(r4k_cpu_t *cpu, r4k_instr_t instr)
 	addr.ptr = base.ptr & ((uint64_t) ~UINT64_C(0x03));
 	
 	uint32_t val;
-	exc_t res = cpu_read_mem32(cpu, addr, &val, true);
+	exc_t res = r4k_read_mem32(cpu, addr, &val, true);
 	
 	if (res == excNone) {
 		unsigned int index = base.ptr & 0x03U;

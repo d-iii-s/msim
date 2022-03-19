@@ -18,9 +18,11 @@
 #include <string.h>
 #include <stdbool.h>
 #include "arch/signal.h"
+#include "device/cpu/general_cpu.h"
 #include "device/cpu/mips_r4000/cpu.h"
 #include "device/cpu/riscv_rv32ima/cpu.h"
 #include "debug/gdb.h"
+#include "debug/breakpoint.h"
 #include "device/dr4kcpu.h"
 #include "device/device.h"
 #include "assert.h"
@@ -237,7 +239,7 @@ static bool parse_cmdline(int argc, char *args[])
  *
  */
 static bool gdb_startup(void) {
-	if (dcpu_find_no(0) == NULL) {
+	if (get_cpu(0) == NULL) {
 		error("Cannot debug without any processor");
 		return false;
 	}

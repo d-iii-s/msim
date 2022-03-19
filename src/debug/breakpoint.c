@@ -39,6 +39,7 @@
 #include "../main.h"
 #include "../utils.h"
 #include "breakpoint.h"
+#include "../device/cpu/general_cpu.h"
 #include "gdb.h"
 
 list_t physmem_breakpoints = LIST_INITIALIZER;
@@ -308,7 +309,7 @@ bool breakpoint_check_for_code_breakpoints(void)
 	device_t *dev = NULL;
 	
 	while (dev_next(&dev, DEVICE_FILTER_PROCESSOR)) {
-		r4k_cpu_t *cpu = (r4k_cpu_t *) dev->data;
+		r4k_cpu_t *cpu = (r4k_cpu_t *) ((general_cpu_t*)dev->data)->data;
 		
 		if (breakpoint_hit_by_address(cpu->bps, cpu->pc))
 			hit = true;

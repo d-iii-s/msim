@@ -24,34 +24,32 @@
 #include "../utils.h"
 
 
-/** Get first available CPU id
- *
- * @return First available CPU id or MAX_CPUS if no
- *         more CPU slots available.
- *
- */
-static unsigned int dcpu_get_free_id(void)
-{
-	unsigned int c;
-	unsigned int id_mask = 0;
-	device_t *dev = NULL;
-	
-	while (dev_next(&dev, DEVICE_FILTER_PROCESSOR))
-		id_mask |= 1 << ((r4k_cpu_t *) dev->data)->procno;
-	
-	for (c = 0; c < MAX_CPUS; c++, id_mask >>= 1)
-		if (!(id_mask & 1))
-			return c;
-	
-	return MAX_CPUS;
+//? rename?
+static bool r4k_cpu_convert_addr(r4k_cpu_t *cpu, ptr64_t virt, ptr36_t *phys, bool write){
+	return r4k_convert_addr(cpu, virt, phys, write, false);
 }
+
+// surpress wrong pointer type warnings
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wincompatible-pointer-types"
+
+static const cpu_type_t r4k_cpu = {
+	.interrupt_up = r4k_interrupt_up,
+	.interrupt_down = r4k_interrupt_down,
+	
+	.convert_addr = r4k_cpu_convert_addr,
+	.set_pc = r4k_set_pc	
+};
+
+#pragma GCC diagnostic pop
+
 
 /** Initialization
  *
  */
 static bool dr4kcpu_init(token_t *parm, device_t *dev)
 {
-	unsigned int id = dcpu_get_free_id();
+	unsigned int id = get_free_cpuno();
 	
 	if (id == MAX_CPUS) {
 		error("Maximum CPU count exceeded (%u)", MAX_CPUS);
@@ -60,7 +58,14 @@ static bool dr4kcpu_init(token_t *parm, device_t *dev)
 	
 	r4k_cpu_t *cpu = safe_malloc_t(r4k_cpu_t);
 	r4k_init(cpu, id);
-	dev->data = cpu;
+	general_cpu_t* gen_cpu = safe_malloc_t(general_cpu_t);
+	gen_cpu->cpuno = id;
+	gen_cpu->data = cpu;
+	gen_cpu->type = &r4k_cpu;
+
+	add_cpu(gen_cpu);
+	
+	dev->data = gen_cpu;
 	
 	return true;
 }
@@ -79,7 +84,7 @@ static bool dr4kcpu_info(token_t *parm, device_t *dev)
  */
 static bool dr4kcpu_stat(token_t *parm, device_t *dev)
 {
-	r4k_cpu_t *cpu = (r4k_cpu_t *) dev->data;
+	r4k_cpu_t *cpu = get_r4k(dev);
 	
 	printf("[Total cycles      ] [In kernel space   ] [In user space     ]\n");
 	printf("%20" PRIu64 " %20" PRIu64 " %20" PRIu64 "\n\n",
@@ -111,7 +116,7 @@ static bool dr4kcpu_stat(token_t *parm, device_t *dev)
 static bool dr4kcpu_cp0d(token_t *parm, device_t *dev)
 {
 	if (parm->ttype == tt_end) {
-		cp0_dump_all((r4k_cpu_t *) dev->data);
+		cp0_dump_all(get_r4k(dev));
 		return true;
 	}
 	if (parm->ttype != tt_uint) {
@@ -124,7 +129,7 @@ static bool dr4kcpu_cp0d(token_t *parm, device_t *dev)
 		return false;
 	}
 	
-	cp0_dump((r4k_cpu_t *) dev->data, no);
+	cp0_dump(get_r4k(dev), no);
 	return true;
 }
 
@@ -133,7 +138,7 @@ static bool dr4kcpu_cp0d(token_t *parm, device_t *dev)
  */
 static bool dr4kcpu_tlbd(token_t *parm, device_t *dev)
 {
-	tlb_dump((r4k_cpu_t *) dev->data);
+	tlb_dump(get_r4k(dev));
 	return true;
 }
 
@@ -170,7 +175,7 @@ static bool dr4kcpu_md(token_t *parm, device_t *dev)
 			printf("  %#018" PRIx64 "    ", addr.ptr);
 		
 		uint32_t val;
-		exc_t res = r4k_read_mem32((r4k_cpu_t *) dev->data, addr, &val, false);
+		exc_t res = r4k_read_mem32(get_r4k(dev), addr, &val, false);
 		
 		if (res == excNone)
 			printf("%08" PRIx32 " ", val);
@@ -218,12 +223,12 @@ static bool dr4kcpu_id(token_t *parm, device_t *dev)
 		r4k_instr_t instr;
 		// FIXME
 		exc_t res = excNone;
-		// exc_t res = cpu_read_ins((r4k_cpu_t *) dev->data, addr, &instr.val, false);
+		// exc_t res = cpu_read_ins((r4k_cpu_t *) dev->data->data, addr, &instr.val, false);
 		
 		if (res != excNone)
 			instr.val = 0;
 		
-		idump((r4k_cpu_t *) dev->data, addr, instr, false);
+		idump(get_r4k(dev), addr, instr, false);
 	}
 	
 	return true;
@@ -234,7 +239,7 @@ static bool dr4kcpu_id(token_t *parm, device_t *dev)
  */
 static bool dr4kcpu_rd(token_t *parm, device_t *dev)
 {
-	reg_dump((r4k_cpu_t *) dev->data);
+	reg_dump(get_r4k(dev));
 	return true;
 }
 
@@ -243,7 +248,7 @@ static bool dr4kcpu_rd(token_t *parm, device_t *dev)
  */
 static bool dr4kcpu_goto(token_t *parm, device_t *dev)
 {
-	r4k_cpu_t *cpu = (r4k_cpu_t *) dev->data;
+	r4k_cpu_t *cpu = get_r4k(dev);
 	uint64_t _addr = ALIGN_DOWN(parm_uint_next(&parm), 4);
 	
 	if (!virt_range(_addr)) {
@@ -263,7 +268,7 @@ static bool dr4kcpu_goto(token_t *parm, device_t *dev)
  */
 static bool dr4kcpu_break(token_t *parm, device_t *dev)
 {
-	r4k_cpu_t *cpu = (r4k_cpu_t *) dev->data;
+	r4k_cpu_t *cpu = get_r4k(dev);
 	uint64_t _addr = ALIGN_DOWN(parm_uint_next(&parm), 4);
 	
 	if (!virt_range(_addr)) {
@@ -288,7 +293,7 @@ static bool dr4kcpu_break(token_t *parm, device_t *dev)
  */
 static bool dr4kcpu_bd(token_t *parm, device_t *dev)
 {
-	r4k_cpu_t *cpu = (r4k_cpu_t *) dev->data;
+	r4k_cpu_t *cpu = get_r4k(dev);
 	breakpoint_t *bp;
 	
 	printf("[address ] [hits              ] [kind    ]\n");
@@ -309,7 +314,7 @@ static bool dr4kcpu_bd(token_t *parm, device_t *dev)
  */
 static bool dr4kcpu_br(token_t *parm, device_t *dev)
 {
-	r4k_cpu_t *cpu = (r4k_cpu_t *) dev->data;
+	r4k_cpu_t *cpu = get_r4k(dev);
 	uint64_t addr = ALIGN_DOWN(parm_uint_next(&parm), 4);
 	
 	if (!virt_range(addr)) {
@@ -342,6 +347,7 @@ static bool dr4kcpu_br(token_t *parm, device_t *dev)
 static void dr4kcpu_done(device_t *dev)
 {
 	safe_free(dev->name);
+	safe_free(((general_cpu_t*)dev->data)->data);
 	safe_free(dev->data);
 }
 
@@ -350,36 +356,7 @@ static void dr4kcpu_done(device_t *dev)
  */
 static void dr4kcpu_step(device_t *dev)
 {
-	r4k_step((r4k_cpu_t *) dev->data);
-}
-
-r4k_cpu_t *dcpu_find_no(unsigned int no)
-{
-	device_t *dev = NULL;
-	
-	while (dev_next(&dev, DEVICE_FILTER_PROCESSOR)) {
-		r4k_cpu_t* cpu = (r4k_cpu_t *) dev->data;
-		if (cpu->procno == no)
-			return cpu;
-	}
-	
-	return NULL;
-}
-
-void dcpu_interrupt_up(unsigned int cpuno, unsigned int no)
-{
-	r4k_cpu_t *cpu = dcpu_find_no(cpuno);
-	
-	if (cpu != NULL)
-		r4k_interrupt_up(cpu, no);
-}
-
-void dcpu_interrupt_down(unsigned int cpuno, unsigned int no)
-{
-	r4k_cpu_t *cpu = dcpu_find_no(cpuno);
-	
-	if (cpu != NULL)
-		r4k_interrupt_down(cpu, no);
+	r4k_step(get_r4k(dev));
 }
 
 cmd_t dr4kcpu_cmds[] = {
@@ -526,21 +503,4 @@ device_type_t dr4kcpu = {
 	.cmds = dr4kcpu_cmds
 };
 
-//? rename?
-static bool r4k_cpu_convert_addr(r4k_cpu_t *cpu, ptr64_t virt, ptr36_t *phys, bool write){
-	return r4k_convert_addr(cpu, virt, phys, write, false);
-}
 
-// surpress wrong pointer type warnings
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wincompatible-pointer-types"
-
-cpu_type_t r4k_cpu = {
-	.interrupt_up = r4k_interrupt_up,
-	.interrupt_down = r4k_interrupt_down,
-	
-	.convert_addr = r4k_cpu_convert_addr,
-	.set_pc = r4k_set_pc	
-};
-
-#pragma GCC diagnostic pop

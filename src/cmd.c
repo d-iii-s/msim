@@ -181,7 +181,7 @@ static bool system_dumpins(token_t *parm, void *data)
 	for (addr = (ptr36_t) _addr, cnt = (len36_t) _cnt; cnt > 0;
 	    addr += 4, cnt--) {
 		r4k_instr_t instr;
-		instr.val = physmem_read32(NULL, addr, false);
+		instr.val = physmem_read32(-1, addr, false);
 		idump_phys(addr, instr);
 	}
 	
@@ -339,7 +339,7 @@ static bool system_dumpmem(token_t *parm, void *data)
 		if ((i & 0x03U) == 0)
 			printf("  %#011" PRIx64 "   ", addr);
 		
-		uint32_t val = physmem_read32(NULL, addr, false);
+		uint32_t val = physmem_read32(-1, addr, false);
 		printf("%08" PRIx32 " ", val);
 		
 		if ((i & 0x03U) == 3)

@@ -27,6 +27,7 @@
 #include "../arch/network.h"
 #include "../device/cpu/mips_r4000/cpu.h"
 #include "../device/cpu/riscv_rv32ima/cpu.h"
+#include "../device/cpu/general_cpu.h"
 #include "../device/dr4kcpu.h"
 #include "../assert.h"
 #include "../endian.h"
@@ -436,8 +437,10 @@ void gdb_handle_event(gdb_event_t event)
 	string_t msg;
 	string_init(&msg);
 	
-	r4k_cpu_t *cpu = dcpu_find_no(cpuno_global);
-	
+	//TODO: implement for both
+	r4k_cpu_t *cpu = (r4k_cpu_t *)get_cpu(cpuno_global)->data;
+	// TODO: ASSERT that it really us r4k 
+
 	string_printf(&msg, "T%02x%02x:", event, GDB_REGISTER_PC);
 	gdb_register_dump(&msg, cpu->pc.ptr);
 	string_push(&msg, ';');
@@ -456,7 +459,9 @@ void gdb_handle_event(gdb_event_t event)
  */
 static void gdb_read_registers(void)
 {
-	r4k_cpu_t *cpu = dcpu_find_no(cpuno_global);
+	//TODO: implement for both
+	r4k_cpu_t *cpu = (r4k_cpu_t *)get_cpu(cpuno_global)->data;
+	// TODO: ASSERT that it really us r4k 
 	string_t str;
 	string_init(&str);
 	
@@ -483,7 +488,9 @@ static void gdb_read_registers(void)
 static void gdb_write_registers(char *req)
 {
 	char *query = req + 1;
-	r4k_cpu_t *cpu = dcpu_find_no(cpuno_global);
+	//TODO: implement for both
+	r4k_cpu_t *cpu = (r4k_cpu_t *)get_cpu(cpuno_global)->data;
+	// TODO: ASSERT that it really us r4k 
 	
 	if (!gdb_registers_upload(&query, cpu->regs, 32))
 		return;
@@ -529,7 +536,9 @@ static void gdb_cmd_mem_operation(char *req, bool read)
 	}
 	
 	/* Addresses are physical */
-	r4k_cpu_t *cpu = dcpu_find_no(cpuno_global);
+	//TODO: implement for both
+	r4k_cpu_t *cpu = (r4k_cpu_t *)get_cpu(cpuno_global)->data;
+	// TODO: ASSERT that it really us r4k 
 	
 	ptr64_t virt;
 	virt.ptr = address;
@@ -577,7 +586,9 @@ static void gdb_cmd_step(char *req, bool step)
 	if (matched == 1) {
 		ptr64_t addr;
 		addr.ptr = address;
-		r4k_cpu_t *cpu = dcpu_find_no(cpuno_step);
+		//TODO: implement for both
+		r4k_cpu_t *cpu = (r4k_cpu_t *)get_cpu(cpuno_global)->data;
+		// TODO: ASSERT that it really us r4k 
 		r4k_set_pc(cpu, addr);
 	}
 	
@@ -775,7 +786,9 @@ static void gdb_breakpoint(char *req, bool insert)
 	ptr64_t virt;
 	// Extend the address as the GDB sends the address in 32bits.
 	virt.ptr = UINT64_C(0xffffffff00000000) | address;
-	r4k_cpu_t* cpu = dcpu_find_no(cpuno_global);
+	//TODO: implement for both
+	r4k_cpu_t *cpu = (r4k_cpu_t *)get_cpu(cpuno_global)->data;
+	// TODO: ASSERT that it really us r4k 
 	
 	if (code_breakpoint) {
 		if (length != 4) {
@@ -810,7 +823,9 @@ static void gdb_breakpoint(char *req, bool insert)
  */
 static void gdb_remote_done(bool fail, bool remote_request)
 {
-	r4k_cpu_t *cpu = dcpu_find_no(cpuno_global);
+	//TODO: implement for both
+	r4k_cpu_t *cpu = (r4k_cpu_t *)get_cpu(cpuno_global)->data;
+	// TODO: ASSERT that it really us r4k 
 	
 	if (!fail)
 		gdb_send_reply(remote_request ? GDB_REPLY_OK : GDB_REPLY_WARNING);

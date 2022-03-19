@@ -17,7 +17,7 @@
 #include <inttypes.h>
 #include "dkeyboard.h"
 #include "device.h"
-#include "dr4kcpu.h"
+#include "cpu/general_cpu.h"
 #include "../arch/stdin.h"
 #include "../assert.h"
 #include "../env.h"
@@ -55,7 +55,8 @@ static void gen_key(device_t *dev, char c)
 	if (!data->ig) {
 		data->ig = true;
 		data->intrcount++;
-		dcpu_interrupt_up(0, data->intno);
+		// TODO: should it be null or does it need to be hardwired to 0?
+		cpu_interrupt_up(NULL, data->intno);
 	} else
 		/* Increase the number of overrun characters */
 		data->overrun++;
@@ -200,7 +201,8 @@ static void keyboard_read32(r4k_cpu_t *cpu, device_t *dev, ptr36_t addr, uint32_
 		data->incomming = 0;
 		if (data->ig) {
 			data->ig = false;
-			dcpu_interrupt_down(0, data->intno);
+			// TODO: should it be null or does it need to be hardwired to 0?
+			cpu_interrupt_down(NULL, data->intno);
 		}
 		break;
 	}

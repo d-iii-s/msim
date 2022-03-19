@@ -19,9 +19,7 @@
 #include "endian.h"
 #include "device/device.h"
 #include "list.h"
-// Remove after LL-SC refactor
-#include "device/cpu/mips_r4000/cpu.h"
-
+#include "device/cpu/general_cpu.h"
 
 /** Physical memory management
  *
@@ -687,7 +685,7 @@ static bool devmem_write64(unsigned int procno, ptr36_t addr, uint64_t val)
 
 typedef struct {
 	item_t item;
-	r4k_cpu_t *cpu;
+	unsigned int procno;
 } sc_item_t;
 
 static list_t sc_list = LIST_INITIALIZER;
@@ -695,31 +693,31 @@ static list_t sc_list = LIST_INITIALIZER;
 /** Register current processor in LL-SC tracking list
  *
  */
-void sc_register(r4k_cpu_t *cpu)
+void sc_register(unsigned int procno)
 {
 	/* Ignore if already registered. */
 	sc_item_t *sc_item;
 	
 	for_each(sc_list, sc_item, sc_item_t) {
-		if (sc_item->cpu == cpu)
+		if (sc_item->procno == procno)
 			return;
 	}
 	
 	sc_item = safe_malloc_t(sc_item_t);
 	item_init(&sc_item->item);
-	sc_item->cpu = cpu;
+	sc_item->procno = procno;
 	list_append(&sc_list, &sc_item->item);
 }
 
 /** Remove current processor from the LL-SC tracking list
  *
  */
-void sc_unregister(r4k_cpu_t *cpu)
+void sc_unregister(unsigned int procno)
 {
 	sc_item_t *sc_item;
 	
 	for_each(sc_list, sc_item, sc_item_t) {
-		if (sc_item->cpu == cpu) {
+		if (sc_item->procno == procno) {
 			list_remove(&sc_list, &sc_item->item);
 			safe_free(sc_item);
 			break;
@@ -735,18 +733,17 @@ static void sc_control(ptr36_t addr)
 	sc_item_t *sc_item = (sc_item_t *) sc_list.head;
 	
 	while (sc_item != NULL) {
-		r4k_cpu_t *sc_cpu = sc_item->cpu;
 		
-		if (sc_cpu->lladdr == addr) {
-			sc_cpu->llbit = false;
-			
+		if (cpu_sc_access(get_cpu(sc_item->procno), addr)) {
 			sc_item_t *tmp = sc_item;
 			sc_item = (sc_item_t *) sc_item->item.next;
 			
 			list_remove(&sc_list, &tmp->item);
 			safe_free(tmp);
-		} else
+		}
+		else {
 			sc_item = (sc_item_t *) sc_item->item.next;
+		}
 	}
 }
 

@@ -18,12 +18,12 @@ static exc_t instr_ll(r4k_cpu_t *cpu, r4k_instr_t instr)
 		r4k_convert_addr(cpu, addr, &phys, false, false);
 		
 		/* Register address for tracking. */
-		sc_register(cpu);
+		sc_register(cpu->procno);
 		cpu->llbit = true;
 		cpu->lladdr = phys;
 	} else {
 		/* Invalid address; Cancel the address tracking */
-		sc_unregister(cpu);
+		sc_unregister(cpu->procno);
 		cpu->llbit = false;
 	}
 	

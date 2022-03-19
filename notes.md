@@ -100,6 +100,8 @@ This is untested as of now on mips (!!!)
 
 they need to cooperate with mips cpu, so the SC control should work in general physmem manager.
 
+The update needs to be tested.
+
 ### exceptions
 
 ## interface viewpoint

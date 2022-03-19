@@ -8,6 +8,7 @@
 #include "main.h"
 #include "list.h"
 #include "utils.h"
+#include "device/cpu/general_cpu.h"
 
 #define FRAME_WIDTH   12
 #define FRAME_SIZE    (1 << FRAME_WIDTH)
@@ -81,10 +82,7 @@ extern bool physmem_write32(unsigned int cpu, ptr36_t addr, uint32_t val,
 extern bool physmem_write64(unsigned int cpu, ptr36_t addr, uint64_t val,
     bool protected);
 
-//remove after refactor
-struct r4k_cpu;
-
-extern void sc_register(struct r4k_cpu *cpu);
-extern void sc_unregister(struct r4k_cpu *cpu);
+extern void sc_register(unsigned int procno);
+extern void sc_unregister(unsigned int procno);
 
 #endif /* PHYSMEM_H_ */

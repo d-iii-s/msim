@@ -35,7 +35,7 @@ static exc_t instr_scd(r4k_cpu_t *cpu, r4k_instr_t instr)
 		}
 		
 		/* SCD always stops LLD-SCD address tracking */
-		sc_unregister(cpu);
+		sc_unregister(cpu->procno);
 		cpu->llbit = false;
 		
 		return res;

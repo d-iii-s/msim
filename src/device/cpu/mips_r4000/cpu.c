@@ -3143,3 +3143,10 @@ void r4k_step(r4k_cpu_t *cpu)
 	/* Cycle accounting */
 	account(cpu);
 }
+
+bool r4k_sc_access(r4k_cpu_t *cpu, ptr36_t addr) {
+	if(cpu->lladdr == addr){
+		cpu->llbit = false;
+	}
+	return cpu->lladdr == addr;
+}

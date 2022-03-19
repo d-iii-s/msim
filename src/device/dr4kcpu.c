@@ -38,7 +38,8 @@ static const cpu_type_t r4k_cpu = {
 	.interrupt_down = r4k_interrupt_down,
 	
 	.convert_addr = r4k_cpu_convert_addr,
-	.set_pc = r4k_set_pc	
+	.set_pc = r4k_set_pc,
+	.sc_access = r4k_sc_access
 };
 
 #pragma GCC diagnostic pop

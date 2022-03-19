@@ -202,16 +202,13 @@ static void dorder_done(device_t *dev)
  * @param val  Read (returned) value
  *
  */
-static void dorder_read32(r4k_cpu_t *cpu, device_t *dev, ptr36_t addr, uint32_t *val)
+static void dorder_read32(unsigned int procno, device_t *dev, ptr36_t addr, uint32_t *val)
 {
 	dorder_data_s *data = (dorder_data_s *) dev->data;
 	
 	switch (addr - data->addr) {
 	case REGISTER_INT_PEND:
-		if (cpu != NULL)
-			*val = cpu->procno;
-		else
-			*val = (uint32_t) -1;
+		*val = procno;
 		break;
 	case REGISTER_INT_DOWN:
 		*val = 0;
@@ -226,7 +223,7 @@ static void dorder_read32(r4k_cpu_t *cpu, device_t *dev, ptr36_t addr, uint32_t 
  * @param val  Value to write
  *
  */
-static void dorder_write32(r4k_cpu_t *cpu, device_t *dev, ptr36_t addr, uint32_t val)
+static void dorder_write32(unsigned int procno, device_t *dev, ptr36_t addr, uint32_t val)
 {
 	dorder_data_s *data = (dorder_data_s *) dev->data;
 	

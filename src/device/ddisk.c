@@ -545,7 +545,7 @@ static void ddisk_done(device_t *dev) {
  * @param val  Read (returned) value
  *
  */
-static void ddisk_read32(r4k_cpu_t *cpu, device_t *dev, ptr36_t addr,
+static void ddisk_read32(unsigned int procno, device_t *dev, ptr36_t addr,
     uint32_t *val)
 {
 	disk_data_s *data = (disk_data_s *) dev->data;
@@ -587,7 +587,7 @@ static void ddisk_read32(r4k_cpu_t *cpu, device_t *dev, ptr36_t addr,
  * @param val  Value to write
  *
  */
-static void ddisk_write32(r4k_cpu_t *cpu, device_t *dev, ptr36_t addr,
+static void ddisk_write32(unsigned int procno, device_t *dev, ptr36_t addr,
     uint32_t val)
 {
 	disk_data_s *data = (disk_data_s *) dev->data;
@@ -701,7 +701,7 @@ static void ddisk_step(device_t *dev)
 		break;
 	case ACTION_WRITE:
 		pos = data->secno * 128 + data->cnt;
-		data->img[pos] = physmem_read32(NULL, data->disk_ptr, true);
+		data->img[pos] = physmem_read32(-1 /*NULL*/, data->disk_ptr, true);
 		
 		/* Next word */
 		data->disk_ptr += 4;

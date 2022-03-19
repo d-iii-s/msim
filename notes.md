@@ -123,6 +123,11 @@ I would suggest, that the device (dr4kcpu,...) alloc and free them
 
 36 bit physical space can be supported. RISC-V has only 34-bit physical addresses, but the spec states, that they can be zero-extended to any length used by the implementation, so we can satisfy shis interface.
 
+## environment
+
+msim allows different names of registers, this needs to be abstracted,
+or separate functionality needs to be added.
+
 ## random msim facts
 
 - all device interrupts are handled on cpu with id 0

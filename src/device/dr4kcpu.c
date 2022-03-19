@@ -59,7 +59,7 @@ static bool dr4kcpu_init(token_t *parm, device_t *dev)
 	}
 	
 	r4k_cpu_t *cpu = safe_malloc_t(r4k_cpu_t);
-	r4k_cpu_init(cpu, id);
+	r4k_init(cpu, id);
 	dev->data = cpu;
 	
 	return true;
@@ -170,7 +170,7 @@ static bool dr4kcpu_md(token_t *parm, device_t *dev)
 			printf("  %#018" PRIx64 "    ", addr.ptr);
 		
 		uint32_t val;
-		exc_t res = cpu_read_mem32((r4k_cpu_t *) dev->data, addr, &val, false);
+		exc_t res = r4k_read_mem32((r4k_cpu_t *) dev->data, addr, &val, false);
 		
 		if (res == excNone)
 			printf("%08" PRIx32 " ", val);
@@ -254,7 +254,7 @@ static bool dr4kcpu_goto(token_t *parm, device_t *dev)
 	ptr64_t addr;
 	addr.ptr = _addr;
 	
-	r4k_cpu_set_pc(cpu, addr);
+	r4k_set_pc(cpu, addr);
 	return true;
 }
 
@@ -350,7 +350,7 @@ static void dr4kcpu_done(device_t *dev)
  */
 static void dr4kcpu_step(device_t *dev)
 {
-	r4k_cpu_step((r4k_cpu_t *) dev->data);
+	r4k_step((r4k_cpu_t *) dev->data);
 }
 
 r4k_cpu_t *dcpu_find_no(unsigned int no)
@@ -371,7 +371,7 @@ void dcpu_interrupt_up(unsigned int cpuno, unsigned int no)
 	r4k_cpu_t *cpu = dcpu_find_no(cpuno);
 	
 	if (cpu != NULL)
-		r4k_cpu_interrupt_up(cpu, no);
+		r4k_interrupt_up(cpu, no);
 }
 
 void dcpu_interrupt_down(unsigned int cpuno, unsigned int no)
@@ -379,7 +379,7 @@ void dcpu_interrupt_down(unsigned int cpuno, unsigned int no)
 	r4k_cpu_t *cpu = dcpu_find_no(cpuno);
 	
 	if (cpu != NULL)
-		r4k_cpu_interrupt_down(cpu, no);
+		r4k_interrupt_down(cpu, no);
 }
 
 cmd_t dr4kcpu_cmds[] = {
@@ -536,11 +536,11 @@ static bool r4k_cpu_convert_addr(r4k_cpu_t *cpu, ptr64_t virt, ptr36_t *phys, bo
 #pragma GCC diagnostic ignored "-Wincompatible-pointer-types"
 
 cpu_type_t r4k_cpu = {
-	.interrupt_up = r4k_cpu_interrupt_up,
-	.interrupt_down = r4k_cpu_interrupt_down,
+	.interrupt_up = r4k_interrupt_up,
+	.interrupt_down = r4k_interrupt_down,
 	
 	.convert_addr = r4k_cpu_convert_addr,
-	.set_pc = r4k_cpu_set_pc	
+	.set_pc = r4k_set_pc	
 };
 
 #pragma GCC diagnostic pop

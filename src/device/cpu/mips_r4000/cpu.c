@@ -859,7 +859,7 @@ static exc_t cpu_read_mem16(r4k_cpu_t *cpu, ptr64_t addr, uint16_t *val, bool no
  * Does not change the value if an exception occurs.
  *
  */
-exc_t cpu_read_mem32(r4k_cpu_t *cpu, ptr64_t addr, uint32_t *val, bool noisy)
+exc_t r4k_read_mem32(r4k_cpu_t *cpu, ptr64_t addr, uint32_t *val, bool noisy)
 {
 	ASSERT(cpu != NULL);
 	ASSERT(val != NULL);
@@ -2657,7 +2657,7 @@ mnemonics_fnc_t decode_mnemonics(r4k_instr_t instr)
 /** Initialize simulation environment
  *
  */
-void r4k_cpu_init(r4k_cpu_t *cpu, unsigned int procno)
+void r4k_init(r4k_cpu_t *cpu, unsigned int procno)
 {
 	ASSERT(cpu != NULL);
 	
@@ -2668,7 +2668,7 @@ void r4k_cpu_init(r4k_cpu_t *cpu, unsigned int procno)
 	memset(cpu, 0, sizeof(r4k_cpu_t));
 	
 	cpu->procno = procno;
-	r4k_cpu_set_pc(cpu, start_address);
+	r4k_set_pc(cpu, start_address);
 	
 	/* Inicialize cp0 registers */
 	cp0_config(cpu).val = HARD_RESET_CONFIG;
@@ -2690,7 +2690,7 @@ void r4k_cpu_init(r4k_cpu_t *cpu, unsigned int procno)
 /** Set the PC register
  *
  */
-void r4k_cpu_set_pc(r4k_cpu_t *cpu, ptr64_t value)
+void r4k_set_pc(r4k_cpu_t *cpu, ptr64_t value)
 {
 	ASSERT(cpu != NULL);
 	
@@ -2748,7 +2748,7 @@ void r4k_cpu_set_pc(r4k_cpu_t *cpu, ptr64_t value)
 /** Assert the specified interrupt
  *
  */
-void r4k_cpu_interrupt_up(r4k_cpu_t *cpu, unsigned int no)
+void r4k_interrupt_up(r4k_cpu_t *cpu, unsigned int no)
 {
 	ASSERT(cpu != NULL);
 	ASSERT(no < INTR_COUNT);
@@ -2760,7 +2760,7 @@ void r4k_cpu_interrupt_up(r4k_cpu_t *cpu, unsigned int no)
 /* Deassert the specified interrupt
  *
  */
-void r4k_cpu_interrupt_down(r4k_cpu_t *cpu, unsigned int no)
+void r4k_interrupt_down(r4k_cpu_t *cpu, unsigned int no)
 {
 	ASSERT(cpu != NULL);
 	ASSERT(no < INTR_COUNT);
@@ -2941,7 +2941,7 @@ static void handle_exception(r4k_cpu_t *cpu, exc_t res)
 	
 	/* The standby mode is cancelled by the exception */
 	if (cpu->stdby)
-		r4k_cpu_set_pc(cpu, cpu->pc_next);
+		r4k_set_pc(cpu, cpu->pc_next);
 	
 	cpu->stdby = false;
 	
@@ -2989,7 +2989,7 @@ static void handle_exception(r4k_cpu_t *cpu, exc_t res)
 	if ((cp0_status_exl(cpu)) || (!tlb_refill))
 		exc_pc.ptr += EXCEPTION_OFFSET;
 	
-	r4k_cpu_set_pc(cpu, exc_pc);
+	r4k_set_pc(cpu, exc_pc);
 	
 	/* Switch to kernel mode */
 	cp0_status(cpu).val |= cp0_status_exl_mask;
@@ -3126,7 +3126,7 @@ static void account(r4k_cpu_t *cpu)
 /* Simulate one cycle of the processor
  *
  */
-void r4k_cpu_step(r4k_cpu_t *cpu)
+void r4k_step(r4k_cpu_t *cpu)
 {
 	ASSERT(cpu != NULL);
 	

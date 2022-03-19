@@ -578,7 +578,7 @@ static void gdb_cmd_step(char *req, bool step)
 		ptr64_t addr;
 		addr.ptr = address;
 		r4k_cpu_t *cpu = dcpu_find_no(cpuno_step);
-		r4k_cpu_set_pc(cpu, addr);
+		r4k_set_pc(cpu, addr);
 	}
 	
 	remote_gdb_step = step;

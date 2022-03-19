@@ -465,9 +465,6 @@ typedef enum {
 	BRANCH_COND = 2
 } branch_state_t;
 
-struct frame;
-struct r4k_cpu;
-
 
 /** Instruction decoding structure */
 typedef union r4k_instr {
@@ -536,6 +533,9 @@ typedef union r4k_instr {
 	} sys;
 #endif
 } r4k_instr_t;
+
+struct frame;
+struct r4k_cpu;
 
 /** Instruction implementation */
 typedef exc_t (*instr_fnc_t)(struct r4k_cpu *, r4k_instr_t);
@@ -922,20 +922,20 @@ extern char *cp3_name[R4K_REG_VARIANTS][R4K_REG_COUNT];
 extern mnemonics_fnc_t decode_mnemonics(r4k_instr_t);
 
 /** Basic CPU routines */
-extern void r4k_cpu_init(r4k_cpu_t *cpu, unsigned int procno);
-extern void r4k_cpu_set_pc(r4k_cpu_t *cpu, ptr64_t value);
-extern void r4k_cpu_step(r4k_cpu_t *cpu);
+extern void r4k_init(r4k_cpu_t *cpu, unsigned int procno);
+extern void r4k_set_pc(r4k_cpu_t *cpu, ptr64_t value);
+extern void r4k_step(r4k_cpu_t *cpu);
 
 /** Addresing function */
 extern exc_t r4k_convert_addr(r4k_cpu_t *cpu, ptr64_t virt, ptr36_t *phys, bool write,
     bool noisy);
 
 /** Virtual memory access */
-extern exc_t cpu_read_mem32(r4k_cpu_t *cpu, ptr64_t addr, uint32_t *value,
+extern exc_t r4k_read_mem32(r4k_cpu_t *cpu, ptr64_t addr, uint32_t *value,
     bool noisy);
 
 /** Interrupts */
-extern void r4k_cpu_interrupt_up(r4k_cpu_t *cpu, unsigned int no);
-extern void r4k_cpu_interrupt_down(r4k_cpu_t *cpu, unsigned int no);
+extern void r4k_interrupt_up(r4k_cpu_t *cpu, unsigned int no);
+extern void r4k_interrupt_down(r4k_cpu_t *cpu, unsigned int no);
 
 #endif

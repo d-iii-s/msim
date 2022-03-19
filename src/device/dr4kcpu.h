@@ -17,12 +17,8 @@
 
 #define MAX_CP0_REGISTERS 32
 
+#define get_r4k(dev) (r4k_cpu_t *)(((general_cpu_t *)dev->data)->data)
+
 extern device_type_t dr4kcpu;
-
-// todo: remove
-extern r4k_cpu_t *dcpu_find_no(unsigned int no);
-
-extern void dcpu_interrupt_up(unsigned int cpuno, unsigned int no);
-extern void dcpu_interrupt_down(unsigned int cpuno, unsigned int no);
 
 #endif

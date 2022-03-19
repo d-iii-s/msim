@@ -16,7 +16,7 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <inttypes.h>
-#include "dr4kcpu.h"
+#include "cpu/general_cpu.h"
 #include "ddisk.h"
 #include "../arch/mmap.h"
 #include "../text.h"
@@ -616,7 +616,8 @@ static void ddisk_write32(r4k_cpu_t *cpu, device_t *dev, ptr36_t addr,
 		if (data->disk_command & COMMAND_INT_ACK) {
 			data->disk_status &= ~STATUS_INT;
 			data->ig = false;
-			dcpu_interrupt_down(0, data->intno);
+			// todo: NULL or hardwired 0?
+			cpu_interrupt_down(NULL, data->intno);
 		}
 		
 		/* Check general errors */
@@ -624,7 +625,8 @@ static void ddisk_write32(r4k_cpu_t *cpu, device_t *dev, ptr36_t addr,
 		    (data->disk_command & COMMAND_WRITE)) {
 			/* Simultaneous read/write command */
 			data->disk_status = STATUS_INT | STATUS_ERROR;
-			dcpu_interrupt_up(0, data->intno);
+			// todo: NULL or hardwired 0?
+			cpu_interrupt_up(NULL, data->intno);
 			data->ig = true;
 			data->intrcount++;
 			data->cmds_error++;
@@ -635,7 +637,8 @@ static void ddisk_write32(r4k_cpu_t *cpu, device_t *dev, ptr36_t addr,
 		    (data->action != ACTION_NONE)) {
 			/* Command in progress */
 			data->disk_status = STATUS_INT | STATUS_ERROR;
-			dcpu_interrupt_up(0, data->intno);
+			// todo: NULL or hardwired 0?
+			cpu_interrupt_up(NULL, data->intno);
 			data->ig = true;
 			data->intrcount++;
 			data->cmds_error++;
@@ -646,7 +649,8 @@ static void ddisk_write32(r4k_cpu_t *cpu, device_t *dev, ptr36_t addr,
 		if (((uint64_t) data->disk_secno + 1) * 512 > data->size) {
 			/* Generate interrupt to indicate error */
 			data->disk_status = STATUS_INT | STATUS_ERROR;
-			dcpu_interrupt_up(0, data->intno);
+			// todo: NULL or hardwired 0?
+			cpu_interrupt_up(NULL, data->intno);
 			data->ig = true;
 			data->intrcount++;
 			data->cmds_error++;
@@ -711,7 +715,8 @@ static void ddisk_step(device_t *dev)
 	if (data->cnt == 128) {
 		data->action = ACTION_NONE;
 		data->disk_status = STATUS_INT;
-		dcpu_interrupt_up(0, data->intno);
+		// todo: NULL or hardwired 0?
+		cpu_interrupt_up(NULL, data->intno);
 		data->ig = true;
 		data->intrcount++;
 	}

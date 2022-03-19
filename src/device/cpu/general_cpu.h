@@ -39,7 +39,7 @@ typedef struct {
 
 extern general_cpu_t* get_cpu(unsigned int no);
 
-extern unsigned int get_free_cpuno();
+extern unsigned int get_free_cpuno(void);
 
 extern void add_cpu(general_cpu_t *cpu);
 extern void remove_cpu(general_cpu_t *cpu);

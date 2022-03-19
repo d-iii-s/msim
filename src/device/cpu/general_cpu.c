@@ -20,7 +20,8 @@ general_cpu_t* get_cpu(unsigned int no){
  * 
  * @return First available cpu number or MAX_CPUS if no more CPU slots are available
  */
-unsigned int get_free_cpuno(){
+
+unsigned int get_free_cpuno(void){
     unsigned int c;
 	unsigned int id_mask = 0;
     general_cpu_t* cpu;
@@ -39,6 +40,7 @@ unsigned int get_free_cpuno(){
 }
 
 void add_cpu(general_cpu_t *cpu){
+    item_init(&cpu->item);
     list_append(&cpu_list, &cpu->item);
 }
 

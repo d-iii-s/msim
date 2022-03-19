@@ -421,8 +421,7 @@ static uint8_t devmem_read8(unsigned int procno, ptr36_t addr)
 	device_t *dev = NULL;
 	while (dev_next(&dev, DEVICE_FILTER_ALL))
 		if (dev->type->read32)
-            //todo: fix me
-			dev->type->read32(NULL /*procno*/, dev, addr, &val);
+			dev->type->read32(procno, dev, addr, &val);
 	
 	return val;
 }
@@ -435,8 +434,7 @@ static uint16_t devmem_read16(unsigned int procno, ptr36_t addr)
 	device_t *dev = NULL;
 	while (dev_next(&dev, DEVICE_FILTER_ALL))
 		if (dev->type->read32)
-            //todo: fix me
-			dev->type->read32(NULL /*procno*/, dev, addr, &val);
+			dev->type->read32(procno, dev, addr, &val);
 	
 	return val;
 }
@@ -449,8 +447,7 @@ static uint32_t devmem_read32(unsigned int procno, ptr36_t addr)
 	device_t *dev = NULL;
 	while (dev_next(&dev, DEVICE_FILTER_ALL))
 		if (dev->type->read32)
-            //todo: fix me
-			dev->type->read32(NULL /*procno*/, dev, addr, &val);
+			dev->type->read32(procno, dev, addr, &val);
 	
 	return val;
 }
@@ -463,8 +460,7 @@ static uint64_t devmem_read64(unsigned int procno, ptr36_t addr)
 	device_t *dev = NULL;
 	while (dev_next(&dev, DEVICE_FILTER_ALL))
 		if (dev->type->read64)
-            //todo: fix me
-			dev->type->read64(NULL /*procno*/, dev, addr, &val);
+			dev->type->read64(procno, dev, addr, &val);
 	
 	return val;
 }
@@ -626,8 +622,7 @@ static bool devmem_write8(unsigned int procno, ptr36_t addr, uint8_t val)
 	device_t *dev = NULL;
 	while (dev_next(&dev, DEVICE_FILTER_ALL)) {
 		if (dev->type->write32) {
-            //todo fixme
-			dev->type->write32(NULL /*procno*/, dev, addr, val);
+			dev->type->write32(procno, dev, addr, val);
 			written = true;
 		}
 	}
@@ -643,8 +638,7 @@ static bool devmem_write16(unsigned int procno, ptr36_t addr, uint16_t val)
 	device_t *dev = NULL;
 	while (dev_next(&dev, DEVICE_FILTER_ALL)) {
 		if (dev->type->write32) {
-            //todo: fixme
-			dev->type->write32(NULL /*procno*/, dev, addr, val);
+			dev->type->write32(procno, dev, addr, val);
 			written = true;
 		}
 	}
@@ -660,8 +654,7 @@ static bool devmem_write32(unsigned int procno, ptr36_t addr, uint32_t val)
 	device_t *dev = NULL;
 	while (dev_next(&dev, DEVICE_FILTER_ALL)) {
 		if (dev->type->write32) {
-            //todo: fixme
-			dev->type->write32(NULL /*procno*/, dev, addr, val);
+			dev->type->write32(procno, dev, addr, val);
 			written = true;
 		}
 	}
@@ -677,8 +670,7 @@ static bool devmem_write64(unsigned int procno, ptr36_t addr, uint64_t val)
 	device_t *dev = NULL;
 	while (dev_next(&dev, DEVICE_FILTER_ALL)) {
 		if (dev->type->write64) {
-            //todo: fixme
-			dev->type->write64(NULL /*procno*/, dev, addr, val);
+			dev->type->write64(procno, dev, addr, val);
 			written = true;
 		}
 	}

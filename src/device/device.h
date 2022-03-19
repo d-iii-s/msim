@@ -13,10 +13,8 @@
 #define DEVICE_H_
 
 #include <stdint.h>
-
+#include <stddef.h>
 #include "../parser.h"
-#include "cpu/mips_r4000/cpu.h"
-#include "cpu/riscv_rv32ima/cpu.h"
 
 struct device;
 

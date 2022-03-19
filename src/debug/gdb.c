@@ -536,16 +536,13 @@ static void gdb_cmd_mem_operation(char *req, bool read)
 	}
 	
 	/* Addresses are physical */
-	//TODO: implement for both
-	r4k_cpu_t *cpu = (r4k_cpu_t *)get_cpu(cpuno_global)->data;
-	// TODO: ASSERT that it really us r4k 
 	
 	ptr64_t virt;
 	virt.ptr = address;
 	len64_t len = length;
 	ptr36_t phys;
 	
-	if (r4k_convert_addr(cpu, virt, &phys, false, false) == excNone) {
+	if (cpu_convert_addr(get_cpu(cpuno_global), virt, &phys, write)) {
 		if (!read) {
 			/* Move the pointer to the data to be written */
 			query = strchr(query, ':');
@@ -803,7 +800,7 @@ static void gdb_breakpoint(char *req, bool insert)
 	} else {
 		ptr36_t phys;
 		
-		if (r4k_convert_addr(cpu, virt, &phys, false, false) == excNone) {
+		if (cpu_convert_addr(get_cpu(cpuno_global), virt, &phys, false)) {
 			if (insert)
 				physmem_breakpoint_add(phys, length,
 				    BREAKPOINT_KIND_DEBUGGER, memory_access);

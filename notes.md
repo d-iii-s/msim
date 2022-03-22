@@ -114,6 +114,27 @@ For now, I lean on the side of using a large switch (that will call some functio
 - would work nicely with shadowed registers
 - would work nicely with the supervisor/machine level masked registers
 
+### performance counters
+
+performance counters have architecture defined event selectors, that each counter can be set to.
+
+TODO: define these counters for msim
+
+#### draft
+
+- 0 - no event
+- 1 - user level cycles
+- 2 - supervisor level cycles
+- 3 - reserved for hypervisor level cycles
+- 4 - machine level cycles
+- 5 - waiting cycles
+- 6 - interrupt count (maybe more granular?)
+- 7 - exception count (maybe more granular?)
+- 8 - memory reads
+- 9 - memory writes
+- 10 - branches taken
+- 11 - branches not taken
+  
 ## interface viewpoint
 
 `device` is an interface, that the cpu implements (partially)

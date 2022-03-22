@@ -27,10 +27,11 @@ typedef enum {
 	 * Unprivileged Counters/Timers *
 	 ********************************/
 	
-	/* Low word */
-	csr_cycle 		   =	0xC00,
-	csr_time 		   = 	0xC01,
-	csr_instret 	   =	0xC02,
+	csr_cycle 		   =	0xC00,    // Cycle counter for RCCYCLE
+	csr_time 		   = 	0xC01,    // Timer (real time) for RDTIME 
+	csr_instret 	   =	0xC02,    // Instruction-retired counter for RDINSTRET	
+	
+	/* Architecture-Defined Performance-Monitoring Counters (lower 32 bits) */
 	csr_hpmcounter3    = 	0xC03,
 	csr_hpmcounter4    = 	0xC04,
 	csr_hpmcounter5    = 	0xC05,
@@ -61,7 +62,7 @@ typedef enum {
 	csr_hpmcounter30   = 	0xC1E,
 	csr_hpmcounter31   = 	0xC1F,
 
-	/* High word*/
+	/* Upper 32 bits of timers/counters */
 	csr_cycleh 		   =	0xC80,
 	csr_timeh 		   = 	0xC81,
 	csr_instreth 	   =	0xC82,
@@ -100,65 +101,67 @@ typedef enum {
 	 *************************/
 	
 	/* Trap Setup */
-	csr_sstatus 	   = 	0x100,
-	csr_sie 		   = 	0x104,
-	csr_stvec 		   = 	0x105,
-	csr_stcounteren	   = 	0x106,
+	csr_sstatus 	   = 	0x100,    // Supervisor status register
+	csr_sie 		   = 	0x104,    // Sup. interrupt-enable reg.
+	csr_stvec 		   = 	0x105,    // Sup. trap handler base address
+	csr_stcounteren	   = 	0x106,    // Sup. counter enable
 
 	/* Configuration */
-	csr_senvcfg 	   = 	0x10A,
+	csr_senvcfg 	   = 	0x10A,    // Sup. environment configuration reg.
 
 	/* Trap Handling */
-	csr_sscratch 	   = 	0x140,
-	csr_sepc		   = 	0x141,
-	csr_scause 	 	   = 	0x142,
-	csr_stval          =    0x143,
-	csr_sip            =    0x144,
+	csr_sscratch 	   = 	0x140,    // Scratch reg. for sup. tram handlers
+	csr_sepc		   = 	0x141,    // Sup. exception program counter
+	csr_scause 	 	   = 	0x142,    // Sup. trap cause
+	csr_stval          =    0x143,    // Sup. bad address or instruction
+	csr_sip            =    0x144,    // Sup. interrupt pending
 
 	/* Address Translation and Protection */
-	csr_satp           =    0x180,
+	csr_satp           =    0x180,    // Sup. addr. translation and protection
 
 	/* Debug/Trace */
-	csr_scontext       =    0x5A8,
+	csr_scontext       =    0x5A8,    // Supervisor-mode context reg.
 
 	/**********************
 	 * Machine level CSRs *
 	 **********************/
 
 	/* Machine information */
-	csr_mvendorid      =    0xF11,
-	csr_marchid        =    0xF12,
-	csr_mimpid         =    0xF13,
-	csr_mhartid        =    0xF14,
-	csr_mconfigptr     =    0xF15,
+	csr_mvendorid      =    0xF11,    // Vendor id
+	csr_marchid        =    0xF12,    // Architecture id
+	csr_mimpid         =    0xF13,    // Implementation id
+	csr_mhartid        =    0xF14,    // Hardware thread id (procno)
+	csr_mconfigptr     =    0xF15,    // Pointer to configuration data structure
 
 	/* Trap Setup */
-	csr_mstatus        =    0x300,
-	csr_misa           =    0x301,
-	csr_medeleg        =    0x302,
-	csr_mideleg        =    0x303,
-	csr_mie            =    0x304,
-	csr_mtvec          =    0x305,
-	csr_mcounteren     =    0x306,
-	csr_mstatush       =    0x310,
+	csr_mstatus        =    0x300,    // Machine status register
+	csr_misa           =    0x301,    // ISA and extensions
+	csr_medeleg        =    0x302,    // Mch. exception delegation reg.
+	csr_mideleg        =    0x303,    // Mch. interrupt delegation reg.
+	csr_mie            =    0x304,    // Mch. interrupt-enable reg.
+	csr_mtvec          =    0x305,    // Mch. trap-handler base addr.
+	csr_mcounteren     =    0x306,    // Mch. counter enable
+	csr_mstatush       =    0x310,    // Additional mch. status register
 
 	/* Trap Handling */
-	csr_mscratch       =    0x340,
-	csr_mepc           =    0x341,
-	csr_mcause         =    0x342,
-	csr_mtval          =    0x343,
-	csr_mip            =    0x344,
-	csr_mtinst         =    0x34A,
-	csr_mtval2         =    0x34B,
+	csr_mscratch       =    0x340,    // Scratch register for mch. trap handlers
+	csr_mepc           =    0x341,    // Mch. exception pc
+	csr_mcause         =    0x342,    // Mch. trap cause
+	csr_mtval          =    0x343,    // Mch. bad addr. or instr.
+	csr_mip            =    0x344,    // Mch. interrupt pending
+	csr_mtinst         =    0x34A,    // Mch. trap instruction (transformed)
+	csr_mtval2         =    0x34B,    // Mch. bad guest physical addr.
 
 	/* Machine Configuration */
-	csr_menvcfg        =    0x30A,
-	csr_mevncfgh       =    0x31A,
-	csr_mseccfg        =    0x747,
-	csr_mseccfgh       =    0x757,
+	csr_menvcfg        =    0x30A,    // Mch. environment conf. reg.
+	csr_mevncfgh       =    0x31A,    // Additional mch. env. conf. reg.
+	csr_mseccfg        =    0x747,    // Mch. security conf. reg.
+	csr_mseccfgh       =    0x757,    // Additional mch. security conf. reg.
 
 	/* Memory Protection */
-	csr_pmpcfg0        =    0x3A0,
+
+	/* Phys. mem. protection configuration */
+	csr_pmpcfg0        =    0x3A0,    
 	csr_pmpcfg1        =    0x3A1,
 	csr_pmpcfg2        =    0x3A2,
 	csr_pmpcfg3        =    0x3A3,
@@ -175,6 +178,7 @@ typedef enum {
 	csr_pmpcfg14       =    0x3AE,
 	csr_pmpcfg15       =    0x3AF,
 
+	/* Phys. mem. protection address */
 	csr_pmpaddr0       =    0x3B0,
     csr_pmpaddr1       =    0x3B1,
     csr_pmpaddr2       =    0x3B2,
@@ -240,10 +244,12 @@ typedef enum {
     csr_pmpaddr62      =    0x3EE,
     csr_pmpaddr63      =    0x3EF,
 
-	/* Counters/Timers */
-	/* Low word */
-	csr_mcycle 		   =	0xB00,
-	csr_minstret 	   =	0xB02,
+	/* Machine Counters/Timers */
+
+	csr_mcycle 		   =	0xB00,    // Machine cycle counter
+	csr_minstret 	   =	0xB02,    // Machine intructions retired counter
+	
+	/* Machine performance-monitoring counters (lower 32 bits) */
 	csr_mhpmcounter3   = 	0xB03,
 	csr_mhpmcounter4   = 	0xB04,
 	csr_mhpmcounter5   = 	0xB05,
@@ -274,7 +280,7 @@ typedef enum {
 	csr_mhpmcounter30  = 	0xB1E,
 	csr_mhpmcounter31  = 	0xB1F,
 
-	/* High word*/
+	/* Upper 32-bit of machine counters */
 	csr_mcycleh        =	0xB80,
 	csr_minstreth 	   =	0xB82,
 	csr_mhpmcounter3h  = 	0xB83,
@@ -308,7 +314,9 @@ typedef enum {
 	csr_mhpmcounter31h = 	0xB9F,
 
 	/* Counter Setup */
-	csr_mcountinhibit  =    0x320,
+	csr_mcountinhibit  =    0x320,    // Mch. counter-inhibit reg.
+	
+	/* Machine performance-monitoring event selectors */
 	csr_mhmpevent3     =	0x323,
 	csr_mhmpevent4     =	0x324,
 	csr_mhmpevent5     =	0x325,
@@ -340,17 +348,17 @@ typedef enum {
 	csr_mhmpevent31    =	0x33F,
 
 	/* Debug/Trace */
-	csr_tselect        =    0x7A0,
-	csr_tdata1         =    0x7A1,
-	csr_tdata2         =    0x7A2,
-	csr_tdata3         =    0x7A3,
-	csr_mcontext       =    0x7A8,
+	csr_tselect        =    0x7A0,    // Debug/Trace trigger register select
+	csr_tdata1         =    0x7A1,    // First Debug/Trace trigger data register
+	csr_tdata2         =    0x7A2,    // Second Debug/Trace trigger data register
+	csr_tdata3         =    0x7A3,    // Third Debug/Trace trigger data register
+	csr_mcontext       =    0x7A8,    // Machine-mode context reg.
 	
 	/* Debug Mode */
-	csr_dcsr           =    0x7B0,
-	csr_dpc            =    0x7B1,
-	csr_dscratch0      =    0x7B2,
-	csr_dscratch1      =    0x7B3
+	csr_dcsr           =    0x7B0,    // Dbg. control and status reg.
+	csr_dpc            =    0x7B1,    // Dbg. pc
+	csr_dscratch0      =    0x7B2,    // Dbg. scratch reg. 0
+	csr_dscratch1      =    0x7B3     // Dbg. scratch reg. 1
 
 } csr_regs_t;
 

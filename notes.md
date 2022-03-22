@@ -104,6 +104,16 @@ The update needs to be tested.
 
 ### exceptions
 
+## Privileged ops and CSR
+
+Is it better to have the whole 12-bit CSR address space allocated and index into the array, or to have only the used registers allocated and dispatch using a switch?
+
+For now, I lean on the side of using a large switch (that will call some function)
+
+- the hpm counters could fall through to the same "getter"
+- would work nicely with shadowed registers
+- would work nicely with the supervisor/machine level masked registers
+
 ## interface viewpoint
 
 `device` is an interface, that the cpu implements (partially)
@@ -134,3 +144,9 @@ or separate functionality needs to be added.
 
 - all device interrupts are handled on cpu with id 0
 - LL and SC only do checks on the address and are not based on size, so 64 bit write on address 0x00 would not trigger an 32 bit LL on address 0x04.
+
+## random risc-v facts
+
+### CSR
+
+- modifying valid values for a CSR changes its value to *unspecified*

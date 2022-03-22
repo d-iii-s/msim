@@ -155,7 +155,7 @@ typedef enum {
 	csr_menvcfg        =    0x30A,
 	csr_mevncfgh       =    0x31A,
 	csr_mseccfg        =    0x747,
-	csr_mseccfg        =    0x757,
+	csr_mseccfgh       =    0x757,
 
 	/* Memory Protection */
 	csr_pmpcfg0        =    0x3A0,

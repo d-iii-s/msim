@@ -351,8 +351,8 @@ typedef enum {
 	csr_dpc            =    0x7B1,
 	csr_dscratch0      =    0x7B2,
 	csr_dscratch1      =    0x7B3
-	
-} csr_reg_t;
+
+} csr_regs_t;
 
 
 // TODO: prev regs for debug

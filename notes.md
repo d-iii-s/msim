@@ -171,3 +171,4 @@ or separate functionality needs to be added.
 ### CSR
 
 - modifying valid values for a CSR changes its value to *unspecified*
+- mtime and mtimecmp are memory mapped m-mode registers. So it means, that there is a well-known address at which they reside, and they are only accessible to m-mode.

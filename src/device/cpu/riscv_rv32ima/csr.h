@@ -1,6 +1,7 @@
 #ifnfef RISCV_CSR_H_
 #define RISCV_CSR_H_
 
+#include <stdint.h>
 
 typedef enum {
 	
@@ -85,7 +86,7 @@ typedef enum {
 	csr_sstatus 	   = 	0x100,    // Supervisor status register
 	csr_sie 		   = 	0x104,    // Sup. interrupt-enable reg.
 	csr_stvec 		   = 	0x105,    // Sup. trap handler base address
-	csr_stcounteren	   = 	0x106,    // Sup. counter enable
+	csr_scounteren	   = 	0x106,    // Sup. counter enable
 
 	/* Configuration */
 	csr_senvcfg 	   = 	0x10A,    // Sup. environment configuration reg.
@@ -341,7 +342,90 @@ typedef enum {
 	csr_dscratch0      =    0x7B2,    // Dbg. scratch reg. 0
 	csr_dscratch1      =    0x7B3     // Dbg. scratch reg. 1
 
-} csr_regs_t;
+} csr_num_t;
+
+
+typedef enum {
+    no_event,
+    u_cycles,
+    s_cycles,
+    h_cycles, // reserved
+    m_cycles,
+    w_cycles
+    // rest TBA
+} csr_event_t
+
+// TODO: mtime and mtimecmp
+
+typedef struct {
+    /* Counters/Timers */
+    uint64_t cycle;
+    uint64_t instret;
+
+    uint64_t hpmcounters [29];
+
+    /* Event selectors */
+    uint32_t hpmevents [29];
+
+    /* Machine-level registers */
+
+    /* information */
+    uint32_t misa;
+    uint32_t mvendorid;
+    uint32_t marchid;
+    uint32_t mimpid;
+    uint32_t mhartid;
+    uint32_t mconfigptr;
+
+
+    uint64_t mstatus; // subset shared with supervisor level
+    
+    /* trap handling */
+    uint32_t mtvec;
+    uint32_t medeleg;
+    uint32_t mideleg;
+    uint32_t mip;
+    uint32_t mie;
+    uint32_t mscratch;
+    uint32_t mepc;
+    uint32_t mcause;
+    uint32_t mtval;
+
+    /* counter control*/
+    uint32_t mcounteren;
+    uint32_t mcountinhibit;
+
+    /* configs */
+    uint64_t menvcfg;
+    uint32_t mseccfg;
+
+    /* physical memory protection */
+    // TODO: does this make any sense in msim?
+    uint8_t pmpcfgs[64];
+    uint32_t pmpaddrs[64];
+    
+    /* Supervisor level registers*/   
+
+    // sstatus shared witm m-mode
+    uint32_t stvec;
+    uint32_t sip;
+    uint32_t sie;
+
+    uint32_t scounteren;
+
+    /* Trap handling */
+    uint32_t sscratch;
+    uint32_t sepc;
+    uint32_t scause;
+    uint32_t stval;
+
+    /* config */
+    uint32_t senvcfg;
+    
+    /* Address translation */
+    uint32_t satp;
+
+} csr_t;
 
 
 #endif // RISCV_CSR_H_

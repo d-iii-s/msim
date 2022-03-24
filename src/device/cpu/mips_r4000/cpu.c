@@ -2801,13 +2801,14 @@ static instr_fnc_t decode(r4k_instr_t instr)
 		 * COP0 opcode decoding based
 		 * on the rs field.
 		 */
-		switch (instr.r.rs) {
+		// should be based on COP format
+		switch (instr.cop.rs) {
 		case cop0rsBC:
 			/*
 			 * COP0/BC opcode decoding
 			 * based on the rt field.
 			 */
-			fnc = cop0_rt_map[instr.r.rt];
+			fnc = cop0_rt_map[instr.cop.rt];
 			break;
 		case cop0rsCO:
 			/*
@@ -2817,7 +2818,7 @@ static instr_fnc_t decode(r4k_instr_t instr)
 			fnc = cop0_func_map[instr.cop.func];
 			break;
 		default:
-			fnc = cop0_rs_map[instr.r.rs];
+			fnc = cop0_rs_map[instr.cop.rs];
 		}
 		break;
 	case opcCOP1:
@@ -2825,16 +2826,16 @@ static instr_fnc_t decode(r4k_instr_t instr)
 		 * COP1 opcode decoding based
 		 * on the rs field.
 		 */
-		switch (instr.r.rs) {
+		switch (instr.cop.rs) {
 		case cop1rsBC:
 			/*
 			 * COP1/BC opcode decoding
 			 * based on the rt field.
 			 */
-			fnc = cop1_rt_map[instr.r.rt];
+			fnc = cop1_rt_map[instr.cop.rt];
 			break;
 		default:
-			fnc = cop1_rs_map[instr.r.rs];
+			fnc = cop1_rs_map[instr.cop.rs];
 		}
 		break;
 	case opcCOP2:
@@ -2842,16 +2843,16 @@ static instr_fnc_t decode(r4k_instr_t instr)
 		 * COP2 opcode decoding based
 		 * on the rs field.
 		 */
-		switch (instr.r.rs) {
+		switch (instr.cop.rs) {
 		case cop2rsBC:
 			/*
 			 * COP2/BC opcode decoding
 			 * based on the rt field.
 			 */
-			fnc = cop2_rt_map[instr.r.rt];
+			fnc = cop2_rt_map[instr.cop.rt];
 			break;
 		default:
-			fnc = cop2_rs_map[instr.r.rs];
+			fnc = cop2_rs_map[instr.cop.rs];
 		}
 		break;
 	default:

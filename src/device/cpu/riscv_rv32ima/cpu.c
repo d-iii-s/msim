@@ -37,7 +37,7 @@ void rv32ima_cpu_step(rv32ima_cpu_t *cpu){
 
     uint32_t val = physmem_read32(cpu->csr.mhartid, cpu->pc, false);
 
-    printf("Cycle: %ld\tpc: 0x%010x\tmem: 0x%010x\n", cpu->csr.cycle, cpu->pc, val);
+    printf("Cycle: %ld\tpc: 0x%08x\tmem: 0x%08x\n", cpu->csr.cycle, cpu->pc, val);
     
     cpu->csr.cycle++;
     cpu->pc += 4;

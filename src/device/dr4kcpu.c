@@ -33,13 +33,13 @@ static bool r4k_cpu_convert_addr(r4k_cpu_t *cpu, ptr64_t virt, ptr36_t *phys, bo
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wincompatible-pointer-types"
 
-static const cpu_type_t r4k_cpu = {
-	.interrupt_up = r4k_interrupt_up,
-	.interrupt_down = r4k_interrupt_down,
+static const cpu_ops_t r4k_cpu = {
+	.interrupt_up = (interrupt_func_t)r4k_interrupt_up,
+	.interrupt_down = (interrupt_func_t)r4k_interrupt_down,
 	
-	.convert_addr = r4k_cpu_convert_addr,
-	.set_pc = r4k_set_pc,
-	.sc_access = r4k_sc_access
+	.convert_addr = (convert_addr_func_t)r4k_cpu_convert_addr,
+	.set_pc = (set_pc_func_t)r4k_set_pc,
+	.sc_access = (sc_access_func_t)r4k_sc_access
 };
 
 #pragma GCC diagnostic pop
@@ -348,7 +348,7 @@ static bool dr4kcpu_br(token_t *parm, device_t *dev)
 static void dr4kcpu_done(device_t *dev)
 {
 	safe_free(dev->name);
-	safe_free(((general_cpu_t*)dev->data)->data);
+	safe_free(((general_cpu_t *)dev->data)->data);
 	safe_free(dev->data);
 }
 
@@ -488,7 +488,7 @@ device_type_t dr4kcpu = {
 	.nondet = false,
 	
 	/* Type name */
-	.name = "dcpu",
+	.name = "dr4kcpu",
 	
 	/* Brief description*/
 	.brief = "MIPS R4000 processor",

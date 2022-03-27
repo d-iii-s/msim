@@ -16,6 +16,7 @@
 #include <stdint.h>
 #include <stdbool.h>
 #include "instr.h"
+#include "csr.h"
 
 #define RV32IMA_REG_COUNT	32
 
@@ -30,7 +31,10 @@ typedef struct {
 	// struct frame - for holding cached decoded instructions
 
 	uint32_t regs[RV32IMA_REG_COUNT];
+	
 	// CSR
+	csr_t csr;
+
 	// f regs - no
 
 	uint32_t pc;

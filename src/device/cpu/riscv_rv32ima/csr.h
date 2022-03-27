@@ -1,4 +1,4 @@
-#ifnfef RISCV_CSR_H_
+#ifndef RISCV_CSR_H_
 #define RISCV_CSR_H_
 
 #include <stdint.h>
@@ -353,7 +353,7 @@ typedef enum {
     m_cycles,
     w_cycles
     // rest TBA
-} csr_event_t
+} csr_event_t;
 
 // TODO: mtime and mtimecmp
 

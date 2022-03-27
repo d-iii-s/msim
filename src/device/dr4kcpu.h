@@ -9,12 +9,14 @@
  *
  */
 
-#ifndef DCPU_H_
-#define DCPU_H_
+#ifndef DR4KCPU_H_
+#define DR4KCPU_H_
 
 #include "device.h"
+#include "cpu/general_cpu.h"
 #include "cpu/mips_r4000/cpu.h"
 
+//? WHAT?
 #define MAX_CP0_REGISTERS 32
 
 #define get_r4k(dev) (r4k_cpu_t *)(((general_cpu_t *)dev->data)->data)

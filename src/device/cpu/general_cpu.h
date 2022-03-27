@@ -16,23 +16,29 @@
 #include "../../main.h"
 #include "../../debug/breakpoint.h"
 
+typedef void (*interrupt_func_t)(void*, unsigned int);
+typedef void (*insert_breakpoint_func_t)(void*, ptr64_t, breakpoint_t);
+typedef void (*remove_breakpoint_func_t)(void*, ptr64_t);
+typedef bool (*convert_addr_func_t)(void*, ptr64_t, ptr36_t*, bool);
+typedef void (*reg_dump_func_t)(void*);
+typedef void (*set_pc_func_t)(void*, ptr64_t);
+typedef bool (*sc_access_func_t)(void*, ptr36_t);
+
 typedef struct {
-
-    void (*interrupt_up)(void*, unsigned int);
-    void (*interrupt_down)(void*, unsigned int);
-    void (*insert_breakpoint)(void*, ptr64_t, breakpoint_t);
-    void (*remove_breakpoint)(void*, ptr64_t);
-    bool (*convert_addr)(void*, ptr64_t, ptr36_t*, bool);
-    void (*reg_dump)(void*);
-    void (*set_pc)(void*, ptr64_t);
-    bool (*sc_access)(void*, ptr36_t);
-
-} cpu_type_t;
+    interrupt_func_t interrupt_up;
+    interrupt_func_t interrupt_down;
+    insert_breakpoint_func_t insert_breakpoint;
+    remove_breakpoint_func_t remove_breakpoint;
+    convert_addr_func_t convert_addr;
+    reg_dump_func_t reg_dump;
+    set_pc_func_t set_pc;
+    sc_access_func_t sc_access;
+} cpu_ops_t;
 
 typedef struct {
     item_t item;
     unsigned int cpuno;
-    const cpu_type_t *type;
+    const cpu_ops_t *type;
     void *data;
 } general_cpu_t;
 

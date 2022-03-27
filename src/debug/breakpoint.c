@@ -309,7 +309,7 @@ bool breakpoint_check_for_code_breakpoints(void)
 	bool hit = false;
 	device_t *dev = NULL;
 	
-	while (dev_next(&dev, DEVICE_FILTER_PROCESSOR)) {
+	while (dev_next(&dev, DEVICE_FILTER_R4K_PROCESSOR)) {
 		r4k_cpu_t *cpu = (r4k_cpu_t *) ((general_cpu_t*)dev->data)->data;
 		
 		if (breakpoint_hit_by_address(cpu->bps, cpu->pc))

@@ -427,5 +427,6 @@ typedef struct {
 
 } csr_t;
 
+extern void init_csr(csr_t *csr, unsigned int procno);
 
 #endif // RISCV_CSR_H_

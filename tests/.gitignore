@@ -2,3 +2,4 @@
 # setup paths to the cross-compiler).
 *.raw
 *.o
+*.out

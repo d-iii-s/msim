@@ -1,11 +1,21 @@
 #include <stdlib.h>
 #include <stdio.h>
+#include <string.h>
 #include "cpu.h"
 
 
 void rv32ima_cpu_init(rv32ima_cpu_t *cpu, unsigned int procno){
+    memset(cpu, 0, sizeof(rv32ima_cpu_t));
+
+    // init regs
+
+    // init csr
     cpu->csr.mhartid = procno;
-    printf("Initialized rv cpu id %u\n", procno);
+
+    // init other sstuff
+
+    
+    printf("Initialized rv cpu id %u\n", cpu->csr.mhartid);
 }   
 
 void rv32ima_cpu_set_pc(rv32ima_cpu_t *cpu, uint32_t value){

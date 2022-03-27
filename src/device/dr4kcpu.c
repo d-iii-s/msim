@@ -29,9 +29,6 @@ static bool r4k_cpu_convert_addr(r4k_cpu_t *cpu, ptr64_t virt, ptr36_t *phys, bo
 	return r4k_convert_addr(cpu, virt, phys, write, false);
 }
 
-// surpress wrong pointer type warnings
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wincompatible-pointer-types"
 
 static const cpu_ops_t r4k_cpu = {
 	.interrupt_up = (interrupt_func_t)r4k_interrupt_up,
@@ -41,8 +38,6 @@ static const cpu_ops_t r4k_cpu = {
 	.set_pc = (set_pc_func_t)r4k_set_pc,
 	.sc_access = (sc_access_func_t)r4k_sc_access
 };
-
-#pragma GCC diagnostic pop
 
 
 /** Initialization

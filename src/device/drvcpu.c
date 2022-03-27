@@ -6,6 +6,7 @@
 #include "cpu/general_cpu.h"
 #include "../main.h"
 #include "../utils.h"
+#include "../fault.h"
 
 //TODO: General CPU
 

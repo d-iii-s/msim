@@ -19,8 +19,8 @@ static bool drvcpu_init(token_t *parm, device_t *dev){
 		return false;
     }
 
-    rv32ima_cpu_t *cpu = safe_malloc_t(rv32ima_cpu_t);
-    rv32ima_cpu_init(cpu, id);
+    rv_cpu_t *cpu = safe_malloc_t(rv_cpu_t);
+    rv_cpu_init(cpu, id);
     general_cpu_t* gen_cpu = safe_malloc_t(general_cpu_t);
     gen_cpu->cpuno = id;
     gen_cpu->data = cpu;
@@ -45,7 +45,7 @@ static void drvcpu_done(device_t *dev){
 }
 
 static void drvcpu_step(device_t *dev){
-    rv32ima_cpu_step(get_rv(dev));
+    rv_cpu_step(get_rv(dev));
 }
 
 cmd_t drvcpu_cmds[] = {

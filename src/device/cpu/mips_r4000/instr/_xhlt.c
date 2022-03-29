@@ -1,11 +1,11 @@
-static exc_t instr__xhlt(r4k_cpu_t *cpu, r4k_instr_t instr)
+static r4k_exc_t instr__xhlt(r4k_cpu_t *cpu, r4k_instr_t instr)
 {
 	if (!machine_specific_instructions) {
 		return instr__reserved(cpu, instr);
 	}
 	alert("XHLT: Machine halt");
 	machine_halt = true;
-	return excNone;
+	return r4k_excNone;
 }
 
 static void mnemonics__xhlt(ptr64_t addr, r4k_instr_t instr,

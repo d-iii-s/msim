@@ -1,4 +1,4 @@
-static exc_t instr__xrd(r4k_cpu_t *cpu, r4k_instr_t instr)
+static r4k_exc_t instr__xrd(r4k_cpu_t *cpu, r4k_instr_t instr)
 {
 	if (!machine_specific_instructions) {
 		return instr__reserved(cpu, instr);
@@ -6,7 +6,7 @@ static exc_t instr__xrd(r4k_cpu_t *cpu, r4k_instr_t instr)
 
 	alert("XRD: Register dump");
 	reg_dump(cpu);
-	return excNone;
+	return r4k_excNone;
 }
 
 static void mnemonics__xrd(ptr64_t addr, r4k_instr_t instr,

@@ -1,6 +1,6 @@
-static exc_t instr_syscall(r4k_cpu_t *cpu, r4k_instr_t instr)
+static r4k_exc_t instr_syscall(r4k_cpu_t *cpu, r4k_instr_t instr)
 {
-	return excSys;
+	return r4k_excSys;
 }
 
 static void mnemonics_syscall(ptr64_t addr, r4k_instr_t instr,

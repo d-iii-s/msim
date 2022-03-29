@@ -1,7 +1,7 @@
-static exc_t instr_mtlo(r4k_cpu_t *cpu, r4k_instr_t instr)
+static r4k_exc_t instr_mtlo(r4k_cpu_t *cpu, r4k_instr_t instr)
 {
 	cpu->loreg.val = cpu->regs[instr.r.rs].val;
-	return excNone;
+	return r4k_excNone;
 }
 
 static void mnemonics_mtlo(ptr64_t addr, r4k_instr_t instr,

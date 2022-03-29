@@ -1,4 +1,4 @@
-static exc_t instr_ddiv(r4k_cpu_t *cpu, r4k_instr_t instr)
+static r4k_exc_t instr_ddiv(r4k_cpu_t *cpu, r4k_instr_t instr)
 {
 	if (CPU_64BIT_INSTRUCTION(cpu)) {
 		uint64_t rt = cpu->regs[instr.r.rt].val;
@@ -13,10 +13,10 @@ static exc_t instr_ddiv(r4k_cpu_t *cpu, r4k_instr_t instr)
 			cpu->hireg.val = (uint64_t) (((int64_t) rs) % ((int64_t) rt));
 		}
 		
-		return excNone;
+		return r4k_excNone;
 	}
 	
-	return excRI;
+	return r4k_excRI;
 }
 
 static void mnemonics_ddiv(ptr64_t addr, r4k_instr_t instr,

@@ -1,4 +1,4 @@
-static exc_t instr_bgezall(r4k_cpu_t *cpu, r4k_instr_t instr)
+static r4k_exc_t instr_bgezall(r4k_cpu_t *cpu, r4k_instr_t instr)
 {
 	bool cond;
 	
@@ -13,11 +13,11 @@ static exc_t instr_bgezall(r4k_cpu_t *cpu, r4k_instr_t instr)
 		cpu->pc_next.ptr +=
 		    (((int64_t) sign_extend_16_64(instr.i.imm)) << TARGET_SHIFT);
 		cpu->branch = BRANCH_COND;
-		return excJump;
+		return r4k_excJump;
 	}
 	
 	cpu->pc_next.ptr += 4;
-	return excNone;
+	return r4k_excNone;
 }
 
 static void mnemonics_bgezall(ptr64_t addr, r4k_instr_t instr,

@@ -1,4 +1,4 @@
-static exc_t instr_sltu(r4k_cpu_t *cpu, r4k_instr_t instr)
+static r4k_exc_t instr_sltu(r4k_cpu_t *cpu, r4k_instr_t instr)
 {
 	if (CPU_64BIT_MODE(cpu)) {
 		uint64_t rs = cpu->regs[instr.r.rs].val;
@@ -12,7 +12,7 @@ static exc_t instr_sltu(r4k_cpu_t *cpu, r4k_instr_t instr)
 		cpu->regs[instr.r.rd].val = rs < rt;
 	}
 	
-	return excNone;
+	return r4k_excNone;
 }
 
 static void mnemonics_sltu(ptr64_t addr, r4k_instr_t instr,

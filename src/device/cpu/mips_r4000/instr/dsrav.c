@@ -1,4 +1,4 @@
-static exc_t instr_dsrav(r4k_cpu_t *cpu, r4k_instr_t instr)
+static r4k_exc_t instr_dsrav(r4k_cpu_t *cpu, r4k_instr_t instr)
 {
 	if (CPU_64BIT_INSTRUCTION(cpu)) {
 		uint64_t rs = cpu->regs[instr.r.rs].val;
@@ -7,9 +7,9 @@ static exc_t instr_dsrav(r4k_cpu_t *cpu, r4k_instr_t instr)
 		cpu->regs[instr.r.rd].val =
 		    (uint64_t) (((int64_t) rt) >> (rs & UINT64_C(0x003f)));
 	} else
-		return excRI;
+		return r4k_excRI;
 	
-	return excNone;
+	return r4k_excNone;
 }
 
 static void mnemonics_dsrav(ptr64_t addr, r4k_instr_t instr,

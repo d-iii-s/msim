@@ -1,4 +1,4 @@
-static exc_t instr_ll(r4k_cpu_t *cpu, r4k_instr_t instr)
+static r4k_exc_t instr_ll(r4k_cpu_t *cpu, r4k_instr_t instr)
 {
 	/* Compute virtual target address
 	   and issue read operation */
@@ -6,9 +6,9 @@ static exc_t instr_ll(r4k_cpu_t *cpu, r4k_instr_t instr)
 	addr.ptr = cpu->regs[instr.i.rs].val + sign_extend_16_64(instr.i.imm);
 	
 	uint32_t val;
-	exc_t res = r4k_read_mem32(cpu, addr, &val, true);
+	r4k_exc_t res = r4k_read_mem32(cpu, addr, &val, true);
 	
-	if (res == excNone) {  /* If the read operation has been successful */
+	if (res == r4k_excNone) {  /* If the read operation has been successful */
 		/* Store the value */
 		cpu->regs[instr.i.rt].val = sign_extend_32_64(val);
 		

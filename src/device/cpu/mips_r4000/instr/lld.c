@@ -1,4 +1,4 @@
-static exc_t instr_lld(r4k_cpu_t *cpu, r4k_instr_t instr)
+static r4k_exc_t instr_lld(r4k_cpu_t *cpu, r4k_instr_t instr)
 {
 	if (CPU_64BIT_INSTRUCTION(cpu)) {
 		/* Compute virtual target address
@@ -7,9 +7,9 @@ static exc_t instr_lld(r4k_cpu_t *cpu, r4k_instr_t instr)
 		addr.ptr = cpu->regs[instr.i.rs].val + sign_extend_16_64(instr.i.imm);
 		
 		uint64_t val;
-		exc_t res = cpu_read_mem64(cpu, addr, &val, true);
+		r4k_exc_t res = cpu_read_mem64(cpu, addr, &val, true);
 		
-		if (res == excNone) {  /* If the read operation has been successful */
+		if (res == r4k_excNone) {  /* If the read operation has been successful */
 			/* Store the value */
 			cpu->regs[instr.i.rt].val = val;
 			
@@ -31,7 +31,7 @@ static exc_t instr_lld(r4k_cpu_t *cpu, r4k_instr_t instr)
 		return res;
 	}
 	
-	return excRI;
+	return r4k_excRI;
 }
 
 static void mnemonics_lld(ptr64_t addr, r4k_instr_t instr,

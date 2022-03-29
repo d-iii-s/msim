@@ -444,6 +444,40 @@ typedef enum {
 /** cp0 Masks */
 #define cp0_SR_EXLMask  UINT32_C(0x00000002)
 
+/** Exception types */
+typedef enum {
+	r4k_excInt   = 0,
+	r4k_excMod   = 1,
+	r4k_excTLBL  = 2,
+	r4k_excTLBS  = 3,
+	r4k_excAdEL  = 4,
+	r4k_excAdES  = 5,
+	r4k_excIBE   = 6,
+	r4k_excDBE   = 7,
+	r4k_excSys   = 8,
+	r4k_excBp    = 9,
+	r4k_excRI    = 10,
+	r4k_excCpU   = 11,
+	r4k_excOv    = 12,
+	r4k_excTr    = 13,
+	r4k_excVCEI  = 14,
+	r4k_excFPE   = 15,
+	r4k_excWATCH = 23,
+	r4k_excVCED  = 31,
+	
+	/* Special exception types */
+	r4k_excTLBR  = 64,
+	r4k_excTLBLR = 65,
+	r4k_excTLBSR = 66,
+	
+	/* For internal use */
+	r4k_excNone = 128,
+	r4k_excJump = 129,
+	r4k_excAddrError = 130,
+	r4k_excTLB = 131,
+	r4k_excReset = 132
+} r4k_exc_t;
+
 /** TLB entity definition */
 typedef struct {
 	ptr36_t pfn;   /**< Physical page number (shifted << 12) */
@@ -541,7 +575,7 @@ struct frame;
 struct r4k_cpu;
 
 /** Instruction implementation */
-typedef exc_t (*instr_fnc_t)(struct r4k_cpu *, r4k_instr_t);
+typedef r4k_exc_t (*instr_fnc_t)(struct r4k_cpu *, r4k_instr_t);
 
 /** Main processor structure */
 typedef struct r4k_cpu {
@@ -930,11 +964,11 @@ extern void r4k_set_pc(r4k_cpu_t *cpu, ptr64_t value);
 extern void r4k_step(r4k_cpu_t *cpu);
 
 /** Addresing function */
-extern exc_t r4k_convert_addr(r4k_cpu_t *cpu, ptr64_t virt, ptr36_t *phys, bool write,
+extern r4k_exc_t r4k_convert_addr(r4k_cpu_t *cpu, ptr64_t virt, ptr36_t *phys, bool write,
     bool noisy);
 
 /** Virtual memory access */
-extern exc_t r4k_read_mem32(r4k_cpu_t *cpu, ptr64_t addr, uint32_t *value,
+extern r4k_exc_t r4k_read_mem32(r4k_cpu_t *cpu, ptr64_t addr, uint32_t *value,
     bool noisy);
 
 /** Interrupts */

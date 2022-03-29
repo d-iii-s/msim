@@ -1,11 +1,11 @@
-static exc_t instr_dmult(r4k_cpu_t *cpu, r4k_instr_t instr)
+static r4k_exc_t instr_dmult(r4k_cpu_t *cpu, r4k_instr_t instr)
 {
 	if (CPU_64BIT_INSTRUCTION(cpu)) {
 		ASSERT(false);
-		return excNone;
+		return r4k_excNone;
 	}
 	
-	return excRI;
+	return r4k_excRI;
 }
 
 static void mnemonics_dmult(ptr64_t addr, r4k_instr_t instr,

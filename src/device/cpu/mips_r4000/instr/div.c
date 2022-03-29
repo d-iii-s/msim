@@ -1,4 +1,4 @@
-static exc_t instr_div(r4k_cpu_t *cpu, r4k_instr_t instr)
+static r4k_exc_t instr_div(r4k_cpu_t *cpu, r4k_instr_t instr)
 {
 	uint32_t rt = cpu->regs[instr.r.rt].lo;
 	
@@ -14,7 +14,7 @@ static exc_t instr_div(r4k_cpu_t *cpu, r4k_instr_t instr)
 		    sign_extend_32_64((uint32_t) (((int32_t) rs) % ((int32_t) rt)));
 	}
 	
-	return excNone;
+	return r4k_excNone;
 }
 
 static void mnemonics_div(ptr64_t addr, r4k_instr_t instr,

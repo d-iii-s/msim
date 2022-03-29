@@ -17,41 +17,6 @@
 #define MAX_CPUS   32
 #define MAX_INTRS  6
 
-/** Exception types */
-// todo: mips specific, move elsewhere
-typedef enum {
-	excInt   = 0,
-	excMod   = 1,
-	excTLBL  = 2,
-	excTLBS  = 3,
-	excAdEL  = 4,
-	excAdES  = 5,
-	excIBE   = 6,
-	excDBE   = 7,
-	excSys   = 8,
-	excBp    = 9,
-	excRI    = 10,
-	excCpU   = 11,
-	excOv    = 12,
-	excTr    = 13,
-	excVCEI  = 14,
-	excFPE   = 15,
-	excWATCH = 23,
-	excVCED  = 31,
-	
-	/* Special exception types */
-	excTLBR  = 64,
-	excTLBLR = 65,
-	excTLBSR = 66,
-	
-	/* For internal use */
-	excNone = 128,
-	excJump = 129,
-	excAddrError = 130,
-	excTLB = 131,
-	excReset = 132
-} exc_t;
-
 /** Physical frame number type */
 typedef uint32_t pfn_t;
 

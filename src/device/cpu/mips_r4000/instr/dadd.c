@@ -1,4 +1,4 @@
-static exc_t instr_dadd(r4k_cpu_t *cpu, r4k_instr_t instr)
+static r4k_exc_t instr_dadd(r4k_cpu_t *cpu, r4k_instr_t instr)
 {
 	if (CPU_64BIT_INSTRUCTION(cpu)) {
 		uint64_t rs = cpu->regs[instr.r.rs].val;
@@ -6,13 +6,13 @@ static exc_t instr_dadd(r4k_cpu_t *cpu, r4k_instr_t instr)
 		uint64_t sum = rs + rt;
 		
 		if (!((rs ^ rt) & SBIT64) && ((rs ^ sum) & SBIT64))
-			return excOv;
+			return r4k_excOv;
 		
 		cpu->regs[instr.r.rd].val = sum;
 	} else
-		return excRI;
+		return r4k_excRI;
 	
-	return excNone;
+	return r4k_excNone;
 }
 
 static void mnemonics_dadd(ptr64_t addr, r4k_instr_t instr,

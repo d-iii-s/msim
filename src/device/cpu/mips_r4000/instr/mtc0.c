@@ -1,4 +1,4 @@
-static exc_t instr_mtc0(r4k_cpu_t *cpu, r4k_instr_t instr)
+static r4k_exc_t instr_mtc0(r4k_cpu_t *cpu, r4k_instr_t instr)
 {
 	if (CP0_USABLE(cpu)) {
 		reg64_t reg = cpu->regs[instr.r.rt];
@@ -135,12 +135,12 @@ static exc_t instr_mtc0(r4k_cpu_t *cpu, r4k_instr_t instr)
 			alert("R4000: Undefined CP0 register to set");
 		}
 		
-		return excNone;
+		return r4k_excNone;
 	}
 	
 	/* Coprocessor unusable */
 	cp0_cause(cpu).val &= ~cp0_cause_ce_mask;
-	return excCpU;
+	return r4k_excCpU;
 }
 
 static void mnemonics_mtc0(ptr64_t addr, r4k_instr_t instr,

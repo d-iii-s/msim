@@ -434,7 +434,7 @@ static void fill_addr_error(r4k_cpu_t *cpu, ptr64_t addr, bool noisy)
 /** Search through TLB and generates apropriate exception (32 bits)
  *
  */
-static exc_t tlb_hit32(r4k_cpu_t *cpu, ptr64_t virt, ptr36_t *phys, bool wr,
+static r4k_exc_t tlb_hit32(r4k_cpu_t *cpu, ptr64_t virt, ptr36_t *phys, bool wr,
     bool noisy)
 {
 	ASSERT(cpu != NULL);
@@ -449,30 +449,30 @@ static exc_t tlb_hit32(r4k_cpu_t *cpu, ptr64_t virt, ptr36_t *phys, bool wr,
 			fill_tlb_error(cpu, virt);
 		}
 		
-		return excTLBR;
+		return r4k_excTLBR;
 	case TLBL_INVALID:
 		if (noisy) {
 			cpu->tlb_invalid++;
 			fill_tlb_error(cpu, virt);
 		}
 		
-		return excTLB;
+		return r4k_excTLB;
 	case TLBL_MODIFIED:
 		if (noisy) {
 			cpu->tlb_modified++;
 			fill_tlb_error(cpu, virt);
 		}
 		
-		return excMod;
+		return r4k_excMod;
 	}
 	
-	return excNone;
+	return r4k_excNone;
 }
 
 /** Search through TLB and generates apropriate exception (64 bits)
  *
  */
-static exc_t tlb_hit64(r4k_cpu_t *cpu, ptr64_t virt, ptr36_t *phys, bool wr,
+static r4k_exc_t tlb_hit64(r4k_cpu_t *cpu, ptr64_t virt, ptr36_t *phys, bool wr,
     bool noisy)
 {
 	ASSERT(cpu != NULL);
@@ -480,13 +480,13 @@ static exc_t tlb_hit64(r4k_cpu_t *cpu, ptr64_t virt, ptr36_t *phys, bool wr,
 	
 	ASSERT(false);
 	
-	return excNone;
+	return r4k_excNone;
 }
 
 /** The user mode address conversion (32 bits)
  *
  */
-static exc_t convert_addr_user32(r4k_cpu_t *cpu, ptr64_t virt, ptr36_t *phys,
+static r4k_exc_t convert_addr_user32(r4k_cpu_t *cpu, ptr64_t virt, ptr36_t *phys,
     bool wr, bool noisy)
 {
 	ASSERT(cpu != NULL);
@@ -497,13 +497,13 @@ static exc_t convert_addr_user32(r4k_cpu_t *cpu, ptr64_t virt, ptr36_t *phys,
 		return tlb_hit32(cpu, virt, phys, wr, noisy);
 	
 	fill_addr_error(cpu, virt, noisy);
-	return excAddrError;
+	return r4k_excAddrError;
 }
 
 /** The user mode address conversion (64 bits)
  *
  */
-static exc_t convert_addr_user64(r4k_cpu_t *cpu, ptr64_t virt, ptr36_t *phys,
+static r4k_exc_t convert_addr_user64(r4k_cpu_t *cpu, ptr64_t virt, ptr36_t *phys,
     bool wr, bool noisy)
 {
 	ASSERT(cpu != NULL);
@@ -514,13 +514,13 @@ static exc_t convert_addr_user64(r4k_cpu_t *cpu, ptr64_t virt, ptr36_t *phys,
 		return tlb_hit64(cpu, virt, phys, wr, noisy);
 	
 	fill_addr_error(cpu, virt, noisy);
-	return excAddrError;
+	return r4k_excAddrError;
 }
 
 /** The supervisor mode address conversion (32 bits)
  *
  */
-static exc_t convert_addr_supervisor32(r4k_cpu_t *cpu, ptr64_t virt, ptr36_t *phys,
+static r4k_exc_t convert_addr_supervisor32(r4k_cpu_t *cpu, ptr64_t virt, ptr36_t *phys,
     bool wr, bool noisy)
 {
 	ASSERT(cpu != NULL);
@@ -534,13 +534,13 @@ static exc_t convert_addr_supervisor32(r4k_cpu_t *cpu, ptr64_t virt, ptr36_t *ph
 		return tlb_hit32(cpu, virt, phys, wr, noisy);
 	
 	fill_addr_error(cpu, virt, noisy);
-	return excAddrError;
+	return r4k_excAddrError;
 }
 
 /** The supervisor mode address conversion (64 bits)
  *
  */
-static exc_t convert_addr_supervisor64(r4k_cpu_t *cpu, ptr64_t virt, ptr36_t *phys,
+static r4k_exc_t convert_addr_supervisor64(r4k_cpu_t *cpu, ptr64_t virt, ptr36_t *phys,
     bool wr, bool noisy)
 {
 	ASSERT(cpu != NULL);
@@ -557,13 +557,13 @@ static exc_t convert_addr_supervisor64(r4k_cpu_t *cpu, ptr64_t virt, ptr36_t *ph
 		return tlb_hit64(cpu, virt, phys, wr, noisy);
 	
 	fill_addr_error(cpu, virt, noisy);
-	return excAddrError;
+	return r4k_excAddrError;
 }
 
 /** The kernel mode address conversion (32 bits)
  *
  */
-static exc_t convert_addr_kernel32(r4k_cpu_t *cpu, ptr64_t virt, ptr36_t *phys,
+static r4k_exc_t convert_addr_kernel32(r4k_cpu_t *cpu, ptr64_t virt, ptr36_t *phys,
     bool wr, bool noisy)
 {
 	ASSERT(cpu != NULL);
@@ -574,17 +574,17 @@ static exc_t convert_addr_kernel32(r4k_cpu_t *cpu, ptr64_t virt, ptr36_t *phys,
 		if (!cp0_status_erl(cpu))
 			return tlb_hit32(cpu, virt, phys, wr, noisy);
 		
-		return excNone;
+		return r4k_excNone;
 	}
 	
 	if ((virt.lo & KSEG0_MASK) == KSEG0_BITS) {
 		*phys = virt.lo - UINT32_C(0x80000000);
-		return excNone;
+		return r4k_excNone;
 	}
 	
 	if ((virt.lo & KSEG1_MASK) == KSEG1_BITS) {
 		*phys = virt.lo - UINT32_C(0xa0000000);
-		return excNone;
+		return r4k_excNone;
 	}
 	
 	if ((virt.lo & KSSEG_MASK) == KSSEG_BITS)
@@ -594,13 +594,13 @@ static exc_t convert_addr_kernel32(r4k_cpu_t *cpu, ptr64_t virt, ptr36_t *phys,
 		return tlb_hit32(cpu, virt, phys, wr, noisy);
 	
 	fill_addr_error(cpu, virt, noisy);
-	return excAddrError;
+	return r4k_excAddrError;
 }
 
 /** The kernel mode address conversion (64 bits)
  *
  */
-static exc_t convert_addr_kernel64(r4k_cpu_t *cpu, ptr64_t virt, ptr36_t *phys,
+static r4k_exc_t convert_addr_kernel64(r4k_cpu_t *cpu, ptr64_t virt, ptr36_t *phys,
     bool wr, bool noisy)
 {
 	ASSERT(cpu != NULL);
@@ -611,7 +611,7 @@ static exc_t convert_addr_kernel64(r4k_cpu_t *cpu, ptr64_t virt, ptr36_t *phys,
 		if (!cp0_status_erl(cpu))
 			return tlb_hit64(cpu, virt, phys, wr, noisy);
 		
-		return excNone;
+		return r4k_excNone;
 	}
 	
 	if ((virt.ptr & XKSSEG_MASK) == XKSSEG_BITS)
@@ -625,12 +625,12 @@ static exc_t convert_addr_kernel64(r4k_cpu_t *cpu, ptr64_t virt, ptr36_t *phys,
 	
 	if ((virt.ptr & CKSEG0_MASK) == CKSEG0_BITS) {
 		*phys = virt.ptr - UINT64_C(0x80000000);
-		return excNone;
+		return r4k_excNone;
 	}
 	
 	if ((virt.ptr & CKSEG1_MASK) == CKSEG1_BITS) {
 		*phys = virt.ptr - UINT64_C(0xa0000000);
-		return excNone;
+		return r4k_excNone;
 	}
 	
 	if ((virt.lo & CKSSEG_MASK) == CKSSEG_BITS)
@@ -640,7 +640,7 @@ static exc_t convert_addr_kernel64(r4k_cpu_t *cpu, ptr64_t virt, ptr36_t *phys,
 		return tlb_hit64(cpu, virt, phys, wr, noisy);
 	
 	fill_addr_error(cpu, virt, noisy);
-	return excAddrError;
+	return r4k_excAddrError;
 }
 
 /** The conversion of virtual addresses
@@ -650,7 +650,7 @@ static exc_t convert_addr_kernel64(r4k_cpu_t *cpu, ptr64_t virt, ptr36_t *phys,
  *              if the address is incorrect.
  *
  */
-exc_t r4k_convert_addr(r4k_cpu_t *cpu, ptr64_t virt, ptr36_t *phys, bool write,
+r4k_exc_t r4k_convert_addr(r4k_cpu_t *cpu, ptr64_t virt, ptr36_t *phys, bool write,
     bool noisy)
 {
 	ASSERT(cpu != NULL);
@@ -675,7 +675,7 @@ exc_t r4k_convert_addr(r4k_cpu_t *cpu, ptr64_t virt, ptr36_t *phys, bool write,
 			convert_addr_kernel64(cpu, virt, phys, write, noisy);
 
 		fill_addr_error(cpu, virt, noisy);
-		return excAddrError;
+		return r4k_excAddrError;
 	} else {
 		if (CPU_USER_MODE(cpu))
 			return convert_addr_user32(cpu, virt, phys, write, noisy);
@@ -687,7 +687,7 @@ exc_t r4k_convert_addr(r4k_cpu_t *cpu, ptr64_t virt, ptr36_t *phys, bool write,
 			return convert_addr_kernel32(cpu, virt, phys, write, noisy);
 
 		fill_addr_error(cpu, virt, noisy);
-		return excAddrError;
+		return r4k_excAddrError;
 	}
 }
 
@@ -696,16 +696,16 @@ exc_t r4k_convert_addr(r4k_cpu_t *cpu, ptr64_t virt, ptr36_t *phys, bool write,
  * Fill BadVAddr if the alignment is not correct.
  *
  */
-static exc_t align_test16(r4k_cpu_t *cpu, ptr64_t addr, bool noisy)
+static r4k_exc_t align_test16(r4k_cpu_t *cpu, ptr64_t addr, bool noisy)
 {
 	ASSERT(cpu != NULL);
 	
 	if ((addr.ptr & 0x01U) != 0) {
 		fill_addr_error(cpu, addr, noisy);
-		return excAddrError;
+		return r4k_excAddrError;
 	}
 	
-	return excNone;
+	return r4k_excNone;
 }
 
 /** Test for correct alignment (32 bits)
@@ -713,16 +713,16 @@ static exc_t align_test16(r4k_cpu_t *cpu, ptr64_t addr, bool noisy)
  * Fill BadVAddr if the alignment is not correct.
  *
  */
-static exc_t align_test32(r4k_cpu_t *cpu, ptr64_t addr, bool noisy)
+static r4k_exc_t align_test32(r4k_cpu_t *cpu, ptr64_t addr, bool noisy)
 {
 	ASSERT(cpu != NULL);
 	
 	if ((addr.ptr & 0x03U) != 0) {
 		fill_addr_error(cpu, addr, noisy);
-		return excAddrError;
+		return r4k_excAddrError;
 	}
 	
-	return excNone;
+	return r4k_excNone;
 }
 
 /** Test for correct alignment (64 bits)
@@ -730,16 +730,16 @@ static exc_t align_test32(r4k_cpu_t *cpu, ptr64_t addr, bool noisy)
  * Fill BadVAddr if the alignment is not correct.
  *
  */
-static exc_t align_test64(r4k_cpu_t *cpu, ptr64_t addr, bool noisy)
+static r4k_exc_t align_test64(r4k_cpu_t *cpu, ptr64_t addr, bool noisy)
 {
 	ASSERT(cpu != NULL);
 	
 	if ((addr.ptr & 0x07U) != 0) {
 		fill_addr_error(cpu, addr, noisy);
-		return excAddrError;
+		return r4k_excAddrError;
 	}
 	
-	return excNone;
+	return r4k_excNone;
 }
 
 /** Access the virtual memory
@@ -755,13 +755,13 @@ static exc_t align_test64(r4k_cpu_t *cpu, ptr64_t addr, bool noisy)
  * @param noisy Generate exception in case of invalid operation
  *
  */
-static exc_t access_mem(r4k_cpu_t *cpu, acc_mode_t mode, ptr64_t virt,
+static r4k_exc_t access_mem(r4k_cpu_t *cpu, acc_mode_t mode, ptr64_t virt,
     ptr36_t *phys, bool noisy)
 {
 	ASSERT(cpu != NULL);
 	ASSERT(phys != NULL);
 	
-	exc_t res = r4k_convert_addr(cpu, virt, phys, mode == AM_WRITE, noisy);
+	r4k_exc_t res = r4k_convert_addr(cpu, virt, phys, mode == AM_WRITE, noisy);
 	
 	/* Check for watched address */
 	if (((cp0_watchlo_r(cpu)) && (mode == AM_READ))
@@ -779,7 +779,7 @@ static exc_t access_mem(r4k_cpu_t *cpu, acc_mode_t mode, ptr64_t virt,
 				cpu->wpending = true;
 				cpu->wexcaddr = cpu->pc;
 			} else
-				return excWATCH;
+				return r4k_excWATCH;
 		}
 	}
 	
@@ -791,22 +791,22 @@ static exc_t access_mem(r4k_cpu_t *cpu, acc_mode_t mode, ptr64_t virt,
  * Does not change the value if an exception occurs.
  *
  */
-static exc_t cpu_read_mem8(r4k_cpu_t *cpu, ptr64_t addr, uint8_t *val, bool noisy)
+static r4k_exc_t cpu_read_mem8(r4k_cpu_t *cpu, ptr64_t addr, uint8_t *val, bool noisy)
 {
 	ASSERT(cpu != NULL);
 	ASSERT(val != NULL);
 	
 	ptr36_t phys;
-	exc_t res = access_mem(cpu, AM_READ, addr, &phys, noisy);
+	r4k_exc_t res = access_mem(cpu, AM_READ, addr, &phys, noisy);
 	switch (res) {
-	case excNone:
+	case r4k_excNone:
 		break;
-	case excAddrError:
-		return excAdEL;
-	case excTLB:
-		return excTLBL;
-	case excTLBR:
-		return excTLBLR;
+	case r4k_excAddrError:
+		return r4k_excAdEL;
+	case r4k_excTLB:
+		return r4k_excTLBL;
+	case r4k_excTLBR:
+		return r4k_excTLBLR;
 	default:
 		ASSERT(false);
 	}
@@ -820,17 +820,17 @@ static exc_t cpu_read_mem8(r4k_cpu_t *cpu, ptr64_t addr, uint8_t *val, bool nois
  * Does not change the value if an exception occurs.
  *
  */
-static exc_t cpu_read_mem16(r4k_cpu_t *cpu, ptr64_t addr, uint16_t *val, bool noisy)
+static r4k_exc_t cpu_read_mem16(r4k_cpu_t *cpu, ptr64_t addr, uint16_t *val, bool noisy)
 {
 	ASSERT(cpu != NULL);
 	ASSERT(val != NULL);
 	
-	exc_t res = align_test16(cpu, addr, noisy);
+	r4k_exc_t res = align_test16(cpu, addr, noisy);
 	switch (res) {
-	case excNone:
+	case r4k_excNone:
 		break;
-	case excAddrError:
-		return excAdEL;
+	case r4k_excAddrError:
+		return r4k_excAdEL;
 	default:
 		ASSERT(false);
 	}
@@ -838,14 +838,14 @@ static exc_t cpu_read_mem16(r4k_cpu_t *cpu, ptr64_t addr, uint16_t *val, bool no
 	ptr36_t phys;
 	res = access_mem(cpu, AM_READ, addr, &phys, noisy);
 	switch (res) {
-	case excNone:
+	case r4k_excNone:
 		break;
-	case excAddrError:
-		return excAdEL;
-	case excTLB:
-		return excTLBL;
-	case excTLBR:
-		return excTLBLR;
+	case r4k_excAddrError:
+		return r4k_excAdEL;
+	case r4k_excTLB:
+		return r4k_excTLBL;
+	case r4k_excTLBR:
+		return r4k_excTLBLR;
 	default:
 		ASSERT(false);
 	}
@@ -859,17 +859,17 @@ static exc_t cpu_read_mem16(r4k_cpu_t *cpu, ptr64_t addr, uint16_t *val, bool no
  * Does not change the value if an exception occurs.
  *
  */
-exc_t r4k_read_mem32(r4k_cpu_t *cpu, ptr64_t addr, uint32_t *val, bool noisy)
+r4k_exc_t r4k_read_mem32(r4k_cpu_t *cpu, ptr64_t addr, uint32_t *val, bool noisy)
 {
 	ASSERT(cpu != NULL);
 	ASSERT(val != NULL);
 	
-	exc_t res = align_test32(cpu, addr, noisy);
+	r4k_exc_t res = align_test32(cpu, addr, noisy);
 	switch (res) {
-	case excNone:
+	case r4k_excNone:
 		break;
-	case excAddrError:
-		return excAdEL;
+	case r4k_excAddrError:
+		return r4k_excAdEL;
 	default:
 		ASSERT(false);
 	}
@@ -877,14 +877,14 @@ exc_t r4k_read_mem32(r4k_cpu_t *cpu, ptr64_t addr, uint32_t *val, bool noisy)
 	ptr36_t phys;
 	res = access_mem(cpu, AM_READ, addr, &phys, noisy);
 	switch (res) {
-	case excNone:
+	case r4k_excNone:
 		break;
-	case excAddrError:
-		return excAdEL;
-	case excTLB:
-		return excTLBL;
-	case excTLBR:
-		return excTLBLR;
+	case r4k_excAddrError:
+		return r4k_excAdEL;
+	case r4k_excTLB:
+		return r4k_excTLBL;
+	case r4k_excTLBR:
+		return r4k_excTLBLR;
 	default:
 		ASSERT(false);
 	}
@@ -898,17 +898,17 @@ exc_t r4k_read_mem32(r4k_cpu_t *cpu, ptr64_t addr, uint32_t *val, bool noisy)
  * Does not change the value if an exception occurs.
  *
  */
-static exc_t cpu_read_mem64(r4k_cpu_t *cpu, ptr64_t addr, uint64_t *val, bool noisy)
+static r4k_exc_t cpu_read_mem64(r4k_cpu_t *cpu, ptr64_t addr, uint64_t *val, bool noisy)
 {
 	ASSERT(cpu != NULL);
 	ASSERT(val != NULL);
 	
-	exc_t res = align_test64(cpu, addr, noisy);
+	r4k_exc_t res = align_test64(cpu, addr, noisy);
 	switch (res) {
-	case excNone:
+	case r4k_excNone:
 		break;
-	case excAddrError:
-		return excAdEL;
+	case r4k_excAddrError:
+		return r4k_excAdEL;
 	default:
 		ASSERT(false);
 	}
@@ -916,14 +916,14 @@ static exc_t cpu_read_mem64(r4k_cpu_t *cpu, ptr64_t addr, uint64_t *val, bool no
 	ptr36_t phys;
 	res = access_mem(cpu, AM_READ, addr, &phys, noisy);
 	switch (res) {
-	case excNone:
+	case r4k_excNone:
 		break;
-	case excAddrError:
-		return excAdEL;
-	case excTLB:
-		return excTLBL;
-	case excTLBR:
-		return excTLBLR;
+	case r4k_excAddrError:
+		return r4k_excAdEL;
+	case r4k_excTLB:
+		return r4k_excTLBL;
+	case r4k_excTLBR:
+		return r4k_excTLBLR;
 	default:
 		ASSERT(false);
 	}
@@ -935,23 +935,23 @@ static exc_t cpu_read_mem64(r4k_cpu_t *cpu, ptr64_t addr, uint64_t *val, bool no
 /** Perform write operation to the virtual memory (8 bits)
  *
  */
-static exc_t cpu_write_mem8(r4k_cpu_t *cpu, ptr64_t addr, uint8_t value, bool noisy)
+static r4k_exc_t cpu_write_mem8(r4k_cpu_t *cpu, ptr64_t addr, uint8_t value, bool noisy)
 {
 	ASSERT(cpu != NULL);
 	
 	ptr36_t phys;
-	exc_t res = access_mem(cpu, AM_WRITE, addr, &phys, noisy);
+	r4k_exc_t res = access_mem(cpu, AM_WRITE, addr, &phys, noisy);
 	switch (res) {
-	case excNone:
+	case r4k_excNone:
 		break;
-	case excAddrError:
-		return excAdES;
-	case excTLB:
-		return excTLBS;
-	case excTLBR:
-		return excTLBSR;
-	case excMod:
-		return excMod;
+	case r4k_excAddrError:
+		return r4k_excAdES;
+	case r4k_excTLB:
+		return r4k_excTLBS;
+	case r4k_excTLBR:
+		return r4k_excTLBSR;
+	case r4k_excMod:
+		return r4k_excMod;
 	default:
 		ASSERT(false);
 	}
@@ -963,17 +963,17 @@ static exc_t cpu_write_mem8(r4k_cpu_t *cpu, ptr64_t addr, uint8_t value, bool no
 /** Perform write operation to the virtual memory (16 bits)
  *
  */
-static exc_t cpu_write_mem16(r4k_cpu_t *cpu, ptr64_t addr, uint16_t value,
+static r4k_exc_t cpu_write_mem16(r4k_cpu_t *cpu, ptr64_t addr, uint16_t value,
     bool noisy)
 {
 	ASSERT(cpu != NULL);
 	
-	exc_t res = align_test16(cpu, addr, noisy);
+	r4k_exc_t res = align_test16(cpu, addr, noisy);
 	switch (res) {
-	case excNone:
+	case r4k_excNone:
 		break;
-	case excAddrError:
-		return excAdES;
+	case r4k_excAddrError:
+		return r4k_excAdES;
 	default:
 		ASSERT(false);
 	}
@@ -981,16 +981,16 @@ static exc_t cpu_write_mem16(r4k_cpu_t *cpu, ptr64_t addr, uint16_t value,
 	ptr36_t phys;
 	res = access_mem(cpu, AM_WRITE, addr, &phys, noisy);
 	switch (res) {
-	case excNone:
+	case r4k_excNone:
 		break;
-	case excAddrError:
-		return excAdES;
-	case excTLB:
-		return excTLBS;
-	case excTLBR:
-		return excTLBSR;
-	case excMod:
-		return excMod;
+	case r4k_excAddrError:
+		return r4k_excAdES;
+	case r4k_excTLB:
+		return r4k_excTLBS;
+	case r4k_excTLBR:
+		return r4k_excTLBSR;
+	case r4k_excMod:
+		return r4k_excMod;
 	default:
 		ASSERT(false);
 	}
@@ -1002,17 +1002,17 @@ static exc_t cpu_write_mem16(r4k_cpu_t *cpu, ptr64_t addr, uint16_t value,
 /** Perform write operation to the virtual memory (32 bits)
  *
  */
-static exc_t cpu_write_mem32(r4k_cpu_t *cpu, ptr64_t addr, uint32_t value,
+static r4k_exc_t cpu_write_mem32(r4k_cpu_t *cpu, ptr64_t addr, uint32_t value,
     bool noisy)
 {
 	ASSERT(cpu != NULL);
 	
-	exc_t res = align_test32(cpu, addr, noisy);
+	r4k_exc_t res = align_test32(cpu, addr, noisy);
 	switch (res) {
-	case excNone:
+	case r4k_excNone:
 		break;
-	case excAddrError:
-		return excAdES;
+	case r4k_excAddrError:
+		return r4k_excAdES;
 	default:
 		ASSERT(false);
 	}
@@ -1020,16 +1020,16 @@ static exc_t cpu_write_mem32(r4k_cpu_t *cpu, ptr64_t addr, uint32_t value,
 	ptr36_t phys;
 	res = access_mem(cpu, AM_WRITE, addr, &phys, noisy);
 	switch (res) {
-	case excNone:
+	case r4k_excNone:
 		break;
-	case excAddrError:
-		return excAdES;
-	case excTLB:
-		return excTLBS;
-	case excTLBR:
-		return excTLBSR;
-	case excMod:
-		return excMod;
+	case r4k_excAddrError:
+		return r4k_excAdES;
+	case r4k_excTLB:
+		return r4k_excTLBS;
+	case r4k_excTLBR:
+		return r4k_excTLBSR;
+	case r4k_excMod:
+		return r4k_excMod;
 	default:
 		ASSERT(false);
 	}
@@ -1041,17 +1041,17 @@ static exc_t cpu_write_mem32(r4k_cpu_t *cpu, ptr64_t addr, uint32_t value,
 /** Perform write operation to the virtual memory (64 bits)
  *
  */
-static exc_t cpu_write_mem64(r4k_cpu_t *cpu, ptr64_t addr, uint64_t value,
+static r4k_exc_t cpu_write_mem64(r4k_cpu_t *cpu, ptr64_t addr, uint64_t value,
     bool noisy)
 {
 	ASSERT(cpu != NULL);
 	
-	exc_t res = align_test64(cpu, addr, noisy);
+	r4k_exc_t res = align_test64(cpu, addr, noisy);
 	switch (res) {
-	case excNone:
+	case r4k_excNone:
 		break;
-	case excAddrError:
-		return excAdES;
+	case r4k_excAddrError:
+		return r4k_excAdES;
 	default:
 		ASSERT(false);
 	}
@@ -1059,16 +1059,16 @@ static exc_t cpu_write_mem64(r4k_cpu_t *cpu, ptr64_t addr, uint64_t value,
 	ptr36_t phys;
 	res = access_mem(cpu, AM_WRITE, addr, &phys, noisy);
 	switch (res) {
-	case excNone:
+	case r4k_excNone:
 		break;
-	case excAddrError:
-		return excAdES;
-	case excTLB:
-		return excTLBS;
-	case excTLBR:
-		return excTLBSR;
-	case excMod:
-		return excMod;
+	case r4k_excAddrError:
+		return r4k_excAdES;
+	case r4k_excTLB:
+		return r4k_excTLBS;
+	case r4k_excTLBR:
+		return r4k_excTLBSR;
+	case r4k_excMod:
+		return r4k_excMod;
 	default:
 		ASSERT(false);
 	}
@@ -1080,7 +1080,7 @@ static exc_t cpu_write_mem64(r4k_cpu_t *cpu, ptr64_t addr, uint64_t value,
 /** Probe TLB entry
  *
  */
-static exc_t TLBP(r4k_cpu_t *cpu)
+static r4k_exc_t TLBP(r4k_cpu_t *cpu)
 {
 	ASSERT(cpu != NULL);
 	
@@ -1107,17 +1107,17 @@ static exc_t TLBP(r4k_cpu_t *cpu)
 			}
 		}
 		
-		return excNone;
+		return r4k_excNone;
 	}
 	
 	cp0_cause(cpu).val &= ~cp0_cause_ce_mask;
-	return excCpU;
+	return r4k_excCpU;
 }
 
 /** Read entry from the TLB
  *
  */
-static exc_t TLBR(r4k_cpu_t *cpu)
+static r4k_exc_t TLBR(r4k_cpu_t *cpu)
 {
 	ASSERT(cpu != NULL);
 	
@@ -1147,11 +1147,11 @@ static exc_t TLBR(r4k_cpu_t *cpu)
 			    | (cpu->tlb[i].global ? 1 : 0);
 		}
 		
-		return excNone;
+		return r4k_excNone;
 	}
 	
 	cp0_cause(cpu).val &= ~cp0_cause_ce_mask;
-	return excCpU;
+	return r4k_excCpU;
 }
 
 /** Write a new entry into the TLB
@@ -1160,7 +1160,7 @@ static exc_t TLBR(r4k_cpu_t *cpu)
  * the random register (TLBWR) or index (TLBWI).
  *
  */
-static exc_t TLBW(r4k_cpu_t *cpu, bool random)
+static r4k_exc_t TLBW(r4k_cpu_t *cpu, bool random)
 {
 	ASSERT(cpu != NULL);
 	
@@ -1204,11 +1204,11 @@ static exc_t TLBW(r4k_cpu_t *cpu, bool random)
 		 */
 		cpu->frame = NULL;
 		
-		return excNone;
+		return r4k_excNone;
 	}
 	
 	cp0_cause(cpu).val &= ~cp0_cause_ce_mask;
-	return excCpU;
+	return r4k_excCpU;
 }
 
 /** Disassemble aid routines
@@ -2712,10 +2712,10 @@ void r4k_set_pc(r4k_cpu_t *cpu, ptr64_t value)
 //	
 //	exc_t res = align_test32(cpu, addr, noisy);
 //	switch (res) {
-//	case excNone:
+//	case r4k_excNone:
 //		break;
-//	case excAddrError:
-//		return excAdES;
+//	case r4k_excAddrError:
+//		return r4k_excAdES;
 //	default:
 //		ASSERT(false);
 //	}
@@ -2723,23 +2723,23 @@ void r4k_set_pc(r4k_cpu_t *cpu, ptr64_t value)
 //	ptr36_t phys;
 //	res = access_mem(cpu, AM_FETCH, addr, &phys, noisy);
 //	switch (res) {
-//	case excNone:
+//	case r4k_excNone:
 //		*icode = physmem_read32(cpu, phys, true);
 //		break;
-//	case excAddrError:
-//		res = excAdEL;
+//	case r4k_excAddrError:
+//		res = r4k_excAdEL;
 //		break;
-//	case excTLB:
-//		res = excTLBL;
+//	case r4k_excTLB:
+//		res = r4k_excTLBL;
 //		break;
-//	case excTLBR:
-//		res = excTLBLR;
+//	case r4k_excTLBR:
+//		res = r4k_excTLBLR;
 //		break;
 //	default:
 //		ASSERT(false);
 //	}
 //	
-//	if ((noisy) && (res != excNone) && (cpu->branch == BRANCH_NONE))
+//	if ((noisy) && (res != r4k_excNone) && (cpu->branch == BRANCH_NONE))
 //		cpu->excaddr = cpu->pc;
 //	
 //	return res;
@@ -2865,7 +2865,7 @@ static instr_fnc_t decode(r4k_instr_t instr)
 /** Translate instruction virtual address to physical memory frame
  *
  */
-static exc_t cpu_frame(r4k_cpu_t *cpu)
+static r4k_exc_t cpu_frame(r4k_cpu_t *cpu)
 {
 	ASSERT(cpu != NULL);
 	
@@ -2874,22 +2874,22 @@ static exc_t cpu_frame(r4k_cpu_t *cpu)
 	virt.lo &= ~((uint32_t) FRAME_MASK);
 	
 	ptr36_t phys;
-	exc_t res = r4k_convert_addr(cpu, virt, &phys, false, true);
+	r4k_exc_t res = r4k_convert_addr(cpu, virt, &phys, false, true);
 	switch (res) {
-	case excNone:
+	case r4k_excNone:
 		break;
-	case excAddrError:
+	case r4k_excAddrError:
 		if (cpu->branch == BRANCH_NONE)
 			cpu->excaddr = cpu->pc;
-		return excAdEL;
-	case excTLB:
+		return r4k_excAdEL;
+	case r4k_excTLB:
 		if (cpu->branch == BRANCH_NONE)
 			cpu->excaddr = cpu->pc;
-		return excTLBL;
-	case excTLBR:
+		return r4k_excTLBL;
+	case r4k_excTLBR:
 		if (cpu->branch == BRANCH_NONE)
 			cpu->excaddr = cpu->pc;
-		return excTLBLR;
+		return r4k_excTLBLR;
 	default:
 		ASSERT(false);
 	}
@@ -2897,10 +2897,10 @@ static exc_t cpu_frame(r4k_cpu_t *cpu)
 	cpu->frame = physmem_find_frame(phys);
 	if (cpu->frame == NULL) {
 		alert("Trying to fetch instructions from outside of physical memory");
-		return excAdEL;
+		return r4k_excAdEL;
 	}
 	
-	return excNone;
+	return r4k_excNone;
 }
 
 /** Decode instructions in a physical memory frame
@@ -2923,22 +2923,22 @@ static void frame_decode(frame_t *frame, instr_fnc_t* out)
 /** Change the processor state according to the exception type
  *
  */
-static void handle_exception(r4k_cpu_t *cpu, exc_t res)
+static void handle_exception(r4k_cpu_t *cpu, r4k_exc_t res)
 {
 	ASSERT(cpu != NULL);
 	
 	bool tlb_refill = false;
 	
 	/* Convert TLB Refill exceptions */
-	if ((res == excTLBLR) || (res == excTLBSR)) {
+	if ((res == r4k_excTLBLR) || (res == r4k_excTLBSR)) {
 		tlb_refill = true;
-		if (res == excTLBLR)
-			res = excTLBL;
+		if (res == r4k_excTLBLR)
+			res = r4k_excTLBL;
 		else
-			res = excTLBS;
+			res = r4k_excTLBS;
 	}
 	
-	ASSERT(res <= excVCED);
+	ASSERT(res <= r4k_excVCED);
 	
 	/* The standby mode is cancelled by the exception */
 	if (cpu->stdby)
@@ -2966,7 +2966,7 @@ static void handle_exception(r4k_cpu_t *cpu, exc_t res)
 	
 	if (!cp0_status_exl(cpu)) {
 		cp0_epc(cpu).val = cpu->excaddr.ptr;
-		if ((res == excInt) && (cpu->branch != BRANCH_COND))
+		if ((res == r4k_excInt) && (cpu->branch != BRANCH_COND))
 			cp0_epc(cpu).val = cpu->pc.ptr;
 	}
 	
@@ -2974,13 +2974,13 @@ static void handle_exception(r4k_cpu_t *cpu, exc_t res)
 	/* Exception vector base address */
 	if (cp0_status_bev(cpu)) {
 		/* Boot time */
-		if (res != excReset)
+		if (res != r4k_excReset)
 			exc_pc.ptr = EXCEPTION_BOOT_BASE_ADDRESS;
 		else
 			exc_pc.ptr = EXCEPTION_BOOT_RESET_ADDRESS;
 	} else {
 		/* Normal time */
-		if (res != excReset)
+		if (res != r4k_excReset)
 			exc_pc.ptr = EXCEPTION_NORMAL_BASE_ADDRESS;
 		else
 			exc_pc.ptr = EXCEPTION_NORMAL_RESET_ADDRESS;
@@ -2999,19 +2999,19 @@ static void handle_exception(r4k_cpu_t *cpu, exc_t res)
 /** Execute one CPU instruction
  *
  */
-static exc_t execute(r4k_cpu_t *cpu)
+static r4k_exc_t execute(r4k_cpu_t *cpu)
 {
 	ASSERT(cpu != NULL);
 	
 	/* Binary translation */
 	if (cpu->frame == NULL) {
-		exc_t res;
+		r4k_exc_t res;
 		
 		do {
 			res = cpu_frame(cpu);
-			if (res != excNone)
+			if (res != r4k_excNone)
 				handle_exception(cpu, res);
-		} while (res != excNone);
+		} while (res != r4k_excNone);
 	}
 	
 	if (!cpu->frame->valid)
@@ -3023,7 +3023,7 @@ static exc_t execute(r4k_cpu_t *cpu)
 	instr_fnc_t fnc = *(cpu->trans + ADDR2INSTR(i));
 	
 	/* Execute instruction */
-	exc_t exc = fnc(cpu, instr);
+	r4k_exc_t exc = fnc(cpu, instr);
 	
 	if (machine_trace)
 		idump(cpu, cpu->pc, instr, true);
@@ -3036,13 +3036,13 @@ static exc_t execute(r4k_cpu_t *cpu)
 	cpu->regs[0].val = 0;
 	
 	/* PC update */
-	if (exc == excJump) {
+	if (exc == r4k_excJump) {
 		/*
 		 * Execute the instruction in the branch
 		 * delay slot. The jump target is stored
 		 * in pc_next.
 		 */
-		exc = excNone;
+		exc = r4k_excNone;
 		cpu->pc.ptr += 4;
 	} else {
 		/*
@@ -3059,20 +3059,20 @@ static exc_t execute(r4k_cpu_t *cpu)
 /** CPU management
  *
  */
-static void manage(r4k_cpu_t *cpu, exc_t exc, ptr64_t old_pc)
+static void manage(r4k_cpu_t *cpu, r4k_exc_t exc, ptr64_t old_pc)
 {
 	ASSERT(cpu != NULL);
 	
 	/* Test for interrupt request */
-	if ((exc == excNone) &&
+	if ((exc == r4k_excNone) &&
 	    (!cp0_status_exl(cpu)) &&
 	    (!cp0_status_erl(cpu)) &&
 	    (cp0_status_ie(cpu)) &&
 	    ((cp0_cause(cpu).val & cp0_status(cpu).val) & cp0_cause_ip_mask) != 0)
-		exc = excInt;
+		exc = r4k_excInt;
 	
 	/* Exception control */
-	if (exc != excNone)
+	if (exc != r4k_excNone)
 		handle_exception(cpu, exc);
 	
 	/* Increase counter */
@@ -3132,7 +3132,7 @@ void r4k_step(r4k_cpu_t *cpu)
 	ASSERT(cpu != NULL);
 	
 	/* Instruction execute */
-	exc_t exc = excNone;
+	r4k_exc_t exc = r4k_excNone;
 	ptr64_t old_pc = cpu->pc;
 	
 	if (!cpu->stdby)

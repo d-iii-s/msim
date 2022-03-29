@@ -1,12 +1,12 @@
-static exc_t instr_bc0f(r4k_cpu_t *cpu, r4k_instr_t instr)
+static r4k_exc_t instr_bc0f(r4k_cpu_t *cpu, r4k_instr_t instr)
 {
 	if (CP0_USABLE(cpu))
 		/* Ignore (always false) */
-		return excNone;
+		return r4k_excNone;
 	
 	/* Coprocessor unusable */
 	cp0_cause(cpu).val &= ~cp0_cause_ce_mask;
-	return excCpU;
+	return r4k_excCpU;
 }
 
 static void mnemonics_bc0f(ptr64_t addr, r4k_instr_t instr,

@@ -1,4 +1,4 @@
-static exc_t instr_tgeiu(r4k_cpu_t *cpu, r4k_instr_t instr)
+static r4k_exc_t instr_tgeiu(r4k_cpu_t *cpu, r4k_instr_t instr)
 {
 	bool cond;
 	
@@ -10,9 +10,9 @@ static exc_t instr_tgeiu(r4k_cpu_t *cpu, r4k_instr_t instr)
 		    sign_extend_16_32(instr.i.imm));
 	
 	if (cond)
-		return excTr;
+		return r4k_excTr;
 	
-	return excNone;
+	return r4k_excNone;
 }
 
 static void mnemonics_tgeiu(ptr64_t addr, r4k_instr_t instr,

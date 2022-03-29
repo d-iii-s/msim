@@ -52,8 +52,15 @@ typedef union{
         unsigned int imm10_1 : 10;
         unsigned int imm_20 : 1;
     } j;
-} rv32i_instr_t;
+} rv_instr_t;
 
-static_assert(sizeof(rv32i_instr_t) == 4, "rv32i_instr_t has wrong size");
+static_assert(sizeof(rv_instr_t) == 4, "rv_instr_t has wrong size");
+
+//forward declarations
+enum rv_exc;
+struct rv_cpu;
+
+typedef enum rv_exc (*rv_instr_func_t)(struct rv_cpu*, rv_instr_t);
+extern rv_instr_func_t rv_instr_decode(rv_instr_t intr);
 
 #endif // RISCV_RV32IMA_INSTR_H_

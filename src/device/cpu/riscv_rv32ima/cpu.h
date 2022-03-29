@@ -20,12 +20,22 @@
 
 #define RV32IMA_REG_COUNT	32
 
+#define RV_INTERRUPT_EXC_BITS UINT32_C(0x80000000)
+#define RV_EXCEPTION_EXC_BITS UINT32_C(0)
+
+typedef enum rv_exc {
+	rv_exc_illegal_instruction = RV_EXCEPTION_EXC_BITS | 2,
+
+	rv_exc_none = RV_EXCEPTION_EXC_BITS | 24
+} rv_exc_t;
 
 // TODO: prev regs for debug
 // TODO: instruction decoding
 
 /** Main processor structure */
-typedef struct {
+typedef struct rv_cpu 
+
+{
 	/* procno: in csr*/
 	bool stdby;
 	// struct frame - for holding cached decoded instructions
@@ -62,16 +72,16 @@ typedef struct {
 
 	// breakpoints: TODO
 
-} rv32ima_cpu_t;
+} rv_cpu_t;
 
 
 /** Basic CPU routines */
-extern void rv32ima_cpu_init(rv32ima_cpu_t *cpu, unsigned int procno);
-extern void rv32ima_cpu_set_pc(rv32ima_cpu_t *cpu, uint32_t value);
-extern void rv32ima_cpu_step(rv32ima_cpu_t *cpu);
+extern void rv_cpu_init(rv_cpu_t *cpu, unsigned int procno);
+extern void rv_cpu_set_pc(rv_cpu_t *cpu, uint32_t value);
+extern void rv_cpu_step(rv_cpu_t *cpu);
 
 /** Interrupts */
-extern void rv32ima_cpu_interrupt_up(rv32ima_cpu_t *cpu, unsigned int no);
-extern void rv32ima_cpu_interrupt_down(rv32ima_cpu_t *cpu, unsigned int no);
+extern void rv_cpu_interrupt_up(rv_cpu_t *cpu, unsigned int no);
+extern void rv_cpu_interrupt_down(rv_cpu_t *cpu, unsigned int no);
 
 #endif //RISCV_RV32IMA_CPU_H_

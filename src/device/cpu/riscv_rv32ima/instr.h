@@ -27,16 +27,16 @@ typedef union{
         unsigned int func3 : 3;
         unsigned int rs1 : 5;
         unsigned int rs2 : 5;
-        unsigned int imm11_5 : 7;
+        int imm11_5 : 7;
     } s;
     struct {
         unsigned int opcode : 7;
-        unsigned int imm11 : 1;
-        unsigned int imm4_1 : 4; 
+        int imm11 : 1;
+        int imm4_1 : 4; 
         unsigned int func3 : 3;
         unsigned int rs1 : 5;
         unsigned int rs2 : 5;
-        unsigned int imm10_5 : 6;
+        int imm10_5 : 6;
         unsigned int imm12 : 1;
     } b;
     struct {
@@ -55,6 +55,8 @@ typedef union{
 } rv_instr_t;
 
 static_assert(sizeof(rv_instr_t) == 4, "rv_instr_t has wrong size");
+
+#define RV_S_IMM(instr) (uint32_t)((((int32_t)instr.s.imm11_5)<<5)|((0x1F)&instr.s.imm4_0))
 
 typedef enum {
     rv_opcLOAD        = 0b0000011,

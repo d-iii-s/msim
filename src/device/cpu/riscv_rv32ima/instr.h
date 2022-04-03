@@ -57,7 +57,10 @@ typedef union{
 static_assert(sizeof(rv_instr_t) == 4, "rv_instr_t has wrong size");
 
 #define RV_S_IMM(instr) (uint32_t)((((int32_t)instr.s.imm11_5)<<5)|((0x1F)&instr.s.imm4_0))
+#define RV_R_FUNCT(instr) (uint32_t)(((uint32_t)(instr.r.func7)<<3)|(0x7 & instr.r.func3))
 
+
+/** Opcodes*/
 typedef enum {
     rv_opcLOAD        = 0b0000011,
     rv_opcLOAD_FP     = 0b0000111, // not supported
@@ -81,6 +84,21 @@ typedef enum {
     rv_opcSYSTEM      = 0b1110011
 } rv_opcode_t;
 
+/** Funct values for OP instructions */
+typedef enum {
+    rv_func_ADD       = 0b0000000000,
+    rv_func_SUB       = 0b0100000000,
+    rv_func_SLL       = 0b0000000001,
+    rv_func_SLT       = 0b0000000010,
+    rv_func_SLTU      = 0b0000000011,
+    rv_func_XOR       = 0b0000000100,
+    rv_func_SRL       = 0b0000000101,
+    rv_func_SRA       = 0b0100000101,
+    rv_func_OR        = 0b0000000110,
+    rv_funcAND        = 0b0000000111
+} rv_op_func_t;
+
+/** Funct values for SYSTEM instructions */
 typedef enum {
     rv_funcPRIV       = 0b000,
     rv_funcCSRRW      = 0b001,
@@ -92,6 +110,7 @@ typedef enum {
 
 } rv_system_func_t;
 
+/** Immediate values for PRIV SYSTEM instructions */
 typedef enum {
     rv_privECALL  = 0,
     rv_privEBREAK = 1,

@@ -43,6 +43,7 @@ static rv_exc_t store_instr(rv_cpu_t *cpu, rv_instr_t instr){
 
     printf(" [writing to: 0x%08x val: %u from x%d]", virt, cpu->regs[instr.s.rs2], instr.s.rs2);
 
+    //! CHANGE THIS TO SUPPORT DIFFERENT LENGTHS
     rv_exc_t ex = rv_write_mem32(cpu, virt, cpu->regs[instr.s.rs2], true);
 
     if(ex != rv_exc_none){
@@ -61,6 +62,20 @@ static rv_exc_t break_instr(rv_cpu_t *cpu, rv_instr_t instr){
     alert("BREAK");
 
     machine_interactive = true;
+    return rv_exc_none;
+}
+
+static rv_exc_t add_instr(rv_cpu_t *cpu, rv_instr_t instr){
+    ASSERT(cpu != NULL);
+    ASSERT(instr.i.opcode == rv_opcOP);
+
+    uint32_t lhs = cpu->regs[instr.r.rs1];
+    uint32_t rhs = cpu->regs[instr.r.rs2];
+
+    cpu->regs[instr.r.rd] = lhs + rhs;
+
+    printf(" [add instruction %d + %d = %d]", lhs, rhs, cpu->regs[instr.r.rd]);
+
     return rv_exc_none;
 }
 
@@ -110,7 +125,22 @@ static rv_instr_func_t decode_AMO(rv_instr_t instr) {
 static rv_instr_func_t decode_OP(rv_instr_t instr) {
     ASSERT(instr.r.opcode == rv_opcOP);
     printf("OP instruction");
-    return illegal_instr; 
+    uint32_t funct = RV_R_FUNCT(instr);
+    switch(funct){
+        case rv_func_ADD:
+            return add_instr;
+        case rv_func_SUB:
+        case rv_func_SLL:
+        case rv_func_SLT:
+        case rv_func_SLTU:
+        case rv_func_XOR:
+        case rv_func_SRL:
+        case rv_func_SRA:
+        case rv_func_OR:
+        case rv_funcAND:
+        default:
+            return illegal_instr;
+    }    
 }
 
 static rv_instr_func_t decode_LUI(rv_instr_t instr) {

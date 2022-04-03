@@ -35,6 +35,23 @@ static rv_exc_t load_instr(rv_cpu_t *cpu, rv_instr_t instr){
     return rv_exc_none;
 }
 
+static rv_exc_t store_instr(rv_cpu_t *cpu, rv_instr_t instr){
+    ASSERT(cpu != NULL);
+    ASSERT(instr.s.opcode == rv_opcSTORE);
+
+    uint32_t virt = cpu->regs[instr.s.rs1] + RV_S_IMM(instr);
+
+    printf(" [writing to: 0x%08x val: %u from x%d]", virt, cpu->regs[instr.s.rs2], instr.s.rs2);
+
+    rv_exc_t ex = rv_write_mem32(cpu, virt, cpu->regs[instr.s.rs2], true);
+
+    if(ex != rv_exc_none){
+        return ex;
+    } 
+
+    return rv_exc_none;
+}
+
 static rv_exc_t break_instr(rv_cpu_t *cpu, rv_instr_t instr){
     ASSERT(cpu != NULL);
     ASSERT(instr.i.opcode == rv_opcSYSTEM);
@@ -82,7 +99,7 @@ static rv_instr_func_t decode_AUIPC(rv_instr_t instr) {
 static rv_instr_func_t decode_STORE(rv_instr_t instr) {
     ASSERT(instr.r.opcode == rv_opcSTORE);
     printf("STORE instruction");
-    return illegal_instr;
+    return store_instr;
 }
 
 static rv_instr_func_t decode_AMO(rv_instr_t instr) {

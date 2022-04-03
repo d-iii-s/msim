@@ -55,6 +55,22 @@ rv_exc_t rv_read_mem32(rv_cpu_t *cpu, uint32_t virt, uint32_t *value, bool noisy
     return rv_exc_none;
 }
 
+rv_exc_t rv_write_mem32(rv_cpu_t *cpu, uint32_t virt, uint32_t value, bool noisy){
+    ASSERT(cpu != NULL);
+
+    ptr36_t phys;
+    rv_exc_t ex = rv_convert_addr(cpu, virt, &phys, false, noisy);
+    
+    if(ex != rv_exc_none){
+        return ex;
+    }
+
+    if(physmem_write32(cpu->csr.mhartid, phys, value, true)){
+        return rv_exc_none;
+    }
+    //TODO: handle write into invalid memory
+    return rv_exc_none;
+}
 
 
 

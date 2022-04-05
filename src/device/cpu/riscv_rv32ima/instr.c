@@ -1,6 +1,6 @@
 #include "instr.h"
 #include "cpu.h"
-#include "../../assert.h"
+#include "../../../assert.h"
 
 static rv_exc_t illegal_instr(rv_cpu_t *cpu, rv_instr_t instr){
     // TODO: change state?

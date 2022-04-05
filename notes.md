@@ -165,6 +165,7 @@ or separate functionality needs to be added.
 
 Instruction decoding is done in multiple steps.
 First by switching based on the opcode field, and then based on the func fields, that are specific to each format.
+
 ### LOAD
 
 The only difference between the kinds of loads are the length and whether a shorter number is sign extended or zero extended.
@@ -173,6 +174,16 @@ Should this be routed on decode time or at execution time?
 Decode time leads to slightly faster execution afterwards (saving one switch on already decoded instructions if it is cached).
 
 Execution time saves on copypasted code.
+
+### SYSTEM
+
+#### EBREAK
+
+just enters interactive mode, should be enough for now
+
+#### EHALT
+
+new nonstandart instruction used to halt the simulation
 
 ## random msim facts
 

@@ -79,6 +79,23 @@ typedef enum {
     rv_opcSYSTEM      = 0b1110011
 } rv_opcode_t;
 
+typedef enum {
+    rv_funcPRIV       = 0b000,
+    rv_funcCSRRW      = 0b001,
+    rv_funcCSRRS      = 0b010,
+    rv_funcCSRRC      = 0b011,
+    rv_funcCSRRWI     = 0b101,
+    rv_funcCSRRSI     = 0b110,
+    rv_funcCSRRCI     = 0b111,
+
+} rv_system_func_t;
+
+typedef enum {
+    rv_privECALL  = 0,
+    rv_privEBREAK = 1,
+    rv_privEHALT  = 2
+} rv_system_priv_imm_t;
+
 
 //forward declarations
 enum rv_exc;

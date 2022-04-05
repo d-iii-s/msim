@@ -4,7 +4,7 @@ lw a0, 0x14(x0)
 lw a1, 0x18(x0)
 add a2, a0, a1; # a2 = a0 + a1
 sw a2, 0x1C(x0)
-ebreak
+.word 0x00200073
 
 var1:
     .word 1

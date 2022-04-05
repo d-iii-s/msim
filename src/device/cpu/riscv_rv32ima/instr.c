@@ -35,6 +35,29 @@ static rv_exc_t load_instr(rv_cpu_t *cpu, rv_instr_t instr){
     return rv_exc_none;
 }
 
+static rv_exc_t break_instr(rv_cpu_t *cpu, rv_instr_t instr){
+    ASSERT(cpu != NULL);
+    ASSERT(instr.i.opcode == rv_opcSYSTEM);
+
+    printf("BREAK");
+
+    alert("BREAK");
+
+    machine_interactive = true;
+    return rv_exc_none;
+}
+
+static rv_exc_t halt_instr(rv_cpu_t *cpu, rv_instr_t instr){
+    ASSERT(cpu != NULL);
+    ASSERT(instr.i.opcode == rv_opcSYSTEM);
+    alert("HALT");
+
+    machine_halt = true;
+    return rv_exc_none;
+}
+
+
+
 static rv_instr_func_t decode_LOAD(rv_instr_t instr) {
     ASSERT(instr.r.opcode == rv_opcLOAD);
     printf("LOAD instruction loaded");
@@ -98,10 +121,38 @@ static rv_instr_func_t decode_JAL(rv_instr_t instr) {
     return illegal_instr; 
 }
 
+
+static rv_instr_func_t decode_PRIV(rv_instr_t instr){
+    ASSERT(instr.i.opcode == rv_opcSYSTEM);
+    ASSERT(instr.i.func3 == rv_funcPRIV);
+
+    switch (instr.i.imm) {
+    case rv_privEBREAK:
+        return break_instr;
+    case rv_privEHALT:
+        return halt_instr;
+    case rv_privECALL:
+    default:
+        return illegal_instr;
+    }
+
+}
+
 static rv_instr_func_t decode_SYSTEM(rv_instr_t instr) {
-    ASSERT(instr.r.opcode == rv_opcSYSTEM);
-    printf("SYSTEM instruction");
-    return illegal_instr; 
+    ASSERT(instr.i.opcode == rv_opcSYSTEM);
+    switch (instr.i.func3) {
+        case rv_funcPRIV:
+            return decode_PRIV(instr);
+        //TODO: add CSR instructions
+        case rv_funcCSRRW:
+        case rv_funcCSRRS:
+        case rv_funcCSRRC:
+        case rv_funcCSRRWI:
+        case rv_funcCSRRSI:
+        case rv_funcCSRRCI:
+        default:
+            return illegal_instr;
+    }
 }
 
 rv_instr_func_t rv_instr_decode(rv_instr_t instr){

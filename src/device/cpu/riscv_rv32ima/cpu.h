@@ -17,6 +17,7 @@
 #include <stdbool.h>
 #include "instr.h"
 #include "csr.h"
+#include "../../../main.h"
 
 #define RV32IMA_REG_COUNT	32
 
@@ -83,5 +84,10 @@ extern void rv_cpu_step(rv_cpu_t *cpu);
 /** Interrupts */
 extern void rv_cpu_interrupt_up(rv_cpu_t *cpu, unsigned int no);
 extern void rv_cpu_interrupt_down(rv_cpu_t *cpu, unsigned int no);
+
+/** Memory operations */
+extern rv_exc_t rv_convert_addr(rv_cpu_t *cpu, uint32_t virt, ptr36_t *phys, bool wr, bool noisy);
+extern rv_exc_t rv_read_mem32(rv_cpu_t *cpu, uint32_t virt, uint32_t *value, bool noisy);
+
 
 #endif //RISCV_RV32IMA_CPU_H_

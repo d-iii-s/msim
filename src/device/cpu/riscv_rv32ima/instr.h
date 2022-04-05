@@ -19,7 +19,7 @@ typedef union{
         unsigned int rd : 5;
         unsigned int func3 : 3;
         unsigned int rs1 : 5;
-        unsigned int imm : 12;
+        int imm : 12;
     } i;
     struct {
         unsigned int opcode : 7;

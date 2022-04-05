@@ -1,15 +1,44 @@
+#include <stdio.h>
 #include "instr.h"
 #include "cpu.h"
 #include "../../../assert.h"
+#include "../../../main.h"
 
 static rv_exc_t illegal_instr(rv_cpu_t *cpu, rv_instr_t instr){
     // TODO: change state?
     return rv_exc_illegal_instruction;
 }
 
+static rv_exc_t load_instr(rv_cpu_t *cpu, rv_instr_t instr){
+    ASSERT(cpu != NULL);
+    ASSERT(instr.i.opcode == rv_opcLOAD);
+
+    // TODO: test if it works for negative immediates
+    uint32_t virt = cpu->regs[instr.i.rs1] + (int32_t)instr.i.imm;
+
+    // for now only 32 bit
+    //! CHANGE THIS!!!!!
+    uint32_t val;
+
+    printf("[reading from: 0x%08x ", virt);
+
+    rv_exc_t ex = rv_read_mem32(cpu, virt, &val, true);
+    
+    printf("val: %u to: x%d]", val, instr.i.rd);
+
+    if(ex != rv_exc_none){
+        return ex;
+    }
+
+    cpu->regs[instr.i.rd] = val;
+
+    return rv_exc_none;
+}
+
 static rv_instr_func_t decode_LOAD(rv_instr_t instr) {
     ASSERT(instr.r.opcode == rv_opcLOAD);
-    return illegal_instr; 
+    printf("LOAD instruction loaded");
+    return load_instr; 
 }
 
 static rv_instr_func_t decode_MISC_MEM(rv_instr_t instr) {
@@ -29,7 +58,8 @@ static rv_instr_func_t decode_AUIPC(rv_instr_t instr) {
 
 static rv_instr_func_t decode_STORE(rv_instr_t instr) {
     ASSERT(instr.r.opcode == rv_opcSTORE);
-    return illegal_instr; 
+    printf("STORE instruction");
+    return illegal_instr;
 }
 
 static rv_instr_func_t decode_AMO(rv_instr_t instr) {
@@ -39,6 +69,7 @@ static rv_instr_func_t decode_AMO(rv_instr_t instr) {
 
 static rv_instr_func_t decode_OP(rv_instr_t instr) {
     ASSERT(instr.r.opcode == rv_opcOP);
+    printf("OP instruction");
     return illegal_instr; 
 }
 
@@ -69,6 +100,7 @@ static rv_instr_func_t decode_JAL(rv_instr_t instr) {
 
 static rv_instr_func_t decode_SYSTEM(rv_instr_t instr) {
     ASSERT(instr.r.opcode == rv_opcSYSTEM);
+    printf("SYSTEM instruction");
     return illegal_instr; 
 }
 

@@ -161,6 +161,19 @@ I would suggest, that the device (dr4kcpu,...) alloc and free them
 msim allows different names of registers, this needs to be abstracted,
 or separate functionality needs to be added.
 
+## instructions
+
+Instruction decoding is done in multiple steps.
+First by switching based on the opcode field, and then based on the func fields, that are specific to each format.
+### LOAD
+
+The only difference between the kinds of loads are the length and whether a shorter number is sign extended or zero extended.
+Should this be routed on decode time or at execution time?
+
+Decode time leads to slightly faster execution afterwards (saving one switch on already decoded instructions if it is cached).
+
+Execution time saves on copypasted code.
+
 ## random msim facts
 
 - all device interrupts are handled on cpu with id 0

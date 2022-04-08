@@ -196,3 +196,11 @@ new nonstandart instruction used to halt the simulation
 
 - modifying valid values for a CSR changes its value to *unspecified*
 - mtime and mtimecmp are memory mapped m-mode registers. So it means, that there is a well-known address at which they reside, and they are only accessible to m-mode.
+
+## Tests
+
+### MIPS
+
+#### bad_status_ksu
+
+test causes an exception, but no exception handlers are supported, which leads to reading outside of physmem?

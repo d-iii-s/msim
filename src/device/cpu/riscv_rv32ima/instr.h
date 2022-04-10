@@ -65,7 +65,7 @@ typedef enum {
     rv_opcLOAD        = 0b0000011,
     rv_opcLOAD_FP     = 0b0000111, // not supported
     rv_opcMISC_MEM    = 0b0001111,
-    OP_IMM            = 0b0010011,
+    rv_opcOP_IMM      = 0b0010011,
     rv_opcAUIPC       = 0b0010111,
     rv_opcSTORE       = 0b0100011,
     rv_opcSTORE_FP    = 0b0100111, // not supported

@@ -36,6 +36,10 @@ SOURCES = \
 	device/cpu/riscv_rv32ima/cpu.c \
 	device/cpu/riscv_rv32ima/csr.c \
 	device/cpu/riscv_rv32ima/instr.c \
+	device/cpu/riscv_rv32ima/instructions/computations.c \
+	device/cpu/riscv_rv32ima/instructions/mem_ops.c \
+	device/cpu/riscv_rv32ima/instructions/control_transfer.c \
+	device/cpu/riscv_rv32ima/instructions/system.c \
 	device/cpu/general_cpu.c \
 	device/mem.c \
 	device/ddisk.c \

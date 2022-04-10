@@ -54,14 +54,23 @@ static rv_instr_func_t decode_OP(rv_instr_t instr) {
         case rv_func_ADD:
             return add_instr;
         case rv_func_SUB:
+            return sub_instr;
         case rv_func_SLL:
+            return sll_instr;
         case rv_func_SLT:
+            return slt_instr;
         case rv_func_SLTU:
+            return sltu_instr;
         case rv_func_XOR:
+            return xor_instr;
         case rv_func_SRL:
+            return srl_instr;
         case rv_func_SRA:
+            return sra_instr;
         case rv_func_OR:
-        case rv_funcAND:
+            return or_instr;
+        case rv_func_AND:
+            return and_instr;
         default:
             return illegal_instr;
     }    

@@ -95,7 +95,7 @@ typedef enum {
     rv_func_SRL       = 0b0000000101,
     rv_func_SRA       = 0b0100000101,
     rv_func_OR        = 0b0000000110,
-    rv_funcAND        = 0b0000000111
+    rv_func_AND        = 0b0000000111
 } rv_op_func_t;
 
 /** Funct values for SYSTEM instructions */

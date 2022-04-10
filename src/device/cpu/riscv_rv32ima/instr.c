@@ -98,7 +98,7 @@ static rv_instr_func_t decode_JALR(rv_instr_t instr) {
 
 static rv_instr_func_t decode_JAL(rv_instr_t instr) {
     ASSERT(instr.r.opcode == rv_opcJAL);
-    return illegal_instr; 
+    return jal_instr; 
 }
 
 

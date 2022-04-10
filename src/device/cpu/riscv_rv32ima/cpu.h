@@ -49,7 +49,8 @@ typedef struct rv_cpu
 	// f regs - no
 
 	uint32_t pc;
-	// pc_next - unneccesary, because risc-v does not have a delay slot
+	// Used to implement jumps and branches easily
+	uint32_t pc_next;
 
 	// tlb - virtual memory is done using page tables
 	// but if this would be really slow, some caching could be a nice optimalization

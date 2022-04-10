@@ -166,6 +166,8 @@ or separate functionality needs to be added.
 Instruction decoding is done in multiple steps.
 First by switching based on the opcode field, and then based on the func fields, that are specific to each format.
 
+The jump/branch instructions can be elegantly implemented with a `next_pc` value stored in `rv_cpu_t`. The value of `pc` can be set to this value at the end of each tick, and the value of `pc_next` can be changed in instruction execution or exception handlers.
+
 ### LOAD
 
 The only difference between the kinds of loads are the length and whether a shorter number is sign extended or zero extended.

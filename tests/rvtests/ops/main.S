@@ -1,5 +1,5 @@
 .text
-/* Read vals from mem, add them together and store to mem */
+/* Read vals from mem, tests all inter register ops and halts */
 lw a0, 0x38(x0)
 lw a1, 0x3C(x0)
 lw a2, 0x40(x0)

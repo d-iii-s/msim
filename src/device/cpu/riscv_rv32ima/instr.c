@@ -16,7 +16,6 @@ static rv_exc_t illegal_instr(rv_cpu_t *cpu, rv_instr_t instr){
 
 static rv_instr_func_t decode_LOAD(rv_instr_t instr) {
     ASSERT(instr.i.opcode == rv_opcLOAD);
-    printf("LOAD instruction loaded");
     return load_instr; 
 }
 
@@ -37,7 +36,6 @@ static rv_instr_func_t decode_AUIPC(rv_instr_t instr) {
 
 static rv_instr_func_t decode_STORE(rv_instr_t instr) {
     ASSERT(instr.s.opcode == rv_opcSTORE);
-    printf("STORE instruction");
     return store_instr;
 }
 
@@ -48,7 +46,6 @@ static rv_instr_func_t decode_AMO(rv_instr_t instr) {
 
 static rv_instr_func_t decode_OP(rv_instr_t instr) {
     ASSERT(instr.r.opcode == rv_opcOP);
-    printf("OP instruction");
     uint32_t funct = RV_R_FUNCT(instr);
     switch(funct){
         case rv_func_ADD:
@@ -126,15 +123,14 @@ static rv_instr_func_t decode_PRIV(rv_instr_t instr){
     ASSERT(instr.i.func3 == rv_funcPRIV);
 
     switch (instr.i.imm) {
-    case rv_privEBREAK:
-        return break_instr;
-    case rv_privEHALT:
-        return halt_instr;
-    case rv_privECALL:
-    default:
-        return illegal_instr;
+        case rv_privEBREAK:
+            return break_instr;
+        case rv_privEHALT:
+            return halt_instr;
+        case rv_privECALL:
+        default:
+            return illegal_instr;
     }
-
 }
 
 static rv_instr_func_t decode_SYSTEM(rv_instr_t instr) {

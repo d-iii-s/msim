@@ -2912,7 +2912,8 @@ static r4k_exc_t cpu_frame(r4k_cpu_t *cpu)
 static void frame_decode(frame_t *frame, instr_fnc_t* out)
 {
 	ASSERT(frame != NULL);
-	ASSERT(!frame->valid);
+	// Remove when caching is back
+	//ASSERT(!frame->valid);
 	
 	unsigned int i;
 	for (i = 0; i < ADDR2INSTR(FRAME_SIZE); i++) {

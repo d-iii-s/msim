@@ -15,7 +15,7 @@ static rv_exc_t illegal_instr(rv_cpu_t *cpu, rv_instr_t instr){
 }
 
 static rv_instr_func_t decode_LOAD(rv_instr_t instr) {
-    ASSERT(instr.r.opcode == rv_opcLOAD);
+    ASSERT(instr.i.opcode == rv_opcLOAD);
     printf("LOAD instruction loaded");
     return load_instr; 
 }
@@ -36,7 +36,7 @@ static rv_instr_func_t decode_AUIPC(rv_instr_t instr) {
 }
 
 static rv_instr_func_t decode_STORE(rv_instr_t instr) {
-    ASSERT(instr.r.opcode == rv_opcSTORE);
+    ASSERT(instr.s.opcode == rv_opcSTORE);
     printf("STORE instruction");
     return store_instr;
 }
@@ -92,8 +92,12 @@ static rv_instr_func_t decode_BRANCH(rv_instr_t instr) {
 }
 
 static rv_instr_func_t decode_JALR(rv_instr_t instr) {
-    ASSERT(instr.r.opcode == rv_opcJALR);
-    return illegal_instr; 
+    ASSERT(instr.i.opcode == rv_opcJALR);
+
+    if(instr.i.func3 != 0) {
+        return illegal_instr;
+    }    
+    return jalr_instr; 
 }
 
 static rv_instr_func_t decode_JAL(rv_instr_t instr) {

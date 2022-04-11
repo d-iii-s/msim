@@ -2776,7 +2776,7 @@ void r4k_interrupt_down(r4k_cpu_t *cpu, unsigned int no)
 static instr_fnc_t decode(r4k_instr_t instr)
 {
 	instr_fnc_t fnc;
-	
+
 	/*
 	 * Basic opcode decoding based
 	 * on the opcode field.
@@ -2788,6 +2788,9 @@ static instr_fnc_t decode(r4k_instr_t instr)
 		 * on the func field.
 		 */
 		fnc = func_map[instr.r.func];
+		if(instr.r.func == 0x21){
+			ASSERT(fnc == instr_addu);
+		}
 		break;
 	case r4k_opcREGIMM:
 		/*
@@ -2926,7 +2929,7 @@ static void frame_decode(frame_t *frame, instr_fnc_t* out)
 static void handle_exception(r4k_cpu_t *cpu, r4k_exc_t res)
 {
 	ASSERT(cpu != NULL);
-	
+
 	bool tlb_refill = false;
 	
 	/* Convert TLB Refill exceptions */
@@ -3012,16 +3015,16 @@ static r4k_exc_t execute(r4k_cpu_t *cpu)
 			if (res != r4k_excNone)
 				handle_exception(cpu, res);
 		} while (res != r4k_excNone);
-	}
-	
-	if (!cpu->frame->valid)
+
+		// decode everytime, because we are not caching
 		frame_decode(cpu->frame, cpu->trans);
+	}
 	
 	/* Fetch decoded instruction */
 	unsigned int i = cpu->pc.ptr & FRAME_MASK;
 	r4k_instr_t instr = *((r4k_instr_t *) (cpu->frame->data + i));
 	instr_fnc_t fnc = *(cpu->trans + ADDR2INSTR(i));
-	
+
 	/* Execute instruction */
 	r4k_exc_t exc = fnc(cpu, instr);
 	
@@ -3103,8 +3106,11 @@ static void manage(r4k_cpu_t *cpu, r4k_exc_t exc, ptr64_t old_pc)
 	 * Reset the binary translation if we are outside
 	 * the original frame.
 	 */
-	if ((old_pc.ptr | FRAME_MASK) != (cpu->pc.ptr | FRAME_MASK))
+	if ((old_pc.ptr | FRAME_MASK) != (cpu->pc.ptr | FRAME_MASK)){
+		//TODO: remove when cached decode is back
+		cpu->frame->valid = false;
 		cpu->frame = NULL;
+	}
 }
 
 /** CPU cycle accounting after one instruction execution

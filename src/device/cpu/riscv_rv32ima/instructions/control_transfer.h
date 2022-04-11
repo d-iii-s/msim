@@ -7,4 +7,11 @@
 extern rv_exc_t jal_instr(rv_cpu_t *cpu, rv_instr_t instr);
 extern rv_exc_t jalr_instr(rv_cpu_t *cpu, rv_instr_t instr);
 
+extern rv_exc_t beq_instr(rv_cpu_t *cpu, rv_instr_t instr);
+extern rv_exc_t bne_instr(rv_cpu_t *cpu, rv_instr_t instr);
+extern rv_exc_t blt_instr(rv_cpu_t *cpu, rv_instr_t instr);
+extern rv_exc_t bltu_instr(rv_cpu_t *cpu, rv_instr_t instr);
+extern rv_exc_t bge_instr(rv_cpu_t *cpu, rv_instr_t instr);
+extern rv_exc_t bgeu_instr(rv_cpu_t *cpu, rv_instr_t instr);
+
 #endif //RISCV_RV32IMA_INSTR_CONTROL_TRANSFER_H_

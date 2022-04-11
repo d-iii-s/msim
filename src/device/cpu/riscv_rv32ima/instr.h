@@ -36,8 +36,8 @@ typedef union{
         unsigned int func3 : 3;
         unsigned int rs1 : 5;
         unsigned int rs2 : 5;
-        int imm10_5 : 6;
-        unsigned int imm12 : 1;
+        unsigned int imm10_5 : 6;
+        int imm12 : 1;
     } b;
     struct {
         unsigned int opcode : 7;
@@ -59,6 +59,7 @@ static_assert(sizeof(rv_instr_t) == 4, "rv_instr_t has wrong size");
 #define RV_S_IMM(instr) (uint32_t)((((int32_t)instr.s.imm11_5)<<5)|((0x1F)&instr.s.imm4_0))
 #define RV_R_FUNCT(instr) (uint32_t)(((uint32_t)(instr.r.func7)<<3)|(0x7 & instr.r.func3))
 #define RV_J_IMM(instr) (uint32_t)((((int32_t)instr.j.imm_20)<<20)|(instr.j.imm19_12<<12)|(instr.j.imm11<<11)|(instr.j.imm10_1 << 1))
+#define RV_B_IMM(instr) (uint32_t)((((int32_t)instr.b.imm_12)<<12)|(instr.b.imm11<<11)|(instr.b.imm10_5<<5)|(instr.b.imm4_1<<1))
 
 /** Opcodes*/
 typedef enum {
@@ -95,8 +96,17 @@ typedef enum {
     rv_func_SRL       = 0b0000000101,
     rv_func_SRA       = 0b0100000101,
     rv_func_OR        = 0b0000000110,
-    rv_func_AND        = 0b0000000111
+    rv_func_AND       = 0b0000000111
 } rv_op_func_t;
+
+typedef enum {
+    rv_func_BEQ       = 0b000,
+    rv_func_BNE       = 0b001,
+    rv_func_BLT       = 0b100,
+    rv_func_BLTU      = 0b110,
+    rv_func_BGE       = 0b101,
+    rv_func_BGEU      = 0b111
+} rv_branch_func_t;
 
 /** Funct values for SYSTEM instructions */
 typedef enum {

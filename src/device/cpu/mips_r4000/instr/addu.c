@@ -1,5 +1,6 @@
 static r4k_exc_t instr_addu(r4k_cpu_t *cpu, r4k_instr_t instr)
 {
+
 	uint32_t rs = cpu->regs[instr.r.rs].lo;
 	uint32_t rt = cpu->regs[instr.r.rt].lo;
 	

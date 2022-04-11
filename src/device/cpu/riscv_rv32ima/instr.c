@@ -87,8 +87,23 @@ static rv_instr_func_t decode_OP_32(rv_instr_t instr) {
 }
 
 static rv_instr_func_t decode_BRANCH(rv_instr_t instr) {
-    ASSERT(instr.r.opcode == rv_opcBRANCH);
-    return illegal_instr; 
+    ASSERT(instr.b.opcode == rv_opcBRANCH);
+    switch(instr.b.func3){
+        case rv_func_BEQ:
+            return beq_instr;
+        case rv_func_BNE:
+            return bne_instr;
+        case rv_func_BLT:
+            return blt_instr;
+        case rv_func_BLTU:
+            return bltu_instr;
+        case rv_func_BGE:
+            return bge_instr;
+        case rv_func_BGEU:
+            return bgeu_instr;
+        default: 
+            return illegal_instr; 
+    }
 }
 
 static rv_instr_func_t decode_JALR(rv_instr_t instr) {

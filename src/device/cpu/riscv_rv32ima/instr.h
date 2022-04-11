@@ -50,7 +50,7 @@ typedef union{
         unsigned int imm19_12 : 8;
         unsigned int imm11 : 1;
         unsigned int imm10_1 : 10;
-        int imm_20 : 1;
+        int imm20 : 1;
     } j;
 } rv_instr_t;
 
@@ -58,8 +58,8 @@ static_assert(sizeof(rv_instr_t) == 4, "rv_instr_t has wrong size");
 
 #define RV_S_IMM(instr) (uint32_t)((((int32_t)instr.s.imm11_5)<<5)|((0x1F)&instr.s.imm4_0))
 #define RV_R_FUNCT(instr) (uint32_t)(((uint32_t)(instr.r.func7)<<3)|(0x7 & instr.r.func3))
-#define RV_J_IMM(instr) (uint32_t)((((int32_t)instr.j.imm_20)<<20)|(instr.j.imm19_12<<12)|(instr.j.imm11<<11)|(instr.j.imm10_1 << 1))
-#define RV_B_IMM(instr) (uint32_t)((((int32_t)instr.b.imm_12)<<12)|(instr.b.imm11<<11)|(instr.b.imm10_5<<5)|(instr.b.imm4_1<<1))
+#define RV_J_IMM(instr) (uint32_t)((((int32_t)instr.j.imm20)<<20)|(instr.j.imm19_12<<12)|(instr.j.imm11<<11)|(instr.j.imm10_1 << 1))
+#define RV_B_IMM(instr) (uint32_t)((((int32_t)instr.b.imm12)<<12)|(instr.b.imm11<<11)|(instr.b.imm10_5<<5)|(instr.b.imm4_1<<1))
 
 /** Opcodes*/
 typedef enum {

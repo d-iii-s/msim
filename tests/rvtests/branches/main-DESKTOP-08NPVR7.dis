@@ -1,0 +1,48 @@
+
+main.raw:     file format elf32-littleriscv
+
+
+Disassembly of section .text:
+
+00000000 <BEQ_test>:
+   0:	01402503          	lw	a0,20(zero) # 14 <BNE_test+0x4>
+   4:	01402583          	lw	a1,20(zero) # 14 <BNE_test+0x4>
+   8:	00b50463          	beq	a0,a1,10 <BNE_test>
+   c:	00100073          	ebreak
+
+00000010 <BNE_test>:
+  10:	01802503          	lw	a0,24(zero) # 18 <BNE_test+0x8>
+  14:	00b50463          	beq	a0,a1,1c <BNE_test+0xc>
+  18:	fe9ff06f          	j	0 <BEQ_test>
+  1c:	00100073          	ebreak
+
+00000020 <BLT_test>:
+  20:	01c02503          	lw	a0,28(zero) # 1c <BNE_test+0xc>
+  24:	00b54463          	blt	a0,a1,2c <BLTU_test>
+  28:	00100073          	ebreak
+
+0000002c <BLTU_test>:
+  2c:	00a5e463          	bltu	a1,a0,34 <BGE_test>
+  30:	00100073          	ebreak
+
+00000034 <BGE_test>:
+  34:	01402503          	lw	a0,20(zero) # 14 <BNE_test+0x4>
+  38:	00a5d463          	bge	a1,a0,40 <BGEU_test>
+  3c:	00100073          	ebreak
+
+00000040 <BGEU_test>:
+  40:	01c02503          	lw	a0,28(zero) # 1c <BNE_test+0xc>
+  44:	00a5f463          	bgeu	a1,a0,4c <END>
+  48:	00100073          	ebreak
+
+0000004c <END>:
+  4c:	00200073          	.word	0x00200073
+
+00000050 <var1>:
+  50:	00000000          	.word	0x00000000
+
+00000054 <var2>:
+  54:	00000001          	.word	0x00000001
+
+00000058 <var3>:
+  58:	ffffffff          	.word	0xffffffff

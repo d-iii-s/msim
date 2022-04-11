@@ -3020,6 +3020,11 @@ static r4k_exc_t execute(r4k_cpu_t *cpu)
 		// decode everytime, because we are not caching
 		frame_decode(cpu->frame, cpu->trans);
 	}
+
+	// decode if frame is invalid
+	if(!cpu->frame->valid){
+		frame_decode(cpu->frame, cpu->trans);
+	}
 	
 	/* Fetch decoded instruction */
 	unsigned int i = cpu->pc.ptr & FRAME_MASK;

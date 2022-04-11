@@ -28,7 +28,7 @@
 	(((addr) + ((align) - 1)) & ~((align) - 1))
 
 #define IS_ALIGNED(addr, align) \
-	(addr & (align - 1)) == 0
+	((addr & (align - 1)) == 0)
 
 #define safe_free(ptr) \
 	{ \

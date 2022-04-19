@@ -1,0 +1,7 @@
+1..2
+#> Starting suite Ops.
+ok 1 add_basic
+not ok 2 add_fail failed
+# error: op-test.c:17: Expected <42> but got <43> (42 != 43)
+#> Finished suite Ops (failed 1 of 2).
+#> Done: 1 of 2 tests failed.

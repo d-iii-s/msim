@@ -13,7 +13,7 @@ bindir = @bindir@
 
 BINARY = msim
 
-.PHONY: all install uninstall clean distclean rv-test
+.PHONY: all install uninstall clean distclean rvtest
 
 all:
 	$(MAKE) -C src
@@ -34,5 +34,5 @@ distclean: clean
 	$(MAKE) -C tests/rvtests/unit-tests distclean
 	$(RM) -f Makefile config.log config.status config.h stamp-h
 
-rv-test:
-	$(MAKE) -C tests/rvtests/unit-tests test
+rvtest:
+	$(MAKE) -C src rvtest

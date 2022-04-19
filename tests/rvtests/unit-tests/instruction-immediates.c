@@ -5,7 +5,7 @@
 
 PCUT_INIT
 
-PCUT_TEST_SUITE(Instruction);
+PCUT_TEST_SUITE(instruction_immediates);
 
 PCUT_TEST(s_imm_positive){
     rv_instr_t instr;
@@ -72,4 +72,4 @@ PCUT_TEST(b_imm_negative){
     PCUT_ASSERT_INT_EQUALS(-2, (int32_t)RV_B_IMM(instr));
 }
 
-PCUT_EXPORT(Instruction);
+PCUT_EXPORT(instruction_immediates);

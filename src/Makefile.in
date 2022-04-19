@@ -59,7 +59,10 @@ SOURCES = \
 
 OBJECTS := $(addsuffix .o,$(basename $(SOURCES)))
 
-.PHONY: all clean distclean
+export MSIM_OBJECTS = $(OBJECTS)
+export MSIM_LIBS = $(LIBS)
+
+.PHONY: all clean distclean rvtest
 
 all: $(TARGET)
 	-[ -f $(DEPEND) ] && $(CP) -a $(DEPEND) $(DEPEND_PREV)
@@ -81,3 +84,6 @@ $(TARGET): $(OBJECTS) $(DEPEND)
 $(DEPEND):
 	$(MAKEDEPEND) -f - -- $(CFLAGS) -- $(SOURCES) > $@ 2> /dev/null
 	-[ -f $(DEPEND_PREV) ] && $(DIFF) -q $(DEPEND_PREV) $@ && $(MV) -f $(DEPEND_PREV) $@
+
+rvtest: all
+	$(MAKE) -C ../tests/rvtests/unit-tests test

@@ -31,8 +31,8 @@ typedef union{
     } s;
     struct {
         unsigned int opcode : 7;
-        int imm11 : 1;
-        int imm4_1 : 4; 
+        unsigned int imm11 : 1;
+        unsigned int imm4_1 : 4; 
         unsigned int func3 : 3;
         unsigned int rs1 : 5;
         unsigned int rs2 : 5;

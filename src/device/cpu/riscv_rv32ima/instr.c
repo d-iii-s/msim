@@ -9,7 +9,7 @@
 #include "instructions/control_transfer.h"
 #include "instructions/system.h"
 
-static rv_exc_t illegal_instr(rv_cpu_t *cpu, rv_instr_t instr){
+rv_exc_t illegal_instr(rv_cpu_t *cpu, rv_instr_t instr){
     // TODO: change state - depends on the global variable machine_undefined
     return rv_exc_illegal_instruction;
 }

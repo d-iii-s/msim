@@ -40,14 +40,21 @@ static rv_instr_func_t decode_OP_IMM(rv_instr_t instr) {
             return ori_instr;
         case rv_func_ANDI:
             return andi_instr;
-        case rv_func_SLLI:
-            return slli_instr;
-        case rv_func_SRI: {
-            if(instr.i.imm & RV_IMM_SHIFT_ARITHMETIC_BIT){
-                return srai_instr;
+        case rv_func_SLLI:{
+            if(instr.i.imm >> 5 == 0){
+                return slli_instr;
+            } else{
+                return illegal_instr;
             }
-            else{
-                return srli_instr;
+        }
+        case rv_func_SRI: {
+            switch(instr.i.imm >> 5){
+                case rv_SRAI:
+                    return srai_instr;
+                case rv_SRLI:
+                    return srli_instr;
+                default:
+                    return illegal_instr; 
             }
         }
         default:

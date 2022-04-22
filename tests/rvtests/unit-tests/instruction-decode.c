@@ -224,6 +224,91 @@ PCUT_TEST(jal_decode){
  * OP IMM instructions *
  ***********************/
 
+PCUT_TEST(addi_decode){
+    rv_instr_t instr;
+    instr.i.opcode = rv_opcOP_IMM;
+    instr.i.func3 = rv_func_ADDI;
+
+    PCUT_ASSERT_EQUALS(addi_instr, rv_instr_decode(instr));
+}
+
+PCUT_TEST(slti_decode){
+    rv_instr_t instr;
+    instr.i.opcode = rv_opcOP_IMM;
+    instr.i.func3 = rv_func_SLTI;
+
+    PCUT_ASSERT_EQUALS(slti_instr, rv_instr_decode(instr));
+}
+
+PCUT_TEST(sltiu_decode){
+    rv_instr_t instr;
+    instr.i.opcode = rv_opcOP_IMM;
+    instr.i.func3 = rv_func_SLTIU;
+
+    PCUT_ASSERT_EQUALS(sltiu_instr, rv_instr_decode(instr));
+}
+
+PCUT_TEST(xori_decode){
+    rv_instr_t instr;
+    instr.i.opcode = rv_opcOP_IMM;
+    instr.i.func3 = rv_func_XORI;
+
+    PCUT_ASSERT_EQUALS(xori_instr, rv_instr_decode(instr));
+}
+
+PCUT_TEST(ori_decode){
+    rv_instr_t instr;
+    instr.i.opcode = rv_opcOP_IMM;
+    instr.i.func3 = rv_func_ORI;
+
+    PCUT_ASSERT_EQUALS(ori_instr, rv_instr_decode(instr));
+}
+
+PCUT_TEST(andi_decode){
+    rv_instr_t instr;
+    instr.i.opcode = rv_opcOP_IMM;
+    instr.i.func3 = rv_func_ANDI;
+
+    PCUT_ASSERT_EQUALS(andi_instr, rv_instr_decode(instr));
+}
+
+PCUT_TEST(slli_decode){
+    rv_instr_t instr;
+    instr.i.opcode = rv_opcOP_IMM;
+    instr.i.func3 = rv_func_SLLI;
+    instr.i.imm = 0;
+
+    PCUT_ASSERT_EQUALS(slli_instr, rv_instr_decode(instr));
+}
+
+PCUT_TEST(slli_illegal_decode){
+    rv_instr_t instr;
+    instr.i.opcode = rv_opcOP_IMM;
+    instr.i.func3 = rv_func_SLLI;
+    instr.i.imm = 1<<6;
+
+    PCUT_ASSERT_EQUALS(illegal_instr, rv_instr_decode(instr));
+}
+
+PCUT_TEST(srli_decode){
+    rv_instr_t instr;
+    instr.i.opcode = rv_opcOP_IMM;
+    instr.i.func3 = rv_func_SRI;
+    instr.i.imm = 0;
+
+    PCUT_ASSERT_EQUALS(srli_instr, rv_instr_decode(instr));
+}
+
+PCUT_TEST(srai_decode){
+    rv_instr_t instr;
+    instr.i.opcode = rv_opcOP_IMM;
+    instr.i.func3 = rv_func_SRI;
+    // set bit 30, as in spec
+    instr.val |= 1<<30;
+
+    PCUT_ASSERT_EQUALS(srai_instr, rv_instr_decode(instr));
+}
+
 /**********************
  * AUIPC instructions *
  **********************/

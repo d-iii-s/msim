@@ -108,12 +108,14 @@ typedef enum {
     rv_func_ORI       = 0b110,
     rv_func_ANDI      = 0b111,
     rv_func_SLLI      = 0b001,
-    rv_func_SRI       = 0b101, // same for SRLI and SRAI
+    rv_func_SRI       = 0b101  // same for SRLI and SRAI
 } rv_op_imm_func_t;
 
-// bit that is set if the right shift by constant is arithmetical or logical
-// this bit position is in the imm field, not in the whole instruction
-#define RV_IMM_SHIFT_ARITHMETIC_BIT (1<<10)
+/** Values of the top 7 bits of imm field determining the right shift type */
+typedef enum {
+    rv_SRAI           = 0b0100000,
+    rv_SRLI           = 0b0000000,
+} rv_op_imm_right_shift_type_t;
 
 // mask for the shift ammount in the imm field of the instruction
 #define RV_IMM_SHIFT_SHAMT_MASK (0x1F)

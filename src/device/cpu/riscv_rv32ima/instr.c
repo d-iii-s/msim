@@ -25,8 +25,34 @@ static rv_instr_func_t decode_MISC_MEM(rv_instr_t instr) {
 }
 
 static rv_instr_func_t decode_OP_IMM(rv_instr_t instr) {
-    ASSERT(instr.r.opcode == rv_opcOP_IMM);
-    return illegal_instr; 
+    ASSERT(instr.i.opcode == rv_opcOP_IMM);
+
+    switch(instr.i.func3){
+        case rv_func_ADDI:
+            return addi_instr;
+        case rv_func_SLTI:
+            return slti_instr;
+        case rv_func_SLTIU:
+            return sltiu_instr;
+        case rv_func_XORI:
+            return xori_instr;
+        case rv_func_ORI:
+            return ori_instr;
+        case rv_func_ANDI:
+            return andi_instr;
+        case rv_func_SLLI:
+            return slli_instr;
+        case rv_func_SRI: {
+            if(instr.i.imm & RV_IMM_SHIFT_ARITHMETIC_BIT){
+                return srai_instr;
+            }
+            else{
+                return srli_instr;
+            }
+        }
+        default:
+            return illegal_instr; 
+    }
 }
 
 static rv_instr_func_t decode_AUIPC(rv_instr_t instr) {

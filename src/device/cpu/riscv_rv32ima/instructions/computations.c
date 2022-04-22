@@ -153,6 +153,8 @@ rv_exc_t addi_instr(rv_cpu_t *cpu, rv_instr_t instr){
 
     int32_t val = cpu->regs[instr.i.rs1] + imm;
 
+    printf(" [addi %08x (imm) + %08x (reg) = %08x]", imm, cpu->regs[instr.i.rs1], val);
+
     cpu->regs[instr.i.rd] = val;
 
     return rv_exc_none;
@@ -165,6 +167,8 @@ rv_exc_t slti_instr(rv_cpu_t *cpu, rv_instr_t instr){
     int32_t imm = instr.i.imm;
 
     bool cmp = ((int32_t)(cpu->regs[instr.i.rs1]) < imm);
+
+    printf(" [slti %d (imm) > %d (reg) ? %s]", imm, cpu->regs[instr.i.rs1], (cmp ? "true" : "false"));
 
     cpu->regs[instr.i.rd] = cmp ? 1 : 0;
 
@@ -180,6 +184,8 @@ rv_exc_t sltiu_instr(rv_cpu_t *cpu, rv_instr_t instr){
 
     bool cmp = ((cpu->regs[instr.i.rs1]) < imm);
 
+    printf(" [sltiu %08x (imm) > %08x (reg) ? %s]", imm, cpu->regs[instr.i.rs1], (cmp ? "true" : "false"));
+
     cpu->regs[instr.i.rd] = cmp ? 1 : 0;
 
     return rv_exc_none;
@@ -192,6 +198,8 @@ rv_exc_t andi_instr(rv_cpu_t *cpu, rv_instr_t instr){
     int32_t imm = instr.i.imm;
 
     uint32_t val = cpu->regs[instr.i.rs1] & imm;
+
+    printf(" [andi %08x (imm) & %08x (reg) = %08x]", imm, cpu->regs[instr.i.rs1], val);
 
     cpu->regs[instr.i.rd] = val;
 
@@ -206,6 +214,8 @@ rv_exc_t ori_instr(rv_cpu_t *cpu, rv_instr_t instr){
 
     uint32_t val = cpu->regs[instr.i.rs1] | imm;
 
+    printf(" [ori %08x (imm) | %08x (reg) = %08x]", imm, cpu->regs[instr.i.rs1], val);
+
     cpu->regs[instr.i.rd] = val;
 
     return rv_exc_none;
@@ -218,6 +228,8 @@ rv_exc_t xori_instr(rv_cpu_t *cpu, rv_instr_t instr){
     int32_t imm = instr.i.imm;
 
     uint32_t val = cpu->regs[instr.i.rs1] ^ imm;
+
+    printf(" [xori %08x (imm) ^ %08x (reg) = %08x]", imm, cpu->regs[instr.i.rs1], val);
 
     cpu->regs[instr.i.rd] = val;
 
@@ -232,6 +244,8 @@ rv_exc_t slli_instr(rv_cpu_t *cpu, rv_instr_t instr){
 
     uint32_t val = (uint32_t)cpu->regs[instr.i.rs1] << imm;
 
+    printf(" [slli  %08x << %d = %08x]", cpu->regs[instr.i.rs1], imm, val);
+
     cpu->regs[instr.i.rd] = val;
 
     return rv_exc_none;
@@ -245,6 +259,8 @@ rv_exc_t srli_instr(rv_cpu_t *cpu, rv_instr_t instr){
 
     uint32_t val = (uint32_t)cpu->regs[instr.i.rs1] >> imm;
 
+    printf(" [srli  %08x >> %d = %08x]", cpu->regs[instr.i.rs1], imm, val);
+
     cpu->regs[instr.i.rd] = val;
 
     return rv_exc_none;
@@ -257,6 +273,8 @@ rv_exc_t srai_instr(rv_cpu_t *cpu, rv_instr_t instr){
     uint32_t imm = instr.i.imm & RV_IMM_SHIFT_SHAMT_MASK;
 
     uint32_t val = (int32_t)cpu->regs[instr.i.rs1] >> imm;
+
+     printf(" [srai  %08x >> %d = %08x]", cpu->regs[instr.i.rs1], imm, val);
 
     cpu->regs[instr.i.rd] = val;
 

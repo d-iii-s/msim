@@ -99,6 +99,26 @@ typedef enum {
     rv_func_AND       = 0b0000000111
 } rv_op_func_t;
 
+/** Funct values for OP-imm instructions */
+typedef enum {
+    rv_func_ADDI      = 0b000,
+    rv_func_SLTI      = 0b010,
+    rv_func_SLTIU     = 0b011,
+    rv_func_XORI      = 0b100,
+    rv_func_ORI       = 0b110,
+    rv_func_ANDI      = 0b111,
+    rv_func_SLLI      = 0b001,
+    rv_func_SRI       = 0b101, // same for SRLI and SRAI
+} rv_op_imm_func_t;
+
+// bit that is set if the right shift by constant is arithmetical or logical
+// this bit position is in the imm field, not in the whole instruction
+#define RV_IMM_SHIFT_ARITHMETIC_BIT (1<<10)
+
+// mask for the shift ammount in the imm field of the instruction
+#define RV_IMM_SHIFT_SHAMT_MASK (0x1F)
+
+/** Funct values for BRANCH instructions */
 typedef enum {
     rv_func_BEQ       = 0b000,
     rv_func_BNE       = 0b001,

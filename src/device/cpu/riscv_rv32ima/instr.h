@@ -42,7 +42,7 @@ typedef union{
     struct {
         unsigned int opcode : 7;
         unsigned int rd : 5;
-        unsigned int imm : 20;
+        unsigned int imm : 20; // does not need to be sign extended
     } u;
         struct {
         unsigned int opcode : 7;

@@ -4,9 +4,9 @@ main.raw:     file format elf32-littleriscv
 
 Disassembly of section .text:
 
-00000000 <var1-0x30>:
-   0:	03002503          	lw	a0,48(zero) # 30 <var1>
-   4:	03402583          	lw	a1,52(zero) # 34 <var2>
+00000000 <var1-0x38>:
+   0:	03802503          	lw	a0,56(zero) # 38 <var1>
+   4:	03c02583          	lw	a1,60(zero) # 3c <var2>
    8:	00150613          	addi	a2,a0,1
    c:	0005a613          	slti	a2,a1,0
   10:	0005b613          	sltiu	a2,a1,0
@@ -16,10 +16,12 @@ Disassembly of section .text:
   20:	00151613          	slli	a2,a0,0x1
   24:	0015d613          	srli	a2,a1,0x1
   28:	4015d613          	srai	a2,a1,0x1
-  2c:	00200073          	.word	0x00200073
+  2c:	80001637          	lui	a2,0x80001
+  30:	80001617          	auipc	a2,0x80001
+  34:	00200073          	.word	0x00200073
 
-00000030 <var1>:
-  30:	00000001          	.word	0x00000001
+00000038 <var1>:
+  38:	00000001          	.word	0x00000001
 
-00000034 <var2>:
-  34:	ffffffff          	.word	0xffffffff
+0000003c <var2>:
+  3c:	ffffffff          	.word	0xffffffff

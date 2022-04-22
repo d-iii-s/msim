@@ -274,7 +274,7 @@ rv_exc_t srai_instr(rv_cpu_t *cpu, rv_instr_t instr){
 
     uint32_t val = (int32_t)cpu->regs[instr.i.rs1] >> imm;
 
-     printf(" [srai  %08x >> %d = %08x]", cpu->regs[instr.i.rs1], imm, val);
+    printf(" [srai  %08x >> %d = %08x]", cpu->regs[instr.i.rs1], imm, val);
 
     cpu->regs[instr.i.rd] = val;
 
@@ -291,6 +291,8 @@ rv_exc_t lui_instr(rv_cpu_t *cpu, rv_instr_t instr){
 
     cpu->regs[instr.u.rd] = instr.u.imm << 12;
 
+    printf(" [lui  %08x]", cpu->regs[instr.u.rd]);
+
     return rv_exc_none;
 }
 
@@ -303,6 +305,8 @@ rv_exc_t auipc_instr(rv_cpu_t *cpu, rv_instr_t instr){
     uint32_t val = cpu->pc + offset;
 
     cpu->regs[instr.u.rd] = val;
+
+    printf(" [auipc  %08x]", val);
 
     return rv_exc_none;
 }

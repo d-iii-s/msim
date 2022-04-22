@@ -5,9 +5,7 @@
 #include "../../../assert.h"
 #include "../../../physmem.h"
 
-
 #define RV_START_ADDRESS UINT32_C(0x0)
-
 
 static void init_regs(rv32ima_cpu_t *cpu) {
     // expects that default value for any variable is 0
@@ -29,38 +27,9 @@ void rv32ima_cpu_init(rv32ima_cpu_t *cpu, unsigned int procno){
     printf("Initialized rv cpu id %u\n", cpu->csr.mhartid);
 }   
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 void rv32ima_cpu_set_pc(rv32ima_cpu_t *cpu, uint32_t value){
 
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 void rv32ima_cpu_step(rv32ima_cpu_t *cpu){
 

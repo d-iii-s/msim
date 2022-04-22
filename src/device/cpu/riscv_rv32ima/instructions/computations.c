@@ -289,12 +289,20 @@ rv_exc_t lui_instr(rv_cpu_t *cpu, rv_instr_t instr){
     ASSERT(cpu != NULL);
     ASSERT(instr.u.opcode == rv_opcLUI);
 
+    cpu->regs[instr.u.rd] = instr.u.imm << 12;
+
     return rv_exc_none;
 }
 
 rv_exc_t auipc_instr(rv_cpu_t *cpu, rv_instr_t instr){
     ASSERT(cpu != NULL);
     ASSERT(instr.u.opcode == rv_opcAUIPC);
+
+    int32_t offset = instr.u.imm << 12;
+
+    uint32_t val = cpu->pc + offset;
+
+    cpu->regs[instr.u.rd] = val;
 
     return rv_exc_none;
 }

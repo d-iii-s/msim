@@ -151,12 +151,22 @@ rv_exc_t addi_instr(rv_cpu_t *cpu, rv_instr_t instr){
 
     int32_t imm = instr.i.imm;
 
+    int32_t val = cpu->regs[instr.i.rs1] + imm;
+
+    cpu->regs[instr.i.rd] = val;
+
     return rv_exc_none;
 }
 
 rv_exc_t slti_instr(rv_cpu_t *cpu, rv_instr_t instr){
     ASSERT(cpu != NULL);
     ASSERT(instr.i.opcode == rv_opcOP_IMM);
+
+    int32_t imm = instr.i.imm;
+
+    bool cmp = ((int32_t)(cpu->regs[instr.i.rs1]) < imm);
+
+    cpu->regs[instr.i.rd] = cmp ? 1 : 0;
 
     return rv_exc_none;
 }
@@ -165,12 +175,25 @@ rv_exc_t sltiu_instr(rv_cpu_t *cpu, rv_instr_t instr){
     ASSERT(cpu != NULL);
     ASSERT(instr.i.opcode == rv_opcOP_IMM);
 
+    // sign extend to 32 bits, then change to unsigned
+    uint32_t imm = (int32_t)instr.i.imm;
+
+    bool cmp = ((cpu->regs[instr.i.rs1]) < imm);
+
+    cpu->regs[instr.i.rd] = cmp ? 1 : 0;
+
     return rv_exc_none;
 }
 
 rv_exc_t andi_instr(rv_cpu_t *cpu, rv_instr_t instr){
     ASSERT(cpu != NULL);
     ASSERT(instr.i.opcode == rv_opcOP_IMM);
+
+    int32_t imm = instr.i.imm;
+
+    uint32_t val = cpu->regs[instr.i.rs1] & imm;
+
+    cpu->regs[instr.i.rd] = val;
 
     return rv_exc_none;
 }
@@ -179,12 +202,24 @@ rv_exc_t ori_instr(rv_cpu_t *cpu, rv_instr_t instr){
     ASSERT(cpu != NULL);
     ASSERT(instr.i.opcode == rv_opcOP_IMM);
 
+    int32_t imm = instr.i.imm;
+
+    uint32_t val = cpu->regs[instr.i.rs1] | imm;
+
+    cpu->regs[instr.i.rd] = val;
+
     return rv_exc_none;
 }
 
 rv_exc_t xori_instr(rv_cpu_t *cpu, rv_instr_t instr){
     ASSERT(cpu != NULL);
     ASSERT(instr.i.opcode == rv_opcOP_IMM);
+    
+    int32_t imm = instr.i.imm;
+
+    uint32_t val = cpu->regs[instr.i.rs1] ^ imm;
+
+    cpu->regs[instr.i.rd] = val;
 
     return rv_exc_none;
 }
@@ -192,6 +227,12 @@ rv_exc_t xori_instr(rv_cpu_t *cpu, rv_instr_t instr){
 rv_exc_t slli_instr(rv_cpu_t *cpu, rv_instr_t instr){
     ASSERT(cpu != NULL);
     ASSERT(instr.i.opcode == rv_opcOP_IMM);
+    
+    uint32_t imm = instr.i.imm & RV_IMM_SHIFT_SHAMT_MASK;
+
+    uint32_t val = (uint32_t)cpu->regs[instr.i.rs1] << imm;
+
+    cpu->regs[instr.i.rd] = val;
 
     return rv_exc_none;
 }
@@ -200,12 +241,24 @@ rv_exc_t srli_instr(rv_cpu_t *cpu, rv_instr_t instr){
     ASSERT(cpu != NULL);
     ASSERT(instr.i.opcode == rv_opcOP_IMM);
 
+    uint32_t imm = instr.i.imm & RV_IMM_SHIFT_SHAMT_MASK;
+
+    uint32_t val = (uint32_t)cpu->regs[instr.i.rs1] >> imm;
+
+    cpu->regs[instr.i.rd] = val;
+
     return rv_exc_none;
 }
 
 rv_exc_t srai_instr(rv_cpu_t *cpu, rv_instr_t instr){
     ASSERT(cpu != NULL);
     ASSERT(instr.i.opcode == rv_opcOP_IMM);
+
+    uint32_t imm = instr.i.imm & RV_IMM_SHIFT_SHAMT_MASK;
+
+    uint32_t val = (int32_t)cpu->regs[instr.i.rs1] >> imm;
+
+    cpu->regs[instr.i.rd] = val;
 
     return rv_exc_none;
 }

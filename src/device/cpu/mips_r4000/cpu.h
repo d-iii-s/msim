@@ -639,89 +639,89 @@ typedef struct r4k_cpu {
  */
 typedef enum {
 	/* 0 */
-	opcSPECIAL = 0,
-	opcREGIMM = 1,
-	opcJ = 2,
-	opcJAL = 3,
-	opcBEQ = 4,
-	opcBNE = 5,
-	opcBLEZ = 6,
-	opcBGTZ = 7,
+	r4k_opcSPECIAL = 0,
+	r4k_opcREGIMM = 1,
+	r4k_opcJ = 2,
+	r4k_opcJAL = 3,
+	r4k_opcBEQ = 4,
+	r4k_opcBNE = 5,
+	r4k_opcBLEZ = 6,
+	r4k_opcBGTZ = 7,
 	
 	/* 8 */
-	opcADDI = 8,
-	opcADDIU = 9,
-	opcSLTI = 10,
-	opcSLTIU = 11,
-	opcANDI = 12,
-	opcORI = 13,
-	opcXORi = 14,
+	r4k_opcADDI = 8,
+	r4k_opcADDIU = 9,
+	r4k_opcSLTI = 10,
+	r4k_opcSLTIU = 11,
+	r4k_opcANDI = 12,
+	r4k_opcORI = 13,
+	r4k_opcXORi = 14,
 	opcLUI = 15,
 	
 	/* 16 */
-	opcCOP0 = 16,
-	opcCOP1 = 17,
-	opcCOP2 = 18,
+	r4k_opcCOP0 = 16,
+	r4k_opcCOP1 = 17,
+	r4k_opcCOP2 = 18,
 	/* opcode 19 unused */
-	opcBEQL = 20,
-	opcBNEL = 21,
-	opcBLEZL = 22,
-	opcBGTZL = 23,
+	r4k_opcBEQL = 20,
+	r4k_opcBNEL = 21,
+	r4k_opcBLEZL = 22,
+	r4k_opcBGTZL = 23,
 	
 	/* 24 */
-	opcDADDI = 24,
-	opcDADDIU = 25,
-	opcLDL = 26,
-	opcLDR = 27,
+	r4k_opcDADDI = 24,
+	r4k_opcDADDIU = 25,
+	r4k_opcLDL = 26,
+	r4k_opcLDR = 27,
 	/* opcode 28 unused */
 	/* opcode 29 unused */
 	/* opcode 30 unused */
 	/* opcode 31 unused */
 	
 	/* 32 */
-	opcLB = 32,
-	opcLH = 33,
-	opcLWL = 34,
-	opcLW = 35,
-	opcLBU = 36,
-	opcLHU = 37,
-	opcLWR = 38,
-	opcLWU = 39,
+	r4k_opcLB = 32,
+	r4k_opcLH = 33,
+	r4k_opcLWL = 34,
+	r4k_opcLW = 35,
+	r4k_opcLBU = 36,
+	r4k_opcLHU = 37,
+	r4k_opcLWR = 38,
+	r4k_opcLWU = 39,
 	
 	/* 40 */
-	opcSB = 40,
-	opcSH = 41,
-	opcSWL = 42,
-	opcSW = 43,
-	opcSDL = 44,
-	opcSDR = 45,
-	opcSWR = 46,
-	opcCACHE = 47,
+	r4k_opcSB = 40,
+	r4k_opcSH = 41,
+	r4k_opcSWL = 42,
+	r4k_opcSW = 43,
+	r4k_opcSDL = 44,
+	r4k_opcSDR = 45,
+	r4k_opcSWR = 46,
+	r4k_opcCACHE = 47,
 	
 	/* 48 */
-	opcLL = 48,
-	opcLWC1 = 49,
-	opcLWC2 = 50,
+	r4k_opcLL = 48,
+	r4k_opcLWC1 = 49,
+	r4k_opcLWC2 = 50,
 	/* opcode 51 unused */
-	opcLDD = 52,
-	opcLDC1 = 53,
-	opcLDC2 = 54,
-	opcLD = 55,
+	r4k_opcLDD = 52,
+	r4k_opcLDC1 = 53,
+	r4k_opcLDC2 = 54,
+	r4k_opcLD = 55,
 	
 	/* 56 */
-	opcSC = 56,
-	opcSWC1 = 57,
-	opcSWC2 = 58,
+	r4k_opcSC = 56,
+	r4k_opcSWC1 = 57,
+	r4k_opcSWC2 = 58,
 	/* opcode 59 unused */
-	opcSCD = 60,
-	opcSDC1 = 61,
-	opcSDC2 = 62,
-	opcSD = 63
-} instr_opcode_t;
+	r4k_opcSCD = 60,
+	r4k_opcSDC1 = 61,
+	r4k_opcSDC2 = 62,
+	r4k_opcSD = 63
+} r4k_instr_opcode_t;
 
 /** Function numbers
  *
- * For opcSPECIAL instructions.
+ * For r4k_opcSPECIAL instructions.
  *
  */
 typedef enum {
@@ -808,7 +808,7 @@ typedef enum {
 
 /** Register rt numbers
  *
- * For opcREGIMM instructions.
+ * For r4k_opcREGIMM instructions.
  *
  */
 typedef enum {

@@ -1555,8 +1555,8 @@ static void disassemble_rd(r4k_instr_t instr, string_t *mnemonics,
 
 static instr_fnc_t opcode_map[64] = {
 	/* 0 */
-	instr__reserved,  /* opcSPECIAL */
-	instr__reserved,  /* opcREGIMM */
+	instr__reserved,  /* r4k_opcSPECIAL */
+	instr__reserved,  /* r4k_opcREGIMM */
 	instr_j,
 	instr_jal,
 	instr_beq,
@@ -1575,9 +1575,9 @@ static instr_fnc_t opcode_map[64] = {
 	instr_lui,
 	
 	/* 16 */
-	instr__reserved,  /* opcCOP0 */
-	instr__reserved,  /* opcCOP1 */
-	instr__reserved,  /* opcCOP2 */
+	instr__reserved,  /* r4k_opcCOP0 */
+	instr__reserved,  /* r4k_opcCOP1 */
+	instr__reserved,  /* r4k_opcCOP2 */
 	instr__reserved,  /* unused */
 	instr_beql,
 	instr_bnel,
@@ -2050,8 +2050,8 @@ static instr_fnc_t cop0_func_map[64] = {
 
 static mnemonics_fnc_t mnemonics_opcode_map[64] = {
 	/* 0 */
-	mnemonics__reserved,  /* opcSPECIAL */
-	mnemonics__reserved,  /* opcREGIMM */
+	mnemonics__reserved,  /* r4k_opcSPECIAL */
+	mnemonics__reserved,  /* r4k_opcREGIMM */
 	mnemonics_j,
 	mnemonics_jal,
 	mnemonics_beq,
@@ -2070,9 +2070,9 @@ static mnemonics_fnc_t mnemonics_opcode_map[64] = {
 	mnemonics_lui,
 	
 	/* 16 */
-	mnemonics__reserved,  /* opcCOP0 */
-	mnemonics__reserved,  /* opcCOP1 */
-	mnemonics__reserved,  /* opcCOP2 */
+	mnemonics__reserved,  /* r4k_opcCOP0 */
+	mnemonics__reserved,  /* r4k_opcCOP1 */
+	mnemonics__reserved,  /* r4k_opcCOP2 */
 	mnemonics__reserved,  /* unused */
 	mnemonics_beql,
 	mnemonics_bnel,
@@ -2557,21 +2557,21 @@ mnemonics_fnc_t decode_mnemonics(r4k_instr_t instr)
 	 * on the opcode field.
 	 */
 	switch (instr.r.opcode) {
-	case opcSPECIAL:
+	case r4k_opcSPECIAL:
 		/*
 		 * SPECIAL opcode decoding based
 		 * on the func field.
 		 */
 		fnc = mnemonics_func_map[instr.r.func];
 		break;
-	case opcREGIMM:
+	case r4k_opcREGIMM:
 		/*
 		 * REGIMM opcode decoding based
 		 * on the rt field.
 		 */
 		fnc = mnemonics_rt_map[instr.r.rt];
 		break;
-	case opcCOP0:
+	case r4k_opcCOP0:
 		/*
 		 * COP0 opcode decoding based
 		 * on the rs field.
@@ -2595,7 +2595,7 @@ mnemonics_fnc_t decode_mnemonics(r4k_instr_t instr)
 			fnc = mnemonics_cop0_rs_map[instr.r.rs];
 		}
 		break;
-	case opcCOP1:
+	case r4k_opcCOP1:
 		/*
 		 * COP1 opcode decoding based
 		 * on the rs field.
@@ -2612,7 +2612,7 @@ mnemonics_fnc_t decode_mnemonics(r4k_instr_t instr)
 			fnc = mnemonics_cop1_rs_map[instr.r.rs];
 		}
 		break;
-	case opcCOP2:
+	case r4k_opcCOP2:
 		/*
 		 * COP2 opcode decoding based
 		 * on the rs field.
@@ -2776,27 +2776,30 @@ void r4k_interrupt_down(r4k_cpu_t *cpu, unsigned int no)
 static instr_fnc_t decode(r4k_instr_t instr)
 {
 	instr_fnc_t fnc;
-	
+
 	/*
 	 * Basic opcode decoding based
 	 * on the opcode field.
 	 */
 	switch (instr.r.opcode) {
-	case opcSPECIAL:
+	case r4k_opcSPECIAL:
 		/*
 		 * SPECIAL opcode decoding based
 		 * on the func field.
 		 */
 		fnc = func_map[instr.r.func];
+		if(instr.r.func == 0x21){
+			ASSERT(fnc == instr_addu);
+		}
 		break;
-	case opcREGIMM:
+	case r4k_opcREGIMM:
 		/*
 		 * REGIMM opcode decoding based
 		 * on the rt field.
 		 */
 		fnc = rt_map[instr.r.rt];
 		break;
-	case opcCOP0:
+	case r4k_opcCOP0:
 		/*
 		 * COP0 opcode decoding based
 		 * on the rs field.
@@ -2821,7 +2824,7 @@ static instr_fnc_t decode(r4k_instr_t instr)
 			fnc = cop0_rs_map[instr.cop.rs];
 		}
 		break;
-	case opcCOP1:
+	case r4k_opcCOP1:
 		/*
 		 * COP1 opcode decoding based
 		 * on the rs field.
@@ -2838,7 +2841,7 @@ static instr_fnc_t decode(r4k_instr_t instr)
 			fnc = cop1_rs_map[instr.cop.rs];
 		}
 		break;
-	case opcCOP2:
+	case r4k_opcCOP2:
 		/*
 		 * COP2 opcode decoding based
 		 * on the rs field.
@@ -2909,7 +2912,8 @@ static r4k_exc_t cpu_frame(r4k_cpu_t *cpu)
 static void frame_decode(frame_t *frame, instr_fnc_t* out)
 {
 	ASSERT(frame != NULL);
-	ASSERT(!frame->valid);
+	// Remove when caching is back
+	//ASSERT(!frame->valid);
 	
 	unsigned int i;
 	for (i = 0; i < ADDR2INSTR(FRAME_SIZE); i++) {
@@ -2926,7 +2930,7 @@ static void frame_decode(frame_t *frame, instr_fnc_t* out)
 static void handle_exception(r4k_cpu_t *cpu, r4k_exc_t res)
 {
 	ASSERT(cpu != NULL);
-	
+
 	bool tlb_refill = false;
 	
 	/* Convert TLB Refill exceptions */
@@ -3012,16 +3016,21 @@ static r4k_exc_t execute(r4k_cpu_t *cpu)
 			if (res != r4k_excNone)
 				handle_exception(cpu, res);
 		} while (res != r4k_excNone);
-	}
-	
-	if (!cpu->frame->valid)
+
+		// decode everytime, because we are not caching
 		frame_decode(cpu->frame, cpu->trans);
+	}
+
+	// decode if frame is invalid
+	if(!cpu->frame->valid){
+		frame_decode(cpu->frame, cpu->trans);
+	}
 	
 	/* Fetch decoded instruction */
 	unsigned int i = cpu->pc.ptr & FRAME_MASK;
 	r4k_instr_t instr = *((r4k_instr_t *) (cpu->frame->data + i));
 	instr_fnc_t fnc = *(cpu->trans + ADDR2INSTR(i));
-	
+
 	/* Execute instruction */
 	r4k_exc_t exc = fnc(cpu, instr);
 	
@@ -3103,8 +3112,11 @@ static void manage(r4k_cpu_t *cpu, r4k_exc_t exc, ptr64_t old_pc)
 	 * Reset the binary translation if we are outside
 	 * the original frame.
 	 */
-	if ((old_pc.ptr | FRAME_MASK) != (cpu->pc.ptr | FRAME_MASK))
+	if ((old_pc.ptr | FRAME_MASK) != (cpu->pc.ptr | FRAME_MASK)){
+		//TODO: remove when cached decode is back
+		cpu->frame->valid = false;
 		cpu->frame = NULL;
+	}
 }
 
 /** CPU cycle accounting after one instruction execution

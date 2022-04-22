@@ -5,20 +5,22 @@
 #include "../../../assert.h"
 #include "../../../physmem.h"
 
+
 #define RV_START_ADDRESS UINT32_C(0x0)
 
-static void init_regs(rv32ima_cpu_t *cpu) {
+
+static void init_regs(rv_cpu_t *cpu) {
     // expects that default value for any variable is 0
 
     cpu->pc = RV_START_ADDRESS;
 }
 
 
-void rv32ima_cpu_init(rv32ima_cpu_t *cpu, unsigned int procno){
+void rv_cpu_init(rv_cpu_t *cpu, unsigned int procno){
 
     ASSERT(cpu!=NULL);
 
-    memset(cpu, 0, sizeof(rv32ima_cpu_t));
+    memset(cpu, 0, sizeof(rv_cpu_t));
 
     init_regs(cpu);
 
@@ -27,11 +29,11 @@ void rv32ima_cpu_init(rv32ima_cpu_t *cpu, unsigned int procno){
     printf("Initialized rv cpu id %u\n", cpu->csr.mhartid);
 }   
 
-void rv32ima_cpu_set_pc(rv32ima_cpu_t *cpu, uint32_t value){
+void rv_cpu_set_pc(rv_cpu_t *cpu, uint32_t value){
 
 }
 
-void rv32ima_cpu_step(rv32ima_cpu_t *cpu){
+void rv_cpu_step(rv_cpu_t *cpu){
 
     uint32_t val = physmem_read32(cpu->csr.mhartid, cpu->pc, false);
 
@@ -46,10 +48,10 @@ void rv32ima_cpu_step(rv32ima_cpu_t *cpu){
 }
 
 /** Interrupts */
-void rv32ima_cpu_interrupt_up(rv32ima_cpu_t *cpu, unsigned int no){
+void rv_cpu_interrupt_up(rv_cpu_t *cpu, unsigned int no){
 
 }
 
-void rv32ima_cpu_interrupt_down(rv32ima_cpu_t *cpu, unsigned int no){
+void rv_cpu_interrupt_down(rv_cpu_t *cpu, unsigned int no){
 
 }

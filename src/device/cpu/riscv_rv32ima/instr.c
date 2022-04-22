@@ -64,7 +64,7 @@ static rv_instr_func_t decode_OP_IMM(rv_instr_t instr) {
 
 static rv_instr_func_t decode_AUIPC(rv_instr_t instr) {
     ASSERT(instr.r.opcode == rv_opcAUIPC);
-    return illegal_instr; 
+    return auipc_instr; 
 }
 
 static rv_instr_func_t decode_STORE(rv_instr_t instr) {
@@ -108,7 +108,7 @@ static rv_instr_func_t decode_OP(rv_instr_t instr) {
 
 static rv_instr_func_t decode_LUI(rv_instr_t instr) {
     ASSERT(instr.r.opcode == rv_opcLUI);
-    return illegal_instr; 
+    return lui_instr; 
 }
 
 static rv_instr_func_t decode_OP_32(rv_instr_t instr) {

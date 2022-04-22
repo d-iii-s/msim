@@ -313,6 +313,13 @@ PCUT_TEST(srai_decode){
  * AUIPC instructions *
  **********************/
 
+PCUT_TEST(auipc_decode){
+    rv_instr_t instr;
+    instr.u.opcode = rv_opcAUIPC;
+
+    PCUT_ASSERT_EQUALS(auipc_instr, rv_instr_decode(instr));
+}
+
 /********************
  * AMO instructions *
  ********************/
@@ -320,6 +327,13 @@ PCUT_TEST(srai_decode){
 /********************
  * LUI instructions *
  ********************/
+
+PCUT_TEST(lui_decode){
+    rv_instr_t instr;
+    instr.u.opcode = rv_opcLUI;
+
+    PCUT_ASSERT_EQUALS(lui_instr, rv_instr_decode(instr));
+}
 
 /********************
  * OP_32 instructions *

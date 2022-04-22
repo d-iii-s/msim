@@ -2,9 +2,13 @@
 #include "computations.h"
 #include "../../../../assert.h"
 
+/******
+ * OP *
+ ******/
+
 rv_exc_t add_instr(rv_cpu_t *cpu, rv_instr_t instr){
     ASSERT(cpu != NULL);
-    ASSERT(instr.i.opcode == rv_opcOP);
+    ASSERT(instr.r.opcode == rv_opcOP);
 
     uint32_t lhs = cpu->regs[instr.r.rs1];
     uint32_t rhs = cpu->regs[instr.r.rs2];
@@ -18,7 +22,7 @@ rv_exc_t add_instr(rv_cpu_t *cpu, rv_instr_t instr){
 
 rv_exc_t sub_instr(rv_cpu_t *cpu, rv_instr_t instr){
     ASSERT(cpu != NULL);
-    ASSERT(instr.i.opcode == rv_opcOP);
+    ASSERT(instr.r.opcode == rv_opcOP);
 
     uint32_t lhs = cpu->regs[instr.r.rs1];
     uint32_t rhs = cpu->regs[instr.r.rs2];
@@ -31,7 +35,7 @@ rv_exc_t sub_instr(rv_cpu_t *cpu, rv_instr_t instr){
 }
 rv_exc_t sll_instr(rv_cpu_t *cpu, rv_instr_t instr){
     ASSERT(cpu != NULL);
-    ASSERT(instr.i.opcode == rv_opcOP);
+    ASSERT(instr.r.opcode == rv_opcOP);
 
     uint32_t lhs = cpu->regs[instr.r.rs1];
     // based only on lowest 5 bits
@@ -45,7 +49,7 @@ rv_exc_t sll_instr(rv_cpu_t *cpu, rv_instr_t instr){
 }
 rv_exc_t slt_instr(rv_cpu_t *cpu, rv_instr_t instr){
     ASSERT(cpu != NULL);
-    ASSERT(instr.i.opcode == rv_opcOP);
+    ASSERT(instr.r.opcode == rv_opcOP);
 
     int32_t lhs = cpu->regs[instr.r.rs1];
     int32_t rhs = cpu->regs[instr.r.rs2];
@@ -58,7 +62,7 @@ rv_exc_t slt_instr(rv_cpu_t *cpu, rv_instr_t instr){
 }
 rv_exc_t sltu_instr(rv_cpu_t *cpu, rv_instr_t instr){
     ASSERT(cpu != NULL);
-    ASSERT(instr.i.opcode == rv_opcOP);
+    ASSERT(instr.r.opcode == rv_opcOP);
 
     uint32_t lhs = cpu->regs[instr.r.rs1];
     uint32_t rhs = cpu->regs[instr.r.rs2];
@@ -71,7 +75,7 @@ rv_exc_t sltu_instr(rv_cpu_t *cpu, rv_instr_t instr){
 }
 rv_exc_t xor_instr(rv_cpu_t *cpu, rv_instr_t instr){
     ASSERT(cpu != NULL);
-    ASSERT(instr.i.opcode == rv_opcOP);
+    ASSERT(instr.r.opcode == rv_opcOP);
 
     uint32_t lhs = cpu->regs[instr.r.rs1];
     uint32_t rhs = cpu->regs[instr.r.rs2];
@@ -84,7 +88,7 @@ rv_exc_t xor_instr(rv_cpu_t *cpu, rv_instr_t instr){
 }
 rv_exc_t srl_instr(rv_cpu_t *cpu, rv_instr_t instr){
     ASSERT(cpu != NULL);
-    ASSERT(instr.i.opcode == rv_opcOP);
+    ASSERT(instr.r.opcode == rv_opcOP);
 
     uint32_t lhs = cpu->regs[instr.r.rs1];
     // based only on lowest 5 bits
@@ -98,7 +102,7 @@ rv_exc_t srl_instr(rv_cpu_t *cpu, rv_instr_t instr){
 }
 rv_exc_t sra_instr(rv_cpu_t *cpu, rv_instr_t instr){
     ASSERT(cpu != NULL);
-    ASSERT(instr.i.opcode == rv_opcOP);
+    ASSERT(instr.r.opcode == rv_opcOP);
 
     int32_t lhs = (int32_t)cpu->regs[instr.r.rs1];
     // based only on lowest 5 bits
@@ -112,7 +116,7 @@ rv_exc_t sra_instr(rv_cpu_t *cpu, rv_instr_t instr){
 }
 rv_exc_t or_instr(rv_cpu_t *cpu, rv_instr_t instr){
     ASSERT(cpu != NULL);
-    ASSERT(instr.i.opcode == rv_opcOP);
+    ASSERT(instr.r.opcode == rv_opcOP);
 
     uint32_t lhs = cpu->regs[instr.r.rs1];
     uint32_t rhs = cpu->regs[instr.r.rs2];
@@ -124,8 +128,8 @@ rv_exc_t or_instr(rv_cpu_t *cpu, rv_instr_t instr){
     return rv_exc_none;
 }
 rv_exc_t and_instr(rv_cpu_t *cpu, rv_instr_t instr){
-     ASSERT(cpu != NULL);
-    ASSERT(instr.i.opcode == rv_opcOP);
+    ASSERT(cpu != NULL);
+    ASSERT(instr.r.opcode == rv_opcOP);
 
     uint32_t lhs = cpu->regs[instr.r.rs1];
     uint32_t rhs = cpu->regs[instr.r.rs2];
@@ -133,6 +137,93 @@ rv_exc_t and_instr(rv_cpu_t *cpu, rv_instr_t instr){
     cpu->regs[instr.r.rd] = lhs & rhs;
 
     printf(" [and instruction %08x & %08x = %08x]", lhs, rhs, cpu->regs[instr.r.rd]);
+
+    return rv_exc_none;
+}
+
+/**********
+ * OP-IMM *
+ **********/
+
+rv_exc_t addi_instr(rv_cpu_t *cpu, rv_instr_t instr){
+    ASSERT(cpu != NULL);
+    ASSERT(instr.i.opcode == rv_opcOP_IMM);
+
+    int32_t imm = instr.i.imm;
+
+    return rv_exc_none;
+}
+
+rv_exc_t slti_instr(rv_cpu_t *cpu, rv_instr_t instr){
+    ASSERT(cpu != NULL);
+    ASSERT(instr.i.opcode == rv_opcOP_IMM);
+
+    return rv_exc_none;
+}
+
+rv_exc_t sltiu_instr(rv_cpu_t *cpu, rv_instr_t instr){
+    ASSERT(cpu != NULL);
+    ASSERT(instr.i.opcode == rv_opcOP_IMM);
+
+    return rv_exc_none;
+}
+
+rv_exc_t andi_instr(rv_cpu_t *cpu, rv_instr_t instr){
+    ASSERT(cpu != NULL);
+    ASSERT(instr.i.opcode == rv_opcOP_IMM);
+
+    return rv_exc_none;
+}
+
+rv_exc_t ori_instr(rv_cpu_t *cpu, rv_instr_t instr){
+    ASSERT(cpu != NULL);
+    ASSERT(instr.i.opcode == rv_opcOP_IMM);
+
+    return rv_exc_none;
+}
+
+rv_exc_t xori_instr(rv_cpu_t *cpu, rv_instr_t instr){
+    ASSERT(cpu != NULL);
+    ASSERT(instr.i.opcode == rv_opcOP_IMM);
+
+    return rv_exc_none;
+}
+
+rv_exc_t slli_instr(rv_cpu_t *cpu, rv_instr_t instr){
+    ASSERT(cpu != NULL);
+    ASSERT(instr.i.opcode == rv_opcOP_IMM);
+
+    return rv_exc_none;
+}
+
+rv_exc_t srli_instr(rv_cpu_t *cpu, rv_instr_t instr){
+    ASSERT(cpu != NULL);
+    ASSERT(instr.i.opcode == rv_opcOP_IMM);
+
+    return rv_exc_none;
+}
+
+rv_exc_t srai_instr(rv_cpu_t *cpu, rv_instr_t instr){
+    ASSERT(cpu != NULL);
+    ASSERT(instr.i.opcode == rv_opcOP_IMM);
+
+    return rv_exc_none;
+}
+
+/*****************
+ * LUI and AUIPC *
+ *****************/
+
+rv_exc_t lui_instr(rv_cpu_t *cpu, rv_instr_t instr){
+    ASSERT(cpu != NULL);
+    ASSERT(instr.u.opcode == rv_opcLUI);
+
+    return rv_exc_none;
+}
+
+rv_exc_t auipc_instr(rv_cpu_t *cpu, rv_instr_t instr){
+    ASSERT(cpu != NULL);
+    ASSERT(instr.u.opcode == rv_opcAUIPC);
 
     return rv_exc_none;
 }

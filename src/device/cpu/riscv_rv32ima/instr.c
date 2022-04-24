@@ -21,6 +21,9 @@ static rv_instr_func_t decode_LOAD(rv_instr_t instr) {
 
 static rv_instr_func_t decode_MISC_MEM(rv_instr_t instr) {
     ASSERT(instr.r.opcode == rv_opcMISC_MEM);
+    if(instr.i.func3 == 0){
+        return fence_instr;
+    }
     return illegal_instr; 
 }
 

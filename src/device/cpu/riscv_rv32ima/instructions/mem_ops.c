@@ -138,15 +138,54 @@ rv_exc_t store_instr(rv_cpu_t *cpu, rv_instr_t instr){
 }
 
 rv_exc_t sb_instr(rv_cpu_t *cpu, rv_instr_t instr){
+    ASSERT(cpu != NULL);
+    ASSERT(instr.s.opcode == rv_opcSTORE);
 
+    uint32_t virt = cpu->regs[instr.s.rs1] + RV_S_IMM(instr);
+
+    printf(" [writing 8 bits to: 0x%08x val: %u from x%d]", virt, (uint8_t)cpu->regs[instr.s.rs2], instr.s.rs2);
+
+    rv_exc_t ex = rv_write_mem8(cpu, virt, (uint8_t)cpu->regs[instr.s.rs2], true);
+
+    if(ex != rv_exc_none){
+        return ex;
+    } 
+
+    return rv_exc_none;
 }
 
 rv_exc_t sh_instr(rv_cpu_t *cpu, rv_instr_t instr){
+    ASSERT(cpu != NULL);
+    ASSERT(instr.s.opcode == rv_opcSTORE);
 
+    uint32_t virt = cpu->regs[instr.s.rs1] + RV_S_IMM(instr);
+
+    printf(" [writing 16 bits to: 0x%08x val: %u from x%d]", virt, (uint16_t)cpu->regs[instr.s.rs2], instr.s.rs2);
+
+    rv_exc_t ex = rv_write_mem16(cpu, virt, (uint16_t)cpu->regs[instr.s.rs2], true);
+
+    if(ex != rv_exc_none){
+        return ex;
+    } 
+
+    return rv_exc_none;
 }
 
 rv_exc_t sw_instr(rv_cpu_t *cpu, rv_instr_t instr){
-    
+    ASSERT(cpu != NULL);
+    ASSERT(instr.s.opcode == rv_opcSTORE);
+
+    uint32_t virt = cpu->regs[instr.s.rs1] + RV_S_IMM(instr);
+
+    printf(" [writing 32 bits to: 0x%08x val: %u from x%d]", virt, cpu->regs[instr.s.rs2], instr.s.rs2);
+
+    rv_exc_t ex = rv_write_mem32(cpu, virt, cpu->regs[instr.s.rs2], true);
+
+    if(ex != rv_exc_none){
+        return ex;
+    } 
+
+    return rv_exc_none;
 }
 
 

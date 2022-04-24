@@ -16,7 +16,20 @@ rv_exc_t illegal_instr(rv_cpu_t *cpu, rv_instr_t instr){
 
 static rv_instr_func_t decode_LOAD(rv_instr_t instr) {
     ASSERT(instr.i.opcode == rv_opcLOAD);
-    return load_instr; 
+    switch(instr.i.func3){
+        case rv_func_LB:
+            return lb_instr;
+        case rv_func_LH:
+            return lh_instr;
+        case rv_func_LW:
+            return lw_instr;
+        case rv_func_LBU:
+            return lbu_instr;
+        case rv_func_LHU:
+            return lhu_instr;
+        default:
+            return illegal_instr;
+    }
 }
 
 static rv_instr_func_t decode_MISC_MEM(rv_instr_t instr) {

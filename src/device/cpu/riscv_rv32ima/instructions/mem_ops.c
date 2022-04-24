@@ -19,7 +19,7 @@ rv_exc_t lb_instr(rv_cpu_t *cpu, rv_instr_t instr){
         return ex;
     }
 
-    cpu->regs[instr.i.rd] = (int32_t)val;
+    cpu->regs[instr.i.rd] = (int8_t)val;
 
     printf("val: %d to: x%d]", cpu->regs[instr.i.rd], instr.i.rd);
 
@@ -42,7 +42,7 @@ rv_exc_t lh_instr(rv_cpu_t *cpu, rv_instr_t instr){
         return ex;
     }
 
-    cpu->regs[instr.i.rd] = (int32_t)val;
+    cpu->regs[instr.i.rd] = (int16_t)val;
 
     printf("val: %d to: x%d]", cpu->regs[instr.i.rd], instr.i.rd);
 

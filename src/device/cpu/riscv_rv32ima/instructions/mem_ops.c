@@ -29,6 +29,27 @@ rv_exc_t load_instr(rv_cpu_t *cpu, rv_instr_t instr){
     return rv_exc_none;
 }
 
+rv_exc_t lb_instr(rv_cpu_t *cpu, rv_instr_t instr){
+
+}
+
+rv_exc_t lh_instr(rv_cpu_t *cpu, rv_instr_t instr){
+
+}
+
+rv_exc_t lw_instr(rv_cpu_t *cpu, rv_instr_t instr){
+
+}
+
+rv_exc_t lbu_instr(rv_cpu_t *cpu, rv_instr_t instr){
+
+}
+
+rv_exc_t lhu_instr(rv_cpu_t *cpu, rv_instr_t instr){
+
+}
+
+
 rv_exc_t store_instr(rv_cpu_t *cpu, rv_instr_t instr){
     ASSERT(cpu != NULL);
     ASSERT(instr.s.opcode == rv_opcSTORE);

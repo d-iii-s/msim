@@ -130,6 +130,15 @@ typedef enum {
     rv_func_BGEU      = 0b111
 } rv_branch_func_t;
 
+/** Funct values for LOAD instructions */
+typedef enum {
+    rv_func_LB        = 0b000,
+    rv_func_LH        = 0b001,
+    rv_func_LW        = 0b010,
+    rv_func_LBU       = 0b100,
+    rv_func_LHU       = 0b101
+} rv_load_func_t;
+
 /** Funct values for SYSTEM instructions */
 typedef enum {
     rv_funcPRIV       = 0b000,

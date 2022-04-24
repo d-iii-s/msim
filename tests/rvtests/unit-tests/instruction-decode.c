@@ -4,6 +4,7 @@
 #include "../../../src/device/cpu/riscv_rv32ima/instr.h"
 #include "../../../src/device/cpu/riscv_rv32ima/instructions/computations.h"
 #include "../../../src/device/cpu/riscv_rv32ima/instructions/control_transfer.h"
+#include "../../../src/device/cpu/riscv_rv32ima/instructions/mem_ops.h"
 #include "../../../src/device/cpu/riscv_rv32ima/instructions/system.h"
 
 PCUT_INIT
@@ -219,6 +220,22 @@ PCUT_TEST(jal_decode){
 /*************************
  * MISC MEM instructions *
  *************************/
+
+PCUT_TEST(fence_decode){
+    rv_instr_t instr;
+    instr.i.opcode = rv_opcMISC_MEM;
+    instr.i.func3 = 0;
+
+    PCUT_ASSERT_EQUALS(fence_instr, rv_instr_decode(instr));
+}
+
+PCUT_TEST(misc_mem_illegal_decode){
+    rv_instr_t instr;
+    instr.i.opcode = rv_opcMISC_MEM;
+    instr.i.func3 = 2;
+
+    PCUT_ASSERT_EQUALS(illegal_instr, rv_instr_decode(instr));
+}
 
 /***********************
  * OP IMM instructions *

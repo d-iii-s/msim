@@ -6,7 +6,7 @@ rv_exc_t break_instr(rv_cpu_t *cpu, rv_instr_t instr){
     ASSERT(cpu != NULL);
     ASSERT(instr.i.opcode == rv_opcSYSTEM);
 
-    printf("BREAK");
+    printf(" [BREAK]\n");
 
     alert("BREAK");
 
@@ -16,6 +16,7 @@ rv_exc_t break_instr(rv_cpu_t *cpu, rv_instr_t instr){
 rv_exc_t halt_instr(rv_cpu_t *cpu, rv_instr_t instr){
     ASSERT(cpu != NULL);
     ASSERT(instr.i.opcode == rv_opcSYSTEM);
+    printf(" [HALT]\n");
     alert("HALT");
 
     machine_halt = true;

@@ -213,6 +213,54 @@ PCUT_TEST(jal_decode){
  * LOAD instructions *
  *********************/
 
+PCUT_TEST(lb_decode){
+    rv_instr_t instr;
+    instr.i.opcode = rv_opcLOAD;
+    instr.i.func3  = rv_func_LB;
+
+    PCUT_ASSERT_EQUALS(lb_instr, rv_instr_decode(instr));
+}
+
+PCUT_TEST(lh_decode){
+    rv_instr_t instr;
+    instr.i.opcode = rv_opcLOAD;
+    instr.i.func3  = rv_func_LH;
+
+    PCUT_ASSERT_EQUALS(lh_instr, rv_instr_decode(instr));
+}
+
+PCUT_TEST(lw_decode){
+    rv_instr_t instr;
+    instr.i.opcode = rv_opcLOAD;
+    instr.i.func3  = rv_func_LW;
+
+    PCUT_ASSERT_EQUALS(lw_instr, rv_instr_decode(instr));
+}
+
+PCUT_TEST(lbu_decode){
+    rv_instr_t instr;
+    instr.i.opcode = rv_opcLOAD;
+    instr.i.func3  = rv_func_LBU;
+
+    PCUT_ASSERT_EQUALS(lbu_instr, rv_instr_decode(instr));
+}
+
+PCUT_TEST(lhu_decode){
+    rv_instr_t instr;
+    instr.i.opcode = rv_opcLOAD;
+    instr.i.func3  = rv_func_LHU;
+
+    PCUT_ASSERT_EQUALS(lhu_instr, rv_instr_decode(instr));
+}
+
+PCUT_TEST(load_illegal_decode){
+    rv_instr_t instr;
+    instr.i.opcode = rv_opcLOAD;
+    instr.i.func3  = 0b111;
+
+    PCUT_ASSERT_EQUALS(illegal_instr, rv_instr_decode(instr));
+}
+
 /**********************
  * STORE instructions *
  **********************/

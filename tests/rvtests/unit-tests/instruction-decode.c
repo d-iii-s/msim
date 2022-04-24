@@ -265,6 +265,38 @@ PCUT_TEST(load_illegal_decode){
  * STORE instructions *
  **********************/
 
+PCUT_TEST(sb_decode){
+    rv_instr_t instr;
+    instr.s.opcode = rv_opcSTORE;
+    instr.s.func3  = rv_func_SB;
+
+    PCUT_ASSERT_EQUALS(sb_instr, rv_instr_decode(instr));
+}
+
+PCUT_TEST(sh_decode){
+    rv_instr_t instr;
+    instr.s.opcode = rv_opcSTORE;
+    instr.s.func3  = rv_func_SH;
+
+    PCUT_ASSERT_EQUALS(sh_instr, rv_instr_decode(instr));
+}
+
+PCUT_TEST(sw_decode){
+    rv_instr_t instr;
+    instr.s.opcode = rv_opcSTORE;
+    instr.s.func3  = rv_func_SW;
+
+    PCUT_ASSERT_EQUALS(sw_instr, rv_instr_decode(instr));
+}
+
+PCUT_TEST(store_illegal_decode){
+    rv_instr_t instr;
+    instr.s.opcode = rv_opcSTORE;
+    instr.s.func3  = 0b111;
+
+    PCUT_ASSERT_EQUALS(illegal_instr, rv_instr_decode(instr));
+}
+
 /*************************
  * MISC MEM instructions *
  *************************/

@@ -85,7 +85,16 @@ static rv_instr_func_t decode_AUIPC(rv_instr_t instr) {
 
 static rv_instr_func_t decode_STORE(rv_instr_t instr) {
     ASSERT(instr.s.opcode == rv_opcSTORE);
-    return store_instr;
+    switch(instr.s.func3){
+        case rv_func_SB:
+            return sb_instr;
+        case rv_func_SH:
+            return sh_instr;
+        case rv_func_SW:
+            return sw_instr;
+        default:
+            return illegal_instr;
+    }
 }
 
 static rv_instr_func_t decode_AMO(rv_instr_t instr) {

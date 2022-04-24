@@ -57,6 +57,38 @@ rv_exc_t rv_read_mem32(rv_cpu_t *cpu, uint32_t virt, uint32_t *value, bool noisy
     return rv_exc_none;
 }
 
+rv_exc_t rv_read_mem16(rv_cpu_t *cpu, uint32_t virt, uint16_t *value, bool noisy){
+    ASSERT(cpu != NULL);
+    ASSERT(value != NULL);
+    //TODO: check alignment
+
+    ptr36_t phys;
+    rv_exc_t ex = rv_convert_addr(cpu, virt, &phys, false, noisy);
+    
+    if(ex != rv_exc_none){
+        return ex;
+    }
+
+    *value = physmem_read16(cpu->csr.mhartid, phys, true);
+    return rv_exc_none;
+}
+
+rv_exc_t rv_read_mem8(rv_cpu_t *cpu, uint32_t virt, uint8_t *value, bool noisy){
+    ASSERT(cpu != NULL);
+    ASSERT(value != NULL);
+    //TODO: check alignment
+
+    ptr36_t phys;
+    rv_exc_t ex = rv_convert_addr(cpu, virt, &phys, false, noisy);
+    
+    if(ex != rv_exc_none){
+        return ex;
+    }
+
+    *value = physmem_read8(cpu->csr.mhartid, phys, true);
+    return rv_exc_none;
+}
+
 rv_exc_t rv_write_mem32(rv_cpu_t *cpu, uint32_t virt, uint32_t value, bool noisy){
     ASSERT(cpu != NULL);
     // TODO: check alignment

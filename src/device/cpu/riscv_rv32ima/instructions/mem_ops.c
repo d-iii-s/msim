@@ -3,18 +3,61 @@
 #include "mem_ops.h"
 #include "../../../../assert.h"
 
-rv_exc_t load_instr(rv_cpu_t *cpu, rv_instr_t instr){
+rv_exc_t lb_instr(rv_cpu_t *cpu, rv_instr_t instr){
     ASSERT(cpu != NULL);
     ASSERT(instr.i.opcode == rv_opcLOAD);
 
-    // TODO: test if it works for negative immediates
     uint32_t virt = cpu->regs[instr.i.rs1] + (int32_t)instr.i.imm;
 
-    // for now only 32 bit
-    //! CHANGE THIS!!!!!
+    uint8_t val;
+
+    printf("[reading 8 bits (signed) from: 0x%08x ", virt);
+
+    rv_exc_t ex = rv_read_mem8(cpu, virt, &val, true);
+    
+    if(ex != rv_exc_none){
+        return ex;
+    }
+
+    cpu->regs[instr.i.rd] = (int32_t)val;
+
+    printf("val: %d to: x%d]", cpu->regs[instr.i.rd], instr.i.rd);
+
+    return rv_exc_none;
+}
+
+rv_exc_t lh_instr(rv_cpu_t *cpu, rv_instr_t instr){
+    ASSERT(cpu != NULL);
+    ASSERT(instr.i.opcode == rv_opcLOAD);
+
+    uint32_t virt = cpu->regs[instr.i.rs1] + (int32_t)instr.i.imm;
+
+    uint16_t val;
+
+    printf("[reading 16 bits (signed) from: 0x%08x ", virt);
+
+    rv_exc_t ex = rv_read_mem16(cpu, virt, &val, true);
+    
+    if(ex != rv_exc_none){
+        return ex;
+    }
+
+    cpu->regs[instr.i.rd] = (int32_t)val;
+
+    printf("val: %d to: x%d]", cpu->regs[instr.i.rd], instr.i.rd);
+
+    return rv_exc_none;
+}
+
+rv_exc_t lw_instr(rv_cpu_t *cpu, rv_instr_t instr){
+    ASSERT(cpu != NULL);
+    ASSERT(instr.i.opcode == rv_opcLOAD);
+
+    uint32_t virt = cpu->regs[instr.i.rs1] + (int32_t)instr.i.imm;
+
     uint32_t val;
 
-    printf("[reading from: 0x%08x ", virt);
+    printf("[reading 32 bits from: 0x%08x ", virt);
 
     rv_exc_t ex = rv_read_mem32(cpu, virt, &val, true);
     
@@ -29,24 +72,50 @@ rv_exc_t load_instr(rv_cpu_t *cpu, rv_instr_t instr){
     return rv_exc_none;
 }
 
-rv_exc_t lb_instr(rv_cpu_t *cpu, rv_instr_t instr){
-
-}
-
-rv_exc_t lh_instr(rv_cpu_t *cpu, rv_instr_t instr){
-
-}
-
-rv_exc_t lw_instr(rv_cpu_t *cpu, rv_instr_t instr){
-
-}
-
 rv_exc_t lbu_instr(rv_cpu_t *cpu, rv_instr_t instr){
+    ASSERT(cpu != NULL);
+    ASSERT(instr.i.opcode == rv_opcLOAD);
 
+    uint32_t virt = cpu->regs[instr.i.rs1] + (int32_t)instr.i.imm;
+
+    uint8_t val;
+
+    printf("[reading 8 bits (unsigned) from: 0x%08x ", virt);
+
+    rv_exc_t ex = rv_read_mem8(cpu, virt, &val, true);
+    
+    if(ex != rv_exc_none){
+        return ex;
+    }
+
+    cpu->regs[instr.i.rd] = (uint32_t)val;
+
+    printf("val: %d to: x%d]", cpu->regs[instr.i.rd], instr.i.rd);
+
+    return rv_exc_none;
 }
 
 rv_exc_t lhu_instr(rv_cpu_t *cpu, rv_instr_t instr){
+    ASSERT(cpu != NULL);
+    ASSERT(instr.i.opcode == rv_opcLOAD);
 
+    uint32_t virt = cpu->regs[instr.i.rs1] + (int32_t)instr.i.imm;
+
+    uint16_t val;
+
+    printf("[reading 16 bits (unsigned) from: 0x%08x ", virt);
+
+    rv_exc_t ex = rv_read_mem16(cpu, virt, &val, true);
+    
+    if(ex != rv_exc_none){
+        return ex;
+    }
+
+    cpu->regs[instr.i.rd] = (uint32_t)val;
+
+    printf("val: %d to: x%d]", cpu->regs[instr.i.rd], instr.i.rd);
+
+    return rv_exc_none;
 }
 
 

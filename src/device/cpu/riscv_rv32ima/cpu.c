@@ -89,6 +89,44 @@ rv_exc_t rv_read_mem8(rv_cpu_t *cpu, uint32_t virt, uint8_t *value, bool noisy){
     return rv_exc_none;
 }
 
+rv_exc_t rv_write_mem8(rv_cpu_t *cpu, uint32_t virt, uint8_t value, bool noisy){
+    ASSERT(cpu != NULL);
+    // TODO: check alignment
+
+    ptr36_t phys;
+    rv_exc_t ex = rv_convert_addr(cpu, virt, &phys, false, noisy);
+    
+    if(ex != rv_exc_none){
+        return ex;
+    }
+
+    if(physmem_write8(cpu->csr.mhartid, phys, value, true)){
+        return rv_exc_none;
+    }
+    //TODO: handle write into invalid memory
+    return rv_exc_none;
+
+}
+
+rv_exc_t rv_write_mem16(rv_cpu_t *cpu, uint32_t virt, uint16_t value, bool noisy){
+    ASSERT(cpu != NULL);
+    // TODO: check alignment
+
+    ptr36_t phys;
+    rv_exc_t ex = rv_convert_addr(cpu, virt, &phys, false, noisy);
+    
+    if(ex != rv_exc_none){
+        return ex;
+    }
+
+    if(physmem_write16(cpu->csr.mhartid, phys, value, true)){
+        return rv_exc_none;
+    }
+    //TODO: handle write into invalid memory
+    return rv_exc_none;
+}
+
+
 rv_exc_t rv_write_mem32(rv_cpu_t *cpu, uint32_t virt, uint32_t value, bool noisy){
     ASSERT(cpu != NULL);
     // TODO: check alignment
@@ -107,28 +145,9 @@ rv_exc_t rv_write_mem32(rv_cpu_t *cpu, uint32_t virt, uint32_t value, bool noisy
     return rv_exc_none;
 }
 
-
-
-
-
-
 void rv_cpu_set_pc(rv_cpu_t *cpu, uint32_t value){
 
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 void rv_cpu_step(rv_cpu_t *cpu){
 

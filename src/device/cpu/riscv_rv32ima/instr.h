@@ -139,6 +139,13 @@ typedef enum {
     rv_func_LHU       = 0b101
 } rv_load_func_t;
 
+/** Funct values for STORE instructions */
+typedef enum {
+    rv_func_SB        = 0b000,
+    rv_func_SH        = 0b001,
+    rv_func_SW        = 0b010
+} rv_store_func_t;
+
 /** Funct values for SYSTEM instructions */
 typedef enum {
     rv_funcPRIV       = 0b000,

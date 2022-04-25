@@ -13,6 +13,7 @@
 #include <string.h>
 #include <stdbool.h>
 #include "device/cpu/mips_r4000/cpu.h"
+#include "device/cpu/mips_r4000/debug.h"
 #include "device/cpu/riscv_rv32ima/cpu.h"
 #include "fault.h"
 #include "parser.h"
@@ -27,7 +28,7 @@ bool iaddr = true;
 bool iopc = false;
 bool icmt = true;
 bool iregch = true;
-unsigned int ireg = 2;
+unsigned int r4k_ireg = 2;
 
 /*
  * Boolean constants
@@ -111,7 +112,7 @@ typedef bool (*set_uint_t)(unsigned int);
 typedef bool (*set_bool_t)(bool);
 typedef bool (*set_str_t)(const char *);
 
-/** Change the ireg variable
+/** Change the r4k_ireg variable
  *
  * @return true if successful
  *
@@ -123,8 +124,8 @@ static bool change_ireg(unsigned int i)
 		return false;
 	}
 	
-	ireg = i;
-	regname = reg_name[i];
+	r4k_ireg = i;
+	r4k_regname = r4k_reg_name[i];
 	
 	return true;
 }
@@ -191,13 +192,13 @@ const env_t global_env[] = {
 		NULL
 	},
 	{
-		"ireg",
+		"r4k_ireg",
 		"Register name mode",
 		"Mode 0 (technical): r0, r12, r22, etc.\n"
 		   "Mode 1 (at&t): $0, $12, $22, etc.\n"
 		   "Mode 2 (textual): at, t4, s2, etc.",
 		vt_uint,
-		&ireg,
+		&r4k_ireg,
 		change_ireg
 	},
 	

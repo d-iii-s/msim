@@ -20,6 +20,7 @@
 #include "arch/signal.h"
 #include "device/cpu/general_cpu.h"
 #include "device/cpu/mips_r4000/cpu.h"
+#include "device/cpu/mips_r4000/debug.h"
 #include "device/cpu/riscv_rv32ima/cpu.h"
 #include "debug/gdb.h"
 #include "debug/breakpoint.h"
@@ -35,12 +36,7 @@
 #include "text.h"
 #include "utils.h"
 
-/** Debugging register names */
-char **regname;
-char **cp0name;
-char **cp1name;
-char **cp2name;
-char **cp3name;
+
 
 /** Configuration file name */
 char *config_file = NULL;
@@ -339,11 +335,8 @@ int main(int argc, char *args[])
 	/*
 	 * Initialization
 	 */
-	regname = reg_name[ireg];
-	cp0name = cp0_name[ireg];
-	cp1name = cp1_name[ireg];
-	cp2name = cp2_name[ireg];
-	cp3name = cp3_name[ireg];
+
+	r4k_debug_init();
 	
 	input_init();
 	input_shadow();

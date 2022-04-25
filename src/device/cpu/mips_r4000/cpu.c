@@ -32,7 +32,7 @@
 /** Register and coprocessor names
  *
  */
-char *reg_name[R4K_REG_VARIANTS][R4K_REG_COUNT] = {
+char *r4k_reg_name[R4K_REG_VARIANTS][R4K_REG_COUNT] = {
 	{
 		"r0",  "r1",  "r2",  "r3",  "r4",  "r5",  "r6",  "r7",  "r8",  "r9",
 		"r10", "r11", "r12", "r13", "r14", "r15", "r16", "r17", "r18", "r19",
@@ -53,7 +53,7 @@ char *reg_name[R4K_REG_VARIANTS][R4K_REG_COUNT] = {
 	}
 };
 
-char *cp0_name[R4K_REG_VARIANTS][R4K_REG_COUNT] = {
+char *r4k_cp0_name[R4K_REG_VARIANTS][R4K_REG_COUNT] = {
 	{
 		"0",  "1",  "2",  "3",  "4",  "5",  "6",  "7",  "8",  "9",
 		"10", "11", "12", "13", "14", "15", "16", "17", "18", "19",
@@ -78,7 +78,7 @@ char *cp0_name[R4K_REG_VARIANTS][R4K_REG_COUNT] = {
 	}
 };
 
-char *cp1_name[R4K_REG_VARIANTS][R4K_REG_COUNT] = {
+char *r4k_cp1_name[R4K_REG_VARIANTS][R4K_REG_COUNT] = {
 	{
 		"0",  "1",  "2",  "3",  "4",  "5",  "6",  "7",  "8",  "9",
 		"10", "11", "12", "13", "14", "15", "16", "17", "18", "19",
@@ -100,7 +100,7 @@ char *cp1_name[R4K_REG_VARIANTS][R4K_REG_COUNT] = {
 	}
 };
 
-char *cp2_name[R4K_REG_VARIANTS][R4K_REG_COUNT] = {
+char *r4k_cp2_name[R4K_REG_VARIANTS][R4K_REG_COUNT] = {
 	{
 		"0",  "1",  "2",  "3",  "4",  "5",  "6",  "7",  "8",  "9",
 		"10", "11", "12", "13", "14", "15", "16", "17", "18", "19",
@@ -122,7 +122,7 @@ char *cp2_name[R4K_REG_VARIANTS][R4K_REG_COUNT] = {
 	}
 };
 
-char *cp3_name[R4K_REG_VARIANTS][R4K_REG_COUNT] = {
+char *r4k_cp3_name[R4K_REG_VARIANTS][R4K_REG_COUNT] = {
 	{
 		"0",  "1",  "2",  "3",  "4",  "5",  "6",  "7",  "8",  "9",
 		"10", "11", "12", "13", "14", "15", "16", "17", "18", "19",
@@ -1238,7 +1238,7 @@ static void disassemble_offset(ptr64_t addr, r4k_instr_t instr,
 static void disassemble_rs_offset(ptr64_t addr, r4k_instr_t instr,
     string_t *mnemonics, string_t *comments)
 {
-	string_printf(mnemonics, " %s,", regname[instr.i.rs]);
+	string_printf(mnemonics, " %s,", r4k_regname[instr.i.rs]);
 	disassemble_offset(addr, instr, mnemonics, comments);
 }
 
@@ -1246,7 +1246,7 @@ static void disassemble_rs_rt_offset(ptr64_t addr, r4k_instr_t instr,
     string_t *mnemonics, string_t *comments)
 {
 	string_printf(mnemonics, " %s, %s,",
-	    regname[instr.i.rs], regname[instr.i.rt]);
+	    r4k_regname[instr.i.rs], r4k_regname[instr.i.rt]);
 	disassemble_offset(addr, instr, mnemonics, comments);
 }
 
@@ -1266,49 +1266,49 @@ static void disassemble_rt_offset_base(r4k_instr_t instr, string_t *mnemonics,
 	int64_t offset = (int64_t) sign_extend_16_64(instr.i.imm);
 	
 	string_printf(mnemonics, " %s, %" PRId64 "(%s)",
-	    regname[instr.i.rt], offset, regname[instr.i.rs]);
+	    r4k_regname[instr.i.rt], offset, r4k_regname[instr.i.rs]);
 }
 
 static void disassemble_rs_rt(r4k_instr_t instr, string_t *mnemonics,
     string_t *comments)
 {
 	string_printf(mnemonics, " %s, %s,",
-	    regname[instr.i.rs], regname[instr.i.rt]);
+	    r4k_regname[instr.i.rs], r4k_regname[instr.i.rt]);
 }
 
 static void disassemble_rd_rs_rt(r4k_instr_t instr, string_t *mnemonics,
     string_t *comments)
 {
 	string_printf(mnemonics, " %s, %s, %s",
-	    regname[instr.r.rd], regname[instr.r.rs], regname[instr.r.rt]);
+	    r4k_regname[instr.r.rd], r4k_regname[instr.r.rs], r4k_regname[instr.r.rt]);
 }
 
 static void disassemble_rt_rs(r4k_instr_t instr, string_t *mnemonics,
     string_t *comments)
 {
 	string_printf(mnemonics, " %s, %s",
-	    regname[instr.r.rt], regname[instr.r.rs]);
+	    r4k_regname[instr.r.rt], r4k_regname[instr.r.rs]);
 }
 
 static void disassemble_rt_cp0(r4k_instr_t instr, string_t *mnemonics,
     string_t *comments)
 {
 	string_printf(mnemonics, " %s, %s",
-	    regname[instr.r.rt], cp0name[instr.r.rd]);
+	    r4k_regname[instr.r.rt], r4k_cp0name[instr.r.rd]);
 }
 
 static void disassemble_rt_fs(r4k_instr_t instr, string_t *mnemonics,
     string_t *comments)
 {
 	string_printf(mnemonics, " %s, %s",
-	    regname[instr.r.rt], cp1name[instr.r.rs]);
+	    r4k_regname[instr.r.rt], r4k_cp1name[instr.r.rs]);
 }
 
 static void disassemble_rt_cp2(r4k_instr_t instr, string_t *mnemonics,
     string_t *comments)
 {
 	string_printf(mnemonics, " %s, %s",
-	    regname[instr.r.rt], cp2name[instr.r.rs]);
+	    r4k_regname[instr.r.rt], r4k_cp2name[instr.r.rs]);
 }
 
 static void disassemble_rt_rs_imm(r4k_instr_t instr, string_t *mnemonics,
@@ -1317,14 +1317,14 @@ static void disassemble_rt_rs_imm(r4k_instr_t instr, string_t *mnemonics,
 	int32_t imm = (int32_t) sign_extend_16_32(instr.i.imm);
 	
 	string_printf(mnemonics, " %s, %s, %" PRId32,
-	    regname[instr.i.rt], regname[instr.i.rs], imm);
+	    r4k_regname[instr.i.rt], r4k_regname[instr.i.rs], imm);
 }
 
 static void disassemble_rt_rs_uimm(r4k_instr_t instr, string_t *mnemonics,
     string_t *comments)
 {
 	string_printf(mnemonics, " %s, %s, %#x",
-	    regname[instr.i.rt], regname[instr.i.rs], instr.i.imm);
+	    r4k_regname[instr.i.rt], r4k_regname[instr.i.rs], instr.i.imm);
 }
 
 static void disassemble_rt_imm(r4k_instr_t instr, string_t *mnemonics,
@@ -1333,14 +1333,14 @@ static void disassemble_rt_imm(r4k_instr_t instr, string_t *mnemonics,
 	int32_t imm = (int32_t) sign_extend_16_32(instr.i.imm);
 	
 	string_printf(mnemonics, " %s, %" PRId32,
-	    regname[instr.i.rt], imm);
+	    r4k_regname[instr.i.rt], imm);
 }
 
 static void disassemble_rt_uimm(r4k_instr_t instr, string_t *mnemonics,
     string_t *comments)
 {
 	string_printf(mnemonics, " %s, %#x",
-	    regname[instr.i.rt], instr.i.imm);
+	    r4k_regname[instr.i.rt], instr.i.imm);
 }
 
 static void disassemble_rs_imm(r4k_instr_t instr, string_t *mnemonics,
@@ -1349,40 +1349,40 @@ static void disassemble_rs_imm(r4k_instr_t instr, string_t *mnemonics,
 	int32_t imm = (int32_t) sign_extend_16_32(instr.i.imm);
 	
 	string_printf(mnemonics, " %s, %" PRId32,
-	    regname[instr.i.rs], imm);
+	    r4k_regname[instr.i.rs], imm);
 }
 
 static void disassemble_rd_rt_sa(r4k_instr_t instr, string_t *mnemonics,
     string_t *comments)
 {
 	string_printf(mnemonics, " %s, %s, %u",
-	    regname[instr.r.rd], regname[instr.r.rt], instr.r.sa);
+	    r4k_regname[instr.r.rd], r4k_regname[instr.r.rt], instr.r.sa);
 }
 
 static void disassemble_rd_rt_rs(r4k_instr_t instr, string_t *mnemonics,
     string_t *comments)
 {
 	string_printf(mnemonics, " %s, %s, %s",
-	    regname[instr.r.rd], regname[instr.r.rt], regname[instr.r.rs]);
+	    r4k_regname[instr.r.rd], r4k_regname[instr.r.rt], r4k_regname[instr.r.rs]);
 }
 
 static void disassemble_rd_rs(r4k_instr_t instr, string_t *mnemonics,
     string_t *comments)
 {
 	string_printf(mnemonics, " %s, %s",
-	    regname[instr.r.rd], regname[instr.r.rs]);
+	    r4k_regname[instr.r.rd], r4k_regname[instr.r.rs]);
 }
 
 static void disassemble_rs(r4k_instr_t instr, string_t *mnemonics,
     string_t *comments)
 {
-	string_printf(mnemonics, " %s", regname[instr.r.rs]);
+	string_printf(mnemonics, " %s", r4k_regname[instr.r.rs]);
 }
 
 static void disassemble_rd(r4k_instr_t instr, string_t *mnemonics,
     string_t *comments)
 {
-	string_printf(mnemonics, " %s", regname[instr.r.rd]);
+	string_printf(mnemonics, " %s", r4k_regname[instr.r.rd]);
 }
 
 /** Implementation of instructions of R4000

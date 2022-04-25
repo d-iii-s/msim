@@ -21,7 +21,7 @@ extern bool iaddr;
 extern bool iopc;
 extern bool icmt;
 extern bool iregch;
-extern unsigned int ireg;
+extern unsigned int r4k_ireg;
 
 /**< Variable types */
 typedef enum {

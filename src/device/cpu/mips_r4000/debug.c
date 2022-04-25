@@ -9,6 +9,12 @@
 #include "../../../main.h"
 #include "../../../utils.h"
 
+/** Debugging register names */
+char **r4k_regname;
+char **r4k_cp0name;
+char **r4k_cp1name;
+char **r4k_cp2name;
+char **r4k_cp3name;
 
 #define CP0_PM_ITEMS  7
 #define REG_BUF       1024
@@ -80,6 +86,14 @@ static char *cp0_cause_exccode_str[] = {
 	"Reserved", "Reserved", "Reserved", "Virtual Coherency (Data)"
 };
 
+void r4k_debug_init() {
+    r4k_regname = r4k_reg_name[r4k_ireg];
+	r4k_cp0name = r4k_cp0_name[r4k_ireg];
+	r4k_cp1name = r4k_cp1_name[r4k_ireg];
+	r4k_cp2name = r4k_cp2_name[r4k_ireg];
+	r4k_cp3name = r4k_cp3_name[r4k_ireg];
+}
+
 void r4k_reg_dump(r4k_cpu_t *cpu)
 {
 	printf("processor %u\n", cpu->procno);
@@ -87,16 +101,16 @@ void r4k_reg_dump(r4k_cpu_t *cpu)
 	unsigned int i;
 	for (i = 0; i < 30; i += 5) {
 		printf(" %3s %16" PRIx64 "  %3s %16" PRIx64 "  %3s %16" PRIx64 "  %3s %16" PRIx64 "  %3s %16" PRIx64 "\n",
-		    regname[i],     cpu->regs[i].val,
-		    regname[i + 1], cpu->regs[i + 1].val,
-		    regname[i + 2], cpu->regs[i + 2].val,
-		    regname[i + 3], cpu->regs[i + 3].val,
-		    regname[i + 4], cpu->regs[i + 4].val);
+		    r4k_regname[i],     cpu->regs[i].val,
+		    r4k_regname[i + 1], cpu->regs[i + 1].val,
+		    r4k_regname[i + 2], cpu->regs[i + 2].val,
+		    r4k_regname[i + 3], cpu->regs[i + 3].val,
+		    r4k_regname[i + 4], cpu->regs[i + 4].val);
 	}
 
 	printf(" %3s %16" PRIx64 "  %3s %16" PRIx64 "   pc %16" PRIx64 "   lo %16" PRIx64 "   hi %16" PRIx64 "\n",
-	    regname[i],     cpu->regs[i].val,
-	    regname[i + 1], cpu->regs[i + 1].val,
+	    r4k_regname[i],     cpu->regs[i].val,
+	    r4k_regname[i + 1], cpu->regs[i + 1].val,
 	    cpu->pc.ptr, cpu->loreg.val, cpu->hireg.val);
 }
 
@@ -411,7 +425,7 @@ char *r4k_modified_regs_dump(r4k_cpu_t *cpu)
 	for (i = 0; i < 32; i++)
 		if (cpu->regs[i].val != cpu->old_regs[i].val) {
 			snprintf(s1, size, "%s, %s: %#" PRIx64 "->%#" PRIx64,
-			    s2, regname[i], cpu->old_regs[i].val, cpu->regs[i].val);
+			    s2, r4k_regname[i], cpu->old_regs[i].val, cpu->regs[i].val);
 
 			s3 = s1;
 			s1 = s2;
@@ -422,9 +436,9 @@ char *r4k_modified_regs_dump(r4k_cpu_t *cpu)
 	/* Test for cp0 */
 	for (i = 0; i < 32; i++)
 		if ((cpu->cp0[i].val != cpu->old_cp0[i].val) && (i != cp0_Random) && (i != cp0_Count)) {
-			if (cp0name == cp0_name[2])
+			if (r4k_cp0name == r4k_cp0_name[2])
 				snprintf(s1, size, "%s, cp0_%s: %#" PRIx64 "->%#" PRIx64,
-				    s2, cp0name[i], cpu->old_cp0[i].val, cpu->cp0[i].val);
+				    s2, r4k_cp0name[i], cpu->old_cp0[i].val, cpu->cp0[i].val);
 			else
 				snprintf(s1, size, "%s, cp0[%u]: %#" PRIx64 "->%#" PRIx64,
 				    s2, i, cpu->old_cp0[i].val, cpu->cp0[i].val);

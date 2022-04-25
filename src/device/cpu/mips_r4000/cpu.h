@@ -949,11 +949,11 @@ typedef enum {
 typedef void (*mnemonics_fnc_t)(ptr64_t, r4k_instr_t, string_t *, string_t *);
 
 /** Register and coprocessor names */
-extern char *reg_name[R4K_REG_VARIANTS][R4K_REG_COUNT];
-extern char *cp0_name[R4K_REG_VARIANTS][R4K_REG_COUNT];
-extern char *cp1_name[R4K_REG_VARIANTS][R4K_REG_COUNT];
-extern char *cp2_name[R4K_REG_VARIANTS][R4K_REG_COUNT];
-extern char *cp3_name[R4K_REG_VARIANTS][R4K_REG_COUNT];
+extern char *r4k_reg_name[R4K_REG_VARIANTS][R4K_REG_COUNT];
+extern char *r4k_cp0_name[R4K_REG_VARIANTS][R4K_REG_COUNT];
+extern char *r4k_cp1_name[R4K_REG_VARIANTS][R4K_REG_COUNT];
+extern char *r4k_cp2_name[R4K_REG_VARIANTS][R4K_REG_COUNT];
+extern char *r4k_cp3_name[R4K_REG_VARIANTS][R4K_REG_COUNT];
 
 /** Decode instruction mnemonics */
 extern mnemonics_fnc_t decode_mnemonics(r4k_instr_t);

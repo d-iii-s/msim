@@ -55,12 +55,7 @@ typedef union {
 #endif
 } __attribute__((packed)) reg64_t;
 
-/** Debugging register names */
-extern char **regname;
-extern char **cp0name;
-extern char **cp1name;
-extern char **cp2name;
-extern char **cp3name;
+
 
 /** Configuration file name */
 extern char *config_file;

@@ -191,6 +191,7 @@ new nonstandart instruction used to halt the simulation
 
 - all device interrupts are handled on cpu with id 0
 - LL and SC only do checks on the address and are not based on size, so 64 bit write on address 0x00 would not trigger an 32 bit LL on address 0x04.
+- dumpins command prints strictly MIPS instructions => rename and add rv variant
 
 ## random risc-v facts
 

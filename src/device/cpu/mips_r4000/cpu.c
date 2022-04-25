@@ -26,6 +26,7 @@
 #include "../../../text.h"
 #include "../../../utils.h"
 #include "cpu.h"
+#include "debug.h"
 #include "../../../physmem.h"
 
 /** Register and coprocessor names
@@ -3035,7 +3036,7 @@ static r4k_exc_t execute(r4k_cpu_t *cpu)
 	r4k_exc_t exc = fnc(cpu, instr);
 	
 	if (machine_trace)
-		idump(cpu, cpu->pc, instr, true);
+		r4k_idump(cpu, cpu->pc, instr, true);
 	
 	/* Branch test */
 	if ((cpu->branch == BRANCH_COND) || (cpu->branch == BRANCH_NONE))

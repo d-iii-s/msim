@@ -5,7 +5,7 @@ static r4k_exc_t instr__xrd(r4k_cpu_t *cpu, r4k_instr_t instr)
 	}
 
 	alert("XRD: Register dump");
-	reg_dump(cpu);
+	r4k_reg_dump(cpu);
 	return r4k_excNone;
 }
 

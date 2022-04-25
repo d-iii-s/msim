@@ -17,6 +17,7 @@
 #include "device.h"
 #include "cpu/general_cpu.h"
 #include "cpu/mips_r4000/cpu.h"
+#include "cpu/mips_r4000/debug.h"
 #include "../debug/debug.h"
 #include "../debug/breakpoint.h"
 #include "../fault.h"
@@ -112,7 +113,7 @@ static bool dr4kcpu_stat(token_t *parm, device_t *dev)
 static bool dr4kcpu_cp0d(token_t *parm, device_t *dev)
 {
 	if (parm->ttype == tt_end) {
-		cp0_dump_all(get_r4k(dev));
+		r4k_cp0_dump_all(get_r4k(dev));
 		return true;
 	}
 	if (parm->ttype != tt_uint) {
@@ -125,7 +126,7 @@ static bool dr4kcpu_cp0d(token_t *parm, device_t *dev)
 		return false;
 	}
 	
-	cp0_dump(get_r4k(dev), no);
+	r4k_cp0_dump(get_r4k(dev), no);
 	return true;
 }
 
@@ -134,7 +135,7 @@ static bool dr4kcpu_cp0d(token_t *parm, device_t *dev)
  */
 static bool dr4kcpu_tlbd(token_t *parm, device_t *dev)
 {
-	tlb_dump(get_r4k(dev));
+	r4k_tlb_dump(get_r4k(dev));
 	return true;
 }
 
@@ -224,7 +225,7 @@ static bool dr4kcpu_id(token_t *parm, device_t *dev)
 		if (res != r4k_excNone)
 			instr.val = 0;
 		
-		idump(get_r4k(dev), addr, instr, false);
+		r4k_idump(get_r4k(dev), addr, instr, false);
 	}
 	
 	return true;
@@ -235,7 +236,7 @@ static bool dr4kcpu_id(token_t *parm, device_t *dev)
  */
 static bool dr4kcpu_rd(token_t *parm, device_t *dev)
 {
-	reg_dump(get_r4k(dev));
+	r4k_reg_dump(get_r4k(dev));
 	return true;
 }
 

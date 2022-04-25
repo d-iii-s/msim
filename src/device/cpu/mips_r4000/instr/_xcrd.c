@@ -5,7 +5,7 @@ static r4k_exc_t instr__xcrd(r4k_cpu_t *cpu, r4k_instr_t instr)
 	}
 
 	alert("XCRD: CP0 register dump");
-	cp0_dump_all(cpu);
+	r4k_cp0_dump_all(cpu);
 	return r4k_excNone;
 }
 

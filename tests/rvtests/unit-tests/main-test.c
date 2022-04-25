@@ -5,13 +5,6 @@
  * MSIM main.cpp MOCK
  */
 
-/** Debugging register names */
-char **regname = NULL;
-char **cp0name = NULL;
-char **cp1name = NULL;
-char **cp2name = NULL;
-char **cp3name = NULL;
-
 /** Configuration file name */
 char *config_file = NULL;
 

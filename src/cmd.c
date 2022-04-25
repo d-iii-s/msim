@@ -19,6 +19,7 @@
 #include <errno.h>
 #include <inttypes.h>
 #include "device/cpu/mips_r4000/cpu.h"
+#include "device/cpu/mips_r4000/debug.h"
 #include "device/cpu/riscv_rv32ima/cpu.h"
 #include "debug/debug.h"
 #include "debug/breakpoint.h"
@@ -182,7 +183,7 @@ static bool system_dumpins(token_t *parm, void *data)
 	    addr += 4, cnt--) {
 		r4k_instr_t instr;
 		instr.val = physmem_read32(-1, addr, false);
-		idump_phys(addr, instr);
+		r4k_idump_phys(addr, instr);
 	}
 	
 	return true;

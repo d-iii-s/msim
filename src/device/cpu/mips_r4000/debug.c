@@ -86,7 +86,7 @@ static char *cp0_cause_exccode_str[] = {
 	"Reserved", "Reserved", "Reserved", "Virtual Coherency (Data)"
 };
 
-void r4k_debug_init() {
+void r4k_debug_init(void) {
     r4k_regname = r4k_reg_name[r4k_ireg];
 	r4k_cp0name = r4k_cp0_name[r4k_ireg];
 	r4k_cp1name = r4k_cp1_name[r4k_ireg];

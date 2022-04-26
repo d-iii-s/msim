@@ -22,6 +22,7 @@
 #include "device/cpu/mips_r4000/cpu.h"
 #include "device/cpu/mips_r4000/debug.h"
 #include "device/cpu/riscv_rv32ima/cpu.h"
+#include "device/cpu/riscv_rv32ima/debug.h"
 #include "debug/gdb.h"
 #include "debug/breakpoint.h"
 #include "device/dr4kcpu.h"
@@ -337,6 +338,7 @@ int main(int argc, char *args[])
 	 */
 
 	r4k_debug_init();
+	rv_debug_init();
 	
 	input_init();
 	input_shadow();

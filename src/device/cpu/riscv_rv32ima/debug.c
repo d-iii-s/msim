@@ -4,7 +4,7 @@
 #include "../../../fault.h"
 #include "../../../utils.h"
 #include "../../../env.h"
-#include "instr.h"
+#include "mnemonics.h"
 
 char *rv_reg_name_table[__rv_regname_type_count][RV_REG_COUNT] = {
     {

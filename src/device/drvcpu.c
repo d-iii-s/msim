@@ -4,11 +4,12 @@
 #include <inttypes.h>
 #include "drvcpu.h"
 #include "cpu/general_cpu.h"
+#include "cpu/riscv_rv32ima/cpu.h"
+#include "cpu/riscv_rv32ima/debug.h"
 #include "../main.h"
+#include "../assert.h"
 #include "../utils.h"
 #include "../fault.h"
-
-//TODO: General CPU
 
 static bool drvcpu_init(token_t *parm, device_t *dev){
     
@@ -38,6 +39,14 @@ static bool drvcpu_info(token_t *parm, device_t *dev){
     return true;
 }
 
+
+static bool drvcpu_rd(token_t *parm, device_t *dev){
+    ASSERT(dev != NULL);
+
+    rv_reg_dump(get_rv(dev));
+    return true;
+}
+
 static void drvcpu_done(device_t *dev){
     safe_free(dev->name);
     safe_free(((general_cpu_t *)dev->data)->data);
@@ -47,6 +56,8 @@ static void drvcpu_done(device_t *dev){
 static void drvcpu_step(device_t *dev){
     rv_cpu_step(get_rv(dev));
 }
+
+
 
 cmd_t drvcpu_cmds[] = {
     {
@@ -74,6 +85,15 @@ cmd_t drvcpu_cmds[] = {
         DEFAULT,
         "Display configuration information",
         "Display configuration information",
+        NOCMD
+    },
+    {
+        "rd",
+        (fcmd_t) drvcpu_rd,
+        DEFAULT,
+        DEFAULT,
+        "Dump content of CPU general registers",
+        "Dump content of CPU general registers",
         NOCMD
     }
 };

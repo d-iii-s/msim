@@ -14,7 +14,7 @@ extern char **r4k_cp1name;
 extern char **r4k_cp2name;
 extern char **r4k_cp3name;
 
-extern void r4k_debug_init();
+extern void r4k_debug_init(void);
 
 extern void r4k_reg_dump(r4k_cpu_t *cpu);
 extern void r4k_tlb_dump(r4k_cpu_t *cpu);

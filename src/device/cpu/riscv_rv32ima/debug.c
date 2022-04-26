@@ -43,7 +43,7 @@ void rv_reg_dump(rv_cpu_t *cpu){
     printf("processor %u\n", cpu->csr.mhartid);
     
     for(unsigned int i=0; i<RV_REG_COUNT; i+=4){
-        printf(" %5s %8x %5s %8x %5s %8x %5s %8x\n",
+        printf(" %5s: %8x %5s: %8x %5s: %8x %5s: %8x\n",
             rv_regnames[i],   cpu->regs[i],
             rv_regnames[i+1], cpu->regs[i+1],
             rv_regnames[i+2], cpu->regs[i+2],
@@ -51,7 +51,7 @@ void rv_reg_dump(rv_cpu_t *cpu){
         );
     }
     
-    printf(" %5s %8x\n", "pc", cpu->pc);
+    printf(" %5s: %08x\n", "pc", cpu->pc);
 }
 
 void rv_idump(rv_cpu_t *cpu, uint32_t addr, rv_instr_t instr, bool modregs){

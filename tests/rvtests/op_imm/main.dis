@@ -7,8 +7,8 @@ Disassembly of section .text:
 00000000 <var1-0x38>:
    0:	03802503          	lw	a0,56(zero) # 38 <var1>
    4:	03c02583          	lw	a1,60(zero) # 3c <var2>
-   8:	00150613          	addi	a2,a0,1
-   c:	0005a613          	slti	a2,a1,0
+   8:	fff50613          	addi	a2,a0,-1
+   c:	fff5a613          	slti	a2,a1,-1
   10:	0005b613          	sltiu	a2,a1,0
   14:	00357613          	andi	a2,a0,3
   18:	00256613          	ori	a2,a0,2
@@ -24,4 +24,4 @@ Disassembly of section .text:
   38:	00000001          	.word	0x00000001
 
 0000003c <var2>:
-  3c:	ffffffff          	.word	0xffffffff
+  3c:	fffffffe          	.word	0xfffffffe

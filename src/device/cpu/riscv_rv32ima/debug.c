@@ -2,6 +2,8 @@
 #include "cpu.h"
 #include "../../../assert.h"
 #include "../../../fault.h"
+#include "../../../utils.h"
+#include "../../../env.h"
 
 char *rv_reg_name_table[__rv_regname_type_count][RV_REG_COUNT] = {
     {
@@ -54,6 +56,47 @@ void rv_reg_dump(rv_cpu_t *cpu){
     printf(" %5s: %08x\n", "pc", cpu->pc);
 }
 
-void rv_idump(rv_cpu_t *cpu, uint32_t addr, rv_instr_t instr, bool modregs){
+static void idump_common(uint32_t addr, rv_instr_t instr, string_t *s_opc,
+    string_t *s_mnemonics, string_t *s_comments){
 
+    string_printf(s_opc, "%08x", instr.val);
+
+    //TODO: decode mnemonics
+    //TODO: call mnemonics func    
+}
+
+void rv_idump(rv_cpu_t *cpu, uint32_t addr, rv_instr_t instr){
+    string_t s_cpu;
+	string_t s_addr;
+	string_t s_opc;
+	string_t s_mnemonics;
+	string_t s_comments;
+
+	string_init(&s_cpu);
+	string_init(&s_addr);
+	string_init(&s_opc);
+	string_init(&s_mnemonics);
+	string_init(&s_comments);
+
+    if(cpu != NULL){
+        string_printf(&s_cpu, "cpu%u", cpu->csr.mhartid);
+    }
+
+    string_printf(&s_addr, "%#08x", addr);
+
+    idump_common(addr, instr, &s_opc, &s_mnemonics, &s_comments);
+
+    if(cpu != NULL)
+        printf("%-5s ", s_cpu.str);
+    if(iaddr)
+        printf("%-10s ", s_addr.str);
+    if(iopc)        
+        printf("%-8s ", s_opc.str);
+    
+    printf("%s", s_mnemonics.str);
+
+    if(icmt)
+        printf(" %s", s_comments.str);
+    
+    printf("\n");
 }

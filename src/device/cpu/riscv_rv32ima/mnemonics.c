@@ -73,6 +73,15 @@ static void r_instr_mnemonics(rv_instr_t instr, string_t *s_mnemonics){
     );
 }
 
+static void r_instr_comment_binop(rv_instr_t instr, string_t *s_comments, const char *op) {
+    string_printf(s_comments, "%s = %s %s %s",
+        rv_regnames[instr.r.rd],
+        rv_regnames[instr.r.rs1],
+        op,
+        rv_regnames[instr.r.rs2]
+    );
+}
+
 static void i_instr_mnemonics(rv_instr_t instr, string_t *s_mnemonics){
     string_printf(s_mnemonics, " %s, %s, %d",
         rv_regnames[instr.i.rd],
@@ -204,42 +213,55 @@ extern void rv_srai_mnemonics(uint32_t addr, rv_instr_t instr, string_t *s_mnemo
 extern void rv_add_mnemonics(uint32_t addr, rv_instr_t instr, string_t *s_mnemonics, string_t *s_comments){
     string_printf(s_mnemonics, "add");
     r_instr_mnemonics(instr, s_mnemonics);
+    r_instr_comment_binop(instr, s_comments, "+");
 }
 extern void rv_sub_mnemonics(uint32_t addr, rv_instr_t instr, string_t *s_mnemonics, string_t *s_comments){
     string_printf(s_mnemonics, "sub");
     r_instr_mnemonics(instr, s_mnemonics);
+    r_instr_comment_binop(instr, s_comments, "-");
 }
 extern void rv_sll_mnemonics(uint32_t addr, rv_instr_t instr, string_t *s_mnemonics, string_t *s_comments){
     string_printf(s_mnemonics, "sll");
     r_instr_mnemonics(instr, s_mnemonics);
+    r_instr_comment_binop(instr, s_comments, "<<");
 }
 extern void rv_slt_mnemonics(uint32_t addr, rv_instr_t instr, string_t *s_mnemonics, string_t *s_comments){
     string_printf(s_mnemonics, "slt");
     r_instr_mnemonics(instr, s_mnemonics);
+    r_instr_comment_binop(instr, s_comments, "<");
 }
 extern void rv_sltu_mnemonics(uint32_t addr, rv_instr_t instr, string_t *s_mnemonics, string_t *s_comments){
     string_printf(s_mnemonics, "sltu");
     r_instr_mnemonics(instr, s_mnemonics);
+    r_instr_comment_binop(instr, s_comments, "<");
+    string_printf(s_comments, " (unsigned)");
 }
 extern void rv_xor_mnemonics(uint32_t addr, rv_instr_t instr, string_t *s_mnemonics, string_t *s_comments){
     string_printf(s_mnemonics, "xor");
     r_instr_mnemonics(instr, s_mnemonics);
+    r_instr_comment_binop(instr, s_comments, "^");
 }
 extern void rv_srl_mnemonics(uint32_t addr, rv_instr_t instr, string_t *s_mnemonics, string_t *s_comments){
     string_printf(s_mnemonics, "srl");
     r_instr_mnemonics(instr, s_mnemonics);
+    r_instr_comment_binop(instr, s_comments, ">>");
+    string_printf(s_comments, " (logical)");
 }
 extern void rv_sra_mnemonics(uint32_t addr, rv_instr_t instr, string_t *s_mnemonics, string_t *s_comments){
     string_printf(s_mnemonics, "sra");
     r_instr_mnemonics(instr, s_mnemonics);
+    r_instr_comment_binop(instr, s_comments, ">>");
+    string_printf(s_comments, " (arithmetical)");
 }
 extern void rv_or_mnemonics(uint32_t addr, rv_instr_t instr, string_t *s_mnemonics, string_t *s_comments){
     string_printf(s_mnemonics, "or");
     r_instr_mnemonics(instr, s_mnemonics);
+    r_instr_comment_binop(instr, s_comments, "|");
 }
 extern void rv_and_mnemonics(uint32_t addr, rv_instr_t instr, string_t *s_mnemonics, string_t *s_comments){
     string_printf(s_mnemonics, "and");
     r_instr_mnemonics(instr, s_mnemonics);
+    r_instr_comment_binop(instr, s_comments, "&");
 }
 
 // mem misc

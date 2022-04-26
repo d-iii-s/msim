@@ -98,7 +98,7 @@ void rv_idump(rv_cpu_t *cpu, uint32_t addr, rv_instr_t instr){
     printf("%20s", s_mnemonics.str);
 
     if(icmt && s_comments.size > 0 && s_comments.str[0] != 0){
-        printf("    // %s", s_comments.str);
+        printf("    [ %s ]", s_comments.str);
     }
     
     printf("\n");

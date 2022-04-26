@@ -169,6 +169,10 @@ First by switching based on the opcode field, and then based on the func fields,
 
 The jump/branch instructions can be elegantly implemented with a `next_pc` value stored in `rv_cpu_t`. The value of `pc` can be set to this value at the end of each tick, and the value of `pc_next` can be changed in instruction execution or exception handlers.
 
+Maybe the instructions should be renamed to `rv_XXX_instr` and `r4k_XXX_instr` ?
+
+(But then mnemonic decode needs to change.)
+
 ### LOAD
 
 The only difference between the kinds of loads are the length and whether a shorter number is sign extended or zero extended.

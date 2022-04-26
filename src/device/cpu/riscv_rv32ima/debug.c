@@ -4,6 +4,7 @@
 #include "../../../fault.h"
 #include "../../../utils.h"
 #include "../../../env.h"
+#include "instr.h"
 
 char *rv_reg_name_table[__rv_regname_type_count][RV_REG_COUNT] = {
     {
@@ -61,8 +62,9 @@ static void idump_common(uint32_t addr, rv_instr_t instr, string_t *s_opc,
 
     string_printf(s_opc, "%08x", instr.val);
 
-    //TODO: decode mnemonics
-    //TODO: call mnemonics func    
+    rv_mnemonics_func_t mnem_func = rv_decode_mnemonics(instr);
+
+    mnem_func(addr, instr, s_mnemonics, s_comments);
 }
 
 void rv_idump(rv_cpu_t *cpu, uint32_t addr, rv_instr_t instr){
@@ -95,8 +97,9 @@ void rv_idump(rv_cpu_t *cpu, uint32_t addr, rv_instr_t instr){
     
     printf("%s", s_mnemonics.str);
 
-    if(icmt && s_comments.size > 0)
+    if(icmt && s_comments.size > 0 && s_comments.str[0] != 0){
         printf(" [%s]", s_comments.str);
+    }
     
     printf("\n");
 }

@@ -19,7 +19,7 @@
 #include "csr.h"
 #include "../../../main.h"
 
-#define RV32IMA_REG_COUNT	32
+#define RV_REG_COUNT	32
 
 #define RV_INTERRUPT_EXC_BITS UINT32_C(0x80000000)
 #define RV_EXCEPTION_EXC_BITS UINT32_C(0)
@@ -59,7 +59,7 @@ typedef struct rv_cpu
 	bool stdby;
 	// struct frame - for holding cached decoded instructions
 
-	uint32_t regs[RV32IMA_REG_COUNT];
+	uint32_t regs[RV_REG_COUNT];
 	
 	// CSR
 	csr_t csr;

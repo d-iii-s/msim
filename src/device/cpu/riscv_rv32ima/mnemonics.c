@@ -6,13 +6,15 @@
 #include "instructions/system.h"
 #include "instructions/mem_ops.h"
 
-#define IF_SAME_DECODE(expected_instr) if(instr_func == expected_instr ## _instr) return rv_ ## expected_instr ## _mnemonics
+
 
 extern rv_mnemonics_func_t rv_decode_mnemonics(rv_instr_t instr){
     // is this dirty?
     rv_instr_func_t instr_func = rv_instr_decode(instr);
 
     // very dirty indeed, but only one decode is needed
+
+    #define IF_SAME_DECODE(expected_instr) if(instr_func == expected_instr ## _instr) return rv_ ## expected_instr ## _mnemonics
 
     IF_SAME_DECODE(lui);
     IF_SAME_DECODE(auipc);
@@ -58,6 +60,12 @@ extern rv_mnemonics_func_t rv_decode_mnemonics(rv_instr_t instr){
     IF_SAME_DECODE(sra);
 
     IF_SAME_DECODE(fence);
+
+    if(instr_func == break_instr)
+        return rv_ebreak_mnemonics;
+    
+    if(instr_func == halt_instr)
+        return rv_ehalt_mnemonics;
 
     // TODO: add rest of instructions
 

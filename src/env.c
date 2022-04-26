@@ -387,6 +387,10 @@ static void show_help(token_t *parm)
 			printf("\n");
 		}
 	} else {
+		/* Skip '=' constant */
+		ASSERT(strcmp(parm_str(parm), "=") == 0);
+		parm_next(&parm);
+		
 		env = search_variable(parm_str_next(&parm));
 		if (env)
 			printf("%s\n", env->descf);

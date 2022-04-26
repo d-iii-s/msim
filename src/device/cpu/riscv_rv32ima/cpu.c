@@ -3,6 +3,7 @@
 #include <string.h>
 #include <stdint.h>
 #include "cpu.h"
+#include "debug.h"
 #include "../../../assert.h"
 #include "../../../physmem.h"
 #include "../../../main.h"
@@ -28,7 +29,6 @@ void rv_cpu_init(rv_cpu_t *cpu, unsigned int procno){
 
     init_csr(&cpu->csr, procno);
    
-    printf("Initialized rv cpu id %u\n", cpu->csr.mhartid);
 }   
 
 
@@ -159,12 +159,11 @@ void rv_cpu_step(rv_cpu_t *cpu){
 
     rv_instr_t instr_data = (rv_instr_t)physmem_read32(cpu->csr.mhartid, phys, false);
 
-    printf("Cycle: %ld\tpc: 0x%08x\tmem: 0x%08x ", cpu->csr.cycle, cpu->pc, instr_data.val);
-    
     rv_instr_func_t instr_func = rv_instr_decode(instr_data);
     instr_func(cpu, instr_data);
 
-    printf("\n");
+    if(machine_trace)
+        rv_idump(cpu, cpu->pc, instr_data);
 
     cpu->csr.cycle++;
 

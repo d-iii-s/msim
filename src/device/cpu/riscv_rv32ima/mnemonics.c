@@ -56,7 +56,10 @@ extern rv_mnemonics_func_t rv_decode_mnemonics(rv_instr_t instr){
     IF_SAME_DECODE(and);
     IF_SAME_DECODE(srl);
     IF_SAME_DECODE(sra);
+
     IF_SAME_DECODE(fence);
+
+    // TODO: add rest of instructions
 
     return undefined_mnemonics;
 }
@@ -122,56 +125,56 @@ extern void rv_auipc_mnemonics(uint32_t addr, rv_instr_t instr, string_t *s_mnem
 
 // control transfer
 extern void rv_jal_mnemonics(uint32_t addr, rv_instr_t instr, string_t *s_mnemonics, string_t *s_comments){
-
+    string_printf(s_mnemonics, "jal");
 }
 extern void rv_jalr_mnemonics(uint32_t addr, rv_instr_t instr, string_t *s_mnemonics, string_t *s_comments){
-
+    string_printf(s_mnemonics, "jalr");
 }
 extern void rv_beq_mnemonics(uint32_t addr, rv_instr_t instr, string_t *s_mnemonics, string_t *s_comments){
-
+    string_printf(s_mnemonics, "beq");
 }
 extern void rv_bne_mnemonics(uint32_t addr, rv_instr_t instr, string_t *s_mnemonics, string_t *s_comments){
-
+    string_printf(s_mnemonics, "bne");
 }
 extern void rv_blt_mnemonics(uint32_t addr, rv_instr_t instr, string_t *s_mnemonics, string_t *s_comments){
-
+    string_printf(s_mnemonics, "bltd");
 }
 extern void rv_bge_mnemonics(uint32_t addr, rv_instr_t instr, string_t *s_mnemonics, string_t *s_comments){
-
+    string_printf(s_mnemonics, "bge");
 }
 extern void rv_bltu_mnemonics(uint32_t addr, rv_instr_t instr, string_t *s_mnemonics, string_t *s_comments){
-
+    string_printf(s_mnemonics, "bltu");
 }
 extern void rv_bgeu_mnemonics(uint32_t addr, rv_instr_t instr, string_t *s_mnemonics, string_t *s_comments){
-
+    string_printf(s_mnemonics, "bgeu");
 }
 
 // mem load
 extern void rv_lb_mnemonics(uint32_t addr, rv_instr_t instr, string_t *s_mnemonics, string_t *s_comments){
-
+    string_printf(s_mnemonics, "lb");
 }
 extern void rv_lh_mnemonics(uint32_t addr, rv_instr_t instr, string_t *s_mnemonics, string_t *s_comments){
-
+    string_printf(s_mnemonics, "lh");
 }
 extern void rv_lw_mnemonics(uint32_t addr, rv_instr_t instr, string_t *s_mnemonics, string_t *s_comments){
-
+    string_printf(s_mnemonics, "lw");
 }
 extern void rv_lbu_mnemonics(uint32_t addr, rv_instr_t instr, string_t *s_mnemonics, string_t *s_comments){
-
+    string_printf(s_mnemonics, "lbu");
 }
 extern void rv_lhu_mnemonics(uint32_t addr, rv_instr_t instr, string_t *s_mnemonics, string_t *s_comments){
-
+    string_printf(s_mnemonics, "lhu");
 }
 
 // mem store
 extern void rv_sb_mnemonics(uint32_t addr, rv_instr_t instr, string_t *s_mnemonics, string_t *s_comments){
-
+    string_printf(s_mnemonics, "sb");
 }
 extern void rv_sh_mnemonics(uint32_t addr, rv_instr_t instr, string_t *s_mnemonics, string_t *s_comments){
-
+    string_printf(s_mnemonics, "sh");
 }
 extern void rv_sw_mnemonics(uint32_t addr, rv_instr_t instr, string_t *s_mnemonics, string_t *s_comments){
-
+    string_printf(s_mnemonics, "sw");
 }
 
 // op imm
@@ -200,12 +203,15 @@ extern void rv_andi_mnemonics(uint32_t addr, rv_instr_t instr, string_t *s_mnemo
     i_instr_mnemonics(instr, s_mnemonics);
 }
 extern void rv_slli_mnemonics(uint32_t addr, rv_instr_t instr, string_t *s_mnemonics, string_t *s_comments){
+    string_printf(s_mnemonics, "slli");
     //TODO
 }
 extern void rv_srli_mnemonics(uint32_t addr, rv_instr_t instr, string_t *s_mnemonics, string_t *s_comments){
+    string_printf(s_mnemonics, "srli");
     //TODO
 }
 extern void rv_srai_mnemonics(uint32_t addr, rv_instr_t instr, string_t *s_mnemonics, string_t *s_comments){
+    string_printf(s_mnemonics, "srai");
     //TODO
 }
 
@@ -229,6 +235,7 @@ extern void rv_slt_mnemonics(uint32_t addr, rv_instr_t instr, string_t *s_mnemon
     string_printf(s_mnemonics, "slt");
     r_instr_mnemonics(instr, s_mnemonics);
     r_instr_comment_binop(instr, s_comments, "<");
+    string_printf(s_comments, " (signed)");
 }
 extern void rv_sltu_mnemonics(uint32_t addr, rv_instr_t instr, string_t *s_mnemonics, string_t *s_comments){
     string_printf(s_mnemonics, "sltu");
@@ -266,91 +273,91 @@ extern void rv_and_mnemonics(uint32_t addr, rv_instr_t instr, string_t *s_mnemon
 
 // mem misc
 extern void rv_fence_mnemonics(uint32_t addr, rv_instr_t instr, string_t *s_mnemonics, string_t *s_comments){
-
+    string_printf(s_mnemonics, "fence");
 }
 
 // system
 extern void rv_ecall_mnemonics(uint32_t addr, rv_instr_t instr, string_t *s_mnemonics, string_t *s_comments){
-
+    string_printf(s_mnemonics, "ecall");
 }
 extern void rv_ebreak_mnemonics(uint32_t addr, rv_instr_t instr, string_t *s_mnemonics, string_t *s_comments){
-
+    string_printf(s_mnemonics, "ebreak");
 }
 extern void rv_ehalt_mnemonics(uint32_t addr, rv_instr_t instr, string_t *s_mnemonics, string_t *s_comments){
-
+    string_printf(s_mnemonics, "ehalt");
 }
 
 // CSR
 extern void rv_csrrw_mnemonics(uint32_t addr, rv_instr_t instr, string_t *s_mnemonics, string_t *s_comments){
-
+    string_printf(s_mnemonics, "csrrw");
 }
 extern void rv_csrrs_mnemonics(uint32_t addr, rv_instr_t instr, string_t *s_mnemonics, string_t *s_comments){
-
+    string_printf(s_mnemonics, "csrrs");
 }
 extern void rv_csrrc_mnemonics(uint32_t addr, rv_instr_t instr, string_t *s_mnemonics, string_t *s_comments){
-
+    string_printf(s_mnemonics, "csrrc");
 }
 extern void rv_csrrwi_mnemonics(uint32_t addr, rv_instr_t instr, string_t *s_mnemonics, string_t *s_comments){
-
+    string_printf(s_mnemonics, "csrrwi");
 }
 extern void rv_csrrsi_mnemonics(uint32_t addr, rv_instr_t instr, string_t *s_mnemonics, string_t *s_comments){
-
+    string_printf(s_mnemonics, "csrrsi");
 }
 extern void rv_csrrci_mnemonics(uint32_t addr, rv_instr_t instr, string_t *s_mnemonics, string_t *s_comments){
-
+    string_printf(s_mnemonics, "csrrci");
 }
 
 // M extension
 extern void rv_mul_mnemonics(uint32_t addr, rv_instr_t instr, string_t *s_mnemonics, string_t *s_comments){
-
+    string_printf(s_mnemonics, "mul");
 }
 extern void rv_mulh_mnemonics(uint32_t addr, rv_instr_t instr, string_t *s_mnemonics, string_t *s_comments){
-
+    string_printf(s_mnemonics, "mulh");
 }
 extern void rv_mulhsu_mnemonics(uint32_t addr, rv_instr_t instr, string_t *s_mnemonics, string_t *s_comments){
-
+    string_printf(s_mnemonics, "mulhsu");
 }
 extern void rv_mulhu_mnemonics(uint32_t addr, rv_instr_t instr, string_t *s_mnemonics, string_t *s_comments){
-
+    string_printf(s_mnemonics, "mulhu");
 }
 extern void rv_div_mnemonics(uint32_t addr, rv_instr_t instr, string_t *s_mnemonics, string_t *s_comments){
-
+    string_printf(s_mnemonics, "div");
 }
 extern void rv_divu_mnemonics(uint32_t addr, rv_instr_t instr, string_t *s_mnemonics, string_t *s_comments){
-
+    string_printf(s_mnemonics, "divu");
 }
 extern void rv_rem_mnemonics(uint32_t addr, rv_instr_t instr, string_t *s_mnemonics, string_t *s_comments){
-
+    string_printf(s_mnemonics, "rem");
 }
 extern void rv_remu_mnemonics(uint32_t addr, rv_instr_t instr, string_t *s_mnemonics, string_t *s_comments){
-
+    string_printf(s_mnemonics, "remu");
 }
 
 // A extension
 extern void rv_lr_mnemonics(uint32_t addr, rv_instr_t instr, string_t *s_mnemonics, string_t *s_comments){
-
+    string_printf(s_mnemonics, "lr");
 }
 extern void rv_sc_mnemonics(uint32_t addr, rv_instr_t instr, string_t *s_mnemonics, string_t *s_comments){
-
+    string_printf(s_mnemonics, "sc");
 }
 extern void rv_amoswap_mnemonics(uint32_t addr, rv_instr_t instr, string_t *s_mnemonics, string_t *s_comments){
-
+    string_printf(s_mnemonics, "amoswap");
 }
 extern void rv_amoadd_mnemonics(uint32_t addr, rv_instr_t instr, string_t *s_mnemonics, string_t *s_comments){
-
+    string_printf(s_mnemonics, "amoadd");
 }
 extern void rv_amoxor_mnemonics(uint32_t addr, rv_instr_t instr, string_t *s_mnemonics, string_t *s_comments){
-
+    string_printf(s_mnemonics, "amoxor");
 }
 extern void rv_amomin_mnemonics(uint32_t addr, rv_instr_t instr, string_t *s_mnemonics, string_t *s_comments){
-
+    string_printf(s_mnemonics, "amomin");
 }
 extern void rv_amomax_mnemonics(uint32_t addr, rv_instr_t instr, string_t *s_mnemonics, string_t *s_comments){
-
+    string_printf(s_mnemonics, "amomax");
 }
 extern void rv_amominu_mnemonics(uint32_t addr, rv_instr_t instr, string_t *s_mnemonics, string_t *s_comments){
-
+    string_printf(s_mnemonics, "amominu");
 }
 extern void rv_amomaxu_mnemonics(uint32_t addr, rv_instr_t instr, string_t *s_mnemonics, string_t *s_comments){
-
+    string_printf(s_mnemonics, "amomaxu");
 }

@@ -14,7 +14,7 @@
 #include <stdbool.h>
 #include "device/cpu/mips_r4000/cpu.h"
 #include "device/cpu/mips_r4000/debug.h"
-#include "device/cpu/riscv_rv32ima/cpu.h"
+#include "device/cpu/riscv_rv32ima/debug.h"
 #include "fault.h"
 #include "parser.h"
 #include "assert.h"
@@ -29,6 +29,9 @@ bool iopc = false;
 bool icmt = true;
 bool iregch = true;
 unsigned int r4k_ireg = 2;
+unsigned int __rv_ireg_mock = 1; // this variable is never written to,
+							     // but it has to be here, because of
+							     // the parsing algorithm
 
 /*
  * Boolean constants
@@ -193,7 +196,7 @@ const env_t global_env[] = {
 	},
 	{
 		"r4k_ireg",
-		"Register name mode",
+		"MIPS Register name mode",
 		"Mode 0 (technical): r0, r12, r22, etc.\n"
 		   "Mode 1 (at&t): $0, $12, $22, etc.\n"
 		   "Mode 2 (textual): at, t4, s2, etc.",
@@ -201,7 +204,15 @@ const env_t global_env[] = {
 		&r4k_ireg,
 		change_ireg
 	},
-	
+	{
+		"rv_ireg",
+		"RISC-V Register name mode",
+		"Mode 0 (numerical): x0, x12, x22, etc.\n"
+			"Mode 1 (ABI): zero, sp, a0, s5, etc.\n",
+		vt_uint,
+		&__rv_ireg_mock, // unused
+		rv_debug_change_regnames
+	},
 	{
 		"debugging",
 		"Debugging features",

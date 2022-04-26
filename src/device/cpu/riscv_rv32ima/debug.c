@@ -96,7 +96,7 @@ void rv_idump(rv_cpu_t *cpu, uint32_t addr, rv_instr_t instr){
     printf("%s", s_mnemonics.str);
 
     if(icmt)
-        printf(" %s", s_comments.str);
+        printf(" [%s]", s_comments.str);
     
     printf("\n");
 }

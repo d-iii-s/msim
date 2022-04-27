@@ -159,7 +159,18 @@ static void j_instr_mnemonics(rv_instr_t instr, string_t *s_mnemonics){
         string_printf(s_mnemonics, " %s, %d", rv_regnames[instr.j.rd], imm);
     }
     else {
-        string_printf(s_mnemonics, " %s, 0x%#x", rv_regnames[instr.j.rd], imm);
+        string_printf(s_mnemonics, " %s, %#x", rv_regnames[instr.j.rd], imm);
+    }
+}
+
+static void jalr_instr_mnemonics(rv_instr_t instr, string_t *s_mnemonics){
+    int32_t imm = instr.i.imm;
+
+    if(imm < 0) {
+        string_printf(s_mnemonics, " %s, %d(%s)", rv_regnames[instr.i.rd], imm, rv_regnames[instr.i.rs1]);
+    }
+    else {
+        string_printf(s_mnemonics, " %s, %#x(%s)", rv_regnames[instr.i.rd], imm, rv_regnames[instr.i.rs1]);
     }
 }
 
@@ -198,6 +209,7 @@ extern void rv_jal_mnemonics(uint32_t addr, rv_instr_t instr, string_t *s_mnemon
 }
 extern void rv_jalr_mnemonics(uint32_t addr, rv_instr_t instr, string_t *s_mnemonics, string_t *s_comments){
     string_printf(s_mnemonics, "jalr");
+    jalr_instr_mnemonics(instr, s_mnemonics);
 }
 extern void rv_beq_mnemonics(uint32_t addr, rv_instr_t instr, string_t *s_mnemonics, string_t *s_comments){
     string_printf(s_mnemonics, "beq");

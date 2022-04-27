@@ -140,6 +140,18 @@ static void load_instr_mnemonics(rv_instr_t instr, string_t *s_mnemonics){
     }
 }
 
+static void store_instr_mnemonics(rv_instr_t instr, string_t *s_mnemonics){
+
+    int32_t imm = RV_S_IMM(instr);
+
+    if(imm < 0){
+        string_printf(s_mnemonics, " %s, %d(%s)", rv_regnames[instr.s.rs2], imm, rv_regnames[instr.s.rs1]);
+    }
+    else{
+        string_printf(s_mnemonics, " %s, %#x(%s)", rv_regnames[instr.s.rs2], imm, rv_regnames[instr.s.rs1]);
+    }
+}
+
 static void u_instr_mnemonics(rv_instr_t instr, string_t *s_mnemonics){
     string_printf(s_mnemonics, " %s, %#08x", rv_regnames[instr.u.rd], instr.u.imm);
 }
@@ -219,12 +231,15 @@ extern void rv_lhu_mnemonics(uint32_t addr, rv_instr_t instr, string_t *s_mnemon
 // mem store
 extern void rv_sb_mnemonics(uint32_t addr, rv_instr_t instr, string_t *s_mnemonics, string_t *s_comments){
     string_printf(s_mnemonics, "sb");
+    store_instr_mnemonics(instr, s_mnemonics);
 }
 extern void rv_sh_mnemonics(uint32_t addr, rv_instr_t instr, string_t *s_mnemonics, string_t *s_comments){
     string_printf(s_mnemonics, "sh");
+    store_instr_mnemonics(instr, s_mnemonics);
 }
 extern void rv_sw_mnemonics(uint32_t addr, rv_instr_t instr, string_t *s_mnemonics, string_t *s_comments){
     string_printf(s_mnemonics, "sw");
+    store_instr_mnemonics(instr, s_mnemonics);
 }
 
 // op imm

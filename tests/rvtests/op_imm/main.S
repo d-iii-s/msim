@@ -7,7 +7,7 @@ slti a2, a1, -1
 sltiu a2, a1, 0
 andi a2, a0, 3
 ori a2, a0, 2
-xori a2, a0, 3
+xori a2, a0, -1
 slli a2, a0, 1
 srli a2, a1, 1
 srai a2, a1, 1

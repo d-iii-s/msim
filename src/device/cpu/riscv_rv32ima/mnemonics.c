@@ -119,10 +119,11 @@ static void i_instr_comment_binop_unsigned(rv_instr_t instr, string_t *s_comment
     );
 }
 
-static void i_instr_mnemonics_unsigned(rv_instr_t instr, string_t *s_mnemonics){
-    string_printf(s_mnemonics, " %s, %s, %u",
+static void i_instr_comment_binop_hex(rv_instr_t instr, string_t *s_comments, const char *op) {
+    string_printf(s_comments, "%s = %s %s %#010x",
         rv_regnames[instr.i.rd],
         rv_regnames[instr.i.rs1],
+        op,
         instr.i.imm
     );
 }
@@ -143,10 +144,16 @@ void undefined_mnemonics(uint32_t addr, rv_instr_t instr, string_t *s_mnemonics,
 extern void rv_lui_mnemonics(uint32_t addr, rv_instr_t instr, string_t *s_mnemonics, string_t *s_comments){
     string_printf(s_mnemonics, "lui");
     u_instr_mnemonics(instr, s_mnemonics);
+
+    string_printf(s_comments, "%s = %#010x", rv_regnames[instr.u.rd], instr.u.imm << 12);
 }
 extern void rv_auipc_mnemonics(uint32_t addr, rv_instr_t instr, string_t *s_mnemonics, string_t *s_comments){
     string_printf(s_mnemonics, "auipc");
     u_instr_mnemonics(instr, s_mnemonics);
+
+    uint32_t imm = instr.u.imm << 12;
+
+    string_printf(s_comments, "%s = pc + %#010x (= %#010x)", rv_regnames[instr.u.rd], imm, imm + addr);
 }
 
 // control transfer
@@ -217,24 +224,24 @@ extern void rv_slti_mnemonics(uint32_t addr, rv_instr_t instr, string_t *s_mnemo
 }
 extern void rv_sltiu_mnemonics(uint32_t addr, rv_instr_t instr, string_t *s_mnemonics, string_t *s_comments){
     string_printf(s_mnemonics, "sltiu");
-    i_instr_mnemonics_unsigned(instr, s_mnemonics);
+    i_instr_mnemonics(instr, s_mnemonics);
     i_instr_comment_binop_unsigned(instr, s_comments, "<");
     string_printf(s_comments, " (unsigned)");
 }
 extern void rv_xori_mnemonics(uint32_t addr, rv_instr_t instr, string_t *s_mnemonics, string_t *s_comments){
     string_printf(s_mnemonics, "xori");
     i_instr_mnemonics(instr, s_mnemonics);
-    i_instr_comment_binop_unsigned(instr, s_comments, "^");
+    i_instr_comment_binop_hex(instr, s_comments, "^");
 }
 extern void rv_ori_mnemonics(uint32_t addr, rv_instr_t instr, string_t *s_mnemonics, string_t *s_comments){
     string_printf(s_mnemonics, "ori");
     i_instr_mnemonics(instr, s_mnemonics);
-    i_instr_comment_binop_unsigned(instr, s_comments, "|");
+    i_instr_comment_binop_hex(instr, s_comments, "|");
 }
 extern void rv_andi_mnemonics(uint32_t addr, rv_instr_t instr, string_t *s_mnemonics, string_t *s_comments){
     string_printf(s_mnemonics, "andi");
     i_instr_mnemonics(instr, s_mnemonics);
-    i_instr_comment_binop_unsigned(instr, s_comments, "&");
+    i_instr_comment_binop_hex(instr, s_comments, "&");
 }
 extern void rv_slli_mnemonics(uint32_t addr, rv_instr_t instr, string_t *s_mnemonics, string_t *s_comments){
     string_printf(s_mnemonics, "slli");

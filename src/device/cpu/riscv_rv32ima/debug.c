@@ -84,7 +84,7 @@ void rv_idump(rv_cpu_t *cpu, uint32_t addr, rv_instr_t instr){
         string_printf(&s_cpu, "cpu%u", cpu->csr.mhartid);
     }
 
-    string_printf(&s_addr, "%#08x", addr);
+    string_printf(&s_addr, "%#010x", addr);
 
     idump_common(addr, instr, &s_opc, &s_mnemonics, &s_comments);
 

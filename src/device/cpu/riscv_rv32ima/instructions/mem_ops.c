@@ -11,8 +11,6 @@ rv_exc_t lb_instr(rv_cpu_t *cpu, rv_instr_t instr){
 
     uint8_t val;
 
-    printf("[reading 8 bits (signed) from: 0x%08x ", virt);
-
     rv_exc_t ex = rv_read_mem8(cpu, virt, &val, true);
     
     if(ex != rv_exc_none){
@@ -20,8 +18,6 @@ rv_exc_t lb_instr(rv_cpu_t *cpu, rv_instr_t instr){
     }
 
     cpu->regs[instr.i.rd] = (int8_t)val;
-
-    printf("val: %d to: x%d]", cpu->regs[instr.i.rd], instr.i.rd);
 
     return rv_exc_none;
 }
@@ -34,8 +30,6 @@ rv_exc_t lh_instr(rv_cpu_t *cpu, rv_instr_t instr){
 
     uint16_t val;
 
-    printf("[reading 16 bits (signed) from: 0x%08x ", virt);
-
     rv_exc_t ex = rv_read_mem16(cpu, virt, &val, true);
     
     if(ex != rv_exc_none){
@@ -43,8 +37,6 @@ rv_exc_t lh_instr(rv_cpu_t *cpu, rv_instr_t instr){
     }
 
     cpu->regs[instr.i.rd] = (int16_t)val;
-
-    printf("val: %d to: x%d]", cpu->regs[instr.i.rd], instr.i.rd);
 
     return rv_exc_none;
 }
@@ -57,12 +49,8 @@ rv_exc_t lw_instr(rv_cpu_t *cpu, rv_instr_t instr){
 
     uint32_t val;
 
-    printf("[reading 32 bits from: 0x%08x ", virt);
-
     rv_exc_t ex = rv_read_mem32(cpu, virt, &val, true);
     
-    printf("val: %u to: x%d]", val, instr.i.rd);
-
     if(ex != rv_exc_none){
         return ex;
     }
@@ -80,8 +68,6 @@ rv_exc_t lbu_instr(rv_cpu_t *cpu, rv_instr_t instr){
 
     uint8_t val;
 
-    printf("[reading 8 bits (unsigned) from: 0x%08x ", virt);
-
     rv_exc_t ex = rv_read_mem8(cpu, virt, &val, true);
     
     if(ex != rv_exc_none){
@@ -89,8 +75,6 @@ rv_exc_t lbu_instr(rv_cpu_t *cpu, rv_instr_t instr){
     }
 
     cpu->regs[instr.i.rd] = (uint32_t)val;
-
-    printf("val: %d to: x%d]", cpu->regs[instr.i.rd], instr.i.rd);
 
     return rv_exc_none;
 }
@@ -103,8 +87,6 @@ rv_exc_t lhu_instr(rv_cpu_t *cpu, rv_instr_t instr){
 
     uint16_t val;
 
-    printf("[reading 16 bits (unsigned) from: 0x%08x ", virt);
-
     rv_exc_t ex = rv_read_mem16(cpu, virt, &val, true);
     
     if(ex != rv_exc_none){
@@ -112,8 +94,6 @@ rv_exc_t lhu_instr(rv_cpu_t *cpu, rv_instr_t instr){
     }
 
     cpu->regs[instr.i.rd] = (uint32_t)val;
-
-    printf("val: %d to: x%d]", cpu->regs[instr.i.rd], instr.i.rd);
 
     return rv_exc_none;
 }
@@ -123,8 +103,6 @@ rv_exc_t sb_instr(rv_cpu_t *cpu, rv_instr_t instr){
     ASSERT(instr.s.opcode == rv_opcSTORE);
 
     uint32_t virt = cpu->regs[instr.s.rs1] + RV_S_IMM(instr);
-
-    printf(" [writing 8 bits to: 0x%08x val: %u from x%d]", virt, (uint8_t)cpu->regs[instr.s.rs2], instr.s.rs2);
 
     rv_exc_t ex = rv_write_mem8(cpu, virt, (uint8_t)cpu->regs[instr.s.rs2], true);
 
@@ -141,8 +119,6 @@ rv_exc_t sh_instr(rv_cpu_t *cpu, rv_instr_t instr){
 
     uint32_t virt = cpu->regs[instr.s.rs1] + RV_S_IMM(instr);
 
-    printf(" [writing 16 bits to: 0x%08x val: %u from x%d]", virt, (uint16_t)cpu->regs[instr.s.rs2], instr.s.rs2);
-
     rv_exc_t ex = rv_write_mem16(cpu, virt, (uint16_t)cpu->regs[instr.s.rs2], true);
 
     if(ex != rv_exc_none){
@@ -157,8 +133,6 @@ rv_exc_t sw_instr(rv_cpu_t *cpu, rv_instr_t instr){
     ASSERT(instr.s.opcode == rv_opcSTORE);
 
     uint32_t virt = cpu->regs[instr.s.rs1] + RV_S_IMM(instr);
-
-    printf(" [writing 32 bits to: 0x%08x val: %u from x%d]", virt, cpu->regs[instr.s.rs2], instr.s.rs2);
 
     rv_exc_t ex = rv_write_mem32(cpu, virt, cpu->regs[instr.s.rs2], true);
 

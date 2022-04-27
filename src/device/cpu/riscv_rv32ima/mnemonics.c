@@ -128,6 +128,18 @@ static void i_instr_comment_binop_hex(rv_instr_t instr, string_t *s_comments, co
     );
 }
 
+static void load_instr_mnemonics(rv_instr_t instr, string_t *s_mnemonics){
+
+    int32_t imm = instr.i.imm;
+
+    if(imm < 0){
+        string_printf(s_mnemonics, " %s, %d(%s)", rv_regnames[instr.i.rd], imm, rv_regnames[instr.i.rs1]);
+    }
+    else{
+        string_printf(s_mnemonics, " %s, %#x(%s)", rv_regnames[instr.i.rd], imm, rv_regnames[instr.i.rs1]);
+    }
+}
+
 static void u_instr_mnemonics(rv_instr_t instr, string_t *s_mnemonics){
     string_printf(s_mnemonics, " %s, %#08x", rv_regnames[instr.u.rd], instr.u.imm);
 }
@@ -185,18 +197,23 @@ extern void rv_bgeu_mnemonics(uint32_t addr, rv_instr_t instr, string_t *s_mnemo
 // mem load
 extern void rv_lb_mnemonics(uint32_t addr, rv_instr_t instr, string_t *s_mnemonics, string_t *s_comments){
     string_printf(s_mnemonics, "lb");
+    load_instr_mnemonics(instr, s_mnemonics);
 }
 extern void rv_lh_mnemonics(uint32_t addr, rv_instr_t instr, string_t *s_mnemonics, string_t *s_comments){
     string_printf(s_mnemonics, "lh");
+    load_instr_mnemonics(instr, s_mnemonics);
 }
 extern void rv_lw_mnemonics(uint32_t addr, rv_instr_t instr, string_t *s_mnemonics, string_t *s_comments){
     string_printf(s_mnemonics, "lw");
+    load_instr_mnemonics(instr, s_mnemonics);
 }
 extern void rv_lbu_mnemonics(uint32_t addr, rv_instr_t instr, string_t *s_mnemonics, string_t *s_comments){
     string_printf(s_mnemonics, "lbu");
+    load_instr_mnemonics(instr, s_mnemonics);
 }
 extern void rv_lhu_mnemonics(uint32_t addr, rv_instr_t instr, string_t *s_mnemonics, string_t *s_comments){
     string_printf(s_mnemonics, "lhu");
+    load_instr_mnemonics(instr, s_mnemonics);
 }
 
 // mem store

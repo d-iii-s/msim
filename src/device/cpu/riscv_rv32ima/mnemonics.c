@@ -120,7 +120,7 @@ static void i_instr_comment_binop_unsigned(rv_instr_t instr, string_t *s_comment
 }
 
 static void i_instr_comment_binop_hex(rv_instr_t instr, string_t *s_comments, const char *op) {
-    string_printf(s_comments, "%s = %s %s %#010x",
+    string_printf(s_comments, "%s = %s %s 0x%08x",
         rv_regnames[instr.i.rd],
         rv_regnames[instr.i.rs1],
         op,
@@ -169,7 +169,7 @@ extern void rv_lui_mnemonics(uint32_t addr, rv_instr_t instr, string_t *s_mnemon
     string_printf(s_mnemonics, "lui");
     u_instr_mnemonics(instr, s_mnemonics);
 
-    string_printf(s_comments, "%s = %#010x", rv_regnames[instr.u.rd], instr.u.imm << 12);
+    string_printf(s_comments, "%s = 0x%08x", rv_regnames[instr.u.rd], instr.u.imm << 12);
 }
 extern void rv_auipc_mnemonics(uint32_t addr, rv_instr_t instr, string_t *s_mnemonics, string_t *s_comments){
     string_printf(s_mnemonics, "auipc");
@@ -177,7 +177,7 @@ extern void rv_auipc_mnemonics(uint32_t addr, rv_instr_t instr, string_t *s_mnem
 
     uint32_t imm = instr.u.imm << 12;
 
-    string_printf(s_comments, "%s = pc + %#010x (= %#010x)", rv_regnames[instr.u.rd], imm, imm + addr);
+    string_printf(s_comments, "%s = pc + 0x%08x (= 0x%08x)", rv_regnames[instr.u.rd], imm, imm + addr);
 }
 
 // control transfer

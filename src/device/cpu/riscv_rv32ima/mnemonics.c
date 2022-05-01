@@ -128,6 +128,16 @@ static void i_instr_comment_binop_hex(rv_instr_t instr, string_t *s_comments, co
     );
 }
 
+static void imm_shift_mnemonics(rv_instr_t instr, string_t *s_mnemonics){
+    int32_t shamt = instr.i.imm & RV_IMM_SHIFT_SHAMT_MASK;
+    string_printf(s_mnemonics, " %s, %s, %u", rv_regnames[instr.i.rd], rv_regnames[instr.i.rs1], shamt);
+}
+
+static void imm_shift_comments(rv_instr_t instr, string_t *s_comments, const char* op){
+    int32_t shamt = instr.i.imm & RV_IMM_SHIFT_SHAMT_MASK;
+    string_printf(s_comments, "%s = %s %s %u", rv_regnames[instr.i.rd], rv_regnames[instr.i.rs1], op, shamt);
+}
+
 static void dissasemble_target(int reg, int32_t offset, string_t *s_mnemonics){
     if(reg >= 0 && reg < RV_REG_COUNT){
         string_printf(s_mnemonics, "%d(%s)", offset, rv_regnames[reg]);
@@ -328,16 +338,20 @@ extern void rv_andi_mnemonics(uint32_t addr, rv_instr_t instr, string_t *s_mnemo
 }
 extern void rv_slli_mnemonics(uint32_t addr, rv_instr_t instr, string_t *s_mnemonics, string_t *s_comments){
     string_printf(s_mnemonics, "slli");
-
-    //TODO
+    imm_shift_mnemonics(instr, s_mnemonics);
+    imm_shift_comments(instr, s_comments, "<<");
 }
 extern void rv_srli_mnemonics(uint32_t addr, rv_instr_t instr, string_t *s_mnemonics, string_t *s_comments){
     string_printf(s_mnemonics, "srli");
-    //TODO
+    imm_shift_mnemonics(instr, s_mnemonics);
+    imm_shift_comments(instr, s_comments, ">>");
+    string_printf(s_comments, " (logical)");
 }
 extern void rv_srai_mnemonics(uint32_t addr, rv_instr_t instr, string_t *s_mnemonics, string_t *s_comments){
     string_printf(s_mnemonics, "srai");
-    //TODO
+    imm_shift_mnemonics(instr, s_mnemonics);
+    imm_shift_comments(instr, s_comments, ">>");
+    string_printf(s_comments, " (arithmetical)");
 }
 
 // reg op

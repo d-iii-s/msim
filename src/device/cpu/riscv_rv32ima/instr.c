@@ -126,6 +126,23 @@ static rv_instr_func_t decode_OP(rv_instr_t instr) {
             return or_instr;
         case rv_func_AND:
             return and_instr;
+        // M extension
+        case rv_func_MUL:
+            return mul_instr;
+        case rv_func_MULH:
+            return mulh_instr;
+        case rv_func_MULHSU:
+            return mulhsu_instr;
+        case rv_func_MULHU:
+            return mulhu_instr;
+        case rv_func_DIV:
+            return div_instr;
+        case rv_func_DIVU:
+            return divu_instr;
+        case rv_func_REM:
+            return rem_instr;
+        case rv_func_REMU:
+            return remu_instr;
         default:
             return illegal_instr;
     }    

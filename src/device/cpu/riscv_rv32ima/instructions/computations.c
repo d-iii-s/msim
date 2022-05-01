@@ -289,8 +289,8 @@ extern rv_exc_t mulh_instr(rv_cpu_t *cpu, rv_instr_t instr){
     ASSERT(cpu != NULL);
     ASSERT(instr.r.opcode == rv_opcOP);
 
-    int64_t lhs = cpu->regs[instr.r.rs1];
-    int64_t rhs = cpu->regs[instr.r.rs2];
+    int64_t lhs = (int32_t)cpu->regs[instr.r.rs1];
+    int64_t rhs = (int32_t)cpu->regs[instr.r.rs2];
 
     int64_t res = lhs * rhs;
 
@@ -304,7 +304,7 @@ extern rv_exc_t mulhsu_instr(rv_cpu_t *cpu, rv_instr_t instr){
     ASSERT(cpu != NULL);
     ASSERT(instr.r.opcode == rv_opcOP);
 
-    int64_t lhs = cpu->regs[instr.r.rs1];
+    int64_t lhs = (int32_t)cpu->regs[instr.r.rs1];
     uint64_t rhs = cpu->regs[instr.r.rs2];
 
     int64_t res = lhs * rhs;
@@ -334,8 +334,8 @@ extern rv_exc_t div_instr(rv_cpu_t *cpu, rv_instr_t instr){
     ASSERT(cpu != NULL);
     ASSERT(instr.r.opcode == rv_opcOP);
 
-    int32_t lhs = cpu->regs[instr.r.rs1];
-    int32_t rhs = cpu->regs[instr.r.rs2];
+    int32_t lhs = (int32_t)cpu->regs[instr.r.rs1];
+    int32_t rhs = (int32_t)cpu->regs[instr.r.rs2];
 
     if(rhs == 0){
         // as per spec, dividing by 0 sets the result to -1
@@ -374,8 +374,8 @@ extern rv_exc_t rem_instr(rv_cpu_t *cpu, rv_instr_t instr){
     ASSERT(cpu != NULL);
     ASSERT(instr.r.opcode == rv_opcOP);
 
-    int32_t lhs = cpu->regs[instr.r.rs1];
-    int32_t rhs = cpu->regs[instr.r.rs2];
+    int32_t lhs = (int32_t)cpu->regs[instr.r.rs1];
+    int32_t rhs = (int32_t)cpu->regs[instr.r.rs2];
 
     if(rhs == 0){
         // as per spec, dividing by 0 sets the remained to the original value

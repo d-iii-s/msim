@@ -105,7 +105,77 @@ PCUT_TEST(op_and_decode){
     PCUT_ASSERT_EQUALS(and_instr, rv_instr_decode(instr));
 }
 
-//TODO: M extension instructions
+PCUT_TEST(op_mul_decode){
+    rv_instr_t instr;
+    instr.r.opcode = rv_opcOP;
+    instr.r.func3  = 0b111 & rv_func_MUL;
+    instr.r.func7  = rv_func_MUL >> 3;
+
+    PCUT_ASSERT_EQUALS(mul_instr, rv_instr_decode(instr));
+}
+
+PCUT_TEST(op_mulh_decode){
+    rv_instr_t instr;
+    instr.r.opcode = rv_opcOP;
+    instr.r.func3  = 0b111 & rv_func_MULH;
+    instr.r.func7  = rv_func_MULH >> 3;
+
+    PCUT_ASSERT_EQUALS(mulh_instr, rv_instr_decode(instr));
+}
+
+PCUT_TEST(op_mulhsu_decode){
+    rv_instr_t instr;
+    instr.r.opcode = rv_opcOP;
+    instr.r.func3  = 0b111 & rv_func_MULHSU;
+    instr.r.func7  = rv_func_MULHSU >> 3;
+
+    PCUT_ASSERT_EQUALS(mulhsu_instr, rv_instr_decode(instr));
+}
+
+PCUT_TEST(op_mulhu_decode){
+    rv_instr_t instr;
+    instr.r.opcode = rv_opcOP;
+    instr.r.func3  = 0b111 & rv_func_MULHU;
+    instr.r.func7  = rv_func_MULHU >> 3;
+
+    PCUT_ASSERT_EQUALS(mulhu_instr, rv_instr_decode(instr));
+}
+
+PCUT_TEST(op_div_decode){
+    rv_instr_t instr;
+    instr.r.opcode = rv_opcOP;
+    instr.r.func3  = 0b111 & rv_func_DIV;
+    instr.r.func7  = rv_func_DIV >> 3;
+
+    PCUT_ASSERT_EQUALS(div_instr, rv_instr_decode(instr));
+}
+
+PCUT_TEST(op_divu_decode){
+    rv_instr_t instr;
+    instr.r.opcode = rv_opcOP;
+    instr.r.func3  = 0b111 & rv_func_DIVU;
+    instr.r.func7  = rv_func_DIVU >> 3;
+
+    PCUT_ASSERT_EQUALS(divu_instr, rv_instr_decode(instr));
+}
+
+PCUT_TEST(op_rem_decode){
+    rv_instr_t instr;
+    instr.r.opcode = rv_opcOP;
+    instr.r.func3  = 0b111 & rv_func_REM;
+    instr.r.func7  = rv_func_REM >> 3;
+
+    PCUT_ASSERT_EQUALS(rem_instr, rv_instr_decode(instr));
+}
+
+PCUT_TEST(op_remu_decode){
+    rv_instr_t instr;
+    instr.r.opcode = rv_opcOP;
+    instr.r.func3  = 0b111 & rv_func_REMU;
+    instr.r.func7  = rv_func_REMU >> 3;
+
+    PCUT_ASSERT_EQUALS(remu_instr, rv_instr_decode(instr));
+}
 
 PCUT_TEST(op_illegal_decode){
     rv_instr_t instr;

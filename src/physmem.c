@@ -681,8 +681,6 @@ static bool devmem_write64(unsigned int procno, ptr36_t addr, uint64_t val)
  *
  */
 
-//todo: refactor to work with proc id
-
 typedef struct {
 	item_t item;
 	unsigned int procno;

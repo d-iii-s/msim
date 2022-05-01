@@ -98,7 +98,16 @@ typedef enum {
     rv_func_SRL       = 0b0000000101,
     rv_func_SRA       = 0b0100000101,
     rv_func_OR        = 0b0000000110,
-    rv_func_AND       = 0b0000000111
+    rv_func_AND       = 0b0000000111,
+    /* M extension */
+    rv_func_MUL       = 0b0000001000,
+    rv_func_MULH      = 0b0000001001,
+    rv_func_MULHSU    = 0b0000001010,
+    rv_func_MULHU     = 0b0000001011,
+    rv_func_DIV       = 0b0000001100,
+    rv_func_DIVU      = 0b0000001101,
+    rv_func_REM       = 0b0000001110,
+    rv_func_REMU      = 0b0000001111
 } rv_op_func_t;
 
 /** Funct values for OP-imm instructions */

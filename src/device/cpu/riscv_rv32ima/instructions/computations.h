@@ -28,5 +28,15 @@ extern rv_exc_t srai_instr(rv_cpu_t *cpu, rv_instr_t instr);
 extern rv_exc_t lui_instr(rv_cpu_t *cpu, rv_instr_t instr);
 extern rv_exc_t auipc_instr(rv_cpu_t *cpu, rv_instr_t instr);
 
+/* M extension */
+
+extern rv_exc_t mul_instr(rv_cpu_t *cpu, rv_instr_t instr);
+extern rv_exc_t mulh_instr(rv_cpu_t *cpu, rv_instr_t instr);
+extern rv_exc_t mulhsu_instr(rv_cpu_t *cpu, rv_instr_t instr);
+extern rv_exc_t mulhu_instr(rv_cpu_t *cpu, rv_instr_t instr);
+extern rv_exc_t div_instr(rv_cpu_t *cpu, rv_instr_t instr);
+extern rv_exc_t divu_instr(rv_cpu_t *cpu, rv_instr_t instr);
+extern rv_exc_t rem_instr(rv_cpu_t *cpu, rv_instr_t instr);
+extern rv_exc_t remu_instr(rv_cpu_t *cpu, rv_instr_t instr);
 
 #endif // RISCV_RV32IMA_INSTR_COMPUTATIONS_H_

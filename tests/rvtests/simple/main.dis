@@ -1,0 +1,21 @@
+
+main.raw:     file format elf32-littleriscv
+
+
+Disassembly of section .text:
+
+00000000 <var1-0x14>:
+   0:	01402503          	lw	a0,20(zero) # 14 <var1>
+   4:	01802583          	lw	a1,24(zero) # 18 <var2>
+   8:	00b50633          	add	a2,a0,a1
+   c:	00c02e23          	sw	a2,28(zero) # 1c <var3>
+  10:	00200073          	.word	0x00200073
+
+00000014 <var1>:
+  14:	00000001          	.word	0x00000001
+
+00000018 <var2>:
+  18:	00000002          	.word	0x00000002
+
+0000001c <var3>:
+  1c:	00000000          	.word	0x00000000

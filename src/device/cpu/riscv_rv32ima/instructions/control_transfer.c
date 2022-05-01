@@ -52,8 +52,6 @@ rv_exc_t beq_instr(rv_cpu_t *cpu, rv_instr_t instr){
     uint32_t lhs = cpu->regs[instr.b.rs1];
     uint32_t rhs = cpu->regs[instr.b.rs2];
 
-    printf("BEQ branch to %08x condition %d == %d %s", target, lhs, rhs, (lhs == rhs ? "taken" : "not taken"));
-
     if(lhs == rhs) {
         cpu->pc_next = target;
     }
@@ -74,8 +72,6 @@ rv_exc_t bne_instr(rv_cpu_t *cpu, rv_instr_t instr){
 
     uint32_t lhs = cpu->regs[instr.b.rs1];
     uint32_t rhs = cpu->regs[instr.b.rs2];
-
-    printf("BNE branch to %08x condition %d != %d %s", target, lhs, rhs, (lhs != rhs ? "taken" : "not taken"));
 
     if(lhs != rhs) {
         cpu->pc_next = target;
@@ -98,8 +94,6 @@ rv_exc_t blt_instr(rv_cpu_t *cpu, rv_instr_t instr){
     int32_t lhs = (int32_t)cpu->regs[instr.b.rs1];
     int32_t rhs = (int32_t)cpu->regs[instr.b.rs2];
 
-    printf("BLT branch to %08x condition %d < %d %s", target, lhs, rhs, (lhs < rhs ? "taken" : "not taken"));
-
     if(lhs < rhs) {
         cpu->pc_next = target;
     }
@@ -120,8 +114,6 @@ rv_exc_t bltu_instr(rv_cpu_t *cpu, rv_instr_t instr){
 
     uint32_t lhs = cpu->regs[instr.b.rs1];
     uint32_t rhs = cpu->regs[instr.b.rs2];
-
-    printf("BLTU branch to %08x condition %u < %u %s", target, lhs, rhs, (lhs < rhs ? "taken" : "not taken"));
 
     if(lhs < rhs) {
         cpu->pc_next = target;
@@ -144,8 +136,6 @@ rv_exc_t bge_instr(rv_cpu_t *cpu, rv_instr_t instr){
     int32_t lhs = (int32_t)cpu->regs[instr.b.rs1];
     int32_t rhs = (int32_t)cpu->regs[instr.b.rs2];
 
-    printf("BGE branch to %08x condition %d >= %d %s", target, lhs, rhs, (lhs >= rhs ? "taken" : "not taken"));
-
     if(lhs >= rhs) {
         cpu->pc_next = target;
     }
@@ -166,8 +156,6 @@ rv_exc_t bgeu_instr(rv_cpu_t *cpu, rv_instr_t instr){
 
     uint32_t lhs = cpu->regs[instr.b.rs1];
     uint32_t rhs = cpu->regs[instr.b.rs2];
-
-    printf("BGU branch to %08x condition %u >= %u %s", target, lhs, rhs, (lhs >= rhs ? "taken" : "not taken"));
 
     if(lhs >= rhs) {
         cpu->pc_next = target;

@@ -128,50 +128,49 @@ static void i_instr_comment_binop_hex(rv_instr_t instr, string_t *s_comments, co
     );
 }
 
+static void dissasemble_target(int reg, int32_t offset, string_t *s_mnemonics){
+    if(reg >= 0 && reg < RV_REG_COUNT){
+        string_printf(s_mnemonics, "%d(%s)", offset, rv_regnames[reg]);
+    }
+    else {
+        string_printf(s_mnemonics, "%d", offset);
+    }
+}
+
 static void load_instr_mnemonics(rv_instr_t instr, string_t *s_mnemonics){
 
     int32_t imm = instr.i.imm;
 
-    if(imm < 0){
-        string_printf(s_mnemonics, " %s, %d(%s)", rv_regnames[instr.i.rd], imm, rv_regnames[instr.i.rs1]);
-    }
-    else{
-        string_printf(s_mnemonics, " %s, %#x(%s)", rv_regnames[instr.i.rd], imm, rv_regnames[instr.i.rs1]);
-    }
+    string_printf(s_mnemonics, " %s, ", rv_regnames[instr.i.rd]);
+
+    dissasemble_target(instr.i.rs1, imm, s_mnemonics);
 }
 
 static void store_instr_mnemonics(rv_instr_t instr, string_t *s_mnemonics){
 
     int32_t imm = RV_S_IMM(instr);
 
-    if(imm < 0){
-        string_printf(s_mnemonics, " %s, %d(%s)", rv_regnames[instr.s.rs2], imm, rv_regnames[instr.s.rs1]);
-    }
-    else{
-        string_printf(s_mnemonics, " %s, %#x(%s)", rv_regnames[instr.s.rs2], imm, rv_regnames[instr.s.rs1]);
-    }
+    string_printf(s_mnemonics, " %s, ", rv_regnames[instr.s.rs2]);
+    dissasemble_target(instr.s.rs1, imm, s_mnemonics);
 }
 
 static void j_instr_mnemonics(rv_instr_t instr, string_t *s_mnemonics){
     int32_t imm = RV_J_IMM(instr);
 
-    if(imm < 0) {
-        string_printf(s_mnemonics, " %s, %d", rv_regnames[instr.j.rd], imm);
-    }
-    else {
-        string_printf(s_mnemonics, " %s, %#x", rv_regnames[instr.j.rd], imm);
-    }
+    string_printf(s_mnemonics, " %s, ", rv_regnames[instr.j.rd]);
+
+    dissasemble_target(-1, imm, s_mnemonics);
+}
+
+static void j_instr_comments(rv_instr_t instr, uint32_t addr, string_t *s_comments){
+    int32_t imm = RV_J_IMM(instr);
+    string_printf(s_comments, "target: %#010x", addr + imm);
 }
 
 static void jalr_instr_mnemonics(rv_instr_t instr, string_t *s_mnemonics){
     int32_t imm = instr.i.imm;
-
-    if(imm < 0) {
-        string_printf(s_mnemonics, " %s, %d(%s)", rv_regnames[instr.i.rd], imm, rv_regnames[instr.i.rs1]);
-    }
-    else {
-        string_printf(s_mnemonics, " %s, %#x(%s)", rv_regnames[instr.i.rd], imm, rv_regnames[instr.i.rs1]);
-    }
+    string_printf(s_mnemonics, " %s, ", rv_regnames[instr.i.rd]);
+    dissasemble_target(instr.i.rs1, imm, s_mnemonics);
 }
 
 static void u_instr_mnemonics(rv_instr_t instr, string_t *s_mnemonics){
@@ -206,6 +205,7 @@ extern void rv_auipc_mnemonics(uint32_t addr, rv_instr_t instr, string_t *s_mnem
 extern void rv_jal_mnemonics(uint32_t addr, rv_instr_t instr, string_t *s_mnemonics, string_t *s_comments){
     string_printf(s_mnemonics, "jal");
     j_instr_mnemonics(instr, s_mnemonics);
+    j_instr_comments(instr, addr, s_comments);
 }
 extern void rv_jalr_mnemonics(uint32_t addr, rv_instr_t instr, string_t *s_mnemonics, string_t *s_comments){
     string_printf(s_mnemonics, "jalr");

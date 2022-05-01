@@ -15,8 +15,6 @@ rv_exc_t jal_instr(rv_cpu_t *cpu, rv_instr_t instr){
 
     cpu->regs[instr.j.rd] = cpu->pc + 4;
 
-    printf("JAL jumping to %08x writing return address to x%d", target, instr.j.rd);
-
     cpu->pc_next = target;
     return rv_exc_none;
 }
@@ -35,8 +33,6 @@ rv_exc_t jalr_instr(rv_cpu_t *cpu, rv_instr_t instr) {
     }
 
     cpu->regs[instr.j.rd] = cpu->pc + 4;
-
-    printf("JALR jumping to %08x writing return address to x%d", target, instr.j.rd);
 
     cpu->pc_next = target;
     return rv_exc_none;

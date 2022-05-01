@@ -173,13 +173,24 @@ static void jalr_instr_mnemonics(rv_instr_t instr, string_t *s_mnemonics){
     dissasemble_target(instr.i.rs1, imm, s_mnemonics);
 }
 
+static void b_instr_mnemonics(rv_instr_t instr, string_t *s_mnemonics){
+    int32_t imm = RV_B_IMM(instr);
+    string_printf(s_mnemonics, " %s, %s, ", rv_regnames[instr.b.rs1], rv_regnames[instr.b.rs2]);
+    dissasemble_target(-1, imm, s_mnemonics);
+}
+
+static void b_instr_comments(rv_instr_t instr, uint32_t addr, string_t *s_comments, const char* op){
+    int32_t imm = RV_B_IMM(instr);
+    string_printf(s_comments, "branch to %#010x if %s %s %s", addr+imm, rv_regnames[instr.b.rs1], op, rv_regnames[instr.b.rs2]);
+}
+
 static void u_instr_mnemonics(rv_instr_t instr, string_t *s_mnemonics){
     string_printf(s_mnemonics, " %s, %#08x", rv_regnames[instr.u.rd], instr.u.imm);
 }
 
-/***********************
- * Mnemonics functions *
- ***********************/
+/***********************************
+ * Mnemonics/Dissasembly functions *
+ ***********************************/
 
 void undefined_mnemonics(uint32_t addr, rv_instr_t instr, string_t *s_mnemonics, string_t *s_comments){
     string_printf(s_mnemonics, "(undefined)");
@@ -213,21 +224,37 @@ extern void rv_jalr_mnemonics(uint32_t addr, rv_instr_t instr, string_t *s_mnemo
 }
 extern void rv_beq_mnemonics(uint32_t addr, rv_instr_t instr, string_t *s_mnemonics, string_t *s_comments){
     string_printf(s_mnemonics, "beq");
+    b_instr_mnemonics(instr, s_mnemonics);
+    b_instr_comments(instr, addr, s_comments, "==");
 }
 extern void rv_bne_mnemonics(uint32_t addr, rv_instr_t instr, string_t *s_mnemonics, string_t *s_comments){
     string_printf(s_mnemonics, "bne");
+    b_instr_mnemonics(instr, s_mnemonics);
+    b_instr_comments(instr, addr, s_comments, "!=");
 }
 extern void rv_blt_mnemonics(uint32_t addr, rv_instr_t instr, string_t *s_mnemonics, string_t *s_comments){
-    string_printf(s_mnemonics, "bltd");
+    string_printf(s_mnemonics, "blt");
+    b_instr_mnemonics(instr, s_mnemonics);
+    b_instr_comments(instr, addr, s_comments, "<");
+    string_printf(s_comments, " (signed)");
 }
 extern void rv_bge_mnemonics(uint32_t addr, rv_instr_t instr, string_t *s_mnemonics, string_t *s_comments){
     string_printf(s_mnemonics, "bge");
+    b_instr_mnemonics(instr, s_mnemonics);
+    b_instr_comments(instr, addr, s_comments, ">=");
+    string_printf(s_comments, " (signed)");
 }
 extern void rv_bltu_mnemonics(uint32_t addr, rv_instr_t instr, string_t *s_mnemonics, string_t *s_comments){
     string_printf(s_mnemonics, "bltu");
+    b_instr_mnemonics(instr, s_mnemonics);
+    b_instr_comments(instr, addr, s_comments, "<");
+    string_printf(s_comments, " (unsigned)");
 }
 extern void rv_bgeu_mnemonics(uint32_t addr, rv_instr_t instr, string_t *s_mnemonics, string_t *s_comments){
     string_printf(s_mnemonics, "bgeu");
+    b_instr_mnemonics(instr, s_mnemonics);
+    b_instr_comments(instr, addr, s_comments, ">=");
+    string_printf(s_comments, " (unsigned)");
 }
 
 // mem load

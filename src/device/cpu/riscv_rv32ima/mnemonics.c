@@ -67,6 +67,17 @@ extern rv_mnemonics_func_t rv_decode_mnemonics(rv_instr_t instr){
     if(instr_func == halt_instr)
         return rv_ehalt_mnemonics;
 
+    // M-extension
+
+    IF_SAME_DECODE(mul);
+    IF_SAME_DECODE(mulh);
+    IF_SAME_DECODE(mulhsu);
+    IF_SAME_DECODE(mulhu);
+    IF_SAME_DECODE(div);
+    IF_SAME_DECODE(divu);
+    IF_SAME_DECODE(rem);
+    IF_SAME_DECODE(remu);
+
     // TODO: add rest of instructions
 
     return undefined_mnemonics;
@@ -449,27 +460,44 @@ extern void rv_csrrci_mnemonics(uint32_t addr, rv_instr_t instr, string_t *s_mne
 // M extension
 extern void rv_mul_mnemonics(uint32_t addr, rv_instr_t instr, string_t *s_mnemonics, string_t *s_comments){
     string_printf(s_mnemonics, "mul");
+    r_instr_mnemonics(instr, s_mnemonics);
+    r_instr_comment_binop(instr, s_comments, "*");
 }
 extern void rv_mulh_mnemonics(uint32_t addr, rv_instr_t instr, string_t *s_mnemonics, string_t *s_comments){
     string_printf(s_mnemonics, "mulh");
+    r_instr_mnemonics(instr, s_mnemonics);
 }
 extern void rv_mulhsu_mnemonics(uint32_t addr, rv_instr_t instr, string_t *s_mnemonics, string_t *s_comments){
     string_printf(s_mnemonics, "mulhsu");
+    r_instr_mnemonics(instr, s_mnemonics);
 }
 extern void rv_mulhu_mnemonics(uint32_t addr, rv_instr_t instr, string_t *s_mnemonics, string_t *s_comments){
     string_printf(s_mnemonics, "mulhu");
+    r_instr_mnemonics(instr, s_mnemonics);
 }
 extern void rv_div_mnemonics(uint32_t addr, rv_instr_t instr, string_t *s_mnemonics, string_t *s_comments){
     string_printf(s_mnemonics, "div");
+    r_instr_mnemonics(instr, s_mnemonics);
+    r_instr_comment_binop(instr, s_comments, "/");
+    string_printf(s_comments, " (signed)");
 }
 extern void rv_divu_mnemonics(uint32_t addr, rv_instr_t instr, string_t *s_mnemonics, string_t *s_comments){
     string_printf(s_mnemonics, "divu");
+    r_instr_mnemonics(instr, s_mnemonics);
+    r_instr_comment_binop(instr, s_comments, "/");
+    string_printf(s_comments, " (unsigned)");
 }
 extern void rv_rem_mnemonics(uint32_t addr, rv_instr_t instr, string_t *s_mnemonics, string_t *s_comments){
     string_printf(s_mnemonics, "rem");
+    r_instr_mnemonics(instr, s_mnemonics);
+    r_instr_comment_binop(instr, s_comments, "%");
+    string_printf(s_comments, " (signed)");
 }
 extern void rv_remu_mnemonics(uint32_t addr, rv_instr_t instr, string_t *s_mnemonics, string_t *s_comments){
     string_printf(s_mnemonics, "remu");
+    r_instr_mnemonics(instr, s_mnemonics);
+    r_instr_comment_binop(instr, s_comments, "%");
+    string_printf(s_comments, " (unsigned)");
 }
 
 // A extension

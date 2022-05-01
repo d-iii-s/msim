@@ -268,3 +268,39 @@ rv_exc_t auipc_instr(rv_cpu_t *cpu, rv_instr_t instr){
 
     return rv_exc_none;
 }
+
+/***************
+ * M extension *
+ ***************/
+
+extern rv_exc_t mul_instr(rv_cpu_t *cpu, rv_instr_t instr){
+    return rv_exc_none;
+}
+
+extern rv_exc_t mulh_instr(rv_cpu_t *cpu, rv_instr_t instr){
+    return rv_exc_none;
+}
+
+extern rv_exc_t mulhsu_instr(rv_cpu_t *cpu, rv_instr_t instr){
+    return rv_exc_none;
+}
+
+extern rv_exc_t mulhu_instr(rv_cpu_t *cpu, rv_instr_t instr){
+    return rv_exc_none;
+}
+
+extern rv_exc_t div_instr(rv_cpu_t *cpu, rv_instr_t instr){
+    return rv_exc_none;
+}
+
+extern rv_exc_t divu_instr(rv_cpu_t *cpu, rv_instr_t instr){
+    return rv_exc_none;
+}
+
+extern rv_exc_t rem_instr(rv_cpu_t *cpu, rv_instr_t instr){
+    return rv_exc_none;
+}
+
+extern rv_exc_t remu_instr(rv_cpu_t *cpu, rv_instr_t instr){
+    return rv_exc_none;
+}

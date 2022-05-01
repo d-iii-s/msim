@@ -462,18 +462,25 @@ extern void rv_mul_mnemonics(uint32_t addr, rv_instr_t instr, string_t *s_mnemon
     string_printf(s_mnemonics, "mul");
     r_instr_mnemonics(instr, s_mnemonics);
     r_instr_comment_binop(instr, s_comments, "*");
+    string_printf(s_comments, " (low 32 bits)");
 }
 extern void rv_mulh_mnemonics(uint32_t addr, rv_instr_t instr, string_t *s_mnemonics, string_t *s_comments){
     string_printf(s_mnemonics, "mulh");
     r_instr_mnemonics(instr, s_mnemonics);
+    r_instr_comment_binop(instr, s_comments, "*");
+    string_printf(s_comments, " (high 32 bits, both signed)");
 }
 extern void rv_mulhsu_mnemonics(uint32_t addr, rv_instr_t instr, string_t *s_mnemonics, string_t *s_comments){
     string_printf(s_mnemonics, "mulhsu");
     r_instr_mnemonics(instr, s_mnemonics);
+    r_instr_comment_binop(instr, s_comments, "*");
+    string_printf(s_comments, " (high 32 bits, signed and unsigned)");
 }
 extern void rv_mulhu_mnemonics(uint32_t addr, rv_instr_t instr, string_t *s_mnemonics, string_t *s_comments){
     string_printf(s_mnemonics, "mulhu");
     r_instr_mnemonics(instr, s_mnemonics);
+     r_instr_comment_binop(instr, s_comments, "*");
+    string_printf(s_comments, " (high 32 bits, both unsigned)");
 }
 extern void rv_div_mnemonics(uint32_t addr, rv_instr_t instr, string_t *s_mnemonics, string_t *s_comments){
     string_printf(s_mnemonics, "div");

@@ -277,8 +277,6 @@ PCUT_TEST(jal_decode){
     PCUT_ASSERT_EQUALS(jal_instr, rv_instr_decode(instr));
 }
 
-//TODO: Rest of tests
-
 /*********************
  * LOAD instructions *
  *********************/
@@ -491,6 +489,44 @@ PCUT_TEST(auipc_decode){
  * AMO instructions *
  ********************/
 
+PCUT_TEST(lr_decode){
+    rv_instr_t instr;
+    instr.r.opcode = rv_opcAMO;
+    instr.r.funct3 = RV_AMO_32_WLEN;
+    instr.r.rs2 = 0;
+    instr.r.funct7 =  rv_funcLR << 2;
+
+    PCUT_ASSERT_EQUALS(lr_instr, rv_instr_decode(instr));
+}
+
+PCUT_TEST(lr_wrong_rs2){
+    rv_instr_t instr;
+    instr.r.opcode = rv_opcAMO;
+    instr.r.funct3 = RV_AMO_32_WLEN;
+    instr.r.rs2 = 5;
+    instr.r.funct7 =  rv_funcLR << 2;
+
+    PCUT_ASSERT_EQUALS(illegal_instr, rv_instr_decode(instr));
+}
+
+PCUT_TEST(amo_wrong_width){
+    rv_instr_t instr;
+    instr.r.opcode = rv_opcAMO;
+    instr.r.funct3 = 0b011;
+    instr.r.funct7 =  rv_funcLR << 2;
+
+    PCUT_ASSERT_EQUALS(illegal_instr, rv_instr_decode(instr));
+}
+
+PCUT_TEST(amo_wrong_opc){
+    rv_instr_t instr;
+    instr.r.opcode = rv_opcAMO;
+    instr.r.funct3 = RV_AMO_32_WLEN;
+    instr.r.funct7 =  0b11111;
+
+    PCUT_ASSERT_EQUALS(illegal_instr, rv_instr_decode(instr));
+}
+
 /********************
  * LUI instructions *
  ********************/
@@ -502,12 +538,10 @@ PCUT_TEST(lui_decode){
     PCUT_ASSERT_EQUALS(lui_instr, rv_instr_decode(instr));
 }
 
-/********************
- * OP_32 instructions *
- ********************/
-
 /***********************
  * SYSTEM instructions *
  ***********************/
+
+//TODO
 
 PCUT_EXPORT(instruction_decoding);

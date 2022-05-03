@@ -39,4 +39,16 @@ extern rv_exc_t divu_instr(rv_cpu_t *cpu, rv_instr_t instr);
 extern rv_exc_t rem_instr(rv_cpu_t *cpu, rv_instr_t instr);
 extern rv_exc_t remu_instr(rv_cpu_t *cpu, rv_instr_t instr);
 
+/* A extension atomic operations */
+
+extern rv_exc_t amoswap_instr(rv_cpu_t *cpu, rv_instr_t instr);
+extern rv_exc_t amoadd_instr(rv_cpu_t *cpu, rv_instr_t instr);
+extern rv_exc_t amoxor_instr(rv_cpu_t *cpu, rv_instr_t instr);
+extern rv_exc_t amoand_instr(rv_cpu_t *cpu, rv_instr_t instr);
+extern rv_exc_t amoor_instr(rv_cpu_t *cpu, rv_instr_t instr);
+extern rv_exc_t amomin_instr(rv_cpu_t *cpu, rv_instr_t instr);
+extern rv_exc_t amomax_instr(rv_cpu_t *cpu, rv_instr_t instr);
+extern rv_exc_t amominu_instr(rv_cpu_t *cpu, rv_instr_t instr);
+extern rv_exc_t amomaxu_instr(rv_cpu_t *cpu, rv_instr_t instr);
+
 #endif // RISCV_RV32IMA_INSTR_COMPUTATIONS_H_

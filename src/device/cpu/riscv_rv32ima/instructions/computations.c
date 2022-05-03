@@ -409,3 +409,50 @@ extern rv_exc_t remu_instr(rv_cpu_t *cpu, rv_instr_t instr){
     cpu->regs[instr.r.rd] = lhs % rhs;
     return rv_exc_none;
 }
+
+/* A extension atomic operations */
+
+rv_exc_t amoswap_instr(rv_cpu_t *cpu, rv_instr_t instr){
+
+    return rv_exc_none;
+}
+
+rv_exc_t amoadd_instr(rv_cpu_t *cpu, rv_instr_t instr){
+
+    return rv_exc_none;
+}
+
+rv_exc_t amoxor_instr(rv_cpu_t *cpu, rv_instr_t instr){
+
+    return rv_exc_none;
+}
+
+rv_exc_t amoand_instr(rv_cpu_t *cpu, rv_instr_t instr){
+
+    return rv_exc_none;
+}
+
+rv_exc_t amoor_instr(rv_cpu_t *cpu, rv_instr_t instr){
+
+    return rv_exc_none;
+}
+
+rv_exc_t amomin_instr(rv_cpu_t *cpu, rv_instr_t instr){
+
+    return rv_exc_none;
+}
+
+rv_exc_t amomax_instr(rv_cpu_t *cpu, rv_instr_t instr){
+
+    return rv_exc_none;
+}
+
+rv_exc_t amominu_instr(rv_cpu_t *cpu, rv_instr_t instr){
+
+    return rv_exc_none;
+}
+
+rv_exc_t amomaxu_instr(rv_cpu_t *cpu, rv_instr_t instr){
+
+    return rv_exc_none;
+}

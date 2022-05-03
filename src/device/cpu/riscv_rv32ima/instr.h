@@ -192,7 +192,7 @@ typedef enum {
     rv_funcAMOOR      = 0b01000,
     rv_funcAMOMIN     = 0b10000,
     rv_funcAMOMAX     = 0b10100,
-    rv_funcAMONINU    = 0b11000,
+    rv_funcAMOMINU    = 0b11000,
     rv_funcAMOMAXU    = 0b11100
 } rv_amo_funct_t;
 

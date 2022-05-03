@@ -75,7 +75,7 @@ typedef enum {
     rv_opcAMO         = 0b0101111,
     rv_opcOP          = 0b0110011,
     rv_opcLUI         = 0b0110111,
-    rv_opcOP_32       = 0b0111011, 
+    rv_opcOP_32       = 0b0111011, // not supported
     rv_opcMADD        = 0b1000011, // not supported
     rv_opcMSUB        = 0b1000111, // not supported
     rv_opcNMSUB       = 0b1001011, // not supported

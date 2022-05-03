@@ -100,6 +100,11 @@ static rv_instr_func_t decode_STORE(rv_instr_t instr) {
 static rv_instr_func_t decode_AMO(rv_instr_t instr) {
     ASSERT(instr.r.opcode == rv_opcAMO);
 
+    // only 32 bit width is supported
+    if(instr.r.funct3 != RV_AMO_32_WLEN){
+        return illegal_instr;
+    }
+
     switch(RV_AMO_FUNCT(instr)){
         case rv_funcLR:
             return instr.r.rs2 == 0 ? lr_instr : illegal_instr;
@@ -126,7 +131,6 @@ static rv_instr_func_t decode_AMO(rv_instr_t instr) {
         default:
             return illegal_instr; 
     }
-    
 }
 
 static rv_instr_func_t decode_OP(rv_instr_t instr) {

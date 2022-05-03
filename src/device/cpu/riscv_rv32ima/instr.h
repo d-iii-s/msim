@@ -180,7 +180,7 @@ typedef enum {
 /** Funct values for AMO instructions 
  *  This value is the high 5 bits from funct7
  *  funct3 serves as the identifier of width of the instructions and only 32-bit width is supported now in msim
- *  the low 2 bits from funct7 describe the ordering constraints (acquire/release semantics)
+ *  the low 2 bits from funct7 describe the ordering constraints (acquire/release semantics) - we can ignore them in msim, because we do in-order processing
  */
 typedef enum {
     rv_funcLR         = 0b00010,

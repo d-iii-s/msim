@@ -78,6 +78,20 @@ extern rv_mnemonics_func_t rv_decode_mnemonics(rv_instr_t instr){
     IF_SAME_DECODE(rem);
     IF_SAME_DECODE(remu);
 
+    // A-extension
+
+    IF_SAME_DECODE(lr);
+    IF_SAME_DECODE(sc);
+    IF_SAME_DECODE(amoswap);
+    IF_SAME_DECODE(amoadd);
+    IF_SAME_DECODE(amoxor);
+    IF_SAME_DECODE(amoor);
+    IF_SAME_DECODE(amoand);
+    IF_SAME_DECODE(amomin);
+    IF_SAME_DECODE(amomax);
+    IF_SAME_DECODE(amominu);
+    IF_SAME_DECODE(amomaxu);
+
     // TODO: add rest of instructions
 
     return undefined_mnemonics;
@@ -522,6 +536,12 @@ extern void rv_amoadd_mnemonics(uint32_t addr, rv_instr_t instr, string_t *s_mne
 }
 extern void rv_amoxor_mnemonics(uint32_t addr, rv_instr_t instr, string_t *s_mnemonics, string_t *s_comments){
     string_printf(s_mnemonics, "amoxor");
+}
+extern void rv_amoand_mnemonics(uint32_t addr, rv_instr_t instr, string_t *s_mnemonics, string_t *s_comments){
+    string_printf(s_mnemonics, "amoand");
+}
+extern void rv_amoor_mnemonics(uint32_t addr, rv_instr_t instr, string_t *s_mnemonics, string_t *s_comments){
+    string_printf(s_mnemonics, "amoor");
 }
 extern void rv_amomin_mnemonics(uint32_t addr, rv_instr_t instr, string_t *s_mnemonics, string_t *s_comments){
     string_printf(s_mnemonics, "amomin");

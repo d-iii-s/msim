@@ -196,6 +196,8 @@ typedef enum {
     rv_funcAMOMAXU    = 0b11100
 } rv_amo_funct_t;
 
+#define RV_AMO_32_WLEN 0b010
+
 //forward declarations
 enum rv_exc;
 struct rv_cpu;

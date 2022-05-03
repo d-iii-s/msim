@@ -16,7 +16,7 @@ rv_exc_t illegal_instr(rv_cpu_t *cpu, rv_instr_t instr){
 
 static rv_instr_func_t decode_LOAD(rv_instr_t instr) {
     ASSERT(instr.i.opcode == rv_opcLOAD);
-    switch(instr.i.func3){
+    switch(instr.i.funct3){
         case rv_func_LB:
             return lb_instr;
         case rv_func_LH:
@@ -34,7 +34,7 @@ static rv_instr_func_t decode_LOAD(rv_instr_t instr) {
 
 static rv_instr_func_t decode_MISC_MEM(rv_instr_t instr) {
     ASSERT(instr.r.opcode == rv_opcMISC_MEM);
-    if(instr.i.func3 == 0){
+    if(instr.i.funct3 == 0){
         return fence_instr;
     }
     return illegal_instr; 
@@ -43,7 +43,7 @@ static rv_instr_func_t decode_MISC_MEM(rv_instr_t instr) {
 static rv_instr_func_t decode_OP_IMM(rv_instr_t instr) {
     ASSERT(instr.i.opcode == rv_opcOP_IMM);
 
-    switch(instr.i.func3){
+    switch(instr.i.funct3){
         case rv_func_ADDI:
             return addi_instr;
         case rv_func_SLTI:
@@ -85,7 +85,7 @@ static rv_instr_func_t decode_AUIPC(rv_instr_t instr) {
 
 static rv_instr_func_t decode_STORE(rv_instr_t instr) {
     ASSERT(instr.s.opcode == rv_opcSTORE);
-    switch(instr.s.func3){
+    switch(instr.s.funct3){
         case rv_func_SB:
             return sb_instr;
         case rv_func_SH:
@@ -99,7 +99,13 @@ static rv_instr_func_t decode_STORE(rv_instr_t instr) {
 
 static rv_instr_func_t decode_AMO(rv_instr_t instr) {
     ASSERT(instr.r.opcode == rv_opcAMO);
-    return illegal_instr; 
+
+    switch(RV_AMO_FUNCT(instr)){
+
+        default:
+            return illegal_instr; 
+    }
+    
 }
 
 static rv_instr_func_t decode_OP(rv_instr_t instr) {
@@ -155,7 +161,7 @@ static rv_instr_func_t decode_LUI(rv_instr_t instr) {
 
 static rv_instr_func_t decode_BRANCH(rv_instr_t instr) {
     ASSERT(instr.b.opcode == rv_opcBRANCH);
-    switch(instr.b.func3){
+    switch(instr.b.funct3){
         case rv_func_BEQ:
             return beq_instr;
         case rv_func_BNE:
@@ -176,7 +182,7 @@ static rv_instr_func_t decode_BRANCH(rv_instr_t instr) {
 static rv_instr_func_t decode_JALR(rv_instr_t instr) {
     ASSERT(instr.i.opcode == rv_opcJALR);
 
-    if(instr.i.func3 != 0) {
+    if(instr.i.funct3 != 0) {
         return illegal_instr;
     }    
     return jalr_instr; 
@@ -190,7 +196,7 @@ static rv_instr_func_t decode_JAL(rv_instr_t instr) {
 
 static rv_instr_func_t decode_PRIV(rv_instr_t instr){
     ASSERT(instr.i.opcode == rv_opcSYSTEM);
-    ASSERT(instr.i.func3 == rv_funcPRIV);
+    ASSERT(instr.i.funct3 == rv_funcPRIV);
 
     switch (instr.i.imm) {
         case rv_privEBREAK:
@@ -205,7 +211,7 @@ static rv_instr_func_t decode_PRIV(rv_instr_t instr){
 
 static rv_instr_func_t decode_SYSTEM(rv_instr_t instr) {
     ASSERT(instr.i.opcode == rv_opcSYSTEM);
-    switch (instr.i.func3) {
+    switch (instr.i.funct3) {
         case rv_funcPRIV:
             return decode_PRIV(instr);
         //TODO: add CSR instructions

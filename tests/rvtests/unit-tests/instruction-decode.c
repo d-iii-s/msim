@@ -18,8 +18,8 @@ PCUT_TEST_SUITE(instruction_decoding);
 PCUT_TEST(op_add_decode){
     rv_instr_t instr;
     instr.r.opcode = rv_opcOP;
-    instr.r.func3  = 0b111 & rv_func_ADD;
-    instr.r.func7  = rv_func_ADD >> 3;
+    instr.r.funct3  = 0b111 & rv_func_ADD;
+    instr.r.funct7  = rv_func_ADD >> 3;
 
     PCUT_ASSERT_EQUALS(add_instr, rv_instr_decode(instr));
 }
@@ -27,8 +27,8 @@ PCUT_TEST(op_add_decode){
 PCUT_TEST(op_sub_decode){
     rv_instr_t instr;
     instr.r.opcode = rv_opcOP;
-    instr.r.func3  = 0b111 & rv_func_SUB;
-    instr.r.func7  = rv_func_SUB >> 3;
+    instr.r.funct3  = 0b111 & rv_func_SUB;
+    instr.r.funct7  = rv_func_SUB >> 3;
 
     PCUT_ASSERT_EQUALS(sub_instr, rv_instr_decode(instr));
 }
@@ -36,8 +36,8 @@ PCUT_TEST(op_sub_decode){
 PCUT_TEST(op_sll_decode){
     rv_instr_t instr;
     instr.r.opcode = rv_opcOP;
-    instr.r.func3  = 0b111 & rv_func_SLL;
-    instr.r.func7  = rv_func_SLL >> 3;
+    instr.r.funct3  = 0b111 & rv_func_SLL;
+    instr.r.funct7  = rv_func_SLL >> 3;
 
     PCUT_ASSERT_EQUALS(sll_instr, rv_instr_decode(instr));
 }
@@ -45,8 +45,8 @@ PCUT_TEST(op_sll_decode){
 PCUT_TEST(op_slt_decode){
     rv_instr_t instr;
     instr.r.opcode = rv_opcOP;
-    instr.r.func3  = 0b111 & rv_func_SLT;
-    instr.r.func7  = rv_func_SLT >> 3;
+    instr.r.funct3  = 0b111 & rv_func_SLT;
+    instr.r.funct7  = rv_func_SLT >> 3;
 
     PCUT_ASSERT_EQUALS(slt_instr, rv_instr_decode(instr));
 }
@@ -54,8 +54,8 @@ PCUT_TEST(op_slt_decode){
 PCUT_TEST(op_sltu_decode){
     rv_instr_t instr;
     instr.r.opcode = rv_opcOP;
-    instr.r.func3  = 0b111 & rv_func_SLTU;
-    instr.r.func7  = rv_func_SLTU >> 3;
+    instr.r.funct3  = 0b111 & rv_func_SLTU;
+    instr.r.funct7  = rv_func_SLTU >> 3;
 
     PCUT_ASSERT_EQUALS(sltu_instr, rv_instr_decode(instr));
 }
@@ -63,8 +63,8 @@ PCUT_TEST(op_sltu_decode){
 PCUT_TEST(op_xor_decode){
     rv_instr_t instr;
     instr.r.opcode = rv_opcOP;
-    instr.r.func3  = 0b111 & rv_func_XOR;
-    instr.r.func7  = rv_func_XOR >> 3;
+    instr.r.funct3  = 0b111 & rv_func_XOR;
+    instr.r.funct7  = rv_func_XOR >> 3;
 
     PCUT_ASSERT_EQUALS(xor_instr, rv_instr_decode(instr));
 }
@@ -72,8 +72,8 @@ PCUT_TEST(op_xor_decode){
 PCUT_TEST(op_srl_decode){
     rv_instr_t instr;
     instr.r.opcode = rv_opcOP;
-    instr.r.func3  = 0b111 & rv_func_SRL;
-    instr.r.func7  = rv_func_SRL >> 3;
+    instr.r.funct3  = 0b111 & rv_func_SRL;
+    instr.r.funct7  = rv_func_SRL >> 3;
 
     PCUT_ASSERT_EQUALS(srl_instr, rv_instr_decode(instr));
 }
@@ -81,8 +81,8 @@ PCUT_TEST(op_srl_decode){
 PCUT_TEST(op_sra_decode){
     rv_instr_t instr;
     instr.r.opcode = rv_opcOP;
-    instr.r.func3  = 0b111 & rv_func_SRA;
-    instr.r.func7  = rv_func_SRA >> 3;
+    instr.r.funct3  = 0b111 & rv_func_SRA;
+    instr.r.funct7  = rv_func_SRA >> 3;
 
     PCUT_ASSERT_EQUALS(sra_instr, rv_instr_decode(instr));
 }
@@ -90,8 +90,8 @@ PCUT_TEST(op_sra_decode){
 PCUT_TEST(op_or_decode){
     rv_instr_t instr;
     instr.r.opcode = rv_opcOP;
-    instr.r.func3  = 0b111 & rv_func_OR;
-    instr.r.func7  = rv_func_OR >> 3;
+    instr.r.funct3  = 0b111 & rv_func_OR;
+    instr.r.funct7  = rv_func_OR >> 3;
 
     PCUT_ASSERT_EQUALS(or_instr, rv_instr_decode(instr));
 }
@@ -99,8 +99,8 @@ PCUT_TEST(op_or_decode){
 PCUT_TEST(op_and_decode){
     rv_instr_t instr;
     instr.r.opcode = rv_opcOP;
-    instr.r.func3  = 0b111 & rv_func_AND;
-    instr.r.func7  = rv_func_AND >> 3;
+    instr.r.funct3  = 0b111 & rv_func_AND;
+    instr.r.funct7  = rv_func_AND >> 3;
 
     PCUT_ASSERT_EQUALS(and_instr, rv_instr_decode(instr));
 }
@@ -108,8 +108,8 @@ PCUT_TEST(op_and_decode){
 PCUT_TEST(op_mul_decode){
     rv_instr_t instr;
     instr.r.opcode = rv_opcOP;
-    instr.r.func3  = 0b111 & rv_func_MUL;
-    instr.r.func7  = rv_func_MUL >> 3;
+    instr.r.funct3  = 0b111 & rv_func_MUL;
+    instr.r.funct7  = rv_func_MUL >> 3;
 
     PCUT_ASSERT_EQUALS(mul_instr, rv_instr_decode(instr));
 }
@@ -117,8 +117,8 @@ PCUT_TEST(op_mul_decode){
 PCUT_TEST(op_mulh_decode){
     rv_instr_t instr;
     instr.r.opcode = rv_opcOP;
-    instr.r.func3  = 0b111 & rv_func_MULH;
-    instr.r.func7  = rv_func_MULH >> 3;
+    instr.r.funct3  = 0b111 & rv_func_MULH;
+    instr.r.funct7  = rv_func_MULH >> 3;
 
     PCUT_ASSERT_EQUALS(mulh_instr, rv_instr_decode(instr));
 }
@@ -126,8 +126,8 @@ PCUT_TEST(op_mulh_decode){
 PCUT_TEST(op_mulhsu_decode){
     rv_instr_t instr;
     instr.r.opcode = rv_opcOP;
-    instr.r.func3  = 0b111 & rv_func_MULHSU;
-    instr.r.func7  = rv_func_MULHSU >> 3;
+    instr.r.funct3  = 0b111 & rv_func_MULHSU;
+    instr.r.funct7  = rv_func_MULHSU >> 3;
 
     PCUT_ASSERT_EQUALS(mulhsu_instr, rv_instr_decode(instr));
 }
@@ -135,8 +135,8 @@ PCUT_TEST(op_mulhsu_decode){
 PCUT_TEST(op_mulhu_decode){
     rv_instr_t instr;
     instr.r.opcode = rv_opcOP;
-    instr.r.func3  = 0b111 & rv_func_MULHU;
-    instr.r.func7  = rv_func_MULHU >> 3;
+    instr.r.funct3  = 0b111 & rv_func_MULHU;
+    instr.r.funct7  = rv_func_MULHU >> 3;
 
     PCUT_ASSERT_EQUALS(mulhu_instr, rv_instr_decode(instr));
 }
@@ -144,8 +144,8 @@ PCUT_TEST(op_mulhu_decode){
 PCUT_TEST(op_div_decode){
     rv_instr_t instr;
     instr.r.opcode = rv_opcOP;
-    instr.r.func3  = 0b111 & rv_func_DIV;
-    instr.r.func7  = rv_func_DIV >> 3;
+    instr.r.funct3  = 0b111 & rv_func_DIV;
+    instr.r.funct7  = rv_func_DIV >> 3;
 
     PCUT_ASSERT_EQUALS(div_instr, rv_instr_decode(instr));
 }
@@ -153,8 +153,8 @@ PCUT_TEST(op_div_decode){
 PCUT_TEST(op_divu_decode){
     rv_instr_t instr;
     instr.r.opcode = rv_opcOP;
-    instr.r.func3  = 0b111 & rv_func_DIVU;
-    instr.r.func7  = rv_func_DIVU >> 3;
+    instr.r.funct3  = 0b111 & rv_func_DIVU;
+    instr.r.funct7  = rv_func_DIVU >> 3;
 
     PCUT_ASSERT_EQUALS(divu_instr, rv_instr_decode(instr));
 }
@@ -162,8 +162,8 @@ PCUT_TEST(op_divu_decode){
 PCUT_TEST(op_rem_decode){
     rv_instr_t instr;
     instr.r.opcode = rv_opcOP;
-    instr.r.func3  = 0b111 & rv_func_REM;
-    instr.r.func7  = rv_func_REM >> 3;
+    instr.r.funct3  = 0b111 & rv_func_REM;
+    instr.r.funct7  = rv_func_REM >> 3;
 
     PCUT_ASSERT_EQUALS(rem_instr, rv_instr_decode(instr));
 }
@@ -171,8 +171,8 @@ PCUT_TEST(op_rem_decode){
 PCUT_TEST(op_remu_decode){
     rv_instr_t instr;
     instr.r.opcode = rv_opcOP;
-    instr.r.func3  = 0b111 & rv_func_REMU;
-    instr.r.func7  = rv_func_REMU >> 3;
+    instr.r.funct3  = 0b111 & rv_func_REMU;
+    instr.r.funct7  = rv_func_REMU >> 3;
 
     PCUT_ASSERT_EQUALS(remu_instr, rv_instr_decode(instr));
 }
@@ -180,8 +180,8 @@ PCUT_TEST(op_remu_decode){
 PCUT_TEST(op_illegal_decode){
     rv_instr_t instr;
     instr.r.opcode = rv_opcOP;
-    instr.r.func3  = 0;
-    instr.r.func7  = 0b1010101;
+    instr.r.funct3  = 0;
+    instr.r.funct7  = 0b1010101;
 
     PCUT_ASSERT_EQUALS(illegal_instr, rv_instr_decode(instr));
 }
@@ -193,7 +193,7 @@ PCUT_TEST(op_illegal_decode){
 PCUT_TEST(branch_beq_decode){
     rv_instr_t instr;
     instr.b.opcode = rv_opcBRANCH;
-    instr.b.func3 = rv_func_BEQ;
+    instr.b.funct3 = rv_func_BEQ;
 
     PCUT_ASSERT_EQUALS(beq_instr, rv_instr_decode(instr));
 }
@@ -201,7 +201,7 @@ PCUT_TEST(branch_beq_decode){
 PCUT_TEST(branch_bne_decode){
     rv_instr_t instr;
     instr.b.opcode = rv_opcBRANCH;
-    instr.b.func3 = rv_func_BNE;
+    instr.b.funct3 = rv_func_BNE;
 
     PCUT_ASSERT_EQUALS(bne_instr, rv_instr_decode(instr));
 }
@@ -209,7 +209,7 @@ PCUT_TEST(branch_bne_decode){
 PCUT_TEST(branch_blt_decode){
     rv_instr_t instr;
     instr.b.opcode = rv_opcBRANCH;
-    instr.b.func3 = rv_func_BLT;
+    instr.b.funct3 = rv_func_BLT;
 
     PCUT_ASSERT_EQUALS(blt_instr, rv_instr_decode(instr));
 }
@@ -217,7 +217,7 @@ PCUT_TEST(branch_blt_decode){
 PCUT_TEST(branch_bltu_decode){
     rv_instr_t instr;
     instr.b.opcode = rv_opcBRANCH;
-    instr.b.func3 = rv_func_BLTU;
+    instr.b.funct3 = rv_func_BLTU;
 
     PCUT_ASSERT_EQUALS(bltu_instr, rv_instr_decode(instr));
 }
@@ -225,7 +225,7 @@ PCUT_TEST(branch_bltu_decode){
 PCUT_TEST(branch_bge_decode){
     rv_instr_t instr;
     instr.b.opcode = rv_opcBRANCH;
-    instr.b.func3 = rv_func_BGE;
+    instr.b.funct3 = rv_func_BGE;
 
     PCUT_ASSERT_EQUALS(bge_instr, rv_instr_decode(instr));
 }
@@ -233,7 +233,7 @@ PCUT_TEST(branch_bge_decode){
 PCUT_TEST(branch_bgeu_decode){
     rv_instr_t instr;
     instr.b.opcode = rv_opcBRANCH;
-    instr.b.func3 = rv_func_BGEU;
+    instr.b.funct3 = rv_func_BGEU;
 
     PCUT_ASSERT_EQUALS(bgeu_instr, rv_instr_decode(instr));
 }
@@ -241,7 +241,7 @@ PCUT_TEST(branch_bgeu_decode){
 PCUT_TEST(branch_illegal_decode){
     rv_instr_t instr;
     instr.b.opcode = rv_opcBRANCH;
-    instr.b.func3 = 0b010;
+    instr.b.funct3 = 0b010;
 
     PCUT_ASSERT_EQUALS(illegal_instr, rv_instr_decode(instr));
 }
@@ -253,7 +253,7 @@ PCUT_TEST(branch_illegal_decode){
 PCUT_TEST(jalr_decode){
     rv_instr_t instr;
     instr.j.opcode = rv_opcJALR;
-    instr.b.func3 = 0;
+    instr.b.funct3 = 0;
 
     PCUT_ASSERT_EQUALS(jalr_instr, rv_instr_decode(instr));
 }
@@ -261,7 +261,7 @@ PCUT_TEST(jalr_decode){
 PCUT_TEST(jalr_illegal_decode){
     rv_instr_t instr;
     instr.i.opcode = rv_opcJALR;
-    instr.i.func3 = 3;
+    instr.i.funct3 = 3;
 
     PCUT_ASSERT_EQUALS(illegal_instr, rv_instr_decode(instr));
 }
@@ -286,7 +286,7 @@ PCUT_TEST(jal_decode){
 PCUT_TEST(lb_decode){
     rv_instr_t instr;
     instr.i.opcode = rv_opcLOAD;
-    instr.i.func3  = rv_func_LB;
+    instr.i.funct3  = rv_func_LB;
 
     PCUT_ASSERT_EQUALS(lb_instr, rv_instr_decode(instr));
 }
@@ -294,7 +294,7 @@ PCUT_TEST(lb_decode){
 PCUT_TEST(lh_decode){
     rv_instr_t instr;
     instr.i.opcode = rv_opcLOAD;
-    instr.i.func3  = rv_func_LH;
+    instr.i.funct3  = rv_func_LH;
 
     PCUT_ASSERT_EQUALS(lh_instr, rv_instr_decode(instr));
 }
@@ -302,7 +302,7 @@ PCUT_TEST(lh_decode){
 PCUT_TEST(lw_decode){
     rv_instr_t instr;
     instr.i.opcode = rv_opcLOAD;
-    instr.i.func3  = rv_func_LW;
+    instr.i.funct3  = rv_func_LW;
 
     PCUT_ASSERT_EQUALS(lw_instr, rv_instr_decode(instr));
 }
@@ -310,7 +310,7 @@ PCUT_TEST(lw_decode){
 PCUT_TEST(lbu_decode){
     rv_instr_t instr;
     instr.i.opcode = rv_opcLOAD;
-    instr.i.func3  = rv_func_LBU;
+    instr.i.funct3  = rv_func_LBU;
 
     PCUT_ASSERT_EQUALS(lbu_instr, rv_instr_decode(instr));
 }
@@ -318,7 +318,7 @@ PCUT_TEST(lbu_decode){
 PCUT_TEST(lhu_decode){
     rv_instr_t instr;
     instr.i.opcode = rv_opcLOAD;
-    instr.i.func3  = rv_func_LHU;
+    instr.i.funct3  = rv_func_LHU;
 
     PCUT_ASSERT_EQUALS(lhu_instr, rv_instr_decode(instr));
 }
@@ -326,7 +326,7 @@ PCUT_TEST(lhu_decode){
 PCUT_TEST(load_illegal_decode){
     rv_instr_t instr;
     instr.i.opcode = rv_opcLOAD;
-    instr.i.func3  = 0b111;
+    instr.i.funct3  = 0b111;
 
     PCUT_ASSERT_EQUALS(illegal_instr, rv_instr_decode(instr));
 }
@@ -338,7 +338,7 @@ PCUT_TEST(load_illegal_decode){
 PCUT_TEST(sb_decode){
     rv_instr_t instr;
     instr.s.opcode = rv_opcSTORE;
-    instr.s.func3  = rv_func_SB;
+    instr.s.funct3  = rv_func_SB;
 
     PCUT_ASSERT_EQUALS(sb_instr, rv_instr_decode(instr));
 }
@@ -346,7 +346,7 @@ PCUT_TEST(sb_decode){
 PCUT_TEST(sh_decode){
     rv_instr_t instr;
     instr.s.opcode = rv_opcSTORE;
-    instr.s.func3  = rv_func_SH;
+    instr.s.funct3  = rv_func_SH;
 
     PCUT_ASSERT_EQUALS(sh_instr, rv_instr_decode(instr));
 }
@@ -354,7 +354,7 @@ PCUT_TEST(sh_decode){
 PCUT_TEST(sw_decode){
     rv_instr_t instr;
     instr.s.opcode = rv_opcSTORE;
-    instr.s.func3  = rv_func_SW;
+    instr.s.funct3  = rv_func_SW;
 
     PCUT_ASSERT_EQUALS(sw_instr, rv_instr_decode(instr));
 }
@@ -362,7 +362,7 @@ PCUT_TEST(sw_decode){
 PCUT_TEST(store_illegal_decode){
     rv_instr_t instr;
     instr.s.opcode = rv_opcSTORE;
-    instr.s.func3  = 0b111;
+    instr.s.funct3  = 0b111;
 
     PCUT_ASSERT_EQUALS(illegal_instr, rv_instr_decode(instr));
 }
@@ -374,7 +374,7 @@ PCUT_TEST(store_illegal_decode){
 PCUT_TEST(fence_decode){
     rv_instr_t instr;
     instr.i.opcode = rv_opcMISC_MEM;
-    instr.i.func3 = 0;
+    instr.i.funct3 = 0;
 
     PCUT_ASSERT_EQUALS(fence_instr, rv_instr_decode(instr));
 }
@@ -382,7 +382,7 @@ PCUT_TEST(fence_decode){
 PCUT_TEST(misc_mem_illegal_decode){
     rv_instr_t instr;
     instr.i.opcode = rv_opcMISC_MEM;
-    instr.i.func3 = 2;
+    instr.i.funct3 = 2;
 
     PCUT_ASSERT_EQUALS(illegal_instr, rv_instr_decode(instr));
 }
@@ -394,7 +394,7 @@ PCUT_TEST(misc_mem_illegal_decode){
 PCUT_TEST(addi_decode){
     rv_instr_t instr;
     instr.i.opcode = rv_opcOP_IMM;
-    instr.i.func3 = rv_func_ADDI;
+    instr.i.funct3 = rv_func_ADDI;
 
     PCUT_ASSERT_EQUALS(addi_instr, rv_instr_decode(instr));
 }
@@ -402,7 +402,7 @@ PCUT_TEST(addi_decode){
 PCUT_TEST(slti_decode){
     rv_instr_t instr;
     instr.i.opcode = rv_opcOP_IMM;
-    instr.i.func3 = rv_func_SLTI;
+    instr.i.funct3 = rv_func_SLTI;
 
     PCUT_ASSERT_EQUALS(slti_instr, rv_instr_decode(instr));
 }
@@ -410,7 +410,7 @@ PCUT_TEST(slti_decode){
 PCUT_TEST(sltiu_decode){
     rv_instr_t instr;
     instr.i.opcode = rv_opcOP_IMM;
-    instr.i.func3 = rv_func_SLTIU;
+    instr.i.funct3 = rv_func_SLTIU;
 
     PCUT_ASSERT_EQUALS(sltiu_instr, rv_instr_decode(instr));
 }
@@ -418,7 +418,7 @@ PCUT_TEST(sltiu_decode){
 PCUT_TEST(xori_decode){
     rv_instr_t instr;
     instr.i.opcode = rv_opcOP_IMM;
-    instr.i.func3 = rv_func_XORI;
+    instr.i.funct3 = rv_func_XORI;
 
     PCUT_ASSERT_EQUALS(xori_instr, rv_instr_decode(instr));
 }
@@ -426,7 +426,7 @@ PCUT_TEST(xori_decode){
 PCUT_TEST(ori_decode){
     rv_instr_t instr;
     instr.i.opcode = rv_opcOP_IMM;
-    instr.i.func3 = rv_func_ORI;
+    instr.i.funct3 = rv_func_ORI;
 
     PCUT_ASSERT_EQUALS(ori_instr, rv_instr_decode(instr));
 }
@@ -434,7 +434,7 @@ PCUT_TEST(ori_decode){
 PCUT_TEST(andi_decode){
     rv_instr_t instr;
     instr.i.opcode = rv_opcOP_IMM;
-    instr.i.func3 = rv_func_ANDI;
+    instr.i.funct3 = rv_func_ANDI;
 
     PCUT_ASSERT_EQUALS(andi_instr, rv_instr_decode(instr));
 }
@@ -442,7 +442,7 @@ PCUT_TEST(andi_decode){
 PCUT_TEST(slli_decode){
     rv_instr_t instr;
     instr.i.opcode = rv_opcOP_IMM;
-    instr.i.func3 = rv_func_SLLI;
+    instr.i.funct3 = rv_func_SLLI;
     instr.i.imm = 0;
 
     PCUT_ASSERT_EQUALS(slli_instr, rv_instr_decode(instr));
@@ -451,7 +451,7 @@ PCUT_TEST(slli_decode){
 PCUT_TEST(slli_illegal_decode){
     rv_instr_t instr;
     instr.i.opcode = rv_opcOP_IMM;
-    instr.i.func3 = rv_func_SLLI;
+    instr.i.funct3 = rv_func_SLLI;
     instr.i.imm = 1<<6;
 
     PCUT_ASSERT_EQUALS(illegal_instr, rv_instr_decode(instr));
@@ -460,7 +460,7 @@ PCUT_TEST(slli_illegal_decode){
 PCUT_TEST(srli_decode){
     rv_instr_t instr;
     instr.i.opcode = rv_opcOP_IMM;
-    instr.i.func3 = rv_func_SRI;
+    instr.i.funct3 = rv_func_SRI;
     instr.i.imm = 0;
 
     PCUT_ASSERT_EQUALS(srli_instr, rv_instr_decode(instr));
@@ -469,7 +469,7 @@ PCUT_TEST(srli_decode){
 PCUT_TEST(srai_decode){
     rv_instr_t instr;
     instr.i.opcode = rv_opcOP_IMM;
-    instr.i.func3 = rv_func_SRI;
+    instr.i.funct3 = rv_func_SRI;
     // set bit 30, as in spec
     instr.val |= 1<<30;
 

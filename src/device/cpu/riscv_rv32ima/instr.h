@@ -75,7 +75,7 @@ typedef enum {
     rv_opcAMO         = 0b0101111,
     rv_opcOP          = 0b0110011,
     rv_opcLUI         = 0b0110111,
-    rv_opcOP_32       = 0b0111011,
+    rv_opcOP_32       = 0b0111011, 
     rv_opcMADD        = 0b1000011, // not supported
     rv_opcMSUB        = 0b1000111, // not supported
     rv_opcNMSUB       = 0b1001011, // not supported
@@ -176,6 +176,24 @@ typedef enum {
     rv_privEHALT  = 2
 } rv_system_priv_imm_t;
 
+/** Funct values for AMO instructions 
+ *  This value is the high 5 bits from funct7
+ *  funct3 serves as the identifier of width of the instructions and only 32-bit width is supported now in msim
+ *  the low 2 bits from funct7 describe the ordering constraints (acquire/release semantics)
+ */
+typedef enum {
+    rv_funcLR         = 0b00010,
+    rv_funcSC         = 0b00011, 
+    rv_funcAMOSWAP    = 0b00001,
+    rv_funcAMOADD     = 0b00000,
+    rv_funcAMOXOR     = 0b00100,
+    rv_funcAMOAND     = 0b01100,
+    rv_funcAMOOR      = 0b01000,
+    rv_funcAMOMIN     = 0b10000,
+    rv_funcAMOMAX     = 0b10100,
+    rv_funcAMONINU    = 0b11000,
+    rv_funcAMOMAXU    = 0b11100
+} rv_amo_funct_t;
 
 //forward declarations
 enum rv_exc;

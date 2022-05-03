@@ -413,46 +413,157 @@ extern rv_exc_t remu_instr(rv_cpu_t *cpu, rv_instr_t instr){
 /* A extension atomic operations */
 
 rv_exc_t amoswap_instr(rv_cpu_t *cpu, rv_instr_t instr){
+    ASSERT(cpu != NULL);
+    ASSERT(instr.r.opcode == rv_opcAMO);
 
+    uint32_t virt = cpu->regs[instr.r.rs1];
+
+    uint32_t val;
+    rv_exc_t ex = rv_read_mem32(cpu, virt, &val, true);
+
+    if(ex != rv_exc_none){
+        return ex;
+    }
+
+    ex = rv_write_mem32(cpu, virt, cpu->regs[instr.r.rs2], true);
+    cpu->regs[instr.r.rd] = val;   
     return rv_exc_none;
 }
 
 rv_exc_t amoadd_instr(rv_cpu_t *cpu, rv_instr_t instr){
 
-    return rv_exc_none;
+    uint32_t virt = cpu->regs[instr.r.rs1];
+
+    uint32_t val;
+    // load from mem
+    rv_exc_t ex = rv_read_mem32(cpu, virt, &val, true);
+
+    if(ex != rv_exc_none){
+        return ex;
+    }
+
+    // save loaded value to rd
+    cpu->regs[instr.r.rd] = val;
+    // add with rs2
+    val += cpu->regs[instr.r.rs2];
+    // write to mem
+    ex = rv_write_mem32(cpu, virt, val, true);
+
+    return ex;
 }
 
-rv_exc_t amoxor_instr(rv_cpu_t *cpu, rv_instr_t instr){
+rv_exc_t amoxor_instr(rv_cpu_t *cpu, rv_instr_t instr) {
 
-    return rv_exc_none;
+    uint32_t virt = cpu->regs[instr.r.rs1];
+    uint32_t val;
+    rv_exc_t ex = rv_read_mem32(cpu, virt, &val, true);
+
+    if(ex != rv_exc_none){
+        return ex;
+    }
+
+    cpu->regs[instr.r.rd] = val;
+    val ^= cpu->regs[instr.r.rs2];
+    ex = rv_write_mem32(cpu, virt, val, true);
+    return ex;
 }
 
 rv_exc_t amoand_instr(rv_cpu_t *cpu, rv_instr_t instr){
 
-    return rv_exc_none;
+    uint32_t virt = cpu->regs[instr.r.rs1];
+    uint32_t val;
+    rv_exc_t ex = rv_read_mem32(cpu, virt, &val, true);
+
+    if(ex != rv_exc_none){
+        return ex;
+    }
+
+    cpu->regs[instr.r.rd] = val;
+    val &= cpu->regs[instr.r.rs2];
+    ex = rv_write_mem32(cpu, virt, val, true);
+    return ex;
 }
 
 rv_exc_t amoor_instr(rv_cpu_t *cpu, rv_instr_t instr){
 
-    return rv_exc_none;
+    uint32_t virt = cpu->regs[instr.r.rs1];
+    uint32_t val;
+    rv_exc_t ex = rv_read_mem32(cpu, virt, &val, true);
+
+    if(ex != rv_exc_none){
+        return ex;
+    }
+
+    cpu->regs[instr.r.rd] = val;
+    val |= cpu->regs[instr.r.rs2];
+    ex = rv_write_mem32(cpu, virt, val, true);
+    return ex;
 }
 
 rv_exc_t amomin_instr(rv_cpu_t *cpu, rv_instr_t instr){
 
-    return rv_exc_none;
+    uint32_t virt = cpu->regs[instr.r.rs1];
+    int32_t val;
+    rv_exc_t ex = rv_read_mem32(cpu, virt, (uint32_t*)&val, true);
+
+    if(ex != rv_exc_none){
+        return ex;
+    }
+
+    cpu->regs[instr.r.rd] = val;
+    int32_t rs2 = cpu->regs[instr.r.rs2];
+    val =  rs2 < val ? rs2 : val;
+    ex = rv_write_mem32(cpu, virt, val, true);
+    return ex;
 }
 
 rv_exc_t amomax_instr(rv_cpu_t *cpu, rv_instr_t instr){
 
-    return rv_exc_none;
+    uint32_t virt = cpu->regs[instr.r.rs1];
+    int32_t val;
+    rv_exc_t ex = rv_read_mem32(cpu, virt, (uint32_t*)&val, true);
+
+    if(ex != rv_exc_none){
+        return ex;
+    }
+
+    cpu->regs[instr.r.rd] = val;
+    int32_t rs2 = cpu->regs[instr.r.rs2];
+    val =  rs2 > val ? rs2 : val;
+    ex = rv_write_mem32(cpu, virt, val, true);
+    return ex;
 }
 
 rv_exc_t amominu_instr(rv_cpu_t *cpu, rv_instr_t instr){
 
-    return rv_exc_none;
+     uint32_t virt = cpu->regs[instr.r.rs1];
+    uint32_t val;
+    rv_exc_t ex = rv_read_mem32(cpu, virt, &val, true);
+
+    if(ex != rv_exc_none){
+        return ex;
+    }
+
+    cpu->regs[instr.r.rd] = val;
+    uint32_t rs2 = cpu->regs[instr.r.rs2];
+    val =  rs2 < val ? rs2 : val;
+    ex = rv_write_mem32(cpu, virt, val, true);
+    return ex;
 }
 
 rv_exc_t amomaxu_instr(rv_cpu_t *cpu, rv_instr_t instr){
 
-    return rv_exc_none;
+    uint32_t virt = cpu->regs[instr.r.rs1];
+    uint32_t val;
+    rv_exc_t ex = rv_read_mem32(cpu, virt, &val, true);
+
+    if(ex != rv_exc_none){
+        return ex;
+    }
+
+    cpu->regs[instr.r.rd] = val;
+    uint32_t rs2 = cpu->regs[instr.r.rs2];
+    val =  rs2 > val ? rs2 : val;
+    ex = rv_write_mem32(cpu, virt, val, true);
+    return ex;
 }

@@ -153,11 +153,6 @@ static rv_instr_func_t decode_LUI(rv_instr_t instr) {
     return lui_instr; 
 }
 
-static rv_instr_func_t decode_OP_32(rv_instr_t instr) {
-    ASSERT(instr.r.opcode == rv_opcOP_32);
-    return illegal_instr; 
-}
-
 static rv_instr_func_t decode_BRANCH(rv_instr_t instr) {
     ASSERT(instr.b.opcode == rv_opcBRANCH);
     switch(instr.b.func3){
@@ -244,8 +239,6 @@ rv_instr_func_t rv_instr_decode(rv_instr_t instr){
             return decode_OP(instr);
         case rv_opcLUI:
             return decode_LUI(instr);
-        case rv_opcOP_32:
-            return decode_OP_32(instr);
         case rv_opcBRANCH:
             return decode_BRANCH(instr);
         case rv_opcJALR:

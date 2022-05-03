@@ -149,3 +149,16 @@ rv_exc_t fence_instr(rv_cpu_t *cpu, rv_instr_t instr){
     // where out-of-order processing is not allowed
     return rv_exc_none;
 }
+
+/* A extension LR and SC */
+
+rv_exc_t lr_instr(rv_cpu_t *cpu, rv_instr_t instr){
+
+    return rv_exc_none;
+}
+
+rv_exc_t sc_instr(rv_cpu_t *cpu, rv_instr_t instr){
+
+    return rv_exc_none;
+}
+

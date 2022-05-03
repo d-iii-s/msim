@@ -22,7 +22,7 @@ rv_exc_t jal_instr(rv_cpu_t *cpu, rv_instr_t instr){
 rv_exc_t jalr_instr(rv_cpu_t *cpu, rv_instr_t instr) {
     ASSERT(cpu != NULL);
     ASSERT(instr.i.opcode == rv_opcJALR);
-    ASSERT(instr.i.func3 == 0);
+    ASSERT(instr.i.funct3 == 0);
 
     uint32_t target = cpu->regs[instr.i.rs1] + instr.i.imm;
     // lowest bit set to 0, as described in the specification

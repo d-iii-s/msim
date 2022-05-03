@@ -101,7 +101,28 @@ static rv_instr_func_t decode_AMO(rv_instr_t instr) {
     ASSERT(instr.r.opcode == rv_opcAMO);
 
     switch(RV_AMO_FUNCT(instr)){
-
+        case rv_funcLR:
+            return instr.r.rs2 == 0 ? lr_instr : illegal_instr;
+        case rv_funcSC:
+            return sc_instr;
+        case rv_funcAMOSWAP:
+            return amoswap_instr;
+        case rv_funcAMOADD:
+            return amoadd_instr;
+        case rv_funcAMOXOR:
+            return amoxor_instr;
+        case rv_funcAMOAND:
+            return amoand_instr;
+        case rv_funcAMOOR:
+            return amoor_instr;
+        case rv_funcAMOMIN:
+            return amomin_instr;
+        case rv_funcAMOMAX:
+            return amomax_instr;
+        case rv_funcAMOMINU:
+            return amominu_instr;
+        case rv_funcAMOMAXU:
+            return amomaxu_instr;
         default:
             return illegal_instr; 
     }

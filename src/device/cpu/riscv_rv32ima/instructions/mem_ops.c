@@ -198,7 +198,7 @@ rv_exc_t sc_instr(rv_cpu_t *cpu, rv_instr_t instr){
 
     if(cpu->reserved_valid == false){
         // reservation is not valid
-        cpu->regs[instr.r.rs2] = 1;
+        cpu->regs[instr.r.rd] = 1;
         return rv_exc_none;
     }
 
@@ -219,7 +219,7 @@ rv_exc_t sc_instr(rv_cpu_t *cpu, rv_instr_t instr){
     if(phys != cpu->reserved_addr){
         // target differs
         alert("RV32IMA: LR/SC addresses do not match");
-        cpu->regs[instr.r.rs2] = 1;
+        cpu->regs[instr.r.rd] = 1;
         return rv_exc_none;
     }
 
@@ -233,11 +233,11 @@ rv_exc_t sc_instr(rv_cpu_t *cpu, rv_instr_t instr){
 
     if(ex != rv_exc_none){
         alert("RV32IMA: SC write failed after successful address translation");
-        cpu->regs[instr.r.rs2] = 1;
+        cpu->regs[instr.r.rd] = 1;
         return ex;
     }
 
-    cpu->regs[instr.r.rs2] = 0;
+    cpu->regs[instr.r.rd] = 0;
     return rv_exc_none;
 }
 

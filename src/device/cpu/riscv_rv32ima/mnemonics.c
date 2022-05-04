@@ -526,9 +526,11 @@ extern void rv_remu_mnemonics(uint32_t addr, rv_instr_t instr, string_t *s_mnemo
 // A extension
 extern void rv_lr_mnemonics(uint32_t addr, rv_instr_t instr, string_t *s_mnemonics, string_t *s_comments){
     string_printf(s_mnemonics, "lr");
+    string_printf(s_mnemonics, " %s, (%s)", rv_regnames[instr.r.rd], rv_regnames[instr.r.rs1]);
 }
 extern void rv_sc_mnemonics(uint32_t addr, rv_instr_t instr, string_t *s_mnemonics, string_t *s_comments){
     string_printf(s_mnemonics, "sc");
+    amo_instr_mnemonics(instr, s_mnemonics);
 }
 extern void rv_amoswap_mnemonics(uint32_t addr, rv_instr_t instr, string_t *s_mnemonics, string_t *s_comments){
     string_printf(s_mnemonics, "amoswap");

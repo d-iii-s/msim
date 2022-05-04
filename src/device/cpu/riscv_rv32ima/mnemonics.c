@@ -223,6 +223,10 @@ static void u_instr_mnemonics(rv_instr_t instr, string_t *s_mnemonics){
     string_printf(s_mnemonics, " %s, %#08x", rv_regnames[instr.u.rd], instr.u.imm);
 }
 
+static void amo_instr_mnemonics(rv_instr_t instr, string_t *s_mnemonics) {
+    string_printf(s_mnemonics, " %s, %s, (%s)", rv_regnames[instr.r.rd], rv_regnames[instr.r.rs2], rv_regnames[instr.r.rs1]);
+}
+
 /***********************************
  * Mnemonics/Dissasembly functions *
  ***********************************/
@@ -530,28 +534,37 @@ extern void rv_sc_mnemonics(uint32_t addr, rv_instr_t instr, string_t *s_mnemoni
 }
 extern void rv_amoswap_mnemonics(uint32_t addr, rv_instr_t instr, string_t *s_mnemonics, string_t *s_comments){
     string_printf(s_mnemonics, "amoswap");
+    amo_instr_mnemonics(instr, s_mnemonics);
 }
 extern void rv_amoadd_mnemonics(uint32_t addr, rv_instr_t instr, string_t *s_mnemonics, string_t *s_comments){
     string_printf(s_mnemonics, "amoadd");
+    amo_instr_mnemonics(instr, s_mnemonics);
 }
 extern void rv_amoxor_mnemonics(uint32_t addr, rv_instr_t instr, string_t *s_mnemonics, string_t *s_comments){
     string_printf(s_mnemonics, "amoxor");
+    amo_instr_mnemonics(instr, s_mnemonics);
 }
 extern void rv_amoand_mnemonics(uint32_t addr, rv_instr_t instr, string_t *s_mnemonics, string_t *s_comments){
     string_printf(s_mnemonics, "amoand");
+    amo_instr_mnemonics(instr, s_mnemonics);
 }
 extern void rv_amoor_mnemonics(uint32_t addr, rv_instr_t instr, string_t *s_mnemonics, string_t *s_comments){
     string_printf(s_mnemonics, "amoor");
+    amo_instr_mnemonics(instr, s_mnemonics);
 }
 extern void rv_amomin_mnemonics(uint32_t addr, rv_instr_t instr, string_t *s_mnemonics, string_t *s_comments){
     string_printf(s_mnemonics, "amomin");
+    amo_instr_mnemonics(instr, s_mnemonics);
 }
 extern void rv_amomax_mnemonics(uint32_t addr, rv_instr_t instr, string_t *s_mnemonics, string_t *s_comments){
     string_printf(s_mnemonics, "amomax");
+    amo_instr_mnemonics(instr, s_mnemonics);
 }
 extern void rv_amominu_mnemonics(uint32_t addr, rv_instr_t instr, string_t *s_mnemonics, string_t *s_comments){
     string_printf(s_mnemonics, "amominu");
+    amo_instr_mnemonics(instr, s_mnemonics);
 }
 extern void rv_amomaxu_mnemonics(uint32_t addr, rv_instr_t instr, string_t *s_mnemonics, string_t *s_comments){
     string_printf(s_mnemonics, "amomaxu");
+    amo_instr_mnemonics(instr, s_mnemonics);
 }

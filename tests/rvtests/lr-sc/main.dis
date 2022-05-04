@@ -1,0 +1,19 @@
+
+main.raw:     file format elf32-littleriscv
+
+
+Disassembly of section .text:
+
+00000000 <fail-0x18>:
+   0:	01c00513          	li	a0,28
+   4:	00000593          	li	a1,0
+   8:	100522af          	lr.w	t0,(a0)
+   c:	18b522af          	sc.w	t0,a1,(a0)
+  10:	00029463          	bnez	t0,18 <fail>
+  14:	00200073          	.word	0x00200073
+
+00000018 <fail>:
+  18:	00100073          	ebreak
+
+0000001c <var1>:
+  1c:	00000001          	.word	0x00000001

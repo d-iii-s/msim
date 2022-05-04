@@ -28,7 +28,6 @@ void rv_cpu_init(rv_cpu_t *cpu, unsigned int procno){
     init_regs(cpu);
 
     init_csr(&cpu->csr, procno);
-   
 }   
 
 
@@ -174,11 +173,19 @@ void rv_cpu_step(rv_cpu_t *cpu){
     
 }
 
+bool rv_sc_access(rv_cpu_t *cpu, ptr36_t phys){
+    bool same_addr = cpu->reserved_addr == phys;
+    if(same_addr) {
+        cpu->reserved_valid = false;
+    }
+    return same_addr;
+}
+
 /** Interrupts */
-void rv_cpu_interrupt_up(rv_cpu_t *cpu, unsigned int no){
+void rv_interrupt_up(rv_cpu_t *cpu, unsigned int no){
 
 }
 
-void rv_cpu_interrupt_down(rv_cpu_t *cpu, unsigned int no){
+void rv_interrupt_down(rv_cpu_t *cpu, unsigned int no){
 
 }

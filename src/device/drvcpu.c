@@ -11,6 +11,20 @@
 #include "../utils.h"
 #include "../fault.h"
 
+static bool rv_convert_add_wrapper(void* cpu, ptr64_t virt,  ptr36_t* phys, bool write){
+    // use only low 32-bits from virt
+    return rv_convert_addr((rv_cpu_t*)cpu, virt.lo, phys, write, false) == rv_exc_none;
+}
+
+static const cpu_ops_t rv_cpu = {
+	.interrupt_up = (interrupt_func_t)rv_interrupt_up,
+	.interrupt_down = (interrupt_func_t)rv_interrupt_down,
+	
+	.convert_addr = (convert_addr_func_t)rv_convert_add_wrapper,
+	.set_pc = (set_pc_func_t)rv_cpu_set_pc,
+	.sc_access = (sc_access_func_t)rv_sc_access
+};
+
 static bool drvcpu_init(token_t *parm, device_t *dev){
     
     unsigned int id = get_free_cpuno();
@@ -25,7 +39,7 @@ static bool drvcpu_init(token_t *parm, device_t *dev){
     general_cpu_t* gen_cpu = safe_malloc_t(general_cpu_t);
     gen_cpu->cpuno = id;
     gen_cpu->data = cpu;
-    gen_cpu->type = NULL;
+    gen_cpu->type = &rv_cpu;
 
     add_cpu(gen_cpu);
 

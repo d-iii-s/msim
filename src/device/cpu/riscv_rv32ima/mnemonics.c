@@ -6,8 +6,6 @@
 #include "instructions/system.h"
 #include "instructions/mem_ops.h"
 
-
-
 extern rv_mnemonics_func_t rv_decode_mnemonics(rv_instr_t instr){
     // is this dirty?
     rv_instr_func_t instr_func = rv_instr_decode(instr);

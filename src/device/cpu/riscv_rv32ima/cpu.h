@@ -78,7 +78,9 @@ typedef struct rv_cpu
 	// excaddr ???
 	// branch - again, no branch delay
 
-	// LR and SC - TODO
+	// LR and SC
+	bool reserved_valid;
+	ptr36_t reserved_addr; // physical address of the last LR
 
 	// watch ?? is this a gdb or a mips thing?
 	// TODO: look into this
@@ -101,8 +103,8 @@ extern void rv_cpu_set_pc(rv_cpu_t *cpu, uint32_t value);
 extern void rv_cpu_step(rv_cpu_t *cpu);
 
 /** Interrupts */
-extern void rv_cpu_interrupt_up(rv_cpu_t *cpu, unsigned int no);
-extern void rv_cpu_interrupt_down(rv_cpu_t *cpu, unsigned int no);
+extern void rv_interrupt_up(rv_cpu_t *cpu, unsigned int no);
+extern void rv_interrupt_down(rv_cpu_t *cpu, unsigned int no);
 
 /** Memory operations */
 extern rv_exc_t rv_convert_addr(rv_cpu_t *cpu, uint32_t virt, ptr36_t *phys, bool wr, bool noisy);
@@ -112,5 +114,7 @@ extern rv_exc_t rv_read_mem32(rv_cpu_t *cpu, uint32_t virt, uint32_t *value, boo
 extern rv_exc_t rv_write_mem8(rv_cpu_t *cpu, uint32_t virt, uint8_t value, bool noisy);
 extern rv_exc_t rv_write_mem16(rv_cpu_t *cpu, uint32_t virt, uint16_t value, bool noisy);
 extern rv_exc_t rv_write_mem32(rv_cpu_t *cpu, uint32_t virt, uint32_t value, bool noisy);
+extern bool rv_sc_access(rv_cpu_t *cpu, ptr36_t phys);
+
 
 #endif //RISCV_RV32IMA_CPU_H_

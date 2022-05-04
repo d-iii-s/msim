@@ -27,7 +27,7 @@
 
 //? rename?
 static bool r4k_cpu_convert_addr(r4k_cpu_t *cpu, ptr64_t virt, ptr36_t *phys, bool write){
-	return r4k_convert_addr(cpu, virt, phys, write, false);
+	return r4k_convert_addr(cpu, virt, phys, write, false) == r4k_excNone;
 }
 
 

@@ -1,0 +1,31 @@
+
+main.raw:     file format elf32-littleriscv
+
+
+Disassembly of section .text:
+
+00000000 <var1-0x54>:
+   0:	05400513          	li	a0,84
+   4:	00500593          	li	a1,5
+   8:	08b522af          	amoswap.w	t0,a1,(a0)
+   c:	00300593          	li	a1,3
+  10:	00b522af          	amoadd.w	t0,a1,(a0)
+  14:	fff00593          	li	a1,-1
+  18:	20b522af          	amoxor.w	t0,a1,(a0)
+  1c:	00f00593          	li	a1,15
+  20:	60b522af          	amoand.w	t0,a1,(a0)
+  24:	00e00593          	li	a1,14
+  28:	40b522af          	amoor.w	t0,a1,(a0)
+  2c:	ffe00593          	li	a1,-2
+  30:	80b522af          	amomin.w	t0,a1,(a0)
+  34:	fff00593          	li	a1,-1
+  38:	a0b522af          	amomax.w	t0,a1,(a0)
+  3c:	00000593          	li	a1,0
+  40:	c0b522af          	amominu.w	t0,a1,(a0)
+  44:	fff00593          	li	a1,-1
+  48:	e0b522af          	amomaxu.w	t0,a1,(a0)
+  4c:	00100073          	ebreak
+  50:	00200073          	.word	0x00200073
+
+00000054 <var1>:
+  54:	00000001          	.word	0x00000001

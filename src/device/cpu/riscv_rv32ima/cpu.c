@@ -174,11 +174,13 @@ void rv_cpu_step(rv_cpu_t *cpu){
 }
 
 bool rv_sc_access(rv_cpu_t *cpu, ptr36_t phys){
-    bool same_addr = cpu->reserved_addr == phys;
-    if(same_addr) {
+    // We align down because of writes that are shorter than 4 B
+    // As long as all writes are aligned, and 32 bits at max, this works
+    bool hit = cpu->reserved_addr == ALIGN_DOWN(phys, 4);
+    if(hit) {
         cpu->reserved_valid = false;
     }
-    return same_addr;
+    return hit;
 }
 
 /** Interrupts */

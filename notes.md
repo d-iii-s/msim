@@ -25,7 +25,7 @@ similar features would be nice in risc
 
 gdb reads physical memory, but does not specify cpu
 
-TODO: look into physmem read and find why is the cpu there.
+look into physmem read and find why is the cpu there.
 
 Done: physmem calls r/w on memory mapped IO, and some devices need
 the proc id.
@@ -75,23 +75,25 @@ this interface will be accessed via the cpu no.
 
 we need to distiguish between r4k, rv and general cpu - rename the device type
 
-(also change in `device.c`, in the filtering utilities)
+(also change in `device.c`, in the filtering utilities) (done)
 
 device memory read and write expect r4k_cpu*
 
 device read/write 32/64 do not need to work with cpu*, but could as well work with cpu id
 (the only one that uses the cpu* at all is dorder read32)
+(done)
 
 ### physmem
 
-physmem should be moved to a different module, changing the interface (mostly so it takes cpu id instead of cpu*)
+physmem should be moved to a different module, changing the interface (mostly so it takes cpu id instead of cpu*) (done)
 
 Each physmem frame remembered a buffer of decoded instructions.
 This does not work for a system of multiple architectures.
 Although, the two processors should not execute from same piece of memory in practice.
 For now, I have changed it, so the processor holds itself 1 frame of decoded data, but it could be changed later, that the frames themselves hold the decoded data with information, which architecture are they decoded into.
 
-This is untested as of now on mips (!!!)
+~~This is untested as of now on mips (!!!)~~
+Tested, bugs are fixed. It works, but it would be nice to put something similar back.
 
 ### mem
 
@@ -101,7 +103,7 @@ This is untested as of now on mips (!!!)
 
 they need to cooperate with mips cpu, so the SC control should work in general physmem manager.
 
-The update needs to be tested.
+The update needs to be tested. (Works for riscv)
 
 ### exceptions
 
@@ -153,14 +155,18 @@ The `general_cpu` has to be allocated and freed, somewhere, somehow.
 
 I would suggest, that the device (dr4kcpu,...) alloc and free them
 
+Done, implemented as suggested.
+
 ## data types
 
-36 bit physical space can be supported. RISC-V has only 34-bit physical addresses, but the spec states, that they can be zero-extended to any length used by the implementation, so we can satisfy shis interface.
+36 bit physical space can be supported. RISC-V has only 34-bit physical addresses, but the spec states, that they can be zero-extended to any length used by the implementation, so we can satisfy this interface.
 
 ## environment
 
 msim allows different names of registers, this needs to be abstracted,
 or separate functionality needs to be added.
+
+Done, or at least for regdump command for now.
 
 ## instructions
 

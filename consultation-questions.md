@@ -1,5 +1,7 @@
 # Otázky na konzultace
 
+[//]: # (První konzultace)
+
 ## 1. Způsob abstrakce nad cpu
 
 ### Momentálně: pseudo c#/java interface
@@ -62,3 +64,52 @@ Buď castnout function ptr (preferováno) nebo napsat wrappery (upožňuje naví
 - pro msim to znamená, že tam bude device.
 - radši mám naimplementovat nový rv timer, než používat `dtime`
 - při implementaci `RDTIME` si vytáhnu předdefinovaný device (z configu, ať má dobrou adresu), nebo založím nový
+
+[//]: # (Druhé konzultace)
+
+## 5. Otázky k mojí implementaci
+
+- dispatch v `mnemonics_decode`
+- pojmenovávání funkcí pro instrukci
+- copy-paste instrukce
+  - má smysl vymýšlet něco lepšího a refactorovat?
+
+## 6. MIPS ll/sc
+
+- kolize s kratšími zápisy na nezarovnané adresy
+
+```assembly
+ll t0, 0x04(0)
+sh t1, 0x06(0)
+sc t0, 0x04(0)
+```
+
+## 7. MSIM bug
+
+- `set help = xxx` nefunguje
+  - při vykonávání `help` se nepřeskočí `=`
+  - u sebe jsem to spravil
+- test s `bad_status_ksu` se donekonečna zacyklí v exception handleru
+  - handler je mimo paměť, tedy instruction fetch vyhodí výjimku, která způsobí, že procesor skočí na exception handler...
+
+## 8. Kam dál
+
+### exception/interrupt handling
+
+- instrukce co vyhazuje výjimku nastaví potřebná data v CSR?
+  - chybná instrukce => vyplní obecný handler?
+  - chybná adresa (target) => vyplní instrukce?
+  - adresa samotné instrukce => vyplní obecný handler?
+- samotný jump na handler už bokem?
+
+### překlad adres
+
+- až po exception handlingu
+
+### podpora všech CSR
+
+- přesněji podpora instrukcí co s nimi interagují
+- průběžně s předchozími, dle toho co bude potřeba
+- zbytek lze dodělat až posléze
+- (jaké jsou dobré hw eventy na profiling)
+  - (inspirace by se dala vykrást z vtune)

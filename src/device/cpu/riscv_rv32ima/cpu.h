@@ -49,7 +49,6 @@ typedef enum rv_exc {
 } rv_exc_t;
 
 // TODO: prev regs for debug
-// TODO: instruction decoding
 
 /** Main processor structure */
 typedef struct rv_cpu 

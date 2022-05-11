@@ -20,7 +20,6 @@ rename to r4k debug
 
 similar features would be nice in risc
 
-
 #### gdb
 
 gdb reads physical memory, but does not specify cpu
@@ -206,6 +205,12 @@ new nonstandart instruction used to halt the simulation
 - environment variable long help does not work (set help = var does not work)
 
 ## random risc-v facts
+
+## nice things about risc-v
+
+- integrated cpuid as `mhartid`
+- risc-v is designed for nonstandard extensions, so adding non-standard instructions (such as `ehalt`) was easy
+- `ebreak` in standard
 
 ### CSR
 

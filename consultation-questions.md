@@ -58,6 +58,8 @@ Buď castnout function ptr (preferováno) nebo napsat wrappery (upožňuje naví
 - v specifikaci `risc-v` mají být memory mapped registry
 - přístupné jen v machine-mode
 - nikde se neříká, jak se s nima má manipulovat
+- časový interrupt se hodí mít deterministický!
+  - přidat podporu nebo fakovat?
 
 ### odpověď
 
@@ -70,9 +72,13 @@ Buď castnout function ptr (preferováno) nebo napsat wrappery (upožňuje naví
 ## 5. Otázky k mojí implementaci
 
 - dispatch v `mnemonics_decode`
+  - v pohodě, pokud se bude kód generovat, tak není ani třeba makra
 - pojmenovávání funkcí pro instrukci
+  - hodilo by se dát prefix
 - copy-paste instrukce
   - má smysl vymýšlet něco lepšího a refactorovat?
+  - možná by stálo za to generovat kód např. z pyzthonu
+    - pak by bylo fajn to zakomponovat do build systému
 
 ## 6. MIPS ll/sc
 
@@ -84,13 +90,17 @@ sh t1, 0x06(0)
 sc t0, 0x04(0)
 ```
 
+- opravit a přidat k pull requestu, opravdu to je chybka
+
 ## 7. MSIM bug
 
 - `set help = xxx` nefunguje
   - při vykonávání `help` se nepřeskočí `=`
   - u sebe jsem to spravil
+  - dát do pull request větve
 - test s `bad_status_ksu` se donekonečna zacyklí v exception handleru
   - handler je mimo paměť, tedy instruction fetch vyhodí výjimku, která způsobí, že procesor skočí na exception handler...
+  - v pohodě
 
 ## 8. Kam dál
 
@@ -100,11 +110,14 @@ sc t0, 0x04(0)
   - chybná instrukce => vyplní obecný handler?
   - chybná adresa (target) => vyplní instrukce?
   - adresa samotné instrukce => vyplní obecný handler?
+  - yup
 - samotný jump na handler už bokem?
+- yup
 
 ### překlad adres
 
 - až po exception handlingu
+- ano
 
 ### podpora všech CSR
 
@@ -113,3 +126,4 @@ sc t0, 0x04(0)
 - zbytek lze dodělat až posléze
 - (jaké jsou dobré hw eventy na profiling)
   - (inspirace by se dala vykrást z vtune)
+- timer interrupt by měl být pro účely OSů deterministický => prostudovat možnosti

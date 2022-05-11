@@ -21,7 +21,8 @@ static const cpu_ops_t rv_cpu = {
 	.interrupt_down = (interrupt_func_t)rv_interrupt_down,
 	
 	.convert_addr = (convert_addr_func_t)rv_convert_add_wrapper,
-	.set_pc = (set_pc_func_t)rv_cpu_set_pc,
+    
+	//.set_pc = (set_pc_func_t)rv_cpu_set_pc, - wrong type cast
 	.sc_access = (sc_access_func_t)rv_sc_access
 };
 

@@ -3159,8 +3159,9 @@ void r4k_step(r4k_cpu_t *cpu)
 }
 
 bool r4k_sc_access(r4k_cpu_t *cpu, ptr36_t addr) {
-	if(cpu->lladdr == addr){
+	bool hit = cpu->lladdr == ALIGN_DOWN(addr, 4);
+	if(hit){
 		cpu->llbit = false;
 	}
-	return cpu->lladdr == addr;
+	return hit;
 }

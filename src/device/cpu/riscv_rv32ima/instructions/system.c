@@ -37,6 +37,9 @@ rv_exc_t mret_instr(rv_cpu_t *cpu, rv_instr_t instr){
 }
 
 rv_exc_t wfi_instr(rv_cpu_t *cpu, rv_instr_t instr){
+    // Waiting for interrupt is simulated by stalling at this instruction
+    // Even simpler solution would be to do a NOP (which is allowed by the standard)
+    cpu->pc_next = cpu->pc;
     return rv_exc_none;
 }
 

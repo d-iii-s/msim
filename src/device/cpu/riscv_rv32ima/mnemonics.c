@@ -59,11 +59,28 @@ extern rv_mnemonics_func_t rv_decode_mnemonics(rv_instr_t instr){
 
     IF_SAME_DECODE(fence);
 
+    // SYSTEM 
+
     if(instr_func == break_instr)
         return rv_ebreak_mnemonics;
     
     if(instr_func == halt_instr)
         return rv_ehalt_mnemonics;
+
+    if(instr_func == call_instr)
+        return rv_ecall_mnemonics;
+
+    IF_SAME_DECODE(sret);
+    IF_SAME_DECODE(mret);
+    IF_SAME_DECODE(wfi);
+    IF_SAME_DECODE(sfence);
+
+    IF_SAME_DECODE(csrrw);
+    IF_SAME_DECODE(csrrs);
+    IF_SAME_DECODE(csrrc);
+    IF_SAME_DECODE(csrrwi);
+    IF_SAME_DECODE(csrrsi);
+    IF_SAME_DECODE(csrrci);
 
     // M-extension
 
@@ -223,6 +240,14 @@ static void u_instr_mnemonics(rv_instr_t instr, string_t *s_mnemonics){
 
 static void amo_instr_mnemonics(rv_instr_t instr, string_t *s_mnemonics) {
     string_printf(s_mnemonics, " %s, %s, (%s)", rv_regnames[instr.r.rd], rv_regnames[instr.r.rs2], rv_regnames[instr.r.rs1]);
+}
+
+static void csr_reg_instr_mnemonics(rv_instr_t instr, string_t *s_mnemonics) {
+    string_printf(s_mnemonics, " %s, %s, %s", rv_regnames[instr.i.rd], rv_csrnames[RV_I_UNSIGNED_IMM(instr)], rv_regnames[instr.i.rs1]);
+}
+
+static void csr_imm_instr_mnemonics(rv_instr_t instr, string_t *s_mnemonics) {
+    string_printf(s_mnemonics, " %s, %s, %u", rv_regnames[instr.i.rd], rv_csrnames[RV_I_UNSIGNED_IMM(instr)], instr.i.rs1 & 0x1F);
 }
 
 /***********************************
@@ -453,24 +478,74 @@ extern void rv_ehalt_mnemonics(uint32_t addr, rv_instr_t instr, string_t *s_mnem
     string_printf(s_mnemonics, "ehalt");
 }
 
+extern void rv_sret_mnemonics(uint32_t addr, rv_instr_t instr, string_t *s_mnemonics, string_t *s_comments){
+    string_printf(s_mnemonics, "sret");
+}
+
+extern void rv_mret_mnemonics(uint32_t addr, rv_instr_t instr, string_t *s_mnemonics, string_t *s_comments){
+    string_printf(s_mnemonics, "mret");
+}
+
+extern void rv_wfi_mnemonics(uint32_t addr, rv_instr_t instr, string_t *s_mnemonics, string_t *s_comments){
+    string_printf(s_mnemonics, "wfi");
+}
+extern void rv_sfence_mnemonics(uint32_t addr, rv_instr_t instr, string_t *s_mnemonics, string_t *s_comments){
+   string_printf(s_mnemonics, "sfence.vma"); 
+}
+
 // CSR
 extern void rv_csrrw_mnemonics(uint32_t addr, rv_instr_t instr, string_t *s_mnemonics, string_t *s_comments){
     string_printf(s_mnemonics, "csrrw");
+    csr_reg_instr_mnemonics(instr, s_mnemonics);
+
+    char* rd = rv_regnames[instr.i.rd];
+    char* csr = rv_csrnames[RV_I_UNSIGNED_IMM(instr)];
+    char* rs1 = rv_regnames[instr.i.rs1];
+    string_printf(s_comments, "%s = %s, %s = %s", rd, csr, csr, rs1);
 }
 extern void rv_csrrs_mnemonics(uint32_t addr, rv_instr_t instr, string_t *s_mnemonics, string_t *s_comments){
     string_printf(s_mnemonics, "csrrs");
+    csr_reg_instr_mnemonics(instr, s_mnemonics);
+
+    char* rd = rv_regnames[instr.i.rd];
+    char* csr = rv_csrnames[RV_I_UNSIGNED_IMM(instr)];
+    char* rs1 = rv_regnames[instr.i.rs1];
+    string_printf(s_comments, "%s = %s, %s |= %s", rd, csr, csr, rs1);
 }
 extern void rv_csrrc_mnemonics(uint32_t addr, rv_instr_t instr, string_t *s_mnemonics, string_t *s_comments){
     string_printf(s_mnemonics, "csrrc");
+    csr_reg_instr_mnemonics(instr, s_mnemonics);
+
+    char* rd = rv_regnames[instr.i.rd];
+    char* csr = rv_csrnames[RV_I_UNSIGNED_IMM(instr)];
+    char* rs1 = rv_regnames[instr.i.rs1];
+    string_printf(s_comments, "%s = %s, %s &= ~%s", rd, csr, csr, rs1);
 }
 extern void rv_csrrwi_mnemonics(uint32_t addr, rv_instr_t instr, string_t *s_mnemonics, string_t *s_comments){
     string_printf(s_mnemonics, "csrrwi");
+    csr_imm_instr_mnemonics(instr, s_mnemonics);
+
+    char* rd = rv_regnames[instr.i.rd];
+    char* csr = rv_csrnames[RV_I_UNSIGNED_IMM(instr)];
+    uint32_t imm = instr.i.rs1 & 0x1F;
+    string_printf(s_comments, "%s = %s, %s = %u", rd, csr, csr, imm);
 }
 extern void rv_csrrsi_mnemonics(uint32_t addr, rv_instr_t instr, string_t *s_mnemonics, string_t *s_comments){
     string_printf(s_mnemonics, "csrrsi");
+    csr_imm_instr_mnemonics(instr, s_mnemonics);
+
+    char* rd = rv_regnames[instr.i.rd];
+    char* csr = rv_csrnames[RV_I_UNSIGNED_IMM(instr)];
+    uint32_t imm = instr.i.rs1 & 0x1F;
+    string_printf(s_comments, "%s = %s, %s |= 0x%08x", rd, csr, csr, imm);
 }
 extern void rv_csrrci_mnemonics(uint32_t addr, rv_instr_t instr, string_t *s_mnemonics, string_t *s_comments){
     string_printf(s_mnemonics, "csrrci");
+    csr_imm_instr_mnemonics(instr, s_mnemonics);
+    char* rd = rv_regnames[instr.i.rd];
+    char* csr = rv_csrnames[RV_I_UNSIGNED_IMM(instr)];
+    uint32_t imm = instr.i.rs1 & 0x1F;
+    string_printf(s_comments, "%s = %s, %s &= 0x%08x", rd, csr, csr, ~imm);
 }
 
 // M extension

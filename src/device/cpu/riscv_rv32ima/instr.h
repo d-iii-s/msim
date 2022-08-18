@@ -60,6 +60,7 @@ static_assert(sizeof(rv_instr_t) == 4, "rv_instr_t has wrong size");
 
 #define RV_S_IMM(instr) (uint32_t)((((int32_t)instr.s.imm11_5)<<5)|((0x1F)&instr.s.imm4_0))
 #define RV_R_FUNCT(instr) (uint32_t)(((uint32_t)(instr.r.funct7)<<3)|(0x7 & instr.r.funct3))
+#define RV_I_UNSIGNED_IMM(instr) (uint32_t)(instr.i.imm & 0xFFF)
 #define RV_J_IMM(instr) (uint32_t)((((int32_t)instr.j.imm20)<<20)|(instr.j.imm19_12<<12)|(instr.j.imm11<<11)|(instr.j.imm10_1 << 1))
 #define RV_B_IMM(instr) (uint32_t)((((int32_t)instr.b.imm12)<<12)|(instr.b.imm11<<11)|(instr.b.imm10_5<<5)|(instr.b.imm4_1<<1))
 #define RV_AMO_FUNCT(instr) (instr.r.funct7 >> 2)
@@ -172,10 +173,15 @@ typedef enum {
 
 /** Immediate values for PRIV SYSTEM instructions */
 typedef enum {
-    rv_privECALL  = 0,
-    rv_privEBREAK = 1,
-    rv_privEHALT  = 2
+    rv_privECALL      = 0b000000000000,
+    rv_privEBREAK     = 0b000000000001,
+    rv_privEHALT      = 0b000000000010,
+    rv_privSRET       = 0b000100000010,
+    rv_privMRET       = 0b001100000010,
+    rv_privWFI        = 0b000100000101
 } rv_system_priv_imm_t;
+
+#define rv_privSFENCEVMA_FUNCT7 0b0001001
 
 /** Funct values for AMO instructions 
  *  This value is the high 5 bits from funct7

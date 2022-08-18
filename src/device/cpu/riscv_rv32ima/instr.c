@@ -223,12 +223,23 @@ static rv_instr_func_t decode_PRIV(rv_instr_t instr){
     ASSERT(instr.i.opcode == rv_opcSYSTEM);
     ASSERT(instr.i.funct3 == rv_funcPRIV);
 
+    if (instr.r.funct7 == rv_privSFENCEVMA_FUNCT7) {
+        return sfence_instr;
+    }
+
     switch (instr.i.imm) {
         case rv_privEBREAK:
             return break_instr;
         case rv_privEHALT:
             return machine_specific_instructions ? halt_instr : illegal_instr;
         case rv_privECALL:
+            return call_instr;
+        case rv_privSRET:
+            return sret_instr;
+        case rv_privMRET:
+            return mret_instr;
+        case rv_privWFI:
+            return wfi_instr;
         default:
             return illegal_instr;
     }
@@ -241,11 +252,17 @@ static rv_instr_func_t decode_SYSTEM(rv_instr_t instr) {
             return decode_PRIV(instr);
         //TODO: add CSR instructions
         case rv_funcCSRRW:
+            return csrrw_instr;
         case rv_funcCSRRS:
+            return csrrs_instr;
         case rv_funcCSRRC:
+            return csrrc_instr;
         case rv_funcCSRRWI:
+            return csrrwi_instr;
         case rv_funcCSRRSI:
+            return csrrsi_instr;
         case rv_funcCSRRCI:
+            return csrrci_instr;
         default:
             return illegal_instr;
     }

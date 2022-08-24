@@ -250,7 +250,6 @@ static rv_instr_func_t decode_SYSTEM(rv_instr_t instr) {
     switch (instr.i.funct3) {
         case rv_funcPRIV:
             return decode_PRIV(instr);
-        //TODO: add CSR instructions
         case rv_funcCSRRW:
             return csrrw_instr;
         case rv_funcCSRRS:

@@ -48,6 +48,14 @@ typedef enum rv_exc {
 	rv_exc_none = RV_EXCEPTION_EXC_BITS | 24
 } rv_exc_t;
 
+// Privilege modes
+typedef enum {
+	rv_umode,
+	rv_smode,
+	rv_mmode
+} rv_priv_mode_t;
+
+
 // TODO: prev regs for debug
 
 /** Main processor structure */
@@ -68,6 +76,9 @@ typedef struct rv_cpu
 	uint32_t pc;
 	// Used to implement jumps and branches easily
 	uint32_t pc_next;
+
+	// Current privilege mode
+	rv_priv_mode_t priv_mode;
 
 	// tlb - virtual memory is done using page tables
 	// but if this would be really slow, some caching could be a nice optimalization
@@ -114,6 +125,5 @@ extern rv_exc_t rv_write_mem8(rv_cpu_t *cpu, uint32_t virt, uint8_t value, bool 
 extern rv_exc_t rv_write_mem16(rv_cpu_t *cpu, uint32_t virt, uint16_t value, bool noisy);
 extern rv_exc_t rv_write_mem32(rv_cpu_t *cpu, uint32_t virt, uint32_t value, bool noisy);
 extern bool rv_sc_access(rv_cpu_t *cpu, ptr36_t phys);
-
 
 #endif //RISCV_RV32IMA_CPU_H_

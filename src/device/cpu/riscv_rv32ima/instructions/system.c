@@ -69,5 +69,7 @@ rv_exc_t csrrci_instr(rv_cpu_t *cpu, rv_instr_t instr){
 
 rv_exc_t sfence_instr(rv_cpu_t *cpu, rv_instr_t instr) {
     // This can be implemented as NOP in msim
+    // TODO: Trap virtual memory
     return rv_exc_none;
+    
 }

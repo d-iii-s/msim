@@ -122,4 +122,47 @@ PCUT_TEST(syscall_mmode) {
     PCUT_ASSERT_INT_EQUALS(rv_exc_mmode_environment_call, ex);
 }
 
+PCUT_TEST(lr_address_missaligned) {
+    rv_instr_t instr = { .r = {
+        .opcode = rv_opcAMO,
+        .funct7 = rv_funcLR << 2,
+        .funct3 = RV_AMO_32_WLEN,
+        .rs1 = 0,
+    }};
+
+    cpu.regs[0] = 2;
+
+    rv_exc_t ex = lr_instr(&cpu, instr);
+    PCUT_ASSERT_INT_EQUALS(rv_exc_load_address_misaligned, ex);
+}
+
+PCUT_TEST(sc_address_missaligned) {
+    rv_instr_t instr = { .r = {
+        .opcode = rv_opcAMO,
+        .funct7 = rv_funcSC << 2,
+        .funct3 = RV_AMO_32_WLEN,
+        .rs1 = 0,
+    }};
+
+    cpu.regs[0] = 2;
+
+    rv_exc_t ex = sc_instr(&cpu, instr);
+    PCUT_ASSERT_INT_EQUALS(rv_exc_store_amo_address_misaligned, ex);
+}
+
+// this should be done for all amo instructions, but I think one should suffice
+PCUT_TEST(amo_address_missaligned) {
+    rv_instr_t instr = { .r = {
+        .opcode = rv_opcAMO,
+        .funct7 = rv_funcAMOSWAP << 2,
+        .funct3 = RV_AMO_32_WLEN,
+        .rs1 = 0,
+    }};
+
+    cpu.regs[0] = 2;
+
+    rv_exc_t ex = amoswap_instr(&cpu, instr);
+    PCUT_ASSERT_INT_EQUALS(rv_exc_store_amo_address_misaligned, ex);
+}
+
 PCUT_EXPORT(instruction_exceptions);

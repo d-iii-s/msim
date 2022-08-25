@@ -290,4 +290,23 @@ PCUT_TEST(csrrw_WLRL_write_illegal){
     PCUT_ASSERT_INT_EQUALS(rv_exc_illegal_instruction, ex);
 }
 
+PCUT_TEST(csrrw_WARL_write_illegal){
+    rv_instr_t instr = { .i = {
+        .opcode = rv_opcSYSTEM,
+        .funct3 = rv_funcCSRRW,
+        .imm = csr_mtvec,
+        .rs1 = 1,
+        .rd  = 2
+    }};
+    cpu.regs[instr.i.rs1] = 2; // Illegal MODE
+    cpu.priv_mode = rv_mmode;
+
+    rv_exc_t ex = csrrw_instr(&cpu, instr);
+
+    // No Exception
+    PCUT_ASSERT_INT_EQUALS(rv_exc_none, ex);
+    // Perserves legal value
+    PCUT_ASSERT_INT_EQUALS(cpu.regs[instr.i.rd] & 0b11, cpu.csr.mtvec & 0b11);
+}
+
 PCUT_EXPORT(instruction_exceptions);

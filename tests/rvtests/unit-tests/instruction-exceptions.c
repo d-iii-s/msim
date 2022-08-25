@@ -158,6 +158,8 @@ PCUT_TEST(syscall_smode) {
     PCUT_ASSERT_INT_EQUALS(rv_exc_smode_environment_call, ex);
 }
 
+//? EBREAK
+
 PCUT_TEST(syscall_mmode) {
     rv_instr_t instr = { .i = {
         .opcode = rv_opcSYSTEM,
@@ -168,6 +170,66 @@ PCUT_TEST(syscall_mmode) {
 
     rv_exc_t ex = call_instr(&cpu, instr);
     PCUT_ASSERT_INT_EQUALS(rv_exc_mmode_environment_call, ex);
+}
+
+PCUT_TEST(sret_trapped) {
+    rv_instr_t instr = { .i = {
+        .opcode = rv_opcSYSTEM,
+        .funct3 = rv_funcPRIV,
+        .imm = rv_privSRET
+    } };
+    cpu.priv_mode = rv_smode;
+    // TSR bit => sret traps
+    cpu.csr.mstatus |= 1 << 22;
+
+    rv_exc_t ex = sret_instr(&cpu, instr);
+
+    PCUT_ASSERT_INT_EQUALS(rv_exc_illegal_instruction, ex);
+}
+
+PCUT_TEST(wfi_trapped_Smode) {
+    rv_instr_t instr = { .i = {
+        .opcode = rv_opcSYSTEM,
+        .funct3 = rv_funcPRIV,
+        .imm = rv_privWFI
+    } };
+    cpu.priv_mode = rv_smode;
+    // TW => Trap wait for interrupt (in smode or umode)
+    cpu.csr.mstatus |= 1 << 21;
+
+    rv_exc_t ex = wfi_instr(&cpu, instr);
+
+    PCUT_ASSERT_INT_EQUALS(rv_exc_illegal_instruction, ex);
+}
+
+PCUT_TEST(wfi_trapped_Mmode) {
+    rv_instr_t instr = { .i = {
+        .opcode = rv_opcSYSTEM,
+        .funct3 = rv_funcPRIV,
+        .imm = rv_privWFI
+    } };
+    cpu.priv_mode = rv_mmode;
+    // TW => Trap wait for interrupt (in smode or umode)
+    cpu.csr.mstatus |= 1 << 21;
+
+    rv_exc_t ex = wfi_instr(&cpu, instr);
+
+    PCUT_ASSERT_INT_EQUALS(rv_exc_none, ex);
+}
+
+PCUT_TEST(sfence_vma_trapped) {
+    rv_instr_t instr = { .r = {
+        .opcode = rv_opcSYSTEM,
+        .funct3 = rv_funcPRIV,
+        .funct7 = rv_privSFENCEVMA_FUNCT7
+    } };
+    cpu.priv_mode = rv_smode;
+    // TVM => Trap virtual memory (sfence.vma)
+    cpu.csr.mstatus |= 1 << 20;
+
+    rv_exc_t ex = sfence_instr(&cpu, instr);
+
+    PCUT_ASSERT_INT_EQUALS(rv_exc_illegal_instruction, ex);
 }
 
 PCUT_TEST(lr_address_missaligned) {
@@ -213,8 +275,6 @@ PCUT_TEST(amo_address_missaligned) {
     PCUT_ASSERT_INT_EQUALS(rv_exc_store_amo_address_misaligned, ex);
 }
 
-// TODO: CSR
-
 PCUT_TEST(csrrw_non_existent_csr){
     rv_instr_t instr = { .i = {
         .opcode = rv_opcSYSTEM,
@@ -259,17 +319,17 @@ PCUT_TEST(csrrw_write_read_only_csr){
     PCUT_ASSERT_INT_EQUALS(rv_exc_illegal_instruction, ex);
 }
 
-PCUT_TEST(csrrw_read_read_only_csr){
+PCUT_TEST(csrrsi_read_read_only_csr){
     rv_instr_t instr = { .i = {
         .opcode = rv_opcSYSTEM,
-        .funct3 = rv_funcCSRRW,
+        .funct3 = rv_funcCSRRSI,
         .imm = csr_mhartid,
         .rs1 = 0,
         .rd  = 2
     }};
     cpu.priv_mode = rv_mmode;
 
-    rv_exc_t ex = csrrw_instr(&cpu, instr);
+    rv_exc_t ex = csrrsi_instr(&cpu, instr);
 
     PCUT_ASSERT_INT_EQUALS(rv_exc_none, ex);
 }
@@ -307,6 +367,43 @@ PCUT_TEST(csrrw_WARL_write_illegal){
     PCUT_ASSERT_INT_EQUALS(rv_exc_none, ex);
     // Perserves legal value
     PCUT_ASSERT_INT_EQUALS(cpu.regs[instr.i.rd] & 0b11, cpu.csr.mtvec & 0b11);
+}
+
+PCUT_TEST(csrrsi_read_from_disabled_counter){
+
+    rv_instr_t instr = { .i = {
+        .opcode = rv_opcSYSTEM,
+        .funct3 = rv_funcCSRRSI,
+        .imm = csr_cycle,
+        .rd = 1,
+        .rs1 = 0
+    }};
+
+    // All counters disabled
+    cpu.csr.mcounteren = 0;
+    cpu.priv_mode = rv_smode;
+
+    rv_exc_t ex = csrrsi_instr(&cpu, instr);
+
+    PCUT_ASSERT_INT_EQUALS(rv_exc_illegal_instruction, ex);
+}
+
+PCUT_TEST(csrrw_satp_vm_trapped){
+    
+    rv_instr_t instr = { .i = {
+        .opcode = rv_opcSYSTEM,
+        .funct3 = rv_funcCSRRW,
+        .imm = csr_satp,
+        .rs1 = 1,
+        .rd  = 2
+    }};
+    cpu.priv_mode = rv_smode;
+    // TVM => Trap virtual memory (any satp interaction)
+    cpu.csr.mstatus |= 1 << 20;
+
+    rv_exc_t ex = csrrw_instr(&cpu, instr);
+
+    PCUT_ASSERT_INT_EQUALS(rv_exc_illegal_instruction, ex);
 }
 
 PCUT_EXPORT(instruction_exceptions);

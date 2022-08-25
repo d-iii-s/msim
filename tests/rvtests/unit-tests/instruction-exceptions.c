@@ -274,4 +274,20 @@ PCUT_TEST(csrrw_read_read_only_csr){
     PCUT_ASSERT_INT_EQUALS(rv_exc_none, ex);
 }
 
+PCUT_TEST(csrrw_WLRL_write_illegal){
+    rv_instr_t instr = { .i = {
+        .opcode = rv_opcSYSTEM,
+        .funct3 = rv_funcCSRRW,
+        .imm = csr_mcause,
+        .rs1 = 1,
+        .rd  = 2
+    }};
+    cpu.regs[instr.i.rs1] = RV_EXCEPTION_EXC_BITS | 48; // Exception designated for custom use that is not used int msim
+    cpu.priv_mode = rv_mmode;
+
+    rv_exc_t ex = csrrw_instr(&cpu, instr);
+
+    PCUT_ASSERT_INT_EQUALS(rv_exc_illegal_instruction, ex);
+}
+
 PCUT_EXPORT(instruction_exceptions);

@@ -369,7 +369,7 @@ PCUT_TEST(csrrw_WARL_write_illegal){
     PCUT_ASSERT_INT_EQUALS(cpu.regs[instr.i.rd] & 0b11, cpu.csr.mtvec & 0b11);
 }
 
-PCUT_TEST(csrrsi_read_from_disabled_counter){
+PCUT_TEST(csrrsi_read_from_disabled_counter_Smode){
 
     rv_instr_t instr = { .i = {
         .opcode = rv_opcSYSTEM,
@@ -386,6 +386,105 @@ PCUT_TEST(csrrsi_read_from_disabled_counter){
     rv_exc_t ex = csrrsi_instr(&cpu, instr);
 
     PCUT_ASSERT_INT_EQUALS(rv_exc_illegal_instruction, ex);
+}
+
+PCUT_TEST(csrrsi_read_from_disabled_counter_Mmode){
+
+    rv_instr_t instr = { .i = {
+        .opcode = rv_opcSYSTEM,
+        .funct3 = rv_funcCSRRSI,
+        .imm = csr_cycle,
+        .rd = 1,
+        .rs1 = 0
+    }};
+
+    // All counters disabled
+    cpu.csr.mcounteren = 0;
+    cpu.priv_mode = rv_mmode;
+
+    rv_exc_t ex = csrrsi_instr(&cpu, instr);
+
+    PCUT_ASSERT_INT_EQUALS(rv_exc_none, ex);
+}
+
+PCUT_TEST(csrrsi_read_from_M_disabled_counter_Umode){
+
+    rv_instr_t instr = { .i = {
+        .opcode = rv_opcSYSTEM,
+        .funct3 = rv_funcCSRRSI,
+        .imm = csr_cycle,
+        .rd = 1,
+        .rs1 = 0
+    }};
+
+    // All counters disabled from M mode, but enabled from S mode
+    cpu.csr.mcounteren = 0;
+    cpu.csr.scounteren = (uint32_t)-1;
+    cpu.priv_mode = rv_umode;
+
+    rv_exc_t ex = csrrsi_instr(&cpu, instr);
+
+    PCUT_ASSERT_INT_EQUALS(rv_exc_illegal_instruction, ex);
+}
+
+PCUT_TEST(csrrsi_read_from_S_disabled_counter_Umode){
+
+    rv_instr_t instr = { .i = {
+        .opcode = rv_opcSYSTEM,
+        .funct3 = rv_funcCSRRSI,
+        .imm = csr_cycle,
+        .rd = 1,
+        .rs1 = 0
+    }};
+
+    // All counters enabled from M mode, but disabled from S mode
+    cpu.csr.mcounteren = (uint32_t)-1;
+    cpu.csr.scounteren = 0;
+    cpu.priv_mode = rv_umode;
+
+    rv_exc_t ex = csrrsi_instr(&cpu, instr);
+
+    PCUT_ASSERT_INT_EQUALS(rv_exc_illegal_instruction, ex);
+}
+
+PCUT_TEST(csrrsi_read_from_enabled_counter_Umode){
+
+    rv_instr_t instr = { .i = {
+        .opcode = rv_opcSYSTEM,
+        .funct3 = rv_funcCSRRSI,
+        .imm = csr_cycle,
+        .rd = 1,
+        .rs1 = 0
+    }};
+
+    // All counters enabled
+    cpu.csr.mcounteren = (uint32_t)-1;
+    cpu.csr.scounteren = (uint32_t)-1;
+    cpu.priv_mode = rv_umode;
+
+    rv_exc_t ex = csrrsi_instr(&cpu, instr);
+
+    PCUT_ASSERT_INT_EQUALS(rv_exc_none, ex);
+}
+
+PCUT_TEST(csrrsi_read_from_M_enabled_S_disabled_counter_Smode){
+
+    rv_instr_t instr = { .i = {
+        .opcode = rv_opcSYSTEM,
+        .funct3 = rv_funcCSRRSI,
+        .imm = csr_cycle,
+        .rd = 1,
+        .rs1 = 0
+    }};
+
+    // All counters enabled
+    cpu.csr.mcounteren = (uint32_t)-1;
+    cpu.csr.scounteren = 0;
+    cpu.priv_mode = rv_smode;
+
+    rv_exc_t ex = csrrsi_instr(&cpu, instr);
+
+    PCUT_ASSERT_INT_EQUALS(rv_exc_none, ex);
 }
 
 PCUT_TEST(csrrw_satp_vm_trapped){

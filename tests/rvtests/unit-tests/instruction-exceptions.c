@@ -84,7 +84,53 @@ PCUT_TEST(beq_address_misaligned_not_taken){
     PCUT_ASSERT_INT_EQUALS(rv_exc_none, ex);
 }
 
-//TODO: missaligned loads and stores
+PCUT_TEST(lh_address_misaligned){
+     rv_instr_t instr = { .i = {
+        .opcode = rv_opcLOAD,
+        .funct3 = rv_func_LH,
+        .imm = 1
+    } };
+
+    rv_exc_t ex = lh_instr(&cpu, instr);
+
+    PCUT_ASSERT_INT_EQUALS(rv_exc_load_address_misaligned, ex);
+}
+
+PCUT_TEST(lw_address_misaligned){
+     rv_instr_t instr = { .i = {
+        .opcode = rv_opcLOAD,
+        .funct3 = rv_func_LW,
+        .imm = 2
+    } };
+
+    rv_exc_t ex = lw_instr(&cpu, instr);
+
+    PCUT_ASSERT_INT_EQUALS(rv_exc_load_address_misaligned, ex);
+}
+
+PCUT_TEST(sh_address_misaligned){
+     rv_instr_t instr = { .s = {
+        .opcode = rv_opcSTORE,
+        .funct3 = rv_func_SH,
+        .imm4_0 = 1
+    } };
+
+    rv_exc_t ex = sh_instr(&cpu, instr);
+
+    PCUT_ASSERT_INT_EQUALS(rv_exc_store_amo_address_misaligned, ex);
+}
+
+PCUT_TEST(sw_address_misaligned){
+     rv_instr_t instr = { .s = {
+        .opcode = rv_opcSTORE,
+        .funct3 = rv_func_SW,
+        .imm4_0 = 2
+    } };
+
+    rv_exc_t ex = sw_instr(&cpu, instr);
+
+    PCUT_ASSERT_INT_EQUALS(rv_exc_store_amo_address_misaligned, ex);
+}
 
 PCUT_TEST(syscall_umode) {
     rv_instr_t instr = { .i = {
@@ -164,5 +210,7 @@ PCUT_TEST(amo_address_missaligned) {
     rv_exc_t ex = amoswap_instr(&cpu, instr);
     PCUT_ASSERT_INT_EQUALS(rv_exc_store_amo_address_misaligned, ex);
 }
+
+// TODO: CSR
 
 PCUT_EXPORT(instruction_exceptions);

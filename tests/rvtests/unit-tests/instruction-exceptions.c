@@ -96,6 +96,8 @@ PCUT_TEST(lh_address_misaligned){
     PCUT_ASSERT_INT_EQUALS(rv_exc_load_address_misaligned, ex);
 }
 
+// lwu and swu tests are missing, but I thing this should suffice
+
 PCUT_TEST(lw_address_misaligned){
      rv_instr_t instr = { .i = {
         .opcode = rv_opcLOAD,
@@ -212,5 +214,64 @@ PCUT_TEST(amo_address_missaligned) {
 }
 
 // TODO: CSR
+
+PCUT_TEST(csrrw_non_existent_csr){
+    rv_instr_t instr = { .i = {
+        .opcode = rv_opcSYSTEM,
+        .funct3 = rv_funcCSRRW,
+        .imm = 0x6C0 // Custom hypervisor csr in standard
+    }};
+
+    rv_exc_t ex = csrrw_instr(&cpu, instr);
+
+    PCUT_ASSERT_INT_EQUALS(rv_exc_illegal_instruction, ex);
+}
+
+PCUT_TEST(csrrw_wrong_privilege){
+    rv_instr_t instr = { .i = {
+        .opcode = rv_opcSYSTEM,
+        .funct3 = rv_funcCSRRW,
+        .imm = csr_mie,
+        .rs1 = 1,
+        .rd  = 2
+    }};
+    cpu.priv_mode = rv_smode;
+
+    //modifying mmode register in smode
+    rv_exc_t ex = csrrw_instr(&cpu, instr);
+
+    PCUT_ASSERT_INT_EQUALS(rv_exc_illegal_instruction, ex);
+}
+
+PCUT_TEST(csrrw_write_read_only_csr){
+    rv_instr_t instr = { .i = {
+        .opcode = rv_opcSYSTEM,
+        .funct3 = rv_funcCSRRW,
+        .imm = csr_mhartid,
+        .rs1 = 1,
+        .rd  = 2
+    }};
+    cpu.regs[instr.i.rs1] = 5;
+    cpu.priv_mode = rv_mmode;
+
+    rv_exc_t ex = csrrw_instr(&cpu, instr);
+
+    PCUT_ASSERT_INT_EQUALS(rv_exc_illegal_instruction, ex);
+}
+
+PCUT_TEST(csrrw_read_read_only_csr){
+    rv_instr_t instr = { .i = {
+        .opcode = rv_opcSYSTEM,
+        .funct3 = rv_funcCSRRW,
+        .imm = csr_mhartid,
+        .rs1 = 0,
+        .rd  = 2
+    }};
+    cpu.priv_mode = rv_mmode;
+
+    rv_exc_t ex = csrrw_instr(&cpu, instr);
+
+    PCUT_ASSERT_INT_EQUALS(rv_exc_none, ex);
+}
 
 PCUT_EXPORT(instruction_exceptions);

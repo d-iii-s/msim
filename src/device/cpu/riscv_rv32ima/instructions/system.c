@@ -43,6 +43,8 @@ rv_exc_t wfi_instr(rv_cpu_t *cpu, rv_instr_t instr){
     return rv_exc_none;
 }
 
+// Note: reads with rd = x0 shall not read the CSR and shall not have any side-efects based on the read
+
 rv_exc_t csrrw_instr(rv_cpu_t *cpu, rv_instr_t instr){
     return rv_exc_none;
 }

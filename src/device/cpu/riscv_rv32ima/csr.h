@@ -2,6 +2,7 @@
 #define RISCV_CSR_H_
 
 #include <stdint.h>
+#include <stdbool.h>
 
 typedef enum {
 	
@@ -439,6 +440,13 @@ typedef struct {
 #define rv_csr_mstatus_tw(cpu) (((cpu)->csr.mstatus & rv_csr_mstatus_tw_mask) >> rv_csr_mstatus_tw_pos)
 #define rv_csr_mstatus_tvm(cpu) (((cpu)->csr.mstatus & rv_csr_mstatus_tvm_mask) >> rv_csr_mstatus_tvm_pos)
 
-extern void init_csr(csr_t *csr, unsigned int procno);
+extern void rv_init_csr(csr_t *csr, unsigned int procno);
+
+enum rv_exc;
+struct rv_cpu;
+
+extern enum rv_exc rv_csr_rw(struct rv_cpu* cpu, int csr, uint32_t value, uint32_t* read_target, bool read, bool write);
+extern enum rv_exc rv_csr_rs(struct rv_cpu* cpu, int csr, uint32_t value, uint32_t* read_target, bool read, bool write);
+extern enum rv_exc rv_csr_rc(struct rv_cpu* cpu, int csr, uint32_t value, uint32_t* read_target, bool read, bool write);
 
 #endif // RISCV_CSR_H_

@@ -27,7 +27,7 @@ void rv_cpu_init(rv_cpu_t *cpu, unsigned int procno){
 
     init_regs(cpu);
 
-    init_csr(&cpu->csr, procno);
+    rv_init_csr(&cpu->csr, procno);
 
     cpu->priv_mode = rv_mmode;
 }   

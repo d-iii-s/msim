@@ -1,5 +1,6 @@
 #include <stdint.h>
 #include "csr.h"
+#include "cpu.h"
 
 #define RV_A_EXTENSION_BITS  UINT32_C(1<<0)
 #define RV_C_EXTENSION_BITS  UINT32_C(1<<2)
@@ -24,7 +25,7 @@
 #define RV_ARCH_ID 0
 #define RV_IMPLEMENTATION_ID 0
 
-void init_csr(csr_t *csr, unsigned int procno){
+void rv_init_csr(csr_t *csr, unsigned int procno){
     
     csr->misa = RV_ISA;
     csr->mvendorid = RV_VENDOR_ID;
@@ -33,4 +34,17 @@ void init_csr(csr_t *csr, unsigned int procno){
     csr->mhartid = procno;
 
     //TODO: rest
+}
+
+
+
+
+rv_exc_t rv_csr_rw(rv_cpu_t* cpu, int csr, uint32_t value, uint32_t* read_target, bool read, bool write){
+    return rv_exc_none;
+}
+rv_exc_t rv_csr_rs(rv_cpu_t* cpu, int csr, uint32_t value, uint32_t* read_target, bool read, bool write){
+    return rv_exc_none;
+}
+rv_exc_t rv_csr_rc(rv_cpu_t* cpu, int csr, uint32_t value, uint32_t* read_target, bool read, bool write){
+    return rv_exc_none;
 }

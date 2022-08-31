@@ -427,6 +427,18 @@ typedef struct {
 
 } csr_t;
 
+#define rv_csr_mstatus_tsr_pos 22
+#define rv_csr_mstatus_tw_pos 21
+#define rv_csr_mstatus_tvm_pos 20
+
+#define rv_csr_mstatus_tsr_mask (1 << rv_csr_mstatus_tsr_pos)
+#define rv_csr_mstatus_tw_mask (1 << rv_csr_mstatus_tw_pos)
+#define rv_csr_mstatus_tvm_mask (1 << rv_csr_mstatus_tvm_pos)
+
+#define rv_csr_mstatus_tsr(cpu) (((cpu)->csr.mstatus & rv_csr_mstatus_tsr_mask) >> rv_csr_mstatus_tsr_pos)
+#define rv_csr_mstatus_tw(cpu) (((cpu)->csr.mstatus & rv_csr_mstatus_tw_mask) >> rv_csr_mstatus_tw_pos)
+#define rv_csr_mstatus_tvm(cpu) (((cpu)->csr.mstatus & rv_csr_mstatus_tvm_mask) >> rv_csr_mstatus_tvm_pos)
+
 extern void init_csr(csr_t *csr, unsigned int procno);
 
 #endif // RISCV_CSR_H_

@@ -1,6 +1,7 @@
 #include <stdint.h>
 #include "computations.h"
 #include "../../../../assert.h"
+#include "../../../../utils.h"
 
 /******
  * OP *
@@ -418,6 +419,10 @@ rv_exc_t amoswap_instr(rv_cpu_t *cpu, rv_instr_t instr){
 
     uint32_t virt = cpu->regs[instr.r.rs1];
 
+    if(!IS_ALIGNED(virt, 4)){
+        return rv_exc_store_amo_address_misaligned;
+    }
+
     uint32_t val;
     rv_exc_t ex = rv_read_mem32(cpu, virt, &val, true);
 
@@ -433,6 +438,10 @@ rv_exc_t amoswap_instr(rv_cpu_t *cpu, rv_instr_t instr){
 rv_exc_t amoadd_instr(rv_cpu_t *cpu, rv_instr_t instr){
 
     uint32_t virt = cpu->regs[instr.r.rs1];
+
+    if(!IS_ALIGNED(virt, 4)){
+        return rv_exc_store_amo_address_misaligned;
+    }
 
     uint32_t val;
     // load from mem
@@ -455,6 +464,11 @@ rv_exc_t amoadd_instr(rv_cpu_t *cpu, rv_instr_t instr){
 rv_exc_t amoxor_instr(rv_cpu_t *cpu, rv_instr_t instr) {
 
     uint32_t virt = cpu->regs[instr.r.rs1];
+    
+    if(!IS_ALIGNED(virt, 4)){
+        return rv_exc_store_amo_address_misaligned;
+    }
+
     uint32_t val;
     rv_exc_t ex = rv_read_mem32(cpu, virt, &val, true);
 
@@ -471,6 +485,11 @@ rv_exc_t amoxor_instr(rv_cpu_t *cpu, rv_instr_t instr) {
 rv_exc_t amoand_instr(rv_cpu_t *cpu, rv_instr_t instr){
 
     uint32_t virt = cpu->regs[instr.r.rs1];
+    
+    if(!IS_ALIGNED(virt, 4)){
+        return rv_exc_store_amo_address_misaligned;
+    }
+
     uint32_t val;
     rv_exc_t ex = rv_read_mem32(cpu, virt, &val, true);
 
@@ -487,6 +506,11 @@ rv_exc_t amoand_instr(rv_cpu_t *cpu, rv_instr_t instr){
 rv_exc_t amoor_instr(rv_cpu_t *cpu, rv_instr_t instr){
 
     uint32_t virt = cpu->regs[instr.r.rs1];
+    
+    if(!IS_ALIGNED(virt, 4)){
+        return rv_exc_store_amo_address_misaligned;
+    }
+
     uint32_t val;
     rv_exc_t ex = rv_read_mem32(cpu, virt, &val, true);
 
@@ -503,6 +527,11 @@ rv_exc_t amoor_instr(rv_cpu_t *cpu, rv_instr_t instr){
 rv_exc_t amomin_instr(rv_cpu_t *cpu, rv_instr_t instr){
 
     uint32_t virt = cpu->regs[instr.r.rs1];
+    
+    if(!IS_ALIGNED(virt, 4)){
+        return rv_exc_store_amo_address_misaligned;
+    }
+
     int32_t val;
     rv_exc_t ex = rv_read_mem32(cpu, virt, (uint32_t*)&val, true);
 
@@ -520,6 +549,11 @@ rv_exc_t amomin_instr(rv_cpu_t *cpu, rv_instr_t instr){
 rv_exc_t amomax_instr(rv_cpu_t *cpu, rv_instr_t instr){
 
     uint32_t virt = cpu->regs[instr.r.rs1];
+    
+    if(!IS_ALIGNED(virt, 4)){
+        return rv_exc_store_amo_address_misaligned;
+    }
+
     int32_t val;
     rv_exc_t ex = rv_read_mem32(cpu, virt, (uint32_t*)&val, true);
 
@@ -536,7 +570,12 @@ rv_exc_t amomax_instr(rv_cpu_t *cpu, rv_instr_t instr){
 
 rv_exc_t amominu_instr(rv_cpu_t *cpu, rv_instr_t instr){
 
-     uint32_t virt = cpu->regs[instr.r.rs1];
+    uint32_t virt = cpu->regs[instr.r.rs1];
+    
+    if(!IS_ALIGNED(virt, 4)){
+        return rv_exc_store_amo_address_misaligned;
+    }
+
     uint32_t val;
     rv_exc_t ex = rv_read_mem32(cpu, virt, &val, true);
 
@@ -554,6 +593,11 @@ rv_exc_t amominu_instr(rv_cpu_t *cpu, rv_instr_t instr){
 rv_exc_t amomaxu_instr(rv_cpu_t *cpu, rv_instr_t instr){
 
     uint32_t virt = cpu->regs[instr.r.rs1];
+    
+    if(!IS_ALIGNED(virt, 4)){
+        return rv_exc_store_amo_address_misaligned;
+    }
+    
     uint32_t val;
     rv_exc_t ex = rv_read_mem32(cpu, virt, &val, true);
 

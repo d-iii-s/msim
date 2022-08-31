@@ -279,7 +279,8 @@ PCUT_TEST(csrrw_non_existent_csr){
     rv_instr_t instr = { .i = {
         .opcode = rv_opcSYSTEM,
         .funct3 = rv_funcCSRRW,
-        .imm = 0x6C0 // Custom hypervisor csr in standard
+        .imm = 0x6C0, // Custom hypervisor csr in standard,
+        .rd = 1
     }};
 
     rv_exc_t ex = csrrw_instr(&cpu, instr);

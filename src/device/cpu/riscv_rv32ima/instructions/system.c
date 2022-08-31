@@ -1,6 +1,7 @@
 #include <stdint.h>
 #include "system.h"
 #include "../../../../assert.h"
+#include "../csr.h"
 
 rv_exc_t break_instr(rv_cpu_t *cpu, rv_instr_t instr){
     ASSERT(cpu != NULL);
@@ -24,11 +25,22 @@ rv_exc_t halt_instr(rv_cpu_t *cpu, rv_instr_t instr){
 }
 
 rv_exc_t call_instr(rv_cpu_t *cpu, rv_instr_t instr){
-    // TODO: should return exception based on the current mode
-    return rv_exc_none;
+    switch(cpu->priv_mode){
+        case rv_umode:
+            return rv_exc_umode_environment_call;
+        case rv_smode:
+            return rv_exc_smode_environment_call;
+        case rv_mmode:
+            return rv_exc_mmode_environment_call;
+        default:
+            return rv_exc_illegal_instruction;
+    }
 }
 
 rv_exc_t sret_instr(rv_cpu_t *cpu, rv_instr_t instr){
+    if(rv_csr_mstatus_tsr(cpu)){
+        return rv_exc_illegal_instruction;
+    }
     return rv_exc_none;
 }
 
@@ -37,8 +49,13 @@ rv_exc_t mret_instr(rv_cpu_t *cpu, rv_instr_t instr){
 }
 
 rv_exc_t wfi_instr(rv_cpu_t *cpu, rv_instr_t instr){
+    
+    if(rv_csr_mstatus_tw(cpu) && cpu->priv_mode != rv_mmode){
+        return rv_exc_illegal_instruction;
+    }
     // Waiting for interrupt is simulated by stalling at this instruction
     // Even simpler solution would be to do a NOP (which is allowed by the standard)
+    
     cpu->pc_next = cpu->pc;
     return rv_exc_none;
 }
@@ -70,8 +87,9 @@ rv_exc_t csrrci_instr(rv_cpu_t *cpu, rv_instr_t instr){
 }
 
 rv_exc_t sfence_instr(rv_cpu_t *cpu, rv_instr_t instr) {
-    // This can be implemented as NOP in msim
-    // TODO: Trap virtual memory
+    if(rv_csr_mstatus_tvm(cpu)){
+        return rv_exc_illegal_instruction;
+    }
     return rv_exc_none;
     
 }

@@ -45,14 +45,14 @@ rv_exc_t beq_instr(rv_cpu_t *cpu, rv_instr_t instr){
     // target is relative to address of the instruction
     uint32_t target = cpu->pc + RV_B_IMM(instr);
 
-    if(!IS_ALIGNED(target, 4)){
-        return rv_exc_instruction_address_misaligned;
-    }
-
     uint32_t lhs = cpu->regs[instr.b.rs1];
     uint32_t rhs = cpu->regs[instr.b.rs2];
 
     if(lhs == rhs) {
+        if(!IS_ALIGNED(target, 4)){
+            return rv_exc_instruction_address_misaligned;
+        }
+
         cpu->pc_next = target;
     }
 
@@ -66,14 +66,14 @@ rv_exc_t bne_instr(rv_cpu_t *cpu, rv_instr_t instr){
     // target is relative to address of the instruction
     uint32_t target = cpu->pc + RV_B_IMM(instr);
 
-    if(!IS_ALIGNED(target, 4)){
-        return rv_exc_instruction_address_misaligned;
-    }
-
     uint32_t lhs = cpu->regs[instr.b.rs1];
     uint32_t rhs = cpu->regs[instr.b.rs2];
 
     if(lhs != rhs) {
+        if(!IS_ALIGNED(target, 4)){
+            return rv_exc_instruction_address_misaligned;
+        }
+
         cpu->pc_next = target;
     }
 
@@ -87,14 +87,13 @@ rv_exc_t blt_instr(rv_cpu_t *cpu, rv_instr_t instr){
     // target is relative to address of the instruction
     uint32_t target = cpu->pc + RV_B_IMM(instr);
 
-    if(!IS_ALIGNED(target, 4)){
-        return rv_exc_instruction_address_misaligned;
-    }
-
     int32_t lhs = (int32_t)cpu->regs[instr.b.rs1];
     int32_t rhs = (int32_t)cpu->regs[instr.b.rs2];
 
     if(lhs < rhs) {
+        if(!IS_ALIGNED(target, 4)){
+            return rv_exc_instruction_address_misaligned;
+        }
         cpu->pc_next = target;
     }
 
@@ -108,14 +107,14 @@ rv_exc_t bltu_instr(rv_cpu_t *cpu, rv_instr_t instr){
     // target is relative to address of the instruction
     uint32_t target = cpu->pc + RV_B_IMM(instr);
 
-    if(!IS_ALIGNED(target, 4)){
-        return rv_exc_instruction_address_misaligned;
-    }
-
     uint32_t lhs = cpu->regs[instr.b.rs1];
     uint32_t rhs = cpu->regs[instr.b.rs2];
 
     if(lhs < rhs) {
+        
+        if(!IS_ALIGNED(target, 4)){
+            return rv_exc_instruction_address_misaligned;
+        }
         cpu->pc_next = target;
     }
 
@@ -129,14 +128,13 @@ rv_exc_t bge_instr(rv_cpu_t *cpu, rv_instr_t instr){
     // target is relative to address of the instruction
     uint32_t target = cpu->pc + RV_B_IMM(instr);
 
-    if(!IS_ALIGNED(target, 4)){
-        return rv_exc_instruction_address_misaligned;
-    }
-
     int32_t lhs = (int32_t)cpu->regs[instr.b.rs1];
     int32_t rhs = (int32_t)cpu->regs[instr.b.rs2];
 
     if(lhs >= rhs) {
+        if(!IS_ALIGNED(target, 4)){
+            return rv_exc_instruction_address_misaligned;
+        }
         cpu->pc_next = target;
     }
 
@@ -150,14 +148,13 @@ rv_exc_t bgeu_instr(rv_cpu_t *cpu, rv_instr_t instr){
     // target is relative to address of the instruction
     uint32_t target = cpu->pc + RV_B_IMM(instr);
 
-    if(!IS_ALIGNED(target, 4)){
-        return rv_exc_instruction_address_misaligned;
-    }
-
     uint32_t lhs = cpu->regs[instr.b.rs1];
     uint32_t rhs = cpu->regs[instr.b.rs2];
 
     if(lhs >= rhs) {
+        if(!IS_ALIGNED(target, 4)){
+            return rv_exc_instruction_address_misaligned;
+        }
         cpu->pc_next = target;
     }
 

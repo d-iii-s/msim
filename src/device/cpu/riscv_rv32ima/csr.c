@@ -36,15 +36,75 @@ void rv_init_csr(csr_t *csr, unsigned int procno){
     //TODO: rest
 }
 
-
-
-
-rv_exc_t rv_csr_rw(rv_cpu_t* cpu, int csr, uint32_t value, uint32_t* read_target, bool read, bool write){
-    return rv_exc_none;
+static rv_exc_t invalid_read(rv_cpu_t* cpu, int csr, uint32_t* target){
+    return rv_exc_illegal_instruction;
 }
-rv_exc_t rv_csr_rs(rv_cpu_t* cpu, int csr, uint32_t value, uint32_t* read_target, bool read, bool write){
-    return rv_exc_none;
+static rv_exc_t invalid_write(rv_cpu_t* cpu, int csr, uint32_t target){
+    return rv_exc_illegal_instruction;
 }
-rv_exc_t rv_csr_rc(rv_cpu_t* cpu, int csr, uint32_t value, uint32_t* read_target, bool read, bool write){
-    return rv_exc_none;
+
+typedef rv_exc_t (*csr_read_func_t)(rv_cpu_t*, int csr, uint32_t*);
+typedef rv_exc_t (*csr_write_func_t)(rv_cpu_t*, int csr, uint32_t);
+typedef rv_exc_t (*csr_set_func_t)(rv_cpu_t*, int csr, uint32_t);
+typedef rv_exc_t (*csr_clear_func_t)(rv_cpu_t*, int csr, uint32_t);
+
+typedef struct {
+    csr_read_func_t read;
+    csr_write_func_t write;
+    csr_set_func_t set;
+    csr_clear_func_t clear;
+} csr_ops_t;
+
+static csr_ops_t get_csr_ops(int csr){
+    csr_ops_t ops = {
+        .read = invalid_read,
+        .write = invalid_write,
+        .set = invalid_write,
+        .clear = invalid_write
+    };
+
+    return ops;
+}
+
+rv_exc_t rv_csr_rw(rv_cpu_t* cpu, int csr, uint32_t value, uint32_t* read_target, bool read){
+
+    csr_ops_t ops = get_csr_ops(csr);
+    rv_exc_t ex = rv_exc_none;
+
+    if(read){
+        ex = ops.read(cpu, csr, read_target);
+    }
+
+    if(ex == rv_exc_none){
+        ex = ops.write(cpu, csr, value);
+    }
+
+    return ex;
+}
+rv_exc_t rv_csr_rs(rv_cpu_t* cpu, int csr, uint32_t value, uint32_t* read_target, bool read){
+    csr_ops_t ops = get_csr_ops(csr);
+    rv_exc_t ex = rv_exc_none;
+
+    if(read){
+        ex = ops.read(cpu, csr, read_target);
+    }
+
+    if(ex == rv_exc_none){
+        ex = ops.set(cpu, csr, value);
+    }
+    return ex;
+}
+rv_exc_t rv_csr_rc(rv_cpu_t* cpu, int csr, uint32_t value, uint32_t* read_target, bool read){
+   
+    csr_ops_t ops = get_csr_ops(csr);
+    rv_exc_t ex = rv_exc_none;
+
+    if(read){
+        ex = ops.read(cpu, csr, read_target);
+    }
+
+    if(ex == rv_exc_none){
+        ex = ops.clear(cpu, csr, value);
+    }
+    return ex;
 }

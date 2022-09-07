@@ -63,7 +63,7 @@ rv_exc_t wfi_instr(rv_cpu_t *cpu, rv_instr_t instr){
 // Note: reads with rd = x0 shall not read the CSR and shall not have any side-efects based on the read
 
 rv_exc_t csrrw_instr(rv_cpu_t *cpu, rv_instr_t instr){
-    int csr = instr.i.imm;
+    int csr = ((uint32_t)instr.i.imm) & 0xFFF;
     uint32_t val = cpu->regs[instr.i.rs1];
     uint32_t* rd = &cpu->regs[instr.i.rd];  
     bool read = instr.i.rd != 0;
@@ -72,7 +72,7 @@ rv_exc_t csrrw_instr(rv_cpu_t *cpu, rv_instr_t instr){
 }
 
 rv_exc_t csrrs_instr(rv_cpu_t *cpu, rv_instr_t instr){
-    int csr = instr.i.imm;
+    int csr = ((uint32_t)instr.i.imm) & 0xFFF;
     uint32_t val = cpu->regs[instr.i.rs1];
     uint32_t* rd = &cpu->regs[instr.i.rd];  
     bool read = instr.i.rd != 0;
@@ -81,7 +81,7 @@ rv_exc_t csrrs_instr(rv_cpu_t *cpu, rv_instr_t instr){
 }
 
 rv_exc_t csrrc_instr(rv_cpu_t *cpu, rv_instr_t instr){
-    int csr = instr.i.imm;
+    int csr = ((uint32_t)instr.i.imm) & 0xFFF;
     uint32_t val = cpu->regs[instr.i.rs1];
     uint32_t* rd = &cpu->regs[instr.i.rd]; 
     bool read = instr.i.rd != 0;
@@ -90,7 +90,7 @@ rv_exc_t csrrc_instr(rv_cpu_t *cpu, rv_instr_t instr){
 }
 
 rv_exc_t csrrwi_instr(rv_cpu_t *cpu, rv_instr_t instr){
-    int csr = instr.i.imm;
+    int csr = ((uint32_t)instr.i.imm) & 0xFFF;
     uint32_t val = instr.i.rs1;
     uint32_t* rd = &cpu->regs[instr.i.rd];  
     bool read = instr.i.rd != 0;
@@ -99,7 +99,7 @@ rv_exc_t csrrwi_instr(rv_cpu_t *cpu, rv_instr_t instr){
 }
 
 rv_exc_t csrrsi_instr(rv_cpu_t *cpu, rv_instr_t instr){
-    int csr = instr.i.imm;
+    int csr = ((uint32_t)instr.i.imm) & 0xFFF;
     uint32_t val = instr.i.rs1;
     uint32_t* rd = &cpu->regs[instr.i.rd];  
     bool read = instr.i.rd != 0;
@@ -107,7 +107,7 @@ rv_exc_t csrrsi_instr(rv_cpu_t *cpu, rv_instr_t instr){
 }
 
 rv_exc_t csrrci_instr(rv_cpu_t *cpu, rv_instr_t instr){
-    int csr = instr.i.imm;
+    int csr = ((uint32_t)instr.i.imm) & 0xFFF;
     uint32_t val = instr.i.rs1;
     uint32_t* rd = &cpu->regs[instr.i.rd];  
     bool read = instr.i.rd != 0;

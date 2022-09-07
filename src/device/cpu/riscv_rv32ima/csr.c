@@ -1,6 +1,8 @@
 #include <stdint.h>
+#include <sys/time.h>
 #include "csr.h"
 #include "cpu.h"
+#include "../../../assert.h"
 
 #define RV_A_EXTENSION_BITS  UINT32_C(1<<0)
 #define RV_C_EXTENSION_BITS  UINT32_C(1<<2)
@@ -43,11 +45,77 @@ static rv_exc_t invalid_write(rv_cpu_t* cpu, int csr, uint32_t target){
     return rv_exc_illegal_instruction;
 }
 
+// TODO: mtime & mtimecmp
+
+#define is_counter_enabled_m(cpu, counter) (cpu->csr.mcounteren & (1<<counter))
+#define is_counter_enabled_s(cpu, counter) (cpu->csr.scounteren & (1<<counter))
+#define is_high_counter(csr) (csr & 0x080)
+
+static uint64_t current_timestamp() {
+    struct timeval te; 
+    gettimeofday(&te, NULL); // get current time
+    uint64_t milliseconds = te.tv_sec*1000LL + te.tv_usec/1000; // calculate milliseconds
+    return milliseconds;
+}
+
+static inline void read_counter_csr_unchecked(rv_cpu_t* cpu, int csr, uint32_t* target){
+    int counter = csr & 0x1F;
+
+    switch(counter){
+        case (csr_cycle & 0x1F): {
+            *target = (uint32_t)(is_high_counter(csr) ? cpu->csr.cycle >> 32 : cpu->csr.cycle); 
+            break;
+        }
+        case (csr_time & 0x1F): {
+            uint64_t time = current_timestamp();
+            *target = (uint32_t)(is_high_counter(csr) ? time >> 32 : time);
+            break;
+        }
+        case (csr_instret & 0x1F): {
+            *target = (uint32_t)(is_high_counter(csr) ? cpu->csr.instret >> 32 : cpu->csr.instret); 
+            break;
+        }
+        default: {
+            uint64_t hpc = cpu->csr.hpmcounters[counter - 3];
+            *target = (uint32_t)(is_high_counter(csr) ? hpc >> 32 : hpc);
+            break;
+        }
+    }
+}
+
 static rv_exc_t counter_read(rv_cpu_t* cpu, int csr, uint32_t* target){
+
+    // lowest 5 bits
+    int counter = csr * 0x1F;
+
+    if(rv_csr_min_priv_mode(csr) != rv_mmode){
+
+        if(cpu->priv_mode == rv_smode && !is_counter_enabled_m(cpu, counter))
+            return rv_exc_illegal_instruction;
+        
+        if(cpu->priv_mode == rv_umode && !(is_counter_enabled_m(cpu, counter) && is_counter_enabled_s(cpu, counter)))
+            return rv_exc_illegal_instruction;
+
+    }
+    else if (cpu->priv_mode != rv_mmode){
+        return rv_exc_illegal_instruction;
+    }
+    else if (counter == (csr_time & 0x1F)){
+        // mtime does not exist in csr
+        return rv_exc_illegal_instruction;
+    }
+
+    read_counter_csr_unchecked(cpu, csr, target);
+
     return rv_exc_none;
 }
 
 static rv_exc_t counter_write(rv_cpu_t* cpu, int csr, uint32_t target){
+
+    if(cpu->priv_mode != rv_mmode) return rv_exc_illegal_instruction;
+
+
+
     return rv_exc_none;
 }
 
@@ -1540,4 +1608,17 @@ rv_exc_t rv_csr_rc(rv_cpu_t* cpu, int csr, uint32_t value, uint32_t* read_target
         ex = ops.clear(cpu, csr, value);
     }
     return ex;
+}
+
+rv_priv_mode_t rv_csr_min_priv_mode(int csr) {
+    int priv_num = ((csr >> 28) && 0b11);
+    switch(priv_num){
+        case 0b11:
+            return rv_mmode;
+        case 0b01:
+            return rv_smode;
+        case 0b00:
+            return rv_umode;
+    }
+    return (rv_priv_mode_t)-1;
 }

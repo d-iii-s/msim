@@ -49,7 +49,7 @@ typedef enum rv_exc {
 } rv_exc_t;
 
 // Privilege modes
-typedef enum {
+typedef enum rv_priv_mode {
 	rv_umode,
 	rv_smode,
 	rv_mmode

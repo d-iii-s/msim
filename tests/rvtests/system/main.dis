@@ -9,12 +9,13 @@ Disassembly of section .text:
    4:	12000073          	sfence.vma
    8:	10200073          	sret
    c:	30200073          	mret
-  10:	10500073          	wfi
-  14:	30529073          	csrw	mtvec,t0
-  18:	3052a073          	csrs	mtvec,t0
-  1c:	c0103073          	csrc	time,zero
-  20:	3050d073          	csrwi	mtvec,1
-  24:	305fe073          	csrsi	mtvec,31
-  28:	305ff073          	csrci	mtvec,31
-  2c:	c01022f3          	rdtime	t0
-  30:	00200073          	.word	0x00200073
+  10:	30529073          	csrw	mtvec,t0
+  14:	3052a073          	csrs	mtvec,t0
+  18:	c0103073          	csrc	time,zero
+  1c:	3050d073          	csrwi	mtvec,1
+  20:	305fe073          	csrsi	mtvec,31
+  24:	305ff073          	csrci	mtvec,31
+  28:	c01022f3          	rdtime	t0
+  2c:	00100073          	ebreak
+  30:	10500073          	wfi
+  34:	00200073          	.word	0x00200073

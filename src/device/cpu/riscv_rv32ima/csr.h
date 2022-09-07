@@ -440,7 +440,12 @@ typedef struct {
 #define rv_csr_mstatus_tw(cpu) (((cpu)->csr.mstatus & rv_csr_mstatus_tw_mask) >> rv_csr_mstatus_tw_pos)
 #define rv_csr_mstatus_tvm(cpu) (((cpu)->csr.mstatus & rv_csr_mstatus_tvm_mask) >> rv_csr_mstatus_tvm_pos)
 
+#define rv_csr_is_read_only(csr) ((csr >> 30) == 0b11)
+
 extern void rv_init_csr(csr_t *csr, unsigned int procno);
+
+enum rv_priv_mode;
+extern enum rv_priv_mode rv_csr_min_priv_mode(int csr);
 
 enum rv_exc;
 struct rv_cpu;

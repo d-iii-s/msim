@@ -479,66 +479,27 @@ static rv_exc_t scontext_clear(rv_cpu_t* cpu, int csr, uint32_t target){
 }
 
 static rv_exc_t mvendorid_read(rv_cpu_t* cpu, int csr, uint32_t* target){
+    minimal_privilege(rv_mmode, cpu);
+    *target = cpu->csr.mvendorid;
     return rv_exc_none;
 }
 
-static rv_exc_t mvendorid_write(rv_cpu_t* cpu, int csr, uint32_t target){
-    return rv_exc_none;
-}
-
-static rv_exc_t mvendorid_set(rv_cpu_t* cpu, int csr, uint32_t target){
-    return rv_exc_none;
-}
-
-static rv_exc_t mvendorid_clear(rv_cpu_t* cpu, int csr, uint32_t target){
-    return rv_exc_none;
-}
 
 static rv_exc_t marchid_read(rv_cpu_t* cpu, int csr, uint32_t* target){
-    return rv_exc_none;
-}
-
-static rv_exc_t marchid_write(rv_cpu_t* cpu, int csr, uint32_t target){
-    return rv_exc_none;
-}
-
-static rv_exc_t marchid_set(rv_cpu_t* cpu, int csr, uint32_t target){
-    return rv_exc_none;
-}
-
-static rv_exc_t marchid_clear(rv_cpu_t* cpu, int csr, uint32_t target){
+    minimal_privilege(rv_mmode, cpu);
+    *target = cpu->csr.marchid;
     return rv_exc_none;
 }
 
 static rv_exc_t mimpid_read(rv_cpu_t* cpu, int csr, uint32_t* target){
-    return rv_exc_none;
-}
-
-static rv_exc_t mimpid_write(rv_cpu_t* cpu, int csr, uint32_t target){
-    return rv_exc_none;
-}
-
-static rv_exc_t mimpid_set(rv_cpu_t* cpu, int csr, uint32_t target){
-    return rv_exc_none;
-}
-
-static rv_exc_t mimpid_clear(rv_cpu_t* cpu, int csr, uint32_t target){
+    minimal_privilege(rv_mmode, cpu);
+    *target = cpu->csr.mimpid;
     return rv_exc_none;
 }
 
 static rv_exc_t mhartid_read(rv_cpu_t* cpu, int csr, uint32_t* target){
-    return rv_exc_none;
-}
-
-static rv_exc_t mhartid_write(rv_cpu_t* cpu, int csr, uint32_t target){
-    return rv_exc_none;
-}
-
-static rv_exc_t mhartid_set(rv_cpu_t* cpu, int csr, uint32_t target){
-    return rv_exc_none;
-}
-
-static rv_exc_t mhartid_clear(rv_cpu_t* cpu, int csr, uint32_t target){
+    minimal_privilege(rv_mmode, cpu);
+    *target = cpu->csr.mhartid;
     return rv_exc_none;
 }
 
@@ -1396,33 +1357,33 @@ static csr_ops_t get_csr_ops(int csr){
     
         case csr_mvendorid: {
             ops.read = mvendorid_read;
-            ops.write = mvendorid_write;
-            ops.set = mvendorid_set;
-            ops.clear = mvendorid_clear;
+            ops.write = invalid_write;
+            ops.set = invalid_write;
+            ops.clear = invalid_write;
             break;
         }
     
         case csr_marchid: {
             ops.read = marchid_read;
-            ops.write = marchid_write;
-            ops.set = marchid_set;
-            ops.clear = marchid_clear;
+            ops.write = invalid_write;
+            ops.set = invalid_write;
+            ops.clear = invalid_write;
             break;
         }
     
         case csr_mimpid: {
             ops.read = mimpid_read;
-            ops.write = mimpid_write;
-            ops.set = mimpid_set;
-            ops.clear = mimpid_clear;
+            ops.write = invalid_write;
+            ops.set = invalid_write;
+            ops.clear = invalid_write;
             break;
         }
     
         case csr_mhartid: {
             ops.read = mhartid_read;
-            ops.write = mhartid_write;
-            ops.set = mhartid_set;
-            ops.clear = mhartid_clear;
+            ops.write = invalid_write;
+            ops.set = invalid_write;
+            ops.clear = invalid_write;
             break;
         }
     

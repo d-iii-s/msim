@@ -548,22 +548,7 @@ static rv_exc_t scause_clear(rv_cpu_t* cpu, int csr, uint32_t target){
 }
 
 default_csr_functions(stval, rv_smode)
-
-static rv_exc_t satp_read(rv_cpu_t* cpu, int csr, uint32_t* target){
-    return rv_exc_none;
-}
-
-static rv_exc_t satp_write(rv_cpu_t* cpu, int csr, uint32_t target){
-    return rv_exc_none;
-}
-
-static rv_exc_t satp_set(rv_cpu_t* cpu, int csr, uint32_t target){
-    return rv_exc_none;
-}
-
-static rv_exc_t satp_clear(rv_cpu_t* cpu, int csr, uint32_t target){
-    return rv_exc_none;
-}
+default_csr_functions(satp, rv_smode)
 
 static rv_exc_t scontext_read(rv_cpu_t* cpu, int csr, uint32_t* target){
     return rv_exc_none;

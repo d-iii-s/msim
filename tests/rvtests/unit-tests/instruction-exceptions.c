@@ -288,18 +288,18 @@ PCUT_TEST(csrrw_non_existent_csr){
     PCUT_ASSERT_INT_EQUALS(rv_exc_illegal_instruction, ex);
 }
 
-PCUT_TEST(csrrw_wrong_privilege){
+PCUT_TEST(csrrsi_wrong_privilege){
     rv_instr_t instr = { .i = {
         .opcode = rv_opcSYSTEM,
-        .funct3 = rv_funcCSRRW,
+        .funct3 = rv_funcCSRRSI,
         .imm = csr_mie,
-        .rs1 = 1,
+        .rs1 = 0,
         .rd  = 2
     }};
     cpu.priv_mode = rv_smode;
 
     //modifying mmode register in smode
-    rv_exc_t ex = csrrw_instr(&cpu, instr);
+    rv_exc_t ex = csrrsi_instr(&cpu, instr);
 
     PCUT_ASSERT_INT_EQUALS(rv_exc_illegal_instruction, ex);
 }

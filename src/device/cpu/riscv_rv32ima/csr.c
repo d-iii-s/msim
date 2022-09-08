@@ -359,6 +359,8 @@ static rv_exc_t sie_clear(rv_cpu_t* cpu, int csr, uint32_t target){
     return rv_exc_none;
 }
 
+#define scvec_mask 0xFFFFFFFD
+
 static rv_exc_t stvec_read(rv_cpu_t* cpu, int csr, uint32_t* target){
     minimal_privilege(rv_smode, cpu);
     *target = cpu->csr.stvec;
@@ -367,45 +369,23 @@ static rv_exc_t stvec_read(rv_cpu_t* cpu, int csr, uint32_t* target){
 
 static rv_exc_t stvec_write(rv_cpu_t* cpu, int csr, uint32_t target){
     minimal_privilege(rv_smode, cpu);
-    cpu->csr.stvec = target;
+    cpu->csr.stvec = target & scvec_mask;
     return rv_exc_none;
 }
 
 static rv_exc_t stvec_set(rv_cpu_t* cpu, int csr, uint32_t target){
     minimal_privilege(rv_smode, cpu);
-    cpu->csr.stvec |= target;
+    cpu->csr.stvec |= target & scvec_mask;
     return rv_exc_none;
 }
 
 static rv_exc_t stvec_clear(rv_cpu_t* cpu, int csr, uint32_t target){
     minimal_privilege(rv_smode, cpu);
-    cpu->csr.stvec &= ~target;
+    cpu->csr.stvec &= ~(target & scvec_mask);
     return rv_exc_none;
 }
 
-static rv_exc_t scounteren_read(rv_cpu_t* cpu, int csr, uint32_t* target){
-    minimal_privilege(rv_smode, cpu);
-    *target = cpu->csr.scounteren;
-    return rv_exc_none;
-}
-
-static rv_exc_t scounteren_write(rv_cpu_t* cpu, int csr, uint32_t target){
-    minimal_privilege(rv_smode, cpu);
-    cpu->csr.scounteren = target;
-    return rv_exc_none;
-}
-
-static rv_exc_t scounteren_set(rv_cpu_t* cpu, int csr, uint32_t target){
-    minimal_privilege(rv_smode, cpu);
-    cpu->csr.scounteren |= target;
-    return rv_exc_none;
-}
-
-static rv_exc_t scounteren_clear(rv_cpu_t* cpu, int csr, uint32_t target){
-    minimal_privilege(rv_smode, cpu);
-    cpu->csr.scounteren &= ~target;
-    return rv_exc_none;
-}
+default_csr_functions(scounteren, rv_smode)
 
 static rv_exc_t senvcfg_read(rv_cpu_t* cpu, int csr, uint32_t* target){
     return rv_exc_none;
@@ -1325,7 +1305,7 @@ static csr_ops_t get_csr_ops(int csr){
     
         case csr_sie: {
             ops.read = sie_read;
-            ops.write = illegal_write;
+            ops.write = invalid_write;
             ops.set = sie_set;
             ops.clear = sie_clear;
             break;

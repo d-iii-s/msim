@@ -435,19 +435,29 @@ static rv_exc_t senvcfg_clear(rv_cpu_t* cpu, int csr, uint32_t target){
 
 default_csr_functions(sscratch, rv_smode)
 
+#define sepc_mask 0xFFFFFFFC
+
 static rv_exc_t sepc_read(rv_cpu_t* cpu, int csr, uint32_t* target){
+    minimal_privilege(rv_smode, cpu);
+    *target = cpu->csr.sepc;
     return rv_exc_none;
 }
 
 static rv_exc_t sepc_write(rv_cpu_t* cpu, int csr, uint32_t target){
+    minimal_privilege(rv_smode, cpu);
+    cpu->csr.sepc = target & sepc_mask;
     return rv_exc_none;
 }
 
 static rv_exc_t sepc_set(rv_cpu_t* cpu, int csr, uint32_t target){
+    minimal_privilege(rv_smode, cpu);
+    cpu->csr.sepc |= target & sepc_mask;
     return rv_exc_none;
 }
 
 static rv_exc_t sepc_clear(rv_cpu_t* cpu, int csr, uint32_t target){
+    minimal_privilege(rv_smode, cpu);
+    cpu->csr.sepc &= ~(target & sepc_mask);
     return rv_exc_none;
 }
 

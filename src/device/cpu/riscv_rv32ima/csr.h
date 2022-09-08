@@ -409,8 +409,7 @@ typedef struct {
 
     // sstatus shared witm m-mode
     uint32_t stvec;
-    uint32_t sip;
-    uint32_t sie;
+	// sip and sie shared with m-mode
 
     uint32_t scounteren;
 

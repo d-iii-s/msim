@@ -313,11 +313,14 @@ PCUT_TEST(csrrw_write_read_only_csr){
         .rd  = 2
     }};
     cpu.regs[instr.i.rs1] = 5;
+    cpu.regs[instr.i.rd] = (uint32_t)-1;
     cpu.priv_mode = rv_mmode;
 
     rv_exc_t ex = csrrw_instr(&cpu, instr);
 
     PCUT_ASSERT_INT_EQUALS(rv_exc_illegal_instruction, ex);
+    // value in rd didn't change
+    PCUT_ASSERT_INT_EQUALS((uint32_t)-1, cpu.regs[instr.i.rd]);
 }
 
 PCUT_TEST(csrrsi_read_read_only_csr){

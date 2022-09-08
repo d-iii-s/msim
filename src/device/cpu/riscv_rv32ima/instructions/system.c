@@ -75,18 +75,18 @@ rv_exc_t csrrs_instr(rv_cpu_t *cpu, rv_instr_t instr){
     int csr = ((uint32_t)instr.i.imm) & 0xFFF;
     uint32_t val = cpu->regs[instr.i.rs1];
     uint32_t* rd = &cpu->regs[instr.i.rd];  
-    bool read = instr.i.rd != 0;
+    bool write = instr.i.rs1 != 0;
 
-    return rv_csr_rs(cpu, csr, val, rd, read);
+    return rv_csr_rs(cpu, csr, val, rd, write);
 }
 
 rv_exc_t csrrc_instr(rv_cpu_t *cpu, rv_instr_t instr){
     int csr = ((uint32_t)instr.i.imm) & 0xFFF;
     uint32_t val = cpu->regs[instr.i.rs1];
     uint32_t* rd = &cpu->regs[instr.i.rd]; 
-    bool read = instr.i.rd != 0;
+    bool write = instr.i.rs1 != 0;
  
-    return rv_csr_rc(cpu, csr, val, rd, read);
+    return rv_csr_rc(cpu, csr, val, rd, write);
 }
 
 rv_exc_t csrrwi_instr(rv_cpu_t *cpu, rv_instr_t instr){
@@ -102,17 +102,18 @@ rv_exc_t csrrsi_instr(rv_cpu_t *cpu, rv_instr_t instr){
     int csr = ((uint32_t)instr.i.imm) & 0xFFF;
     uint32_t val = instr.i.rs1;
     uint32_t* rd = &cpu->regs[instr.i.rd];  
-    bool read = instr.i.rd != 0;
-    return rv_csr_rs(cpu, csr, val, rd, read);
+    bool write = instr.i.rs1 != 0;
+
+    return rv_csr_rs(cpu, csr, val, rd, write);
 }
 
 rv_exc_t csrrci_instr(rv_cpu_t *cpu, rv_instr_t instr){
     int csr = ((uint32_t)instr.i.imm) & 0xFFF;
     uint32_t val = instr.i.rs1;
     uint32_t* rd = &cpu->regs[instr.i.rd];  
-    bool read = instr.i.rd != 0;
+    bool write = instr.i.rs1 != 0;
 
-    return rv_csr_rc(cpu, csr, val, rd, read);
+    return rv_csr_rc(cpu, csr, val, rd, write);
 }
 
 rv_exc_t sfence_instr(rv_cpu_t *cpu, rv_instr_t instr) {

@@ -417,19 +417,29 @@ static rv_exc_t stvec_clear(rv_cpu_t* cpu, int csr, uint32_t target){
 
 default_csr_functions(scounteren, rv_smode)
 
-static rv_exc_t senvcfg_read(rv_cpu_t* cpu, int csr, uint32_t* target){
-    return rv_exc_none;
-}
+#define senvcfg_mask 0x71
 
-static rv_exc_t senvcfg_write(rv_cpu_t* cpu, int csr, uint32_t target){
+static rv_exc_t senvcfg_read(rv_cpu_t* cpu, int csr, uint32_t* target){
+    minimal_privilege(rv_smode, cpu);
+    *target = cpu->csr.senvcfg;
     return rv_exc_none;
 }
 
 static rv_exc_t senvcfg_set(rv_cpu_t* cpu, int csr, uint32_t target){
+    minimal_privilege(rv_smode, cpu);
+    // Setting WPRI bits causes exception
+    if((target & ~senvcfg_mask) != 0) return rv_exc_illegal_instruction;
+
+    cpu->csr.senvcfg |= target & senvcfg_mask;
     return rv_exc_none;
 }
 
 static rv_exc_t senvcfg_clear(rv_cpu_t* cpu, int csr, uint32_t target){
+    minimal_privilege(rv_smode, cpu);
+    // Clearing WPRI bits causes exception
+    if((target & ~senvcfg_mask) != 0) return rv_exc_illegal_instruction;
+
+    cpu->csr.senvcfg &= ~(target & senvcfg_mask);
     return rv_exc_none;
 }
 
@@ -1385,7 +1395,7 @@ static csr_ops_t get_csr_ops(int csr){
     
         case csr_senvcfg: {
             ops.read = senvcfg_read;
-            ops.write = senvcfg_write;
+            ops.write = invalid_write;
             ops.set = senvcfg_set;
             ops.clear = senvcfg_clear;
             break;

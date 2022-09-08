@@ -505,7 +505,7 @@ static rv_exc_t scause_write(rv_cpu_t* cpu, int csr, uint32_t target){
     else {
         return rv_exc_illegal_instruction;
     }
-    
+
     return rv_exc_none;
 }
 
@@ -537,21 +537,7 @@ static rv_exc_t scause_clear(rv_cpu_t* cpu, int csr, uint32_t target){
     return rv_exc_none;
 }
 
-static rv_exc_t stval_read(rv_cpu_t* cpu, int csr, uint32_t* target){
-    return rv_exc_none;
-}
-
-static rv_exc_t stval_write(rv_cpu_t* cpu, int csr, uint32_t target){
-    return rv_exc_none;
-}
-
-static rv_exc_t stval_set(rv_cpu_t* cpu, int csr, uint32_t target){
-    return rv_exc_none;
-}
-
-static rv_exc_t stval_clear(rv_cpu_t* cpu, int csr, uint32_t target){
-    return rv_exc_none;
-}
+default_csr_functions(stval, rv_smode)
 
 static rv_exc_t satp_read(rv_cpu_t* cpu, int csr, uint32_t* target){
     return rv_exc_none;

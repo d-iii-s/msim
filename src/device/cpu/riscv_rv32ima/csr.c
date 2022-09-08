@@ -461,19 +461,79 @@ static rv_exc_t sepc_clear(rv_cpu_t* cpu, int csr, uint32_t target){
     return rv_exc_none;
 }
 
+static bool is_exception(uint32_t num){
+    switch(num){
+        case (rv_exc_supervisor_software_interrupt):
+        case (rv_exc_machine_software_interrupt):
+        case (rv_exc_supervisor_timer_interrupt):
+        case (rv_exc_machine_timer_interrupt):
+        case (rv_exc_supervisor_external_interrupt):
+        case (rv_exc_machine_external_interrupt):
+        case (rv_exc_instruction_address_misaligned):
+        case (rv_exc_instruction_access_fault):
+        case (rv_exc_illegal_instruction):
+        case (rv_exc_breakpoint):
+        case (rv_exc_load_address_misaligned):
+        case (rv_exc_load_access_fault):
+        case (rv_exc_store_amo_address_misaligned):
+        case (rv_exc_store_amo_access_fault):
+        case (rv_exc_umode_environment_call):
+        case (rv_exc_smode_environment_call):
+        case (rv_exc_mmode_environment_call):
+        case (rv_exc_instruction_page_fault):
+        case (rv_exc_load_page_fault):
+        case (rv_exc_store_amo_page_fault):
+            return true;
+        default:
+            return false;
+    }
+}
+
+
 static rv_exc_t scause_read(rv_cpu_t* cpu, int csr, uint32_t* target){
+    minimal_privilege(rv_smode, cpu);
+    *target = cpu->csr.scause;
     return rv_exc_none;
 }
 
 static rv_exc_t scause_write(rv_cpu_t* cpu, int csr, uint32_t target){
+    minimal_privilege(rv_smode, cpu);
+
+    if(is_exception(target)){
+        cpu->csr.scause = target;
+    }
+    else {
+        return rv_exc_illegal_instruction;
+    }
+    
     return rv_exc_none;
 }
 
 static rv_exc_t scause_set(rv_cpu_t* cpu, int csr, uint32_t target){
+    minimal_privilege(rv_smode, cpu);
+
+    uint32_t val = target | cpu->csr.scause;
+    if(is_exception(val)){
+        cpu->csr.scause = val;
+    }
+    else {
+        return rv_exc_illegal_instruction;
+    }
+
     return rv_exc_none;
 }
 
 static rv_exc_t scause_clear(rv_cpu_t* cpu, int csr, uint32_t target){
+    minimal_privilege(rv_smode, cpu);
+
+    uint32_t val = ~target & cpu->csr.scause;
+    if(is_exception(val)){
+        cpu->csr.scause = val;
+    }
+    else {
+        return rv_exc_illegal_instruction;
+    }
+    
     return rv_exc_none;
 }
 

@@ -451,7 +451,7 @@ enum rv_exc;
 struct rv_cpu;
 
 extern enum rv_exc rv_csr_rw(struct rv_cpu* cpu, int csr, uint32_t value, uint32_t* read_target, bool read);
-extern enum rv_exc rv_csr_rs(struct rv_cpu* cpu, int csr, uint32_t value, uint32_t* read_target, bool read);
-extern enum rv_exc rv_csr_rc(struct rv_cpu* cpu, int csr, uint32_t value, uint32_t* read_target, bool read);
+extern enum rv_exc rv_csr_rs(struct rv_cpu* cpu, int csr, uint32_t value, uint32_t* read_target, bool write);
+extern enum rv_exc rv_csr_rc(struct rv_cpu* cpu, int csr, uint32_t value, uint32_t* read_target, bool write);
 
 #endif // RISCV_CSR_H_

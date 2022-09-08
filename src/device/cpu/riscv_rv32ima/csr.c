@@ -38,6 +38,9 @@ void rv_init_csr(csr_t *csr, unsigned int procno){
     //TODO: rest
 }
 
+#define minimal_privilege(priv, cpu) {if(cpu->priv_mode < priv) return rv_exc_illegal_instruction;}
+
+
 static rv_exc_t invalid_read(rv_cpu_t* cpu, int csr, uint32_t* target){
     return rv_exc_illegal_instruction;
 }
@@ -101,7 +104,7 @@ static rv_exc_t counter_read(rv_cpu_t* cpu, int csr, uint32_t* target){
         return rv_exc_illegal_instruction;
     }
     else if (counter == (csr_time & 0x1F)){
-        // mtime does not exist in csr
+        // mtime is not a csr
         return rv_exc_illegal_instruction;
     }
 
@@ -112,18 +115,110 @@ static rv_exc_t counter_read(rv_cpu_t* cpu, int csr, uint32_t* target){
 
 static rv_exc_t counter_write(rv_cpu_t* cpu, int csr, uint32_t target){
 
-    if(cpu->priv_mode != rv_mmode) return rv_exc_illegal_instruction;
+    // only mmode can write to counters
+    minimal_privilege(rv_mmode, cpu);
 
+    // global counters are r/o
+    if(rv_csr_min_priv_mode(csr) != rv_mmode) return rv_exc_illegal_instruction;
 
+    int counter = csr & 0x1F;
+
+    // mtime is not a csr
+    if (counter == (csr_time & 0x1F)) return rv_exc_illegal_instruction;
+
+    uint64_t val = 0;
+    uint64_t mask = 0;
+
+    if(is_high_counter(csr)){
+        val = ((uint64_t)target) << 32;
+        mask = 0x00000000FFFFFFFF;
+    }
+    else {
+        val = target;
+        mask = 0xFFFFFFFF00000000;
+    }
+
+    switch(csr){
+        case (csr_mcycle): {
+            cpu->csr.cycle = (cpu->csr.cycle & mask) | val;
+            break;
+        }
+        case (csr_minstret): {
+            cpu->csr.instret = (cpu->csr.instret & mask) | val;
+            break;
+        }
+        default: {
+            uint64_t hpc = cpu->csr.hpmcounters[counter - 3];
+            cpu->csr.hpmcounters[counter - 3] = (hpc & mask) | val;
+            break;
+        }
+    }
 
     return rv_exc_none;
 }
 
 static rv_exc_t counter_set(rv_cpu_t* cpu, int csr, uint32_t target){
+
+    // only mmode can write to counters
+    minimal_privilege(rv_mmode, cpu);
+
+    // global counters are r/o
+    if(rv_csr_min_priv_mode(csr) != rv_mmode) return rv_exc_illegal_instruction;
+
+    int counter = csr & 0x1F;
+
+    // mtime is not a csr
+    if (counter == (csr_time & 0x1F)) return rv_exc_illegal_instruction;
+
+    uint64_t val = is_high_counter(csr) ? ((uint64_t)target) << 32 : target;
+
+    switch(csr){
+        case (csr_mcycle): {
+            cpu->csr.cycle |= val;
+            break;
+        }
+        case (csr_minstret): {
+            cpu->csr.instret |= val;
+            break;
+        }
+        default: {
+            cpu->csr.hpmcounters[counter - 3] |= val;
+            break;
+        }
+    }
+
     return rv_exc_none;
 }
 
 static rv_exc_t counter_clear(rv_cpu_t* cpu, int csr, uint32_t target){
+    // only mmode can write to counters
+    minimal_privilege(rv_mmode, cpu);
+
+    // global counters are r/o
+    if(rv_csr_min_priv_mode(csr) != rv_mmode) return rv_exc_illegal_instruction;
+
+    int counter = csr & 0x1F;
+
+    // mtime is not a csr
+    if (counter == (csr_time & 0x1F)) return rv_exc_illegal_instruction;
+
+    uint64_t val = is_high_counter(csr) ? ((uint64_t)target) << 32 : target;
+
+    switch(csr){
+        case (csr_mcycle): {
+            cpu->csr.cycle &= ~val;
+            break;
+        }
+        case (csr_minstret): {
+            cpu->csr.instret &= ~val;
+            break;
+        }
+        default: {
+            cpu->csr.hpmcounters[counter - 3] &= ~val;
+            break;
+        }
+    }
+
     return rv_exc_none;
 }
 
@@ -1571,42 +1666,53 @@ rv_exc_t rv_csr_rw(rv_cpu_t* cpu, int csr, uint32_t value, uint32_t* read_target
 
     csr_ops_t ops = get_csr_ops(csr);
     rv_exc_t ex = rv_exc_none;
+    uint32_t temp_read_target = 0;
 
     if(read){
-        ex = ops.read(cpu, csr, read_target);
+        ex = ops.read(cpu, csr, &temp_read_target);
     }
 
     if(ex == rv_exc_none){
         ex = ops.write(cpu, csr, value);
     }
 
-    return ex;
-}
-rv_exc_t rv_csr_rs(rv_cpu_t* cpu, int csr, uint32_t value, uint32_t* read_target, bool read){
-    csr_ops_t ops = get_csr_ops(csr);
-    rv_exc_t ex = rv_exc_none;
-
-    if(read){
-        ex = ops.read(cpu, csr, read_target);
+    if(ex == rv_exc_none){
+        *read_target = temp_read_target;
     }
 
-    if(ex == rv_exc_none){
+    return ex;
+}
+rv_exc_t rv_csr_rs(rv_cpu_t* cpu, int csr, uint32_t value, uint32_t* read_target, bool write){
+    csr_ops_t ops = get_csr_ops(csr);
+    
+    uint32_t temp_read_target = 0;
+
+    rv_exc_t ex = ops.read(cpu, csr, &temp_read_target);
+
+    if(ex == rv_exc_none && write){
         ex = ops.set(cpu, csr, value);
     }
+
+    if(ex == rv_exc_none){
+        *read_target = temp_read_target;
+    }
+
     return ex;
 }
-rv_exc_t rv_csr_rc(rv_cpu_t* cpu, int csr, uint32_t value, uint32_t* read_target, bool read){
+rv_exc_t rv_csr_rc(rv_cpu_t* cpu, int csr, uint32_t value, uint32_t* read_target, bool write){
    
     csr_ops_t ops = get_csr_ops(csr);
-    rv_exc_t ex = rv_exc_none;
-
-    if(read){
-        ex = ops.read(cpu, csr, read_target);
+    uint32_t temp_read_target = 0;
+    rv_exc_t ex = ops.read(cpu, csr, &temp_read_target);
+    
+    if(ex == rv_exc_none && write){
+        ex = ops.clear(cpu, csr, value);
     }
 
     if(ex == rv_exc_none){
-        ex = ops.clear(cpu, csr, value);
+        *read_target = temp_read_target;
     }
+
     return ex;
 }
 

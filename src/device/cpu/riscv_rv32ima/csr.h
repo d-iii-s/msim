@@ -425,6 +425,9 @@ typedef struct {
     /* Address translation */
     uint32_t satp;
 
+	/* Debug */
+	uint32_t scontext;
+
 } csr_t;
 
 #define rv_csr_mstatus_tsr_pos 22

@@ -216,6 +216,9 @@ new nonstandart instruction used to halt the simulation
 
 - modifying valid values for a CSR changes its value to *unspecified*
 - mtime and mtimecmp are memory mapped m-mode registers. So it means, that there is a well-known address at which they reside, and they are only accessible to m-mode.
+- What should happen if one bit field is R/O?
+  - Write of whole CSR will fail
+  - Set/Clear would fail only when trying to write the R/O bit
 
 #### mideleg
 

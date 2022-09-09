@@ -217,6 +217,10 @@ new nonstandart instruction used to halt the simulation
 - modifying valid values for a CSR changes its value to *unspecified*
 - mtime and mtimecmp are memory mapped m-mode registers. So it means, that there is a well-known address at which they reside, and they are only accessible to m-mode.
 
+#### mideleg
+
+- mideleg is only allowed to delegate S-mode interrupts in msim. This is more restrictive than the spec, but if we allowed M-mode interrupts to be delegated, then sip and sie would need to be changed. Also this delegation is stated to be rare in the spec
+
 ## Tests
 
 ### MIPS

@@ -361,7 +361,11 @@ static rv_exc_t sstatus_clear(rv_cpu_t* cpu, int csr, uint32_t target){
 #define sei_mask (1U << 9)
 #define sti_mask (1U << 5)
 #define ssi_mask (1U << 1)
+#define mei_mask (1U << 11)
+#define mti_mask (1U << 7)
+#define msi_mask (1U << 3)
 #define si_mask (sei_mask | sti_mask | ssi_mask)
+#define mi_mask (si_mask | mei_mask | mti_mask | msi_mask)
 
 static rv_exc_t sie_read(rv_cpu_t* cpu, int csr, uint32_t* target){
     minimal_privilege(rv_smode, cpu);
@@ -657,53 +661,98 @@ static rv_exc_t misa_clear(rv_cpu_t* cpu, int csr, uint32_t target){
     return rv_exc_none;
 }
 
+
+// mmode ecall can't be delegated
+#define medeleg_mask (RV_EXCEPTIONS_MASK & ~RV_EXCEPTION_MASK(rv_exc_mmode_environment_call))
+
 static rv_exc_t medeleg_read(rv_cpu_t* cpu, int csr, uint32_t* target){
+    minimal_privilege(rv_mmode, cpu);
+    *target = cpu->csr.medeleg;
     return rv_exc_none;
 }
 
 static rv_exc_t medeleg_write(rv_cpu_t* cpu, int csr, uint32_t target){
+    minimal_privilege(rv_mmode, cpu);
+    cpu->csr.medeleg = target & medeleg_mask;
     return rv_exc_none;
 }
 
 static rv_exc_t medeleg_set(rv_cpu_t* cpu, int csr, uint32_t target){
+    minimal_privilege(rv_mmode, cpu);
+    cpu->csr.medeleg |= target & medeleg_mask;
     return rv_exc_none;
 }
 
 static rv_exc_t medeleg_clear(rv_cpu_t* cpu, int csr, uint32_t target){
+    minimal_privilege(rv_mmode, cpu);
+    cpu->csr.medeleg &= ~(target & medeleg_mask);
     return rv_exc_none;
 }
 
 static rv_exc_t mideleg_read(rv_cpu_t* cpu, int csr, uint32_t* target){
+    minimal_privilege(rv_mmode, cpu);
     return rv_exc_none;
 }
 
 static rv_exc_t mideleg_write(rv_cpu_t* cpu, int csr, uint32_t target){
+    minimal_privilege(rv_mmode, cpu);
     return rv_exc_none;
 }
 
 static rv_exc_t mideleg_set(rv_cpu_t* cpu, int csr, uint32_t target){
+    minimal_privilege(rv_mmode, cpu);
     return rv_exc_none;
 }
 
 static rv_exc_t mideleg_clear(rv_cpu_t* cpu, int csr, uint32_t target){
+    minimal_privilege(rv_mmode, cpu);
     return rv_exc_none;
 }
 
 static rv_exc_t mie_read(rv_cpu_t* cpu, int csr, uint32_t* target){
+    minimal_privilege(rv_mmode, cpu);
     return rv_exc_none;
 }
 
 static rv_exc_t mie_write(rv_cpu_t* cpu, int csr, uint32_t target){
+    minimal_privilege(rv_mmode, cpu);
     return rv_exc_none;
 }
 
 static rv_exc_t mie_set(rv_cpu_t* cpu, int csr, uint32_t target){
+    minimal_privilege(rv_mmode, cpu);
     return rv_exc_none;
 }
 
 static rv_exc_t mie_clear(rv_cpu_t* cpu, int csr, uint32_t target){
+    minimal_privilege(rv_mmode, cpu);
     return rv_exc_none;
 }
+
+
+static rv_exc_t mip_read(rv_cpu_t* cpu, int csr, uint32_t* target){
+    minimal_privilege(rv_mmode, cpu);
+    return rv_exc_none;
+}
+
+static rv_exc_t mip_write(rv_cpu_t* cpu, int csr, uint32_t target){
+    minimal_privilege(rv_mmode, cpu);
+    return rv_exc_none;
+}
+
+static rv_exc_t mip_set(rv_cpu_t* cpu, int csr, uint32_t target){
+    minimal_privilege(rv_mmode, cpu);
+    return rv_exc_none;
+}
+
+static rv_exc_t mip_clear(rv_cpu_t* cpu, int csr, uint32_t target){
+    minimal_privilege(rv_mmode, cpu);
+    return rv_exc_none;
+}
+
+
+
+
 
 static rv_exc_t mtvec_read(rv_cpu_t* cpu, int csr, uint32_t* target){
     return rv_exc_none;
@@ -814,22 +863,6 @@ static rv_exc_t mtval_set(rv_cpu_t* cpu, int csr, uint32_t target){
 }
 
 static rv_exc_t mtval_clear(rv_cpu_t* cpu, int csr, uint32_t target){
-    return rv_exc_none;
-}
-
-static rv_exc_t mip_read(rv_cpu_t* cpu, int csr, uint32_t* target){
-    return rv_exc_none;
-}
-
-static rv_exc_t mip_write(rv_cpu_t* cpu, int csr, uint32_t target){
-    return rv_exc_none;
-}
-
-static rv_exc_t mip_set(rv_cpu_t* cpu, int csr, uint32_t target){
-    return rv_exc_none;
-}
-
-static rv_exc_t mip_clear(rv_cpu_t* cpu, int csr, uint32_t target){
     return rv_exc_none;
 }
 

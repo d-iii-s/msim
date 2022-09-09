@@ -640,19 +640,9 @@ static rv_exc_t mhartid_read(rv_cpu_t* cpu, int csr, uint32_t* target){
 }
 
 static rv_exc_t mconfigptr_read(rv_cpu_t* cpu, int csr, uint32_t* target){
-    return rv_exc_illegal_instruction;
-}
-
-static rv_exc_t mconfigptr_write(rv_cpu_t* cpu, int csr, uint32_t target){
-    return rv_exc_illegal_instruction;
-}
-
-static rv_exc_t mconfigptr_set(rv_cpu_t* cpu, int csr, uint32_t target){
-    return rv_exc_illegal_instruction;
-}
-
-static rv_exc_t mconfigptr_clear(rv_cpu_t* cpu, int csr, uint32_t target){
-    return rv_exc_illegal_instruction;
+    minimal_privilege(rv_mmode, cpu);
+    *target = cpu->csr.mconfigptr;
+    return rv_exc_none;
 }
 
 static rv_exc_t mstatus_read(rv_cpu_t* cpu, int csr, uint32_t* target){
@@ -889,21 +879,7 @@ static rv_exc_t mcause_clear(rv_cpu_t* cpu, int csr, uint32_t target){
     return rv_exc_none;
 }
 
-static rv_exc_t mtval_read(rv_cpu_t* cpu, int csr, uint32_t* target){
-    return rv_exc_illegal_instruction;
-}
-
-static rv_exc_t mtval_write(rv_cpu_t* cpu, int csr, uint32_t target){
-    return rv_exc_illegal_instruction;
-}
-
-static rv_exc_t mtval_set(rv_cpu_t* cpu, int csr, uint32_t target){
-    return rv_exc_illegal_instruction;
-}
-
-static rv_exc_t mtval_clear(rv_cpu_t* cpu, int csr, uint32_t target){
-    return rv_exc_illegal_instruction;
-}
+default_csr_functions(mtval, rv_mmode)
 
 static rv_exc_t mtinst_read(rv_cpu_t* cpu, int csr, uint32_t* target){
     return rv_exc_illegal_instruction;
@@ -1567,9 +1543,9 @@ static csr_ops_t get_csr_ops(int csr){
     
         case csr_mconfigptr: {
             ops.read = mconfigptr_read;
-            ops.write = mconfigptr_write;
-            ops.set = mconfigptr_set;
-            ops.clear = mconfigptr_clear;
+            ops.write = invalid_write;
+            ops.set = invalid_write;
+            ops.clear = invalid_write;
             break;
         }
     

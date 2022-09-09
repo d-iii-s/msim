@@ -691,21 +691,27 @@ static rv_exc_t medeleg_clear(rv_cpu_t* cpu, int csr, uint32_t target){
 
 static rv_exc_t mideleg_read(rv_cpu_t* cpu, int csr, uint32_t* target){
     minimal_privilege(rv_mmode, cpu);
+    *target = cpu->csr.mideleg;
     return rv_exc_none;
 }
 
+
+// we allow only smode interrupts to be delegatable
 static rv_exc_t mideleg_write(rv_cpu_t* cpu, int csr, uint32_t target){
     minimal_privilege(rv_mmode, cpu);
+    cpu->csr.mideleg = target & si_mask;
     return rv_exc_none;
 }
 
 static rv_exc_t mideleg_set(rv_cpu_t* cpu, int csr, uint32_t target){
     minimal_privilege(rv_mmode, cpu);
+    cpu->csr.mideleg |= target & si_mask;
     return rv_exc_none;
 }
 
 static rv_exc_t mideleg_clear(rv_cpu_t* cpu, int csr, uint32_t target){
     minimal_privilege(rv_mmode, cpu);
+    cpu->csr.mideleg &= ~(target & si_mask);
     return rv_exc_none;
 }
 

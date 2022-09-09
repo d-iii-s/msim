@@ -717,24 +717,27 @@ static rv_exc_t mideleg_clear(rv_cpu_t* cpu, int csr, uint32_t target){
 
 static rv_exc_t mie_read(rv_cpu_t* cpu, int csr, uint32_t* target){
     minimal_privilege(rv_mmode, cpu);
+    *target = cpu->csr.mie;
     return rv_exc_none;
 }
 
 static rv_exc_t mie_write(rv_cpu_t* cpu, int csr, uint32_t target){
     minimal_privilege(rv_mmode, cpu);
+    cpu->csr.mie = target & mi_mask;
     return rv_exc_none;
 }
 
 static rv_exc_t mie_set(rv_cpu_t* cpu, int csr, uint32_t target){
     minimal_privilege(rv_mmode, cpu);
+    cpu->csr.mie |= target & mi_mask;
     return rv_exc_none;
 }
 
 static rv_exc_t mie_clear(rv_cpu_t* cpu, int csr, uint32_t target){
     minimal_privilege(rv_mmode, cpu);
+    cpu->csr.mie &= ~(target & mi_mask);
     return rv_exc_none;
 }
-
 
 static rv_exc_t mip_read(rv_cpu_t* cpu, int csr, uint32_t* target){
     minimal_privilege(rv_mmode, cpu);

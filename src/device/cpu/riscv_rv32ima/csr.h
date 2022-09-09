@@ -439,9 +439,9 @@ typedef struct {
 #define rv_csr_mstatus_tw_mask (1 << rv_csr_mstatus_tw_pos)
 #define rv_csr_mstatus_tvm_mask (1 << rv_csr_mstatus_tvm_pos)
 
-#define rv_csr_mstatus_tsr(cpu) (((cpu)->csr.mstatus & rv_csr_mstatus_tsr_mask) >> rv_csr_mstatus_tsr_pos)
-#define rv_csr_mstatus_tw(cpu) (((cpu)->csr.mstatus & rv_csr_mstatus_tw_mask) >> rv_csr_mstatus_tw_pos)
-#define rv_csr_mstatus_tvm(cpu) (((cpu)->csr.mstatus & rv_csr_mstatus_tvm_mask) >> rv_csr_mstatus_tvm_pos)
+#define rv_csr_mstatus_tsr(cpu) ((cpu)->csr.mstatus & rv_csr_mstatus_tsr_mask)
+#define rv_csr_mstatus_tw(cpu) ((cpu)->csr.mstatus & rv_csr_mstatus_tw_mask)
+#define rv_csr_mstatus_tvm(cpu) ((cpu)->csr.mstatus & rv_csr_mstatus_tvm_mask)
 
 #define rv_csr_is_read_only(csr) ((csr >> 30) == 0b11)
 

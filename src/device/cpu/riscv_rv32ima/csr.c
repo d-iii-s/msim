@@ -741,26 +741,30 @@ static rv_exc_t mie_clear(rv_cpu_t* cpu, int csr, uint32_t target){
 
 static rv_exc_t mip_read(rv_cpu_t* cpu, int csr, uint32_t* target){
     minimal_privilege(rv_mmode, cpu);
+    *target = cpu->csr.mip;
     return rv_exc_none;
 }
 
+// M-mode interrupts are not directly writable, but all S-mode interrupts are
+#define mip_mask si_mask
+
 static rv_exc_t mip_write(rv_cpu_t* cpu, int csr, uint32_t target){
     minimal_privilege(rv_mmode, cpu);
+    cpu->csr.mip = target & mip_mask;
     return rv_exc_none;
 }
 
 static rv_exc_t mip_set(rv_cpu_t* cpu, int csr, uint32_t target){
     minimal_privilege(rv_mmode, cpu);
+    cpu->csr.mip |= target & mip_mask;
     return rv_exc_none;
 }
 
 static rv_exc_t mip_clear(rv_cpu_t* cpu, int csr, uint32_t target){
     minimal_privilege(rv_mmode, cpu);
+    cpu->csr.mip &= ~(target & mip_mask);
     return rv_exc_none;
 }
-
-
-
 
 
 static rv_exc_t mtvec_read(rv_cpu_t* cpu, int csr, uint32_t* target){

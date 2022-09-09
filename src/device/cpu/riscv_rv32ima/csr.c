@@ -653,31 +653,42 @@ static rv_exc_t mconfigptr_read(rv_cpu_t* cpu, int csr, uint32_t* target){
 
 static rv_exc_t mstatus_read(rv_cpu_t* cpu, int csr, uint32_t* target){
     minimal_privilege(rv_mmode, cpu);
+    *target = (uint32_t)cpu->csr.mstatus;
     return rv_exc_none;
 }
 
 static rv_exc_t mstatus_set(rv_cpu_t* cpu, int csr, uint32_t target){
     minimal_privilege(rv_mmode, cpu);
+    if((target & ~rv_csr_mstatus_mask) != 0) return rv_exc_illegal_instruction;
+    cpu->csr.mstatus |= (uint64_t)target;
     return rv_exc_none;
 }
 
 static rv_exc_t mstatus_clear(rv_cpu_t* cpu, int csr, uint32_t target){
     minimal_privilege(rv_mmode, cpu);
+    if((target & ~rv_csr_mstatus_mask) != 0) return rv_exc_illegal_instruction;
+    cpu->csr.mstatus &= ~((uint64_t)target);
     return rv_exc_none;
 }
 
+// Since MBE and SBE are both R/O zero and other bits re WPRI, whole mstatush is R/O zero
 static rv_exc_t mstatush_read(rv_cpu_t* cpu, int csr, uint32_t* target){
-    return rv_exc_illegal_instruction;
+    minimal_privilege(rv_mmode, cpu);
+    *target = (uint32_t)cpu->csr.mstatus >> 32;
+    return rv_exc_none;
 }
 
 static rv_exc_t mstatush_set(rv_cpu_t* cpu, int csr, uint32_t target){
-    return rv_exc_illegal_instruction;
+    minimal_privilege(rv_mmode, cpu);
+    if(target != 0) return rv_exc_illegal_instruction;
+    return rv_exc_none;
 }
 
 static rv_exc_t mstatush_clear(rv_cpu_t* cpu, int csr, uint32_t target){
-    return rv_exc_illegal_instruction;
+    minimal_privilege(rv_mmode, cpu);
+    if(target != 0) return rv_exc_illegal_instruction;
+    return rv_exc_none;
 }
-
 
 static rv_exc_t misa_read(rv_cpu_t* cpu, int csr, uint32_t* target){
     minimal_privilege(rv_mmode, cpu);

@@ -580,7 +580,39 @@ static rv_exc_t scause_clear(rv_cpu_t* cpu, int csr, uint32_t target){
 }
 
 default_csr_functions(stval, rv_smode)
-default_csr_functions(satp, rv_smode)
+
+static rv_exc_t satp_read(rv_cpu_t* cpu, int csr, uint32_t* target){
+    minimal_privilege(rv_smode, cpu);
+    if(rv_csr_mstatus_tvm(cpu)) return rv_exc_illegal_instruction;
+
+    *target = cpu->csr.satp;
+    return rv_exc_none;
+}
+
+static rv_exc_t satp_write(rv_cpu_t* cpu, int csr, uint32_t target){
+    minimal_privilege(rv_smode, cpu);
+    if(rv_csr_mstatus_tvm(cpu)) return rv_exc_illegal_instruction;
+
+    cpu->csr.satp = target;
+    return rv_exc_none;
+}
+
+static rv_exc_t satp_set(rv_cpu_t* cpu, int csr, uint32_t target){
+    minimal_privilege(rv_smode, cpu);
+    if(rv_csr_mstatus_tvm(cpu)) return rv_exc_illegal_instruction;
+
+    cpu->csr.satp |= target;
+    return rv_exc_none;
+}
+
+static rv_exc_t satp_clear(rv_cpu_t* cpu, int csr, uint32_t target){
+    minimal_privilege(rv_smode, cpu);
+    if(rv_csr_mstatus_tvm(cpu)) return rv_exc_illegal_instruction;
+
+    cpu->csr.satp &= target;
+    return rv_exc_none;
+}
+
 default_csr_functions(scontext, rv_smode)
 
 static rv_exc_t mvendorid_read(rv_cpu_t* cpu, int csr, uint32_t* target){
@@ -766,20 +798,29 @@ static rv_exc_t mip_clear(rv_cpu_t* cpu, int csr, uint32_t target){
     return rv_exc_none;
 }
 
+#define mtvec_mask (~UINT32_C(2))
 
 static rv_exc_t mtvec_read(rv_cpu_t* cpu, int csr, uint32_t* target){
+    minimal_privilege(rv_mmode, cpu);
+    *target = cpu->csr.mtvec;
     return rv_exc_none;
 }
 
 static rv_exc_t mtvec_write(rv_cpu_t* cpu, int csr, uint32_t target){
+    minimal_privilege(rv_mmode, cpu);
+    cpu->csr.mtvec = target & mtvec_mask;
     return rv_exc_none;
 }
 
 static rv_exc_t mtvec_set(rv_cpu_t* cpu, int csr, uint32_t target){
+    minimal_privilege(rv_mmode, cpu);
+    cpu->csr.mtvec |= target & mtvec_mask;
     return rv_exc_none;
 }
 
 static rv_exc_t mtvec_clear(rv_cpu_t* cpu, int csr, uint32_t target){
+    minimal_privilege(rv_mmode, cpu);
+    cpu->csr.mtvec &= ~(target & mtvec_mask);
     return rv_exc_none;
 }
 

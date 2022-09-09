@@ -913,40 +913,53 @@ static rv_exc_t mtval2_clear(rv_cpu_t* cpu, int csr, uint32_t target){
     return rv_exc_illegal_instruction;
 }
 
-static rv_exc_t menvcfg_read(rv_cpu_t* cpu, int csr, uint32_t* target){
-    return rv_exc_illegal_instruction;
-}
+#define menvcfg_fiom_mask UINT32_C(1)
 
-static rv_exc_t menvcfg_write(rv_cpu_t* cpu, int csr, uint32_t target){
-    return rv_exc_illegal_instruction;
+static rv_exc_t menvcfg_read(rv_cpu_t* cpu, int csr, uint32_t* target){
+    minimal_privilege(rv_mmode, cpu);
+    *target = (uint32_t)cpu->csr.menvcfg;
+    return rv_exc_none;
 }
 
 static rv_exc_t menvcfg_set(rv_cpu_t* cpu, int csr, uint32_t target){
-    return rv_exc_illegal_instruction;
+    minimal_privilege(rv_mmode, cpu);
+    // Writing to unwritable fields
+    if((target & ~menvcfg_fiom_mask) != 0) return rv_exc_illegal_instruction;
+
+    cpu->csr.menvcfg |= (uint64_t)target;
+    return rv_exc_none;
 }
 
 static rv_exc_t menvcfg_clear(rv_cpu_t* cpu, int csr, uint32_t target){
-    return rv_exc_illegal_instruction;
+    minimal_privilege(rv_mmode, cpu);
+    // Writing to unwritable fields
+    if((target & ~menvcfg_fiom_mask) != 0) return rv_exc_illegal_instruction;
+
+    cpu->csr.menvcfg &= ~((uint64_t)target);
+    return rv_exc_none;
 }
 
 static rv_exc_t mevncfgh_read(rv_cpu_t* cpu, int csr, uint32_t* target){
-    return rv_exc_illegal_instruction;
-}
-
-static rv_exc_t mevncfgh_write(rv_cpu_t* cpu, int csr, uint32_t target){
-    return rv_exc_illegal_instruction;
+    minimal_privilege(rv_mmode, cpu);
+    *target = cpu->csr.menvcfg >> 32;
+    return rv_exc_none;
 }
 
 static rv_exc_t mevncfgh_set(rv_cpu_t* cpu, int csr, uint32_t target){
-    return rv_exc_illegal_instruction;
+    minimal_privilege(rv_mmode, cpu);
+    // no bits are writable in menvcfgh on RV32I
+    if(target != 0) return rv_exc_illegal_instruction;
+    return rv_exc_none;
 }
 
 static rv_exc_t mevncfgh_clear(rv_cpu_t* cpu, int csr, uint32_t target){
-    return rv_exc_illegal_instruction;
+    minimal_privilege(rv_mmode, cpu);
+    if(target != 0) return rv_exc_illegal_instruction;
+    return rv_exc_none;
 }
 
 static rv_exc_t mseccfg_read(rv_cpu_t* cpu, int csr, uint32_t* target){
-    return rv_exc_illegal_instruction;
+    return rv_exc_none;
 }
 
 static rv_exc_t mseccfg_write(rv_cpu_t* cpu, int csr, uint32_t target){
@@ -1671,7 +1684,7 @@ static csr_ops_t get_csr_ops(int csr){
     
         case csr_menvcfg: {
             ops.read = menvcfg_read;
-            ops.write = menvcfg_write;
+            ops.write = invalid_write;
             ops.set = menvcfg_set;
             ops.clear = menvcfg_clear;
             break;
@@ -1679,7 +1692,7 @@ static csr_ops_t get_csr_ops(int csr){
     
         case csr_mevncfgh: {
             ops.read = mevncfgh_read;
-            ops.write = mevncfgh_write;
+            ops.write = invalid_write;
             ops.set = mevncfgh_set;
             ops.clear = mevncfgh_clear;
             break;

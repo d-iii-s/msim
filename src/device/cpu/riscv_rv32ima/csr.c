@@ -847,18 +847,45 @@ default_csr_functions(mepc, rv_mmode)
 
 static rv_exc_t mcause_read(rv_cpu_t* cpu, int csr, uint32_t* target){
     minimal_privilege(rv_mmode, cpu);
+    *target = cpu->csr.mcause;
     return rv_exc_none;
 }
 
 static rv_exc_t mcause_write(rv_cpu_t* cpu, int csr, uint32_t target){
+    minimal_privilege(rv_mmode, cpu);
+    if(is_exception(target)){
+        cpu->csr.mcause = target;
+    }
+    else {
+        return rv_exc_illegal_instruction;
+    }
     return rv_exc_none;
 }
 
 static rv_exc_t mcause_set(rv_cpu_t* cpu, int csr, uint32_t target){
+    minimal_privilege(rv_mmode, cpu);
+
+    uint32_t val = cpu->csr.mcause | target;
+
+    if(is_exception(val)){
+        cpu->csr.mcause = val;
+    }
+    else {
+        return rv_exc_illegal_instruction;
+    }
     return rv_exc_none;
 }
 
 static rv_exc_t mcause_clear(rv_cpu_t* cpu, int csr, uint32_t target){
+    minimal_privilege(rv_mmode, cpu);
+    uint32_t val = cpu->csr.mcause & ~target;
+
+    if(is_exception(val)){
+        cpu->csr.mcause = val;
+    }
+    else {
+        return rv_exc_illegal_instruction;
+    }
     return rv_exc_none;
 }
 

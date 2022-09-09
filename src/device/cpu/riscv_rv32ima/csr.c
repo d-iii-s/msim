@@ -824,21 +824,7 @@ static rv_exc_t mtvec_clear(rv_cpu_t* cpu, int csr, uint32_t target){
     return rv_exc_none;
 }
 
-static rv_exc_t mcounteren_read(rv_cpu_t* cpu, int csr, uint32_t* target){
-    return rv_exc_none;
-}
-
-static rv_exc_t mcounteren_write(rv_cpu_t* cpu, int csr, uint32_t target){
-    return rv_exc_none;
-}
-
-static rv_exc_t mcounteren_set(rv_cpu_t* cpu, int csr, uint32_t target){
-    return rv_exc_none;
-}
-
-static rv_exc_t mcounteren_clear(rv_cpu_t* cpu, int csr, uint32_t target){
-    return rv_exc_none;
-}
+default_csr_functions(mcounteren, rv_mmode)
 
 static rv_exc_t mstatush_read(rv_cpu_t* cpu, int csr, uint32_t* target){
     return rv_exc_none;

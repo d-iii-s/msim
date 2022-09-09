@@ -438,6 +438,9 @@ typedef struct {
 #define rv_csr_mstatus_mpie_mask (UINT32_C(1) << 7)
 #define rv_csr_mstatus_mie_mask (UINT32_C(1) << 3)
 
+#define rv_csr_mstatush_sbe_mask (UINT32_C(1) << 4)
+#define rv_csr_mstatush_mbe_mask (UINT32_C(1) << 5)
+
 #define rv_csr_mstatus_tsr(cpu) ((cpu)->csr.mstatus & rv_csr_mstatus_tsr_mask)
 #define rv_csr_mstatus_tw(cpu) ((cpu)->csr.mstatus & rv_csr_mstatus_tw_mask)
 #define rv_csr_mstatus_tvm(cpu) ((cpu)->csr.mstatus & rv_csr_mstatus_tvm_mask)
@@ -448,7 +451,9 @@ typedef struct {
 #define rv_csr_sstatus_ube_mask (UINT32_C(1)<<6)
 #define rv_csr_sstatus_spie_mask (UINT32_C(1)<<5)
 #define rv_csr_sstatus_sie_mask (UINT32_C(1)<<1)
-#define rv_csr_sstatus_mask (rv_csr_sstatus_mxr_mask | rv_csr_sstatus_sum_mask | rv_csr_sstatus_spp_mask | rv_csr_sstatus_ube_mask | rv_csr_sstatus_spie_mask | rv_csr_sstatus_sie_mask)
+// Doesn't include UBE, because msim is strictly Little Endian
+#define rv_csr_sstatus_mask (rv_csr_sstatus_mxr_mask | rv_csr_sstatus_sum_mask | rv_csr_sstatus_spp_mask | rv_csr_sstatus_spie_mask | rv_csr_sstatus_sie_mask)
+#define rv_csr_mstatus_mask (rv_csr_sstatus_mask | rv_csr_mstatus_tsr_mask | rv_csr_mstatus_tw_mask | rv_csr_mstatus_tvm_mask | rv_csr_mstatus_mprv_mask | rv_csr_mstatus_mpp_mask | rv_csr_mstatus_mpie_mask | rv_csr_mstatus_mie_mask)
 
 #define rv_csr_is_read_only(csr) ((csr >> 30) == 0b11)
 

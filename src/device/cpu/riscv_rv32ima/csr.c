@@ -340,24 +340,16 @@ static rv_exc_t pmpaddr_clear(rv_cpu_t* cpu, int csr, uint32_t target){
     return rv_exc_illegal_instruction;
 }
 
-#define sstatus_mxr_mask (UINT32_C(1)<<19)
-#define sstatus_sum_mask (UINT32_C(1)<<18)
-#define sstatus_spp_mask (UINT32_C(1)<<8)
-#define sstatus_ube_mask (UINT32_C(1)<<6)
-#define sstatus_spie_mask (UINT32_C(1)<<5)
-#define sstatus_sie_mask (UINT32_C(1)<<1)
-#define sstatus_mask (sstatus_mxr_mask | sstatus_sum_mask | sstatus_spp_mask | sstatus_ube_mask | sstatus_spie_mask | sstatus_sie_mask)
-
 static rv_exc_t sstatus_read(rv_cpu_t* cpu, int csr, uint32_t* target){
     minimal_privilege(rv_smode, cpu);
-    *target = cpu->csr.mstatus & sstatus_mask;
+    *target = cpu->csr.mstatus & rv_csr_sstatus_mask;
     return rv_exc_none;
 }
 
 static rv_exc_t sstatus_set(rv_cpu_t* cpu, int csr, uint32_t target){
     minimal_privilege(rv_smode, cpu);
     // setting different bits is prohibited!
-    if((target & ~sstatus_mask) != 0) return rv_exc_illegal_instruction;
+    if((target & ~rv_csr_sstatus_mask) != 0) return rv_exc_illegal_instruction;
     cpu->csr.mstatus |= target;
     return rv_exc_none;
 }
@@ -365,7 +357,7 @@ static rv_exc_t sstatus_set(rv_cpu_t* cpu, int csr, uint32_t target){
 static rv_exc_t sstatus_clear(rv_cpu_t* cpu, int csr, uint32_t target){
     minimal_privilege(rv_smode, cpu);
     // clearing different bits is prohibited!
-    if((target & ~sstatus_mask) != 0) return rv_exc_illegal_instruction;
+    if((target & ~rv_csr_sstatus_mask) != 0) return rv_exc_illegal_instruction;
     cpu->csr.mstatus &= ~target;
     return rv_exc_none;
 }
@@ -657,21 +649,35 @@ static rv_exc_t mconfigptr_read(rv_cpu_t* cpu, int csr, uint32_t* target){
     return rv_exc_none;
 }
 
-static rv_exc_t mstatus_read(rv_cpu_t* cpu, int csr, uint32_t* target){
-    return rv_exc_illegal_instruction;
-}
 
-static rv_exc_t mstatus_write(rv_cpu_t* cpu, int csr, uint32_t target){
-    return rv_exc_illegal_instruction;
+
+static rv_exc_t mstatus_read(rv_cpu_t* cpu, int csr, uint32_t* target){
+    minimal_privilege(rv_mmode, cpu);
+    return rv_exc_none;
 }
 
 static rv_exc_t mstatus_set(rv_cpu_t* cpu, int csr, uint32_t target){
-    return rv_exc_illegal_instruction;
+    minimal_privilege(rv_mmode, cpu);
+    return rv_exc_none;
 }
 
 static rv_exc_t mstatus_clear(rv_cpu_t* cpu, int csr, uint32_t target){
+    minimal_privilege(rv_mmode, cpu);
+    return rv_exc_none;
+}
+
+static rv_exc_t mstatush_read(rv_cpu_t* cpu, int csr, uint32_t* target){
     return rv_exc_illegal_instruction;
 }
+
+static rv_exc_t mstatush_set(rv_cpu_t* cpu, int csr, uint32_t target){
+    return rv_exc_illegal_instruction;
+}
+
+static rv_exc_t mstatush_clear(rv_cpu_t* cpu, int csr, uint32_t target){
+    return rv_exc_illegal_instruction;
+}
+
 
 static rv_exc_t misa_read(rv_cpu_t* cpu, int csr, uint32_t* target){
     minimal_privilege(rv_mmode, cpu);
@@ -828,21 +834,6 @@ static rv_exc_t mtvec_clear(rv_cpu_t* cpu, int csr, uint32_t target){
 
 default_csr_functions(mcounteren, rv_mmode)
 
-static rv_exc_t mstatush_read(rv_cpu_t* cpu, int csr, uint32_t* target){
-    return rv_exc_illegal_instruction;
-}
-
-static rv_exc_t mstatush_write(rv_cpu_t* cpu, int csr, uint32_t target){
-    return rv_exc_illegal_instruction;
-}
-
-static rv_exc_t mstatush_set(rv_cpu_t* cpu, int csr, uint32_t target){
-    return rv_exc_illegal_instruction;
-}
-
-static rv_exc_t mstatush_clear(rv_cpu_t* cpu, int csr, uint32_t target){
-    return rv_exc_illegal_instruction;
-}
 
 default_csr_functions(mscratch, rv_mmode)
 default_csr_functions(mepc, rv_mmode)
@@ -1581,7 +1572,7 @@ static csr_ops_t get_csr_ops(int csr){
     
         case csr_mstatus: {
             ops.read = mstatus_read;
-            ops.write = mstatus_write;
+            ops.write = invalid_write;
             ops.set = mstatus_set;
             ops.clear = mstatus_clear;
             break;
@@ -1637,7 +1628,7 @@ static csr_ops_t get_csr_ops(int csr){
     
         case csr_mstatush: {
             ops.read = mstatush_read;
-            ops.write = mstatush_write;
+            ops.write = invalid_write;
             ops.set = mstatush_set;
             ops.clear = mstatush_clear;
             break;

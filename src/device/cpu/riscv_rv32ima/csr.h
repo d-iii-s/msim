@@ -430,17 +430,22 @@ typedef struct {
 
 } csr_t;
 
-#define rv_csr_mstatus_tsr_pos 22
-#define rv_csr_mstatus_tw_pos 21
-#define rv_csr_mstatus_tvm_pos 20
-
-#define rv_csr_mstatus_tsr_mask (1 << rv_csr_mstatus_tsr_pos)
-#define rv_csr_mstatus_tw_mask (1 << rv_csr_mstatus_tw_pos)
-#define rv_csr_mstatus_tvm_mask (1 << rv_csr_mstatus_tvm_pos)
+#define rv_csr_mstatus_tsr_mask (UINT32_C(1) << 22)
+#define rv_csr_mstatus_tw_mask (UINT32_C(1) << 21)
+#define rv_csr_mstatus_tvm_mask (UINT32_C(1) << 20)
 
 #define rv_csr_mstatus_tsr(cpu) ((cpu)->csr.mstatus & rv_csr_mstatus_tsr_mask)
 #define rv_csr_mstatus_tw(cpu) ((cpu)->csr.mstatus & rv_csr_mstatus_tw_mask)
 #define rv_csr_mstatus_tvm(cpu) ((cpu)->csr.mstatus & rv_csr_mstatus_tvm_mask)
+
+#define rv_csr_sstatus_mxr_mask (UINT32_C(1)<<19)
+#define rv_csr_sstatus_sum_mask (UINT32_C(1)<<18)
+#define rv_csr_sstatus_spp_mask (UINT32_C(1)<<8)
+#define rv_csr_sstatus_ube_mask (UINT32_C(1)<<6)
+#define rv_csr_sstatus_spie_mask (UINT32_C(1)<<5)
+#define rv_csr_sstatus_sie_mask (UINT32_C(1)<<1)
+#define rv_csr_sstatus_mask (rv_csr_sstatus_mxr_mask | rv_csr_sstatus_sum_mask | rv_csr_sstatus_spp_mask | rv_csr_sstatus_ube_mask | rv_csr_sstatus_spie_mask | rv_csr_sstatus_sie_mask)
+
 
 #define rv_csr_is_read_only(csr) ((csr >> 30) == 0b11)
 

@@ -958,36 +958,41 @@ static rv_exc_t mevncfgh_clear(rv_cpu_t* cpu, int csr, uint32_t target){
     return rv_exc_none;
 }
 
+// mseccfg(h) do nothing as of now, so they are read-only 0
 static rv_exc_t mseccfg_read(rv_cpu_t* cpu, int csr, uint32_t* target){
+    minimal_privilege(rv_mmode, cpu);
+    *target = 0;
     return rv_exc_none;
 }
 
-static rv_exc_t mseccfg_write(rv_cpu_t* cpu, int csr, uint32_t target){
-    return rv_exc_illegal_instruction;
-}
-
 static rv_exc_t mseccfg_set(rv_cpu_t* cpu, int csr, uint32_t target){
-    return rv_exc_illegal_instruction;
+    minimal_privilege(rv_mmode, cpu);
+    if(target != 0) return rv_exc_illegal_instruction;
+    return rv_exc_none;
 }
 
 static rv_exc_t mseccfg_clear(rv_cpu_t* cpu, int csr, uint32_t target){
-    return rv_exc_illegal_instruction;
+    minimal_privilege(rv_mmode, cpu);
+    if(target != 0) return rv_exc_illegal_instruction;
+    return rv_exc_none;
 }
 
 static rv_exc_t mseccfgh_read(rv_cpu_t* cpu, int csr, uint32_t* target){
-    return rv_exc_illegal_instruction;
-}
-
-static rv_exc_t mseccfgh_write(rv_cpu_t* cpu, int csr, uint32_t target){
-    return rv_exc_illegal_instruction;
+    minimal_privilege(rv_mmode, cpu);
+    *target = 0;
+    return rv_exc_none;
 }
 
 static rv_exc_t mseccfgh_set(rv_cpu_t* cpu, int csr, uint32_t target){
-    return rv_exc_illegal_instruction;
+    minimal_privilege(rv_mmode, cpu);
+    if(target != 0) return rv_exc_illegal_instruction;
+    return rv_exc_none;
 }
 
 static rv_exc_t mseccfgh_clear(rv_cpu_t* cpu, int csr, uint32_t target){
-    return rv_exc_illegal_instruction;
+    minimal_privilege(rv_mmode, cpu);
+    if(target != 0) return rv_exc_illegal_instruction;
+    return rv_exc_none;
 }
 
 static rv_exc_t tselect_read(rv_cpu_t* cpu, int csr, uint32_t* target){
@@ -1700,7 +1705,7 @@ static csr_ops_t get_csr_ops(int csr){
     
         case csr_mseccfg: {
             ops.read = mseccfg_read;
-            ops.write = mseccfg_write;
+            ops.write = invalid_write;
             ops.set = mseccfg_set;
             ops.clear = mseccfg_clear;
             break;
@@ -1708,7 +1713,7 @@ static csr_ops_t get_csr_ops(int csr){
     
         case csr_mseccfgh: {
             ops.read = mseccfgh_read;
-            ops.write = mseccfgh_write;
+            ops.write = invalid_write;
             ops.set = mseccfgh_set;
             ops.clear = mseccfgh_clear;
             break;

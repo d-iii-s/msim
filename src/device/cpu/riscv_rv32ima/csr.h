@@ -399,7 +399,6 @@ typedef struct {
 
     /* configs */
     uint64_t menvcfg;
-    uint32_t mseccfg;
 
     /* physical memory protection */
     // TODO: does this make any sense in msim?

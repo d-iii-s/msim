@@ -340,22 +340,34 @@ static rv_exc_t pmpaddr_clear(rv_cpu_t* cpu, int csr, uint32_t target){
     return rv_exc_illegal_instruction;
 }
 
-// TODO
+#define sstatus_mxr_mask (UINT32_C(1)<<19)
+#define sstatus_sum_mask (UINT32_C(1)<<18)
+#define sstatus_spp_mask (UINT32_C(1)<<8)
+#define sstatus_ube_mask (UINT32_C(1)<<6)
+#define sstatus_spie_mask (UINT32_C(1)<<5)
+#define sstatus_sie_mask (UINT32_C(1)<<1)
+#define sstatus_mask (sstatus_mxr_mask | sstatus_sum_mask | sstatus_spp_mask | sstatus_ube_mask | sstatus_spie_mask | sstatus_sie_mask)
 
 static rv_exc_t sstatus_read(rv_cpu_t* cpu, int csr, uint32_t* target){
-    return rv_exc_illegal_instruction;
-}
-
-static rv_exc_t sstatus_write(rv_cpu_t* cpu, int csr, uint32_t target){
-    return rv_exc_illegal_instruction;
+    minimal_privilege(rv_smode, cpu);
+    *target = cpu->csr.mstatus & sstatus_mask;
+    return rv_exc_none;
 }
 
 static rv_exc_t sstatus_set(rv_cpu_t* cpu, int csr, uint32_t target){
-    return rv_exc_illegal_instruction;
+    minimal_privilege(rv_smode, cpu);
+    // setting different bits is prohibited!
+    if((target & ~sstatus_mask) != 0) return rv_exc_illegal_instruction;
+    cpu->csr.mstatus |= target;
+    return rv_exc_none;
 }
 
 static rv_exc_t sstatus_clear(rv_cpu_t* cpu, int csr, uint32_t target){
-    return rv_exc_illegal_instruction;
+    minimal_privilege(rv_smode, cpu);
+    // clearing different bits is prohibited!
+    if((target & ~sstatus_mask) != 0) return rv_exc_illegal_instruction;
+    cpu->csr.mstatus &= ~target;
+    return rv_exc_none;
 }
 
 #define sei_mask (1U << 9)
@@ -1433,7 +1445,7 @@ static csr_ops_t get_csr_ops(int csr){
 
         case csr_sstatus: {
             ops.read = sstatus_read;
-            ops.write = sstatus_write;
+            ops.write = invalid_write;
             ops.set = sstatus_set;
             ops.clear = sstatus_clear;
             break;

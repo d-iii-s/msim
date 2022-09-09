@@ -68,9 +68,10 @@ typedef enum rv_exc {
 
 // Privilege modes
 typedef enum rv_priv_mode {
-	rv_umode,
-	rv_smode,
-	rv_mmode
+	rv_umode = 0b00,
+	rv_smode = 0b01,
+	rv_hmode = 0b10, // not supported in msim
+	rv_mmode = 0b11
 } rv_priv_mode_t;
 
 

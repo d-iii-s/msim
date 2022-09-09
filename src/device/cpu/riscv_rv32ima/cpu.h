@@ -23,6 +23,7 @@
 
 #define RV_INTERRUPT_EXC_BITS UINT32_C(0x80000000)
 #define RV_EXCEPTION_EXC_BITS UINT32_C(0)
+#define RV_EXCEPTION_MASK(exc) (1U << (exc & ~RV_INTERRUPT_EXC_BITS))
 
 typedef enum rv_exc {
 	rv_exc_supervisor_software_interrupt = RV_INTERRUPT_EXC_BITS | 1,
@@ -47,6 +48,23 @@ typedef enum rv_exc {
 	rv_exc_store_amo_page_fault = RV_EXCEPTION_EXC_BITS | 15,
 	rv_exc_none = RV_EXCEPTION_EXC_BITS | 24
 } rv_exc_t;
+
+#define RV_EXCEPTIONS_MASK (									\
+	RV_EXCEPTION_MASK(rv_exc_instruction_address_misaligned) |	\
+	RV_EXCEPTION_MASK(rv_exc_instruction_access_fault) |		\
+	RV_EXCEPTION_MASK(rv_exc_illegal_instruction) |				\
+	RV_EXCEPTION_MASK(rv_exc_breakpoint) |						\
+	RV_EXCEPTION_MASK(rv_exc_load_address_misaligned) |			\
+	RV_EXCEPTION_MASK(rv_exc_load_access_fault) |				\
+	RV_EXCEPTION_MASK(rv_exc_store_amo_address_misaligned) |	\
+	RV_EXCEPTION_MASK(rv_exc_store_amo_access_fault) |			\
+	RV_EXCEPTION_MASK(rv_exc_umode_environment_call) |			\
+	RV_EXCEPTION_MASK(rv_exc_smode_environment_call) |			\
+	RV_EXCEPTION_MASK(rv_exc_mmode_environment_call) |			\
+	RV_EXCEPTION_MASK(rv_exc_instruction_page_fault) |			\
+	RV_EXCEPTION_MASK(rv_exc_load_page_fault) |					\
+	RV_EXCEPTION_MASK(rv_exc_store_amo_page_fault)				\
+)
 
 // Privilege modes
 typedef enum rv_priv_mode {

@@ -20,6 +20,8 @@
 #define RV_64_MXLEN_BITS UINT32_C(0x80000000)
 #define RV_128_MXLEN_BITS UINT32_C(0xC0000000)
 
+#define RV_32_XLEN_2_BITS 0b01
+
 #define RV_ISA  RV_32_MXLEN_BITS | RV_I_EXTENSION_BITS | RV_M_EXTENSION_BITS | RV_A_EXTENSION_BITS | RV_U_IMPLEMENTED_BITS | RV_S_IMPLEMENTED_BITS
 
 
@@ -660,13 +662,30 @@ static rv_exc_t mstatus_read(rv_cpu_t* cpu, int csr, uint32_t* target){
 static rv_exc_t mstatus_set(rv_cpu_t* cpu, int csr, uint32_t target){
     minimal_privilege(rv_mmode, cpu);
     if((target & ~rv_csr_mstatus_mask) != 0) return rv_exc_illegal_instruction;
+    
+    uint64_t val = (uint64_t)target | cpu->csr.mstatus;
+
+    // if the new mpp mode would be hmode, don't modify the mpp
+    if(((val & rv_csr_mstatus_mpp_mask) >> 11) == rv_hmode){
+        target &= ~rv_csr_mstatus_mpp_mask;
+    }
+
     cpu->csr.mstatus |= (uint64_t)target;
+
     return rv_exc_none;
 }
 
 static rv_exc_t mstatus_clear(rv_cpu_t* cpu, int csr, uint32_t target){
     minimal_privilege(rv_mmode, cpu);
     if((target & ~rv_csr_mstatus_mask) != 0) return rv_exc_illegal_instruction;
+
+    uint64_t val = ~(uint64_t)target & cpu->csr.mstatus;
+
+    // if the new mpp mode would be hmode, don't modify the mpp
+    if(((val & rv_csr_mstatus_mpp_mask) >> 11) == rv_hmode){
+        target &= ~rv_csr_mstatus_mpp_mask;
+    }
+
     cpu->csr.mstatus &= ~((uint64_t)target);
     return rv_exc_none;
 }
@@ -674,7 +693,7 @@ static rv_exc_t mstatus_clear(rv_cpu_t* cpu, int csr, uint32_t target){
 // Since MBE and SBE are both R/O zero and other bits re WPRI, whole mstatush is R/O zero
 static rv_exc_t mstatush_read(rv_cpu_t* cpu, int csr, uint32_t* target){
     minimal_privilege(rv_mmode, cpu);
-    *target = (uint32_t)cpu->csr.mstatus >> 32;
+    *target = (uint32_t)(cpu->csr.mstatus >> 32);
     return rv_exc_none;
 }
 
@@ -1864,14 +1883,5 @@ rv_exc_t rv_csr_rc(rv_cpu_t* cpu, int csr, uint32_t value, uint32_t* read_target
 }
 
 rv_priv_mode_t rv_csr_min_priv_mode(int csr) {
-    int priv_num = ((csr >> 28) && 0b11);
-    switch(priv_num){
-        case 0b11:
-            return rv_mmode;
-        case 0b01:
-            return rv_smode;
-        case 0b00:
-            return rv_umode;
-    }
-    return (rv_priv_mode_t)-1;
+    return (rv_priv_mode_t)((csr >> 28) && 0b11);
 }

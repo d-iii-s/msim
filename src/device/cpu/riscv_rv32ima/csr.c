@@ -842,21 +842,7 @@ static rv_exc_t mstatush_clear(rv_cpu_t* cpu, int csr, uint32_t target){
     return rv_exc_none;
 }
 
-static rv_exc_t mscratch_read(rv_cpu_t* cpu, int csr, uint32_t* target){
-    return rv_exc_none;
-}
-
-static rv_exc_t mscratch_write(rv_cpu_t* cpu, int csr, uint32_t target){
-    return rv_exc_none;
-}
-
-static rv_exc_t mscratch_set(rv_cpu_t* cpu, int csr, uint32_t target){
-    return rv_exc_none;
-}
-
-static rv_exc_t mscratch_clear(rv_cpu_t* cpu, int csr, uint32_t target){
-    return rv_exc_none;
-}
+default_csr_functions(mscratch, rv_mmode)
 
 static rv_exc_t mepc_read(rv_cpu_t* cpu, int csr, uint32_t* target){
     return rv_exc_none;

@@ -267,18 +267,44 @@ static rv_exc_t mcountinhibit_clear(rv_cpu_t* cpu, int csr, uint32_t target){
 }
 
 static rv_exc_t mhmpevent_read(rv_cpu_t* cpu, int csr, uint32_t* target){
+    minimal_privilege(rv_mmode, cpu);
+    int event = (csr & 0x1F) - 3;
+    *target = cpu->csr.hpmevents[event];
     return rv_exc_none;
 }
 
 static rv_exc_t mhmpevent_write(rv_cpu_t* cpu, int csr, uint32_t target){
+    minimal_privilege(rv_mmode, cpu);
+    int event = (csr & 0x1F) - 3;
+
+    if (target < hpm_event_count){
+        cpu->csr.hpmevents[event] = target;
+    }
     return rv_exc_none;
 }
 
 static rv_exc_t mhmpevent_set(rv_cpu_t* cpu, int csr, uint32_t target){
+    minimal_privilege(rv_mmode, cpu);
+    int event = (csr & 0x1F) - 3;
+
+    int val = cpu->csr.hpmevents[event] | target;
+
+    if (val < hpm_event_count){
+        cpu->csr.hpmevents[event] = val;
+    }
     return rv_exc_none;
 }
 
 static rv_exc_t mhmpevent_clear(rv_cpu_t* cpu, int csr, uint32_t target){
+    minimal_privilege(rv_mmode, cpu);
+    int event = (csr & 0x1F) - 3;
+
+    int val = cpu->csr.hpmevents[event] & ~target;
+
+    if (val < hpm_event_count){
+        cpu->csr.hpmevents[event] = val;
+    }
+    
     return rv_exc_none;
 }
 

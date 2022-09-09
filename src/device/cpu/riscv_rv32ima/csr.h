@@ -347,14 +347,15 @@ typedef enum {
 
 
 typedef enum {
-    no_event,
-    u_cycles,
-    s_cycles,
-    h_cycles, // reserved
-    m_cycles,
-    w_cycles
+    hpm_o_event,
+    hpm_u_cycles,
+    hpm_s_cycles,
+    hpm_h_cycles, // reserved
+    hpm_m_cycles,
+    hpm_w_cycles,
     // rest TBA
-} csr_event_t;
+	hpm_event_count
+} csr_hpm_event_t;
 
 // TODO: mtime and mtimecmp
 

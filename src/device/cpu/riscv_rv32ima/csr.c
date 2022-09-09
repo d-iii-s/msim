@@ -304,7 +304,7 @@ static rv_exc_t mhmpevent_clear(rv_cpu_t* cpu, int csr, uint32_t target){
     if (val < hpm_event_count){
         cpu->csr.hpmevents[event] = val;
     }
-    
+
     return rv_exc_none;
 }
 
@@ -339,6 +339,8 @@ static rv_exc_t pmpaddr_set(rv_cpu_t* cpu, int csr, uint32_t target){
 static rv_exc_t pmpaddr_clear(rv_cpu_t* cpu, int csr, uint32_t target){
     return rv_exc_none;
 }
+
+// TODO
 
 static rv_exc_t sstatus_read(rv_cpu_t* cpu, int csr, uint32_t* target){
     return rv_exc_none;
@@ -634,18 +636,24 @@ static rv_exc_t mstatus_clear(rv_cpu_t* cpu, int csr, uint32_t target){
 }
 
 static rv_exc_t misa_read(rv_cpu_t* cpu, int csr, uint32_t* target){
+    minimal_privilege(rv_mmode, cpu);
+    *target = cpu->csr.misa;
     return rv_exc_none;
 }
 
+// misa writes do nothing, we don't allow the change of extensions or MXLEN
 static rv_exc_t misa_write(rv_cpu_t* cpu, int csr, uint32_t target){
+    minimal_privilege(rv_mmode, cpu);
     return rv_exc_none;
 }
 
 static rv_exc_t misa_set(rv_cpu_t* cpu, int csr, uint32_t target){
+    minimal_privilege(rv_mmode, cpu);
     return rv_exc_none;
 }
 
 static rv_exc_t misa_clear(rv_cpu_t* cpu, int csr, uint32_t target){
+    minimal_privilege(rv_mmode, cpu);
     return rv_exc_none;
 }
 

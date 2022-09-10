@@ -265,7 +265,15 @@ static void s_trap(rv_cpu_t* cpu, rv_exc_t ex){
 }
 
 static void handle_exception(rv_cpu_t* cpu, rv_exc_t ex){
+    uint32_t mask = RV_EXCEPTION_MASK(ex);
+    bool delegated = cpu->csr.medeleg & mask;
 
+    if(delegated){
+        s_trap(cpu, ex);
+    }
+    else {
+        m_trap(cpu, ex);
+    }
 }
 
 static void try_handle_interrupt(rv_cpu_t* cpu){
@@ -273,12 +281,45 @@ static void try_handle_interrupt(rv_cpu_t* cpu){
     if(cpu->csr.mip == 0) return;
 
     // PRIORITY: MEI, MSI, MTI, SEI, SSI, STI
+    #define trap_if_set(cpu, mask, interrupt, trap_func)    \
+        if(mask & RV_EXCEPTION_MASK(interrupt)){            \
+            trap_func(cpu, interrupt);                      \
+            return;                                         \
+        }
 
+    // TRAP to M-mode
+    // ((priv_mode == M && MIE) || (priv_mode < M)) && MIP[i] && MIE[i] && !MIDELEG[i]
 
+    bool can_trap_to_M = (cpu->priv_mode == rv_mmode && rv_csr_mstatus_mie(cpu)) || (cpu->priv_mode < rv_mmode);
 
+    if(can_trap_to_M) {
+        uint32_t m_mode_active_interrupt_mask = cpu->csr.mip & cpu->csr.mie & ~cpu->csr.mideleg;
+        if(m_mode_active_interrupt_mask == 0) goto handle_s_mode;
+        
+        trap_if_set(cpu, m_mode_active_interrupt_mask, rv_exc_machine_external_interrupt, m_trap);
+        trap_if_set(cpu, m_mode_active_interrupt_mask, rv_exc_machine_software_interrupt, m_trap);
+        trap_if_set(cpu, m_mode_active_interrupt_mask, rv_exc_machine_timer_interrupt, m_trap);
+        trap_if_set(cpu, m_mode_active_interrupt_mask, rv_exc_supervisor_external_interrupt, m_trap);
+        trap_if_set(cpu, m_mode_active_interrupt_mask, rv_exc_supervisor_software_interrupt, m_trap);
+        trap_if_set(cpu, m_mode_active_interrupt_mask, rv_exc_supervisor_timer_interrupt, m_trap);
+    }
+
+    // TRAP to S-mode
+    // ((priv_mode == S && SIE) || (priv_mode < M)) && SIP[i] && SIE[i]
+
+handle_s_mode: ;
+    bool can_trap_to_S = (cpu->priv_mode == rv_smode && rv_csr_sstatus_sie(cpu)) || (cpu->priv_mode < rv_smode);
+    if(can_trap_to_S) {
+        // mask to only account S mode interrupts
+        uint32_t s_mode_active_interrupt_mask = cpu->csr.mip & cpu->csr.mie & rv_csr_si_mask;
+        if(s_mode_active_interrupt_mask == 0) return;
+
+        // M-interrupts can be here theoretically by spec, but we don't allow the delegation of M interrupts in msim (which is allowed in spec)
+        trap_if_set(cpu, s_mode_active_interrupt_mask, rv_exc_supervisor_external_interrupt, s_trap);
+        trap_if_set(cpu, s_mode_active_interrupt_mask, rv_exc_supervisor_software_interrupt, s_trap);
+        trap_if_set(cpu, s_mode_active_interrupt_mask, rv_exc_supervisor_timer_interrupt, s_trap);
+    }
 }
-
-
 
 static void account_hmp(rv_cpu_t* cpu, int i){
     ASSERT((i >= 0 && i < 29));

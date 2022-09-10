@@ -173,7 +173,7 @@ static void m_trap(rv_cpu_t* cpu, rv_exc_t ex){
 
     // MPIE = MIE
     {
-        bool mie_set = cpu->csr.mstatus & rv_csr_mstatus_mie_mask;
+        bool mie_set = rv_csr_mstatus_mie(cpu);
 
         if(mie_set){
             cpu->csr.mstatus |= rv_csr_mstatus_mpie_mask;
@@ -224,7 +224,7 @@ static void s_trap(rv_cpu_t* cpu, rv_exc_t ex){
 
     // SPIE = SIE
     {
-        bool sie_set = cpu->csr.mstatus & rv_csr_sstatus_sie_mask;
+        bool sie_set = rv_csr_sstatus_sie(cpu);
 
         if(sie_set){
             cpu->csr.mstatus |= rv_csr_sstatus_spie_mask;

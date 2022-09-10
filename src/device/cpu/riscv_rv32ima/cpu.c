@@ -168,6 +168,8 @@ static void try_handle_interrupt(rv_cpu_t* cpu){
     // no interrupt pending
     if(cpu->csr.mip == 0) return;
 
+    // PRIORITY: MEI, MSI, MTI, SEI, SSI, STI
+
 
 
 }
@@ -213,8 +215,11 @@ static void account_hmp(rv_cpu_t* cpu, int i){
 }
 
 static void account(rv_cpu_t* cpu){
-    cpu->csr.cycle++;
-    cpu->csr.instret++;
+    if(!(cpu->csr.mcountinhibit & 0b001))
+        cpu->csr.cycle++;
+        
+    if(!(cpu->csr.mcountinhibit & 0b100))
+        cpu->csr.instret++;
 
     for(int i = 0; i < 29; ++i){
         account_hmp(cpu, i);

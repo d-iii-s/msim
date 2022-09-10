@@ -147,7 +147,14 @@ rv_exc_t rv_write_mem32(rv_cpu_t *cpu, uint32_t virt, uint32_t value, bool noisy
 }
 
 void rv_cpu_set_pc(rv_cpu_t *cpu, uint32_t value){
-
+    ASSERT(cpu != NULL);
+    /* Set both pc and pc_next
+     * This should be called from the debugger to jump somewhere
+     * and in case the new instruction does not modify pc_next,
+     * the processor would then jump back to where it was before this call
+     */
+    cpu->pc = value;
+    cpu->pc_next = value+4;    
 }
 
 void rv_cpu_step(rv_cpu_t *cpu){
@@ -161,10 +168,15 @@ void rv_cpu_step(rv_cpu_t *cpu){
     rv_instr_t instr_data = (rv_instr_t)physmem_read32(cpu->csr.mhartid, phys, false);
 
     rv_instr_func_t instr_func = rv_instr_decode(instr_data);
-    instr_func(cpu, instr_data);
-
+    
     if(machine_trace)
         rv_idump(cpu, cpu->pc, instr_data);
+    
+    ex = instr_func(cpu, instr_data);
+
+    if(ex != rv_exc_none){
+
+    }
 
     cpu->csr.cycle++;
 

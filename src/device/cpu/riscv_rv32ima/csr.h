@@ -430,6 +430,8 @@ typedef struct {
 
 } csr_t;
 
+enum rv_priv_mode;
+
 #define rv_csr_mstatus_tsr_mask (UINT32_C(1) << 22)
 #define rv_csr_mstatus_tw_mask (UINT32_C(1) << 21)
 #define rv_csr_mstatus_tvm_mask (UINT32_C(1) << 20)
@@ -441,9 +443,13 @@ typedef struct {
 #define rv_csr_mstatush_sbe_mask (UINT32_C(1) << 4)
 #define rv_csr_mstatush_mbe_mask (UINT32_C(1) << 5)
 
-#define rv_csr_mstatus_tsr(cpu) ((cpu)->csr.mstatus & rv_csr_mstatus_tsr_mask)
-#define rv_csr_mstatus_tw(cpu) ((cpu)->csr.mstatus & rv_csr_mstatus_tw_mask)
-#define rv_csr_mstatus_tvm(cpu) ((cpu)->csr.mstatus & rv_csr_mstatus_tvm_mask)
+#define rv_csr_mstatus_tsr(cpu) (bool)((cpu)->csr.mstatus & rv_csr_mstatus_tsr_mask)
+#define rv_csr_mstatus_tw(cpu) (bool)((cpu)->csr.mstatus & rv_csr_mstatus_tw_mask)
+#define rv_csr_mstatus_tvm(cpu) (bool)((cpu)->csr.mstatus & rv_csr_mstatus_tvm_mask)
+#define rv_csr_mstatus_mprv(cpu) (bool)((cpu)->csr.mstatus & rv_csr_mstatus_mprv_mask)
+#define rv_csr_mstatus_mpie(cpu) (bool)((cpu)->csr.mstatus & rv_csr_mstatus_mpie_mask)
+#define rv_csr_mstatus_mie(cpu) (bool)((cpu)->csr.mstatus & rv_csr_mstatus_mie_mask)
+#define rv_csr_mstatus_mpp(cpu) (enum rv_priv_mode)(((cpu)->csr.mstatus & rv_csr_mstatus_mpp_mask) >> 11)
 
 #define rv_csr_sstatus_mxr_mask (UINT32_C(1)<<19)
 #define rv_csr_sstatus_sum_mask (UINT32_C(1)<<18)
@@ -455,11 +461,16 @@ typedef struct {
 #define rv_csr_sstatus_mask (rv_csr_sstatus_mxr_mask | rv_csr_sstatus_sum_mask | rv_csr_sstatus_spp_mask | rv_csr_sstatus_spie_mask | rv_csr_sstatus_sie_mask)
 #define rv_csr_mstatus_mask (rv_csr_sstatus_mask | rv_csr_mstatus_tsr_mask | rv_csr_mstatus_tw_mask | rv_csr_mstatus_tvm_mask | rv_csr_mstatus_mprv_mask | rv_csr_mstatus_mpp_mask | rv_csr_mstatus_mpie_mask | rv_csr_mstatus_mie_mask)
 
+#define rv_csr_sstatus_mxr(cpu) (bool)((cpu)->csr.mstatus & rv_csr_sstatus_mxr_mask)
+#define rv_csr_sstatus_sum(cpu) (bool)((cpu)->csr.mstatus & rv_csr_sstatus_sum_mask)
+#define rv_csr_sstatus_spie(cpu) (bool)((cpu)->csr.mstatus & rv_csr_sstatus_spie_mask)
+#define rv_csr_sstatus_sie(cpu) (bool)((cpu)->csr.mstatus & rv_csr_sstatus_sie_mask)
+#define rv_csr_sstatus_spp(cpu) (enum rv_priv_mode)((cpu)->csr.mstatus & rv_csr_sstatus_spp_mask)
+
 #define rv_csr_is_read_only(csr) ((csr >> 30) == 0b11)
 
 extern void rv_init_csr(csr_t *csr, unsigned int procno);
 
-enum rv_priv_mode;
 extern enum rv_priv_mode rv_csr_min_priv_mode(int csr);
 
 enum rv_exc;

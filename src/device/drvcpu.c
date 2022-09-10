@@ -118,9 +118,9 @@ device_type_t drvcpu = {
 
     .name = "drvcpu",
 
-    .brief = "RISC-V RV32I(MA) processor",
+    .brief = "RISC-V RV32IMA processor",
 
-    .full = "RISC-V RV32I(MA) processor",
+    .full = "RISC-V RV32IMA processor",
 
     .done = drvcpu_done,
     .step = drvcpu_step,

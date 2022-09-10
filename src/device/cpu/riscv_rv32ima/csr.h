@@ -347,7 +347,7 @@ typedef enum {
 
 
 typedef enum {
-    hpm_o_event,
+    hpm_no_event,
     hpm_u_cycles,
     hpm_s_cycles,
     hpm_h_cycles, // reserved

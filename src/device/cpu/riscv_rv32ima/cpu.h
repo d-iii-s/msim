@@ -66,6 +66,15 @@ typedef enum rv_exc {
 	RV_EXCEPTION_MASK(rv_exc_store_amo_page_fault)				\
 )
 
+#define RV_INTERRUPTS_MASK (\
+	RV_EXCEPTION_MASK(rv_exc_supervisor_software_interrupt) |\
+	RV_EXCEPTION_MASK(rv_exc_machine_software_interrupt)    |\
+	RV_EXCEPTION_MASK(rv_exc_supervisor_external_interrupt) |\
+	RV_EXCEPTION_MASK(rv_exc_machine_external_interrupt)    |\
+	RV_EXCEPTION_MASK(rv_exc_supervisor_timer_interrupt)    |\
+	RV_EXCEPTION_MASK(rv_exc_machine_timer_interrupt)        \
+)
+
 // Privilege modes
 typedef enum rv_priv_mode {
 	rv_umode = 0b00,

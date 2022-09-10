@@ -38,13 +38,77 @@ rv_exc_t call_instr(rv_cpu_t *cpu, rv_instr_t instr){
 }
 
 rv_exc_t sret_instr(rv_cpu_t *cpu, rv_instr_t instr){
-    if(rv_csr_mstatus_tsr(cpu)){
-        return rv_exc_illegal_instruction;
+    if(rv_csr_mstatus_tsr(cpu)) return rv_exc_illegal_instruction;
+    if(cpu->priv_mode < rv_smode) return rv_exc_illegal_instruction;
+
+    rv_priv_mode_t spp_priv = rv_csr_sstatus_spp(cpu);
+
+    // SIE = SPIE
+    {
+        if(rv_csr_sstatus_spie(cpu)){
+            cpu->csr.mstatus |= rv_csr_sstatus_sie_mask;
+        }
+        else{
+            cpu->csr.mstatus &= ~rv_csr_sstatus_sie_mask;
+        }
     }
+    // priv = SPP
+    {
+        cpu->priv_mode = spp_priv;
+    }
+    // SPIE = 1
+    {
+        cpu->csr.mstatus |= rv_csr_sstatus_spie_mask;
+    }
+    // SPP = U
+    {
+        cpu->csr.mstatus &= ~rv_csr_sstatus_spp_mask;
+        //SPP = 00 (can be skipped, sice U mode is 0)
+    }
+    // if SPP != M: MPRV = 0
+    {   
+        // This must always happen, because sret can return only to U or S mode
+        cpu->csr.mstatus &= ~rv_csr_mstatus_mprv_mask;
+    }
+
+    cpu->pc_next = cpu->csr.sepc;
     return rv_exc_none;
 }
 
 rv_exc_t mret_instr(rv_cpu_t *cpu, rv_instr_t instr){
+    if(cpu->priv_mode < rv_mmode) return rv_exc_illegal_instruction;
+
+    rv_priv_mode_t mpp_priv = rv_csr_mstatus_mpp(cpu);
+
+    // MIE = MPIE
+    {
+        if(rv_csr_mstatus_mpie(cpu)){
+            cpu->csr.mstatus |= rv_csr_mstatus_mie_mask;
+        }
+        else{
+            cpu->csr.mstatus &= ~rv_csr_mstatus_mie_mask;
+        }
+    }
+    // priv = MPP
+    {
+        cpu->priv_mode = mpp_priv;
+    }
+    // MPIE = 1
+    {
+        cpu->csr.mstatus |= rv_csr_mstatus_mpie_mask;
+    }
+    // MPP = U
+    {
+        cpu->csr.mstatus &= ~rv_csr_mstatus_mpp_mask;
+        //MPP = 00 (can be skipped, sice U mode is 00)
+    }
+    // if MPP != M: MPRV = 0
+    {   if(mpp_priv != rv_mmode){
+            cpu->csr.mstatus &= ~rv_csr_mstatus_mprv_mask;
+        }
+    }
+
+    cpu->pc_next = cpu->csr.mepc;
     return rv_exc_none;
 }
 

@@ -83,7 +83,6 @@ typedef enum rv_priv_mode {
 	rv_mmode = 0b11
 } rv_priv_mode_t;
 
-
 // TODO: prev regs for debug
 
 /** Main processor structure */

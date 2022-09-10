@@ -440,6 +440,8 @@ enum rv_priv_mode;
 #define rv_csr_mstatus_mpie_mask (UINT32_C(1) << 7)
 #define rv_csr_mstatus_mie_mask (UINT32_C(1) << 3)
 
+#define rv_csr_mstatus_mpp_pos 11
+
 #define rv_csr_mstatush_sbe_mask (UINT32_C(1) << 4)
 #define rv_csr_mstatush_mbe_mask (UINT32_C(1) << 5)
 
@@ -457,6 +459,9 @@ enum rv_priv_mode;
 #define rv_csr_sstatus_ube_mask (UINT32_C(1)<<6)
 #define rv_csr_sstatus_spie_mask (UINT32_C(1)<<5)
 #define rv_csr_sstatus_sie_mask (UINT32_C(1)<<1)
+
+#define rv_csr_sstatus_spp_pos 8
+
 // Doesn't include UBE, because msim is strictly Little Endian
 #define rv_csr_sstatus_mask (rv_csr_sstatus_mxr_mask | rv_csr_sstatus_sum_mask | rv_csr_sstatus_spp_mask | rv_csr_sstatus_spie_mask | rv_csr_sstatus_sie_mask)
 #define rv_csr_mstatus_mask (rv_csr_sstatus_mask | rv_csr_mstatus_tsr_mask | rv_csr_mstatus_tw_mask | rv_csr_mstatus_tvm_mask | rv_csr_mstatus_mprv_mask | rv_csr_mstatus_mpp_mask | rv_csr_mstatus_mpie_mask | rv_csr_mstatus_mie_mask)
@@ -475,6 +480,10 @@ enum rv_priv_mode;
 #define rv_csr_msi_mask (1U << 3)
 #define rv_csr_si_mask (rv_csr_sei_mask | rv_csr_sti_mask | rv_csr_ssi_mask)
 #define rv_csr_mi_mask (rv_csr_si_mask | rv_csr_mei_mask | rv_csr_mti_mask | rv_csr_msi_mask)
+
+#define rv_csr_mtvec_mode_mask UINT32_C(0b11)
+#define rv_csr_mtvec_mode_direct UINT32_C(0)
+#define rv_csr_mtvec_mode_vectored UINT32_C(1)
 
 #define rv_csr_is_read_only(csr) ((csr >> 30) == 0b11)
 

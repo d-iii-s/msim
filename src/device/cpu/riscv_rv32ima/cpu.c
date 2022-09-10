@@ -197,9 +197,13 @@ bool rv_sc_access(rv_cpu_t *cpu, ptr36_t phys){
     return hit;
 }
 
-/** Interrupts */
+/* Interrupts
+ *
+ */
+
+
 void rv_interrupt_up(rv_cpu_t *cpu, unsigned int no){
- 
+    
 }
 
 void rv_interrupt_down(rv_cpu_t *cpu, unsigned int no){

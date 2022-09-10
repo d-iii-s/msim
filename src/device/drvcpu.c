@@ -16,13 +16,19 @@ static bool rv_convert_add_wrapper(void* cpu, ptr64_t virt,  ptr36_t* phys, bool
     return rv_convert_addr((rv_cpu_t*)cpu, virt.lo, phys, write, false) == rv_exc_none;
 }
 
+static void rv_set_pc_wrapper(void* cpu, ptr64_t addr){
+    // use only low 32-bits from addr
+    rv_cpu_set_pc((rv_cpu_t*)cpu, addr.lo);
+}
+
 static const cpu_ops_t rv_cpu = {
 	.interrupt_up = (interrupt_func_t)rv_interrupt_up,
 	.interrupt_down = (interrupt_func_t)rv_interrupt_down,
 	
 	.convert_addr = (convert_addr_func_t)rv_convert_add_wrapper,
+    .reg_dump = (reg_dump_func_t)rv_reg_dump,
     
-	//.set_pc = (set_pc_func_t)rv_cpu_set_pc, - wrong type cast
+	.set_pc = (set_pc_func_t)rv_set_pc_wrapper,
 	.sc_access = (sc_access_func_t)rv_sc_access
 };
 
@@ -54,7 +60,6 @@ static bool drvcpu_info(token_t *parm, device_t *dev){
     return true;
 }
 
-
 static bool drvcpu_rd(token_t *parm, device_t *dev){
     ASSERT(dev != NULL);
 
@@ -71,8 +76,6 @@ static void drvcpu_done(device_t *dev){
 static void drvcpu_step(device_t *dev){
     rv_cpu_step(get_rv(dev));
 }
-
-
 
 cmd_t drvcpu_cmds[] = {
     {

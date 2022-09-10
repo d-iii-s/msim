@@ -244,6 +244,8 @@ static rv_exc_t counter_clear(rv_cpu_t* cpu, int csr, uint32_t target){
     return rv_exc_none;
 }
 
+#define mcountinhibit_mask (~UINT32_C(0b10))
+
 static rv_exc_t mcountinhibit_read(rv_cpu_t* cpu, int csr, uint32_t* target){
     minimal_privilege(rv_mmode, cpu);
     *target = cpu->csr.mcountinhibit;
@@ -252,19 +254,19 @@ static rv_exc_t mcountinhibit_read(rv_cpu_t* cpu, int csr, uint32_t* target){
 
 static rv_exc_t mcountinhibit_write(rv_cpu_t* cpu, int csr, uint32_t target){
     minimal_privilege(rv_mmode, cpu);
-    cpu->csr.mcountinhibit = target;
+    cpu->csr.mcountinhibit = target & mcountinhibit_mask;
     return rv_exc_none;
 }
 
 static rv_exc_t mcountinhibit_set(rv_cpu_t* cpu, int csr, uint32_t target){
     minimal_privilege(rv_mmode, cpu);
-    cpu->csr.mcountinhibit |= target;
+    cpu->csr.mcountinhibit |= target & mcountinhibit_mask;
     return rv_exc_none;
 }
 
 static rv_exc_t mcountinhibit_clear(rv_cpu_t* cpu, int csr, uint32_t target){
     minimal_privilege(rv_mmode, cpu);
-    cpu->csr.mcountinhibit &= ~target;
+    cpu->csr.mcountinhibit &= ~(target & mcountinhibit_mask);
     return rv_exc_none;
 }
 

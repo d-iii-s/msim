@@ -205,11 +205,13 @@ bool rv_sc_access(rv_cpu_t *cpu, ptr36_t phys){
 
 void rv_interrupt_up(rv_cpu_t *cpu, unsigned int no){
     ASSERT(cpu != null);
-
-    cpu->csr.mip |= 
+    cpu->csr.mip |= rv_csr_mei_mask;
 }
 
 void rv_interrupt_down(rv_cpu_t *cpu, unsigned int no){
     ASSERT(cpu != null);
-
+    //! for simplicity just clears the bit
+    //! if this interrupt could be raised by different means,
+    //! this would not work!
+    cpu->csr.mip &= ~rv_csr_mei_mask;
 }

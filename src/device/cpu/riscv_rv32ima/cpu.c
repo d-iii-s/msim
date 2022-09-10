@@ -160,6 +160,110 @@ void rv_cpu_set_pc(rv_cpu_t *cpu, uint32_t value){
     cpu->pc_next = value+4;    
 }
 
+
+
+static void m_trap(rv_cpu_t* cpu, rv_exc_t ex){
+    ASSERT(ex != rv_exc_none);
+
+    bool is_interrupt = ex & RV_INTERRUPT_EXC_BITS;
+    
+    // TODO: ECALL
+    cpu->csr.mepc = is_interrupt ? cpu->pc_next : cpu->pc;
+    cpu->csr.mcause = ex;
+
+    // MPIE = MIE
+    {
+        bool mie_set = cpu->csr.mstatus & rv_csr_mstatus_mie_mask;
+
+        if(mie_set){
+            cpu->csr.mstatus |= rv_csr_mstatus_mpie_mask;
+        }
+        else {
+            cpu->csr.mstatus &= ~rv_csr_mstatus_mpie_mask;
+        }
+    }
+    // MIE = 0
+    {
+        cpu->csr.mstatus &= ~rv_csr_mstatus_mie_mask;
+    }
+    // MPP = cpu->priv_mode
+    {
+        cpu->csr.mstatus &= ~rv_csr_mstatus_mpp_mask;
+        cpu->csr.mstatus |= ((uint32_t)cpu->priv_mode << rv_csr_mstatus_mpp_pos) & rv_csr_mstatus_mpp_mask;
+    }
+
+    // TODO: MTVAL
+
+    int mode = cpu->csr.mtvec & rv_csr_mtvec_mode_mask;
+    uint32_t base = cpu->csr.mtvec & ~rv_csr_mtvec_mode_mask;
+
+    if(mode == rv_csr_mtvec_mode_direct){
+        cpu->pc_next = base;
+    }
+    else if(mode == rv_csr_mtvec_mode_vectored){
+        if(is_interrupt) {
+            cpu->pc_next = base + 4 * (ex & ~RV_INTERRUPT_EXC_BITS);
+        }
+        else {
+            cpu->pc_next = base;
+        }
+    }
+    else {
+        ASSERT(false);
+    }
+}
+
+static void s_trap(rv_cpu_t* cpu, rv_exc_t ex){
+    ASSERT(ex != rv_exc_none);
+
+    bool is_interrupt = ex & RV_INTERRUPT_EXC_BITS;
+
+    // TODO: ECALL
+    cpu->csr.sepc = is_interrupt ? cpu->pc : cpu->pc_next;
+    cpu->csr.scause = ex;
+
+    // SPIE = SIE
+    {
+        bool sie_set = cpu->csr.mstatus & rv_csr_sstatus_sie_mask;
+
+        if(sie_set){
+            cpu->csr.mstatus |= rv_csr_sstatus_spie_mask;
+        }
+        else {
+            cpu->csr.mstatus &= ~rv_csr_sstatus_spie_mask;
+        }
+    }
+    // SIE = 0
+    {
+        cpu->csr.mstatus &= ~rv_csr_sstatus_sie_mask;
+    }
+    // SPP = cpu->priv_mode
+    {
+        cpu->csr.mstatus &= ~rv_csr_sstatus_spp_mask;
+        cpu->csr.mstatus |= ((uint32_t)cpu->priv_mode << rv_csr_sstatus_spp_pos) & rv_csr_sstatus_spp_mask;
+    }
+
+    // TODO: STVAL
+
+    int mode = cpu->csr.stvec & rv_csr_mtvec_mode_mask;
+    uint32_t base = cpu->csr.stvec & ~rv_csr_mtvec_mode_mask;
+
+    if(mode == rv_csr_mtvec_mode_direct){
+        cpu->pc_next = base;
+    }
+    else if(mode == rv_csr_mtvec_mode_vectored){
+        if(is_interrupt) {
+            cpu->pc_next = base + 4 * (ex & ~RV_INTERRUPT_EXC_BITS);
+        }
+        else {
+            cpu->pc_next = base;
+        }
+    }
+    else {
+        ASSERT(false);
+    }
+}
+
 static void handle_exception(rv_cpu_t* cpu, rv_exc_t ex){
 
 }
@@ -217,7 +321,8 @@ static void account_hmp(rv_cpu_t* cpu, int i){
 static void account(rv_cpu_t* cpu){
     if(!(cpu->csr.mcountinhibit & 0b001))
         cpu->csr.cycle++;
-        
+
+    // TODO: Should not account instructions that raise exceptions (ecall included)
     if(!(cpu->csr.mcountinhibit & 0b100))
         cpu->csr.instret++;
 
@@ -229,8 +334,7 @@ static void account(rv_cpu_t* cpu){
 void rv_cpu_step(rv_cpu_t *cpu){
     ASSERT(cpu != NULL);
 
-    // If any interrupts are pending, handle them
-    try_handle_interrupt(cpu);
+    
 
     ptr36_t phys;
     rv_exc_t ex;
@@ -248,9 +352,13 @@ void rv_cpu_step(rv_cpu_t *cpu){
     ex = instr_func(cpu, instr_data);
 
     account(cpu);
-
+    
     if(ex != rv_exc_none){
         handle_exception(cpu, ex);
+    }
+    else {
+        // If any interrupts are pending, handle them
+        try_handle_interrupt(cpu);
     }
 
     // x0 is always 0

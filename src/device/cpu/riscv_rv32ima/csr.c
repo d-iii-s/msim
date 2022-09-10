@@ -364,18 +364,9 @@ static rv_exc_t sstatus_clear(rv_cpu_t* cpu, int csr, uint32_t target){
     return rv_exc_none;
 }
 
-#define sei_mask (1U << 9)
-#define sti_mask (1U << 5)
-#define ssi_mask (1U << 1)
-#define mei_mask (1U << 11)
-#define mti_mask (1U << 7)
-#define msi_mask (1U << 3)
-#define si_mask (sei_mask | sti_mask | ssi_mask)
-#define mi_mask (si_mask | mei_mask | mti_mask | msi_mask)
-
 static rv_exc_t sie_read(rv_cpu_t* cpu, int csr, uint32_t* target){
     minimal_privilege(rv_smode, cpu);
-    *target = cpu->csr.mie & si_mask;
+    *target = cpu->csr.mie & rv_csr_si_mask;
     return rv_exc_none;
 }
 
@@ -383,26 +374,26 @@ static rv_exc_t sie_write(rv_cpu_t* cpu, int csr, uint32_t target){
     minimal_privilege(rv_smode, cpu);
     
     // write only to si bits, preserve rest
-    cpu->csr.mie &= ~si_mask;
-    cpu->csr.mie |= target & si_mask;
+    cpu->csr.mie &= ~rv_csr_si_mask;
+    cpu->csr.mie |= target & rv_csr_si_mask;
     return rv_exc_none;
 }
 
 static rv_exc_t sie_set(rv_cpu_t* cpu, int csr, uint32_t target){
     minimal_privilege(rv_smode, cpu);
-    cpu->csr.mie |= target & si_mask;
+    cpu->csr.mie |= target & rv_csr_si_mask;
     return rv_exc_none;
 }
 
 static rv_exc_t sie_clear(rv_cpu_t* cpu, int csr, uint32_t target){
     minimal_privilege(rv_smode, cpu);
-    cpu->csr.mie &= ~(target & si_mask);
+    cpu->csr.mie &= ~(target & rv_csr_si_mask);
     return rv_exc_none;
 }
 
 static rv_exc_t sip_read(rv_cpu_t* cpu, int csr, uint32_t* target){
     minimal_privilege(rv_smode, cpu);
-    *target = cpu->csr.mip & si_mask;
+    *target = cpu->csr.mip & rv_csr_si_mask;
     return rv_exc_none;
 }
 
@@ -410,20 +401,20 @@ static rv_exc_t sip_write(rv_cpu_t* cpu, int csr, uint32_t target){
     minimal_privilege(rv_smode, cpu);
     
     // only ssip is writable
-    cpu->csr.mip &= ~ssi_mask;
-    cpu->csr.mip |= target & ssi_mask;
+    cpu->csr.mip &= ~rv_csr_ssi_mask;
+    cpu->csr.mip |= target & rv_csr_ssi_mask;
     return rv_exc_none;
 }
 
 static rv_exc_t sip_set(rv_cpu_t* cpu, int csr, uint32_t target){
     minimal_privilege(rv_smode, cpu);
-    cpu->csr.mip |= target & ssi_mask;
+    cpu->csr.mip |= target & rv_csr_ssi_mask;
     return rv_exc_none;
 }
 
 static rv_exc_t sip_clear(rv_cpu_t* cpu, int csr, uint32_t target){
     minimal_privilege(rv_smode, cpu);
-    cpu->csr.mip &= ~(target & ssi_mask);
+    cpu->csr.mip &= ~(target & rv_csr_ssi_mask);
     return rv_exc_none;
 }
 
@@ -769,19 +760,19 @@ static rv_exc_t mideleg_read(rv_cpu_t* cpu, int csr, uint32_t* target){
 // we allow only smode interrupts to be delegatable
 static rv_exc_t mideleg_write(rv_cpu_t* cpu, int csr, uint32_t target){
     minimal_privilege(rv_mmode, cpu);
-    cpu->csr.mideleg = target & si_mask;
+    cpu->csr.mideleg = target & rv_csr_si_mask;
     return rv_exc_none;
 }
 
 static rv_exc_t mideleg_set(rv_cpu_t* cpu, int csr, uint32_t target){
     minimal_privilege(rv_mmode, cpu);
-    cpu->csr.mideleg |= target & si_mask;
+    cpu->csr.mideleg |= target & rv_csr_si_mask;
     return rv_exc_none;
 }
 
 static rv_exc_t mideleg_clear(rv_cpu_t* cpu, int csr, uint32_t target){
     minimal_privilege(rv_mmode, cpu);
-    cpu->csr.mideleg &= ~(target & si_mask);
+    cpu->csr.mideleg &= ~(target & rv_csr_si_mask);
     return rv_exc_none;
 }
 
@@ -793,19 +784,19 @@ static rv_exc_t mie_read(rv_cpu_t* cpu, int csr, uint32_t* target){
 
 static rv_exc_t mie_write(rv_cpu_t* cpu, int csr, uint32_t target){
     minimal_privilege(rv_mmode, cpu);
-    cpu->csr.mie = target & mi_mask;
+    cpu->csr.mie = target & rv_csr_mi_mask;
     return rv_exc_none;
 }
 
 static rv_exc_t mie_set(rv_cpu_t* cpu, int csr, uint32_t target){
     minimal_privilege(rv_mmode, cpu);
-    cpu->csr.mie |= target & mi_mask;
+    cpu->csr.mie |= target & rv_csr_mi_mask;
     return rv_exc_none;
 }
 
 static rv_exc_t mie_clear(rv_cpu_t* cpu, int csr, uint32_t target){
     minimal_privilege(rv_mmode, cpu);
-    cpu->csr.mie &= ~(target & mi_mask);
+    cpu->csr.mie &= ~(target & rv_csr_mi_mask);
     return rv_exc_none;
 }
 
@@ -816,7 +807,7 @@ static rv_exc_t mip_read(rv_cpu_t* cpu, int csr, uint32_t* target){
 }
 
 // M-mode interrupts are not directly writable, but all S-mode interrupts are
-#define mip_mask si_mask
+#define mip_mask rv_csr_si_mask
 
 static rv_exc_t mip_write(rv_cpu_t* cpu, int csr, uint32_t target){
     minimal_privilege(rv_mmode, cpu);

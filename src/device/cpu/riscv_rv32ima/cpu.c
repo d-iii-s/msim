@@ -4,6 +4,7 @@
 #include <stdint.h>
 #include "cpu.h"
 #include "debug.h"
+#include "csr.h"
 #include "../../../assert.h"
 #include "../../../physmem.h"
 #include "../../../main.h"
@@ -198,14 +199,17 @@ bool rv_sc_access(rv_cpu_t *cpu, ptr36_t phys){
 }
 
 /* Interrupts
- *
+ * This is supposed to be used with devices and inter-processor communication,
+ * so this will raise/clear the Machine External Interrupt bit and ignore the no
  */
 
-
 void rv_interrupt_up(rv_cpu_t *cpu, unsigned int no){
-    
+    ASSERT(cpu != null);
+
+    cpu->csr.mip |= 
 }
 
 void rv_interrupt_down(rv_cpu_t *cpu, unsigned int no){
+    ASSERT(cpu != null);
 
 }

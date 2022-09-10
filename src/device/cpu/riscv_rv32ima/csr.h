@@ -467,6 +467,15 @@ enum rv_priv_mode;
 #define rv_csr_sstatus_sie(cpu) (bool)((cpu)->csr.mstatus & rv_csr_sstatus_sie_mask)
 #define rv_csr_sstatus_spp(cpu) (enum rv_priv_mode)((cpu)->csr.mstatus & rv_csr_sstatus_spp_mask)
 
+#define rv_csr_sei_mask (1U << 9)
+#define rv_csr_sti_mask (1U << 5)
+#define rv_csr_ssi_mask (1U << 1)
+#define rv_csr_mei_mask (1U << 11)
+#define rv_csr_mti_mask (1U << 7)
+#define rv_csr_msi_mask (1U << 3)
+#define rv_csr_si_mask (rv_csr_sei_mask | rv_csr_sti_mask | rv_csr_ssi_mask)
+#define rv_csr_mi_mask (rv_csr_si_mask | rv_csr_mei_mask | rv_csr_mti_mask | rv_csr_msi_mask)
+
 #define rv_csr_is_read_only(csr) ((csr >> 30) == 0b11)
 
 extern void rv_init_csr(csr_t *csr, unsigned int procno);

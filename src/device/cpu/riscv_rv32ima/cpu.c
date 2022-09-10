@@ -13,6 +13,8 @@
 
 
 static void init_regs(rv_cpu_t *cpu) {
+    ASSERT(cpu != NULL);
+    
     // expects that default value for any variable is 0
 
     cpu->pc = RV_START_ADDRESS;
@@ -159,6 +161,7 @@ void rv_cpu_set_pc(rv_cpu_t *cpu, uint32_t value){
 }
 
 void rv_cpu_step(rv_cpu_t *cpu){
+    ASSERT(cpu != NULL);
 
     ptr36_t phys;
     rv_exc_t ex;
@@ -189,6 +192,7 @@ void rv_cpu_step(rv_cpu_t *cpu){
 }
 
 bool rv_sc_access(rv_cpu_t *cpu, ptr36_t phys){
+    ASSERT(cpu != NULL);
     // We align down because of writes that are shorter than 4 B
     // As long as all writes are aligned, and 32 bits at max, this works
     bool hit = cpu->reserved_addr == ALIGN_DOWN(phys, 4);

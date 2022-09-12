@@ -137,7 +137,7 @@ typedef enum {
 
 	/* Machine Configuration */
 	csr_menvcfg        =    0x30A,    // Mch. environment conf. reg.
-	csr_mevncfgh       =    0x31A,    // Additional mch. env. conf. reg.
+	csr_menvcfgh       =    0x31A,    // Additional mch. env. conf. reg.
 	csr_mseccfg        =    0x747,    // Mch. security conf. reg.
 	csr_mseccfgh       =    0x757,    // Additional mch. security conf. reg.
 

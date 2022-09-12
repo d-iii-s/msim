@@ -134,7 +134,7 @@ char *rv_csr_name_table[0x1000] = {
 	[csr_mtval2]         =    "mtval2",
 
 	[csr_menvcfg]        =    "menvcfg",
-	[csr_mevncfgh]       =    "mevncfgh",
+	[csr_menvcfgh]       =    "menvcfgh",
 	[csr_mseccfg]        =    "mseccfg",
 	[csr_mseccfgh]       =    "mseccfgh",
 
@@ -715,6 +715,43 @@ static void print_mcause(rv_cpu_t *cpu, string_t* mnemonics, string_t* comments)
 	string_printf(comments, "%s", (is_interrupt ? interrupt_name_table[cause_id] : exc_name_table[cause_id]));
 }
 
+static void print_mseccfg(rv_cpu_t *cpu, string_t* mnemonics, string_t* comments) {
+	string_printf(mnemonics, "%s 0x%08x", "mseccfg", cpu->csr.mseccfg);
+	bool sseed = cpu->csr.mseccfg & (1 << 9);
+	bool useed = cpu->csr.mseccfg & (1 << 8);
+	bool rlb = cpu->csr.mseccfg & (1 << 2);
+	bool mmwp = cpu->csr.mseccfg & (1 << 1);
+	bool mml = cpu->csr.mseccfg & (1 << 0);
+
+	string_printf(comments,
+		"SSEED %s, USEED %s, RLB %s, MMWP %s, MML %s",
+		bit_string(sseed),
+		bit_string(useed),
+		bit_string(rlb),
+		bit_string(mmwp),
+		bit_string(mml)
+	);
+}
+
+static void print_menvcfg(rv_cpu_t *cpu, string_t* mnemonics, string_t* comments) {
+	print_64_reg(cpu->csr.menvcfg, "menvcfg", mnemonics);
+	bool stce = cpu->csr.menvcfg & (UINT64_C(1) << 63);
+	bool pbmte = cpu->csr.menvcfg & (UINT64_C(1) << 62);
+	bool cbze = cpu->csr.menvcfg & (UINT64_C(1) << 7);
+	bool cbfe = cpu->csr.menvcfg & (UINT64_C(1) << 6);
+	bool cbie = cpu->csr.menvcfg & (UINT64_C(1) << 5);
+	bool fiom = cpu->csr.menvcfg & (UINT64_C(1) << 0);
+
+	string_printf(comments,
+		"STCE %s, PBMTE %s, CBZE %s, CBFE %s, CBIE %s, FIOM %s",
+		bit_string(stce),
+		bit_string(pbmte),
+		bit_string(cbze),
+		bit_string(cbfe),
+		bit_string(cbie),
+		bit_string(fiom)
+	);
+}
 
 // TODO: comments?
 default_print_function(mcounteren)
@@ -722,7 +759,6 @@ default_print_function(mcountinhibit)
 default_print_function(mepc)
 default_print_function(mscratch)
 default_print_function(mtval)
-default_print_function(mseccfg)
 
 static void csr_dump_common(rv_cpu_t *cpu, int csr) {
 	string_t s_mnemonics;
@@ -932,6 +968,10 @@ static void csr_dump_common(rv_cpu_t *cpu, int csr) {
 		default_case(mcause)
 		default_case(mtval)
 		default_case(mseccfg)
+		case csr_menvcfg:
+		case csr_menvcfgh:
+			print_menvcfg(cpu, &s_mnemonics, &s_comments);
+			break;
 		default:
 			printf("Not implemented CSR number!\n");
 			return;

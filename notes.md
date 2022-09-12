@@ -231,3 +231,26 @@ new nonstandart instruction used to halt the simulation
 #### bad_status_ksu
 
 test causes an exception, but no exception handlers are supported, which leads to reading outside of physmem?
+
+## MSIM BUG?
+
+Loading of two "small images" (smaller than 4K), the longer one is written to both offsets.
+
+Steps to recreate:
+
+1. Have two images, `main.bin` (12 B long) and `handler.bin` (4 B long)
+2. Make this configuration file
+  
+  ```text
+  add drvcpu cpu0
+  add rom main 0x0
+  main generic 4K
+  main load "main.bin"
+  add rom handler 0x80000000
+  handler generic 4K
+  handler load "simple_handler.bin"
+  ```
+
+3. run msim
+4. enter `dumpmem 0x80000000 4`
+5. You can see, that words at `0x80000004` and `0x80000008` have the data from `main.bin` written to them.

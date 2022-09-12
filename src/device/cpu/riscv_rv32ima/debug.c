@@ -565,6 +565,26 @@ static void print_mstatus(rv_cpu_t *cpu, string_t* mnemonics, string_t* comments
 	);
 }
 
+static void print_misa(rv_cpu_t *cpu, string_t* mnemonics, string_t* comments) {
+	uint32_t misa = cpu->csr.misa;
+	string_printf(mnemonics, "%s 0x%08x", "misa", misa);
+
+	int mxl = 16 << (misa >> 30);
+	
+	string_printf(comments, "Machine XLEN: %i Extensions: ", mxl);
+	if(misa & RV_A_EXTENSION_BITS) string_printf(comments, "A");
+	if(misa & RV_C_EXTENSION_BITS) string_printf(comments, "C");
+	if(misa & RV_D_EXTENSION_BITS) string_printf(comments, "D");
+	if(misa & RV_E_EXTENSION_BITS) string_printf(comments, "E");
+	if(misa & RV_F_EXTENSION_BITS) string_printf(comments, "F");
+	if(misa & RV_H_EXTENSION_BITS) string_printf(comments, "H");
+	if(misa & RV_I_EXTENSION_BITS) string_printf(comments, "I");
+	if(misa & RV_M_EXTENSION_BITS) string_printf(comments, "M");
+	if(misa & RV_Q_EXTENSION_BITS) string_printf(comments, "Q");
+	if(misa & RV_S_IMPLEMENTED_BITS) string_printf(comments, "S");
+	if(misa & RV_U_IMPLEMENTED_BITS) string_printf(comments, "U");
+}
+
 static void csr_dump_common(rv_cpu_t *cpu, int csr) {
 	string_t s_mnemonics;
 	string_t s_comments;
@@ -744,6 +764,9 @@ static void csr_dump_common(rv_cpu_t *cpu, int csr) {
 		case csr_mstatus:
 		case csr_mstatush:
 			print_mstatus(cpu, &s_mnemonics, &s_comments);
+			break;
+		case csr_misa:
+			print_misa(cpu, &s_mnemonics, &s_comments);
 			break;
 		default:
 			printf("Not implemented CSR number!\n");

@@ -170,6 +170,7 @@ static void m_trap(rv_cpu_t* cpu, rv_exc_t ex){
     // TODO: ECALL
     cpu->csr.mepc = is_interrupt ? cpu->pc_next : cpu->pc;
     cpu->csr.mcause = ex;
+    cpu->priv_mode = rv_mmode;
 
     // MPIE = MIE
     {
@@ -218,9 +219,9 @@ static void s_trap(rv_cpu_t* cpu, rv_exc_t ex){
 
     bool is_interrupt = ex & RV_INTERRUPT_EXC_BITS;
 
-    // TODO: ECALL
     cpu->csr.sepc = is_interrupt ? cpu->pc : cpu->pc_next;
     cpu->csr.scause = ex;
+    cpu->priv_mode = rv_smode;
 
     // SPIE = SIE
     {

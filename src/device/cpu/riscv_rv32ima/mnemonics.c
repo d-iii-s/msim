@@ -235,7 +235,7 @@ static void b_instr_comments(rv_instr_t instr, uint32_t addr, string_t *s_commen
 }
 
 static void u_instr_mnemonics(rv_instr_t instr, string_t *s_mnemonics){
-    string_printf(s_mnemonics, " %s, %#08x", rv_regnames[instr.u.rd], instr.u.imm);
+    string_printf(s_mnemonics, " %s, %#07x", rv_regnames[instr.u.rd], instr.u.imm);
 }
 
 static void amo_instr_mnemonics(rv_instr_t instr, string_t *s_mnemonics) {

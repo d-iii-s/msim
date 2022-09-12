@@ -585,6 +585,56 @@ static void print_misa(rv_cpu_t *cpu, string_t* mnemonics, string_t* comments) {
 	if(misa & RV_U_IMPLEMENTED_BITS) string_printf(comments, "U");
 }
 
+static void print_mtvec(rv_cpu_t *cpu, string_t* mnemonics, string_t* comments) {
+	string_printf(mnemonics, "%s 0x%08x", "mtvec", cpu->csr.mtvec);
+	string_printf(comments,
+		"Base: 0x%08x Mode: %s",
+		cpu->csr.mtvec & ~0b11,
+		(((cpu->csr.mtvec & 0b11) == 0 ) ? "Direct" : "Vectored")
+	);
+}
+
+#define space_if_not_first(s) ((s->size > 0 && s->str[0] != 0) ? " " : "")
+
+static void print_medeleg(rv_cpu_t *cpu, string_t* mnemonics, string_t* comments) {
+	string_printf(mnemonics, "%s 0x%08x", "medeleg", cpu->csr.medeleg);
+	if(cpu->csr.medeleg == 0) return;
+	string_printf(comments, "Delegated: ");
+
+
+	#define comment_if_ex_delegated(ex) if(cpu->csr.medeleg & RV_EXCEPTION_MASK(rv_exc_ ## ex)) string_printf(comments, "%s" #ex, space_if_not_first(comments));
+
+	comment_if_ex_delegated(instruction_address_misaligned);
+	comment_if_ex_delegated(instruction_access_fault);
+	comment_if_ex_delegated(illegal_instruction);
+	comment_if_ex_delegated(breakpoint);
+	comment_if_ex_delegated(load_address_misaligned);
+	comment_if_ex_delegated(load_access_fault);
+	comment_if_ex_delegated(store_amo_address_misaligned);
+	comment_if_ex_delegated(store_amo_access_fault);
+	comment_if_ex_delegated(umode_environment_call);
+	comment_if_ex_delegated(smode_environment_call);
+	comment_if_ex_delegated(mmode_environment_call);
+	comment_if_ex_delegated(instruction_page_fault);
+	comment_if_ex_delegated(load_page_fault);
+	comment_if_ex_delegated(store_amo_page_fault);
+}
+
+static void print_mideleg(rv_cpu_t *cpu, string_t* mnemonics, string_t* comments) {
+	string_printf(mnemonics, "%s 0x%08x", "mideleg", cpu->csr.mideleg);
+	if(cpu->csr.mideleg == 0) return;
+	string_printf(comments, "Delegated: ");
+
+	#define comment_if_i_delegated(i) if(cpu->csr.mideleg & RV_EXCEPTION_MASK(rv_exc_ ## i)) string_printf(comments, "%s" #i, space_if_not_first(comments));
+
+	comment_if_i_delegated(machine_external_interrupt);
+	comment_if_i_delegated(supervisor_external_interrupt);
+	comment_if_i_delegated(machine_timer_interrupt);
+	comment_if_i_delegated(supervisor_timer_interrupt);
+	comment_if_i_delegated(machine_software_interrupt);
+	comment_if_i_delegated(supervisor_software_interrupt);
+}
+
 static void csr_dump_common(rv_cpu_t *cpu, int csr) {
 	string_t s_mnemonics;
 	string_t s_comments;
@@ -767,6 +817,27 @@ static void csr_dump_common(rv_cpu_t *cpu, int csr) {
 			break;
 		case csr_misa:
 			print_misa(cpu, &s_mnemonics, &s_comments);
+			break;
+		case csr_mvendorid:
+			string_printf(&s_mnemonics, "%s 0x%08x", "mvendorid", cpu->csr.mvendorid);
+			break;
+		case csr_marchid:
+			string_printf(&s_mnemonics, "%s 0x%08x", "marchid", cpu->csr.marchid);
+			break;
+		case csr_mimpid:
+			string_printf(&s_mnemonics, "%s 0x%08x", "mimpid", cpu->csr.mimpid);
+			break;
+		case csr_mhartid:
+			string_printf(&s_mnemonics, "%s %d", "mhartid", cpu->csr.mhartid);
+			break;
+		case csr_mtvec:
+			print_mtvec(cpu, &s_mnemonics, &s_comments);
+			break;
+		case csr_medeleg:
+			print_medeleg(cpu, &s_mnemonics, &s_comments);
+			break;
+		case csr_mideleg:
+			print_mideleg(cpu, &s_mnemonics, &s_comments);
 			break;
 		default:
 			printf("Not implemented CSR number!\n");

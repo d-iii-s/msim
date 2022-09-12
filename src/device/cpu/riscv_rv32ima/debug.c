@@ -594,15 +594,13 @@ static void print_mtvec(rv_cpu_t *cpu, string_t* mnemonics, string_t* comments) 
 	);
 }
 
-#define space_if_not_first(s) ((s->size > 0 && s->str[0] != 0) ? " " : "")
-
 static void print_medeleg(rv_cpu_t *cpu, string_t* mnemonics, string_t* comments) {
 	string_printf(mnemonics, "%s 0x%08x", "medeleg", cpu->csr.medeleg);
 	if(cpu->csr.medeleg == 0) return;
 	string_printf(comments, "Delegated: ");
 
 
-	#define comment_if_ex_delegated(ex) if(cpu->csr.medeleg & RV_EXCEPTION_MASK(rv_exc_ ## ex)) string_printf(comments, "%s" #ex, space_if_not_first(comments));
+	#define comment_if_ex_delegated(ex) if(cpu->csr.medeleg & RV_EXCEPTION_MASK(rv_exc_ ## ex)) string_printf(comments, #ex);
 
 	comment_if_ex_delegated(instruction_address_misaligned);
 	comment_if_ex_delegated(instruction_access_fault);
@@ -625,7 +623,7 @@ static void print_mideleg(rv_cpu_t *cpu, string_t* mnemonics, string_t* comments
 	if(cpu->csr.mideleg == 0) return;
 	string_printf(comments, "Delegated: ");
 
-	#define comment_if_i_delegated(i) if(cpu->csr.mideleg & RV_EXCEPTION_MASK(rv_exc_ ## i)) string_printf(comments, "%s" #i, space_if_not_first(comments));
+	#define comment_if_i_delegated(i) if(cpu->csr.mideleg & RV_EXCEPTION_MASK(rv_exc_ ## i)) string_printf(comments, #i);
 
 	comment_if_i_delegated(machine_external_interrupt);
 	comment_if_i_delegated(supervisor_external_interrupt);

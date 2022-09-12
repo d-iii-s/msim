@@ -721,6 +721,8 @@ default_print_function(mcounteren)
 default_print_function(mcountinhibit)
 default_print_function(mepc)
 default_print_function(mscratch)
+default_print_function(mtval)
+default_print_function(mseccfg)
 
 static void csr_dump_common(rv_cpu_t *cpu, int csr) {
 	string_t s_mnemonics;
@@ -928,6 +930,8 @@ static void csr_dump_common(rv_cpu_t *cpu, int csr) {
 		default_case(mscratch)
 		default_case(mepc)
 		default_case(mcause)
+		default_case(mtval)
+		default_case(mseccfg)
 		default:
 			printf("Not implemented CSR number!\n");
 			return;

@@ -962,7 +962,7 @@ static rv_exc_t mevncfgh_clear(rv_cpu_t* cpu, int csr, uint32_t target){
 // mseccfg(h) do nothing as of now, so they are read-only 0
 static rv_exc_t mseccfg_read(rv_cpu_t* cpu, int csr, uint32_t* target){
     minimal_privilege(rv_mmode, cpu);
-    *target = 0;
+    *target = cpu->csr.mseccfg;
     return rv_exc_none;
 }
 

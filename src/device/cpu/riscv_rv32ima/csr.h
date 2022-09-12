@@ -379,7 +379,6 @@ typedef struct {
     uint32_t mhartid;
     uint32_t mconfigptr;
 
-
     uint64_t mstatus; // subset shared with supervisor level
     
     /* trap handling */
@@ -399,6 +398,7 @@ typedef struct {
 
     /* configs */
     uint64_t menvcfg;
+	uint32_t mseccfg;
 
     /* physical memory protection */
     // TODO: does this make any sense in msim?

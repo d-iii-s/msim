@@ -633,6 +633,58 @@ static void print_mideleg(rv_cpu_t *cpu, string_t* mnemonics, string_t* comments
 	comment_if_i_delegated(supervisor_software_interrupt);
 }
 
+static void print_mie(rv_cpu_t *cpu, string_t* mnemonics, string_t* comments) {
+
+	bool meie = cpu->csr.mie & rv_csr_mei_mask;
+	bool seie = cpu->csr.mie & rv_csr_sei_mask;
+	bool mtie = cpu->csr.mie & rv_csr_mti_mask;
+	bool stie = cpu->csr.mie & rv_csr_sti_mask;
+	bool msie = cpu->csr.mie & rv_csr_msi_mask;
+	bool ssie = cpu->csr.mie & rv_csr_ssi_mask;
+
+	string_printf(mnemonics, "%s 0x%08x", "mie", cpu->csr.mie);
+	string_printf(comments,
+		"MEIE %s, SEIE %s, MTIE %s, STIE %s, MSIE %s, SSIE %s",
+		bit_string(meie),
+		bit_string(seie),
+		bit_string(mtie),
+		bit_string(stie),
+		bit_string(msie),
+		bit_string(ssie)
+	);
+}
+
+static void print_mip(rv_cpu_t *cpu, string_t* mnemonics, string_t* comments) {
+
+	bool meip = cpu->csr.mip & rv_csr_mei_mask;
+	bool seip = cpu->csr.mip & rv_csr_sei_mask;
+	bool mtip = cpu->csr.mip & rv_csr_mti_mask;
+	bool stip = cpu->csr.mip & rv_csr_sti_mask;
+	bool msip = cpu->csr.mip & rv_csr_msi_mask;
+	bool ssip = cpu->csr.mip & rv_csr_ssi_mask;
+
+	string_printf(mnemonics, "%s 0x%08x", "mip", cpu->csr.mip);
+	string_printf(comments,
+		"MEIP %s, SEIP %s, MTIP %s, STIP %s, MSIP %s, SSIP %s",
+		bit_string(meip),
+		bit_string(seip),
+		bit_string(mtip),
+		bit_string(stip),
+		bit_string(msip),
+		bit_string(ssip)
+	);
+}
+
+static void print_mcounteren(rv_cpu_t *cpu, string_t* mnemonics, string_t* comments){
+	string_printf(mnemonics, "%s 0x%08x", "mcounteren", cpu->csr.mcounteren);
+	// TODO: comments?
+}
+
+static void print_mcountinhibit(rv_cpu_t *cpu, string_t* mnemonics, string_t* comments){
+	string_printf(mnemonics, "%s 0x%08x", "mcountinhibit", cpu->csr.mcountinhibit);
+	// TODO: comments?
+}
+
 static void csr_dump_common(rv_cpu_t *cpu, int csr) {
 	string_t s_mnemonics;
 	string_t s_comments;
@@ -836,6 +888,18 @@ static void csr_dump_common(rv_cpu_t *cpu, int csr) {
 			break;
 		case csr_mideleg:
 			print_mideleg(cpu, &s_mnemonics, &s_comments);
+			break;
+		case csr_mie:
+			print_mie(cpu, &s_mnemonics, &s_comments);
+			break;
+		case csr_mip:
+			print_mip(cpu, &s_mnemonics, &s_comments);
+			break;
+		case csr_mcounteren:
+			print_mcounteren(cpu, &s_mnemonics, &s_comments);
+			break;
+		case csr_mcountinhibit:
+			print_mcountinhibit(cpu, &s_mnemonics, &s_comments);
 			break;
 		default:
 			printf("Not implemented CSR number!\n");

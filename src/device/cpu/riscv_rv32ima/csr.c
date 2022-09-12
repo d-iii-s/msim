@@ -270,14 +270,14 @@ static rv_exc_t mcountinhibit_clear(rv_cpu_t* cpu, int csr, uint32_t target){
     return rv_exc_none;
 }
 
-static rv_exc_t mhmpevent_read(rv_cpu_t* cpu, int csr, uint32_t* target){
+static rv_exc_t mhpmevent_read(rv_cpu_t* cpu, int csr, uint32_t* target){
     minimal_privilege(rv_mmode, cpu);
     int event = (csr & 0x1F) - 3;
     *target = cpu->csr.hpmevents[event];
     return rv_exc_none;
 }
 
-static rv_exc_t mhmpevent_write(rv_cpu_t* cpu, int csr, uint32_t target){
+static rv_exc_t mhpmevent_write(rv_cpu_t* cpu, int csr, uint32_t target){
     minimal_privilege(rv_mmode, cpu);
     int event = (csr & 0x1F) - 3;
 
@@ -287,7 +287,7 @@ static rv_exc_t mhmpevent_write(rv_cpu_t* cpu, int csr, uint32_t target){
     return rv_exc_none;
 }
 
-static rv_exc_t mhmpevent_set(rv_cpu_t* cpu, int csr, uint32_t target){
+static rv_exc_t mhpmevent_set(rv_cpu_t* cpu, int csr, uint32_t target){
     minimal_privilege(rv_mmode, cpu);
     int event = (csr & 0x1F) - 3;
 
@@ -299,7 +299,7 @@ static rv_exc_t mhmpevent_set(rv_cpu_t* cpu, int csr, uint32_t target){
     return rv_exc_none;
 }
 
-static rv_exc_t mhmpevent_clear(rv_cpu_t* cpu, int csr, uint32_t target){
+static rv_exc_t mhpmevent_clear(rv_cpu_t* cpu, int csr, uint32_t target){
     minimal_privilege(rv_mmode, cpu);
     int event = (csr & 0x1F) - 3;
 
@@ -1319,39 +1319,39 @@ static csr_ops_t get_csr_ops(int csr){
             break;
         }
 
-        case(csr_mhmpevent3):
-        case(csr_mhmpevent4):
-        case(csr_mhmpevent5):
-        case(csr_mhmpevent6):
-        case(csr_mhmpevent7):
-        case(csr_mhmpevent8):
-        case(csr_mhmpevent9):
-        case(csr_mhmpevent10):
-        case(csr_mhmpevent11):
-        case(csr_mhmpevent12):
-        case(csr_mhmpevent13):
-        case(csr_mhmpevent14):
-        case(csr_mhmpevent15):
-        case(csr_mhmpevent16):
-        case(csr_mhmpevent17):
-        case(csr_mhmpevent18):
-        case(csr_mhmpevent19):
-        case(csr_mhmpevent20):
-        case(csr_mhmpevent21):
-        case(csr_mhmpevent22):
-        case(csr_mhmpevent23):
-        case(csr_mhmpevent24):
-        case(csr_mhmpevent25):
-        case(csr_mhmpevent26):
-        case(csr_mhmpevent27):
-        case(csr_mhmpevent28):
-        case(csr_mhmpevent29):
-        case(csr_mhmpevent30):
-        case(csr_mhmpevent31): {
-            ops.read = mhmpevent_read;
-            ops.write = mhmpevent_write;
-            ops.set = mhmpevent_set;
-            ops.clear = mhmpevent_clear;
+        case(csr_mhpmevent3):
+        case(csr_mhpmevent4):
+        case(csr_mhpmevent5):
+        case(csr_mhpmevent6):
+        case(csr_mhpmevent7):
+        case(csr_mhpmevent8):
+        case(csr_mhpmevent9):
+        case(csr_mhpmevent10):
+        case(csr_mhpmevent11):
+        case(csr_mhpmevent12):
+        case(csr_mhpmevent13):
+        case(csr_mhpmevent14):
+        case(csr_mhpmevent15):
+        case(csr_mhpmevent16):
+        case(csr_mhpmevent17):
+        case(csr_mhpmevent18):
+        case(csr_mhpmevent19):
+        case(csr_mhpmevent20):
+        case(csr_mhpmevent21):
+        case(csr_mhpmevent22):
+        case(csr_mhpmevent23):
+        case(csr_mhpmevent24):
+        case(csr_mhpmevent25):
+        case(csr_mhpmevent26):
+        case(csr_mhpmevent27):
+        case(csr_mhpmevent28):
+        case(csr_mhpmevent29):
+        case(csr_mhpmevent30):
+        case(csr_mhpmevent31): {
+            ops.read = mhpmevent_read;
+            ops.write = mhpmevent_write;
+            ops.set = mhpmevent_set;
+            ops.clear = mhpmevent_clear;
             break;
         }
 

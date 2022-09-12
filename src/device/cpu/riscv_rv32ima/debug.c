@@ -288,35 +288,35 @@ char *rv_csr_name_table[0x1000] = {
 
 	[csr_mcountinhibit]  =    "mcountinhibit",
 	
-	[csr_mhmpevent3]     =	"mhmpevent3",
-	[csr_mhmpevent4]     =	"mhmpevent4",
-	[csr_mhmpevent5]     =	"mhmpevent5",
-	[csr_mhmpevent6]     =	"mhmpevent6",
-	[csr_mhmpevent7]     =	"mhmpevent7",
-	[csr_mhmpevent8]     =	"mhmpevent8",
-	[csr_mhmpevent9]     =	"mhmpevent9",
-	[csr_mhmpevent10]    =	"mhmpevent10",
-	[csr_mhmpevent11]    =	"mhmpevent11",
-	[csr_mhmpevent12]    =	"mhmpevent12",
-	[csr_mhmpevent13]    =	"mhmpevent13",
-	[csr_mhmpevent14]    =	"mhmpevent14",
-	[csr_mhmpevent15]    =	"mhmpevent15",
-	[csr_mhmpevent16]    =	"mhmpevent16",
-	[csr_mhmpevent17]    =	"mhmpevent17",
-	[csr_mhmpevent18]    =	"mhmpevent18",
-	[csr_mhmpevent19]    =	"mhmpevent19",
-	[csr_mhmpevent20]    =	"mhmpevent20",
-	[csr_mhmpevent21]    =	"mhmpevent21",
-	[csr_mhmpevent22]    =	"mhmpevent22",
-	[csr_mhmpevent23]    =	"mhmpevent23",
-	[csr_mhmpevent24]    =	"mhmpevent24",
-	[csr_mhmpevent25]    =	"mhmpevent25",
-	[csr_mhmpevent26]    =	"mhmpevent26",
-	[csr_mhmpevent27]    =	"mhmpevent27",
-	[csr_mhmpevent28]    =	"mhmpevent28",
-	[csr_mhmpevent29]    =	"mhmpevent29",
-	[csr_mhmpevent30]    =	"mhmpevent30",
-	[csr_mhmpevent31]    =	"mhmpevent31",
+	[csr_mhpmevent3]     =	"mhpmevent3",
+	[csr_mhpmevent4]     =	"mhpmevent4",
+	[csr_mhpmevent5]     =	"mhpmevent5",
+	[csr_mhpmevent6]     =	"mhpmevent6",
+	[csr_mhpmevent7]     =	"mhpmevent7",
+	[csr_mhpmevent8]     =	"mhpmevent8",
+	[csr_mhpmevent9]     =	"mhpmevent9",
+	[csr_mhpmevent10]    =	"mhpmevent10",
+	[csr_mhpmevent11]    =	"mhpmevent11",
+	[csr_mhpmevent12]    =	"mhpmevent12",
+	[csr_mhpmevent13]    =	"mhpmevent13",
+	[csr_mhpmevent14]    =	"mhpmevent14",
+	[csr_mhpmevent15]    =	"mhpmevent15",
+	[csr_mhpmevent16]    =	"mhpmevent16",
+	[csr_mhpmevent17]    =	"mhpmevent17",
+	[csr_mhpmevent18]    =	"mhpmevent18",
+	[csr_mhpmevent19]    =	"mhpmevent19",
+	[csr_mhpmevent20]    =	"mhpmevent20",
+	[csr_mhpmevent21]    =	"mhpmevent21",
+	[csr_mhpmevent22]    =	"mhpmevent22",
+	[csr_mhpmevent23]    =	"mhpmevent23",
+	[csr_mhpmevent24]    =	"mhpmevent24",
+	[csr_mhpmevent25]    =	"mhpmevent25",
+	[csr_mhpmevent26]    =	"mhpmevent26",
+	[csr_mhpmevent27]    =	"mhpmevent27",
+	[csr_mhpmevent28]    =	"mhpmevent28",
+	[csr_mhpmevent29]    =	"mhpmevent29",
+	[csr_mhpmevent30]    =	"mhpmevent30",
+	[csr_mhpmevent31]    =	"mhpmevent31",
 
 	[csr_tselect]        =    "tselect",
 	[csr_tdata1]         =    "tdata1",
@@ -447,6 +447,39 @@ static void print_hpm(rv_cpu_t *cpu, int hpm, string_t* mnemonics, string_t* com
 	print_64_reg(cpu->csr.hpmcounters[hpm - 3], s.str, mnemonics);
 }
 
+static void print_hpm_event(rv_cpu_t *cpu, int hpm, string_t* mnemonics, string_t* comments){
+	ASSERT((hpm >= 3 && hpm < 32));
+	string_t s;
+	string_init(&s);
+	string_printf(&s, "mhpmevent%i", hpm);
+
+	string_printf(mnemonics, "%s 0x%08x", s.str, cpu->csr.hpmevents[hpm-3]);
+
+	char* event_name;
+	switch(cpu->csr.hpmevents[hpm-3]){
+		case hpm_no_event:
+			event_name = "no event";
+			break;
+		case hpm_u_cycles:
+			event_name = "U mode cycles";
+			break;
+		case hpm_s_cycles:
+			event_name = "S mode cycles";
+			break;
+		case hpm_m_cycles:
+			event_name = "M mode cycles";
+			break;
+		case hpm_w_cycles:
+			event_name = "Idle cycles";
+			break;
+		default:
+			event_name = "Invalid event";
+			break;
+	}
+
+	string_printf(comments, "%s", event_name);
+}
+
 #define bit_string(b) (b ? "1" : "0")
 
 static void print_sstatus(rv_cpu_t *cpu, string_t* mnemonics, string_t* comments) {
@@ -467,7 +500,7 @@ static void print_sstatus(rv_cpu_t *cpu, string_t* mnemonics, string_t* comments
 
 	string_printf(mnemonics, "%s 0x%08x","sstatus",sstatus);
 	
-	string_printf(comments, "(SD %s, MXR %s, SUM %s, XS %i%i, FS %i%i, VS %i%i, SPP %s, UBE %s, SPIE %s, SIE %s)",
+	string_printf(comments, "SD %s, MXR %s, SUM %s, XS %i%i, FS %i%i, VS %i%i, SPP %s, UBE %s, SPIE %s, SIE %s",
 		bit_string(sd),
 		bit_string(mxr),
 		bit_string(sum),
@@ -674,10 +707,42 @@ static void csr_dump_common(rv_cpu_t *cpu, int csr) {
 		case csr_mhpmcounter31h:
 			print_hpm(cpu, csr & 0x1F, &s_mnemonics, &s_comments);
 			break;
+		case csr_mhpmevent3:
+		case csr_mhpmevent4:
+		case csr_mhpmevent5:
+		case csr_mhpmevent6:
+		case csr_mhpmevent7:
+		case csr_mhpmevent8:
+		case csr_mhpmevent9:
+		case csr_mhpmevent10:
+		case csr_mhpmevent11:
+		case csr_mhpmevent12:
+		case csr_mhpmevent13:
+		case csr_mhpmevent14:
+		case csr_mhpmevent15:
+		case csr_mhpmevent16:
+		case csr_mhpmevent17:
+		case csr_mhpmevent18:
+		case csr_mhpmevent19:
+		case csr_mhpmevent20:
+		case csr_mhpmevent21:
+		case csr_mhpmevent22:
+		case csr_mhpmevent23:
+		case csr_mhpmevent24:
+		case csr_mhpmevent25:
+		case csr_mhpmevent26:
+		case csr_mhpmevent27:
+		case csr_mhpmevent28:
+		case csr_mhpmevent29:
+		case csr_mhpmevent30:
+		case csr_mhpmevent31:
+			print_hpm_event(cpu, csr & 0x1F, &s_mnemonics, &s_comments);
+			break;
 		case csr_sstatus:
 			print_sstatus(cpu, &s_mnemonics, &s_comments);
 			break;
 		case csr_mstatus:
+		case csr_mstatush:
 			print_mstatus(cpu, &s_mnemonics, &s_comments);
 			break;
 		default:
@@ -687,8 +752,9 @@ static void csr_dump_common(rv_cpu_t *cpu, int csr) {
 
 	printf("%s", s_mnemonics.str);
 
-	if(icmt && s_comments.size > 0){
-		printf(" %s", s_comments.str);
+	if(icmt && s_comments.size > 0 && s_comments.str[0] != 0){
+
+		printf(" [ %s ]", s_comments.str);
 	}
 
 	printf("\n");

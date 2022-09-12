@@ -1,4 +1,6 @@
 #include <string.h>
+#include <stdint.h>
+#include <sys/time.h>
 
 #include "debug.h"
 #include "cpu.h"
@@ -421,6 +423,18 @@ static void print_cycle(rv_cpu_t *cpu){
 	print_64_reg(cpu->csr.cycle, "cycle");
 }
 
+static uint64_t current_timestamp() {
+    struct timeval te; 
+    gettimeofday(&te, NULL); // get current time
+    uint64_t milliseconds = te.tv_sec*1000LL + te.tv_usec/1000; // calculate milliseconds
+    return milliseconds;
+}
+
+static void print_time(rv_cpu_t *cpu) {
+	printf("(not accurate) ");
+	print_64_reg(current_timestamp(), "time");
+}
+
 static void print_instret(rv_cpu_t *cpu){
 	print_64_reg(cpu->csr.instret, "instret");
 }
@@ -444,18 +458,28 @@ bool rv_csr_dump(rv_cpu_t *cpu, int csr){
 	ASSERT((csr >= 0 && csr < 0x1000));
 	ASSERT(cpu != NULL);
 
-	printf("dumping CSR 0x%03x!\n", csr);
 	if(rv_csr_name_table[csr] == NULL){
+		printf("Invalid CSR!\n");
 		return false;
 	}
+
+	printf("%s (0x%03x):\n", rv_csr_name_table[csr] ,csr);
 
 	switch(csr){
 		case csr_cycle:
 		case csr_cycleh:
+		case csr_mcycle:
+		case csr_mcycleh:
 			print_cycle(cpu);
+			break;
+		case csr_time:
+		case csr_timeh:
+			print_time(cpu);
 			break;
 		case csr_instret:
 		case csr_instreth:
+		case csr_minstret:
+		case csr_minstreth:
 			print_instret(cpu);
 			break;
 		case csr_hpmcounter3:
@@ -516,6 +540,64 @@ bool rv_csr_dump(rv_cpu_t *cpu, int csr){
 		case csr_hpmcounter29h:
 		case csr_hpmcounter30h:
 		case csr_hpmcounter31h:
+		case csr_mhpmcounter3:
+		case csr_mhpmcounter4:
+		case csr_mhpmcounter5:
+		case csr_mhpmcounter6:
+		case csr_mhpmcounter7:
+		case csr_mhpmcounter8:
+		case csr_mhpmcounter9:
+		case csr_mhpmcounter10:
+		case csr_mhpmcounter11:
+		case csr_mhpmcounter12:
+		case csr_mhpmcounter13:
+		case csr_mhpmcounter14:
+		case csr_mhpmcounter15:
+		case csr_mhpmcounter16:
+		case csr_mhpmcounter17:
+		case csr_mhpmcounter18:
+		case csr_mhpmcounter19:
+		case csr_mhpmcounter20:
+		case csr_mhpmcounter21:
+		case csr_mhpmcounter22:
+		case csr_mhpmcounter23:
+		case csr_mhpmcounter24:
+		case csr_mhpmcounter25:
+		case csr_mhpmcounter26:
+		case csr_mhpmcounter27:
+		case csr_mhpmcounter28:
+		case csr_mhpmcounter29:
+		case csr_mhpmcounter30:
+		case csr_mhpmcounter31:
+		case csr_mhpmcounter3h:
+		case csr_mhpmcounter4h:
+		case csr_mhpmcounter5h:
+		case csr_mhpmcounter6h:
+		case csr_mhpmcounter7h:
+		case csr_mhpmcounter8h:
+		case csr_mhpmcounter9h:
+		case csr_mhpmcounter10h:
+		case csr_mhpmcounter11h:
+		case csr_mhpmcounter12h:
+		case csr_mhpmcounter13h:
+		case csr_mhpmcounter14h:
+		case csr_mhpmcounter15h:
+		case csr_mhpmcounter16h:
+		case csr_mhpmcounter17h:
+		case csr_mhpmcounter18h:
+		case csr_mhpmcounter19h:
+		case csr_mhpmcounter20h:
+		case csr_mhpmcounter21h:
+		case csr_mhpmcounter22h:
+		case csr_mhpmcounter23h:
+		case csr_mhpmcounter24h:
+		case csr_mhpmcounter25h:
+		case csr_mhpmcounter26h:
+		case csr_mhpmcounter27h:
+		case csr_mhpmcounter28h:
+		case csr_mhpmcounter29h:
+		case csr_mhpmcounter30h:
+		case csr_mhpmcounter31h:
 			print_hpm(cpu, csr & 0x1F);
 			break;
 		default:

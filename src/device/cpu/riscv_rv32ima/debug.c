@@ -1,3 +1,5 @@
+#include <string.h>
+
 #include "debug.h"
 #include "cpu.h"
 #include "csr.h"
@@ -250,7 +252,7 @@ char *rv_csr_name_table[0x1000] = {
 	[csr_mhpmcounter31]  = 	"mhpmcounter31",
 
 	[csr_mcycleh]        =	"mcycleh",
-	[csr_minstreth] 	   =	"minstreth",
+	[csr_minstreth] 	 =	"minstreth",
 
 	[csr_mhpmcounter3h]   = 	"mhpmcounter3h",
 	[csr_mhpmcounter4h]   = 	"mhpmcounter4h",
@@ -409,4 +411,128 @@ void rv_idump(rv_cpu_t *cpu, uint32_t addr, rv_instr_t instr){
     }
     
     printf("\n");
+}
+
+static void print_64_reg(uint64_t val, const char* name){
+	printf("%s 0x%016lx (%sh = 0x%08x, %s = 0x%08x)\n", name, val, name, (uint32_t)(val >> 32), name, (uint32_t)val);
+}
+
+static void print_cycle(rv_cpu_t *cpu){
+	print_64_reg(cpu->csr.cycle, "cycle");
+}
+
+static void print_instret(rv_cpu_t *cpu){
+	print_64_reg(cpu->csr.instret, "instret");
+}
+
+static void print_hpm(rv_cpu_t *cpu, int hpm){
+	ASSERT((hpm >= 3 && hpm < 32));
+	string_t s;
+	string_init(&s);
+	printf("before sprintf\n");
+	string_printf(&s, "hpmcounter%i", hpm);
+	printf("after sprintf\n");
+	print_64_reg(cpu->csr.hpmcounters[hpm - 3], s.str);
+}
+
+void rv_csr_dump_all(rv_cpu_t *cpu){
+	printf("dumping all CSRs!\n");
+	
+}
+
+bool rv_csr_dump(rv_cpu_t *cpu, int csr){
+	ASSERT((csr >= 0 && csr < 0x1000));
+	ASSERT(cpu != NULL);
+
+	printf("dumping CSR 0x%03x!\n", csr);
+	if(rv_csr_name_table[csr] == NULL){
+		return false;
+	}
+
+	switch(csr){
+		case csr_cycle:
+		case csr_cycleh:
+			print_cycle(cpu);
+			break;
+		case csr_instret:
+		case csr_instreth:
+			print_instret(cpu);
+			break;
+		case csr_hpmcounter3:
+		case csr_hpmcounter4:
+		case csr_hpmcounter5:
+		case csr_hpmcounter6:
+		case csr_hpmcounter7:
+		case csr_hpmcounter8:
+		case csr_hpmcounter9:
+		case csr_hpmcounter10:
+		case csr_hpmcounter11:
+		case csr_hpmcounter12:
+		case csr_hpmcounter13:
+		case csr_hpmcounter14:
+		case csr_hpmcounter15:
+		case csr_hpmcounter16:
+		case csr_hpmcounter17:
+		case csr_hpmcounter18:
+		case csr_hpmcounter19:
+		case csr_hpmcounter20:
+		case csr_hpmcounter21:
+		case csr_hpmcounter22:
+		case csr_hpmcounter23:
+		case csr_hpmcounter24:
+		case csr_hpmcounter25:
+		case csr_hpmcounter26:
+		case csr_hpmcounter27:
+		case csr_hpmcounter28:
+		case csr_hpmcounter29:
+		case csr_hpmcounter30:
+		case csr_hpmcounter31:
+		case csr_hpmcounter3h:
+		case csr_hpmcounter4h:
+		case csr_hpmcounter5h:
+		case csr_hpmcounter6h:
+		case csr_hpmcounter7h:
+		case csr_hpmcounter8h:
+		case csr_hpmcounter9h:
+		case csr_hpmcounter10h:
+		case csr_hpmcounter11h:
+		case csr_hpmcounter12h:
+		case csr_hpmcounter13h:
+		case csr_hpmcounter14h:
+		case csr_hpmcounter15h:
+		case csr_hpmcounter16h:
+		case csr_hpmcounter17h:
+		case csr_hpmcounter18h:
+		case csr_hpmcounter19h:
+		case csr_hpmcounter20h:
+		case csr_hpmcounter21h:
+		case csr_hpmcounter22h:
+		case csr_hpmcounter23h:
+		case csr_hpmcounter24h:
+		case csr_hpmcounter25h:
+		case csr_hpmcounter26h:
+		case csr_hpmcounter27h:
+		case csr_hpmcounter28h:
+		case csr_hpmcounter29h:
+		case csr_hpmcounter30h:
+		case csr_hpmcounter31h:
+			print_hpm(cpu, csr & 0x1F);
+			break;
+		default:
+			printf("Invalid CSR number!\n");
+			return false;
+	}
+	return true;
+}
+
+bool rv_csr_dump_by_name(rv_cpu_t *cpu, const char* name){
+	for(int i = 0; i < 0x1000; ++i){
+		if(rv_csr_name_table[i] == NULL) continue;
+
+		if(strcmp(name, rv_csr_name_table[i]) == 0){
+			return rv_csr_dump(cpu, i);
+		}
+	}
+	printf("Specified name is not a valid CSR!\n");
+	return false;
 }

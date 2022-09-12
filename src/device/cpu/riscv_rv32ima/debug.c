@@ -415,6 +415,11 @@ void rv_idump(rv_cpu_t *cpu, uint32_t addr, rv_instr_t instr){
     printf("\n");
 }
 
+#define default_print_function(csr_name) 													\
+	static void print_##csr_name(rv_cpu_t *cpu, string_t* mnemonics, string_t* comments){ 	\
+		string_printf(mnemonics, "%s 0x%08x", #csr_name, cpu->csr.csr_name);				\
+	}	
+
 static void print_64_reg(uint64_t val, const char* name, string_t* s){
 	string_printf(s, "%s 0x%016lx (%sh = 0x%08x, %s = 0x%08x)", name, val, name, (uint32_t)(val >> 32), name, (uint32_t)val);
 }
@@ -675,15 +680,11 @@ static void print_mip(rv_cpu_t *cpu, string_t* mnemonics, string_t* comments) {
 	);
 }
 
-static void print_mcounteren(rv_cpu_t *cpu, string_t* mnemonics, string_t* comments){
-	string_printf(mnemonics, "%s 0x%08x", "mcounteren", cpu->csr.mcounteren);
-	// TODO: comments?
-}
-
-static void print_mcountinhibit(rv_cpu_t *cpu, string_t* mnemonics, string_t* comments){
-	string_printf(mnemonics, "%s 0x%08x", "mcountinhibit", cpu->csr.mcountinhibit);
-	// TODO: comments?
-}
+// TODO: comments?
+default_print_function(mcounteren)
+default_print_function(mcountinhibit)
+default_print_function(mepc)
+default_print_function(mscratch)
 
 static void csr_dump_common(rv_cpu_t *cpu, int csr) {
 	string_t s_mnemonics;
@@ -691,6 +692,11 @@ static void csr_dump_common(rv_cpu_t *cpu, int csr) {
 
 	string_init(&s_mnemonics);
 	string_init(&s_comments);
+
+	#define default_case(csr) 								\
+		case csr_##csr:										\
+			print_##csr(cpu, &s_mnemonics, &s_comments);	\
+			break;
 
 	switch(csr){
 		case csr_cycle:
@@ -858,16 +864,12 @@ static void csr_dump_common(rv_cpu_t *cpu, int csr) {
 		case csr_mhpmevent31:
 			print_hpm_event(cpu, csr & 0x1F, &s_mnemonics, &s_comments);
 			break;
-		case csr_sstatus:
-			print_sstatus(cpu, &s_mnemonics, &s_comments);
-			break;
+		default_case(sstatus) 
 		case csr_mstatus:
 		case csr_mstatush:
 			print_mstatus(cpu, &s_mnemonics, &s_comments);
 			break;
-		case csr_misa:
-			print_misa(cpu, &s_mnemonics, &s_comments);
-			break;
+		default_case(misa)
 		case csr_mvendorid:
 			string_printf(&s_mnemonics, "%s 0x%08x", "mvendorid", cpu->csr.mvendorid);
 			break;
@@ -880,27 +882,15 @@ static void csr_dump_common(rv_cpu_t *cpu, int csr) {
 		case csr_mhartid:
 			string_printf(&s_mnemonics, "%s %d", "mhartid", cpu->csr.mhartid);
 			break;
-		case csr_mtvec:
-			print_mtvec(cpu, &s_mnemonics, &s_comments);
-			break;
-		case csr_medeleg:
-			print_medeleg(cpu, &s_mnemonics, &s_comments);
-			break;
-		case csr_mideleg:
-			print_mideleg(cpu, &s_mnemonics, &s_comments);
-			break;
-		case csr_mie:
-			print_mie(cpu, &s_mnemonics, &s_comments);
-			break;
-		case csr_mip:
-			print_mip(cpu, &s_mnemonics, &s_comments);
-			break;
-		case csr_mcounteren:
-			print_mcounteren(cpu, &s_mnemonics, &s_comments);
-			break;
-		case csr_mcountinhibit:
-			print_mcountinhibit(cpu, &s_mnemonics, &s_comments);
-			break;
+		default_case(mtvec)
+		default_case(medeleg)
+		default_case(mideleg)
+		default_case(mie)
+		default_case(mip)
+		default_case(mcounteren)
+		default_case(mcountinhibit)
+		default_case(mscratch)
+		default_case(mepc)
 		default:
 			printf("Not implemented CSR number!\n");
 			return;

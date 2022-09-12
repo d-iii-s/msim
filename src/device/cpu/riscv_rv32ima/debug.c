@@ -415,12 +415,12 @@ void rv_idump(rv_cpu_t *cpu, uint32_t addr, rv_instr_t instr){
     printf("\n");
 }
 
-static void print_64_reg(uint64_t val, const char* name){
-	printf("%s 0x%016lx (%sh = 0x%08x, %s = 0x%08x)\n", name, val, name, (uint32_t)(val >> 32), name, (uint32_t)val);
+static void print_64_reg(uint64_t val, const char* name, string_t* s){
+	string_printf(s, "%s 0x%016lx (%sh = 0x%08x, %s = 0x%08x)\n", name, val, name, (uint32_t)(val >> 32), name, (uint32_t)val);
 }
 
-static void print_cycle(rv_cpu_t *cpu){
-	print_64_reg(cpu->csr.cycle, "cycle");
+static void print_cycle(rv_cpu_t *cpu, string_t* mnemonics, string_t* comments){
+	print_64_reg(cpu->csr.cycle, "cycle", mnemonics);
 }
 
 static uint64_t current_timestamp() {
@@ -430,55 +430,90 @@ static uint64_t current_timestamp() {
     return milliseconds;
 }
 
-static void print_time(rv_cpu_t *cpu) {
-	printf("(not accurate) ");
-	print_64_reg(current_timestamp(), "time");
+static void print_time(rv_cpu_t *cpu, string_t* mnemonics, string_t* comments) {
+	string_printf(mnemonics, "(not accurate) ");
+	print_64_reg(current_timestamp(), "time", mnemonics);
 }
 
-static void print_instret(rv_cpu_t *cpu){
-	print_64_reg(cpu->csr.instret, "instret");
+static void print_instret(rv_cpu_t *cpu, string_t* mnemonics, string_t* comments){
+	print_64_reg(cpu->csr.instret, "instret", mnemonics);
 }
 
-static void print_hpm(rv_cpu_t *cpu, int hpm){
+static void print_hpm(rv_cpu_t *cpu, int hpm, string_t* mnemonics, string_t* comments){
 	ASSERT((hpm >= 3 && hpm < 32));
 	string_t s;
 	string_init(&s);
 	string_printf(&s, "hpmcounter%i", hpm);
-	print_64_reg(cpu->csr.hpmcounters[hpm - 3], s.str);
+	print_64_reg(cpu->csr.hpmcounters[hpm - 3], s.str, mnemonics);
 }
 
-void rv_csr_dump_all(rv_cpu_t *cpu){
-	printf("dumping all CSRs!\n");
+#define bit_string(b) (b ? "1" : "0")
+
+static void print_sstatus(rv_cpu_t *cpu, string_t* mnemonics, string_t* comments) {
+	uint32_t sstatus = cpu->csr.mstatus & rv_csr_sstatus_mask;
+
+	bool sd = cpu->csr.mstatus & 0x80000000;
+	bool mxr = rv_csr_sstatus_mxr(cpu);
+	bool sum = rv_csr_sstatus_sum(cpu);
+	int xs = (cpu->csr.mstatus & 0x18000) >> 15;
+	int fs = (cpu->csr.mstatus & 0x6000) >> 13;
+	int vs = (cpu->csr.mstatus & 0x600) >> 9;
+
+	rv_priv_mode_t spp = rv_csr_sstatus_spp(cpu);
+	char* spp_s = (spp == rv_smode ? "S" : "U");
+	bool ube = rv_csr_sstatus_ube(cpu);
+	bool spie = rv_csr_sstatus_spie(cpu);
+	bool sie = rv_csr_sstatus_sie(cpu);
+
+	string_printf(mnemonics, "%s 0x%08x","sstatus",sstatus);
 	
+	string_printf(comments, "(SD %s, MXR %s, SUM %s, XS %i%i, FS %i%i, VS %i%i, SPP %s, UBE %s, SPIE %s, SIE %s)\n",
+		bit_string(sd),
+		bit_string(mxr),
+		bit_string(sum),
+		xs >> 1, xs & 1,
+		fs >> 1, fs & 1,
+		vs >> 1, vs & 1,
+		spp_s,
+		bit_string(ube),
+		bit_string(spie),
+		bit_string(sie)
+	);
 }
 
-bool rv_csr_dump(rv_cpu_t *cpu, int csr){
-	ASSERT((csr >= 0 && csr < 0x1000));
-	ASSERT(cpu != NULL);
+static void print_mstatus(rv_cpu_t *cpu, string_t* mnemonics, string_t* comments) {
+	bool mxr = rv_csr_sstatus_mxr(cpu);
+	bool sum = rv_csr_sstatus_sum(cpu);
+	rv_priv_mode_t spp = rv_csr_sstatus_spp(cpu);
+	char* spp_s = (spp == rv_smode ? "S" : "U");
+	bool ube = rv_csr_sstatus_ube(cpu);
+	bool spie = rv_csr_sstatus_spie(cpu);
+	bool sie = rv_csr_sstatus_sie(cpu);
+}
 
-	if(rv_csr_name_table[csr] == NULL){
-		printf("Invalid CSR!\n");
-		return false;
-	}
+static void csr_dump_common(rv_cpu_t *cpu, int csr) {
+	string_t s_mnemonics;
+	string_t s_comments;
 
-	printf("%s (0x%03x):\n", rv_csr_name_table[csr] ,csr);
+	string_init(&s_mnemonics);
+	string_init(&s_comments);
 
 	switch(csr){
 		case csr_cycle:
 		case csr_cycleh:
 		case csr_mcycle:
 		case csr_mcycleh:
-			print_cycle(cpu);
+			print_cycle(cpu, &s_mnemonics, &s_comments);
 			break;
 		case csr_time:
 		case csr_timeh:
-			print_time(cpu);
+			print_time(cpu, &s_mnemonics, &s_comments);
 			break;
 		case csr_instret:
 		case csr_instreth:
 		case csr_minstret:
 		case csr_minstreth:
-			print_instret(cpu);
+			print_instret(cpu, &s_mnemonics, &s_comments);
 			break;
 		case csr_hpmcounter3:
 		case csr_hpmcounter4:
@@ -596,12 +631,39 @@ bool rv_csr_dump(rv_cpu_t *cpu, int csr){
 		case csr_mhpmcounter29h:
 		case csr_mhpmcounter30h:
 		case csr_mhpmcounter31h:
-			print_hpm(cpu, csr & 0x1F);
+			print_hpm(cpu, csr & 0x1F, &s_mnemonics, &s_comments);
+			break;
+		case csr_sstatus:
+			print_sstatus(cpu, &s_mnemonics, &s_comments);
 			break;
 		default:
-			printf("Invalid CSR number!\n");
-			return false;
+			printf("Not implemented CSR number!\n");
+			return;
 	}
+
+	printf("%s", s_mnemonics.str);
+
+	if(icmt && s_comments.size > 0){
+		printf(" %s", s_comments.str);
+	}
+}
+
+void rv_csr_dump_all(rv_cpu_t *cpu){
+	printf("dumping all CSRs!\n");
+}
+
+bool rv_csr_dump(rv_cpu_t *cpu, int csr){
+	ASSERT((csr >= 0 && csr < 0x1000));
+	ASSERT(cpu != NULL);
+
+	if(rv_csr_name_table[csr] == NULL){
+		printf("Invalid CSR!\n");
+		return false;
+	}
+
+	printf("%s (0x%03x):\n", rv_csr_name_table[csr] ,csr);
+
+	csr_dump_common(cpu, csr);
 	return true;
 }
 

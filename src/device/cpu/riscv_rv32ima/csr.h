@@ -471,6 +471,7 @@ enum rv_priv_mode;
 #define rv_csr_sstatus_spie(cpu) (bool)((cpu)->csr.mstatus & rv_csr_sstatus_spie_mask)
 #define rv_csr_sstatus_sie(cpu) (bool)((cpu)->csr.mstatus & rv_csr_sstatus_sie_mask)
 #define rv_csr_sstatus_spp(cpu) (enum rv_priv_mode)((cpu)->csr.mstatus & rv_csr_sstatus_spp_mask)
+#define rv_csr_sstatus_ube(cpu) (bool)((cpu)->csr.mstatus & rv_csr_sstatus_ube_mask)
 
 #define rv_csr_sei_mask (1U << 9)
 #define rv_csr_sti_mask (1U << 5)

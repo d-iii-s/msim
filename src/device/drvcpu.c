@@ -67,6 +67,31 @@ static bool drvcpu_rd(token_t *parm, device_t *dev){
     return true;
 }
 
+static bool drvcpu_csr_rd(token_t *parm, device_t *dev){
+    ASSERT(dev != NULL);
+
+    if(parm->ttype == tt_end) {
+        rv_csr_dump_all(get_rv(dev));
+        return true;
+    }
+
+    token_type_t token_type = parm_type(parm);
+
+    if(token_type == tt_str){
+        const char* name = parm_str_next(&parm);
+        return rv_csr_dump_by_name(get_rv(dev), name);
+    }
+    else if(token_type == tt_uint){
+        uint64_t num = parm_uint_next(&parm);
+        if(num > 0xFFF) return false;
+        return rv_csr_dump(get_rv(dev), num);
+    }
+
+    printf("Invalid arguments!");
+    return false;
+}
+
+
 static void drvcpu_done(device_t *dev){
     safe_free(dev->name);
     safe_free(((general_cpu_t *)dev->data)->data);
@@ -113,6 +138,15 @@ cmd_t drvcpu_cmds[] = {
         "Dump content of CPU general registers",
         "Dump content of CPU general registers",
         NOCMD
+    },
+    {
+        "csrrd",
+        (fcmd_t) drvcpu_csr_rd,
+        DEFAULT,
+        DEFAULT,
+        "Dump content of CSR registers",
+        "Dump content of all CSRs if no argument is given, or dump the content of the specified register (numerically or by name)",
+        OPT VAR "csr" END
     }
 };
 

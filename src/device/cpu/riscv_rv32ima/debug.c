@@ -443,9 +443,7 @@ static void print_hpm(rv_cpu_t *cpu, int hpm){
 	ASSERT((hpm >= 3 && hpm < 32));
 	string_t s;
 	string_init(&s);
-	printf("before sprintf\n");
 	string_printf(&s, "hpmcounter%i", hpm);
-	printf("after sprintf\n");
 	print_64_reg(cpu->csr.hpmcounters[hpm - 3], s.str);
 }
 

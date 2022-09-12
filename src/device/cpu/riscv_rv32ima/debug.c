@@ -330,6 +330,32 @@ char *rv_csr_name_table[0x1000] = {
 	[csr_dscratch1]      =    "dscratch1" 
 };
 
+char *exc_name_table[32] = {
+	[rv_exc_instruction_address_misaligned] = "Instruction address misaligned",
+	[rv_exc_instruction_access_fault] = "Instruction access fault",
+	[rv_exc_illegal_instruction] = "Illegal instruction",
+	[rv_exc_breakpoint] = "Breakpoint",
+	[rv_exc_load_address_misaligned] = "Load address misaligned",
+	[rv_exc_load_access_fault] = "Load access fault",
+	[rv_exc_store_amo_address_misaligned] = "Store/AMO address misaligned",
+	[rv_exc_store_amo_access_fault] = "Store/Amo access fault",
+	[rv_exc_umode_environment_call] = "U-Mode environment call",
+	[rv_exc_smode_environment_call] = "S-Mode environment call",
+	[rv_exc_mmode_environment_call] = "M-Mode environment call",
+	[rv_exc_instruction_page_fault] = "Instruction page fault",
+	[rv_exc_load_page_fault] = "Load page fault",
+	[rv_exc_store_amo_page_fault] = "Store/Amo page fault"
+};
+
+char *interrupt_name_table[32] = {
+	[1] = "Supervisor software interrupt",
+	[3] = "Machine software interrupt",
+	[5] = "Supervisor timer interrupt",
+	[7] = "Machine timer interrupt",
+	[9] = "Supervisor external interrupt",
+	[11] = "Machine external interrupt",
+};
+
 char** rv_regnames;
 char** rv_csrnames;
 
@@ -605,7 +631,7 @@ static void print_medeleg(rv_cpu_t *cpu, string_t* mnemonics, string_t* comments
 	string_printf(comments, "Delegated: ");
 
 
-	#define comment_if_ex_delegated(ex) if(cpu->csr.medeleg & RV_EXCEPTION_MASK(rv_exc_ ## ex)) string_printf(comments, #ex);
+	#define comment_if_ex_delegated(ex) if(cpu->csr.medeleg & RV_EXCEPTION_MASK(rv_exc_ ## ex)) string_printf(comments, "%s", exc_name_table[rv_exc_ ## ex]);
 
 	comment_if_ex_delegated(instruction_address_misaligned);
 	comment_if_ex_delegated(instruction_access_fault);
@@ -628,7 +654,7 @@ static void print_mideleg(rv_cpu_t *cpu, string_t* mnemonics, string_t* comments
 	if(cpu->csr.mideleg == 0) return;
 	string_printf(comments, "Delegated: ");
 
-	#define comment_if_i_delegated(i) if(cpu->csr.mideleg & RV_EXCEPTION_MASK(rv_exc_ ## i)) string_printf(comments, #i);
+	#define comment_if_i_delegated(i) if(cpu->csr.mideleg & RV_EXCEPTION_MASK(rv_exc_ ## i)) string_printf(comments, "%s", interrupt_name_table[rv_exc_ ## i & ~RV_INTERRUPT_EXC_BITS]);
 
 	comment_if_i_delegated(machine_external_interrupt);
 	comment_if_i_delegated(supervisor_external_interrupt);
@@ -679,6 +705,14 @@ static void print_mip(rv_cpu_t *cpu, string_t* mnemonics, string_t* comments) {
 		bit_string(ssip)
 	);
 }
+
+static void print_mcause(rv_cpu_t *cpu, string_t* mnemonics, string_t* comments) {
+	string_printf(mnemonics, "%s 0x%08x", "mcause", cpu->csr.mcause);
+	bool is_interrupt = cpu->csr.mcause & RV_INTERRUPT_EXC_BITS;
+	int cause_id = cpu->csr.mcause & ~RV_INTERRUPT_EXC_BITS;
+	string_printf(comments, "%s", (is_interrupt ? interrupt_name_table[cause_id] : exc_name_table[cause_id]));
+}
+
 
 // TODO: comments?
 default_print_function(mcounteren)
@@ -891,6 +925,7 @@ static void csr_dump_common(rv_cpu_t *cpu, int csr) {
 		default_case(mcountinhibit)
 		default_case(mscratch)
 		default_case(mepc)
+		default_case(mcause)
 		default:
 			printf("Not implemented CSR number!\n");
 			return;

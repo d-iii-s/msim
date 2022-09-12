@@ -1696,7 +1696,7 @@ static csr_ops_t get_csr_ops(int csr){
             break;
         }
     
-        case csr_mevncfgh: {
+        case csr_menvcfgh: {
             ops.read = mevncfgh_read;
             ops.write = invalid_write;
             ops.set = mevncfgh_set;

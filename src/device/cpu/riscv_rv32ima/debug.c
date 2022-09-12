@@ -416,7 +416,7 @@ void rv_idump(rv_cpu_t *cpu, uint32_t addr, rv_instr_t instr){
 }
 
 static void print_64_reg(uint64_t val, const char* name, string_t* s){
-	string_printf(s, "%s 0x%016lx (%sh = 0x%08x, %s = 0x%08x)\n", name, val, name, (uint32_t)(val >> 32), name, (uint32_t)val);
+	string_printf(s, "%s 0x%016lx (%sh = 0x%08x, %s = 0x%08x)", name, val, name, (uint32_t)(val >> 32), name, (uint32_t)val);
 }
 
 static void print_cycle(rv_cpu_t *cpu, string_t* mnemonics, string_t* comments){
@@ -460,14 +460,14 @@ static void print_sstatus(rv_cpu_t *cpu, string_t* mnemonics, string_t* comments
 	int vs = (cpu->csr.mstatus & 0x600) >> 9;
 
 	rv_priv_mode_t spp = rv_csr_sstatus_spp(cpu);
-	char* spp_s = (spp == rv_smode ? "S" : "U");
+	char* spp_s = ((spp == rv_smode) ? "S" : "U");
 	bool ube = rv_csr_sstatus_ube(cpu);
 	bool spie = rv_csr_sstatus_spie(cpu);
 	bool sie = rv_csr_sstatus_sie(cpu);
 
 	string_printf(mnemonics, "%s 0x%08x","sstatus",sstatus);
 	
-	string_printf(comments, "(SD %s, MXR %s, SUM %s, XS %i%i, FS %i%i, VS %i%i, SPP %s, UBE %s, SPIE %s, SIE %s)\n",
+	string_printf(comments, "(SD %s, MXR %s, SUM %s, XS %i%i, FS %i%i, VS %i%i, SPP %s, UBE %s, SPIE %s, SIE %s)",
 		bit_string(sd),
 		bit_string(mxr),
 		bit_string(sum),
@@ -482,13 +482,54 @@ static void print_sstatus(rv_cpu_t *cpu, string_t* mnemonics, string_t* comments
 }
 
 static void print_mstatus(rv_cpu_t *cpu, string_t* mnemonics, string_t* comments) {
+	bool mbe = cpu->csr.mstatus & rv_csr_mstatush_mbe_mask;
+	bool sbe = cpu->csr.mstatus & rv_csr_mstatush_sbe_mask;
+	
+	bool sd = cpu->csr.mstatus & 0x80000000;
+	bool tsr = rv_csr_mstatus_tsr(cpu);
+	bool tw = rv_csr_mstatus_tw(cpu);
+	bool tvm = rv_csr_mstatus_tvm(cpu);
 	bool mxr = rv_csr_sstatus_mxr(cpu);
 	bool sum = rv_csr_sstatus_sum(cpu);
+	bool mprv = rv_csr_mstatus_mprv(cpu);
+	int xs = (cpu->csr.mstatus & 0x18000) >> 15;
+	int fs = (cpu->csr.mstatus & 0x6000) >> 13;
+	rv_priv_mode_t mpp = rv_csr_mstatus_mpp(cpu);
+	char* mpp_s = (mpp == rv_mmode) ? "M" : ((mpp == rv_hmode) ? "H" : ((mpp == rv_smode) ? "S" : "U"));
+	int vs = (cpu->csr.mstatus & 0x600) >> 9;
 	rv_priv_mode_t spp = rv_csr_sstatus_spp(cpu);
-	char* spp_s = (spp == rv_smode ? "S" : "U");
+	char* spp_s = ((spp == rv_smode) ? "S" : "U");
+	bool mpie = rv_csr_mstatus_mpie(cpu);
 	bool ube = rv_csr_sstatus_ube(cpu);
 	bool spie = rv_csr_sstatus_spie(cpu);
+	bool mie = rv_csr_mstatus_mie(cpu);
 	bool sie = rv_csr_sstatus_sie(cpu);
+
+	print_64_reg(cpu->csr.mstatus, "mstatus", mnemonics);
+
+	string_printf(
+		comments,
+		"MBE %s, SBE %s, SD %s, TSR %s, TW %s, TVM %s, MXR %s, SUM %s, MPRV %s, XS %i%i, FS %i%i, MPP %s, VS %i%i, SPP %s, MPIE %s, UBE %s, SPIE %s, MIE %s, SIE %s",
+		bit_string(mbe),
+		bit_string(sbe),
+		bit_string(sd),
+		bit_string(tsr),
+		bit_string(tw),
+		bit_string(tvm),
+		bit_string(mxr),
+		bit_string(sum),
+		bit_string(mprv),
+		xs >> 1, xs & 1,
+		fs >> 1, fs & 1,
+		mpp_s,
+		vs >> 1, vs & 1,
+		spp_s,
+		bit_string(mpie),
+		bit_string(ube),
+		bit_string(spie),
+		bit_string(mie),
+		bit_string(sie)
+	);
 }
 
 static void csr_dump_common(rv_cpu_t *cpu, int csr) {
@@ -636,6 +677,9 @@ static void csr_dump_common(rv_cpu_t *cpu, int csr) {
 		case csr_sstatus:
 			print_sstatus(cpu, &s_mnemonics, &s_comments);
 			break;
+		case csr_mstatus:
+			print_mstatus(cpu, &s_mnemonics, &s_comments);
+			break;
 		default:
 			printf("Not implemented CSR number!\n");
 			return;
@@ -646,6 +690,8 @@ static void csr_dump_common(rv_cpu_t *cpu, int csr) {
 	if(icmt && s_comments.size > 0){
 		printf(" %s", s_comments.str);
 	}
+
+	printf("\n");
 }
 
 void rv_csr_dump_all(rv_cpu_t *cpu){

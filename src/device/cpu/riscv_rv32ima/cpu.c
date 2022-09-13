@@ -194,8 +194,6 @@ static void m_trap(rv_cpu_t* cpu, rv_exc_t ex){
 
     cpu->priv_mode = rv_mmode;
 
-    // TODO: MTVAL
-
     int mode = cpu->csr.mtvec & rv_csr_mtvec_mode_mask;
     uint32_t base = cpu->csr.mtvec & ~rv_csr_mtvec_mode_mask;
 
@@ -246,8 +244,6 @@ static void s_trap(rv_cpu_t* cpu, rv_exc_t ex){
     }
 
     cpu->priv_mode = rv_smode;
-
-    // TODO: STVAL
 
     int mode = cpu->csr.stvec & rv_csr_mtvec_mode_mask;
     uint32_t base = cpu->csr.stvec & ~rv_csr_mtvec_mode_mask;

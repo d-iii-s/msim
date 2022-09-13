@@ -842,10 +842,12 @@ default_print_function(mcountinhibit)
 default_print_function(mepc)
 default_print_function(mscratch)
 default_print_function(mtval)
+default_print_function(mconfigptr)
 default_print_function(scounteren)
 default_print_function(sscratch)
 default_print_function(sepc)
 default_print_function(stval)
+
 
 static void csr_dump_common(rv_cpu_t *cpu, int csr) {
 	string_t s_mnemonics;
@@ -860,22 +862,19 @@ static void csr_dump_common(rv_cpu_t *cpu, int csr) {
 			break;
 
 	switch(csr){
-		case csr_cycle:
 		case csr_cycleh:
 		case csr_mcycle:
 		case csr_mcycleh:
-			print_cycle(cpu, &s_mnemonics, &s_comments);
-			break;
-		case csr_time:
+		default_case(cycle)
+
 		case csr_timeh:
-			print_time(cpu, &s_mnemonics, &s_comments);
-			break;
-		case csr_instret:
+		default_case(time)
+		
 		case csr_instreth:
 		case csr_minstret:
 		case csr_minstreth:
-			print_instret(cpu, &s_mnemonics, &s_comments);
-			break;
+		default_case(instret)
+
 		case csr_hpmcounter3:
 		case csr_hpmcounter4:
 		case csr_hpmcounter5:
@@ -1025,15 +1024,7 @@ static void csr_dump_common(rv_cpu_t *cpu, int csr) {
 		case csr_mhpmevent31:
 			print_hpm_event(cpu, csr & 0x1F, &s_mnemonics, &s_comments);
 			break;
-		default_case(sstatus) 
-		case csr_mstatus:
-		case csr_mstatush:
-			print_mstatus(cpu, &s_mnemonics, &s_comments);
-			break;
-		case csr_menvcfg:
-		case csr_menvcfgh:
-			print_menvcfg(cpu, &s_mnemonics, &s_comments);
-			break;
+		
 		default_case(misa)
 		default_case(mvendorid)
 		default_case(marchid)
@@ -1050,7 +1041,8 @@ static void csr_dump_common(rv_cpu_t *cpu, int csr) {
 		default_case(mepc)
 		default_case(mcause)
 		default_case(mtval)
-		default_case(mseccfg)
+		default_case(mconfigptr)
+		default_case(sstatus) 
 		default_case(stvec)
 		default_case(sie)
 		default_case(sip)
@@ -1061,6 +1053,16 @@ static void csr_dump_common(rv_cpu_t *cpu, int csr) {
 		default_case(stval)
 		default_case(senvcfg)
 		default_case(satp)
+
+		case csr_mstatush:
+		default_case(mstatus)
+
+		case csr_mseccfgh:
+		default_case(mseccfg)
+
+		case csr_menvcfgh:
+		default_case(menvcfg)
+
 		default:
 			printf("Not implemented CSR number!\n");
 			return;

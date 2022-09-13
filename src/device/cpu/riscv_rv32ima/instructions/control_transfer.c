@@ -10,6 +10,7 @@ rv_exc_t jal_instr(rv_cpu_t *cpu, rv_instr_t instr){
     uint32_t target = cpu->pc + RV_J_IMM(instr);
 
     if(!IS_ALIGNED(target, 4)){
+        cpu->csr.tval_next = target;
         return rv_exc_instruction_address_misaligned;
     }
 
@@ -29,6 +30,7 @@ rv_exc_t jalr_instr(rv_cpu_t *cpu, rv_instr_t instr) {
     target &= ~1;
 
     if(!IS_ALIGNED(target, 4)){
+        cpu->csr.tval_next = target;
         return rv_exc_instruction_address_misaligned;
     }
 
@@ -50,6 +52,7 @@ rv_exc_t beq_instr(rv_cpu_t *cpu, rv_instr_t instr){
 
     if(lhs == rhs) {
         if(!IS_ALIGNED(target, 4)){
+            cpu->csr.tval_next = target;
             return rv_exc_instruction_address_misaligned;
         }
 
@@ -71,6 +74,7 @@ rv_exc_t bne_instr(rv_cpu_t *cpu, rv_instr_t instr){
 
     if(lhs != rhs) {
         if(!IS_ALIGNED(target, 4)){
+            cpu->csr.tval_next = target;
             return rv_exc_instruction_address_misaligned;
         }
 
@@ -92,6 +96,7 @@ rv_exc_t blt_instr(rv_cpu_t *cpu, rv_instr_t instr){
 
     if(lhs < rhs) {
         if(!IS_ALIGNED(target, 4)){
+            cpu->csr.tval_next = target;
             return rv_exc_instruction_address_misaligned;
         }
         cpu->pc_next = target;
@@ -113,6 +118,7 @@ rv_exc_t bltu_instr(rv_cpu_t *cpu, rv_instr_t instr){
     if(lhs < rhs) {
         
         if(!IS_ALIGNED(target, 4)){
+            cpu->csr.tval_next = target;
             return rv_exc_instruction_address_misaligned;
         }
         cpu->pc_next = target;
@@ -133,6 +139,7 @@ rv_exc_t bge_instr(rv_cpu_t *cpu, rv_instr_t instr){
 
     if(lhs >= rhs) {
         if(!IS_ALIGNED(target, 4)){
+            cpu->csr.tval_next = target;
             return rv_exc_instruction_address_misaligned;
         }
         cpu->pc_next = target;
@@ -153,6 +160,7 @@ rv_exc_t bgeu_instr(rv_cpu_t *cpu, rv_instr_t instr){
 
     if(lhs >= rhs) {
         if(!IS_ALIGNED(target, 4)){
+            cpu->csr.tval_next = target;
             return rv_exc_instruction_address_misaligned;
         }
         cpu->pc_next = target;

@@ -167,10 +167,9 @@ static void m_trap(rv_cpu_t* cpu, rv_exc_t ex){
 
     bool is_interrupt = ex & RV_INTERRUPT_EXC_BITS;
     
-    // TODO: ECALL
     cpu->csr.mepc = is_interrupt ? cpu->pc_next : cpu->pc;
     cpu->csr.mcause = ex;
-    cpu->priv_mode = rv_mmode;
+    cpu->csr.mtval = cpu->csr.tval_next;
 
     // MPIE = MIE
     {
@@ -192,6 +191,8 @@ static void m_trap(rv_cpu_t* cpu, rv_exc_t ex){
         cpu->csr.mstatus &= ~rv_csr_mstatus_mpp_mask;
         cpu->csr.mstatus |= ((uint32_t)cpu->priv_mode << rv_csr_mstatus_mpp_pos) & rv_csr_mstatus_mpp_mask;
     }
+
+    cpu->priv_mode = rv_mmode;
 
     // TODO: MTVAL
 
@@ -221,7 +222,7 @@ static void s_trap(rv_cpu_t* cpu, rv_exc_t ex){
 
     cpu->csr.sepc = is_interrupt ? cpu->pc_next : cpu->pc;
     cpu->csr.scause = ex;
-    cpu->priv_mode = rv_smode;
+    cpu->csr.stval = cpu->csr.tval_next;
 
     // SPIE = SIE
     {
@@ -243,6 +244,8 @@ static void s_trap(rv_cpu_t* cpu, rv_exc_t ex){
         cpu->csr.mstatus &= ~rv_csr_sstatus_spp_mask;
         cpu->csr.mstatus |= ((uint32_t)cpu->priv_mode << rv_csr_sstatus_spp_pos) & rv_csr_sstatus_spp_mask;
     }
+
+    cpu->priv_mode = rv_smode;
 
     // TODO: STVAL
 
@@ -270,11 +273,11 @@ static void handle_exception(rv_cpu_t* cpu, rv_exc_t ex){
     bool delegated = cpu->csr.medeleg & mask;
 
     if(delegated && cpu->priv_mode != rv_mmode){
-        printf("s trap!\n");
+        printf("s trap from %i\n", cpu->priv_mode);
         s_trap(cpu, ex);
     }
     else {
-        printf("m trap!\n");
+        printf("m trap from %i\n", cpu->priv_mode);
         m_trap(cpu, ex);
     }
 }
@@ -378,8 +381,6 @@ static void account(rv_cpu_t* cpu){
 void rv_cpu_step(rv_cpu_t *cpu){
     ASSERT(cpu != NULL);
 
-    
-
     ptr36_t phys;
     rv_exc_t ex;
     while((ex = rv_convert_addr(cpu, cpu->pc, &phys, false, true)) != rv_exc_none){
@@ -392,12 +393,16 @@ void rv_cpu_step(rv_cpu_t *cpu){
     
     if(machine_trace)
         rv_idump(cpu, cpu->pc, instr_data);
-    
+
     ex = instr_func(cpu, instr_data);
 
     account(cpu);
     
     if(ex != rv_exc_none){
+
+        if(ex == rv_exc_illegal_instruction){
+            cpu->csr.tval_next = instr_data.val;
+        }
         handle_exception(cpu, ex);
     }
     else {
@@ -409,7 +414,7 @@ void rv_cpu_step(rv_cpu_t *cpu){
     cpu->regs[0] = 0;
     cpu->pc = cpu->pc_next;
     cpu->pc_next = cpu->pc + 4;
-    
+    cpu->csr.tval_next = 0;
 }
 
 bool rv_sc_access(rv_cpu_t *cpu, ptr36_t phys){

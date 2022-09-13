@@ -431,6 +431,9 @@ typedef struct {
 	/* Debug */
 	uint32_t scontext;
 
+	// next value for stval/mtval
+	uint32_t tval_next;
+
 } csr_t;
 
 enum rv_priv_mode;

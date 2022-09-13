@@ -833,6 +833,10 @@ static void print_satp(rv_cpu_t *cpu, string_t* mnemonics, string_t* comments) {
 }
 
 // TODO: comments?
+default_print_function(mvendorid)
+default_print_function(marchid)
+default_print_function(mimpid)
+default_print_function(mhartid)
 default_print_function(mcounteren)
 default_print_function(mcountinhibit)
 default_print_function(mepc)
@@ -1026,19 +1030,15 @@ static void csr_dump_common(rv_cpu_t *cpu, int csr) {
 		case csr_mstatush:
 			print_mstatus(cpu, &s_mnemonics, &s_comments);
 			break;
+		case csr_menvcfg:
+		case csr_menvcfgh:
+			print_menvcfg(cpu, &s_mnemonics, &s_comments);
+			break;
 		default_case(misa)
-		case csr_mvendorid:
-			string_printf(&s_mnemonics, "%s 0x%08x", "mvendorid", cpu->csr.mvendorid);
-			break;
-		case csr_marchid:
-			string_printf(&s_mnemonics, "%s 0x%08x", "marchid", cpu->csr.marchid);
-			break;
-		case csr_mimpid:
-			string_printf(&s_mnemonics, "%s 0x%08x", "mimpid", cpu->csr.mimpid);
-			break;
-		case csr_mhartid:
-			string_printf(&s_mnemonics, "%s %d", "mhartid", cpu->csr.mhartid);
-			break;
+		default_case(mvendorid)
+		default_case(marchid)
+		default_case(mimpid)
+		default_case(mhartid)
 		default_case(mtvec)
 		default_case(medeleg)
 		default_case(mideleg)
@@ -1051,10 +1051,6 @@ static void csr_dump_common(rv_cpu_t *cpu, int csr) {
 		default_case(mcause)
 		default_case(mtval)
 		default_case(mseccfg)
-		case csr_menvcfg:
-		case csr_menvcfgh:
-			print_menvcfg(cpu, &s_mnemonics, &s_comments);
-			break;
 		default_case(stvec)
 		default_case(sie)
 		default_case(sip)
@@ -1068,6 +1064,7 @@ static void csr_dump_common(rv_cpu_t *cpu, int csr) {
 		default:
 			printf("Not implemented CSR number!\n");
 			return;
+		
 	}
 
 	printf("%s", s_mnemonics.str);

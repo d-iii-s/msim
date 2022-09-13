@@ -15,6 +15,9 @@ typedef enum {
 
 extern char** rv_regnames;
 extern char** rv_csrnames;
+extern char** rv_excnames;
+extern char** rv_interruptnames;
+
 
 extern void rv_debug_init(void);
 extern bool rv_debug_change_regnames(rv_regname_type_t type);

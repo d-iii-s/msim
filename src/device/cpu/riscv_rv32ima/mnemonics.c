@@ -1,3 +1,6 @@
+#include <stdint.h>
+#include <sys/time.h>
+
 #include "mnemonics.h"
 #include "debug.h"
 #include "instr.h"
@@ -5,6 +8,8 @@
 #include "instructions/control_transfer.h"
 #include "instructions/system.h"
 #include "instructions/mem_ops.h"
+#include "../../../env.h"
+#include "../../../assert.h"
 
 extern rv_mnemonics_func_t rv_decode_mnemonics(rv_instr_t instr){
     // is this dirty?
@@ -643,3 +648,640 @@ extern void rv_amomaxu_mnemonics(uint32_t addr, rv_instr_t instr, string_t *s_mn
     string_printf(s_mnemonics, "amomaxu");
     amo_instr_mnemonics(instr, s_mnemonics);
 }
+
+#define default_print_function(csr_name) 													\
+	static void print_##csr_name(rv_cpu_t *cpu, string_t* mnemonics, string_t* comments){ 	\
+		string_printf(mnemonics, "%s 0x%08x", #csr_name, cpu->csr.csr_name);				\
+	}	
+
+static void print_64_reg(uint64_t val, const char* name, string_t* s){
+	string_printf(s, "%s 0x%016lx (%sh = 0x%08x, %s = 0x%08x)", name, val, name, (uint32_t)(val >> 32), name, (uint32_t)val);
+}
+
+static void print_cycle(rv_cpu_t *cpu, string_t* mnemonics, string_t* comments){
+	print_64_reg(cpu->csr.cycle, "cycle", mnemonics);
+}
+
+static uint64_t current_timestamp() {
+    struct timeval te; 
+    gettimeofday(&te, NULL); // get current time
+    uint64_t milliseconds = te.tv_sec*1000LL + te.tv_usec/1000; // calculate milliseconds
+    return milliseconds;
+}
+
+static void print_time(rv_cpu_t *cpu, string_t* mnemonics, string_t* comments) {
+	string_printf(mnemonics, "(not accurate) ");
+	print_64_reg(current_timestamp(), "time", mnemonics);
+}
+
+static void print_instret(rv_cpu_t *cpu, string_t* mnemonics, string_t* comments){
+	print_64_reg(cpu->csr.instret, "instret", mnemonics);
+}
+
+static void print_hpm(rv_cpu_t *cpu, int hpm, string_t* mnemonics, string_t* comments){
+	ASSERT((hpm >= 3 && hpm < 32));
+	string_t s;
+	string_init(&s);
+	string_printf(&s, "hpmcounter%i", hpm);
+	print_64_reg(cpu->csr.hpmcounters[hpm - 3], s.str, mnemonics);
+}
+
+static void print_hpm_event(rv_cpu_t *cpu, int hpm, string_t* mnemonics, string_t* comments){
+	ASSERT((hpm >= 3 && hpm < 32));
+	string_t s;
+	string_init(&s);
+	string_printf(&s, "mhpmevent%i", hpm);
+
+	string_printf(mnemonics, "%s 0x%08x", s.str, cpu->csr.hpmevents[hpm-3]);
+
+	char* event_name;
+	switch(cpu->csr.hpmevents[hpm-3]){
+		case hpm_no_event:
+			event_name = "no event";
+			break;
+		case hpm_u_cycles:
+			event_name = "U mode cycles";
+			break;
+		case hpm_s_cycles:
+			event_name = "S mode cycles";
+			break;
+		case hpm_m_cycles:
+			event_name = "M mode cycles";
+			break;
+		case hpm_w_cycles:
+			event_name = "Idle cycles";
+			break;
+		default:
+			event_name = "Invalid event";
+			break;
+	}
+
+	string_printf(comments, "%s", event_name);
+}
+
+#define bit_string(b) (b ? "1" : "0")
+
+static void print_sstatus(rv_cpu_t *cpu, string_t* mnemonics, string_t* comments) {
+	uint32_t sstatus = cpu->csr.mstatus & rv_csr_sstatus_mask;
+
+	bool sd = cpu->csr.mstatus & 0x80000000;
+	bool mxr = rv_csr_sstatus_mxr(cpu);
+	bool sum = rv_csr_sstatus_sum(cpu);
+	int xs = (cpu->csr.mstatus & 0x18000) >> 15;
+	int fs = (cpu->csr.mstatus & 0x6000) >> 13;
+	int vs = (cpu->csr.mstatus & 0x600) >> 9;
+
+	rv_priv_mode_t spp = rv_csr_sstatus_spp(cpu);
+	char* spp_s = ((spp == rv_smode) ? "S" : "U");
+	bool ube = rv_csr_sstatus_ube(cpu);
+	bool spie = rv_csr_sstatus_spie(cpu);
+	bool sie = rv_csr_sstatus_sie(cpu);
+
+	string_printf(mnemonics, "%s 0x%08x","sstatus",sstatus);
+	
+	string_printf(comments, "SD %s, MXR %s, SUM %s, XS %i%i, FS %i%i, VS %i%i, SPP %s, UBE %s, SPIE %s, SIE %s",
+		bit_string(sd),
+		bit_string(mxr),
+		bit_string(sum),
+		xs >> 1, xs & 1,
+		fs >> 1, fs & 1,
+		vs >> 1, vs & 1,
+		spp_s,
+		bit_string(ube),
+		bit_string(spie),
+		bit_string(sie)
+	);
+}
+
+static void print_mstatus(rv_cpu_t *cpu, string_t* mnemonics, string_t* comments) {
+	bool mbe = cpu->csr.mstatus & rv_csr_mstatush_mbe_mask;
+	bool sbe = cpu->csr.mstatus & rv_csr_mstatush_sbe_mask;
+	
+	bool sd = cpu->csr.mstatus & 0x80000000;
+	bool tsr = rv_csr_mstatus_tsr(cpu);
+	bool tw = rv_csr_mstatus_tw(cpu);
+	bool tvm = rv_csr_mstatus_tvm(cpu);
+	bool mxr = rv_csr_sstatus_mxr(cpu);
+	bool sum = rv_csr_sstatus_sum(cpu);
+	bool mprv = rv_csr_mstatus_mprv(cpu);
+	int xs = (cpu->csr.mstatus & 0x18000) >> 15;
+	int fs = (cpu->csr.mstatus & 0x6000) >> 13;
+	rv_priv_mode_t mpp = rv_csr_mstatus_mpp(cpu);
+	char* mpp_s = (mpp == rv_mmode) ? "M" : ((mpp == rv_hmode) ? "H" : ((mpp == rv_smode) ? "S" : "U"));
+	int vs = (cpu->csr.mstatus & 0x600) >> 9;
+	rv_priv_mode_t spp = rv_csr_sstatus_spp(cpu);
+	char* spp_s = ((spp == rv_smode) ? "S" : "U");
+	bool mpie = rv_csr_mstatus_mpie(cpu);
+	bool ube = rv_csr_sstatus_ube(cpu);
+	bool spie = rv_csr_sstatus_spie(cpu);
+	bool mie = rv_csr_mstatus_mie(cpu);
+	bool sie = rv_csr_sstatus_sie(cpu);
+
+	print_64_reg(cpu->csr.mstatus, "mstatus", mnemonics);
+
+	string_printf(
+		comments,
+		"MBE %s, SBE %s, SD %s, TSR %s, TW %s, TVM %s, MXR %s, SUM %s, MPRV %s, XS %i%i, FS %i%i, MPP %s, VS %i%i, SPP %s, MPIE %s, UBE %s, SPIE %s, MIE %s, SIE %s",
+		bit_string(mbe),
+		bit_string(sbe),
+		bit_string(sd),
+		bit_string(tsr),
+		bit_string(tw),
+		bit_string(tvm),
+		bit_string(mxr),
+		bit_string(sum),
+		bit_string(mprv),
+		xs >> 1, xs & 1,
+		fs >> 1, fs & 1,
+		mpp_s,
+		vs >> 1, vs & 1,
+		spp_s,
+		bit_string(mpie),
+		bit_string(ube),
+		bit_string(spie),
+		bit_string(mie),
+		bit_string(sie)
+	);
+}
+
+static void print_misa(rv_cpu_t *cpu, string_t* mnemonics, string_t* comments) {
+	uint32_t misa = cpu->csr.misa;
+	string_printf(mnemonics, "%s 0x%08x", "misa", misa);
+
+	int mxl = 16 << (misa >> 30);
+	
+	string_printf(comments, "Machine XLEN: %i Extensions: ", mxl);
+	if(misa & RV_A_EXTENSION_BITS) string_printf(comments, "A");
+	if(misa & RV_C_EXTENSION_BITS) string_printf(comments, "C");
+	if(misa & RV_D_EXTENSION_BITS) string_printf(comments, "D");
+	if(misa & RV_E_EXTENSION_BITS) string_printf(comments, "E");
+	if(misa & RV_F_EXTENSION_BITS) string_printf(comments, "F");
+	if(misa & RV_H_EXTENSION_BITS) string_printf(comments, "H");
+	if(misa & RV_I_EXTENSION_BITS) string_printf(comments, "I");
+	if(misa & RV_M_EXTENSION_BITS) string_printf(comments, "M");
+	if(misa & RV_Q_EXTENSION_BITS) string_printf(comments, "Q");
+	if(misa & RV_S_IMPLEMENTED_BITS) string_printf(comments, "S");
+	if(misa & RV_U_IMPLEMENTED_BITS) string_printf(comments, "U");
+}
+
+static void print_mtvec(rv_cpu_t *cpu, string_t* mnemonics, string_t* comments) {
+	string_printf(mnemonics, "%s 0x%08x", "mtvec", cpu->csr.mtvec);
+	string_printf(comments,
+		"Base: 0x%08x Mode: %s",
+		cpu->csr.mtvec & ~0b11,
+		(((cpu->csr.mtvec & 0b11) == 0 ) ? "Direct" : "Vectored")
+	);
+}
+
+static void print_medeleg(rv_cpu_t *cpu, string_t* mnemonics, string_t* comments) {
+	string_printf(mnemonics, "%s 0x%08x", "medeleg", cpu->csr.medeleg);
+	if(cpu->csr.medeleg == 0) return;
+	string_printf(comments, "Delegated:");
+
+	//TODO: remove trailing comma
+
+	#define comment_if_ex_delegated(ex) if(cpu->csr.medeleg & RV_EXCEPTION_MASK(rv_exc_ ## ex)) string_printf(comments, " %s,", rv_excnames[rv_exc_ ## ex]);
+
+	comment_if_ex_delegated(instruction_address_misaligned);
+	comment_if_ex_delegated(instruction_access_fault);
+	comment_if_ex_delegated(illegal_instruction);
+	comment_if_ex_delegated(breakpoint);
+	comment_if_ex_delegated(load_address_misaligned);
+	comment_if_ex_delegated(load_access_fault);
+	comment_if_ex_delegated(store_amo_address_misaligned);
+	comment_if_ex_delegated(store_amo_access_fault);
+	comment_if_ex_delegated(umode_environment_call);
+	comment_if_ex_delegated(smode_environment_call);
+	comment_if_ex_delegated(mmode_environment_call);
+	comment_if_ex_delegated(instruction_page_fault);
+	comment_if_ex_delegated(load_page_fault);
+	comment_if_ex_delegated(store_amo_page_fault);
+}
+
+static void print_mideleg(rv_cpu_t *cpu, string_t* mnemonics, string_t* comments) {
+	string_printf(mnemonics, "%s 0x%08x", "mideleg", cpu->csr.mideleg);
+	if(cpu->csr.mideleg == 0) return;
+	string_printf(comments, "Delegated:");
+
+	//TODO: remove trailing comma
+	#define comment_if_i_delegated(i) if(cpu->csr.mideleg & RV_EXCEPTION_MASK(rv_exc_ ## i)) string_printf(comments, " %s,", rv_interruptnames[rv_exc_ ## i & ~RV_INTERRUPT_EXC_BITS]);
+
+	comment_if_i_delegated(machine_external_interrupt);
+	comment_if_i_delegated(supervisor_external_interrupt);
+	comment_if_i_delegated(machine_timer_interrupt);
+	comment_if_i_delegated(supervisor_timer_interrupt);
+	comment_if_i_delegated(machine_software_interrupt);
+	comment_if_i_delegated(supervisor_software_interrupt);
+}
+
+static void print_mie(rv_cpu_t *cpu, string_t* mnemonics, string_t* comments) {
+
+	bool meie = cpu->csr.mie & rv_csr_mei_mask;
+	bool seie = cpu->csr.mie & rv_csr_sei_mask;
+	bool mtie = cpu->csr.mie & rv_csr_mti_mask;
+	bool stie = cpu->csr.mie & rv_csr_sti_mask;
+	bool msie = cpu->csr.mie & rv_csr_msi_mask;
+	bool ssie = cpu->csr.mie & rv_csr_ssi_mask;
+
+	string_printf(mnemonics, "%s 0x%08x", "mie", cpu->csr.mie);
+	string_printf(comments,
+		"MEIE %s, SEIE %s, MTIE %s, STIE %s, MSIE %s, SSIE %s",
+		bit_string(meie),
+		bit_string(seie),
+		bit_string(mtie),
+		bit_string(stie),
+		bit_string(msie),
+		bit_string(ssie)
+	);
+}
+
+static void print_mip(rv_cpu_t *cpu, string_t* mnemonics, string_t* comments) {
+
+	bool meip = cpu->csr.mip & rv_csr_mei_mask;
+	bool seip = cpu->csr.mip & rv_csr_sei_mask;
+	bool mtip = cpu->csr.mip & rv_csr_mti_mask;
+	bool stip = cpu->csr.mip & rv_csr_sti_mask;
+	bool msip = cpu->csr.mip & rv_csr_msi_mask;
+	bool ssip = cpu->csr.mip & rv_csr_ssi_mask;
+
+	string_printf(mnemonics, "%s 0x%08x", "mip", cpu->csr.mip);
+	string_printf(comments,
+		"MEIP %s, SEIP %s, MTIP %s, STIP %s, MSIP %s, SSIP %s",
+		bit_string(meip),
+		bit_string(seip),
+		bit_string(mtip),
+		bit_string(stip),
+		bit_string(msip),
+		bit_string(ssip)
+	);
+}
+
+static void print_mcause(rv_cpu_t *cpu, string_t* mnemonics, string_t* comments) {
+	string_printf(mnemonics, "%s 0x%08x", "mcause", cpu->csr.mcause);
+	bool is_interrupt = cpu->csr.mcause & RV_INTERRUPT_EXC_BITS;
+	int cause_id = cpu->csr.mcause & ~RV_INTERRUPT_EXC_BITS;
+	string_printf(comments, "%s", (is_interrupt ? rv_interruptnames[cause_id] : rv_excnames[cause_id]));
+}
+
+static void print_mseccfg(rv_cpu_t *cpu, string_t* mnemonics, string_t* comments) {
+	string_printf(mnemonics, "%s 0x%08x", "mseccfg", cpu->csr.mseccfg);
+	bool sseed = cpu->csr.mseccfg & (1 << 9);
+	bool useed = cpu->csr.mseccfg & (1 << 8);
+	bool rlb = cpu->csr.mseccfg & (1 << 2);
+	bool mmwp = cpu->csr.mseccfg & (1 << 1);
+	bool mml = cpu->csr.mseccfg & (1 << 0);
+
+	string_printf(comments,
+		"SSEED %s, USEED %s, RLB %s, MMWP %s, MML %s",
+		bit_string(sseed),
+		bit_string(useed),
+		bit_string(rlb),
+		bit_string(mmwp),
+		bit_string(mml)
+	);
+}
+
+static void print_menvcfg(rv_cpu_t *cpu, string_t* mnemonics, string_t* comments) {
+	print_64_reg(cpu->csr.menvcfg, "menvcfg", mnemonics);
+	bool stce = cpu->csr.menvcfg & (UINT64_C(1) << 63);
+	bool pbmte = cpu->csr.menvcfg & (UINT64_C(1) << 62);
+	bool cbze = cpu->csr.menvcfg & (UINT64_C(1) << 7);
+	bool cbfe = cpu->csr.menvcfg & (UINT64_C(1) << 6);
+	bool cbie = cpu->csr.menvcfg & (UINT64_C(1) << 5);
+	bool fiom = cpu->csr.menvcfg & (UINT64_C(1) << 0);
+
+	string_printf(comments,
+		"STCE %s, PBMTE %s, CBZE %s, CBFE %s, CBIE %s, FIOM %s",
+		bit_string(stce),
+		bit_string(pbmte),
+		bit_string(cbze),
+		bit_string(cbfe),
+		bit_string(cbie),
+		bit_string(fiom)
+	);
+}
+
+static void print_stvec(rv_cpu_t *cpu, string_t* mnemonics, string_t* comments){
+	string_printf(mnemonics, "%s 0x%08x", "stvec", cpu->csr.stvec);
+	string_printf(comments, "Base: 0x%08x Mode: %s",
+		cpu->csr.stvec & ~0b11,
+		(((cpu->csr.stvec & 0b11) == 0) ? "Direct" : "Vectored")
+	); 
+}
+
+
+static void print_sie(rv_cpu_t *cpu, string_t* mnemonics, string_t* comments) {
+
+	bool seie = cpu->csr.mie & rv_csr_sei_mask;
+	bool stie = cpu->csr.mie & rv_csr_sti_mask;
+	bool ssie = cpu->csr.mie & rv_csr_ssi_mask;
+
+	string_printf(mnemonics, "%s 0x%08x", "sie", cpu->csr.mie & rv_csr_si_mask);
+	string_printf(comments,
+		"SEIE %s, STIE %s, SSIE %s",
+		bit_string(seie),
+		bit_string(stie),
+		bit_string(ssie)
+	);
+}
+
+static void print_sip(rv_cpu_t *cpu, string_t* mnemonics, string_t* comments) {
+
+	bool seip = cpu->csr.mip & rv_csr_sei_mask;
+	bool stip = cpu->csr.mip & rv_csr_sti_mask;
+	bool ssip = cpu->csr.mip & rv_csr_ssi_mask;
+
+	string_printf(mnemonics, "%s 0x%08x", "sip", cpu->csr.mip & rv_csr_si_mask);
+	string_printf(comments,
+		"SEIP %s, STIP %s, SSIP %s",
+		bit_string(seip),
+		bit_string(stip),
+		bit_string(ssip)
+	);
+}
+
+static void print_scause(rv_cpu_t *cpu, string_t* mnemonics, string_t* comments) {
+	string_printf(mnemonics, "%s 0x%08x", "scause", cpu->csr.scause);
+	bool is_interrupt = cpu->csr.scause & RV_INTERRUPT_EXC_BITS;
+	int cause_id = cpu->csr.scause & ~RV_INTERRUPT_EXC_BITS;
+	string_printf(comments, "%s", (is_interrupt ? rv_interruptnames[cause_id] : rv_excnames[cause_id]));
+}
+
+static void print_senvcfg(rv_cpu_t *cpu, string_t* mnemonics, string_t* comments) {
+	string_printf(mnemonics, "%s 0x%08x", "senvcfg", cpu->csr.senvcfg);
+	bool cbze = cpu->csr.senvcfg & (UINT32_C(1) << 7);
+	bool cbfe = cpu->csr.senvcfg & (UINT32_C(1) << 6);
+	bool cbie = cpu->csr.senvcfg & (UINT32_C(1) << 5);
+	bool fiom = cpu->csr.senvcfg & (UINT32_C(1) << 0);
+
+	string_printf(comments,
+		"CBZE %s, CBFE %s, CBIE %s, FIOM %s",
+		bit_string(cbze),
+		bit_string(cbfe),
+		bit_string(cbie),
+		bit_string(fiom)
+	);
+}
+
+static void print_satp(rv_cpu_t *cpu, string_t* mnemonics, string_t* comments) {
+	string_printf(mnemonics, "%s 0x%08x", "satp", cpu->csr.satp);
+	char* mode = (rv_csr_satp_is_bare(cpu)) ? "Bare" : "Sv32";
+	
+	string_printf(comments, "Mode: %s", mode);
+	if(!rv_csr_satp_is_bare(cpu)){
+		int asid = (cpu->csr.satp >> 22) & (0x1FF);
+		uint32_t ppn = cpu->csr.satp & 0x3FFFFF;
+		string_printf(comments,
+			" ASID: %i PPN: 0x%06x (Physical address: 0x%09lx)",
+			asid,
+			ppn,
+			(uint64_t)ppn << 12
+		);
+	}
+}
+
+// TODO: comments?
+default_print_function(mvendorid)
+default_print_function(marchid)
+default_print_function(mimpid)
+default_print_function(mhartid)
+default_print_function(mcounteren)
+default_print_function(mcountinhibit)
+default_print_function(mepc)
+default_print_function(mscratch)
+default_print_function(mtval)
+default_print_function(mconfigptr)
+default_print_function(scounteren)
+default_print_function(sscratch)
+default_print_function(sepc)
+default_print_function(stval)
+
+void rv_csr_dump_common(rv_cpu_t *cpu, int csr) {
+	string_t s_mnemonics;
+	string_t s_comments;
+
+	string_init(&s_mnemonics);
+	string_init(&s_comments);
+
+	#define default_case(csr) 								\
+		case csr_##csr:										\
+			print_##csr(cpu, &s_mnemonics, &s_comments);	\
+			break;
+
+	switch(csr){
+		case csr_cycleh:
+		case csr_mcycle:
+		case csr_mcycleh:
+		default_case(cycle)
+
+		case csr_timeh:
+		default_case(time)
+		
+		case csr_instreth:
+		case csr_minstret:
+		case csr_minstreth:
+		default_case(instret)
+
+		case csr_hpmcounter3:
+		case csr_hpmcounter4:
+		case csr_hpmcounter5:
+		case csr_hpmcounter6:
+		case csr_hpmcounter7:
+		case csr_hpmcounter8:
+		case csr_hpmcounter9:
+		case csr_hpmcounter10:
+		case csr_hpmcounter11:
+		case csr_hpmcounter12:
+		case csr_hpmcounter13:
+		case csr_hpmcounter14:
+		case csr_hpmcounter15:
+		case csr_hpmcounter16:
+		case csr_hpmcounter17:
+		case csr_hpmcounter18:
+		case csr_hpmcounter19:
+		case csr_hpmcounter20:
+		case csr_hpmcounter21:
+		case csr_hpmcounter22:
+		case csr_hpmcounter23:
+		case csr_hpmcounter24:
+		case csr_hpmcounter25:
+		case csr_hpmcounter26:
+		case csr_hpmcounter27:
+		case csr_hpmcounter28:
+		case csr_hpmcounter29:
+		case csr_hpmcounter30:
+		case csr_hpmcounter31:
+		case csr_hpmcounter3h:
+		case csr_hpmcounter4h:
+		case csr_hpmcounter5h:
+		case csr_hpmcounter6h:
+		case csr_hpmcounter7h:
+		case csr_hpmcounter8h:
+		case csr_hpmcounter9h:
+		case csr_hpmcounter10h:
+		case csr_hpmcounter11h:
+		case csr_hpmcounter12h:
+		case csr_hpmcounter13h:
+		case csr_hpmcounter14h:
+		case csr_hpmcounter15h:
+		case csr_hpmcounter16h:
+		case csr_hpmcounter17h:
+		case csr_hpmcounter18h:
+		case csr_hpmcounter19h:
+		case csr_hpmcounter20h:
+		case csr_hpmcounter21h:
+		case csr_hpmcounter22h:
+		case csr_hpmcounter23h:
+		case csr_hpmcounter24h:
+		case csr_hpmcounter25h:
+		case csr_hpmcounter26h:
+		case csr_hpmcounter27h:
+		case csr_hpmcounter28h:
+		case csr_hpmcounter29h:
+		case csr_hpmcounter30h:
+		case csr_hpmcounter31h:
+		case csr_mhpmcounter3:
+		case csr_mhpmcounter4:
+		case csr_mhpmcounter5:
+		case csr_mhpmcounter6:
+		case csr_mhpmcounter7:
+		case csr_mhpmcounter8:
+		case csr_mhpmcounter9:
+		case csr_mhpmcounter10:
+		case csr_mhpmcounter11:
+		case csr_mhpmcounter12:
+		case csr_mhpmcounter13:
+		case csr_mhpmcounter14:
+		case csr_mhpmcounter15:
+		case csr_mhpmcounter16:
+		case csr_mhpmcounter17:
+		case csr_mhpmcounter18:
+		case csr_mhpmcounter19:
+		case csr_mhpmcounter20:
+		case csr_mhpmcounter21:
+		case csr_mhpmcounter22:
+		case csr_mhpmcounter23:
+		case csr_mhpmcounter24:
+		case csr_mhpmcounter25:
+		case csr_mhpmcounter26:
+		case csr_mhpmcounter27:
+		case csr_mhpmcounter28:
+		case csr_mhpmcounter29:
+		case csr_mhpmcounter30:
+		case csr_mhpmcounter31:
+		case csr_mhpmcounter3h:
+		case csr_mhpmcounter4h:
+		case csr_mhpmcounter5h:
+		case csr_mhpmcounter6h:
+		case csr_mhpmcounter7h:
+		case csr_mhpmcounter8h:
+		case csr_mhpmcounter9h:
+		case csr_mhpmcounter10h:
+		case csr_mhpmcounter11h:
+		case csr_mhpmcounter12h:
+		case csr_mhpmcounter13h:
+		case csr_mhpmcounter14h:
+		case csr_mhpmcounter15h:
+		case csr_mhpmcounter16h:
+		case csr_mhpmcounter17h:
+		case csr_mhpmcounter18h:
+		case csr_mhpmcounter19h:
+		case csr_mhpmcounter20h:
+		case csr_mhpmcounter21h:
+		case csr_mhpmcounter22h:
+		case csr_mhpmcounter23h:
+		case csr_mhpmcounter24h:
+		case csr_mhpmcounter25h:
+		case csr_mhpmcounter26h:
+		case csr_mhpmcounter27h:
+		case csr_mhpmcounter28h:
+		case csr_mhpmcounter29h:
+		case csr_mhpmcounter30h:
+		case csr_mhpmcounter31h:
+			print_hpm(cpu, csr & 0x1F, &s_mnemonics, &s_comments);
+			break;
+		case csr_mhpmevent3:
+		case csr_mhpmevent4:
+		case csr_mhpmevent5:
+		case csr_mhpmevent6:
+		case csr_mhpmevent7:
+		case csr_mhpmevent8:
+		case csr_mhpmevent9:
+		case csr_mhpmevent10:
+		case csr_mhpmevent11:
+		case csr_mhpmevent12:
+		case csr_mhpmevent13:
+		case csr_mhpmevent14:
+		case csr_mhpmevent15:
+		case csr_mhpmevent16:
+		case csr_mhpmevent17:
+		case csr_mhpmevent18:
+		case csr_mhpmevent19:
+		case csr_mhpmevent20:
+		case csr_mhpmevent21:
+		case csr_mhpmevent22:
+		case csr_mhpmevent23:
+		case csr_mhpmevent24:
+		case csr_mhpmevent25:
+		case csr_mhpmevent26:
+		case csr_mhpmevent27:
+		case csr_mhpmevent28:
+		case csr_mhpmevent29:
+		case csr_mhpmevent30:
+		case csr_mhpmevent31:
+			print_hpm_event(cpu, csr & 0x1F, &s_mnemonics, &s_comments);
+			break;
+		
+		default_case(misa)
+		default_case(mvendorid)
+		default_case(marchid)
+		default_case(mimpid)
+		default_case(mhartid)
+		default_case(mtvec)
+		default_case(medeleg)
+		default_case(mideleg)
+		default_case(mie)
+		default_case(mip)
+		default_case(mcounteren)
+		default_case(mcountinhibit)
+		default_case(mscratch)
+		default_case(mepc)
+		default_case(mcause)
+		default_case(mtval)
+		default_case(mconfigptr)
+		default_case(sstatus) 
+		default_case(stvec)
+		default_case(sie)
+		default_case(sip)
+		default_case(scounteren)
+		default_case(sscratch)
+		default_case(sepc)
+		default_case(scause)
+		default_case(stval)
+		default_case(senvcfg)
+		default_case(satp)
+
+		case csr_mstatush:
+		default_case(mstatus)
+
+		case csr_mseccfgh:
+		default_case(mseccfg)
+
+		case csr_menvcfgh:
+		default_case(menvcfg)
+
+		default:
+			printf("Not implemented CSR number!\n");
+			return;
+		
+	}
+
+	printf("%s", s_mnemonics.str);
+
+	if(icmt && s_comments.size > 0 && s_comments.str[0] != 0){
+		printf(" [ %s ]", s_comments.str);
+	}
+
+	printf("\n");
+}
+

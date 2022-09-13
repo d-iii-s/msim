@@ -400,6 +400,9 @@ typedef struct {
     uint64_t menvcfg;
 	uint32_t mseccfg;
 
+	/* debug/trace */
+	uint32_t mcontext;
+
     /* physical memory protection */
     // TODO: does this make any sense in msim?
     uint8_t pmpcfgs[64];

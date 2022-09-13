@@ -7,11 +7,4 @@ Disassembly of section .text:
 00000000 <.text>:
    0:	800002b7          	lui	t0,0x80000
    4:	30529073          	csrw	mtvec,t0
-   8:	ffb00293          	li	t0,-5
-   c:	3022a073          	csrs	medeleg,t0
-  10:	fff00293          	li	t0,-1
-  14:	3032a073          	csrs	mideleg,t0
-  18:	806002b7          	lui	t0,0x80600
-  1c:	00128293          	addi	t0,t0,1 # 80600001 <.text+0x80600001>
-  20:	18029073          	csrw	satp,t0
-  24:	f11310f3          	csrrw	ra,mvendorid,t1
+   8:	f11310f3          	csrrw	ra,mvendorid,t1

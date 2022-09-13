@@ -445,7 +445,77 @@ void rv_idump(rv_cpu_t *cpu, uint32_t addr, rv_instr_t instr){
 }
 
 void rv_csr_dump_all(rv_cpu_t *cpu){
-	printf("dumping all CSRs!\n");
+	printf("Unprivileged Counters/Timers\n");
+	rv_csr_dump_common(cpu, csr_cycle);
+	rv_csr_dump_common(cpu, csr_time);
+	rv_csr_dump_common(cpu, csr_instret);
+	printf("\n");
+	for(int i = 0; i < 29; ++i){
+		rv_csr_dump_common(cpu, csr_hpmcounter3 + i);
+	}
+	printf("\n\n");
+	printf("Supervisor level CSRs\n");
+	printf("\n");
+	printf("Trap Setup\n");
+	rv_csr_dump_common(cpu, csr_sstatus);
+	rv_csr_dump_common(cpu, csr_sie);
+	rv_csr_dump_common(cpu, csr_stvec);
+	rv_csr_dump_common(cpu, csr_scounteren);
+	printf("\n");
+	printf("Configuration\n");
+	rv_csr_dump_common(cpu, csr_senvcfg);
+	printf("\n");
+	printf("Trap Handling\n");
+	rv_csr_dump_common(cpu, csr_sscratch);
+	rv_csr_dump_common(cpu, csr_sepc);
+	rv_csr_dump_common(cpu, csr_scause);
+	rv_csr_dump_common(cpu, csr_stval);
+	rv_csr_dump_common(cpu, csr_sip);
+	printf("\n");
+	printf("Protection and Translation\n");
+	rv_csr_dump_common(cpu, csr_satp);
+	printf("\n");
+	printf("Debug/Trace\n");
+	rv_csr_dump_common(cpu, csr_scontext);
+	printf("\n\n");
+	printf("Machine level CSRs\n");
+	printf("\n");
+	printf("Machine Information\n");
+	rv_csr_dump_common(cpu, csr_mvendorid);
+	rv_csr_dump_common(cpu, csr_marchid);
+	rv_csr_dump_common(cpu, csr_mimpid);
+	rv_csr_dump_common(cpu, csr_mhartid);
+	rv_csr_dump_common(cpu, csr_mconfigptr);
+	printf("\n");
+	printf("Trap Setup\n");
+	rv_csr_dump_common(cpu, csr_mstatus);
+	rv_csr_dump_common(cpu, csr_misa);
+	rv_csr_dump_common(cpu, csr_medeleg);
+	rv_csr_dump_common(cpu, csr_mideleg);
+	rv_csr_dump_common(cpu, csr_mie);
+	rv_csr_dump_common(cpu, csr_mtvec);
+	rv_csr_dump_common(cpu, csr_mcounteren);
+	printf("\n");
+	printf("Trap Handling\n");
+	rv_csr_dump_common(cpu, csr_mscratch);
+	rv_csr_dump_common(cpu, csr_mepc);
+	rv_csr_dump_common(cpu, csr_mcause);
+	rv_csr_dump_common(cpu, csr_mtval);
+	rv_csr_dump_common(cpu, csr_mip);
+	printf("\n");
+	printf("Configuration\n");
+	rv_csr_dump_common(cpu, csr_menvcfg);
+	rv_csr_dump_common(cpu, csr_mseccfg);
+	printf("\n");
+	printf("Counter Setup\n");
+	rv_csr_dump_common(cpu, csr_mcountinhibit);
+	for(int i = 0; i < 29; ++i){
+		rv_csr_dump_common(cpu, csr_mhpmevent3 + i);
+	}
+	printf("\n");
+	printf("Debug/Trace\n");
+	rv_csr_dump_common(cpu, csr_mcontext);
+	// TODO rest of m debug and debug mode
 }
 
 bool rv_csr_dump(rv_cpu_t *cpu, int csr){

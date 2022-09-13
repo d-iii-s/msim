@@ -568,6 +568,11 @@ static rv_exc_t satp_write(rv_cpu_t* cpu, int csr, uint32_t target){
     if(rv_csr_mstatus_tvm(cpu)) return rv_exc_illegal_instruction;
 
     cpu->csr.satp = target;
+    
+    if(rv_csr_satp_is_bare(cpu)){
+        cpu->csr.satp = 0;
+    }
+    
     return rv_exc_none;
 }
 
@@ -576,6 +581,11 @@ static rv_exc_t satp_set(rv_cpu_t* cpu, int csr, uint32_t target){
     if(rv_csr_mstatus_tvm(cpu)) return rv_exc_illegal_instruction;
 
     cpu->csr.satp |= target;
+
+    if(rv_csr_satp_is_bare(cpu)){
+        cpu->csr.satp = 0;
+    }
+
     return rv_exc_none;
 }
 
@@ -584,6 +594,11 @@ static rv_exc_t satp_clear(rv_cpu_t* cpu, int csr, uint32_t target){
     if(rv_csr_mstatus_tvm(cpu)) return rv_exc_illegal_instruction;
 
     cpu->csr.satp &= target;
+
+    if(rv_csr_satp_is_bare(cpu)){
+        cpu->csr.satp = 0;
+    }
+
     return rv_exc_none;
 }
 

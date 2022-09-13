@@ -125,7 +125,7 @@ rv_exc_t rv_convert_addr(rv_cpu_t *cpu, uint32_t virt, ptr36_t *phys, bool wr, b
     ptr36_t pte_addr = a + vpn1*PTESIZE;
 
     // PMP or PMA check goes here if implemented
-    uint32_t pte_val = physmem_read32(cpu->csr.mhartid, pte_addr, true);
+    uint32_t pte_val = physmem_read32(cpu->csr.mhartid, pte_addr, noisy);
 
     sv32_pte_t pte = pte_from_uint(pte_val);
 
@@ -142,7 +142,7 @@ rv_exc_t rv_convert_addr(rv_cpu_t *cpu, uint32_t virt, ptr36_t *phys, bool wr, b
     // PMP or PMA check goes here if implemented
     a = pte.ppn << PAGESIZE;
     pte_addr = a + vpn0*PTESIZE;
-    pte_val = physmem_read32(cpu->csr.mhartid, pte_addr, true);
+    pte_val = physmem_read32(cpu->csr.mhartid, pte_addr, noisy);
     pte = pte_from_uint(pte_val);
 
     if(!is_pte_valid(pte)) return page_fault_exception;
@@ -156,17 +156,28 @@ leaf_pte:
     pte.d |= wr ? 1 : 0;
 
     pte_val = uint_from_pte(pte);
-    physmem_write32(cpu->csr.mhartid, pte_addr, pte_val, true);
+    
+    if(noisy){
+        physmem_write32(cpu->csr.mhartid, pte_addr, pte_val, true);
+    }
 
     *phys = make_phys_from_ppn(virt, pte, is_megapage);
 
     return rv_exc_none;
 }
 
+#define address_missaligned_exception(fetch, wr) (fetch ? rv_exc_instruction_address_misaligned : (wr ? rv_exc_store_amo_address_misaligned : rv_exc_load_address_misaligned))
+
 rv_exc_t rv_read_mem32(rv_cpu_t *cpu, uint32_t virt, uint32_t *value, bool fetch, bool noisy){
     ASSERT(cpu != NULL);
     ASSERT(value != NULL);
-    //TODO: check alignment
+
+    if(!IS_ALIGNED(virt, 4)){
+        if(noisy){
+            cpu->csr.tval_next = virt;
+        }
+        return address_missaligned_exception(fetch, false);
+    }
 
     ptr36_t phys;
     rv_exc_t ex = rv_convert_addr(cpu, virt, &phys, false, fetch, noisy);
@@ -182,7 +193,13 @@ rv_exc_t rv_read_mem32(rv_cpu_t *cpu, uint32_t virt, uint32_t *value, bool fetch
 rv_exc_t rv_read_mem16(rv_cpu_t *cpu, uint32_t virt, uint16_t *value, bool fetch, bool noisy){
     ASSERT(cpu != NULL);
     ASSERT(value != NULL);
-    //TODO: check alignment
+
+    if(!IS_ALIGNED(virt, 2)){
+        if(noisy){
+            cpu->csr.tval_next = virt;
+        }
+        return address_missaligned_exception(fetch, false);
+    }
 
     ptr36_t phys;
     rv_exc_t ex = rv_convert_addr(cpu, virt, &phys, false, fetch, noisy);
@@ -198,7 +215,6 @@ rv_exc_t rv_read_mem16(rv_cpu_t *cpu, uint32_t virt, uint16_t *value, bool fetch
 rv_exc_t rv_read_mem8(rv_cpu_t *cpu, uint32_t virt, uint8_t *value, bool noisy){
     ASSERT(cpu != NULL);
     ASSERT(value != NULL);
-    //TODO: check alignment
 
     ptr36_t phys;
     rv_exc_t ex = rv_convert_addr(cpu, virt, &phys, false, false, noisy);
@@ -213,7 +229,6 @@ rv_exc_t rv_read_mem8(rv_cpu_t *cpu, uint32_t virt, uint8_t *value, bool noisy){
 
 rv_exc_t rv_write_mem8(rv_cpu_t *cpu, uint32_t virt, uint8_t value, bool noisy){
     ASSERT(cpu != NULL);
-    // TODO: check alignment
 
     ptr36_t phys;
     rv_exc_t ex = rv_convert_addr(cpu, virt, &phys, false, false, noisy);
@@ -232,7 +247,13 @@ rv_exc_t rv_write_mem8(rv_cpu_t *cpu, uint32_t virt, uint8_t value, bool noisy){
 
 rv_exc_t rv_write_mem16(rv_cpu_t *cpu, uint32_t virt, uint16_t value, bool noisy){
     ASSERT(cpu != NULL);
-    // TODO: check alignment
+
+    if(!IS_ALIGNED(virt, 2)){
+        if(noisy){
+            cpu->csr.tval_next = virt;
+        }
+        return rv_exc_store_amo_address_misaligned;
+    }
 
     ptr36_t phys;
     rv_exc_t ex = rv_convert_addr(cpu, virt, &phys, false, false, noisy);
@@ -251,7 +272,13 @@ rv_exc_t rv_write_mem16(rv_cpu_t *cpu, uint32_t virt, uint16_t value, bool noisy
 
 rv_exc_t rv_write_mem32(rv_cpu_t *cpu, uint32_t virt, uint32_t value, bool noisy){
     ASSERT(cpu != NULL);
-    // TODO: check alignment
+
+    if(!IS_ALIGNED(virt, 4)){
+        if(noisy){
+            cpu->csr.tval_next = virt;
+        }
+        return rv_exc_store_amo_address_misaligned;
+    }
 
     ptr36_t phys;
     rv_exc_t ex = rv_convert_addr(cpu, virt, &phys, false, false, noisy);

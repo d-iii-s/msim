@@ -33,11 +33,6 @@ rv_exc_t lh_instr(rv_cpu_t *cpu, rv_instr_t instr){
 
     uint16_t val;
 
-    if(!IS_ALIGNED(virt, 2)){
-        cpu->csr.tval_next = virt;
-        return rv_exc_load_address_misaligned;
-    }
-
     rv_exc_t ex = rv_read_mem16(cpu, virt, &val, false, true);
     
     if(ex != rv_exc_none){
@@ -137,11 +132,6 @@ rv_exc_t sh_instr(rv_cpu_t *cpu, rv_instr_t instr){
 
     uint32_t virt = cpu->regs[instr.s.rs1] + RV_S_IMM(instr);
 
-    if(!IS_ALIGNED(virt, 2)){
-        cpu->csr.tval_next = virt;
-        return rv_exc_store_amo_address_misaligned;
-    }
-
     rv_exc_t ex = rv_write_mem16(cpu, virt, (uint16_t)cpu->regs[instr.s.rs2], true);
 
     if(ex != rv_exc_none){
@@ -156,11 +146,6 @@ rv_exc_t sw_instr(rv_cpu_t *cpu, rv_instr_t instr){
     ASSERT(instr.s.opcode == rv_opcSTORE);
 
     uint32_t virt = cpu->regs[instr.s.rs1] + RV_S_IMM(instr);
-
-    if(!IS_ALIGNED(virt, 4)){
-        cpu->csr.tval_next = virt;
-        return rv_exc_store_amo_address_misaligned;
-    }
 
     rv_exc_t ex = rv_write_mem32(cpu, virt, cpu->regs[instr.s.rs2], true);
 
@@ -186,12 +171,6 @@ rv_exc_t lr_instr(rv_cpu_t *cpu, rv_instr_t instr){
     ASSERT(instr.r.rs2 == 0);
 
     uint32_t virt = cpu->regs[instr.r.rs1];
-
-    
-    if(!IS_ALIGNED(virt, 4)){
-        cpu->csr.tval_next = virt;
-        return rv_exc_load_address_misaligned;
-    }
 
     uint32_t val;
     rv_exc_t ex = rv_read_mem32(cpu, virt, &val, false, true);
@@ -230,9 +209,10 @@ rv_exc_t sc_instr(rv_cpu_t *cpu, rv_instr_t instr){
     uint32_t virt = cpu->regs[instr.r.rs1];
     ptr36_t phys;
 
-    if(!IS_ALIGNED(virt, 4)){
-        cpu->csr.tval_next = virt;
-        return rv_exc_store_amo_address_misaligned;
+    rv_exc_t ex = rv_convert_addr(cpu, virt, &phys, true, false, true);
+
+    if(ex != rv_exc_none){
+        return ex;
     }
 
     if(cpu->reserved_valid == false){
@@ -244,12 +224,6 @@ rv_exc_t sc_instr(rv_cpu_t *cpu, rv_instr_t instr){
     // SC always invalidates reservation by this hart
     cpu->reserved_valid = false;
     sc_unregister(cpu->csr.mhartid);
-
-    rv_exc_t ex = rv_convert_addr(cpu, virt, &phys, true, false, true);
-
-    if(ex != rv_exc_none){
-        return ex;
-    }
 
     if(phys != cpu->reserved_addr){
         // target differs

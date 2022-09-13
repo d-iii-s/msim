@@ -413,23 +413,26 @@ extern rv_exc_t remu_instr(rv_cpu_t *cpu, rv_instr_t instr){
 
 /* A extension atomic operations */
 
-//TODO: Amo exception on unwritable (but readable) page should not write to register
-
 rv_exc_t amoswap_instr(rv_cpu_t *cpu, rv_instr_t instr){
     ASSERT(cpu != NULL);
     ASSERT(instr.r.opcode == rv_opcAMO);
 
     uint32_t virt = cpu->regs[instr.r.rs1];
 
-    if(!IS_ALIGNED(virt, 4)){
-        cpu->csr.tval_next = virt;
-        return rv_exc_store_amo_address_misaligned;
+    // Check write privileges first
+    ptr36_t _;
+    rv_exc_t ex = rv_convert_addr(cpu, virt, &_, true, false, true);
+    
+    if(ex != rv_exc_none){
+        return ex;
     }
 
     uint32_t val;
-    rv_exc_t ex = rv_read_mem32(cpu, virt, &val, false, true);
+    ex = rv_read_mem32(cpu, virt, &val, false, true);
 
     if(ex != rv_exc_none){
+        // This code should be unreachable
+        ASSERT(false);
         return ex;
     }
 
@@ -442,14 +445,17 @@ rv_exc_t amoadd_instr(rv_cpu_t *cpu, rv_instr_t instr){
 
     uint32_t virt = cpu->regs[instr.r.rs1];
 
-    if(!IS_ALIGNED(virt, 4)){
-        cpu->csr.tval_next = virt;
-        return rv_exc_store_amo_address_misaligned;
+    // Check write privileges first
+    ptr36_t _;
+    rv_exc_t ex = rv_convert_addr(cpu, virt, &_, true, false, true);
+    
+    if(ex != rv_exc_none){
+        return ex;
     }
 
     uint32_t val;
     // load from mem
-    rv_exc_t ex = rv_read_mem32(cpu, virt, &val, false, true);
+    ex = rv_read_mem32(cpu, virt, &val, false, true);
 
     if(ex != rv_exc_none){
         return ex;
@@ -468,14 +474,17 @@ rv_exc_t amoadd_instr(rv_cpu_t *cpu, rv_instr_t instr){
 rv_exc_t amoxor_instr(rv_cpu_t *cpu, rv_instr_t instr) {
 
     uint32_t virt = cpu->regs[instr.r.rs1];
+
+    // Check write privileges first
+    ptr36_t _;
+    rv_exc_t ex = rv_convert_addr(cpu, virt, &_, true, false, true);
     
-    if(!IS_ALIGNED(virt, 4)){
-        cpu->csr.tval_next = virt;
-        return rv_exc_store_amo_address_misaligned;
+    if(ex != rv_exc_none){
+        return ex;
     }
 
     uint32_t val;
-    rv_exc_t ex = rv_read_mem32(cpu, virt, &val, false, true);
+    ex = rv_read_mem32(cpu, virt, &val, false, true);
 
     if(ex != rv_exc_none){
         return ex;
@@ -490,14 +499,17 @@ rv_exc_t amoxor_instr(rv_cpu_t *cpu, rv_instr_t instr) {
 rv_exc_t amoand_instr(rv_cpu_t *cpu, rv_instr_t instr){
 
     uint32_t virt = cpu->regs[instr.r.rs1];
+
+    // Check write privileges first
+    ptr36_t _;
+    rv_exc_t ex = rv_convert_addr(cpu, virt, &_, true, false, true);
     
-    if(!IS_ALIGNED(virt, 4)){
-        cpu->csr.tval_next = virt;
-        return rv_exc_store_amo_address_misaligned;
+    if(ex != rv_exc_none){
+        return ex;
     }
 
     uint32_t val;
-    rv_exc_t ex = rv_read_mem32(cpu, virt, &val, false, true);
+    ex = rv_read_mem32(cpu, virt, &val, false, true);
 
     if(ex != rv_exc_none){
         return ex;
@@ -513,13 +525,16 @@ rv_exc_t amoor_instr(rv_cpu_t *cpu, rv_instr_t instr){
 
     uint32_t virt = cpu->regs[instr.r.rs1];
     
-    if(!IS_ALIGNED(virt, 4)){
-        cpu->csr.tval_next = virt;
-        return rv_exc_store_amo_address_misaligned;
+    // Check write privileges first
+    ptr36_t _;
+    rv_exc_t ex = rv_convert_addr(cpu, virt, &_, true, false, true);
+    
+    if(ex != rv_exc_none){
+        return ex;
     }
 
     uint32_t val;
-    rv_exc_t ex = rv_read_mem32(cpu, virt, &val, false, true);
+    ex = rv_read_mem32(cpu, virt, &val, false, true);
 
     if(ex != rv_exc_none){
         return ex;
@@ -534,14 +549,17 @@ rv_exc_t amoor_instr(rv_cpu_t *cpu, rv_instr_t instr){
 rv_exc_t amomin_instr(rv_cpu_t *cpu, rv_instr_t instr){
 
     uint32_t virt = cpu->regs[instr.r.rs1];
+
+    // Check write privileges first
+    ptr36_t _;
+    rv_exc_t ex = rv_convert_addr(cpu, virt, &_, true, false, true);
     
-    if(!IS_ALIGNED(virt, 4)){
-        cpu->csr.tval_next = virt;
-        return rv_exc_store_amo_address_misaligned;
+    if(ex != rv_exc_none){
+        return ex;
     }
 
     int32_t val;
-    rv_exc_t ex = rv_read_mem32(cpu, virt, (uint32_t*)&val, false, true);
+    ex = rv_read_mem32(cpu, virt, (uint32_t*)&val, false, true);
 
     if(ex != rv_exc_none){
         return ex;
@@ -558,13 +576,16 @@ rv_exc_t amomax_instr(rv_cpu_t *cpu, rv_instr_t instr){
 
     uint32_t virt = cpu->regs[instr.r.rs1];
     
-    if(!IS_ALIGNED(virt, 4)){
-        cpu->csr.tval_next = virt;
-        return rv_exc_store_amo_address_misaligned;
+    // Check write privileges first
+    ptr36_t _;
+    rv_exc_t ex = rv_convert_addr(cpu, virt, &_, true, false, true);
+    
+    if(ex != rv_exc_none){
+        return ex;
     }
 
     int32_t val;
-    rv_exc_t ex = rv_read_mem32(cpu, virt, (uint32_t*)&val, false, true);
+    ex = rv_read_mem32(cpu, virt, (uint32_t*)&val, false, true);
 
     if(ex != rv_exc_none){
         return ex;
@@ -581,13 +602,16 @@ rv_exc_t amominu_instr(rv_cpu_t *cpu, rv_instr_t instr){
 
     uint32_t virt = cpu->regs[instr.r.rs1];
     
-    if(!IS_ALIGNED(virt, 4)){
-        cpu->csr.tval_next = virt;
-        return rv_exc_store_amo_address_misaligned;
+    // Check write privileges first
+    ptr36_t _;
+    rv_exc_t ex = rv_convert_addr(cpu, virt, &_, true, false, true);
+    
+    if(ex != rv_exc_none){
+        return ex;
     }
 
     uint32_t val;
-    rv_exc_t ex = rv_read_mem32(cpu, virt, &val, false, true);
+    ex = rv_read_mem32(cpu, virt, &val, false, true);
 
     if(ex != rv_exc_none){
         return ex;
@@ -604,13 +628,16 @@ rv_exc_t amomaxu_instr(rv_cpu_t *cpu, rv_instr_t instr){
 
     uint32_t virt = cpu->regs[instr.r.rs1];
     
-    if(!IS_ALIGNED(virt, 4)){
-        cpu->csr.tval_next = virt;
-        return rv_exc_store_amo_address_misaligned;
+    // Check write privileges first
+    ptr36_t _;
+    rv_exc_t ex = rv_convert_addr(cpu, virt, &_, true, false, true);
+    
+    if(ex != rv_exc_none){
+        return ex;
     }
     
     uint32_t val;
-    rv_exc_t ex = rv_read_mem32(cpu, virt, &val, false, true);
+    ex = rv_read_mem32(cpu, virt, &val, false, true);
 
     if(ex != rv_exc_none){
         return ex;

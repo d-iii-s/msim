@@ -13,7 +13,7 @@
 
 static bool rv_convert_add_wrapper(void* cpu, ptr64_t virt,  ptr36_t* phys, bool write){
     // use only low 32-bits from virt
-    return rv_convert_addr((rv_cpu_t*)cpu, virt.lo, phys, write, false) == rv_exc_none;
+    return rv_convert_addr((rv_cpu_t*)cpu, virt.lo, phys, write, false, false) == rv_exc_none;
 }
 
 static void rv_set_pc_wrapper(void* cpu, ptr64_t addr){

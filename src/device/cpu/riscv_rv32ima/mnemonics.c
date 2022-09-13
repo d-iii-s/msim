@@ -1029,8 +1029,8 @@ static void print_satp(rv_cpu_t *cpu, string_t* mnemonics, string_t* comments) {
 	
 	string_printf(comments, "Mode: %s", mode);
 	if(!rv_csr_satp_is_bare(cpu)){
-		int asid = (cpu->csr.satp >> 22) & (0x1FF);
-		uint32_t ppn = cpu->csr.satp & 0x3FFFFF;
+		int asid = rv_csr_satp_asid(cpu);
+		uint32_t ppn =  rv_csr_satp_ppn(cpu);
 		string_printf(comments,
 			" ASID: %i PPN: 0x%06x (Physical address: 0x%09lx)",
 			asid,

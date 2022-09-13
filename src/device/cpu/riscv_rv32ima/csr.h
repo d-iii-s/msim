@@ -517,7 +517,11 @@ enum rv_priv_mode;
 #define rv_csr_mtvec_mode_vectored UINT32_C(1)
 
 #define rv_csr_satp_mode_mask 0x80000000
+#define rv_csr_asid_mask      0x7FC00000
+#define rv_csr_satp_ppn_mask  0x003FFFFF
 #define rv_csr_satp_is_bare(cpu) (~cpu->csr.satp & rv_csr_satp_mode_mask)
+#define rv_csr_satp_asid(cpu) ((cpu->csr.satp & rv_csr_asid_mask) >> 22)
+#define rv_csr_satp_ppn(cpu) (cpu->csr.satp & rv_csr_satp_ppn_mask)
 
 #define rv_csr_is_read_only(csr) ((csr >> 30) == 0b11)
 

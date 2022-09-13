@@ -219,7 +219,7 @@ static void s_trap(rv_cpu_t* cpu, rv_exc_t ex){
 
     bool is_interrupt = ex & RV_INTERRUPT_EXC_BITS;
 
-    cpu->csr.sepc = is_interrupt ? cpu->pc : cpu->pc_next;
+    cpu->csr.sepc = is_interrupt ? cpu->pc_next : cpu->pc;
     cpu->csr.scause = ex;
     cpu->priv_mode = rv_smode;
 
@@ -269,10 +269,12 @@ static void handle_exception(rv_cpu_t* cpu, rv_exc_t ex){
     uint32_t mask = RV_EXCEPTION_MASK(ex);
     bool delegated = cpu->csr.medeleg & mask;
 
-    if(delegated){
+    if(delegated && cpu->priv_mode != rv_mmode){
+        printf("s trap!\n");
         s_trap(cpu, ex);
     }
     else {
+        printf("m trap!\n");
         m_trap(cpu, ex);
     }
 }

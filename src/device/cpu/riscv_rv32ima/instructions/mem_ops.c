@@ -34,6 +34,7 @@ rv_exc_t lh_instr(rv_cpu_t *cpu, rv_instr_t instr){
     uint16_t val;
 
     if(!IS_ALIGNED(virt, 2)){
+        cpu->csr.tval_next = virt;
         return rv_exc_load_address_misaligned;
     }
 
@@ -55,6 +56,7 @@ rv_exc_t lw_instr(rv_cpu_t *cpu, rv_instr_t instr){
     uint32_t virt = cpu->regs[instr.i.rs1] + (int32_t)instr.i.imm;
 
     if(!IS_ALIGNED(virt, 4)){
+        cpu->csr.tval_next = virt;
         return rv_exc_load_address_misaligned;
     }
 
@@ -97,6 +99,7 @@ rv_exc_t lhu_instr(rv_cpu_t *cpu, rv_instr_t instr){
     uint32_t virt = cpu->regs[instr.i.rs1] + (int32_t)instr.i.imm;
 
     if(!IS_ALIGNED(virt, 2)){
+        cpu->csr.tval_next = virt;
         return rv_exc_load_address_misaligned;
     }
 
@@ -135,6 +138,7 @@ rv_exc_t sh_instr(rv_cpu_t *cpu, rv_instr_t instr){
     uint32_t virt = cpu->regs[instr.s.rs1] + RV_S_IMM(instr);
 
     if(!IS_ALIGNED(virt, 2)){
+        cpu->csr.tval_next = virt;
         return rv_exc_store_amo_address_misaligned;
     }
 
@@ -154,6 +158,7 @@ rv_exc_t sw_instr(rv_cpu_t *cpu, rv_instr_t instr){
     uint32_t virt = cpu->regs[instr.s.rs1] + RV_S_IMM(instr);
 
     if(!IS_ALIGNED(virt, 4)){
+        cpu->csr.tval_next = virt;
         return rv_exc_store_amo_address_misaligned;
     }
 
@@ -184,6 +189,7 @@ rv_exc_t lr_instr(rv_cpu_t *cpu, rv_instr_t instr){
 
     
     if(!IS_ALIGNED(virt, 4)){
+        cpu->csr.tval_next = virt;
         return rv_exc_load_address_misaligned;
     }
 
@@ -225,6 +231,7 @@ rv_exc_t sc_instr(rv_cpu_t *cpu, rv_instr_t instr){
     ptr36_t phys;
 
     if(!IS_ALIGNED(virt, 4)){
+        cpu->csr.tval_next = virt;
         return rv_exc_store_amo_address_misaligned;
     }
 

@@ -753,12 +753,95 @@ static void print_menvcfg(rv_cpu_t *cpu, string_t* mnemonics, string_t* comments
 	);
 }
 
+static void print_stvec(rv_cpu_t *cpu, string_t* mnemonics, string_t* comments){
+	string_printf(mnemonics, "%s 0x%08x", "stvec", cpu->csr.stvec);
+	string_printf(comments, "Base: 0x%08x Mode: %s",
+		cpu->csr.stvec & ~0b11,
+		(((cpu->csr.stvec & 0b11) == 0) ? "Direct" : "Vectored")
+	); 
+}
+
+
+static void print_sie(rv_cpu_t *cpu, string_t* mnemonics, string_t* comments) {
+
+	bool seie = cpu->csr.mie & rv_csr_sei_mask;
+	bool stie = cpu->csr.mie & rv_csr_sti_mask;
+	bool ssie = cpu->csr.mie & rv_csr_ssi_mask;
+
+	string_printf(mnemonics, "%s 0x%08x", "sie", cpu->csr.mie & rv_csr_si_mask);
+	string_printf(comments,
+		"SEIE %s, STIE %s, SSIE %s",
+		bit_string(seie),
+		bit_string(stie),
+		bit_string(ssie)
+	);
+}
+
+static void print_sip(rv_cpu_t *cpu, string_t* mnemonics, string_t* comments) {
+
+	bool seip = cpu->csr.mip & rv_csr_sei_mask;
+	bool stip = cpu->csr.mip & rv_csr_sti_mask;
+	bool ssip = cpu->csr.mip & rv_csr_ssi_mask;
+
+	string_printf(mnemonics, "%s 0x%08x", "sip", cpu->csr.mip & rv_csr_si_mask);
+	string_printf(comments,
+		"SEIP %s, STIP %s, SSIP %s",
+		bit_string(seip),
+		bit_string(stip),
+		bit_string(ssip)
+	);
+}
+
+static void print_scause(rv_cpu_t *cpu, string_t* mnemonics, string_t* comments) {
+	string_printf(mnemonics, "%s 0x%08x", "scause", cpu->csr.scause);
+	bool is_interrupt = cpu->csr.scause & RV_INTERRUPT_EXC_BITS;
+	int cause_id = cpu->csr.scause & ~RV_INTERRUPT_EXC_BITS;
+	string_printf(comments, "%s", (is_interrupt ? interrupt_name_table[cause_id] : exc_name_table[cause_id]));
+}
+
+static void print_senvcfg(rv_cpu_t *cpu, string_t* mnemonics, string_t* comments) {
+	string_printf(mnemonics, "%s 0x%08x", "senvcfg", cpu->csr.senvcfg);
+	bool cbze = cpu->csr.senvcfg & (UINT32_C(1) << 7);
+	bool cbfe = cpu->csr.senvcfg & (UINT32_C(1) << 6);
+	bool cbie = cpu->csr.senvcfg & (UINT32_C(1) << 5);
+	bool fiom = cpu->csr.senvcfg & (UINT32_C(1) << 0);
+
+	string_printf(comments,
+		"CBZE %s, CBFE %s, CBIE %s, FIOM %s",
+		bit_string(cbze),
+		bit_string(cbfe),
+		bit_string(cbie),
+		bit_string(fiom)
+	);
+}
+
+static void print_satp(rv_cpu_t *cpu, string_t* mnemonics, string_t* comments) {
+	string_printf(mnemonics, "%s 0x%08x", "satp", cpu->csr.satp);
+	char* mode = (rv_csr_satp_is_bare(cpu)) ? "Bare" : "Sv32";
+	
+	string_printf(comments, "Mode: %s", mode);
+	if(!rv_csr_satp_is_bare(cpu)){
+		int asid = (cpu->csr.satp >> 22) & (0x1FF);
+		uint32_t ppn = cpu->csr.satp & 0x3FFFFF;
+		string_printf(comments,
+			" ASID: %i PPN: 0x%06x (Physical address: 0x%09lx)",
+			asid,
+			ppn,
+			(uint64_t)ppn << 12
+		);
+	}
+}
+
 // TODO: comments?
 default_print_function(mcounteren)
 default_print_function(mcountinhibit)
 default_print_function(mepc)
 default_print_function(mscratch)
 default_print_function(mtval)
+default_print_function(scounteren)
+default_print_function(sscratch)
+default_print_function(sepc)
+default_print_function(stval)
 
 static void csr_dump_common(rv_cpu_t *cpu, int csr) {
 	string_t s_mnemonics;
@@ -972,6 +1055,16 @@ static void csr_dump_common(rv_cpu_t *cpu, int csr) {
 		case csr_menvcfgh:
 			print_menvcfg(cpu, &s_mnemonics, &s_comments);
 			break;
+		default_case(stvec)
+		default_case(sie)
+		default_case(sip)
+		default_case(scounteren)
+		default_case(sscratch)
+		default_case(sepc)
+		default_case(scause)
+		default_case(stval)
+		default_case(senvcfg)
+		default_case(satp)
 		default:
 			printf("Not implemented CSR number!\n");
 			return;

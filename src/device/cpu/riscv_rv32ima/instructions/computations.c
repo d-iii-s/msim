@@ -413,6 +413,8 @@ extern rv_exc_t remu_instr(rv_cpu_t *cpu, rv_instr_t instr){
 
 /* A extension atomic operations */
 
+//TODO: Amo exception on unwritable (but readable) page should not write to register
+
 rv_exc_t amoswap_instr(rv_cpu_t *cpu, rv_instr_t instr){
     ASSERT(cpu != NULL);
     ASSERT(instr.r.opcode == rv_opcAMO);
@@ -425,7 +427,7 @@ rv_exc_t amoswap_instr(rv_cpu_t *cpu, rv_instr_t instr){
     }
 
     uint32_t val;
-    rv_exc_t ex = rv_read_mem32(cpu, virt, &val, true);
+    rv_exc_t ex = rv_read_mem32(cpu, virt, &val, false, true);
 
     if(ex != rv_exc_none){
         return ex;
@@ -447,7 +449,7 @@ rv_exc_t amoadd_instr(rv_cpu_t *cpu, rv_instr_t instr){
 
     uint32_t val;
     // load from mem
-    rv_exc_t ex = rv_read_mem32(cpu, virt, &val, true);
+    rv_exc_t ex = rv_read_mem32(cpu, virt, &val, false, true);
 
     if(ex != rv_exc_none){
         return ex;
@@ -473,7 +475,7 @@ rv_exc_t amoxor_instr(rv_cpu_t *cpu, rv_instr_t instr) {
     }
 
     uint32_t val;
-    rv_exc_t ex = rv_read_mem32(cpu, virt, &val, true);
+    rv_exc_t ex = rv_read_mem32(cpu, virt, &val, false, true);
 
     if(ex != rv_exc_none){
         return ex;
@@ -495,7 +497,7 @@ rv_exc_t amoand_instr(rv_cpu_t *cpu, rv_instr_t instr){
     }
 
     uint32_t val;
-    rv_exc_t ex = rv_read_mem32(cpu, virt, &val, true);
+    rv_exc_t ex = rv_read_mem32(cpu, virt, &val, false, true);
 
     if(ex != rv_exc_none){
         return ex;
@@ -517,7 +519,7 @@ rv_exc_t amoor_instr(rv_cpu_t *cpu, rv_instr_t instr){
     }
 
     uint32_t val;
-    rv_exc_t ex = rv_read_mem32(cpu, virt, &val, true);
+    rv_exc_t ex = rv_read_mem32(cpu, virt, &val, false, true);
 
     if(ex != rv_exc_none){
         return ex;
@@ -539,7 +541,7 @@ rv_exc_t amomin_instr(rv_cpu_t *cpu, rv_instr_t instr){
     }
 
     int32_t val;
-    rv_exc_t ex = rv_read_mem32(cpu, virt, (uint32_t*)&val, true);
+    rv_exc_t ex = rv_read_mem32(cpu, virt, (uint32_t*)&val, false, true);
 
     if(ex != rv_exc_none){
         return ex;
@@ -562,7 +564,7 @@ rv_exc_t amomax_instr(rv_cpu_t *cpu, rv_instr_t instr){
     }
 
     int32_t val;
-    rv_exc_t ex = rv_read_mem32(cpu, virt, (uint32_t*)&val, true);
+    rv_exc_t ex = rv_read_mem32(cpu, virt, (uint32_t*)&val, false, true);
 
     if(ex != rv_exc_none){
         return ex;
@@ -585,7 +587,7 @@ rv_exc_t amominu_instr(rv_cpu_t *cpu, rv_instr_t instr){
     }
 
     uint32_t val;
-    rv_exc_t ex = rv_read_mem32(cpu, virt, &val, true);
+    rv_exc_t ex = rv_read_mem32(cpu, virt, &val, false, true);
 
     if(ex != rv_exc_none){
         return ex;
@@ -608,7 +610,7 @@ rv_exc_t amomaxu_instr(rv_cpu_t *cpu, rv_instr_t instr){
     }
     
     uint32_t val;
-    rv_exc_t ex = rv_read_mem32(cpu, virt, &val, true);
+    rv_exc_t ex = rv_read_mem32(cpu, virt, &val, false, true);
 
     if(ex != rv_exc_none){
         return ex;

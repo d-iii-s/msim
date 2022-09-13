@@ -36,22 +36,140 @@ void rv_cpu_init(rv_cpu_t *cpu, unsigned int procno){
 }   
 
 
-rv_exc_t rv_convert_addr(rv_cpu_t *cpu, uint32_t virt, ptr36_t *phys, bool wr, bool noisy){
+typedef struct {
+    unsigned int v: 1;
+    unsigned int r: 1;
+    unsigned int w: 1;
+    unsigned int x: 1;
+    unsigned int u: 1;
+    unsigned int g: 1;
+    unsigned int a: 1;
+    unsigned int d: 1;
+    unsigned int rsw: 2;
+    unsigned int ppn: 22;
+} sv32_pte_t;
+
+static_assert(sizeof(sv32_pte_t) == 4);
+
+#define is_pte_leaf(pte) (pte.r | pte.w | pte.x)
+#define is_pte_valid(pte) (pte.v && (!pte.w || pte.r))
+#define pte_ppn0(pte) (pte.ppn & 0x0003FF)
+#define pte_ppn1(pte) (pte.ppn & 0x3FFC00)
+
+// Dirty hack
+typedef union {
+    sv32_pte_t pte;
+    uint32_t val;
+} sv32_pte_helper_t;
+#define pte_from_uint(val) (((sv32_pte_helper_t)(val)).pte)
+#define uint_from_pte(pte) (((sv32_pte_helper_t)(pte)).val)
+
+#define sv32_effective_priv(cpu) (rv_csr_mstatus_mprv(cpu) ? rv_csr_mstatus_mpp(cpu) : cpu->priv_mode)
+
+static bool is_access_allowed(rv_cpu_t *cpu, sv32_pte_t pte, bool wr, bool fetch) {
+    if(wr && !pte.w) return false;
+    if(fetch && !pte.x) return false;
+
+    // Page is executable and I can read from executable pages
+    bool rx = rv_csr_sstatus_mxr(cpu) && pte.x;
+    
+    if(!wr && !pte.r && !rx) return false;
+
+    if(sv32_effective_priv(cpu) == rv_smode){
+        if(!rv_csr_sstatus_sum(cpu) && pte.u) return false;
+        if(fetch && pte.u) return false;
+    }
+
+    if(sv32_effective_priv(cpu) == rv_umode){
+        if(!pte.u) return false;
+    }
+
+    return false;
+}
+
+static ptr36_t make_phys_from_ppn(uint32_t virt, sv32_pte_t pte, bool megapage){
+    ptr36_t page_offset = virt & 0x00000FFF;
+    ptr36_t virt_vpn0   = virt & 0x003FF000;
+    ptr36_t pte_ppn0    = (ptr36_t)pte_ppn0(pte) << 12;
+    ptr36_t pte_ppn1    = (ptr36_t)pte_ppn1(pte) << 12;
+    ptr36_t phys_ppn0   = megapage ? virt_vpn0 : pte_ppn0;
+
+    return pte_ppn1 | phys_ppn0 | page_offset;
+}
+
+rv_exc_t rv_convert_addr(rv_cpu_t *cpu, uint32_t virt, ptr36_t *phys, bool wr, bool fetch, bool noisy){
     ASSERT(cpu != NULL);
     ASSERT(phys != NULL);
+    ASSERT(!(wr && fetch));
 
-    *phys = virt;
+    #define page_fault_exception (fetch ? rv_exc_instruction_page_fault : (wr ? rv_exc_store_amo_page_fault : rv_exc_load_page_fault))
+
+    bool satp_active = (!rv_csr_satp_is_bare(cpu)) && (sv32_effective_priv(cpu) <= rv_smode);
+
+    if(!satp_active){
+        *phys = virt;
+        return rv_exc_none;
+    }
+
+    uint32_t vpn0     =    virt & 0x003FF000;
+    uint32_t vpn1     =    virt & 0xFFC00000;
+    uint32_t ppn      = rv_csr_satp_ppn(cpu);
+
+    bool is_megapage = false;
+
+    // name of variables according to spec
+    int PAGESIZE = 12;
+    int PTESIZE = 4;
+
+    ptr36_t a = ((ptr36_t)ppn) << PAGESIZE;
+    ptr36_t pte_addr = a + vpn1*PTESIZE;
+
+    // PMP or PMA check goes here if implemented
+    uint32_t pte_val = physmem_read32(cpu->csr.mhartid, pte_addr, true);
+
+    sv32_pte_t pte = pte_from_uint(pte_val);
+
+    if(!is_pte_valid(pte)) return page_fault_exception;
+
+    if(is_pte_leaf(pte)) {
+        // MEGAPAGE
+        // Missaligned megapage
+        if(pte_ppn0(pte) != 0) return page_fault_exception;
+        is_megapage = true;
+        goto leaf_pte;
+    }
+
+    // PMP or PMA check goes here if implemented
+    a = pte.ppn << PAGESIZE;
+    pte_addr = a + vpn0*PTESIZE;
+    pte_val = physmem_read32(cpu->csr.mhartid, pte_addr, true);
+    pte = pte_from_uint(pte_val);
+
+    if(!is_pte_valid(pte)) return page_fault_exception;
+    // Non-leaf on last level
+    if(!is_pte_leaf(pte)) return page_fault_exception;
+
+leaf_pte:
+    if(!is_access_allowed(cpu, pte, wr, fetch)) return page_fault_exception;
+
+    pte.a = 1;
+    pte.d |= wr ? 1 : 0;
+
+    pte_val = uint_from_pte(pte);
+    physmem_write32(cpu->csr.mhartid, pte_addr, pte_val, true);
+
+    *phys = make_phys_from_ppn(virt, pte, is_megapage);
 
     return rv_exc_none;
 }
 
-rv_exc_t rv_read_mem32(rv_cpu_t *cpu, uint32_t virt, uint32_t *value, bool noisy){
+rv_exc_t rv_read_mem32(rv_cpu_t *cpu, uint32_t virt, uint32_t *value, bool fetch, bool noisy){
     ASSERT(cpu != NULL);
     ASSERT(value != NULL);
     //TODO: check alignment
 
     ptr36_t phys;
-    rv_exc_t ex = rv_convert_addr(cpu, virt, &phys, false, noisy);
+    rv_exc_t ex = rv_convert_addr(cpu, virt, &phys, false, fetch, noisy);
     
     if(ex != rv_exc_none){
         return ex;
@@ -61,13 +179,13 @@ rv_exc_t rv_read_mem32(rv_cpu_t *cpu, uint32_t virt, uint32_t *value, bool noisy
     return rv_exc_none;
 }
 
-rv_exc_t rv_read_mem16(rv_cpu_t *cpu, uint32_t virt, uint16_t *value, bool noisy){
+rv_exc_t rv_read_mem16(rv_cpu_t *cpu, uint32_t virt, uint16_t *value, bool fetch, bool noisy){
     ASSERT(cpu != NULL);
     ASSERT(value != NULL);
     //TODO: check alignment
 
     ptr36_t phys;
-    rv_exc_t ex = rv_convert_addr(cpu, virt, &phys, false, noisy);
+    rv_exc_t ex = rv_convert_addr(cpu, virt, &phys, false, fetch, noisy);
     
     if(ex != rv_exc_none){
         return ex;
@@ -83,7 +201,7 @@ rv_exc_t rv_read_mem8(rv_cpu_t *cpu, uint32_t virt, uint8_t *value, bool noisy){
     //TODO: check alignment
 
     ptr36_t phys;
-    rv_exc_t ex = rv_convert_addr(cpu, virt, &phys, false, noisy);
+    rv_exc_t ex = rv_convert_addr(cpu, virt, &phys, false, false, noisy);
     
     if(ex != rv_exc_none){
         return ex;
@@ -98,7 +216,7 @@ rv_exc_t rv_write_mem8(rv_cpu_t *cpu, uint32_t virt, uint8_t value, bool noisy){
     // TODO: check alignment
 
     ptr36_t phys;
-    rv_exc_t ex = rv_convert_addr(cpu, virt, &phys, false, noisy);
+    rv_exc_t ex = rv_convert_addr(cpu, virt, &phys, false, false, noisy);
     
     if(ex != rv_exc_none){
         return ex;
@@ -117,7 +235,7 @@ rv_exc_t rv_write_mem16(rv_cpu_t *cpu, uint32_t virt, uint16_t value, bool noisy
     // TODO: check alignment
 
     ptr36_t phys;
-    rv_exc_t ex = rv_convert_addr(cpu, virt, &phys, false, noisy);
+    rv_exc_t ex = rv_convert_addr(cpu, virt, &phys, false, false, noisy);
     
     if(ex != rv_exc_none){
         return ex;
@@ -136,7 +254,7 @@ rv_exc_t rv_write_mem32(rv_cpu_t *cpu, uint32_t virt, uint32_t value, bool noisy
     // TODO: check alignment
 
     ptr36_t phys;
-    rv_exc_t ex = rv_convert_addr(cpu, virt, &phys, false, noisy);
+    rv_exc_t ex = rv_convert_addr(cpu, virt, &phys, false, false, noisy);
     
     if(ex != rv_exc_none){
         return ex;
@@ -379,7 +497,7 @@ void rv_cpu_step(rv_cpu_t *cpu){
 
     ptr36_t phys;
     rv_exc_t ex;
-    while((ex = rv_convert_addr(cpu, cpu->pc, &phys, false, true)) != rv_exc_none){
+    while((ex = rv_convert_addr(cpu, cpu->pc, &phys, false, true, true)) != rv_exc_none){
         // TODO: handle exception
     }
 

@@ -38,7 +38,7 @@ rv_exc_t lh_instr(rv_cpu_t *cpu, rv_instr_t instr){
         return rv_exc_load_address_misaligned;
     }
 
-    rv_exc_t ex = rv_read_mem16(cpu, virt, &val, true);
+    rv_exc_t ex = rv_read_mem16(cpu, virt, &val, false, true);
     
     if(ex != rv_exc_none){
         return ex;
@@ -62,7 +62,7 @@ rv_exc_t lw_instr(rv_cpu_t *cpu, rv_instr_t instr){
 
     uint32_t val;
 
-    rv_exc_t ex = rv_read_mem32(cpu, virt, &val, true);
+    rv_exc_t ex = rv_read_mem32(cpu, virt, &val, false, true);
     
     if(ex != rv_exc_none){
         return ex;
@@ -105,7 +105,7 @@ rv_exc_t lhu_instr(rv_cpu_t *cpu, rv_instr_t instr){
 
     uint16_t val;
 
-    rv_exc_t ex = rv_read_mem16(cpu, virt, &val, true);
+    rv_exc_t ex = rv_read_mem16(cpu, virt, &val, false, true);
     
     if(ex != rv_exc_none){
         return ex;
@@ -194,7 +194,7 @@ rv_exc_t lr_instr(rv_cpu_t *cpu, rv_instr_t instr){
     }
 
     uint32_t val;
-    rv_exc_t ex = rv_read_mem32(cpu, virt, &val, true);
+    rv_exc_t ex = rv_read_mem32(cpu, virt, &val, false, true);
 
     if(ex != rv_exc_none){
         // if read failed, cancel all previous reservations
@@ -210,7 +210,7 @@ rv_exc_t lr_instr(rv_cpu_t *cpu, rv_instr_t instr){
     // this should not fail
 
     ptr36_t phys;
-    ex = rv_convert_addr(cpu, virt, &phys, false, false);
+    ex = rv_convert_addr(cpu, virt, &phys, false, false, false);
     ASSERT(ex == rv_exc_none);
 
     // register address for tracking
@@ -245,7 +245,7 @@ rv_exc_t sc_instr(rv_cpu_t *cpu, rv_instr_t instr){
     cpu->reserved_valid = false;
     sc_unregister(cpu->csr.mhartid);
 
-    rv_exc_t ex = rv_convert_addr(cpu, virt, &phys, true, true);
+    rv_exc_t ex = rv_convert_addr(cpu, virt, &phys, true, false, true);
 
     if(ex != rv_exc_none){
         return ex;

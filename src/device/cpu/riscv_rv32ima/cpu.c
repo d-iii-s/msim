@@ -520,7 +520,7 @@ handle_s_mode: ;
 static void account_hmp(rv_cpu_t* cpu, int i){
     ASSERT((i >= 0 && i < 29));
     
-    uint32_t mask = (1 << i);
+    uint32_t mask = (1 << (i + 3));
     bool inhibited = cpu->csr.mcountinhibit & mask;
     
     if(inhibited) return;
@@ -555,16 +555,33 @@ static void account_hmp(rv_cpu_t* cpu, int i){
     }
 }
 
-static void account(rv_cpu_t* cpu){
+static void account(rv_cpu_t* cpu, bool exception_raised){
     if(!(cpu->csr.mcountinhibit & 0b001))
         cpu->csr.cycle++;
+
+    if(cpu->csr.cycle >= cpu->csr.scyclecmp) {
+        // Set supervisor timer interrupt pending
+        cpu->csr.mip |= rv_csr_sti_mask;
+    }
+    else {
+        // Clear STIP
+        cpu->csr.mip &= ~rv_csr_sti_mask;
+    }
 
     uint64_t current_tick_time = current_timestamp();
     cpu->csr.mtime += (current_tick_time - cpu->csr.last_tick_time);
     cpu->csr.last_tick_time = current_tick_time;
 
-    // TODO: Should not account instructions that raise exceptions (ecall included)
-    if(!(cpu->csr.mcountinhibit & 0b100))
+    if(cpu->csr.mtime >= cpu->csr.mtimecmp){
+        // Set MTIP
+        cpu->csr.mip |= rv_csr_mti_mask;
+    }
+    else {
+        // Clear MTIP
+        cpu->csr.mip &= ~rv_csr_mti_mask;
+    }
+
+    if(!(cpu->csr.mcountinhibit & 0b100) && !exception_raised)
         cpu->csr.instret++;
 
     for(int i = 0; i < 29; ++i){
@@ -590,7 +607,7 @@ void rv_cpu_step(rv_cpu_t *cpu){
 
     ex = instr_func(cpu, instr_data);
 
-    account(cpu);
+    account(cpu, ex != rv_exc_none);
     
     if(ex != rv_exc_none){
 

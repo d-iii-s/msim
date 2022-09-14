@@ -559,7 +559,7 @@ static void account(rv_cpu_t* cpu, bool exception_raised){
     if(!(cpu->csr.mcountinhibit & 0b001))
         cpu->csr.cycle++;
 
-    if(cpu->csr.cycle >= cpu->csr.scyclecmp) {
+    if(((uint32_t)cpu->csr.cycle) >= cpu->csr.scyclecmp) {
         // Set supervisor timer interrupt pending
         cpu->csr.mip |= rv_csr_sti_mask;
     }

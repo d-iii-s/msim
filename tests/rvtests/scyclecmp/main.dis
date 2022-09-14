@@ -1,0 +1,10 @@
+
+main.raw:     file format elf32-littleriscv
+
+
+Disassembly of section .text:
+
+00000000 <.text>:
+   0:	06400293          	li	t0,100
+   4:	5c029073          	csrw	0x5c0,t0
+   8:	00100073          	ebreak

@@ -595,6 +595,7 @@ static rv_exc_t satp_clear(rv_cpu_t* cpu, int csr, uint32_t target){
 }
 
 default_csr_functions(scontext, rv_smode)
+default_csr_functions(scyclecmp, rv_smode)
 
 static rv_exc_t mvendorid_read(rv_cpu_t* cpu, int csr, uint32_t* target){
     minimal_privilege(rv_mmode, cpu);
@@ -947,20 +948,20 @@ static rv_exc_t menvcfg_clear(rv_cpu_t* cpu, int csr, uint32_t target){
     return rv_exc_none;
 }
 
-static rv_exc_t mevncfgh_read(rv_cpu_t* cpu, int csr, uint32_t* target){
+static rv_exc_t menvcfgh_read(rv_cpu_t* cpu, int csr, uint32_t* target){
     minimal_privilege(rv_mmode, cpu);
     *target = cpu->csr.menvcfg >> 32;
     return rv_exc_none;
 }
 
-static rv_exc_t mevncfgh_set(rv_cpu_t* cpu, int csr, uint32_t target){
+static rv_exc_t menvcfgh_set(rv_cpu_t* cpu, int csr, uint32_t target){
     minimal_privilege(rv_mmode, cpu);
     // no bits are writable in menvcfgh on RV32I
     if(target != 0) return rv_exc_illegal_instruction;
     return rv_exc_none;
 }
 
-static rv_exc_t mevncfgh_clear(rv_cpu_t* cpu, int csr, uint32_t target){
+static rv_exc_t menvcfgh_clear(rv_cpu_t* cpu, int csr, uint32_t target){
     minimal_privilege(rv_mmode, cpu);
     if(target != 0) return rv_exc_illegal_instruction;
     return rv_exc_none;
@@ -1166,6 +1167,33 @@ static csr_ops_t get_csr_ops(int csr){
         .set = invalid_write,
         .clear = invalid_write
     };
+
+    #define default_case(csr)           \
+    case csr_##csr: {                   \
+        ops.read = csr##_read;          \
+        ops.write = csr##_write;        \
+        ops.set = csr##_set;            \
+        ops.clear = csr##_clear;        \
+        break;                          \
+    }                                   \
+
+    #define read_only_case(csr)         \
+    case csr_##csr: {                   \
+        ops.read = csr##_read;          \
+        ops.write = invalid_write;      \
+        ops.set = invalid_write;        \
+        ops.clear = invalid_write;      \
+        break;                          \
+    }      
+
+    #define invalid_write_case(csr)     \
+    case csr_##csr: {                   \
+        ops.read = csr##_read;          \
+        ops.write = invalid_write;      \
+        ops.set = csr##_set;            \
+        ops.clear = csr##_clear;        \
+        break;                          \
+    }                           
 
     switch(csr){
         case(csr_cycle):
@@ -1431,373 +1459,64 @@ static csr_ops_t get_csr_ops(int csr){
             break;
         }
 
-        case csr_mcountinhibit: {
-            ops.read = mcountinhibit_read;
-            ops.write = mcountinhibit_write;
-            ops.set = mcountinhibit_set;
-            ops.clear = mcountinhibit_clear;
-            break;
-        }
+        default_case(mcountinhibit)
 
-        case csr_sstatus: {
-            ops.read = sstatus_read;
-            ops.write = invalid_write;
-            ops.set = sstatus_set;
-            ops.clear = sstatus_clear;
-            break;
-        }
+        invalid_write_case(sstatus)
     
-        case csr_sie: {
-            ops.read = sie_read;
-            ops.write = sie_write;
-            ops.set = sie_set;
-            ops.clear = sie_clear;
-            break;
-        }
+        default_case(sie)
+        default_case(stvec)
+        default_case(scounteren)
     
-        case csr_stvec: {
-            ops.read = stvec_read;
-            ops.write = stvec_write;
-            ops.set = stvec_set;
-            ops.clear = stvec_clear;
-            break;
-        }
+        invalid_write_case(senvcfg)
     
-        case csr_scounteren: {
-            ops.read = scounteren_read;
-            ops.write = scounteren_write;
-            ops.set = scounteren_set;
-            ops.clear = scounteren_clear;
-            break;
-        }
+        default_case(sscratch)
+        default_case(sepc)
+        default_case(scause)
+        default_case(stval)
+        default_case(sip)
+        default_case(satp)
+        default_case(scontext)
+        default_case(scyclecmp)
+        
+        read_only_case(mvendorid)
+        read_only_case(marchid)
+        read_only_case(mimpid)
+        read_only_case(mhartid)
+        read_only_case(mconfigptr)
+
+        invalid_write_case(mstatus)
     
-        case csr_senvcfg: {
-            ops.read = senvcfg_read;
-            ops.write = invalid_write;
-            ops.set = senvcfg_set;
-            ops.clear = senvcfg_clear;
-            break;
-        }
+        default_case(misa)
+        default_case(medeleg)
+        default_case(mideleg)
+        default_case(mie)
+        default_case(mtvec)
+        default_case(mcounteren)
     
-        case csr_sscratch: {
-            ops.read = sscratch_read;
-            ops.write = sscratch_write;
-            ops.set = sscratch_set;
-            ops.clear = sscratch_clear;
-            break;
-        }
+        invalid_write_case(mstatush)
     
-        case csr_sepc: {
-            ops.read = sepc_read;
-            ops.write = sepc_write;
-            ops.set = sepc_set;
-            ops.clear = sepc_clear;
-            break;
-        }
+        default_case(mscratch)
+        default_case(mepc)
+        default_case(mcause)
+        default_case(mtval)
+        default_case(mip)
+        default_case(mtinst)
+        default_case(mtval2)
     
-        case csr_scause: {
-            ops.read = scause_read;
-            ops.write = scause_write;
-            ops.set = scause_set;
-            ops.clear = scause_clear;
-            break;
-        }
+        invalid_write_case(menvcfg)
+        invalid_write_case(menvcfgh)
+        invalid_write_case(mseccfg)
+        invalid_write_case(mseccfgh)
     
-        case csr_stval: {
-            ops.read = stval_read;
-            ops.write = stval_write;
-            ops.set = stval_set;
-            ops.clear = stval_clear;
-            break;
-        }
-    
-        case csr_sip: {
-            ops.read = sip_read;
-            ops.write = sip_write;
-            ops.set = sip_set;
-            ops.clear = sip_clear;
-            break;
-        }
-    
-        case csr_satp: {
-            ops.read = satp_read;
-            ops.write = satp_write;
-            ops.set = satp_set;
-            ops.clear = satp_clear;
-            break;
-        }
-    
-        case csr_scontext: {
-            ops.read = scontext_read;
-            ops.write = scontext_write;
-            ops.set = scontext_set;
-            ops.clear = scontext_clear;
-            break;
-        }
-    
-        case csr_mvendorid: {
-            ops.read = mvendorid_read;
-            ops.write = invalid_write;
-            ops.set = invalid_write;
-            ops.clear = invalid_write;
-            break;
-        }
-    
-        case csr_marchid: {
-            ops.read = marchid_read;
-            ops.write = invalid_write;
-            ops.set = invalid_write;
-            ops.clear = invalid_write;
-            break;
-        }
-    
-        case csr_mimpid: {
-            ops.read = mimpid_read;
-            ops.write = invalid_write;
-            ops.set = invalid_write;
-            ops.clear = invalid_write;
-            break;
-        }
-    
-        case csr_mhartid: {
-            ops.read = mhartid_read;
-            ops.write = invalid_write;
-            ops.set = invalid_write;
-            ops.clear = invalid_write;
-            break;
-        }
-    
-        case csr_mconfigptr: {
-            ops.read = mconfigptr_read;
-            ops.write = invalid_write;
-            ops.set = invalid_write;
-            ops.clear = invalid_write;
-            break;
-        }
-    
-        case csr_mstatus: {
-            ops.read = mstatus_read;
-            ops.write = invalid_write;
-            ops.set = mstatus_set;
-            ops.clear = mstatus_clear;
-            break;
-        }
-    
-        case csr_misa: {
-            ops.read = misa_read;
-            ops.write = misa_write;
-            ops.set = misa_set;
-            ops.clear = misa_clear;
-            break;
-        }
-    
-        case csr_medeleg: {
-            ops.read = medeleg_read;
-            ops.write = medeleg_write;
-            ops.set = medeleg_set;
-            ops.clear = medeleg_clear;
-            break;
-        }
-    
-        case csr_mideleg: {
-            ops.read = mideleg_read;
-            ops.write = mideleg_write;
-            ops.set = mideleg_set;
-            ops.clear = mideleg_clear;
-            break;
-        }
-    
-        case csr_mie: {
-            ops.read = mie_read;
-            ops.write = mie_write;
-            ops.set = mie_set;
-            ops.clear = mie_clear;
-            break;
-        }
-    
-        case csr_mtvec: {
-            ops.read = mtvec_read;
-            ops.write = mtvec_write;
-            ops.set = mtvec_set;
-            ops.clear = mtvec_clear;
-            break;
-        }
-    
-        case csr_mcounteren: {
-            ops.read = mcounteren_read;
-            ops.write = mcounteren_write;
-            ops.set = mcounteren_set;
-            ops.clear = mcounteren_clear;
-            break;
-        }
-    
-        case csr_mstatush: {
-            ops.read = mstatush_read;
-            ops.write = invalid_write;
-            ops.set = mstatush_set;
-            ops.clear = mstatush_clear;
-            break;
-        }
-    
-        case csr_mscratch: {
-            ops.read = mscratch_read;
-            ops.write = mscratch_write;
-            ops.set = mscratch_set;
-            ops.clear = mscratch_clear;
-            break;
-        }
-    
-        case csr_mepc: {
-            ops.read = mepc_read;
-            ops.write = mepc_write;
-            ops.set = mepc_set;
-            ops.clear = mepc_clear;
-            break;
-        }
-    
-        case csr_mcause: {
-            ops.read = mcause_read;
-            ops.write = mcause_write;
-            ops.set = mcause_set;
-            ops.clear = mcause_clear;
-            break;
-        }
-    
-        case csr_mtval: {
-            ops.read = mtval_read;
-            ops.write = mtval_write;
-            ops.set = mtval_set;
-            ops.clear = mtval_clear;
-            break;
-        }
-    
-        case csr_mip: {
-            ops.read = mip_read;
-            ops.write = mip_write;
-            ops.set = mip_set;
-            ops.clear = mip_clear;
-            break;
-        }
-    
-        case csr_mtinst: {
-            ops.read = mtinst_read;
-            ops.write = mtinst_write;
-            ops.set = mtinst_set;
-            ops.clear = mtinst_clear;
-            break;
-        }
-    
-        case csr_mtval2: {
-            ops.read = mtval2_read;
-            ops.write = mtval2_write;
-            ops.set = mtval2_set;
-            ops.clear = mtval2_clear;
-            break;
-        }
-    
-        case csr_menvcfg: {
-            ops.read = menvcfg_read;
-            ops.write = invalid_write;
-            ops.set = menvcfg_set;
-            ops.clear = menvcfg_clear;
-            break;
-        }
-    
-        case csr_menvcfgh: {
-            ops.read = mevncfgh_read;
-            ops.write = invalid_write;
-            ops.set = mevncfgh_set;
-            ops.clear = mevncfgh_clear;
-            break;
-        }
-    
-        case csr_mseccfg: {
-            ops.read = mseccfg_read;
-            ops.write = invalid_write;
-            ops.set = mseccfg_set;
-            ops.clear = mseccfg_clear;
-            break;
-        }
-    
-        case csr_mseccfgh: {
-            ops.read = mseccfgh_read;
-            ops.write = invalid_write;
-            ops.set = mseccfgh_set;
-            ops.clear = mseccfgh_clear;
-            break;
-        }
-    
-        case csr_tselect: {
-            ops.read = tselect_read;
-            ops.write = tselect_write;
-            ops.set = tselect_set;
-            ops.clear = tselect_clear;
-            break;
-        }
-    
-        case csr_tdata1: {
-            ops.read = tdata1_read;
-            ops.write = tdata1_write;
-            ops.set = tdata1_set;
-            ops.clear = tdata1_clear;
-            break;
-        }
-    
-        case csr_tdata2: {
-            ops.read = tdata2_read;
-            ops.write = tdata2_write;
-            ops.set = tdata2_set;
-            ops.clear = tdata2_clear;
-            break;
-        }
-    
-        case csr_tdata3: {
-            ops.read = tdata3_read;
-            ops.write = tdata3_write;
-            ops.set = tdata3_set;
-            ops.clear = tdata3_clear;
-            break;
-        }
-    
-        case csr_mcontext: {
-            ops.read = mcontext_read;
-            ops.write = mcontext_write;
-            ops.set = mcontext_set;
-            ops.clear = mcontext_clear;
-            break;
-        }
-    
-        case csr_dcsr: {
-            ops.read = dcsr_read;
-            ops.write = dcsr_write;
-            ops.set = dcsr_set;
-            ops.clear = dcsr_clear;
-            break;
-        }
-    
-        case csr_dpc: {
-            ops.read = dpc_read;
-            ops.write = dpc_write;
-            ops.set = dpc_set;
-            ops.clear = dpc_clear;
-            break;
-        }
-    
-        case csr_dscratch0: {
-            ops.read = dscratch0_read;
-            ops.write = dscratch0_write;
-            ops.set = dscratch0_set;
-            ops.clear = dscratch0_clear;
-            break;
-        }
-    
-        case csr_dscratch1: {
-            ops.read = dscratch1_read;
-            ops.write = dscratch1_write;
-            ops.set = dscratch1_set;
-            ops.clear = dscratch1_clear;
-            break;
-        }
+        default_case(tselect)
+        default_case(tdata1)
+        default_case(tdata2)
+        default_case(tdata3)
+        default_case(mcontext)
+        default_case(dcsr)
+        default_case(dpc)
+        default_case(dscratch0)
+        default_case(dscratch1)
     }
 
     return ops;

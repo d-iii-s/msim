@@ -107,13 +107,19 @@ static rv_exc_t counter_write(rv_cpu_t* cpu, int csr, uint32_t target){
     // only mmode can write to counters
     minimal_privilege(rv_mmode, cpu);
 
+    printf("correct priv %x\n", csr);
+
     // global counters are r/o
     if(rv_csr_min_priv_mode(csr) != rv_mmode) return rv_exc_illegal_instruction;
+
+    printf("correct shadow\n");
 
     int counter = csr & 0x1F;
 
     // mtime is not a csr
     if (counter == (csr_time & 0x1F)) return rv_exc_illegal_instruction;
+
+    printf("not mtime\n");
 
     uint64_t val = 0;
     uint64_t mask = 0;
@@ -1522,7 +1528,7 @@ static csr_ops_t get_csr_ops(int csr){
     return ops;
 }
 
-rv_exc_t rv_csr_rw(rv_cpu_t* cpu, int csr, uint32_t value, uint32_t* read_target, bool read){
+rv_exc_t rv_csr_rw(rv_cpu_t* cpu, csr_num_t csr, uint32_t value, uint32_t* read_target, bool read){
 
     csr_ops_t ops = get_csr_ops(csr);
     rv_exc_t ex = rv_exc_none;
@@ -1542,7 +1548,7 @@ rv_exc_t rv_csr_rw(rv_cpu_t* cpu, int csr, uint32_t value, uint32_t* read_target
 
     return ex;
 }
-rv_exc_t rv_csr_rs(rv_cpu_t* cpu, int csr, uint32_t value, uint32_t* read_target, bool write){
+rv_exc_t rv_csr_rs(rv_cpu_t* cpu, csr_num_t csr, uint32_t value, uint32_t* read_target, bool write){
     csr_ops_t ops = get_csr_ops(csr);
     
     uint32_t temp_read_target = 0;
@@ -1559,7 +1565,7 @@ rv_exc_t rv_csr_rs(rv_cpu_t* cpu, int csr, uint32_t value, uint32_t* read_target
 
     return ex;
 }
-rv_exc_t rv_csr_rc(rv_cpu_t* cpu, int csr, uint32_t value, uint32_t* read_target, bool write){
+rv_exc_t rv_csr_rc(rv_cpu_t* cpu, csr_num_t csr, uint32_t value, uint32_t* read_target, bool write){
    
     csr_ops_t ops = get_csr_ops(csr);
     uint32_t temp_read_target = 0;
@@ -1576,6 +1582,6 @@ rv_exc_t rv_csr_rc(rv_cpu_t* cpu, int csr, uint32_t value, uint32_t* read_target
     return ex;
 }
 
-rv_priv_mode_t rv_csr_min_priv_mode(int csr) {
-    return (rv_priv_mode_t)((csr >> 28) && 0b11);
+rv_priv_mode_t rv_csr_min_priv_mode(csr_num_t csr) {
+    return (rv_priv_mode_t)(((unsigned int)csr >> 8) & 0b11);
 }

@@ -7,6 +7,7 @@ csrw scyclecmp, t0
 csrsi mstatus, mstatus_mie
 li t0, sti
 csrs mie, t0
+csrwi mcycle, 0
 cycle:
     addi a0, a0, 1
     j cycle

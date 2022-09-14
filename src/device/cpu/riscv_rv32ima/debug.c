@@ -523,7 +523,7 @@ void rv_csr_dump_all(rv_cpu_t *cpu){
 	// TODO rest of m debug and debug mode
 }
 
-bool rv_csr_dump(rv_cpu_t *cpu, int csr){
+bool rv_csr_dump(rv_cpu_t *cpu, csr_num_t csr){
 	ASSERT((csr >= 0 && csr < 0x1000));
 	ASSERT(cpu != NULL);
 

@@ -112,6 +112,6 @@ extern void rv_amomax_mnemonics(uint32_t addr, rv_instr_t instr, string_t *s_mne
 extern void rv_amominu_mnemonics(uint32_t addr, rv_instr_t instr, string_t *s_mnemonics, string_t *s_comments);
 extern void rv_amomaxu_mnemonics(uint32_t addr, rv_instr_t instr, string_t *s_mnemonics, string_t *s_comments);
 
-extern void rv_csr_dump_common(rv_cpu_t *cpu, int csr);
+extern void rv_csr_dump_common(rv_cpu_t *cpu, csr_num_t csr);
 
 #endif // RISCV_RV32IMA_MNEMONICS_H_

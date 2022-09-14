@@ -1052,7 +1052,7 @@ default_print_function(sepc)
 default_print_function(stval)
 default_print_function(scyclecmp)
 
-void rv_csr_dump_common(rv_cpu_t *cpu, int csr) {
+void rv_csr_dump_common(rv_cpu_t *cpu, csr_num_t csr) {
 	string_t s_mnemonics;
 	string_t s_comments;
 

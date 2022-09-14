@@ -419,6 +419,11 @@ rv_exc_t amoswap_instr(rv_cpu_t *cpu, rv_instr_t instr){
 
     uint32_t virt = cpu->regs[instr.r.rs1];
 
+    if(!IS_ALIGNED(virt, 4)){
+        cpu->csr.tval_next = virt;
+        return rv_exc_store_amo_address_misaligned;
+    }
+
     // Check write privileges first
     ptr36_t _;
     rv_exc_t ex = rv_convert_addr(cpu, virt, &_, true, false, true);
@@ -444,6 +449,11 @@ rv_exc_t amoswap_instr(rv_cpu_t *cpu, rv_instr_t instr){
 rv_exc_t amoadd_instr(rv_cpu_t *cpu, rv_instr_t instr){
 
     uint32_t virt = cpu->regs[instr.r.rs1];
+
+    if(!IS_ALIGNED(virt, 4)){
+        cpu->csr.tval_next = virt;
+        return rv_exc_store_amo_address_misaligned;
+    }
 
     // Check write privileges first
     ptr36_t _;
@@ -475,6 +485,11 @@ rv_exc_t amoxor_instr(rv_cpu_t *cpu, rv_instr_t instr) {
 
     uint32_t virt = cpu->regs[instr.r.rs1];
 
+    if(!IS_ALIGNED(virt, 4)){
+        cpu->csr.tval_next = virt;
+        return rv_exc_store_amo_address_misaligned;
+    }
+
     // Check write privileges first
     ptr36_t _;
     rv_exc_t ex = rv_convert_addr(cpu, virt, &_, true, false, true);
@@ -500,6 +515,11 @@ rv_exc_t amoand_instr(rv_cpu_t *cpu, rv_instr_t instr){
 
     uint32_t virt = cpu->regs[instr.r.rs1];
 
+    if(!IS_ALIGNED(virt, 4)){
+        cpu->csr.tval_next = virt;
+        return rv_exc_store_amo_address_misaligned;
+    }
+
     // Check write privileges first
     ptr36_t _;
     rv_exc_t ex = rv_convert_addr(cpu, virt, &_, true, false, true);
@@ -524,6 +544,11 @@ rv_exc_t amoand_instr(rv_cpu_t *cpu, rv_instr_t instr){
 rv_exc_t amoor_instr(rv_cpu_t *cpu, rv_instr_t instr){
 
     uint32_t virt = cpu->regs[instr.r.rs1];
+
+    if(!IS_ALIGNED(virt, 4)){
+        cpu->csr.tval_next = virt;
+        return rv_exc_store_amo_address_misaligned;
+    }
     
     // Check write privileges first
     ptr36_t _;
@@ -549,6 +574,11 @@ rv_exc_t amoor_instr(rv_cpu_t *cpu, rv_instr_t instr){
 rv_exc_t amomin_instr(rv_cpu_t *cpu, rv_instr_t instr){
 
     uint32_t virt = cpu->regs[instr.r.rs1];
+
+    if(!IS_ALIGNED(virt, 4)){
+        cpu->csr.tval_next = virt;
+        return rv_exc_store_amo_address_misaligned;
+    }
 
     // Check write privileges first
     ptr36_t _;
@@ -576,6 +606,11 @@ rv_exc_t amomax_instr(rv_cpu_t *cpu, rv_instr_t instr){
 
     uint32_t virt = cpu->regs[instr.r.rs1];
     
+    if(!IS_ALIGNED(virt, 4)){
+        cpu->csr.tval_next = virt;
+        return rv_exc_store_amo_address_misaligned;
+    }
+
     // Check write privileges first
     ptr36_t _;
     rv_exc_t ex = rv_convert_addr(cpu, virt, &_, true, false, true);
@@ -601,6 +636,11 @@ rv_exc_t amomax_instr(rv_cpu_t *cpu, rv_instr_t instr){
 rv_exc_t amominu_instr(rv_cpu_t *cpu, rv_instr_t instr){
 
     uint32_t virt = cpu->regs[instr.r.rs1];
+
+    if(!IS_ALIGNED(virt, 4)){
+        cpu->csr.tval_next = virt;
+        return rv_exc_store_amo_address_misaligned;
+    }
     
     // Check write privileges first
     ptr36_t _;
@@ -627,6 +667,11 @@ rv_exc_t amominu_instr(rv_cpu_t *cpu, rv_instr_t instr){
 rv_exc_t amomaxu_instr(rv_cpu_t *cpu, rv_instr_t instr){
 
     uint32_t virt = cpu->regs[instr.r.rs1];
+
+    if(!IS_ALIGNED(virt, 4)){
+        cpu->csr.tval_next = virt;
+        return rv_exc_store_amo_address_misaligned;
+    }
     
     // Check write privileges first
     ptr36_t _;

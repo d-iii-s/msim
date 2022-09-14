@@ -111,8 +111,8 @@ rv_exc_t rv_convert_addr(rv_cpu_t *cpu, uint32_t virt, ptr36_t *phys, bool wr, b
         return rv_exc_none;
     }
 
-    uint32_t vpn0     =    virt & 0x003FF000;
-    uint32_t vpn1     =    virt & 0xFFC00000;
+    uint32_t vpn0     =    virt & 0x003FF000 >> 12;
+    uint32_t vpn1     =    virt & 0xFFC00000 >> 22;
     uint32_t ppn      = rv_csr_satp_ppn(cpu);
 
     bool is_megapage = false;
@@ -166,7 +166,7 @@ leaf_pte:
     return rv_exc_none;
 }
 
-#define address_missaligned_exception(fetch, wr) (fetch ? rv_exc_instruction_address_misaligned : (wr ? rv_exc_store_amo_address_misaligned : rv_exc_load_address_misaligned))
+#define read_address_misaligned_exception (fetch ? rv_exc_instruction_address_misaligned : rv_exc_load_address_misaligned)
 
 rv_exc_t rv_read_mem32(rv_cpu_t *cpu, uint32_t virt, uint32_t *value, bool fetch, bool noisy){
     ASSERT(cpu != NULL);
@@ -176,7 +176,7 @@ rv_exc_t rv_read_mem32(rv_cpu_t *cpu, uint32_t virt, uint32_t *value, bool fetch
         if(noisy){
             cpu->csr.tval_next = virt;
         }
-        return address_missaligned_exception(fetch, false);
+        return read_address_misaligned_exception;
     }
 
     ptr36_t phys;
@@ -198,7 +198,7 @@ rv_exc_t rv_read_mem16(rv_cpu_t *cpu, uint32_t virt, uint16_t *value, bool fetch
         if(noisy){
             cpu->csr.tval_next = virt;
         }
-        return address_missaligned_exception(fetch, false);
+        return read_address_misaligned_exception;
     }
 
     ptr36_t phys;

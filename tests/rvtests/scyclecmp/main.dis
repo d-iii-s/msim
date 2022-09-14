@@ -4,7 +4,14 @@ main.raw:     file format elf32-littleriscv
 
 Disassembly of section .text:
 
-00000000 <.text>:
-   0:	06400293          	li	t0,100
-   4:	5c029073          	csrw	0x5c0,t0
-   8:	00100073          	ebreak
+00000000 <cycle-0x18>:
+   0:	00100073          	ebreak
+   4:	06400293          	li	t0,100
+   8:	5c029073          	csrw	0x5c0,t0
+   c:	30046073          	csrsi	mstatus,8
+  10:	02000293          	li	t0,32
+  14:	3042a073          	csrs	mie,t0
+
+00000018 <cycle>:
+  18:	00150513          	addi	a0,a0,1
+  1c:	ffdff06f          	j	18 <cycle>

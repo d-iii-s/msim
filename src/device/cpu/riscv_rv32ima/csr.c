@@ -11,6 +11,8 @@ void rv_init_csr(csr_t *csr, unsigned int procno){
     csr->marchid = RV_ARCH_ID;
     csr->mimpid = RV_IMPLEMENTATION_ID;
     csr->mhartid = procno;
+  
+    csr->last_tick_time = csr->mtime;
 
     //TODO: rest
 }

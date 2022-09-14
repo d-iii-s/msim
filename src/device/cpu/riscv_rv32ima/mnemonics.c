@@ -10,6 +10,7 @@
 #include "instructions/mem_ops.h"
 #include "../../../env.h"
 #include "../../../assert.h"
+#include "../../../utils.h"
 
 extern rv_mnemonics_func_t rv_decode_mnemonics(rv_instr_t instr){
     // is this dirty?
@@ -660,13 +661,6 @@ static void print_64_reg(uint64_t val, const char* name, string_t* s){
 
 static void print_cycle(rv_cpu_t *cpu, string_t* mnemonics, string_t* comments){
 	print_64_reg(cpu->csr.cycle, "cycle", mnemonics);
-}
-
-static uint64_t current_timestamp() {
-    struct timeval te; 
-    gettimeofday(&te, NULL); // get current time
-    uint64_t milliseconds = te.tv_sec*1000LL + te.tv_usec/1000; // calculate milliseconds
-    return milliseconds;
 }
 
 static void print_time(rv_cpu_t *cpu, string_t* mnemonics, string_t* comments) {

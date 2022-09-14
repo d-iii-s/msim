@@ -6,11 +6,9 @@
 #include "debug.h"
 #include "csr.h"
 #include "../../../assert.h"
+#include "../../../utils.h"
 #include "../../../physmem.h"
 #include "../../../main.h"
-
-#define RV_START_ADDRESS UINT32_C(0x0)
-
 
 static void init_regs(rv_cpu_t *cpu) {
     ASSERT(cpu != NULL);
@@ -65,6 +63,7 @@ typedef union {
 #define uint_from_pte(pte) (((sv32_pte_helper_t)(pte)).val)
 
 #define sv32_effective_priv(cpu) (rv_csr_mstatus_mprv(cpu) ? rv_csr_mstatus_mpp(cpu) : cpu->priv_mode)
+#define effective_priv(cpu) (rv_csr_satp_is_bare(cpu) ? cpu->priv_mode : sv32_effective_priv(cpu))
 
 static bool is_access_allowed(rv_cpu_t *cpu, sv32_pte_t pte, bool wr, bool fetch) {
     if(wr && !pte.w) return false;
@@ -168,6 +167,45 @@ leaf_pte:
 
 #define read_address_misaligned_exception (fetch ? rv_exc_instruction_address_misaligned : rv_exc_load_address_misaligned)
 
+#define try_read_memory_mapped_regs_body(cpu, virt, value, width, type)         \
+    if(effective_priv(cpu) != rv_mmode) return false;                           \
+    int offset = (virt & 0x7) * 8;                                              \
+    if(ALIGN_DOWN(virt, 8) == RV_MTIME_ADDRESS){                                \
+        *value = (type)EXTRACT_BITS(cpu->csr.mtime, offset, offset + width);    \
+        return true;                                                            \
+    }                                                                           \
+    if(ALIGN_DOWN(virt, 8) == RV_MTIMECMP_ADDRESS){                             \
+        *value = (type)EXTRACT_BITS(cpu->csr.mtimecmp, offset, offset + width); \
+        return true;                                                            \
+    }                                                                           \
+    return false;                                                           
+
+static bool try_read_memory_mapped_regs_32(rv_cpu_t *cpu, uint32_t virt, uint32_t* value){
+    try_read_memory_mapped_regs_body(cpu, virt, value, 32, uint32_t)
+}
+
+static bool try_read_memory_mapped_regs_16(rv_cpu_t *cpu, uint32_t virt, uint16_t* value){
+    try_read_memory_mapped_regs_body(cpu, virt, value, 16, uint16_t)
+}
+
+static bool try_read_memory_mapped_regs_8(rv_cpu_t *cpu, uint32_t virt, uint8_t* value){
+    try_read_memory_mapped_regs_body(cpu, virt, value, 8, uint8_t)
+}
+
+static bool try_write_memory_mapped_regs(rv_cpu_t *cpu, uint32_t virt, uint32_t value, int width){
+    if(effective_priv(cpu) != rv_mmode) return false;                           
+    int offset = (virt & 0x7) * 8;                                              
+    if(ALIGN_DOWN(virt, 8) == RV_MTIME_ADDRESS){                                
+        cpu->csr.mtime = WRITE_BITS(cpu->csr.mtime, value, offset, offset + width);
+        return true;                                                            
+    }                                                                           
+    if(ALIGN_DOWN(virt, 8) == RV_MTIMECMP_ADDRESS){                             
+        cpu->csr.mtimecmp = WRITE_BITS(cpu->csr.mtimecmp, value, offset, offset + width); 
+        return true;                                                            
+    }                                                                           
+    return false;                                                           
+}
+
 rv_exc_t rv_read_mem32(rv_cpu_t *cpu, uint32_t virt, uint32_t *value, bool fetch, bool noisy){
     ASSERT(cpu != NULL);
     ASSERT(value != NULL);
@@ -178,6 +216,8 @@ rv_exc_t rv_read_mem32(rv_cpu_t *cpu, uint32_t virt, uint32_t *value, bool fetch
         }
         return read_address_misaligned_exception;
     }
+
+    if(try_read_memory_mapped_regs_32(cpu, virt, value)) return rv_exc_none;
 
     ptr36_t phys;
     rv_exc_t ex = rv_convert_addr(cpu, virt, &phys, false, fetch, noisy);
@@ -201,6 +241,9 @@ rv_exc_t rv_read_mem16(rv_cpu_t *cpu, uint32_t virt, uint16_t *value, bool fetch
         return read_address_misaligned_exception;
     }
 
+    // memory leak - writing 32 bits to 16 bit pointer
+    if(try_read_memory_mapped_regs_16(cpu, virt, value)) return rv_exc_none;
+
     ptr36_t phys;
     rv_exc_t ex = rv_convert_addr(cpu, virt, &phys, false, fetch, noisy);
     
@@ -216,6 +259,8 @@ rv_exc_t rv_read_mem8(rv_cpu_t *cpu, uint32_t virt, uint8_t *value, bool noisy){
     ASSERT(cpu != NULL);
     ASSERT(value != NULL);
 
+    if(try_read_memory_mapped_regs_8(cpu, virt, value)) return rv_exc_none;
+
     ptr36_t phys;
     rv_exc_t ex = rv_convert_addr(cpu, virt, &phys, false, false, noisy);
     
@@ -229,6 +274,8 @@ rv_exc_t rv_read_mem8(rv_cpu_t *cpu, uint32_t virt, uint8_t *value, bool noisy){
 
 rv_exc_t rv_write_mem8(rv_cpu_t *cpu, uint32_t virt, uint8_t value, bool noisy){
     ASSERT(cpu != NULL);
+
+    if(try_write_memory_mapped_regs(cpu, virt, value, 8)) return rv_exc_none;
 
     ptr36_t phys;
     rv_exc_t ex = rv_convert_addr(cpu, virt, &phys, false, false, noisy);
@@ -255,6 +302,8 @@ rv_exc_t rv_write_mem16(rv_cpu_t *cpu, uint32_t virt, uint16_t value, bool noisy
         return rv_exc_store_amo_address_misaligned;
     }
 
+    if(try_write_memory_mapped_regs(cpu, virt, value, 16)) return rv_exc_none;
+
     ptr36_t phys;
     rv_exc_t ex = rv_convert_addr(cpu, virt, &phys, false, false, noisy);
     
@@ -280,6 +329,8 @@ rv_exc_t rv_write_mem32(rv_cpu_t *cpu, uint32_t virt, uint32_t value, bool noisy
         return rv_exc_store_amo_address_misaligned;
     }
 
+    if(try_write_memory_mapped_regs(cpu, virt, value, 32)) return rv_exc_none;
+
     ptr36_t phys;
     rv_exc_t ex = rv_convert_addr(cpu, virt, &phys, false, false, noisy);
     
@@ -304,8 +355,6 @@ void rv_cpu_set_pc(rv_cpu_t *cpu, uint32_t value){
     cpu->pc = value;
     cpu->pc_next = value+4;    
 }
-
-
 
 static void m_trap(rv_cpu_t* cpu, rv_exc_t ex){
     ASSERT(ex != rv_exc_none);
@@ -509,6 +558,10 @@ static void account_hmp(rv_cpu_t* cpu, int i){
 static void account(rv_cpu_t* cpu){
     if(!(cpu->csr.mcountinhibit & 0b001))
         cpu->csr.cycle++;
+
+    uint64_t current_tick_time = current_timestamp();
+    cpu->csr.mtime += (current_tick_time - cpu->csr.last_tick_time);
+    cpu->csr.last_tick_time = current_tick_time;
 
     // TODO: Should not account instructions that raise exceptions (ecall included)
     if(!(cpu->csr.mcountinhibit & 0b100))

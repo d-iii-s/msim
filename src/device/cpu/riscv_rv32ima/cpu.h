@@ -20,6 +20,9 @@
 #include "../../../main.h"
 
 #define RV_REG_COUNT	32
+#define RV_START_ADDRESS    UINT32_C(0x00000000) // TODO: Change
+#define RV_MTIME_ADDRESS    UINT32_C(0xFF000000)
+#define RV_MTIMECMP_ADDRESS UINT32_C(0xFF000008)
 
 #define RV_INTERRUPT_EXC_BITS UINT32_C(0x80000000)
 #define RV_EXCEPTION_EXC_BITS UINT32_C(0)
@@ -123,7 +126,6 @@ typedef struct rv_cpu
 	// TODO: look into this
 
 	// statistics - in CSR
-	// maybe define some of the custom counters for these statistics
 
 	// tlb - not in risc-v
 

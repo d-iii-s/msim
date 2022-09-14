@@ -105,6 +105,9 @@ typedef enum {
 	/* Debug/Trace */
 	csr_scontext       =    0x5A8,    // Supervisor-mode context reg.
 
+	/* Custom */
+	csr_scyclecmp      =    0x5C0,	  // Supervisor Cycle compare (r/w)
+
 	/**********************
 	 * Machine level CSRs *
 	 **********************/
@@ -431,8 +434,17 @@ typedef struct {
 	/* Debug */
 	uint32_t scontext;
 
+	/* Extra fields used for implementation purposes */
+	
 	// next value for stval/mtval
 	uint32_t tval_next;
+
+	// Value of memory-mapped register mtime
+	uint64_t mtime;
+	// The timestamp of the last clock cycle
+	uint64_t last_tick_time;
+	// Value of memory-mapped register mtimecmp
+	uint64_t mtimecmp;
 
 } csr_t;
 

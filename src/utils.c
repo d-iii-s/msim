@@ -16,8 +16,9 @@
 #include <string.h>
 #include <inttypes.h>
 #include <unistd.h>
+#include <sys/time.h>
 //#include "device/cpu/mips_r4000/cpu.h"
-#include "device/cpu/riscv_rv32ima/cpu.h"
+//#include "device/cpu/riscv_rv32ima/cpu.h"
 #include "physmem.h"
 #include "arch/mmap.h"
 #include "text.h"
@@ -413,4 +414,11 @@ bool virt_range(uint64_t addr)
 
 bool phys_range(uint64_t addr) {
 	return (addr <= UINT64_C(0xfffffffff));
+}
+
+uint64_t current_timestamp(void) {
+    struct timeval te; 
+    gettimeofday(&te, NULL); // get current time
+    uint64_t milliseconds = te.tv_sec*1000LL + te.tv_usec/1000; // calculate milliseconds
+    return milliseconds;
 }

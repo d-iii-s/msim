@@ -1,8 +1,8 @@
 #include <stdint.h>
-#include <sys/time.h>
 #include "csr.h"
 #include "cpu.h"
 #include "../../../assert.h"
+#include "../../../utils.h"
 
 void rv_init_csr(csr_t *csr, unsigned int procno){
     
@@ -45,39 +45,31 @@ static rv_exc_t invalid_write(rv_cpu_t* cpu, int csr, uint32_t target){
     return rv_exc_illegal_instruction;
 }
 
-// TODO: mtime & mtimecmp
-
 #define is_counter_enabled_m(cpu, counter) (cpu->csr.mcounteren & (1<<counter))
 #define is_counter_enabled_s(cpu, counter) (cpu->csr.scounteren & (1<<counter))
 #define is_high_counter(csr) (csr & 0x080)
 
-static uint64_t current_timestamp() {
-    struct timeval te; 
-    gettimeofday(&te, NULL); // get current time
-    uint64_t milliseconds = te.tv_sec*1000LL + te.tv_usec/1000; // calculate milliseconds
-    return milliseconds;
-}
-
 static inline void read_counter_csr_unchecked(rv_cpu_t* cpu, int csr, uint32_t* target){
     int counter = csr & 0x1F;
 
+    int offset = is_high_counter(csr) ? 32 : 0;
+
     switch(counter){
         case (csr_cycle & 0x1F): {
-            *target = (uint32_t)(is_high_counter(csr) ? cpu->csr.cycle >> 32 : cpu->csr.cycle); 
+            *target = EXTRACT_BITS(cpu->csr.cycle, offset, offset + 32);
             break;
         }
         case (csr_time & 0x1F): {
-            uint64_t time = current_timestamp();
-            *target = (uint32_t)(is_high_counter(csr) ? time >> 32 : time);
+            *target = EXTRACT_BITS(cpu->csr.mtime, offset, offset + 32);
             break;
         }
         case (csr_instret & 0x1F): {
-            *target = (uint32_t)(is_high_counter(csr) ? cpu->csr.instret >> 32 : cpu->csr.instret); 
+            *target = EXTRACT_BITS(cpu->csr.instret, offset, offset + 32);
             break;
         }
         default: {
             uint64_t hpc = cpu->csr.hpmcounters[counter - 3];
-            *target = (uint32_t)(is_high_counter(csr) ? hpc >> 32 : hpc);
+            *target = EXTRACT_BITS(hpc, offset, offset + 32);
             break;
         }
     }

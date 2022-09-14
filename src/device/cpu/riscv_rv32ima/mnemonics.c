@@ -1050,6 +1050,7 @@ default_print_function(scounteren)
 default_print_function(sscratch)
 default_print_function(sepc)
 default_print_function(stval)
+default_print_function(scyclecmp)
 
 void rv_csr_dump_common(rv_cpu_t *cpu, int csr) {
 	string_t s_mnemonics;
@@ -1256,6 +1257,7 @@ void rv_csr_dump_common(rv_cpu_t *cpu, int csr) {
 		default_case(stval)
 		default_case(senvcfg)
 		default_case(satp)
+		default_case(scyclecmp)
 
 		case csr_mstatush:
 		default_case(mstatus)

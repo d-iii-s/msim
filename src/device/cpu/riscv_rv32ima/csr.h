@@ -108,6 +108,7 @@ typedef enum {
 	/* Custom */
 	csr_scyclecmp      =    0x5C0,	  // Supervisor Cycle compare (r/w)
 
+
 	/**********************
 	 * Machine level CSRs *
 	 **********************/
@@ -445,6 +446,10 @@ typedef struct {
 	uint64_t last_tick_time;
 	// Value of memory-mapped register mtimecmp
 	uint64_t mtimecmp;
+
+	// Supervisor cycle compare used for STI
+	//? is 32 bits enough?
+	uint32_t scyclecmp;
 
 } csr_t;
 

@@ -136,6 +136,8 @@ char *rv_csr_name_table[0x1000] = {
 	[csr_mseccfg]        =    "mseccfg",
 	[csr_mseccfgh]       =    "mseccfgh",
 
+	[csr_scyclecmp]		 =    "scyclecmp",
+
 	[csr_pmpcfg0]        =    "pmpcfg0",    
 	[csr_pmpcfg1]        =    "pmpcfg1",
 	[csr_pmpcfg2]        =    "pmpcfg2",
@@ -477,6 +479,9 @@ void rv_csr_dump_all(rv_cpu_t *cpu){
 	printf("\n");
 	printf("Debug/Trace\n");
 	rv_csr_dump_common(cpu, csr_scontext);
+	printf("\n");
+	printf("Custom\n");
+	rv_csr_dump_common(cpu, csr_scyclecmp);
 	printf("\n\n");
 	printf("Machine level CSRs\n");
 	printf("\n");

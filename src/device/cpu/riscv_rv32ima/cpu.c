@@ -250,8 +250,6 @@ rv_exc_t rv_read_mem16(rv_cpu_t *cpu, uint32_t virt, uint16_t *value, bool fetch
     ASSERT(cpu != NULL);
     ASSERT(value != NULL);
 
-    
-
     if(try_read_memory_mapped_regs_16(cpu, virt, value)) return rv_exc_none;
 
     ptr36_t phys;

@@ -187,6 +187,15 @@ Decode time leads to slightly faster execution afterwards (saving one switch on 
 
 Execution time saves on copypasted code.
 
+### STORE
+
+What should happen on writes to unspecified memory?
+
+From one point of view, it feels right to raise an exception, but on the other hand, automatic memory detection would need exception handling, which would not be nice for the OS course.
+
+Also, if the writes raised exceptions, AMO instructions would need to be reimplemented.
+(as of now, we first check the access privileges using address conversion, then we check alignment and then we expect all reads and writes to physmem to succeed).
+
 ### SYSTEM
 
 #### EBREAK

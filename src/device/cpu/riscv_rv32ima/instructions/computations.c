@@ -413,35 +413,44 @@ extern rv_exc_t remu_instr(rv_cpu_t *cpu, rv_instr_t instr){
 
 /* A extension atomic operations */
 
+#define throw_ex(cpu, virt, ex) {   \
+        cpu->csr.tval_next = virt;  \
+        return ex;                  \
+    }
+
+#define throw_if_wrong_privilege(cpu, virt) {               \
+    ptr36_t _; rv_exc_t ex;                                 \
+    ex = rv_convert_addr(cpu, virt, &_, true, false, true); \
+    if(ex != rv_exc_none){                                  \
+        throw_ex(cpu, virt, ex);                            \
+    }                                                       \
+}
+#define throw_if_misaligned(cpu, virt) {                            \
+    if(!IS_ALIGNED(virt, 4)){                                       \
+        throw_ex(cpu, virt, rv_exc_store_amo_address_misaligned);   \
+    }                                                               \
+}
+
+
 rv_exc_t amoswap_instr(rv_cpu_t *cpu, rv_instr_t instr){
     ASSERT(cpu != NULL);
     ASSERT(instr.r.opcode == rv_opcAMO);
 
     uint32_t virt = cpu->regs[instr.r.rs1];
 
-    if(!IS_ALIGNED(virt, 4)){
-        cpu->csr.tval_next = virt;
-        return rv_exc_store_amo_address_misaligned;
-    }
-
     // Check write privileges first
-    ptr36_t _;
-    rv_exc_t ex = rv_convert_addr(cpu, virt, &_, true, false, true);
-    
-    if(ex != rv_exc_none){
-        return ex;
-    }
+    throw_if_wrong_privilege(cpu, virt);
+    // Then alignment
+    throw_if_misaligned(cpu, virt);
 
     uint32_t val;
-    ex = rv_read_mem32(cpu, virt, &val, false, true);
-
-    if(ex != rv_exc_none){
-        // This code should be unreachable
-        ASSERT(false);
-        return ex;
-    }
+    
+    rv_exc_t ex = rv_read_mem32(cpu, virt, &val, false, true);
+    ASSERT(ex == rv_exc_none);
 
     ex = rv_write_mem32(cpu, virt, cpu->regs[instr.r.rs2], true);
+    ASSERT(ex == rv_exc_none);
+
     cpu->regs[instr.r.rd] = val;   
     return rv_exc_none;
 }
@@ -450,64 +459,46 @@ rv_exc_t amoadd_instr(rv_cpu_t *cpu, rv_instr_t instr){
 
     uint32_t virt = cpu->regs[instr.r.rs1];
 
-    if(!IS_ALIGNED(virt, 4)){
-        cpu->csr.tval_next = virt;
-        return rv_exc_store_amo_address_misaligned;
-    }
-
     // Check write privileges first
-    ptr36_t _;
-    rv_exc_t ex = rv_convert_addr(cpu, virt, &_, true, false, true);
-    
-    if(ex != rv_exc_none){
-        return ex;
-    }
+    throw_if_wrong_privilege(cpu, virt);
+    // Then alignment
+    throw_if_misaligned(cpu, virt);
 
     uint32_t val;
     // load from mem
-    ex = rv_read_mem32(cpu, virt, &val, false, true);
-
-    if(ex != rv_exc_none){
-        return ex;
-    }
+    rv_exc_t ex = rv_read_mem32(cpu, virt, &val, false, true);
+    ASSERT(ex == rv_exc_none);
 
     // save loaded value to rd
     cpu->regs[instr.r.rd] = val;
     // add with rs2
     val += cpu->regs[instr.r.rs2];
-    // write to mem
+    
+    //  write to mem
     ex = rv_write_mem32(cpu, virt, val, true);
-
+    ASSERT(ex == rv_exc_none);
     return ex;
+    
 }
 
 rv_exc_t amoxor_instr(rv_cpu_t *cpu, rv_instr_t instr) {
 
     uint32_t virt = cpu->regs[instr.r.rs1];
 
-    if(!IS_ALIGNED(virt, 4)){
-        cpu->csr.tval_next = virt;
-        return rv_exc_store_amo_address_misaligned;
-    }
-
     // Check write privileges first
-    ptr36_t _;
-    rv_exc_t ex = rv_convert_addr(cpu, virt, &_, true, false, true);
-    
-    if(ex != rv_exc_none){
-        return ex;
-    }
+    throw_if_wrong_privilege(cpu, virt);
+    // Then alignment
+    throw_if_misaligned(cpu, virt);
 
     uint32_t val;
-    ex = rv_read_mem32(cpu, virt, &val, false, true);
-
-    if(ex != rv_exc_none){
-        return ex;
-    }
+    rv_exc_t ex = rv_read_mem32(cpu, virt, &val, false, true);
+    ASSERT(ex == rv_exc_none);
 
     cpu->regs[instr.r.rd] = val;
     val ^= cpu->regs[instr.r.rs2];
     ex = rv_write_mem32(cpu, virt, val, true);
+
+    ASSERT(ex == rv_exc_none);
     return ex;
 }
 
@@ -515,29 +506,20 @@ rv_exc_t amoand_instr(rv_cpu_t *cpu, rv_instr_t instr){
 
     uint32_t virt = cpu->regs[instr.r.rs1];
 
-    if(!IS_ALIGNED(virt, 4)){
-        cpu->csr.tval_next = virt;
-        return rv_exc_store_amo_address_misaligned;
-    }
-
     // Check write privileges first
-    ptr36_t _;
-    rv_exc_t ex = rv_convert_addr(cpu, virt, &_, true, false, true);
-    
-    if(ex != rv_exc_none){
-        return ex;
-    }
+    throw_if_wrong_privilege(cpu, virt);
+    // Then alignment
+    throw_if_misaligned(cpu, virt);
 
     uint32_t val;
-    ex = rv_read_mem32(cpu, virt, &val, false, true);
-
-    if(ex != rv_exc_none){
-        return ex;
-    }
+    rv_exc_t ex = rv_read_mem32(cpu, virt, &val, false, true);
+    ASSERT(ex == rv_exc_none);
 
     cpu->regs[instr.r.rd] = val;
     val &= cpu->regs[instr.r.rs2];
+
     ex = rv_write_mem32(cpu, virt, val, true);
+    ASSERT(ex == rv_exc_none);
     return ex;
 }
 
@@ -545,29 +527,20 @@ rv_exc_t amoor_instr(rv_cpu_t *cpu, rv_instr_t instr){
 
     uint32_t virt = cpu->regs[instr.r.rs1];
 
-    if(!IS_ALIGNED(virt, 4)){
-        cpu->csr.tval_next = virt;
-        return rv_exc_store_amo_address_misaligned;
-    }
-    
     // Check write privileges first
-    ptr36_t _;
-    rv_exc_t ex = rv_convert_addr(cpu, virt, &_, true, false, true);
-    
-    if(ex != rv_exc_none){
-        return ex;
-    }
+    throw_if_wrong_privilege(cpu, virt);
+    // Then alignment
+    throw_if_misaligned(cpu, virt);
 
     uint32_t val;
-    ex = rv_read_mem32(cpu, virt, &val, false, true);
-
-    if(ex != rv_exc_none){
-        return ex;
-    }
+    rv_exc_t ex = rv_read_mem32(cpu, virt, &val, false, true);
+    ASSERT(ex == rv_exc_none);
 
     cpu->regs[instr.r.rd] = val;
     val |= cpu->regs[instr.r.rs2];
+
     ex = rv_write_mem32(cpu, virt, val, true);
+    ASSERT(ex == rv_exc_none);
     return ex;
 }
 
@@ -575,30 +548,21 @@ rv_exc_t amomin_instr(rv_cpu_t *cpu, rv_instr_t instr){
 
     uint32_t virt = cpu->regs[instr.r.rs1];
 
-    if(!IS_ALIGNED(virt, 4)){
-        cpu->csr.tval_next = virt;
-        return rv_exc_store_amo_address_misaligned;
-    }
-
     // Check write privileges first
-    ptr36_t _;
-    rv_exc_t ex = rv_convert_addr(cpu, virt, &_, true, false, true);
-    
-    if(ex != rv_exc_none){
-        return ex;
-    }
+    throw_if_wrong_privilege(cpu, virt);
+    // Then alignment
+    throw_if_misaligned(cpu, virt);
 
     int32_t val;
-    ex = rv_read_mem32(cpu, virt, (uint32_t*)&val, false, true);
-
-    if(ex != rv_exc_none){
-        return ex;
-    }
+    rv_exc_t ex = rv_read_mem32(cpu, virt, (uint32_t*)&val, false, true);
+    ASSERT(ex == rv_exc_none);
 
     cpu->regs[instr.r.rd] = val;
     int32_t rs2 = cpu->regs[instr.r.rs2];
     val =  rs2 < val ? rs2 : val;
+
     ex = rv_write_mem32(cpu, virt, val, true);
+    ASSERT(ex == rv_exc_none);
     return ex;
 }
 
@@ -606,30 +570,21 @@ rv_exc_t amomax_instr(rv_cpu_t *cpu, rv_instr_t instr){
 
     uint32_t virt = cpu->regs[instr.r.rs1];
     
-    if(!IS_ALIGNED(virt, 4)){
-        cpu->csr.tval_next = virt;
-        return rv_exc_store_amo_address_misaligned;
-    }
-
     // Check write privileges first
-    ptr36_t _;
-    rv_exc_t ex = rv_convert_addr(cpu, virt, &_, true, false, true);
-    
-    if(ex != rv_exc_none){
-        return ex;
-    }
+    throw_if_wrong_privilege(cpu, virt);
+    // Then alignment
+    throw_if_misaligned(cpu, virt);
 
     int32_t val;
-    ex = rv_read_mem32(cpu, virt, (uint32_t*)&val, false, true);
-
-    if(ex != rv_exc_none){
-        return ex;
-    }
+    rv_exc_t ex = rv_read_mem32(cpu, virt, (uint32_t*)&val, false, true);
+    ASSERT(ex == rv_exc_none);
 
     cpu->regs[instr.r.rd] = val;
     int32_t rs2 = cpu->regs[instr.r.rs2];
     val =  rs2 > val ? rs2 : val;
+
     ex = rv_write_mem32(cpu, virt, val, true);
+    ASSERT(ex == rv_exc_none);
     return ex;
 }
 
@@ -637,30 +592,22 @@ rv_exc_t amominu_instr(rv_cpu_t *cpu, rv_instr_t instr){
 
     uint32_t virt = cpu->regs[instr.r.rs1];
 
-    if(!IS_ALIGNED(virt, 4)){
-        cpu->csr.tval_next = virt;
-        return rv_exc_store_amo_address_misaligned;
-    }
-    
     // Check write privileges first
-    ptr36_t _;
-    rv_exc_t ex = rv_convert_addr(cpu, virt, &_, true, false, true);
-    
-    if(ex != rv_exc_none){
-        return ex;
-    }
+    throw_if_wrong_privilege(cpu, virt);
+    // Then alignment
+    throw_if_misaligned(cpu, virt);
 
     uint32_t val;
-    ex = rv_read_mem32(cpu, virt, &val, false, true);
+    rv_exc_t ex = rv_read_mem32(cpu, virt, &val, false, true);
 
-    if(ex != rv_exc_none){
-        return ex;
-    }
+    ASSERT(ex == rv_exc_none);
 
     cpu->regs[instr.r.rd] = val;
     uint32_t rs2 = cpu->regs[instr.r.rs2];
     val =  rs2 < val ? rs2 : val;
+
     ex = rv_write_mem32(cpu, virt, val, true);
+    ASSERT(ex == rv_exc_none);
     return ex;
 }
 
@@ -668,29 +615,20 @@ rv_exc_t amomaxu_instr(rv_cpu_t *cpu, rv_instr_t instr){
 
     uint32_t virt = cpu->regs[instr.r.rs1];
 
-    if(!IS_ALIGNED(virt, 4)){
-        cpu->csr.tval_next = virt;
-        return rv_exc_store_amo_address_misaligned;
-    }
-    
     // Check write privileges first
-    ptr36_t _;
-    rv_exc_t ex = rv_convert_addr(cpu, virt, &_, true, false, true);
-    
-    if(ex != rv_exc_none){
-        return ex;
-    }
+    throw_if_wrong_privilege(cpu, virt);
+    // Then alignment
+    throw_if_misaligned(cpu, virt);
     
     uint32_t val;
-    ex = rv_read_mem32(cpu, virt, &val, false, true);
-
-    if(ex != rv_exc_none){
-        return ex;
-    }
+    rv_exc_t ex = rv_read_mem32(cpu, virt, &val, false, true);
+    ASSERT(ex == rv_exc_none);
 
     cpu->regs[instr.r.rd] = val;
     uint32_t rs2 = cpu->regs[instr.r.rs2];
     val =  rs2 > val ? rs2 : val;
+    
     ex = rv_write_mem32(cpu, virt, val, true);
+    ASSERT(ex == rv_exc_none);
     return ex;
 }

@@ -67,6 +67,7 @@ typedef union {
 
 static bool is_access_allowed(rv_cpu_t *cpu, sv32_pte_t pte, bool wr, bool fetch) {
     if(wr && !pte.w) return false;
+
     if(fetch && !pte.x) return false;
 
     // Page is executable and I can read from executable pages
@@ -83,7 +84,7 @@ static bool is_access_allowed(rv_cpu_t *cpu, sv32_pte_t pte, bool wr, bool fetch
         if(!pte.u) return false;
     }
 
-    return false;
+    return true;
 }
 
 static ptr36_t make_phys_from_ppn(uint32_t virt, sv32_pte_t pte, bool megapage){
@@ -110,11 +111,9 @@ rv_exc_t rv_convert_addr(rv_cpu_t *cpu, uint32_t virt, ptr36_t *phys, bool wr, b
         return rv_exc_none;
     }
 
-    uint32_t vpn0     =    virt & 0x003FF000 >> 12;
-    uint32_t vpn1     =    virt & 0xFFC00000 >> 22;
-    uint32_t ppn      = rv_csr_satp_ppn(cpu);
-
-    bool is_megapage = false;
+    uint32_t vpn0     =    (virt & 0x003FF000) >> 12;
+    uint32_t vpn1     =    (virt & 0xFFC00000) >> 22;
+    uint32_t ppn      =     rv_csr_satp_ppn(cpu);
 
     // name of variables according to spec
     int PAGESIZE = 12;
@@ -130,44 +129,51 @@ rv_exc_t rv_convert_addr(rv_cpu_t *cpu, uint32_t virt, ptr36_t *phys, bool wr, b
 
     if(!is_pte_valid(pte)) return page_fault_exception;
 
+    bool is_megapage = false;
+
     if(is_pte_leaf(pte)) {
         // MEGAPAGE
         // Missaligned megapage
         if(pte_ppn0(pte) != 0) return page_fault_exception;
         is_megapage = true;
-        goto leaf_pte;
+    }
+    else {
+        // Non leaf PTE, make second translation step
+
+        // PMP or PMA check goes here if implemented
+        a = ((ptr36_t)pte.ppn) << PAGESIZE;
+        pte_addr = a + vpn0*PTESIZE;
+
+        pte_val = physmem_read32(cpu->csr.mhartid, pte_addr, noisy);
+        pte = pte_from_uint(pte_val);
+
+        if(!is_pte_valid(pte)) return page_fault_exception;
+
+        // Non-leaf on last level
+        if(!is_pte_leaf(pte)) return page_fault_exception;
     }
 
-    // PMP or PMA check goes here if implemented
-    a = pte.ppn << PAGESIZE;
-    pte_addr = a + vpn0*PTESIZE;
-    pte_val = physmem_read32(cpu->csr.mhartid, pte_addr, noisy);
-    pte = pte_from_uint(pte_val);
-
-    if(!is_pte_valid(pte)) return page_fault_exception;
-    // Non-leaf on last level
-    if(!is_pte_leaf(pte)) return page_fault_exception;
-
-leaf_pte:
     if(!is_access_allowed(cpu, pte, wr, fetch)) return page_fault_exception;
 
     pte.a = 1;
     pte.d |= wr ? 1 : 0;
 
     pte_val = uint_from_pte(pte);
-    
+
     if(noisy){
         physmem_write32(cpu->csr.mhartid, pte_addr, pte_val, true);
     }
 
     *phys = make_phys_from_ppn(virt, pte, is_megapage);
-
     return rv_exc_none;
+
+    #undef page_fault_exception
 }
 
 #define read_address_misaligned_exception (fetch ? rv_exc_instruction_address_misaligned : rv_exc_load_address_misaligned)
 
 #define try_read_memory_mapped_regs_body(cpu, virt, value, width, type)         \
+    if(!IS_ALIGNED(virt, width/8)) return false;                                \
     if(effective_priv(cpu) != rv_mmode) return false;                           \
     int offset = (virt & 0x7) * 8;                                              \
     if(ALIGN_DOWN(virt, 8) == RV_MTIME_ADDRESS){                                \
@@ -192,7 +198,11 @@ static bool try_read_memory_mapped_regs_8(rv_cpu_t *cpu, uint32_t virt, uint8_t*
     try_read_memory_mapped_regs_body(cpu, virt, value, 8, uint8_t)
 }
 
+#undef try_read_memory_mapped_regs_body
+
 static bool try_write_memory_mapped_regs(rv_cpu_t *cpu, uint32_t virt, uint32_t value, int width){
+    if(!IS_ALIGNED(virt, width / 8)) return false;
+
     if(effective_priv(cpu) != rv_mmode) return false;                           
     int offset = (virt & 0x7) * 8;                                              
     if(ALIGN_DOWN(virt, 8) == RV_MTIME_ADDRESS){                                
@@ -206,24 +216,30 @@ static bool try_write_memory_mapped_regs(rv_cpu_t *cpu, uint32_t virt, uint32_t 
     return false;                                                           
 }
 
+#define throw_ex(cpu, virt, ex, noisy)  \
+    if(noisy){                          \
+        cpu->csr.tval_next = virt;      \
+    }                                   \
+    return ex;                          \
+
 rv_exc_t rv_read_mem32(rv_cpu_t *cpu, uint32_t virt, uint32_t *value, bool fetch, bool noisy){
     ASSERT(cpu != NULL);
     ASSERT(value != NULL);
 
-    if(!IS_ALIGNED(virt, 4)){
-        if(noisy){
-            cpu->csr.tval_next = virt;
-        }
-        return read_address_misaligned_exception;
-    }
 
     if(try_read_memory_mapped_regs_32(cpu, virt, value)) return rv_exc_none;
 
     ptr36_t phys;
     rv_exc_t ex = rv_convert_addr(cpu, virt, &phys, false, fetch, noisy);
-    
+
+    // Address translation exceptions have priority to alignment exceptions
+
     if(ex != rv_exc_none){
-        return ex;
+        throw_ex(cpu, virt, ex, noisy);
+    }
+    
+    if(!IS_ALIGNED(virt, 4)){
+        throw_ex(cpu, virt, read_address_misaligned_exception, noisy);
     }
 
     *value = physmem_read32(cpu->csr.mhartid, phys, true);
@@ -234,21 +250,19 @@ rv_exc_t rv_read_mem16(rv_cpu_t *cpu, uint32_t virt, uint16_t *value, bool fetch
     ASSERT(cpu != NULL);
     ASSERT(value != NULL);
 
-    if(!IS_ALIGNED(virt, 2)){
-        if(noisy){
-            cpu->csr.tval_next = virt;
-        }
-        return read_address_misaligned_exception;
-    }
+    
 
-    // memory leak - writing 32 bits to 16 bit pointer
     if(try_read_memory_mapped_regs_16(cpu, virt, value)) return rv_exc_none;
 
     ptr36_t phys;
     rv_exc_t ex = rv_convert_addr(cpu, virt, &phys, false, fetch, noisy);
     
     if(ex != rv_exc_none){
-        return ex;
+        throw_ex(cpu, virt, ex, noisy);
+    }
+
+    if(!IS_ALIGNED(virt, 2)){
+        throw_ex(cpu, virt, read_address_misaligned_exception, noisy);
     }
 
     *value = physmem_read16(cpu->csr.mhartid, phys, true);
@@ -265,7 +279,7 @@ rv_exc_t rv_read_mem8(rv_cpu_t *cpu, uint32_t virt, uint8_t *value, bool noisy){
     rv_exc_t ex = rv_convert_addr(cpu, virt, &phys, false, false, noisy);
     
     if(ex != rv_exc_none){
-        return ex;
+        throw_ex(cpu, virt, ex, noisy);
     }
 
     *value = physmem_read8(cpu->csr.mhartid, phys, true);
@@ -281,40 +295,41 @@ rv_exc_t rv_write_mem8(rv_cpu_t *cpu, uint32_t virt, uint8_t value, bool noisy){
     rv_exc_t ex = rv_convert_addr(cpu, virt, &phys, false, false, noisy);
     
     if(ex != rv_exc_none){
-        return ex;
+        throw_ex(cpu, virt, ex, noisy);
     }
 
     if(physmem_write8(cpu->csr.mhartid, phys, value, true)){
         return rv_exc_none;
     }
-    //TODO: handle write into invalid memory
+    
+    // writing invalid memory
+    // throw_ex(cpu, virt, rv_exc_store_amo_access_fault, noisy);
     return rv_exc_none;
-
 }
 
 rv_exc_t rv_write_mem16(rv_cpu_t *cpu, uint32_t virt, uint16_t value, bool noisy){
     ASSERT(cpu != NULL);
 
-    if(!IS_ALIGNED(virt, 2)){
-        if(noisy){
-            cpu->csr.tval_next = virt;
-        }
-        return rv_exc_store_amo_address_misaligned;
-    }
-
     if(try_write_memory_mapped_regs(cpu, virt, value, 16)) return rv_exc_none;
 
     ptr36_t phys;
     rv_exc_t ex = rv_convert_addr(cpu, virt, &phys, false, false, noisy);
-    
+
+    // address translation exceptions have priority to alignment exceptions
     if(ex != rv_exc_none){
-        return ex;
+        throw_ex(cpu, virt, ex, noisy);
+    }
+
+    if(!IS_ALIGNED(virt, 2)){
+        throw_ex(cpu, virt, rv_exc_store_amo_address_misaligned, noisy);
     }
 
     if(physmem_write16(cpu->csr.mhartid, phys, value, true)){
         return rv_exc_none;
     }
-    //TODO: handle write into invalid memory
+
+    // writing invalid memory
+    // throw_ex(cpu, virt, rv_exc_store_amo_access_fault, noisy);
     return rv_exc_none;
 }
 
@@ -322,31 +337,33 @@ rv_exc_t rv_write_mem16(rv_cpu_t *cpu, uint32_t virt, uint16_t value, bool noisy
 rv_exc_t rv_write_mem32(rv_cpu_t *cpu, uint32_t virt, uint32_t value, bool noisy){
     ASSERT(cpu != NULL);
 
-    if(!IS_ALIGNED(virt, 4)){
-        if(noisy){
-            cpu->csr.tval_next = virt;
-        }
-        return rv_exc_store_amo_address_misaligned;
-    }
-
     if(try_write_memory_mapped_regs(cpu, virt, value, 32)) return rv_exc_none;
 
     ptr36_t phys;
     rv_exc_t ex = rv_convert_addr(cpu, virt, &phys, false, false, noisy);
     
     if(ex != rv_exc_none){
-        return ex;
+        throw_ex(cpu, virt, ex, noisy);
+    }
+
+    if(!IS_ALIGNED(virt, 4)){
+        throw_ex(cpu, virt, rv_exc_store_amo_address_misaligned, noisy);
     }
 
     if(physmem_write32(cpu->csr.mhartid, phys, value, true)){
         return rv_exc_none;
     }
-    //TODO: handle write into invalid memory
+
+    // writing invalid memory
+    // throw_ex(cpu, virt, rv_exc_store_amo_access_fault, noisy);
     return rv_exc_none;
 }
 
+#undef throw_ex
+
 void rv_cpu_set_pc(rv_cpu_t *cpu, uint32_t value){
     ASSERT(cpu != NULL);
+    if(!IS_ALIGNED(value, 4)) return;
     /* Set both pc and pc_next
      * This should be called from the debugger to jump somewhere
      * and in case the new instruction does not modify pc_next,
@@ -463,11 +480,9 @@ static void handle_exception(rv_cpu_t* cpu, rv_exc_t ex){
     bool delegated = cpu->csr.medeleg & mask;
 
     if(delegated && cpu->priv_mode != rv_mmode){
-        printf("s trap from %i\n", cpu->priv_mode);
         s_trap(cpu, ex);
     }
     else {
-        printf("m trap from %i\n", cpu->priv_mode);
         m_trap(cpu, ex);
     }
 }
@@ -490,7 +505,6 @@ static void try_handle_interrupt(rv_cpu_t* cpu){
 
     if(can_trap_to_M) {
         uint32_t m_mode_active_interrupt_mask = cpu->csr.mip & cpu->csr.mie & ~cpu->csr.mideleg;
-        if(m_mode_active_interrupt_mask == 0) goto handle_s_mode;
         
         trap_if_set(cpu, m_mode_active_interrupt_mask, rv_exc_machine_external_interrupt, m_trap);
         trap_if_set(cpu, m_mode_active_interrupt_mask, rv_exc_machine_software_interrupt, m_trap);
@@ -503,18 +517,18 @@ static void try_handle_interrupt(rv_cpu_t* cpu){
     // TRAP to S-mode
     // ((priv_mode == S && SIE) || (priv_mode < M)) && SIP[i] && SIE[i]
 
-handle_s_mode: ;
     bool can_trap_to_S = (cpu->priv_mode == rv_smode && rv_csr_sstatus_sie(cpu)) || (cpu->priv_mode < rv_smode);
     if(can_trap_to_S) {
         // mask to only account S mode interrupts
         uint32_t s_mode_active_interrupt_mask = cpu->csr.mip & cpu->csr.mie & rv_csr_si_mask;
-        if(s_mode_active_interrupt_mask == 0) return;
 
         // M-interrupts can be here theoretically by spec, but we don't allow the delegation of M interrupts in msim (which is allowed in spec)
         trap_if_set(cpu, s_mode_active_interrupt_mask, rv_exc_supervisor_external_interrupt, s_trap);
         trap_if_set(cpu, s_mode_active_interrupt_mask, rv_exc_supervisor_software_interrupt, s_trap);
         trap_if_set(cpu, s_mode_active_interrupt_mask, rv_exc_supervisor_timer_interrupt, s_trap);
     }
+
+    #undef trap_if_set
 }
 
 static void account_hmp(rv_cpu_t* cpu, int i){
@@ -555,10 +569,8 @@ static void account_hmp(rv_cpu_t* cpu, int i){
     }
 }
 
-static void account(rv_cpu_t* cpu, bool exception_raised){
-    if(!(cpu->csr.mcountinhibit & 0b001))
-        cpu->csr.cycle++;
-
+static void raise_timer_interrupts(rv_cpu_t* cpu){
+    // raise or clear scyclecmp STIP
     if(((uint32_t)cpu->csr.cycle) >= cpu->csr.scyclecmp) {
         // Set supervisor timer interrupt pending
         cpu->csr.mip |= rv_csr_sti_mask;
@@ -568,10 +580,7 @@ static void account(rv_cpu_t* cpu, bool exception_raised){
         cpu->csr.mip &= ~rv_csr_sti_mask;
     }
 
-    uint64_t current_tick_time = current_timestamp();
-    cpu->csr.mtime += (current_tick_time - cpu->csr.last_tick_time);
-    cpu->csr.last_tick_time = current_tick_time;
-
+    // raise or clear mtimecmp MTIP
     if(cpu->csr.mtime >= cpu->csr.mtimecmp){
         // Set MTIP
         cpu->csr.mip |= rv_csr_mti_mask;
@@ -580,6 +589,16 @@ static void account(rv_cpu_t* cpu, bool exception_raised){
         // Clear MTIP
         cpu->csr.mip &= ~rv_csr_mti_mask;
     }
+}
+
+
+static void account(rv_cpu_t* cpu, bool exception_raised){
+    if(!(cpu->csr.mcountinhibit & 0b001))
+        cpu->csr.cycle++;
+
+    uint64_t current_tick_time = current_timestamp();
+    cpu->csr.mtime += (current_tick_time - cpu->csr.last_tick_time);
+    cpu->csr.last_tick_time = current_tick_time;
 
     if(!(cpu->csr.mcountinhibit & 0b100) && !exception_raised)
         cpu->csr.instret++;
@@ -587,15 +606,16 @@ static void account(rv_cpu_t* cpu, bool exception_raised){
     for(int i = 0; i < 29; ++i){
         account_hmp(cpu, i);
     }
+
+    raise_timer_interrupts(cpu);
 }
 
-void rv_cpu_step(rv_cpu_t *cpu){
-    ASSERT(cpu != NULL);
-
+static rv_exc_t execute(rv_cpu_t *cpu) {
     ptr36_t phys;
-    rv_exc_t ex;
-    while((ex = rv_convert_addr(cpu, cpu->pc, &phys, false, true, true)) != rv_exc_none){
-        // TODO: handle exception
+    rv_exc_t ex = rv_convert_addr(cpu, cpu->pc, &phys, false, true, true);
+ 
+    if(ex != rv_exc_none){
+        return ex;
     }
 
     rv_instr_t instr_data = (rv_instr_t)physmem_read32(cpu->csr.mhartid, phys, false);
@@ -607,13 +627,21 @@ void rv_cpu_step(rv_cpu_t *cpu){
 
     ex = instr_func(cpu, instr_data);
 
-    account(cpu, ex != rv_exc_none);
-    
-    if(ex != rv_exc_none){
+    if(ex == rv_exc_illegal_instruction){
+        cpu->csr.tval_next = instr_data.val;
+    }
 
-        if(ex == rv_exc_illegal_instruction){
-            cpu->csr.tval_next = instr_data.val;
-        }
+    return ex;
+}
+
+void rv_cpu_step(rv_cpu_t *cpu){
+    ASSERT(cpu != NULL);
+
+    rv_exc_t ex = execute(cpu);
+
+    account(cpu, ex != rv_exc_none);
+ 
+    if(ex != rv_exc_none){
         handle_exception(cpu, ex);
     }
     else {
@@ -637,10 +665,7 @@ bool rv_sc_access(rv_cpu_t *cpu, ptr36_t phys){
         cpu->reserved_valid = false;
     }
     return hit;
-}    
-
-
-
+}
 
 /* Interrupts
  * This is supposed to be used with devices and interprocessor communication,

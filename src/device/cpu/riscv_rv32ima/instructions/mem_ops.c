@@ -20,6 +20,7 @@ rv_exc_t lb_instr(rv_cpu_t *cpu, rv_instr_t instr){
         return ex;
     }
 
+    // Sign extension magic
     cpu->regs[instr.i.rd] = (int8_t)val;
 
     return rv_exc_none;
@@ -39,6 +40,7 @@ rv_exc_t lh_instr(rv_cpu_t *cpu, rv_instr_t instr){
         return ex;
     }
 
+    // Sign extension magic
     cpu->regs[instr.i.rd] = (int16_t)val;
 
     return rv_exc_none;
@@ -117,13 +119,7 @@ rv_exc_t sb_instr(rv_cpu_t *cpu, rv_instr_t instr){
 
     uint32_t virt = cpu->regs[instr.s.rs1] + RV_S_IMM(instr);
 
-    rv_exc_t ex = rv_write_mem8(cpu, virt, (uint8_t)cpu->regs[instr.s.rs2], true);
-
-    if(ex != rv_exc_none){
-        return ex;
-    } 
-
-    return rv_exc_none;
+    return rv_write_mem8(cpu, virt, (uint8_t)cpu->regs[instr.s.rs2], true);
 }
 
 rv_exc_t sh_instr(rv_cpu_t *cpu, rv_instr_t instr){
@@ -132,13 +128,7 @@ rv_exc_t sh_instr(rv_cpu_t *cpu, rv_instr_t instr){
 
     uint32_t virt = cpu->regs[instr.s.rs1] + RV_S_IMM(instr);
 
-    rv_exc_t ex = rv_write_mem16(cpu, virt, (uint16_t)cpu->regs[instr.s.rs2], true);
-
-    if(ex != rv_exc_none){
-        return ex;
-    } 
-
-    return rv_exc_none;
+    return rv_write_mem16(cpu, virt, (uint16_t)cpu->regs[instr.s.rs2], true);
 }
 
 rv_exc_t sw_instr(rv_cpu_t *cpu, rv_instr_t instr){
@@ -147,13 +137,7 @@ rv_exc_t sw_instr(rv_cpu_t *cpu, rv_instr_t instr){
 
     uint32_t virt = cpu->regs[instr.s.rs1] + RV_S_IMM(instr);
 
-    rv_exc_t ex = rv_write_mem32(cpu, virt, cpu->regs[instr.s.rs2], true);
-
-    if(ex != rv_exc_none){
-        return ex;
-    } 
-
-    return rv_exc_none;
+    return rv_write_mem32(cpu, virt, cpu->regs[instr.s.rs2], true);
 }
 
 
@@ -180,6 +164,15 @@ rv_exc_t lr_instr(rv_cpu_t *cpu, rv_instr_t instr){
         sc_unregister(cpu->csr.mhartid);
         cpu->reserved_valid = false;
         return ex;
+    }
+
+    // The missalignment should be caught in rv_read_mem32
+    // Bit if we would choose to allow missaligned accesses in the future,
+    // this would break, so this is here just for safety
+    if(!IS_ALIGNED(virt, 4)){
+        sc_unregister(cpu->csr.mhartid);
+        cpu->reserved_valid = false;
+        return rv_exc_load_address_misaligned;
     }
 
     // store the read value
@@ -209,12 +202,6 @@ rv_exc_t sc_instr(rv_cpu_t *cpu, rv_instr_t instr){
     uint32_t virt = cpu->regs[instr.r.rs1];
     ptr36_t phys;
 
-    rv_exc_t ex = rv_convert_addr(cpu, virt, &phys, true, false, true);
-
-    if(ex != rv_exc_none){
-        return ex;
-    }
-
     if(cpu->reserved_valid == false){
         // reservation is not valid
         cpu->regs[instr.r.rd] = 1;
@@ -224,6 +211,18 @@ rv_exc_t sc_instr(rv_cpu_t *cpu, rv_instr_t instr){
     // SC always invalidates reservation by this hart
     cpu->reserved_valid = false;
     sc_unregister(cpu->csr.mhartid);
+
+    rv_exc_t ex = rv_convert_addr(cpu, virt, &phys, true, false, true);
+
+    if(ex != rv_exc_none){
+        cpu->regs[instr.r.rd] = 1;
+        return ex;
+    }
+
+    if(!IS_ALIGNED(virt, 4)){
+        cpu->regs[instr.r.rd] = 1;
+        return rv_exc_store_amo_address_misaligned;
+    }
 
     if(phys != cpu->reserved_addr){
         // target differs

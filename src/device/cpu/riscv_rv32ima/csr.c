@@ -13,8 +13,6 @@ void rv_init_csr(csr_t *csr, unsigned int procno){
     csr->mhartid = procno;
   
     csr->last_tick_time = csr->mtime;
-
-    //TODO: rest
 }
 
 #define minimal_privilege(priv, cpu) {if(cpu->priv_mode < priv) return rv_exc_illegal_instruction;}

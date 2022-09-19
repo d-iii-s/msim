@@ -263,3 +263,5 @@ Steps to recreate:
 3. run msim
 4. enter `dumpmem 0x80000000 4`
 5. You can see, that words at `0x80000004` and `0x80000008` have the data from `main.bin` written to them.
+
+Not recreatable on different computer.

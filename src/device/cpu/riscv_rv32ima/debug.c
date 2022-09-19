@@ -520,7 +520,6 @@ void rv_csr_dump_all(rv_cpu_t *cpu){
 	printf("\n");
 	printf("Debug/Trace\n");
 	rv_csr_dump_common(cpu, csr_mcontext);
-	// TODO rest of m debug and debug mode
 }
 
 bool rv_csr_dump(rv_cpu_t *cpu, csr_num_t csr){

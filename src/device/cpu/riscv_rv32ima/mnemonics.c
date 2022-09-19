@@ -664,8 +664,7 @@ static void print_cycle(rv_cpu_t *cpu, string_t* mnemonics, string_t* comments){
 }
 
 static void print_time(rv_cpu_t *cpu, string_t* mnemonics, string_t* comments) {
-	string_printf(mnemonics, "(not accurate) ");
-	print_64_reg(current_timestamp(), "time", mnemonics);
+	print_64_reg(cpu->csr.mtime, "time", mnemonics);
 }
 
 static void print_instret(rv_cpu_t *cpu, string_t* mnemonics, string_t* comments){
@@ -1050,6 +1049,7 @@ default_print_function(scounteren)
 default_print_function(sscratch)
 default_print_function(sepc)
 default_print_function(stval)
+default_print_function(scontext)
 default_print_function(scyclecmp)
 
 void rv_csr_dump_common(rv_cpu_t *cpu, csr_num_t csr) {
@@ -1257,6 +1257,7 @@ void rv_csr_dump_common(rv_cpu_t *cpu, csr_num_t csr) {
 		default_case(stval)
 		default_case(senvcfg)
 		default_case(satp)
+		default_case(scontext)
 		default_case(scyclecmp)
 
 		case csr_mstatush:

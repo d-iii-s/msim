@@ -47,7 +47,7 @@ typedef struct {
     unsigned int ppn: 22;
 } sv32_pte_t;
 
-static_assert(sizeof(sv32_pte_t) == 4);
+static_assert((sizeof(sv32_pte_t) == 4), "wrong size of sv32_pte_t");
 
 #define is_pte_leaf(pte) (pte.r | pte.w | pte.x)
 #define is_pte_valid(pte) (pte.v && (!pte.w || pte.r))

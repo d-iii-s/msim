@@ -422,11 +422,14 @@ bool interpret(const char *str)
 	/* Parse input */
 	token_t *parm = parm_parse(str);
 	
-	if (parm_type(parm) == tt_end)
+	if (parm_type(parm) == tt_end){
+		parm_delete(parm);
 		return true;
+	}
 	
 	if (parm_type(parm) != tt_str) {
 		error("Command name expected");
+		parm_delete(parm);
 		return true;
 	}
 	

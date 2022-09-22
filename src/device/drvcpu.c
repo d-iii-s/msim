@@ -93,7 +93,7 @@ static bool drvcpu_csr_rd(token_t *parm, device_t *dev){
 
 
 static void drvcpu_done(device_t *dev){
-    safe_free(dev->name);
+    rv_cpu_done(get_rv(dev));
     safe_free(((general_cpu_t *)dev->data)->data);
     safe_free(dev->data)
 }

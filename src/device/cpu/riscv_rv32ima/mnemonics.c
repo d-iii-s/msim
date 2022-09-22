@@ -1283,6 +1283,9 @@ void rv_csr_dump_common(rv_cpu_t *cpu, csr_num_t csr) {
 
 	printf("\n");
 
+	string_done(&s_mnemonics);
+	string_done(&s_comments);
+
 	#undef default_case
 }
 

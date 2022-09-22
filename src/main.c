@@ -331,6 +331,22 @@ static void machine_run(void)
 	}
 }
 
+static void cleanup() {
+	/* Execute device cycles */
+	device_t *dev = NULL;
+	device_t *next_dev = NULL;
+
+	dev_next(&next_dev, DEVICE_FILTER_ALL);
+	dev = next_dev;
+
+	while(dev_next(&next_dev, DEVICE_FILTER_ALL)) {
+		free_device(dev);
+		dev = next_dev;
+	};
+
+	free_device(dev);
+}
+
 int main(int argc, char *args[])
 {
 	/*
@@ -370,6 +386,8 @@ int main(int argc, char *args[])
 	input_back();
 	if (steps > 0)
 		printf("\nCycles: %" PRIu64 "\n", steps);
+
+	cleanup();
 	
 	return 0;
 }

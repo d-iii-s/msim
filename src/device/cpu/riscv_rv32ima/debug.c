@@ -444,6 +444,12 @@ void rv_idump(rv_cpu_t *cpu, uint32_t addr, rv_instr_t instr){
     }
     
     printf("\n");
+
+	string_done(&s_cpu);
+	string_done(&s_addr);
+	string_done(&s_opc);
+	string_done(&s_mnemonics);
+	string_done(&s_comments);
 }
 
 void rv_csr_dump_all(rv_cpu_t *cpu){

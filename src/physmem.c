@@ -346,9 +346,6 @@ void physmem_unwire(physmem_area_t *area)
 	ASSERT(area->data != NULL);
 	//ASSERT(area->trans != NULL);
 	
-	// FIXME TODO
-	// Deallocate also the ftl1 if no longer needed
-	
 	uint32_t pfn;
 	for (pfn = 0; pfn < area->count; pfn++) {
 		ptr36_t addr = FRAME2ADDR(area->start + pfn);
@@ -363,6 +360,20 @@ void physmem_unwire(physmem_area_t *area)
 		
 		/* Remove frame */
 		safe_free(*frame_ref);
+
+		/* Deallocate ftl1 if it contains only NULL entries*/
+		bool ftl1_empty = true;
+
+		for(size_t i = 0; i < sizeof(ftl1) / sizeof(frame_t*); ++i){
+			if((*ftl1)[i] != NULL) {
+				ftl1_empty = false;
+				break;
+			}
+		}
+
+		if(ftl1_empty){
+			safe_free(ftl1);
+		}
 	}
 }
 

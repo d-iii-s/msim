@@ -370,6 +370,8 @@ static bool mem_generic(token_t *parm, device_t *dev)
 	area->type = MEMT_MEM;
 	area->count = SIZE2FRAMES(size);
 	area->data = safe_malloc(host_size);
+	// Set whole memory to 0
+	memset(area->data, 0, host_size);
 	//area->trans = safe_malloc(sizeof(instr_fnc_t) * SIZE2INSTRS(host_size));
 	physmem_wire(area);
 	

@@ -3009,6 +3009,7 @@ static r4k_exc_t execute(r4k_cpu_t *cpu)
 	ASSERT(cpu != NULL);
 	
 	/* Binary translation */
+	// TODO: do this in a similar way to RISC
 	if (cpu->frame == NULL) {
 		r4k_exc_t res;
 		

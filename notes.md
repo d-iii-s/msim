@@ -94,6 +94,22 @@ For now, I have changed it, so the processor holds itself 1 frame of decoded dat
 ~~This is untested as of now on mips (!!!)~~
 Tested, bugs are fixed. It works, but it would be nice to put something similar back.
 
+Architecture of new intruction cache:
+Physmem holds the `valid` flag, which signifies if the frame has been written to since the last reset.
+Each processor type holds its own cache, which translates between addresses and function pointers.
+The cache lookup will consult the physmem frame on its validity.
+
+Benefits:
+
+- The caching functionality is separated from the physical memory
+- It is more scalable with regards to the number of processor types
+- The whole processor type can share the cache, before each individual cpu had its own cache
+
+Drawbacks:
+
+- Two address lookups have to be executed for each instruction (one to find the physmem frame, second to look inside cache)
+- This system does not work if two types of instructions are stored in the same page, but I think this is a reasonable assumption
+
 ### mem
 
 `mem.h` and `mem.c` are named unfortunately, they should be named dmem.

@@ -138,6 +138,7 @@ typedef struct rv_cpu
 
 /** Basic CPU routines */
 extern void rv_cpu_init(rv_cpu_t *cpu, unsigned int procno);
+extern void rv_cpu_done(rv_cpu_t *cpu);
 extern void rv_cpu_set_pc(rv_cpu_t *cpu, uint32_t value);
 extern void rv_cpu_step(rv_cpu_t *cpu);
 

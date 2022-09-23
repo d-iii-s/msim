@@ -51,7 +51,7 @@ void dbg_print_devices(device_filter_t filter)
 	while (dev_next(&device, filter)) {
 		device_found = true;
 		printf("%-10s %-10s ", device->name, device->type->name);
-		cmd_run_by_name("info", &token_end, device->type->cmds, device);
+		cmd_run_by_name("info", token_end, device->type->cmds, device);
 	}
 
 	if (!device_found) {

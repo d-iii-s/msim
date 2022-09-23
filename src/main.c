@@ -191,7 +191,7 @@ static bool parse_cmdline(int argc, char *args[])
 			machine_trace = true;
 			break;
 		case 'V':
-			printf(txt_version);
+			printf("%s",txt_version);
 			return false;
 		case 'i':
 			machine_interactive = true;
@@ -205,8 +205,8 @@ static bool parse_cmdline(int argc, char *args[])
 			config_file = safe_strdup(optarg);
 			break;
 		case 'h':
-			printf(txt_version);
-			printf(txt_help);
+			printf("%s",txt_version);
+			printf("%s",txt_help);
 			return false;
 		case 'g':
 			setup_remote_gdb(optarg);
@@ -219,6 +219,7 @@ static bool parse_cmdline(int argc, char *args[])
 			break;
 		case '?':
 			die(ERR_PARM, "Unknown parameter or argument required");
+			break;
 		default:
 			die(ERR_PARM, "Unknown parameter \"%c\"", optopt);
 		}

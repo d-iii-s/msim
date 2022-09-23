@@ -38,7 +38,7 @@ typedef union {
 		uint32_t hi;
 	};
 #endif
-} __attribute__((packed)) ptr64_t;
+} __attribute__((packed, aligned(8))) ptr64_t;
 
 typedef union {
 	uint64_t val;
@@ -53,7 +53,7 @@ typedef union {
 		uint32_t hi;
 	};
 #endif
-} __attribute__((packed)) reg64_t;
+} __attribute__((packed, aligned(8))) reg64_t;
 
 
 

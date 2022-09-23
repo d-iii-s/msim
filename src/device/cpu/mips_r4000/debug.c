@@ -256,7 +256,7 @@ static void r4k_cp0_dump_reg(r4k_cpu_t *cpu, unsigned int reg)
 		printf(s, cp0_errorepc(cpu), cp0_errorepc(cpu));
 		break;
 	default:
-		printf(s);
+		printf("%s", s);
 		break;
 	}
 }
@@ -399,6 +399,7 @@ void r4k_idump_phys(ptr36_t addr, r4k_instr_t instr)
 	string_done(&s_comments);
 }
 
+
 /** Write info about changed registers
  *
  * Each modified register is included to the output.
@@ -406,6 +407,15 @@ void r4k_idump_phys(ptr36_t addr, r4k_instr_t instr)
  */
 char *r4k_modified_regs_dump(r4k_cpu_t *cpu)
 {
+
+// This code can possibly cause string truncation,
+// but it is not called from anywhere, so I disable the compiler warnings
+// for clarity of output when compiling the whole program
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wformat-truncation"
+
+//TODO: rewrite in a safer way
+
 	unsigned int i;
 	char *s1;
 	char *s2;
@@ -477,4 +487,6 @@ char *r4k_modified_regs_dump(r4k_cpu_t *cpu)
 		strcpy(sx, s2 + 2);
 
 	return sx;
+
+#pragma GCC diagnostic pop
 }

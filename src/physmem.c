@@ -344,8 +344,7 @@ void physmem_unwire(physmem_area_t *area)
 	ASSERT(area->type != MEMT_NONE);
 	ASSERT(area->count > 0);
 	ASSERT(area->data != NULL);
-	//ASSERT(area->trans != NULL);
-	
+
 	uint32_t pfn;
 	for (pfn = 0; pfn < area->count; pfn++) {
 		ptr36_t addr = FRAME2ADDR(area->start + pfn);
@@ -364,7 +363,7 @@ void physmem_unwire(physmem_area_t *area)
 		/* Deallocate ftl1 if it contains only NULL entries*/
 		bool ftl1_empty = true;
 
-		for(size_t i = 0; i < sizeof(ftl1) / sizeof(frame_t*); ++i){
+		for(size_t i = 0; i < sizeof(*ftl1) / sizeof(frame_t*); ++i){
 			if((*ftl1)[i] != NULL) {
 				ftl1_empty = false;
 				break;

@@ -122,6 +122,10 @@ The update needs to be tested. (Works for riscv)
 
 ### exceptions
 
+`ebreak` instruction should raise a `break_exception`, but I don't think this would be reasonable in msim. Instead `ebreak` breaks into interactive mode in msim, but the execution resumes as if it was a nop.
+
+If this would be a problem, then `ebreak` could raise the exception and a nonstandard `break` instruction could be added.
+
 ## Privileged ops and CSR
 
 Is it better to have the whole 12-bit CSR address space allocated and index into the array, or to have only the used registers allocated and dispatch using a switch?
@@ -136,7 +140,9 @@ For now, I lean on the side of using a large switch (that will call some functio
 
 performance counters have architecture defined event selectors, that each counter can be set to.
 
-TODO: define these counters for msim
+w_cycles counts stalled cycles (cpu->stdby == true)
+
+When the cpu is stalled, instret and count counters do no increment.
 
 #### draft
 
@@ -152,7 +158,8 @@ TODO: define these counters for msim
 - 9 - memory writes
 - 10 - branches taken
 - 11 - branches not taken
-  
+
+
 ## interface viewpoint
 
 `device` is an interface, that the cpu implements (partially)

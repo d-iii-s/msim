@@ -10,8 +10,7 @@
 #include "instructions/system.h"
 
 rv_exc_t illegal_instr(rv_cpu_t *cpu, rv_instr_t instr){
-    // TODO: change state - depends on the global variable machine_undefined
-    return rv_exc_illegal_instruction;
+    return machine_undefined ? rv_exc_none : rv_exc_illegal_instruction;
 }
 
 static rv_instr_func_t decode_LOAD(rv_instr_t instr) {

@@ -8,10 +8,7 @@ rv_exc_t break_instr(rv_cpu_t *cpu, rv_instr_t instr){
     ASSERT(instr.i.opcode == rv_opcSYSTEM);
 
     alert("EBREAK: breakpoint reached, entering interactive mode");
-
     machine_interactive = true;
-    
-    //TODO: this should return rv_exc_breakpoint by standard
     return rv_exc_none;
 }
 rv_exc_t halt_instr(rv_cpu_t *cpu, rv_instr_t instr){
@@ -117,10 +114,8 @@ rv_exc_t wfi_instr(rv_cpu_t *cpu, rv_instr_t instr){
     if(rv_csr_mstatus_tw(cpu) && cpu->priv_mode != rv_mmode){
         return rv_exc_illegal_instruction;
     }
-    // Waiting for interrupt is simulated by stalling at this instruction
-    // Even simpler solution would be to do a NOP (which is allowed by the standard)
-    
-    cpu->pc_next = cpu->pc;
+
+    cpu->stdby = true;
     return rv_exc_none;
 }
 

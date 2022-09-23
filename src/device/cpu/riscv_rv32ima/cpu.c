@@ -467,6 +467,7 @@ static void m_trap(rv_cpu_t* cpu, rv_exc_t ex){
     ASSERT(ex != rv_exc_none);
 
     bool is_interrupt = ex & RV_INTERRUPT_EXC_BITS;
+    cpu->stdby = false;
     
     cpu->csr.mepc = is_interrupt ? cpu->pc_next : cpu->pc;
     cpu->csr.mcause = ex;
@@ -518,6 +519,7 @@ static void s_trap(rv_cpu_t* cpu, rv_exc_t ex){
     ASSERT(ex != rv_exc_none);
 
     bool is_interrupt = ex & RV_INTERRUPT_EXC_BITS;
+    cpu->stdby = false;
 
     cpu->csr.sepc = is_interrupt ? cpu->pc_next : cpu->pc;
     cpu->csr.scause = ex;
@@ -651,7 +653,9 @@ static void account_hmp(rv_cpu_t* cpu, int i){
             break;
         }
         case(hpm_w_cycles):{
-            // TODO: count stalled cycles (probably when the current instruction is WFI or cpu->stdby is true)
+            if(cpu->stdby){
+                cpu->csr.hpmcounters[i]++;
+            }
             break;
         }
         default:
@@ -683,14 +687,14 @@ static void raise_timer_interrupts(rv_cpu_t* cpu){
 
 
 static void account(rv_cpu_t* cpu, bool exception_raised){
-    if(!(cpu->csr.mcountinhibit & 0b001))
+    if(!(cpu->csr.mcountinhibit & 0b001) && !cpu->stdby)
         cpu->csr.cycle++;
 
     uint64_t current_tick_time = current_timestamp();
     cpu->csr.mtime += (current_tick_time - cpu->csr.last_tick_time);
     cpu->csr.last_tick_time = current_tick_time;
 
-    if(!(cpu->csr.mcountinhibit & 0b100) && !exception_raised)
+    if(!(cpu->csr.mcountinhibit & 0b100) && !exception_raised && !cpu->stdby)
         cpu->csr.instret++;
 
     for(int i = 0; i < 29; ++i){
@@ -726,7 +730,10 @@ static rv_exc_t execute(rv_cpu_t *cpu) {
 void rv_cpu_step(rv_cpu_t *cpu){
     ASSERT(cpu != NULL);
 
-    rv_exc_t ex = execute(cpu);
+    rv_exc_t ex = rv_exc_none;
+
+    if(!cpu->stdby)
+        ex = execute(cpu);
 
     account(cpu, ex != rv_exc_none);
  
@@ -738,10 +745,13 @@ void rv_cpu_step(rv_cpu_t *cpu){
         try_handle_interrupt(cpu);
     }
 
+    if(!cpu->stdby){
+        cpu->pc = cpu->pc_next;
+        cpu->pc_next = cpu->pc + 4;
+    }
+
     // x0 is always 0
     cpu->regs[0] = 0;
-    cpu->pc = cpu->pc_next;
-    cpu->pc_next = cpu->pc + 4;
     cpu->csr.tval_next = 0;
 }
 

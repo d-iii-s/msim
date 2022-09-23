@@ -106,8 +106,6 @@ void cpu_reg_dump(general_cpu_t *cpu){
     cpu->type->reg_dump(cpu->data);
 }
 
-// todo: register read/write for gdb
-
 void cpu_set_pc(general_cpu_t *cpu, ptr64_t pc){
     if(cpu == NULL){
         cpu = get_cpu(0);

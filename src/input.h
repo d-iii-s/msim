@@ -13,6 +13,7 @@
 #define INPUT_H_
 
 extern void input_init(void);
+extern void input_end(void);
 extern void input_shadow(void);
 extern void input_back(void);
 extern void interactive_control(void);

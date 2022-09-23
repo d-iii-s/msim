@@ -346,6 +346,7 @@ static void cleanup() {
 	};
 
 	free_device(dev);
+	input_end();
 }
 
 int main(int argc, char *args[])

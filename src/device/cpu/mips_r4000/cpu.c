@@ -1196,15 +1196,6 @@ static r4k_exc_t TLBW(r4k_cpu_t *cpu, bool random)
 			entry->pg[1].valid = cp0_entrylo1_v(cpu);
 		}
 		
-		/*
-		 * Invalidate current CPU binary translation frame.
-		 * This should be actually only necessary if the page
-		 * with the current PC is affected by the TLB change.
-		 * But let's take this conservative precaution in order
-		 * not to miss any corner cases.
-		 */
-		cpu->frame = NULL;
-		
 		return r4k_excNone;
 	}
 	
@@ -1554,7 +1545,7 @@ static void disassemble_rd(r4k_instr_t instr, string_t *mnemonics,
  *
  */
 
-static instr_fnc_t opcode_map[64] = {
+static r4k_instr_fnc_t opcode_map[64] = {
 	/* 0 */
 	instr__reserved,  /* r4k_opcSPECIAL */
 	instr__reserved,  /* r4k_opcREGIMM */
@@ -1635,7 +1626,7 @@ static instr_fnc_t opcode_map[64] = {
 	instr_sd
 };
 
-static instr_fnc_t func_map[64] = {
+static r4k_instr_fnc_t func_map[64] = {
 	instr_sll,
 	instr__reserved,  /* unused */
 	instr_srl,
@@ -1709,7 +1700,7 @@ static instr_fnc_t func_map[64] = {
 	instr_dsra32
 };
 
-static instr_fnc_t rt_map[32] = {
+static r4k_instr_fnc_t rt_map[32] = {
 	instr_bltz,
 	instr_bgez,
 	instr_bltzl,
@@ -1747,7 +1738,7 @@ static instr_fnc_t rt_map[32] = {
 	instr__reserved   /* unused */
 };
 
-static instr_fnc_t cop0_rs_map[32] = {
+static r4k_instr_fnc_t cop0_rs_map[32] = {
 	instr_mfc0,
 	instr_dmfc0,
 	instr__reserved,  /* unused */
@@ -1785,7 +1776,7 @@ static instr_fnc_t cop0_rs_map[32] = {
 	instr__reserved   /* unused */
 };
 
-static instr_fnc_t cop1_rs_map[32] = {
+static r4k_instr_fnc_t cop1_rs_map[32] = {
 	instr_mfc1,
 	instr_dmfc1,
 	instr_cfc1,
@@ -1823,7 +1814,7 @@ static instr_fnc_t cop1_rs_map[32] = {
 	instr__reserved   /* unused */
 };
 
-static instr_fnc_t cop2_rs_map[32] = {
+static r4k_instr_fnc_t cop2_rs_map[32] = {
 	instr_mfc2,
 	instr__reserved,  /* unused */
 	instr_cfc2,
@@ -1861,7 +1852,7 @@ static instr_fnc_t cop2_rs_map[32] = {
 	instr__reserved   /* unused */
 };
 
-static instr_fnc_t cop0_rt_map[32] = {
+static r4k_instr_fnc_t cop0_rt_map[32] = {
 	instr_bc0f,
 	instr_bc0t,
 	instr_bc0fl,
@@ -1899,7 +1890,7 @@ static instr_fnc_t cop0_rt_map[32] = {
 	instr__reserved   /* unused */
 };
 
-static instr_fnc_t cop1_rt_map[32] = {
+static r4k_instr_fnc_t cop1_rt_map[32] = {
 	instr_bc1f,
 	instr_bc1t,
 	instr_bc1fl,
@@ -1937,7 +1928,7 @@ static instr_fnc_t cop1_rt_map[32] = {
 	instr__reserved   /* unused */
 };
 
-static instr_fnc_t cop2_rt_map[32] = {
+static r4k_instr_fnc_t cop2_rt_map[32] = {
 	instr_bc2f,
 	instr_bc2t,
 	instr_bc2fl,
@@ -1975,7 +1966,7 @@ static instr_fnc_t cop2_rt_map[32] = {
 	instr__reserved   /* unused */
 };
 
-static instr_fnc_t cop0_func_map[64] = {
+static r4k_instr_fnc_t cop0_func_map[64] = {
 	instr__warning,   /* unused */
 	instr_tlbr,
 	instr_tlbwi,
@@ -2774,9 +2765,9 @@ void r4k_interrupt_down(r4k_cpu_t *cpu, unsigned int no)
  * @return Instruction implementation.
  *
  */
-static instr_fnc_t decode(r4k_instr_t instr)
+static r4k_instr_fnc_t decode(r4k_instr_t instr)
 {
-	instr_fnc_t fnc;
+	r4k_instr_fnc_t fnc;
 
 	/*
 	 * Basic opcode decoding based
@@ -2866,63 +2857,89 @@ static instr_fnc_t decode(r4k_instr_t instr)
 	return fnc;
 }
 
-/** Translate instruction virtual address to physical memory frame
- *
- */
-static r4k_exc_t cpu_frame(r4k_cpu_t *cpu)
-{
-	ASSERT(cpu != NULL);
-	
-	ptr64_t virt;
-	virt.ptr = cpu->pc.ptr;
-	virt.lo &= ~((uint32_t) FRAME_MASK);
-	
-	ptr36_t phys;
-	r4k_exc_t res = r4k_convert_addr(cpu, virt, &phys, false, true);
-	switch (res) {
-	case r4k_excNone:
-		break;
-	case r4k_excAddrError:
-		if (cpu->branch == BRANCH_NONE)
-			cpu->excaddr = cpu->pc;
-		return r4k_excAdEL;
-	case r4k_excTLB:
-		if (cpu->branch == BRANCH_NONE)
-			cpu->excaddr = cpu->pc;
-		return r4k_excTLBL;
-	case r4k_excTLBR:
-		if (cpu->branch == BRANCH_NONE)
-			cpu->excaddr = cpu->pc;
-		return r4k_excTLBLR;
-	default:
-		ASSERT(false);
-	}
-	
-	cpu->frame = physmem_find_frame(phys);
-	if (cpu->frame == NULL) {
-		alert("Trying to fetch instructions from outside of physical memory");
-		return r4k_excAdEL;
-	}
-	
-	return r4k_excNone;
+
+typedef struct {
+    item_t item;
+    ptr36_t addr;
+    r4k_instr_fnc_t instrs[FRAME_SIZE / sizeof(r4k_instr_t)];
+} cache_item_t;
+
+#define PHYS2CACHEINSTR(phys) (((phys) & FRAME_MASK)/sizeof(rv_instr_t))
+
+static void cache_item_init(cache_item_t* cache_item){
+    item_init(&cache_item->item);
+    cache_item->addr = 0;
+    // Skip instrs init
 }
 
-/** Decode instructions in a physical memory frame
- *
- */
-static void frame_decode(frame_t *frame, instr_fnc_t* out)
-{
-	ASSERT(frame != NULL);
-	// Remove when caching is back
-	//ASSERT(!frame->valid);
-	
-	unsigned int i;
-	for (i = 0; i < ADDR2INSTR(FRAME_SIZE); i++) {
-		r4k_instr_t instr = *((r4k_instr_t *) (frame->data + INSTR2ADDR(i)));
-		*(out + i) = decode(instr);
-	}
-	
-	frame->valid = true;
+list_t r4k_instruction_cache = LIST_INITIALIZER;
+
+static bool cache_hit(ptr36_t phys, cache_item_t** cache_item){
+    ptr36_t target_page = ALIGN_DOWN(phys, FRAME_SIZE);
+    cache_item_t* c;
+    for_each(r4k_instruction_cache, c, cache_item_t){
+        if(c->addr == target_page){
+            *cache_item = c;
+            return true;
+        }
+    }
+    return false;
+}
+
+static void cache_item_page_decode(r4k_cpu_t* cpu, cache_item_t* cache_item) {
+    for(size_t i = 0; i < FRAME_SIZE / sizeof(r4k_instr_t); ++i){
+        ptr36_t addr = cache_item->addr + (i * sizeof(r4k_instr_t));
+        r4k_instr_t instr_data = (r4k_instr_t)physmem_read32(cpu->procno, addr, false);
+        cache_item->instrs[i] = decode(instr_data);
+    }
+}
+
+static void update_cache_item(r4k_cpu_t* cpu, cache_item_t* cache_item) {
+    frame_t* frame = physmem_find_frame(cache_item->addr);
+    ASSERT(frame != NULL);
+
+    if(frame->valid) return;
+
+    cache_item_page_decode(cpu, cache_item);
+
+    frame->valid = true;
+    return;
+}
+
+static cache_item_t* cache_try_add(r4k_cpu_t* cpu, ptr36_t phys) {
+    frame_t* frame = physmem_find_frame(phys);
+    if(frame == NULL) return NULL;
+
+    cache_item_t* cache_item = safe_malloc(sizeof(cache_item_t));
+
+    cache_item_init(cache_item);
+    cache_item->addr = ALIGN_DOWN(phys, FRAME_SIZE);
+
+    list_append(&r4k_instruction_cache, &cache_item->item);
+
+    cache_item_page_decode(cpu, cache_item);
+
+    frame->valid = true;
+    return cache_item;
+}
+
+static r4k_instr_fnc_t fetch_instr(r4k_cpu_t* cpu, ptr36_t phys){
+    cache_item_t* cache_item = NULL;
+
+    if(cache_hit(phys, &cache_item)){
+        ASSERT(cache_item != NULL);
+        update_cache_item(cpu, cache_item);
+        return cache_item->instrs[PHYS2CACHEINSTR(phys)];
+    }
+    
+    cache_item = cache_try_add(cpu, phys);
+
+    if(cache_item != NULL) {
+        return cache_item->instrs[PHYS2CACHEINSTR(phys)];
+    }
+
+	alert("Trying to fetch instructions from outside of physical memory");
+    return NULL;
 }
 
 /** Change the processor state according to the exception type
@@ -3008,30 +3025,37 @@ static r4k_exc_t execute(r4k_cpu_t *cpu)
 {
 	ASSERT(cpu != NULL);
 	
-	/* Binary translation */
-	// TODO: do this in a similar way to RISC
-	if (cpu->frame == NULL) {
-		r4k_exc_t res;
-		
-		do {
-			res = cpu_frame(cpu);
-			if (res != r4k_excNone)
-				handle_exception(cpu, res);
-		} while (res != r4k_excNone);
+	/* Instruction fetch */
 
-		// decode everytime, because we are not caching
-		frame_decode(cpu->frame, cpu->trans);
+	ptr36_t phys;
+	r4k_exc_t res = r4k_convert_addr(cpu, cpu->pc, &phys, false, true);
+
+	switch (res) {
+	case r4k_excNone:
+		break;
+	case r4k_excAddrError:
+		if (cpu->branch == BRANCH_NONE)
+			cpu->excaddr = cpu->pc;
+		return r4k_excAdEL;
+	case r4k_excTLB:
+		if (cpu->branch == BRANCH_NONE)
+			cpu->excaddr = cpu->pc;
+		return r4k_excTLBL;
+	case r4k_excTLBR:
+		if (cpu->branch == BRANCH_NONE)
+			cpu->excaddr = cpu->pc;
+		return r4k_excTLBLR;
+	default:
+		ASSERT(false);
 	}
 
-	// decode if frame is invalid
-	if(!cpu->frame->valid){
-		frame_decode(cpu->frame, cpu->trans);
+	r4k_instr_fnc_t fnc = fetch_instr(cpu, phys);
+
+	if(fnc == NULL){
+		return r4k_excAdEL;
 	}
-	
-	/* Fetch decoded instruction */
-	unsigned int i = cpu->pc.ptr & FRAME_MASK;
-	r4k_instr_t instr = *((r4k_instr_t *) (cpu->frame->data + i));
-	instr_fnc_t fnc = *(cpu->trans + ADDR2INSTR(i));
+
+	r4k_instr_t instr = (r4k_instr_t)physmem_read32(cpu->procno, phys, false);
 
 	/* Execute instruction */
 	r4k_exc_t exc = fnc(cpu, instr);
@@ -3110,15 +3134,6 @@ static void manage(r4k_cpu_t *cpu, r4k_exc_t exc, ptr64_t old_pc)
 	if (cpu->branch > BRANCH_NONE)
 		cpu->branch--;
 	
-	/*
-	 * Reset the binary translation if we are outside
-	 * the original frame.
-	 */
-	if ((old_pc.ptr | FRAME_MASK) != (cpu->pc.ptr | FRAME_MASK)){
-		//TODO: remove when cached decode is back
-		cpu->frame->valid = false;
-		cpu->frame = NULL;
-	}
 }
 
 /** CPU cycle accounting after one instruction execution
@@ -3165,4 +3180,13 @@ bool r4k_sc_access(r4k_cpu_t *cpu, ptr36_t addr) {
 		cpu->llbit = false;
 	}
 	return hit;
+}
+
+void r4k_done(r4k_cpu_t *cpu) {
+	// Clean whole cache
+	while(!is_empty(&r4k_instruction_cache)){
+        cache_item_t* cache_item = (cache_item_t*)(r4k_instruction_cache.head);
+        list_remove(&r4k_instruction_cache, &cache_item->item);
+        safe_free(cache_item);
+    }
 }

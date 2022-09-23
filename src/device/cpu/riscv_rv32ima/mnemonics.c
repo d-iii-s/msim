@@ -113,8 +113,6 @@ extern rv_mnemonics_func_t rv_decode_mnemonics(rv_instr_t instr){
     IF_SAME_DECODE(amominu);
     IF_SAME_DECODE(amomaxu);
 
-    // TODO: add rest of instructions
-
     return undefined_mnemonics;
 }
 
@@ -1033,7 +1031,6 @@ static void print_satp(rv_cpu_t *cpu, string_t* mnemonics, string_t* comments) {
 	}
 }
 
-// TODO: comments?
 default_print_function(mvendorid)
 default_print_function(marchid)
 default_print_function(mimpid)

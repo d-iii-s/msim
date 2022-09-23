@@ -32,7 +32,6 @@ uint64_t stepping = 0;
 
 PCUT_INIT
 
-PCUT_IMPORT(Ops);
 PCUT_IMPORT(instruction_immediates);
 PCUT_IMPORT(instruction_decoding);
 PCUT_IMPORT(instruction_exceptions);

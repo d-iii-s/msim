@@ -225,7 +225,6 @@ rv_exc_t sc_instr(rv_cpu_t *cpu, rv_instr_t instr){
     }
 
     if(phys != cpu->reserved_addr){
-        // target differs
         alert("RV32IMA: LR/SC addresses do not match");
         cpu->regs[instr.r.rd] = 1;
         return rv_exc_none;

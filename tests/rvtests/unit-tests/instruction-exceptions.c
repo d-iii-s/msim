@@ -255,6 +255,7 @@ PCUT_TEST(sc_address_missaligned) {
     }};
 
     cpu.regs[0] = 2;
+    cpu.reserved_valid = true;
 
     rv_exc_t ex = sc_instr(&cpu, instr);
     PCUT_ASSERT_INT_EQUALS(rv_exc_store_amo_address_misaligned, ex);

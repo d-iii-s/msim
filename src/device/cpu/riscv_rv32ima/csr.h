@@ -361,8 +361,6 @@ typedef enum {
 	hpm_event_count
 } csr_hpm_event_t;
 
-// TODO: mtime and mtimecmp
-
 typedef struct {
     /* Counters/Timers */
     uint64_t cycle;
@@ -408,7 +406,6 @@ typedef struct {
 	uint32_t mcontext;
 
     /* physical memory protection */
-    // TODO: does this make any sense in msim?
     uint8_t pmpcfgs[64];
     uint32_t pmpaddrs[64];
     

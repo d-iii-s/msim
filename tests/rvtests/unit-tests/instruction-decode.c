@@ -538,10 +538,4 @@ PCUT_TEST(lui_decode){
     PCUT_ASSERT_EQUALS(lui_instr, rv_instr_decode(instr));
 }
 
-/***********************
- * SYSTEM instructions *
- ***********************/
-
-//TODO
-
 PCUT_EXPORT(instruction_decoding);

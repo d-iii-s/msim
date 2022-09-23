@@ -70,8 +70,6 @@ extern bool cpu_convert_addr(general_cpu_t *cpu, ptr64_t virt, ptr36_t *phys, bo
 
 extern void cpu_reg_dump(general_cpu_t *cpu);
 
-// todo: register read/write for gdb
-
 extern void cpu_set_pc(general_cpu_t *cpu, ptr64_t pc);
 /**
  * @brief signals to the cpu, that an address has been written to, for sc control

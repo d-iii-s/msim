@@ -86,22 +86,15 @@ typedef enum rv_priv_mode {
 	rv_mmode = 0b11
 } rv_priv_mode_t;
 
-// TODO: prev regs for debug
-
 /** Main processor structure */
-typedef struct rv_cpu 
-
-{
-	/* procno: in csr*/
+typedef struct rv_cpu {
 	bool stdby;
-	// struct frame - for holding cached decoded instructions
 
+	// Non privileged registers
 	uint32_t regs[RV_REG_COUNT];
-	
-	// CSR
-	csr_t csr;
 
-	// f regs - no
+	// Control and status registers	(most are privileged)
+	csr_t csr;
 
 	uint32_t pc;
 	// Used to implement jumps and branches easily
@@ -110,29 +103,9 @@ typedef struct rv_cpu
 	// Current privilege mode
 	rv_priv_mode_t priv_mode;
 
-	// tlb - virtual memory is done using page tables
-	// but if this would be really slow, some caching could be a nice optimalization
-	
-	// old registers - todo
-
-	// excaddr ???
-	// branch - again, no branch delay
-
 	// LR and SC
 	bool reserved_valid;
 	ptr36_t reserved_addr; // physical address of the last LR
-
-	// watch ?? is this a gdb or a mips thing?
-	// TODO: look into this
-
-	// statistics - in CSR
-
-	// tlb - not in risc-v
-
-	// intr??? what is this
-
-	// breakpoints: TODO
-
 } rv_cpu_t;
 
 

@@ -575,15 +575,13 @@ struct frame;
 struct r4k_cpu;
 
 /** Instruction implementation */
-typedef r4k_exc_t (*instr_fnc_t)(struct r4k_cpu *, r4k_instr_t);
+typedef r4k_exc_t (*r4k_instr_fnc_t)(struct r4k_cpu *, r4k_instr_t);
 
 /** Main processor structure */
 typedef struct r4k_cpu {
 	/* Basic run-time support */
 	unsigned int procno;
 	bool stdby;
-	struct frame *frame;
-	instr_fnc_t trans[FRAME_SIZE/sizeof(r4k_instr_t)];
 	
 	/* Standard registers */
 	reg64_t regs[R4K_REG_COUNT];
@@ -962,6 +960,7 @@ extern mnemonics_fnc_t decode_mnemonics(r4k_instr_t);
 extern void r4k_init(r4k_cpu_t *cpu, unsigned int procno);
 extern void r4k_set_pc(r4k_cpu_t *cpu, ptr64_t value);
 extern void r4k_step(r4k_cpu_t *cpu);
+extern void r4k_done(r4k_cpu_t *cpu);
 
 /** Addresing function */
 extern r4k_exc_t r4k_convert_addr(r4k_cpu_t *cpu, ptr64_t virt, ptr36_t *phys, bool write,

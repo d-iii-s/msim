@@ -11,19 +11,13 @@
 #include "../../../main.h"
 #include "../../../list.h"
 
-//DEBUG
-#include "instructions/mem_ops.h"
-
-#define CACHE_PAGE_SIZE 4096
-#define CACHE_PAGE_OFFSET_MASK (CACHE_PAGE_SIZE - 1)
-
 typedef struct {
     item_t item;
     ptr36_t addr;
-    rv_instr_func_t instrs[CACHE_PAGE_SIZE / sizeof(rv_instr_t)];
+    rv_instr_func_t instrs[FRAME_SIZE / sizeof(rv_instr_t)];
 } cache_item_t;
 
-#define PHYS2CACHEINSTR(phys) (((phys) & CACHE_PAGE_OFFSET_MASK)/sizeof(rv_instr_t))
+#define PHYS2CACHEINSTR(phys) (((phys) & FRAME_MASK)/sizeof(rv_instr_t))
 
 static void cache_item_init(cache_item_t* cache_item){
     item_init(&cache_item->item);
@@ -31,12 +25,12 @@ static void cache_item_init(cache_item_t* cache_item){
     // Skip instrs init
 }
 
-list_t instruction_cache = LIST_INITIALIZER;
+list_t rv_instruction_cache = LIST_INITIALIZER;
 
 static bool cache_hit(ptr36_t phys, cache_item_t** cache_item){
-    ptr36_t target_page = ALIGN_DOWN(phys, CACHE_PAGE_SIZE);
+    ptr36_t target_page = ALIGN_DOWN(phys, FRAME_SIZE);
     cache_item_t* c;
-    for_each(instruction_cache, c, cache_item_t){
+    for_each(rv_instruction_cache, c, cache_item_t){
         if(c->addr == target_page){
             *cache_item = c;
             return true;
@@ -46,7 +40,7 @@ static bool cache_hit(ptr36_t phys, cache_item_t** cache_item){
 }
 
 static void cache_item_page_decode(rv_cpu_t* cpu, cache_item_t* cache_item) {
-    for(size_t i = 0; i < CACHE_PAGE_SIZE / sizeof(rv_instr_t); ++i){
+    for(size_t i = 0; i < FRAME_SIZE / sizeof(rv_instr_t); ++i){
         ptr36_t addr = cache_item->addr + (i * sizeof(rv_instr_t));
         rv_instr_t instr_data = (rv_instr_t)physmem_read32(cpu->csr.mhartid, addr, false);
         cache_item->instrs[i] = rv_instr_decode(instr_data);
@@ -55,6 +49,7 @@ static void cache_item_page_decode(rv_cpu_t* cpu, cache_item_t* cache_item) {
 
 static void update_cache_item(rv_cpu_t* cpu, cache_item_t* cache_item) {
     frame_t* frame = physmem_find_frame(cache_item->addr);
+    ASSERT(frame != NULL);
 
     if(frame->valid) return;
 
@@ -71,9 +66,9 @@ static cache_item_t* cache_try_add(rv_cpu_t* cpu, ptr36_t phys) {
     cache_item_t* cache_item = safe_malloc(sizeof(cache_item_t));
 
     cache_item_init(cache_item);
-    cache_item->addr = ALIGN_DOWN(phys, CACHE_PAGE_SIZE);
+    cache_item->addr = ALIGN_DOWN(phys, FRAME_SIZE);
 
-    list_append(&instruction_cache, &cache_item->item);
+    list_append(&rv_instruction_cache, &cache_item->item);
 
     cache_item_page_decode(cpu, cache_item);
 
@@ -95,6 +90,7 @@ static rv_instr_func_t fetch_instr(rv_cpu_t* cpu, ptr36_t phys){
     if(cache_item != NULL) {
         return cache_item->instrs[PHYS2CACHEINSTR(phys)];
     }
+    alert("Trying to fetch instructions from outside of physical memory");
     return rv_instr_decode((rv_instr_t)physmem_read32(cpu->csr.mhartid, phys, true));
 }
 
@@ -123,10 +119,10 @@ void rv_cpu_init(rv_cpu_t *cpu, unsigned int procno){
 }
 
 void rv_cpu_done(rv_cpu_t *cpu) {
-    // Invalidate whole cache for simplicity whenever any cpu is done
-    while(!is_empty(&instruction_cache)){
-        cache_item_t* cache_item = (cache_item_t*)(instruction_cache.head);
-        list_remove(&instruction_cache, &cache_item->item);
+    // Clean whole cache for simplicity whenever any cpu is done
+    while(!is_empty(&rv_instruction_cache)){
+        cache_item_t* cache_item = (cache_item_t*)(rv_instruction_cache.head);
+        list_remove(&rv_instruction_cache, &cache_item->item);
         safe_free(cache_item);
     }
 }

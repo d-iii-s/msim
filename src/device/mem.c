@@ -316,7 +316,7 @@ static bool mem_fmap(token_t *parm, device_t *dev)
 	area->type = MEMT_FMAP;
 	area->count = SIZE2FRAMES(size);
 	area->data = (uint8_t *) ptr;
-	//area->trans = safe_malloc(sizeof(instr_fnc_t) * SIZE2INSTRS(size));
+	//area->trans = safe_malloc(sizeof(r4k_instr_fnc_t) * SIZE2INSTRS(size));
 	physmem_wire(area);
 	
 	return true;
@@ -372,7 +372,7 @@ static bool mem_generic(token_t *parm, device_t *dev)
 	area->data = safe_malloc(host_size);
 	// Set whole memory to 0
 	memset(area->data, 0, host_size);
-	//area->trans = safe_malloc(sizeof(instr_fnc_t) * SIZE2INSTRS(host_size));
+	//area->trans = safe_malloc(sizeof(r4k_instr_fnc_t) * SIZE2INSTRS(host_size));
 	physmem_wire(area);
 	
 	return true;

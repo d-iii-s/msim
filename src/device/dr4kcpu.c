@@ -343,6 +343,7 @@ static bool dr4kcpu_br(token_t *parm, device_t *dev)
  */
 static void dr4kcpu_done(device_t *dev)
 {
+	r4k_done(get_r4k(dev));
 	safe_free(dev->name);
 	safe_free(((general_cpu_t *)dev->data)->data);
 	safe_free(dev->data);

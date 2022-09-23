@@ -154,14 +154,16 @@ void interactive_control(void)
 			printf("\n");
 			alert("Quit");
 			input_back();
+			free(cmdline);
 			exit(ERR_OK);
 		}
 		
 		if (*cmdline) {
 			add_history(cmdline);
 			interpret(cmdline);
-		} else
+		} else {
 			interpret("step");
+		}
 		
 		free(cmdline);
 	}
@@ -172,4 +174,8 @@ void interactive_control(void)
  */
 int input_is_terminal(void) {
 	return input_term;
+}
+
+void input_end(void) {
+	clear_history();
 }

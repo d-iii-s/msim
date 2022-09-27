@@ -4,18 +4,12 @@ main.raw:     file format elf32-littleriscv
 
 Disassembly of section .text:
 
-00000000 <var1-0x14>:
-   0:	01402503          	lw	a0,20(zero) # 14 <var1>
-   4:	01802583          	lw	a1,24(zero) # 18 <var2>
+00000000 <.text>:
+   0:	00002503          	lw	a0,0(zero) # 0 <.text>
+   4:	00402583          	lw	a1,4(zero) # 4 <.text+0x4>
    8:	00b50633          	add	a2,a0,a1
-   c:	00c02e23          	sw	a2,28(zero) # 1c <var3>
-  10:	00200073          	.word	0x00200073
-
-00000014 <var1>:
-  14:	00000001          	.word	0x00000001
-
-00000018 <var2>:
-  18:	00000002          	.word	0x00000002
-
-0000001c <var3>:
-  1c:	00000000          	.word	0x00000000
+   c:	00c02423          	sw	a2,8(zero) # 8 <.text+0x8>
+  10:	00802283          	lw	t0,8(zero) # 8 <.text+0x8>
+  14:	90000337          	lui	t1,0x90000
+  18:	00532023          	sw	t0,0(t1) # 90000000 <.text+0x90000000>
+  1c:	00200073          	.word	0x00200073

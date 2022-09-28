@@ -9,6 +9,8 @@ from sys import stdout
 TESTS = [
     "simple",
     "loads",
+    "stores",
+    "ops",
     "jumps",
     "m-extension"
 ]

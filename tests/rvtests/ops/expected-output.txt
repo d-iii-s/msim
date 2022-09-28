@@ -1,0 +1,12 @@
+processor 0
+  zero:        0    ra:        0    sp:        0    gp:        0
+    tp:        0    t0:        0    t1:        0    t2:        0
+ s0/fp:        3    s1: ffffffff    a0:        1    a1:        2
+    a2: ffffffff    a3:        0    a4:        0    a5:        0
+    a6:        0    a7:        0    s2:        4    s3:        1
+    s4:        0    s5: ffffffff    s6: 3fffffff    s7: fffffffd
+    s8:        3    s9:        2   s10:        0   s11:        0
+    t3:        0    t4:        0    t5:        0    t6:        0
+    pc: 00000034
+
+Cycles: 16

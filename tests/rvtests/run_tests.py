@@ -9,7 +9,8 @@ from sys import stdout
 TESTS = [
     "simple",
     "loads",
-    "jumps"
+    "jumps",
+    "m-extension"
 ]
 
 MSIM_PATH = "../../msim"
@@ -20,7 +21,7 @@ OUTPUT_FILENAME = "out.txt"
 EXPECTED_FILENAME = "expected-output.txt"
 
 def run_test(test_folder):
-    print("test:", test_folder, end="\t\t")
+    print("test: {t}".format(t=test_folder).ljust(30, ' '), end="")
     relative_path = os.path.relpath(MSIM_PATH, test_folder)
     try:
         os.chdir(test_folder)

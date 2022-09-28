@@ -2,6 +2,7 @@
 #include "system.h"
 #include "../../../../assert.h"
 #include "../csr.h"
+#include "../debug.h"
 
 rv_exc_t break_instr(rv_cpu_t *cpu, rv_instr_t instr){
     ASSERT(cpu != NULL);
@@ -11,6 +12,7 @@ rv_exc_t break_instr(rv_cpu_t *cpu, rv_instr_t instr){
     machine_interactive = true;
     return rv_exc_none;
 }
+
 rv_exc_t halt_instr(rv_cpu_t *cpu, rv_instr_t instr){
     ASSERT(cpu != NULL);
     ASSERT(instr.i.opcode == rv_opcSYSTEM);
@@ -18,6 +20,14 @@ rv_exc_t halt_instr(rv_cpu_t *cpu, rv_instr_t instr){
     alert("EHALT: Machine halt");
 
     machine_halt = true;
+    return rv_exc_none;
+}
+
+rv_exc_t dump_instr(rv_cpu_t *cpu, rv_instr_t instr){
+    ASSERT(cpu != NULL);
+    ASSERT(instr.i.opcode == rv_opcSYSTEM);
+    alert("EDUMP: Dumping general registers");
+    rv_reg_dump(cpu);
     return rv_exc_none;
 }
 

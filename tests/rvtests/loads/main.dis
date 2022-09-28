@@ -4,21 +4,25 @@ main.raw:     file format elf32-littleriscv
 
 Disassembly of section .text:
 
-00000000 <var1-0x2c>:
-   0:	02c00503          	lb	a0,44(zero) # 2c <var1>
-   4:	03000503          	lb	a0,48(zero) # 30 <var2>
-   8:	02c01503          	lh	a0,44(zero) # 2c <var1>
-   c:	03001503          	lh	a0,48(zero) # 30 <var2>
-  10:	02c02503          	lw	a0,44(zero) # 2c <var1>
-  14:	03002503          	lw	a0,48(zero) # 30 <var2>
-  18:	02c04503          	lbu	a0,44(zero) # 2c <var1>
-  1c:	03004503          	lbu	a0,48(zero) # 30 <var2>
-  20:	02c05503          	lhu	a0,44(zero) # 2c <var1>
-  24:	03005503          	lhu	a0,48(zero) # 30 <var2>
-  28:	00200073          	.word	0x00200073
-
-0000002c <var1>:
-  2c:	00000001          	.word	0x00000001
-
-00000030 <var2>:
-  30:	ffffffff          	.word	0xffffffff
+00000000 <.text>:
+   0:	00000503          	lb	a0,0(zero) # 0 <.text>
+   4:	00300073          	.word	0x00300073
+   8:	00400503          	lb	a0,4(zero) # 4 <.text+0x4>
+   c:	00300073          	.word	0x00300073
+  10:	00001503          	lh	a0,0(zero) # 0 <.text>
+  14:	00300073          	.word	0x00300073
+  18:	00401503          	lh	a0,4(zero) # 4 <.text+0x4>
+  1c:	00300073          	.word	0x00300073
+  20:	00002503          	lw	a0,0(zero) # 0 <.text>
+  24:	00300073          	.word	0x00300073
+  28:	00402503          	lw	a0,4(zero) # 4 <.text+0x4>
+  2c:	00300073          	.word	0x00300073
+  30:	00004503          	lbu	a0,0(zero) # 0 <.text>
+  34:	00300073          	.word	0x00300073
+  38:	00404503          	lbu	a0,4(zero) # 4 <.text+0x4>
+  3c:	00300073          	.word	0x00300073
+  40:	00005503          	lhu	a0,0(zero) # 0 <.text>
+  44:	00300073          	.word	0x00300073
+  48:	00405503          	lhu	a0,4(zero) # 4 <.text+0x4>
+  4c:	00300073          	.word	0x00300073
+  50:	00200073          	.word	0x00200073

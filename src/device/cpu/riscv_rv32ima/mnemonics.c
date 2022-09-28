@@ -73,6 +73,10 @@ extern rv_mnemonics_func_t rv_decode_mnemonics(rv_instr_t instr){
     if(instr_func == halt_instr)
         return rv_ehalt_mnemonics;
 
+	
+    if(instr_func == dump_instr)
+        return rv_edump_mnemonics;
+
     if(instr_func == call_instr)
         return rv_ecall_mnemonics;
 
@@ -480,6 +484,10 @@ extern void rv_ebreak_mnemonics(uint32_t addr, rv_instr_t instr, string_t *s_mne
 }
 extern void rv_ehalt_mnemonics(uint32_t addr, rv_instr_t instr, string_t *s_mnemonics, string_t *s_comments){
     string_printf(s_mnemonics, "ehalt");
+}
+
+void rv_edump_mnemonics(uint32_t addr, rv_instr_t instr, string_t *s_mnemonics, string_t *s_comments){
+	string_printf(s_mnemonics, "edump");
 }
 
 extern void rv_sret_mnemonics(uint32_t addr, rv_instr_t instr, string_t *s_mnemonics, string_t *s_comments){

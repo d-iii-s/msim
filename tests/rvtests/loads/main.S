@@ -1,19 +1,25 @@
-.text
-// tests immediate operations
-lb a0, 0x2C(x0)
-lb a0, 0x30(x0)
-lh a0, 0x2C(x0)
-lh a0, 0x30(x0)
-lw a0, 0x2C(x0)
-lw a0, 0x30(x0)
-lbu a0, 0x2C(x0)
-lbu a0, 0x30(x0)
-lhu a0, 0x2C(x0)
-lhu a0, 0x30(x0)
-.word 0x00200073
+#define ehalt .word 0x00200073
+#define edump .word 0x00300073
 
-var1:
-    .word 1
-var2:
-    .word -1
-    
+.text
+lb a0, 0(zero)
+edump
+lb a0, 4(zero)
+edump
+lh a0, 0(zero)
+edump
+lh a0, 4(zero)
+edump
+lw a0, 0(zero)
+edump
+lw a0, 4(zero)
+edump
+lbu a0, 0(zero)
+edump
+lbu a0, 4(zero)
+edump
+lhu a0, 0(zero)
+edump
+lhu a0, 4(zero)
+edump
+ehalt

@@ -229,6 +229,12 @@ just enters interactive mode, should be enough for now
 
 new nonstandart instruction used to halt the simulation
 
+#### EDUMP
+
+new nonstandart instuction used to dump general registers
+
+usefull for testing and debugging
+
 ## random msim facts
 
 - all device interrupts are handled on cpu with id 0

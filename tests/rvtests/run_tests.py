@@ -4,7 +4,6 @@ from distutils.log import error
 import os
 import subprocess
 import filecmp
-from sys import stdout
 
 TESTS = [
     "simple",

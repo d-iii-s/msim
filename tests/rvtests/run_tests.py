@@ -8,7 +8,8 @@ from sys import stdout
 
 TESTS = [
     "simple",
-    "loads"
+    "loads",
+    "jumps"
 ]
 
 MSIM_PATH = "../../msim"

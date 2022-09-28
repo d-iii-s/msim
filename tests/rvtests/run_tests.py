@@ -11,6 +11,7 @@ TESTS = [
     "stores",
     "ops",
     "jumps",
+    "branches",
     "m-extension"
 ]
 

@@ -10,6 +10,7 @@ TESTS = [
     "loads",
     "stores",
     "ops",
+    "op-imm",
     "jumps",
     "branches",
     "m-extension",

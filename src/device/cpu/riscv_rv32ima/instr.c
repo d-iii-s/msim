@@ -231,6 +231,8 @@ static rv_instr_func_t decode_PRIV(rv_instr_t instr){
             return break_instr;
         case rv_privEHALT:
             return machine_specific_instructions ? halt_instr : illegal_instr;
+        case rv_privEDUMP:
+            return machine_specific_instructions ? dump_instr : illegal_instr;
         case rv_privECALL:
             return call_instr;
         case rv_privSRET:

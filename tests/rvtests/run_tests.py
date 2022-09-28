@@ -4,9 +4,11 @@ from distutils.log import error
 import os
 import subprocess
 import filecmp
+from sys import stdout
 
 TESTS = [
-    "simple"
+    "simple",
+    "loads"
 ]
 
 MSIM_PATH = "../../msim"
@@ -17,19 +19,26 @@ OUTPUT_FILENAME = "out.txt"
 EXPECTED_FILENAME = "expected-output.txt"
 
 def run_test(test_folder):
-    print("test:", test_folder)
+    print("test:", test_folder, end="\t\t")
     relative_path = os.path.relpath(MSIM_PATH, test_folder)
     try:
         os.chdir(test_folder)
-        res = subprocess.run(relative_path, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
-        assert(res.returncode == 0)
-        assert(filecmp.cmp(EXPECTED_FILENAME, OUTPUT_FILENAME))
+        res = subprocess.run(relative_path, capture_output=True, timeout=1000, check=True, text=True)
+        
+        # Test didn't use printer, probably because it uses register dumps instead
+        # Then use stdout as reference
+        if not os.path.exists(OUTPUT_FILENAME):
+            with open(OUTPUT_FILENAME, 'w') as f:
+                for b in res.stdout:
+                    f.write(b)
+
+        assert filecmp.cmp(EXPECTED_FILENAME, OUTPUT_FILENAME), "Files do not match!"
         os.remove(OUTPUT_FILENAME)
-    except:
-        print("failure!")
+    except BaseException  as e:
+        print("failure! ({e})".format(e=e))
         exit(-1)
-    finally:
-        os.chdir(DEFAULT_PWD)
+
+    os.chdir(DEFAULT_PWD)
     print("success")
 
 def main():

@@ -6,6 +6,7 @@
 
 extern rv_exc_t break_instr(rv_cpu_t *cpu, rv_instr_t instr);
 extern rv_exc_t halt_instr(rv_cpu_t *cpu, rv_instr_t instr);
+extern rv_exc_t dump_instr(rv_cpu_t *cpu, rv_instr_t instr);
 extern rv_exc_t call_instr(rv_cpu_t *cpu, rv_instr_t instr);
 
 extern rv_exc_t sret_instr(rv_cpu_t *cpu, rv_instr_t instr);

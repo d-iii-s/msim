@@ -176,6 +176,7 @@ typedef enum {
     rv_privECALL      = 0b000000000000,
     rv_privEBREAK     = 0b000000000001,
     rv_privEHALT      = 0b000000000010,
+    rv_privEDUMP      = 0b000000000011,
     rv_privSRET       = 0b000100000010,
     rv_privMRET       = 0b001100000010,
     rv_privWFI        = 0b000100000101

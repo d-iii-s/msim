@@ -12,7 +12,8 @@ TESTS = [
     "ops",
     "jumps",
     "branches",
-    "m-extension"
+    "m-extension",
+    "amo"
 ]
 
 MSIM_PATH = "../../msim"

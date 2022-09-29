@@ -687,7 +687,7 @@ static void raise_timer_interrupts(rv_cpu_t* cpu){
 
 
 static void account(rv_cpu_t* cpu, bool exception_raised){
-    if(!(cpu->csr.mcountinhibit & 0b001) && !cpu->stdby)
+    if(!(cpu->csr.mcountinhibit & 0b001))
         cpu->csr.cycle++;
 
     uint64_t current_tick_time = current_timestamp();

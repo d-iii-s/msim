@@ -15,7 +15,8 @@ TESTS = [
     "branches",
     "m-extension",
     "amo",
-    "lr-sc"
+    "lr-sc",
+    "scyclecmp"
 ]
 
 MSIM_PATH = "../../msim"
@@ -30,7 +31,7 @@ def run_test(test_folder):
     relative_path = os.path.relpath(MSIM_PATH, test_folder)
     try:
         os.chdir(test_folder)
-        res = subprocess.run(relative_path, capture_output=True, timeout=1000, check=True, text=True)
+        res = subprocess.run(relative_path, capture_output=True, timeout=10, check=True, text=True)
         
         # Test didn't use printer, probably because it uses register dumps instead
         # Then use stdout as reference

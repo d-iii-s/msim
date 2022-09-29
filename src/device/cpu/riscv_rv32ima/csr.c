@@ -107,19 +107,13 @@ static rv_exc_t counter_write(rv_cpu_t* cpu, int csr, uint32_t target){
     // only mmode can write to counters
     minimal_privilege(rv_mmode, cpu);
 
-    printf("correct priv %x\n", csr);
-
     // global counters are r/o
     if(rv_csr_min_priv_mode(csr) != rv_mmode) return rv_exc_illegal_instruction;
-
-    printf("correct shadow\n");
 
     int counter = csr & 0x1F;
 
     // mtime is not a csr
     if (counter == (csr_time & 0x1F)) return rv_exc_illegal_instruction;
-
-    printf("not mtime\n");
 
     uint64_t val = 0;
     uint64_t mask = 0;

@@ -4,49 +4,48 @@ main.raw:     file format elf32-littleriscv
 
 Disassembly of section .text:
 
-00000000 <fail-0x90>:
-   0:	09400513          	li	a0,148
+00000000 <fail-0x9c>:
+   0:	00000513          	li	a0,0
    4:	00450593          	addi	a1,a0,4
-   8:	100522af          	lr.w	t0,(a0)
-   c:	180522af          	sc.w	t0,zero,(a0)
-  10:	08029063          	bnez	t0,90 <fail>
-  14:	180522af          	sc.w	t0,zero,(a0)
-  18:	06028c63          	beqz	t0,90 <fail>
-  1c:	100522af          	lr.w	t0,(a0)
-  20:	1805a2af          	sc.w	t0,zero,(a1)
-  24:	180522af          	sc.w	t0,zero,(a0)
-  28:	06028463          	beqz	t0,90 <fail>
-  2c:	100522af          	lr.w	t0,(a0)
-  30:	1805a2af          	sc.w	t0,zero,(a1)
-  34:	04028e63          	beqz	t0,90 <fail>
-  38:	100522af          	lr.w	t0,(a0)
-  3c:	1005a2af          	lr.w	t0,(a1)
-  40:	1805a2af          	sc.w	t0,zero,(a1)
-  44:	04029663          	bnez	t0,90 <fail>
-  48:	100522af          	lr.w	t0,(a0)
-  4c:	1005a2af          	lr.w	t0,(a1)
-  50:	180522af          	sc.w	t0,zero,(a0)
-  54:	02028e63          	beqz	t0,90 <fail>
-  58:	100522af          	lr.w	t0,(a0)
-  5c:	0005a023          	sw	zero,0(a1)
-  60:	180522af          	sc.w	t0,zero,(a0)
-  64:	02029663          	bnez	t0,90 <fail>
-  68:	100522af          	lr.w	t0,(a0)
-  6c:	00052023          	sw	zero,0(a0)
-  70:	180522af          	sc.w	t0,zero,(a0)
-  74:	00028e63          	beqz	t0,90 <fail>
-  78:	00250613          	addi	a2,a0,2
-  7c:	100522af          	lr.w	t0,(a0)
-  80:	00061023          	sh	zero,0(a2)
-  84:	180522af          	sc.w	t0,zero,(a0)
-  88:	00028463          	beqz	t0,90 <fail>
-  8c:	00200073          	.word	0x00200073
+   8:	90000437          	lui	s0,0x90000
+   c:	100522af          	lr.w	t0,(a0)
+  10:	180522af          	sc.w	t0,zero,(a0)
+  14:	08029463          	bnez	t0,9c <fail>
+  18:	180522af          	sc.w	t0,zero,(a0)
+  1c:	08028063          	beqz	t0,9c <fail>
+  20:	100522af          	lr.w	t0,(a0)
+  24:	1805a2af          	sc.w	t0,zero,(a1)
+  28:	180522af          	sc.w	t0,zero,(a0)
+  2c:	06028863          	beqz	t0,9c <fail>
+  30:	100522af          	lr.w	t0,(a0)
+  34:	1805a2af          	sc.w	t0,zero,(a1)
+  38:	06028263          	beqz	t0,9c <fail>
+  3c:	100522af          	lr.w	t0,(a0)
+  40:	1005a2af          	lr.w	t0,(a1)
+  44:	1805a2af          	sc.w	t0,zero,(a1)
+  48:	04029a63          	bnez	t0,9c <fail>
+  4c:	100522af          	lr.w	t0,(a0)
+  50:	1005a2af          	lr.w	t0,(a1)
+  54:	180522af          	sc.w	t0,zero,(a0)
+  58:	04028263          	beqz	t0,9c <fail>
+  5c:	100522af          	lr.w	t0,(a0)
+  60:	0005a023          	sw	zero,0(a1)
+  64:	180522af          	sc.w	t0,zero,(a0)
+  68:	02029a63          	bnez	t0,9c <fail>
+  6c:	100522af          	lr.w	t0,(a0)
+  70:	00052023          	sw	zero,0(a0)
+  74:	180522af          	sc.w	t0,zero,(a0)
+  78:	02028263          	beqz	t0,9c <fail>
+  7c:	00250613          	addi	a2,a0,2
+  80:	100522af          	lr.w	t0,(a0)
+  84:	00061023          	sh	zero,0(a2)
+  88:	180522af          	sc.w	t0,zero,(a0)
+  8c:	00028863          	beqz	t0,9c <fail>
+  90:	05300493          	li	s1,83
+  94:	00942023          	sw	s1,0(s0) # 90000000 <fail+0x8fffff64>
+  98:	00200073          	.word	0x00200073
 
-00000090 <fail>:
-  90:	00100073          	ebreak
-
-00000094 <var1>:
-  94:	00000001          	.word	0x00000001
-
-00000098 <var2>:
-  98:	00000002          	.word	0x00000002
+0000009c <fail>:
+  9c:	04600493          	li	s1,70
+  a0:	00942023          	sw	s1,0(s0)
+  a4:	00200073          	.word	0x00200073

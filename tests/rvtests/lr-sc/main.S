@@ -1,7 +1,8 @@
+#define ehalt .word 0x00200073
 .text
-li a0, 0x94// var1 addr
-addi a1, a0, 4 // var2 addr
-
+li a0, 0
+addi a1, a0, 4 
+li s0, 0x90000000
 // positive case
 lr.w t0, (a0)
 sc.w t0, zero, (a0)
@@ -44,10 +45,10 @@ lr.w t0, (a0)
 sh zero, (a2)
 sc.w t0, zero, (a0)
 beqz t0, fail
-.word 0x00200073
+li s1, 'S'
+sw s1, (s0)
+ehalt
 fail:
-ebreak
-var1:
-    .word 1
-var2:
-    .word 2
+li s1, 'F'
+sw s1, (s0)
+ehalt

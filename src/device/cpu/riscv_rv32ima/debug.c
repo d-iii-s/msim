@@ -452,6 +452,10 @@ void rv_idump(rv_cpu_t *cpu, uint32_t addr, rv_instr_t instr){
 	string_done(&s_comments);
 }
 
+ void rv_idump_phys(uint32_t addr, rv_instr_t instr){
+	rv_idump(NULL, addr, instr);
+ }
+
 void rv_csr_dump_all(rv_cpu_t *cpu){
 	printf("Unprivileged Counters/Timers\n");
 	rv_csr_dump_common(cpu, csr_cycle);

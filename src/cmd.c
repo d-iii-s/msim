@@ -21,6 +21,7 @@
 #include "device/cpu/mips_r4000/cpu.h"
 #include "device/cpu/mips_r4000/debug.h"
 #include "device/cpu/riscv_rv32ima/cpu.h"
+#include "device/cpu/riscv_rv32ima/debug.h"
 #include "debug/debug.h"
 #include "debug/breakpoint.h"
 #include "device/device.h"
@@ -158,8 +159,17 @@ static bool system_dumpins(token_t *parm, void *data)
 {
 	ASSERT(parm != NULL);
 	
+
+	char*	 _cpu  = parm_str_next(&parm);
 	uint64_t _addr = ALIGN_DOWN(parm_uint_next(&parm), 4);
 	uint64_t _cnt = parm_uint(parm);
+
+	bool is_rv = strcmp(_cpu, "rv") == 0;
+	bool is_r4k = strcmp(_cpu, "r4k") == 0;
+	if(!is_rv && !is_r4k) {
+		error("Unknown CPU type (supported types: r4k, rv)");
+		return false;
+	}
 	
 	if (!phys_range(_addr)) {
 		error("Physical address out of range");
@@ -181,9 +191,17 @@ static bool system_dumpins(token_t *parm, void *data)
 	
 	for (addr = (ptr36_t) _addr, cnt = (len36_t) _cnt; cnt > 0;
 	    addr += 4, cnt--) {
-		r4k_instr_t instr;
-		instr.val = physmem_read32(-1, addr, false);
-		r4k_idump_phys(addr, instr);
+
+		if(is_r4k){
+			r4k_instr_t instr;
+			instr.val = physmem_read32(-1, addr, false);
+			r4k_idump_phys(addr, instr);
+		}
+		else if (is_rv) {
+			rv_instr_t instr;
+			instr.val = physmem_read32(-1, addr, false);
+			rv_idump_phys(addr, instr);
+		}
 	}
 	
 	return true;
@@ -813,6 +831,7 @@ static cmd_t system_cmds[] = {
 		DEFAULT,
 		"Dump instructions from physical memory",
 		"Dump instructions from physical memory",
+		REQ STR "cpu" NEXT
 		REQ INT "addr/memory address" NEXT
 		REQ INT "cnt/count" END
 	},

@@ -19,6 +19,7 @@ TESTS = [
     "scyclecmp",
     "exceptions/simple",
     "exceptions/delegated",
+    "exceptions/not_delegated",
     "exceptions/delegated_from_m"
 ]
 

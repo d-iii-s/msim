@@ -1,0 +1,32 @@
+
+main.raw:     file format elf32-littleriscv
+
+
+Disassembly of section .text:
+
+00000000 <setup_table-0x3c>:
+   0:	800002b7          	lui	t0,0x80000
+   4:	30529073          	csrw	mtvec,t0
+   8:	034000ef          	jal	ra,3c <setup_table>
+   c:	801002b7          	lui	t0,0x80100
+  10:	fd028293          	addi	t0,t0,-48 # 800fffd0 <setup_table+0x800fff94>
+  14:	18029073          	csrw	satp,t0
+  18:	000012b7          	lui	t0,0x1
+  1c:	80028293          	addi	t0,t0,-2048 # 800 <setup_table+0x7c4>
+  20:	3002a073          	csrs	mstatus,t0
+  24:	00000297          	auipc	t0,0x0
+  28:	01028293          	addi	t0,t0,16 # 34 <setup_table-0x8>
+  2c:	34129073          	csrw	mepc,t0
+  30:	30200073          	mret
+  34:	00002283          	lw	t0,0(zero) # 0 <setup_table-0x3c>
+  38:	00200073          	.word	0x00200073
+
+0000003c <setup_table>:
+  3c:	fffd02b7          	lui	t0,0xfffd0
+  40:	00001337          	lui	t1,0x1
+  44:	f0030313          	addi	t1,t1,-256 # f00 <setup_table+0xec4>
+  48:	006283b3          	add	t2,t0,t1
+  4c:	3c000337          	lui	t1,0x3c000
+  50:	00b30313          	addi	t1,t1,11 # 3c00000b <setup_table+0x3bffffcf>
+  54:	0063a023          	sw	t1,0(t2)
+  58:	00008067          	ret

@@ -22,6 +22,7 @@ TESTS = [
     "exceptions/not_delegated",
     "exceptions/delegated_from_m",
     "exceptions/interrupt_simple",
+    "exceptions/interrupt_delegated",
 ]
 
 MSIM_PATH = "../../msim"

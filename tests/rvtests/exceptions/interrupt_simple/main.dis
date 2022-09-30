@@ -12,3 +12,7 @@ Disassembly of section .text:
   10:	34416073          	csrsi	mip,2
   14:	30046073          	csrsi	mstatus,8
   18:	00000013          	nop
+  1c:	900002b7          	lui	t0,0x90000
+  20:	04600313          	li	t1,70
+  24:	0062a023          	sw	t1,0(t0) # 90000000 <.text+0x90000000>
+  28:	00200073          	.word	0x00200073

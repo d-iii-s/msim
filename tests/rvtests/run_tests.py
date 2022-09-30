@@ -23,6 +23,7 @@ TESTS = [
     "exceptions/delegated_from_m",
     "exceptions/interrupt_simple",
     "exceptions/interrupt_delegated",
+    "exceptions/interrupt_delegation_masks",
 ]
 
 MSIM_PATH = "../../msim"
@@ -33,7 +34,7 @@ OUTPUT_FILENAME = "out.txt"
 EXPECTED_FILENAME = "expected-output.txt"
 
 def run_test(test_folder):
-    print("test: {t}".format(t=test_folder).ljust(40, ' '), end="")
+    print("test: {t}".format(t=test_folder).ljust(45, ' '), end="")
     relative_path = os.path.relpath(MSIM_PATH, test_folder)
     try:
         os.chdir(test_folder)

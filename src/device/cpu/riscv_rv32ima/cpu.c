@@ -165,7 +165,7 @@ static bool is_access_allowed(rv_cpu_t *cpu, sv32_pte_t pte, bool wr, bool fetch
     // Page is executable and I can read from executable pages
     bool rx = rv_csr_sstatus_mxr(cpu) && pte.x;
     
-    if(!wr && !pte.r && !rx) return false;
+    if(!wr && !pte.r && !rx && !fetch) return false;
 
     if(sv32_effective_priv(cpu) == rv_smode){
         if(!rv_csr_sstatus_sum(cpu) && pte.u) return false;

@@ -16,7 +16,8 @@ TESTS = [
     "m-extension",
     "amo",
     "lr-sc",
-    "scyclecmp"
+    "scyclecmp",
+    "exceptions/simple"
 ]
 
 MSIM_PATH = "../../msim"

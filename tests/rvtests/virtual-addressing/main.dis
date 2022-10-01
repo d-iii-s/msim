@@ -4,81 +4,138 @@ main.raw:     file format elf32-littleriscv
 
 Disassembly of section .text:
 
-00000000 <setup_table-0x3c>:
+00000000 <setup_table-0x4c>:
    0:	800002b7          	lui	t0,0x80000
    4:	30529073          	csrw	mtvec,t0
-   8:	034000ef          	jal	ra,3c <setup_table>
+   8:	044000ef          	jal	ra,4c <setup_table>
    c:	801002b7          	lui	t0,0x80100
-  10:	fd028293          	addi	t0,t0,-48 # 800fffd0 <fail+0x800ffec4>
+  10:	fd028293          	addi	t0,t0,-48 # 800fffd0 <fail+0x800ffe00>
   14:	18029073          	csrw	satp,t0
   18:	000012b7          	lui	t0,0x1
-  1c:	80028293          	addi	t0,t0,-2048 # 800 <fail+0x6f4>
+  1c:	80028293          	addi	t0,t0,-2048 # 800 <fail+0x630>
   20:	3002a073          	csrs	mstatus,t0
   24:	00000297          	auipc	t0,0x0
-  28:	01028293          	addi	t0,t0,16 # 34 <setup_table-0x8>
+  28:	01028293          	addi	t0,t0,16 # 34 <setup_table-0x18>
   2c:	34129073          	csrw	mepc,t0
   30:	30200073          	mret
-  34:	084000ef          	jal	ra,b8 <access_dirty_test>
-  38:	00200073          	.word	0x00200073
+  34:	0d0000ef          	jal	ra,104 <access_dirty_test>
+  38:	120000ef          	jal	ra,158 <write_read_only_test>
+  3c:	134000ef          	jal	ra,170 <read_execute_only_non_mxr_test>
+  40:	148000ef          	jal	ra,188 <read_u_page_not_sum>
+  44:	164000ef          	jal	ra,1a8 <read_u_page_set_sum>
+  48:	00200073          	.word	0x00200073
 
-0000003c <setup_table>:
-  3c:	fffd02b7          	lui	t0,0xfffd0
-  40:	00001337          	lui	t1,0x1
-  44:	f0030313          	addi	t1,t1,-256 # f00 <fail+0xdf4>
-  48:	006283b3          	add	t2,t0,t1
-  4c:	3c000337          	lui	t1,0x3c000
-  50:	00b30313          	addi	t1,t1,11 # 3c00000b <fail+0x3bfffeff>
-  54:	0063a023          	sw	t1,0(t2)
-  58:	00001337          	lui	t1,0x1
-  5c:	90030313          	addi	t1,t1,-1792 # 900 <fail+0x7f4>
-  60:	006283b3          	add	t2,t0,t1
-  64:	24000337          	lui	t1,0x24000
-  68:	00730313          	addi	t1,t1,7 # 24000007 <fail+0x23fffefb>
-  6c:	0063a023          	sw	t1,0(t2)
-  70:	00001337          	lui	t1,0x1
-  74:	ffc30313          	addi	t1,t1,-4 # ffc <fail+0xef0>
-  78:	006283b3          	add	t2,t0,t1
-  7c:	3ff00337          	lui	t1,0x3ff00
-  80:	00730313          	addi	t1,t1,7 # 3ff00007 <fail+0x3feffefb>
-  84:	0063a023          	sw	t1,0(t2)
-  88:	10000313          	li	t1,256
-  8c:	006283b3          	add	t2,t0,t1
-  90:	3fff8337          	lui	t1,0x3fff8
-  94:	00130313          	addi	t1,t1,1 # 3fff8001 <fail+0x3fff7ef5>
-  98:	0063a023          	sw	t1,0(t2)
-  9c:	fffe02b7          	lui	t0,0xfffe0
-  a0:	00000313          	li	t1,0
-  a4:	006283b3          	add	t2,t0,t1
-  a8:	04000337          	lui	t1,0x4000
-  ac:	00f30313          	addi	t1,t1,15 # 400000f <fail+0x3ffff03>
-  b0:	0063a023          	sw	t1,0(t2)
-  b4:	00008067          	ret
+0000004c <setup_table>:
+  4c:	fffd02b7          	lui	t0,0xfffd0
+  50:	00001337          	lui	t1,0x1
+  54:	f0030313          	addi	t1,t1,-256 # f00 <fail+0xd30>
+  58:	006283b3          	add	t2,t0,t1
+  5c:	3c000337          	lui	t1,0x3c000
+  60:	00b30313          	addi	t1,t1,11 # 3c00000b <fail+0x3bfffe3b>
+  64:	0063a023          	sw	t1,0(t2)
+  68:	00001337          	lui	t1,0x1
+  6c:	90030313          	addi	t1,t1,-1792 # 900 <fail+0x730>
+  70:	006283b3          	add	t2,t0,t1
+  74:	24000337          	lui	t1,0x24000
+  78:	00730313          	addi	t1,t1,7 # 24000007 <fail+0x23fffe37>
+  7c:	0063a023          	sw	t1,0(t2)
+  80:	00001337          	lui	t1,0x1
+  84:	ffc30313          	addi	t1,t1,-4 # ffc <fail+0xe2c>
+  88:	006283b3          	add	t2,t0,t1
+  8c:	3ff00337          	lui	t1,0x3ff00
+  90:	00730313          	addi	t1,t1,7 # 3ff00007 <fail+0x3feffe37>
+  94:	0063a023          	sw	t1,0(t2)
+  98:	10000313          	li	t1,256
+  9c:	006283b3          	add	t2,t0,t1
+  a0:	3fff8337          	lui	t1,0x3fff8
+  a4:	00130313          	addi	t1,t1,1 # 3fff8001 <fail+0x3fff7e31>
+  a8:	0063a023          	sw	t1,0(t2)
+  ac:	fffe02b7          	lui	t0,0xfffe0
+  b0:	00000313          	li	t1,0
+  b4:	006283b3          	add	t2,t0,t1
+  b8:	04000337          	lui	t1,0x4000
+  bc:	00f30313          	addi	t1,t1,15 # 400000f <fail+0x3fffe3f>
+  c0:	0063a023          	sw	t1,0(t2)
+  c4:	00400313          	li	t1,4
+  c8:	006283b3          	add	t2,t0,t1
+  cc:	04000337          	lui	t1,0x4000
+  d0:	40330313          	addi	t1,t1,1027 # 4000403 <fail+0x4000233>
+  d4:	0063a023          	sw	t1,0(t2)
+  d8:	00800313          	li	t1,8
+  dc:	006283b3          	add	t2,t0,t1
+  e0:	04001337          	lui	t1,0x4001
+  e4:	80930313          	addi	t1,t1,-2039 # 4000809 <fail+0x4000639>
+  e8:	0063a023          	sw	t1,0(t2)
+  ec:	00c00313          	li	t1,12
+  f0:	006283b3          	add	t2,t0,t1
+  f4:	04001337          	lui	t1,0x4001
+  f8:	c1f30313          	addi	t1,t1,-993 # 4000c1f <fail+0x4000a4f>
+  fc:	0063a023          	sw	t1,0(t2)
+ 100:	00008067          	ret
 
-000000b8 <access_dirty_test>:
-  b8:	fffe02b7          	lui	t0,0xfffe0
-  bc:	10000337          	lui	t1,0x10000
-  c0:	0002a383          	lw	t2,0(t0) # fffe0000 <fail+0xfffdfef4>
-  c4:	0c03f393          	andi	t2,t2,192
-  c8:	04039263          	bnez	t2,10c <fail>
-  cc:	00032383          	lw	t2,0(t1) # 10000000 <fail+0xffffef4>
-  d0:	0002a383          	lw	t2,0(t0)
-  d4:	0c03f393          	andi	t2,t2,192
-  d8:	fc038393          	addi	t2,t2,-64
-  dc:	02039863          	bnez	t2,10c <fail>
-  e0:	00732023          	sw	t2,0(t1)
-  e4:	0002a383          	lw	t2,0(t0)
-  e8:	0c03f393          	andi	t2,t2,192
-  ec:	f4038393          	addi	t2,t2,-192
-  f0:	00039e63          	bnez	t2,10c <fail>
-  f4:	900002b7          	lui	t0,0x90000
-  f8:	05300313          	li	t1,83
-  fc:	0062a023          	sw	t1,0(t0) # 90000000 <fail+0x8ffffef4>
- 100:	00a00313          	li	t1,10
- 104:	0062a023          	sw	t1,0(t0)
- 108:	00008067          	ret
+00000104 <access_dirty_test>:
+ 104:	fffe02b7          	lui	t0,0xfffe0
+ 108:	10000337          	lui	t1,0x10000
+ 10c:	0002a383          	lw	t2,0(t0) # fffe0000 <fail+0xfffdfe30>
+ 110:	0c03f393          	andi	t2,t2,192
+ 114:	0a039e63          	bnez	t2,1d0 <fail>
+ 118:	00032383          	lw	t2,0(t1) # 10000000 <fail+0xffffe30>
+ 11c:	0002a383          	lw	t2,0(t0)
+ 120:	0c03f393          	andi	t2,t2,192
+ 124:	fc038393          	addi	t2,t2,-64
+ 128:	0a039463          	bnez	t2,1d0 <fail>
+ 12c:	00732023          	sw	t2,0(t1)
+ 130:	0002a383          	lw	t2,0(t0)
+ 134:	0c03f393          	andi	t2,t2,192
+ 138:	f4038393          	addi	t2,t2,-192
+ 13c:	08039a63          	bnez	t2,1d0 <fail>
+ 140:	900002b7          	lui	t0,0x90000
+ 144:	05300313          	li	t1,83
+ 148:	0062a023          	sw	t1,0(t0) # 90000000 <fail+0x8ffffe30>
+ 14c:	00a00313          	li	t1,10
+ 150:	0062a023          	sw	t1,0(t0)
+ 154:	00008067          	ret
 
-0000010c <fail>:
- 10c:	900002b7          	lui	t0,0x90000
- 110:	04600313          	li	t1,70
- 114:	0062a023          	sw	t1,0(t0) # 90000000 <fail+0x8ffffef4>
- 118:	00200073          	.word	0x00200073
+00000158 <write_read_only_test>:
+ 158:	100012b7          	lui	t0,0x10001
+ 15c:	0002a023          	sw	zero,0(t0) # 10001000 <fail+0x10000e30>
+ 160:	900002b7          	lui	t0,0x90000
+ 164:	00a00313          	li	t1,10
+ 168:	0062a023          	sw	t1,0(t0) # 90000000 <fail+0x8ffffe30>
+ 16c:	00008067          	ret
+
+00000170 <read_execute_only_non_mxr_test>:
+ 170:	100022b7          	lui	t0,0x10002
+ 174:	0002a003          	lw	zero,0(t0) # 10002000 <fail+0x10001e30>
+ 178:	900002b7          	lui	t0,0x90000
+ 17c:	00a00313          	li	t1,10
+ 180:	0062a023          	sw	t1,0(t0) # 90000000 <fail+0x8ffffe30>
+ 184:	00008067          	ret
+
+00000188 <read_u_page_not_sum>:
+ 188:	000402b7          	lui	t0,0x40
+ 18c:	1002b073          	csrc	sstatus,t0
+ 190:	100032b7          	lui	t0,0x10003
+ 194:	0002a003          	lw	zero,0(t0) # 10003000 <fail+0x10002e30>
+ 198:	900002b7          	lui	t0,0x90000
+ 19c:	00a00313          	li	t1,10
+ 1a0:	0062a023          	sw	t1,0(t0) # 90000000 <fail+0x8ffffe30>
+ 1a4:	00008067          	ret
+
+000001a8 <read_u_page_set_sum>:
+ 1a8:	000402b7          	lui	t0,0x40
+ 1ac:	1002a073          	csrs	sstatus,t0
+ 1b0:	100032b7          	lui	t0,0x10003
+ 1b4:	0002a003          	lw	zero,0(t0) # 10003000 <fail+0x10002e30>
+ 1b8:	900002b7          	lui	t0,0x90000
+ 1bc:	00a00313          	li	t1,10
+ 1c0:	0062a023          	sw	t1,0(t0) # 90000000 <fail+0x8ffffe30>
+ 1c4:	000402b7          	lui	t0,0x40
+ 1c8:	1002b073          	csrc	sstatus,t0
+ 1cc:	00008067          	ret
+
+000001d0 <fail>:
+ 1d0:	900002b7          	lui	t0,0x90000
+ 1d4:	04600313          	li	t1,70
+ 1d8:	0062a023          	sw	t1,0(t0) # 90000000 <fail+0x8ffffe30>
+ 1dc:	00200073          	.word	0x00200073

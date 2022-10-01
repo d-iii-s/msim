@@ -11,6 +11,8 @@ auipc t0, 0
 addi t0, t0, 16
 csrw mepc, t0
 mret
+// Run the tests
+// Each test outputs the progression to the printer as a single line (ended by '\n')
 jal ra, access_dirty_test
 ehalt
 
@@ -29,13 +31,13 @@ setup_table:
     // Setup printer translation
     li t1, 0x900
     add t2, t0, t1
-    li t1, 0x2400000B
+    li t1, 0x24000007
     sw t1, (t2)
 
     // Setup translation megapage for the vtable entries
     li t1, 0xFFC
     add t2, t0, t1
-    li t1, 0x3FF0000B
+    li t1, 0x3FF00007
     sw t1, (t2)
 
     // Setup first level pte for tests
@@ -53,7 +55,6 @@ setup_table:
     li t1, 0x0400000F
     sw t1, (t2)
     ret
-
 
 access_dirty_test:
     li t0, 0xFFFE0000
@@ -78,6 +79,12 @@ access_dirty_test:
     andi t2, t2, 0xC0
     addi t2, t2, - (3<<6)    
     bnez t2, fail
+
+    li t0, 0x90000000
+    li t1, 'S'
+    sw t1, (t0)
+    li t1, '\n'
+    sw t1, (t0)
 
     ret
 

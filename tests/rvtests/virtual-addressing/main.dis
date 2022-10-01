@@ -9,24 +9,72 @@ Disassembly of section .text:
    4:	30529073          	csrw	mtvec,t0
    8:	034000ef          	jal	ra,3c <setup_table>
    c:	801002b7          	lui	t0,0x80100
-  10:	fd028293          	addi	t0,t0,-48 # 800fffd0 <setup_table+0x800fff94>
+  10:	fd028293          	addi	t0,t0,-48 # 800fffd0 <fail+0x800ffed4>
   14:	18029073          	csrw	satp,t0
   18:	000012b7          	lui	t0,0x1
-  1c:	80028293          	addi	t0,t0,-2048 # 800 <setup_table+0x7c4>
+  1c:	80028293          	addi	t0,t0,-2048 # 800 <fail+0x704>
   20:	3002a073          	csrs	mstatus,t0
   24:	00000297          	auipc	t0,0x0
   28:	01028293          	addi	t0,t0,16 # 34 <setup_table-0x8>
   2c:	34129073          	csrw	mepc,t0
   30:	30200073          	mret
-  34:	00002283          	lw	t0,0(zero) # 0 <setup_table-0x3c>
+  34:	084000ef          	jal	ra,b8 <access_dirty_test>
   38:	00200073          	.word	0x00200073
 
 0000003c <setup_table>:
   3c:	fffd02b7          	lui	t0,0xfffd0
   40:	00001337          	lui	t1,0x1
-  44:	f0030313          	addi	t1,t1,-256 # f00 <setup_table+0xec4>
+  44:	f0030313          	addi	t1,t1,-256 # f00 <fail+0xe04>
   48:	006283b3          	add	t2,t0,t1
   4c:	3c000337          	lui	t1,0x3c000
-  50:	00b30313          	addi	t1,t1,11 # 3c00000b <setup_table+0x3bffffcf>
+  50:	00b30313          	addi	t1,t1,11 # 3c00000b <fail+0x3bffff0f>
   54:	0063a023          	sw	t1,0(t2)
-  58:	00008067          	ret
+  58:	00001337          	lui	t1,0x1
+  5c:	90030313          	addi	t1,t1,-1792 # 900 <fail+0x804>
+  60:	006283b3          	add	t2,t0,t1
+  64:	24000337          	lui	t1,0x24000
+  68:	00b30313          	addi	t1,t1,11 # 2400000b <fail+0x23ffff0f>
+  6c:	0063a023          	sw	t1,0(t2)
+  70:	00001337          	lui	t1,0x1
+  74:	ffc30313          	addi	t1,t1,-4 # ffc <fail+0xf00>
+  78:	006283b3          	add	t2,t0,t1
+  7c:	3ff00337          	lui	t1,0x3ff00
+  80:	00b30313          	addi	t1,t1,11 # 3ff0000b <fail+0x3fefff0f>
+  84:	0063a023          	sw	t1,0(t2)
+  88:	10000313          	li	t1,256
+  8c:	006283b3          	add	t2,t0,t1
+  90:	3fff8337          	lui	t1,0x3fff8
+  94:	00130313          	addi	t1,t1,1 # 3fff8001 <fail+0x3fff7f05>
+  98:	0063a023          	sw	t1,0(t2)
+  9c:	fffe02b7          	lui	t0,0xfffe0
+  a0:	00000313          	li	t1,0
+  a4:	006283b3          	add	t2,t0,t1
+  a8:	04000337          	lui	t1,0x4000
+  ac:	00f30313          	addi	t1,t1,15 # 400000f <fail+0x3ffff13>
+  b0:	0063a023          	sw	t1,0(t2)
+  b4:	00008067          	ret
+
+000000b8 <access_dirty_test>:
+  b8:	fffe02b7          	lui	t0,0xfffe0
+  bc:	10000337          	lui	t1,0x10000
+  c0:	0002a383          	lw	t2,0(t0) # fffe0000 <fail+0xfffdff04>
+  c4:	0c03f393          	andi	t2,t2,192
+  c8:	02039a63          	bnez	t2,fc <fail>
+  cc:	00032383          	lw	t2,0(t1) # 10000000 <fail+0xfffff04>
+  d0:	0002a383          	lw	t2,0(t0)
+  d4:	0c03f393          	andi	t2,t2,192
+  d8:	fc038393          	addi	t2,t2,-64
+  dc:	02039063          	bnez	t2,fc <fail>
+  e0:	00100073          	ebreak
+  e4:	00732023          	sw	t2,0(t1)
+  e8:	0002a383          	lw	t2,0(t0)
+  ec:	0c03f393          	andi	t2,t2,192
+  f0:	f4038393          	addi	t2,t2,-192
+  f4:	00039463          	bnez	t2,fc <fail>
+  f8:	00008067          	ret
+
+000000fc <fail>:
+  fc:	900002b7          	lui	t0,0x90000
+ 100:	04600313          	li	t1,70
+ 104:	0062a023          	sw	t1,0(t0) # 90000000 <fail+0x8fffff04>
+ 108:	00200073          	.word	0x00200073

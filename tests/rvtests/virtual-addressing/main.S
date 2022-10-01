@@ -62,7 +62,7 @@ access_dirty_test:
     lw t2, (t0)
     andi t2, t2, 0xC0
     bnez t2, fail
-    
+
     // read from rwx page
     lw t2, (t1)
 
@@ -72,7 +72,6 @@ access_dirty_test:
     bnez t2, fail
 
     // write to rwx page
-    ebreak
     sw t2, (t1)
 
     lw t2, (t0)

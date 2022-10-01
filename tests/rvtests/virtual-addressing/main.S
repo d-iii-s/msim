@@ -13,11 +13,15 @@ csrw mepc, t0
 mret
 // Run the tests
 // Each test outputs the progression to the printer as a single line (ended by '\n')
-jal ra, access_dirty_test               // S
-jal ra, write_read_only_test            // T
-jal ra, read_execute_only_non_mxr_test  // T
-jal ra, read_u_page_not_sum             // T
-jal ra, read_u_page_set_sum             // 
+jal ra, access_dirty                        // S
+jal ra, write_read_only                     // T
+jal ra, read_execute_only_non_mxr           // T
+jal ra, read_execute_only_set_mxr           // 
+jal ra, read_u_page_not_sum                 // T
+jal ra, read_u_page_set_sum                 // 
+jal ra, read_from_unaligned_megapage        // T
+jal ra, read_from_invalid_first_level_pte   // T
+jal ra, read_from_invalid_second_level_pte  // T
 
 ehalt
 
@@ -78,9 +82,29 @@ setup_table:
     li t1, 0x04000C1F
     sw t1, (t2)
 
+    // invalid pte
+    li t1, 0xFFC
+    add t2, t0, t1
+    li t1, 0x0000000E
+    sw t1, (t2)
+
+
+    // megapage invalid ppn0
+    li t0, 0xFFFD0000
+    li t1, 0x200
+    add t2, t0, t1
+    li t1, 0x0400040F
+    sw t1, (t2)
+
+    // invalid first level pte
+    li t1, 0x204
+    add t2, t0, t1
+    li t1, 0x0400000E
+    sw t1, (t2)
+
     ret
 
-access_dirty_test:
+access_dirty:
     li t0, 0xFFFE0000
     li t1, 0x10000000
 
@@ -112,7 +136,7 @@ access_dirty_test:
 
     ret
 
-write_read_only_test:
+write_read_only:
     li t0, 0x10001000
     
     // This should raise an exception
@@ -124,7 +148,7 @@ write_read_only_test:
 
     ret
 
-read_execute_only_non_mxr_test:
+read_execute_only_non_mxr:
     li t0, 0x10002000
     
     // This should trap
@@ -133,6 +157,24 @@ read_execute_only_non_mxr_test:
     li t0, 0x90000000
     li t1, '\n'
     sw t1, (t0)
+
+    ret
+
+read_execute_only_set_mxr:
+    li t0, 1<<19
+    csrs sstatus, t0
+
+    li t0, 0x10002000
+    
+    // This should not trap
+    lw zero, (t0)
+    
+    li t0, 0x90000000
+    li t1, '\n'
+    sw t1, (t0)
+    
+    li t0, 1<<19
+    csrc sstatus, t0
 
     ret
 
@@ -168,6 +210,42 @@ read_u_page_set_sum:
     li t0, 1<<18
     csrc sstatus, t0
 
+    ret
+
+read_from_unaligned_megapage:
+    li t0, 0x20000000
+    
+    // Should trap
+    lw t0, (t0)
+    
+    li t0, 0x90000000
+    li t1, '\n'
+    sw t1, (t0)
+    
+    ret
+
+read_from_invalid_first_level_pte:
+    li t0, 0x20400000
+    
+    // Should trap
+    lw t0, (t0)
+    
+    li t0, 0x90000000
+    li t1, '\n'
+    sw t1, (t0)
+    
+    ret
+
+read_from_invalid_second_level_pte:
+    li t0, 0x103FF000
+    
+    // Should trap
+    lw t0, (t0)
+    
+    li t0, 0x90000000
+    li t1, '\n'
+    sw t1, (t0)
+    
     ret
 
 fail:

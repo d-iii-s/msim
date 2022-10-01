@@ -24,6 +24,7 @@ TESTS = [
     "exceptions/interrupt_simple",
     "exceptions/interrupt_delegated",
     "exceptions/interrupt_delegation_masks",
+    "virtual-addressing",
 ]
 
 MSIM_PATH = "../../msim"

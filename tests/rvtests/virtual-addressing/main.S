@@ -22,6 +22,8 @@ jal ra, read_u_page_set_sum                 //
 jal ra, read_from_unaligned_megapage        // T
 jal ra, read_from_invalid_first_level_pte   // T
 jal ra, read_from_invalid_second_level_pte  // T
+jal ra, read_from_non_leaf_second_level_pte // T
+jal ra, read_from_non_mapped                // T
 
 ehalt
 
@@ -88,6 +90,12 @@ setup_table:
     li t1, 0x0000000E
     sw t1, (t2)
 
+    // non leaf 2nd level
+    li t1, 0xFF8
+    add t2, t0, t1
+    li t1, 0x00000001
+    sw t1, (t2)
+
 
     // megapage invalid ppn0
     li t0, 0xFFFD0000
@@ -131,10 +139,8 @@ access_dirty:
     li t0, 0x90000000
     li t1, 'S'
     sw t1, (t0)
-    li t1, '\n'
-    sw t1, (t0)
 
-    ret
+    j return
 
 write_read_only:
     li t0, 0x10001000
@@ -142,11 +148,7 @@ write_read_only:
     // This should raise an exception
     sw zero, (t0)
     
-    li t0, 0x90000000
-    li t1, '\n'
-    sw t1, (t0)
-
-    ret
+    j return
 
 read_execute_only_non_mxr:
     li t0, 0x10002000
@@ -154,11 +156,7 @@ read_execute_only_non_mxr:
     // This should trap
     lw zero, (t0)
     
-    li t0, 0x90000000
-    li t1, '\n'
-    sw t1, (t0)
-
-    ret
+    j return
 
 read_execute_only_set_mxr:
     li t0, 1<<19
@@ -169,14 +167,10 @@ read_execute_only_set_mxr:
     // This should not trap
     lw zero, (t0)
     
-    li t0, 0x90000000
-    li t1, '\n'
-    sw t1, (t0)
-    
     li t0, 1<<19
     csrc sstatus, t0
 
-    ret
+    j return
 
 read_u_page_not_sum:
     li t0, 1<<18
@@ -188,11 +182,7 @@ read_u_page_not_sum:
     // This should trap
     lw zero, (t0)
     
-    li t0, 0x90000000
-    li t1, '\n'
-    sw t1, (t0)
-
-    ret
+    j return
 
 read_u_page_set_sum:
     li t0, 1<<18
@@ -202,15 +192,11 @@ read_u_page_set_sum:
     
     // This should not trap
     lw zero, (t0)
-    
-    li t0, 0x90000000
-    li t1, '\n'
-    sw t1, (t0)
 
     li t0, 1<<18
     csrc sstatus, t0
 
-    ret
+    j return
 
 read_from_unaligned_megapage:
     li t0, 0x20000000
@@ -218,11 +204,7 @@ read_from_unaligned_megapage:
     // Should trap
     lw t0, (t0)
     
-    li t0, 0x90000000
-    li t1, '\n'
-    sw t1, (t0)
-    
-    ret
+    j return
 
 read_from_invalid_first_level_pte:
     li t0, 0x20400000
@@ -230,11 +212,7 @@ read_from_invalid_first_level_pte:
     // Should trap
     lw t0, (t0)
     
-    li t0, 0x90000000
-    li t1, '\n'
-    sw t1, (t0)
-    
-    ret
+    j return
 
 read_from_invalid_second_level_pte:
     li t0, 0x103FF000
@@ -242,6 +220,24 @@ read_from_invalid_second_level_pte:
     // Should trap
     lw t0, (t0)
     
+    j return
+
+read_from_non_leaf_second_level_pte:
+    li t0, 0x103FE000
+    
+    // Should trap
+    lw t0, (t0)
+    
+    j return
+
+read_from_non_mapped:
+    
+    // Should trap
+    lw t0, (zero)
+
+    j return
+
+return:
     li t0, 0x90000000
     li t1, '\n'
     sw t1, (t0)

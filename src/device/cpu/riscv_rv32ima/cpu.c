@@ -165,7 +165,7 @@ static bool is_access_allowed(rv_cpu_t *cpu, sv32_pte_t pte, bool wr, bool fetch
     // Page is executable and I can read from executable pages
     bool rx = rv_csr_sstatus_mxr(cpu) && pte.x;
     
-    if(!wr && !pte.r && !rx && !fetch) return false;
+    if(!wr && !fetch && !pte.r && !rx) return false;
 
     if(sv32_effective_priv(cpu) == rv_smode){
         if(!rv_csr_sstatus_sum(cpu) && pte.u) return false;
@@ -246,8 +246,8 @@ rv_exc_t rv_convert_addr(rv_cpu_t *cpu, uint32_t virt, ptr36_t *phys, bool wr, b
     }
 
     if(!is_access_allowed(cpu, pte, wr, fetch)) return page_fault_exception;
-
     pte.a = 1;
+
     pte.d |= wr ? 1 : 0;
 
     pte_val = uint_from_pte(pte);
@@ -255,7 +255,6 @@ rv_exc_t rv_convert_addr(rv_cpu_t *cpu, uint32_t virt, ptr36_t *phys, bool wr, b
     if(noisy){
         physmem_write32(cpu->csr.mhartid, pte_addr, pte_val, true);
     }
-
     *phys = make_phys_from_ppn(virt, pte, is_megapage);
     return rv_exc_none;
 
@@ -382,7 +381,7 @@ rv_exc_t rv_write_mem8(rv_cpu_t *cpu, uint32_t virt, uint8_t value, bool noisy){
     if(try_write_memory_mapped_regs(cpu, virt, value, 8)) return rv_exc_none;
 
     ptr36_t phys;
-    rv_exc_t ex = rv_convert_addr(cpu, virt, &phys, false, false, noisy);
+    rv_exc_t ex = rv_convert_addr(cpu, virt, &phys, true, false, noisy);
     
     if(ex != rv_exc_none){
         throw_ex(cpu, virt, ex, noisy);
@@ -403,7 +402,7 @@ rv_exc_t rv_write_mem16(rv_cpu_t *cpu, uint32_t virt, uint16_t value, bool noisy
     if(try_write_memory_mapped_regs(cpu, virt, value, 16)) return rv_exc_none;
 
     ptr36_t phys;
-    rv_exc_t ex = rv_convert_addr(cpu, virt, &phys, false, false, noisy);
+    rv_exc_t ex = rv_convert_addr(cpu, virt, &phys, true, false, noisy);
 
     // address translation exceptions have priority to alignment exceptions
     if(ex != rv_exc_none){
@@ -430,7 +429,7 @@ rv_exc_t rv_write_mem32(rv_cpu_t *cpu, uint32_t virt, uint32_t value, bool noisy
     if(try_write_memory_mapped_regs(cpu, virt, value, 32)) return rv_exc_none;
 
     ptr36_t phys;
-    rv_exc_t ex = rv_convert_addr(cpu, virt, &phys, false, false, noisy);
+    rv_exc_t ex = rv_convert_addr(cpu, virt, &phys, true, false, noisy);
     
     if(ex != rv_exc_none){
         throw_ex(cpu, virt, ex, noisy);

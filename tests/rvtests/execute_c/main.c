@@ -70,13 +70,44 @@ unsigned int factorial_rec(unsigned int n){
     return n * factorial_rec(n - 1);
 }
 
+unsigned int fib_rec(unsigned int n){
+    if(n == 0 || n == 1) return n;
+    return fib_rec(n-1) + fib_rec(n-2);
+}
+
+unsigned int fib_loop(unsigned int n){
+    if(n == 0 || n == 1) return n;
+    unsigned int prev = 0;
+    unsigned int next = 1;
+    for(int i = 2; i <= n; ++i){
+        unsigned int temp = next;
+        next = next + prev;
+        prev = temp;
+    }
+    return next;
+}
+
 unsigned int global_int = 5;
 
 void main(void) {
     puts("Hello world!\n");
     print_int(42);
-    print_int(factorial_rec(12));
 
+    puts("\nFact\n");
+    for(int i = 0; i < 10; ++i){
+        print_int(factorial_rec(i));
+    }
+    puts("\nFib rec\n");
+    for(int i = 0; i < 30; ++i){
+        print_int(fib_rec(i));
+    }
+
+    puts("\nFib loop\n");
+    for(int i = 0; i < 30; ++i){
+        print_int(fib_loop(i));
+    }
+
+    puts("\nGlobal\n");
     print_int(global_int);
     global_int += 1;
     print_int(global_int);

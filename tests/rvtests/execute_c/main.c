@@ -70,8 +70,14 @@ unsigned int factorial_rec(unsigned int n){
     return n * factorial_rec(n - 1);
 }
 
+unsigned int global_int = 5;
+
 void main(void) {
     puts("Hello world!\n");
     print_int(42);
     print_int(factorial_rec(12));
+
+    print_int(global_int);
+    global_int += 1;
+    print_int(global_int);
 }

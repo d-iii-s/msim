@@ -44,7 +44,7 @@ bool try_int2s(unsigned int num, char* output, int len){
             break;
     }
     // The last written index is i
-    
+    // We need to write i chars + 1 '\0', so we need i+1 bytes total
     if(i >= len - 1)
         return false;
 

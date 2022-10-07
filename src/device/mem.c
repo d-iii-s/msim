@@ -86,6 +86,8 @@ static bool mem_init(token_t *parm, device_t *dev)
 		    "(%u bytes)", FRAME_SIZE);
 		return false;
 	}
+
+	// TODO: fail when areas overlap
 	
 	physmem_area_t *area = safe_malloc_t(physmem_area_t);
 	

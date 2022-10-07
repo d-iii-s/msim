@@ -1,0 +1,140 @@
+
+Memory Configuration
+
+Name             Origin             Length             Attributes
+*default*        0x0000000000000000 0xffffffffffffffff
+
+Linker script and memory map
+
+
+.main           0x0000000080000000      0x3e2
+ *(__start)
+ __start        0x0000000080000000        0x8 head.o
+ *(.text .text.*)
+ .text          0x0000000080000008      0x3cc main.o
+                0x0000000080000008                memset
+                0x000000008000006c                putchar
+                0x00000000800000a4                puts
+                0x0000000080000104                try_int2s
+                0x00000000800002bc                print_int
+                0x0000000080000334                factorial_rec
+                0x0000000080000388                main
+ .text          0x00000000800003d4        0x0 head.o
+ *(.data)
+ .data          0x00000000800003d4        0x0 main.o
+ .data          0x00000000800003d4        0x0 head.o
+ *(.rodata .rodata.*)
+ .rodata        0x00000000800003d4        0xe main.o
+ *(.bss)
+ .bss           0x00000000800003e2        0x0 main.o
+ .bss           0x00000000800003e2        0x0 head.o
+ *(COMMON)
+
+.stab
+ *(.stab)
+
+.stabstr
+ *(.stabstr)
+
+.stab.excl
+ *(.stab.excl)
+
+.stab.exclstr
+ *(.stab.exclstr)
+
+.stab.index
+ *(.stab.index)
+
+.stab.indexstr
+ *(.stab.indexstr)
+
+.comment        0x0000000000000000       0x1b
+ *(.comment)
+ .comment       0x0000000000000000       0x1b main.o
+                                         0x1c (size before relaxing)
+
+.debug
+ *(.debug)
+
+.line
+ *(.line)
+
+.debug_srcinfo
+ *(.debug_srcinfo)
+
+.debug_sfnames
+ *(.debug_sfnames)
+
+.debug_aranges  0x0000000000000000       0x20
+ *(.debug_aranges)
+ .debug_aranges
+                0x0000000000000000       0x20 main.o
+
+.debug_pubnames
+ *(.debug_pubnames)
+
+.debug_info     0x0000000000000000      0x211
+ *(.debug_info .gnu.linkonce.wi.*)
+ .debug_info    0x0000000000000000      0x211 main.o
+
+.debug_abbrev   0x0000000000000000      0x135
+ *(.debug_abbrev)
+ .debug_abbrev  0x0000000000000000      0x135 main.o
+
+.debug_line     0x0000000000000000      0x2d0
+ *(.debug_line)
+ .debug_line    0x0000000000000000      0x2d0 main.o
+
+.debug_line_str
+                0x0000000000000000       0x66
+ *(.debug_line_str)
+ .debug_line_str
+                0x0000000000000000       0x66 main.o
+                                         0xd3 (size before relaxing)
+
+.debug_frame    0x0000000000000000      0x120
+ *(.debug_frame)
+ .debug_frame   0x0000000000000000      0x120 main.o
+
+.debug_str      0x0000000000000000       0xfe
+ *(.debug_str)
+ .debug_str     0x0000000000000000       0xfe main.o
+                                        0x110 (size before relaxing)
+
+.debug_loc
+ *(.debug_loc)
+
+.debug_macinfo
+ *(.debug_macinfo)
+
+.debug_weaknames
+ *(.debug_weaknames)
+
+.debug_funcnames
+ *(.debug_funcnames)
+
+.debug_typenames
+ *(.debug_typenames)
+
+.debug_varnames
+ *(.debug_varnames)
+
+.debug_pubtypes
+ *(.debug_pubtypes)
+
+.debug_ranges
+ *(.debug_ranges)
+
+.gnu.attributes
+ *(.gnu.attributes)
+
+.riscv.attributes
+                0x0000000000000000       0x26
+ *(.riscv.attributes)
+ .riscv.attributes
+                0x0000000000000000       0x26 main.o
+ .riscv.attributes
+                0x0000000000000026       0x24 head.o
+LOAD main.o
+LOAD head.o
+OUTPUT(main.raw elf32-littleriscv)

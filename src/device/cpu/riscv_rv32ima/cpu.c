@@ -246,8 +246,8 @@ rv_exc_t rv_convert_addr(rv_cpu_t *cpu, uint32_t virt, ptr36_t *phys, bool wr, b
     }
 
     if(!is_access_allowed(cpu, pte, wr, fetch)) return page_fault_exception;
-    pte.a = 1;
 
+    pte.a = 1;
     pte.d |= wr ? 1 : 0;
 
     pte_val = uint_from_pte(pte);
@@ -708,14 +708,19 @@ static rv_exc_t execute(rv_cpu_t *cpu) {
     rv_exc_t ex = rv_convert_addr(cpu, cpu->pc, &phys, false, true, true);
  
     if(ex != rv_exc_none){
+        alert("Fetching from unconvertable address!");;
+        if(machine_trace) {
+            rv_idump(cpu, cpu->pc, (rv_instr_t)0U);
+        }
         return ex;
     }
 
     rv_instr_func_t instr_func = fetch_instr(cpu, phys);
     rv_instr_t instr_data = (rv_instr_t)physmem_read32(cpu->csr.mhartid, phys, true);
     
-    if(machine_trace)
+    if(machine_trace) {
         rv_idump(cpu, cpu->pc, instr_data);
+    }
 
     ex = instr_func(cpu, instr_data);
 
@@ -731,8 +736,9 @@ void rv_cpu_step(rv_cpu_t *cpu){
 
     rv_exc_t ex = rv_exc_none;
 
-    if(!cpu->stdby)
+    if(!cpu->stdby) {
         ex = execute(cpu);
+    }
 
     account(cpu, ex != rv_exc_none);
  

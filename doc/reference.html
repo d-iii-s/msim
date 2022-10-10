@@ -2,19 +2,22 @@
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en">
 <head>
-	<title>MSIM Version 1.4.0 Reference Manual</title>
+	<title>MSIM Version 2.0.0 Reference Manual</title>
 	<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
 	<link rel="stylesheet" type="text/css" href="default.css" />
 </head>
 <body>
-<h1>MSIM Version 1.4.0 Reference Manual</h1>
+<h1>MSIM Version 2.0.0 Reference Manual</h1>
 <h2>Abstract</h2>
 
 <p>The purpose of this document is to provide a comprehensive reference manual
-for <a href="http://d3s.mff.cuni.cz/~holub/sw/msim/">MSIM</a> version 1.4.0.</p>
+for <a href="http://d3s.mff.cuni.cz/~holub/sw/msim/">MSIM</a> version 2.0.0.</p>
 
-<p>&copy;&nbsp;2007&nbsp;&ndash;&nbsp;2010 <a href="http://d3s.mff.cuni.cz/~holub/">Viliam Holub</a> (holub<emph class="ax1">+DELETE</emph><emph class="ax2">&#064;</emph>d3s.mff.cuni.cz)<br />
-&copy;&nbsp;2010&nbsp;&ndash;&nbsp;2012 <a href="http://d3s.mff.cuni.cz/~decky/">Martin Decky</a> (decky<emph class="ax1">+DELETE</emph><emph class="ax2">&#064;</emph>d3s.mff.cuni.cz)</p>
+<p>
+	&copy;&nbsp;2007&nbsp;&ndash;&nbsp;2010 <a href="http://d3s.mff.cuni.cz/~holub/">Viliam Holub</a> (holub<emph class="ax1">+DELETE</emph><emph class="ax2">&#064;</emph>d3s.mff.cuni.cz)<br />
+	&copy;&nbsp;2010&nbsp;&ndash;&nbsp;2012 <a href="http://d3s.mff.cuni.cz/~decky/">Martin Decky</a> (decky<emph class="ax1">+DELETE</emph><emph class="ax2">&#064;</emph>d3s.mff.cuni.cz)<br />
+	&copy;&nbsp;2021&nbsp;&ndash;&nbsp;2022 Jan Papesch (janpapuch<emph class="ax1">+DELETE</emph><emph class="ax2">&#064;</emph>seznam.cz)
+</p>
 
 <h2>Last change</h2>
 
@@ -100,7 +103,7 @@ for <a href="http://d3s.mff.cuni.cz/~holub/sw/msim/">MSIM</a> version 1.4.0.</p>
 
 <h2>1. Introduction<a name="Introduction"></a></h2>
 
-<p>MSIM is a light-weight computer simulator based on MIPS R4000. It is used for
+<p>MSIM is a light-weight computer simulator based on MIPS R4000 and RISC-V. It is used for
 education and research purposes, mainly to teach the construction and
 implementation of operating systems. MSIM is distributed with source code under
 the GNU GPL license to make possible modifications for users and works on most
@@ -116,6 +119,17 @@ also compiled in Cygwin or MinGW in Windows).</p>
 			<li>full memory management (TLB)</li>
 			<li>multiprocessor support</li>
 			<li>CPU cache is not simulated</li>
+		</ul>
+	</li>
+	<li>RISC-V RV32IMA CPU
+		<ul>
+			<li>base instruction set</li>
+			<li>A extension</li>
+			<li>M extension</li>
+			<li>Supervisor and User modes</li>
+			<li>Address translation</li>
+			<li>multiprocessor support</li>
+			<li>Cache is not simulated</li>
 		</ul>
 	</li>
 	<li>simple debugging features (including disassembling, register content dump)</li>
@@ -192,6 +206,7 @@ library is also required.</p>
 
 <h3>2.1. Download<a name="Download"></a></h3>
 
+<!--TODO: Update download info-->
 <p>The current version of MSIM can be downloaded from the
 <a href="http://d3s.mff.cuni.cz/~holub/sw/msim/">project site</a>. It is
 distributed via a source tarball. Untar the distribution package
@@ -245,6 +260,7 @@ mode on startup.</p>
 <h4>Synopsis</h4>
 <p>Display MSIM version information and quit.</p>
 <h4>Example</h4>
+<!--TODO: change exapmle output-->
 <pre class="cmd"><strong>$</strong> msim -V<span class="key">Enter</span>
 MSIM version 1.4.0
 copyright (c) 2000-2010 Viliam Holub, Martin Decky</pre>
@@ -310,7 +326,7 @@ prompt can be seen:</p>
 configure the environment. Here is a reasonable minimal set of commands
 which are required to execute some MIPS code:</p>
 
-<pre class="cmd"><strong>[msim]</strong> add dcpu cpu0<span class="key">Enter</span>
+<pre class="cmd"><strong>[msim]</strong> add dr4kcpu cpu0<span class="key">Enter</span>
 <strong>[msim]</strong> add rwm memory 0x00000000<span class="key">Enter</span>
 <strong>[msim]</strong> memory generic 16M<span class="key">Enter</span>
 <strong>[msim]</strong> add rom firmware 0x1fc00000<span class="key">Enter</span>
@@ -321,7 +337,7 @@ which are required to execute some MIPS code:</p>
 <p>This will configure the environment with the following devices:</p>
 
 <ul>
-	<li>a single CPU (called <code>cpu0</code>)</li>
+	<li>a single MIPS R4000 CPU (called <code>cpu0</code>)</li>
 	<li>a piece of read/write memory starting at the physical address 0x00000000
 		and with the size of 16&nbsp;MB (called <code>memory</code>)</li>
 	<li>a piece of read-only memory starting at the physical address 0x1fc00000
@@ -335,7 +351,7 @@ which are required to execute some MIPS code:</p>
 </ul>
 
 <p>After this basic configuration the simulator is ready to execute the
-code (sequence of MIPS instructions) loaded from the file <code>firmware.img</code>
+code (sequence of MIPS instructions in this case) loaded from the file <code>firmware.img</code>
 and stored in the <code>firmware</code> read-only memory. The single CPU configured
 in the system (<code>cpu0</code>) will start the execution at the virtual address
 0xbfc00000, which exactly corresponds to the physical address 0x1fc00000 (i.e.
@@ -363,8 +379,8 @@ mode and another set of commands for the use in the configuration file.</p>
 <span class="lnr">  2 </span><span class="comment"># MSIM configuration script</span>
 <span class="lnr">  3 </span><span class="comment">#</span>
 <span class="lnr">  4 </span>
-<span class="lnr">  5 </span><span class="keyword">add</span> dcpu <span class="preproc">cpu0</span>
-<span class="lnr">  6 </span><span class="keyword">add</span> dcpu <span class="preproc">cpu1</span>
+<span class="lnr">  5 </span><span class="keyword">add</span> dr4kcpu <span class="preproc">cpu0</span>
+<span class="lnr">  6 </span><span class="keyword">add</span> dr4kcpu <span class="preproc">cpu1</span>
 <span class="lnr">  7 </span>
 <span class="lnr">  8 </span><span class="keyword">add</span> rwm <span class="preproc">mainmem</span> 0x00000000
 <span class="lnr">  9 </span><span class="preproc">mainmem</span> <span class="keyword">generic</span> 16M
@@ -665,10 +681,10 @@ either in the interactive mode or in a configuration file.</p>
 <h4>Synopsis</h4>
 <p>Quit the simulator immediately.</p>
 
-<h3>8.4. Memory dump <code>md</code><a name="Memory_dump"></a></h3>
+<h3>8.4. Memory dump <code>dumpmem</code><a name="Memory_dump"></a></h3>
 <h4>Synopsis</h4>
 <p>Print a part of a memory from an unmapped address.</p>
-<h4>Syntax <code><strong>md</strong> address count</code></h4>
+<h4>Syntax <code><strong>dumpmem</strong> address count</code></h4>
 <p>where</p>
 <dl>
 	<dt><code>address</code></dt>
@@ -678,26 +694,28 @@ either in the interactive mode or in a configuration file.</p>
 </dl>
 <h4>Example</h4>
 <p>The following example prints 10 words from the physical address 0x00001240.</p>
-<pre class="cmd"><strong>[msim]</strong> md 0x1240 10<span class="key">Enter</span>
+<pre class="cmd"><strong>[msim]</strong> dumpmem 0x1240 10<span class="key">Enter</span>
   00001240    265a45cd  2fefe111  11deadee  30957311  
   00001250    7b218f9f  ffff2345  baba5555  deadbeaf  
   00001260    29dc9aff  1298aa23
 <strong>[msim]</strong> </pre>
 
-<h3>8.5. Instruction dump <code>id</code><a name="Instruction_dump"></a></h3>
+<h3>8.5. Instruction dump <code>dumpins</code><a name="Instruction_dump"></a></h3>
 <h4>Synopsis</h4>
 <p>Print disassembled instructions from the specified unmapped address.</p>
-<h4>Syntax <code><strong>id</strong> address count</code></h4>
+<h4>Syntax <code><strong>dumpins</strong> cpu address count</code></h4>
 <p>where</p>
 <dl>
+	<dt><code>cpu</code></dt>
+		<dd>CPU architecture instructions of which will be dumped.</dd>
 	<dt><code>address</code></dt>
 		<dd>Starting address of the memory block.</dd>
 	<dt><code>count</code></dt>
 		<dd>Number of instructions to print.</dd>
 </dl>
 <h4>Example</h4>
-<p>The following example prints 10 instructions from the address 0x000012a8.</p>
-<pre class="cmd"><strong>[msim]</strong> id 0x12a8 10<span class="key">Enter</span>
+<p>The following example prints 10  MIPS R4000 instructions from the address 0x000012a8.</p>
+<pre class="cmd"><strong>[msim]</strong> dumpins r4k 0x12a8 10<span class="key">Enter</span>
     000012A8    ori   s0, s0, 0x5427    # 0x5427h=21543
     000012AC    sw    s2, 0x18(sp)      # 0x18=24
     000012B0    lui   s2, 0x805a        # 0x805a=32858
@@ -710,12 +728,12 @@ either in the interactive mode or in a configuration file.</p>
     000012CC    nop
 <strong>[msim]</strong> </pre>
 
-<h3>8.6. Device dump <code>dd</code><a name="Device_dump"></a></h3>
+<h3>8.6. Device dump <code>dumpdev</code><a name="Device_dump"></a></h3>
 <h4>Synopsis</h4>
 <p>Print a list of devices with parameters configured in the environment.</p>
 <h4>Example</h4>
 <p>The following example prints all devices in the system.</p>
-<pre class="cmd"><strong>[msim]</strong> dd<span class="key">Enter</span>
+<pre class="cmd"><strong>[msim]</strong> dumpdev<span class="key">Enter</span>
 [  name  ] [  type  ] [ parameters...
 printer    dprinter   address:0x01000000
 startmem   rom        start:0x1fc00000 size:1k type:mem
@@ -724,12 +742,12 @@ mainmem    rwm        start:0x00000000 size:256k type:mem
 mips1      dcpu       type:R4000.32
 <strong>[msim]</strong> </pre>
 
-<h3>8.7. Memory block dump <code>mbd</code><a name="Memory_block_dump"></a></h3> 
+<h3>8.7. Memory block dump <code>dumpphys</code><a name="Memory_block_dump"></a></h3> 
 <h4>Synopsis</h4>
 <p>Print all configured memory blocks.</p>
 <h4>Example</h4>
 <p>The following example prints all installed memory blocks.</p>
-<pre class="cmd"><strong>[msim]</strong> mbd<span class="key">Enter</span>
+<pre class="cmd"><strong>[msim]</strong> dumpphys<span class="key">Enter</span>
 [  name  ] [  type  ] [ parameters...
 startmem   rom        start:0x1fc00000 size:1k type:mem
 xxx        rwm        start:0x00400000 size:256k type:mem
@@ -750,14 +768,14 @@ switched to interactive mode.</p>
 		<dd>Consider read accesses (<code>r</code>), write accesses (<code>w</code>) or both (<code>rw</code>).</dd>
 </dl>
 
-<h3>8.9. Dump memory breakpoints <code>bd</code><a name="Breakpoint_dump"></a></h3> 
+<h3>8.9. Dump memory breakpoints <code>dumpbreak</code><a name="Breakpoint_dump"></a></h3> 
 <h4>Synopsis</h4>
 <p>Print all configured memory access breakpoints.</p>
 
-<h3>8.10. Remove memory breakpoint <code>br</code><a name="Breakpoint_remove"></a></h3> 
+<h3>8.10. Remove memory breakpoint <code>rembreak</code><a name="Breakpoint_remove"></a></h3> 
 <h4>Synopsis</h4>
 <p>Remove previously configured memory breakpoint.</p>
-<h4>Syntax <code><strong>break</strong> address</code></h4>
+<h4>Syntax <code><strong>rembreak</strong> address</code></h4>
 <p>where</p>
 <dl>
 	<dt><code>address</code></dt>
@@ -922,8 +940,10 @@ properties.</p>
 <h3>9.1. List of devices<a name="Devices_list"></a></h3>
 
 <dl>
-	<dt><a href="#dcpu">dcpu</a></dt>
-		<dd>Processor (CPU)</dd>
+	<dt><a href="#dr4kcpu">dr4kcpu</a></dt>
+		<dd>MIPS R4000 Processor (CPU)</dd>
+	<dt><a href="#drvcpu">dr4kcpu</a></dt>
+		<dd>RISC-V Processor (CPU)</dd>
 	<dt><a href="#rwm">rwm</a></dt>
 		<dd>Read/write memory</dd>
 	<dt><a href="#rom">rom</a></dt>
@@ -942,9 +962,9 @@ properties.</p>
 		<dd>CPU cycle counter</dd>
 </dl>
 
-<h3>9.2. Processor <code>dcpu</code><a name="dcpu"></a></h3>
+<h3>9.2. Processor <code>dr4kcpu</code><a name="dr4kcpu"></a></h3>
 
-<p>The <code>dcpu</code> device encapsulates a processor.</p>
+<p>The <code>dr4kcpu</code> device encapsulates a MIPS R4000 processor.</p>
 
 <h4>Initialization parameters: <emph>none</emph></h4>
 
@@ -978,7 +998,7 @@ properties.</p>
 
 <h4>Examples</h4>
 <p>Example of the <code>help</code> command:</p>
-<pre class="cmd"><strong>[msim]</strong> add dcpu mips1<span class="key">Enter</span>
+<pre class="cmd"><strong>[msim]</strong> add dr4kcpu mips1<span class="key">Enter</span>
 <strong>[msim]</strong> mips1 help<span class="key">Enter</span>
 Command & arguments  Description
 -------------------- -------------------->
@@ -1059,6 +1079,12 @@ processor p0
   t9 00000000   k0 00000000   k1 00000000   gp 00000000   sp 00013050
   fp 00000000   ra 80401308   pc 80401310   lo 40689065   hi 320BBCB7
 <strong>[msim]</strong> </pre>
+
+<h3>9.2. Processor <code>drvcpu</code><a name="dvcpu"></a></h3>
+
+<p>The <code>drvcpu</code> device encapsulates a RISC-V RV32IMA processor.</p>
+
+<!--TODO: write more-->
 
 <h3>9.3. Read/write memory <code>rwm</code><a name="rwm"></a></h3>
 
@@ -1801,10 +1827,11 @@ on the physical address 0x10000000.</p>
 
 <h2>10. Special instructions<a name="Special_instructions"></a></h2>
 <p>To further improve the ease of debugging the code running in MSIM,
-there are several non-standard MIPS instructions available.
+there are several non-standard MIPS and RISC-V instructions available.
 This allows to change the behaviour of the simulator exactly at the
 place of code required, with only a minimal influence to the debugged code.</p>
 
+<h3>10.1. MIPS instructions</h3>
 <dl>
 	<dt><a href="#dtrc">DTRC</a></dt>
 		<dd>Enable the trace mode.</dd>
@@ -1820,6 +1847,51 @@ place of code required, with only a minimal influence to the debugged code.</p>
 		<dd>Dump the <code><strong>a0</strong></code> general register to the screen.</dd>
 </dl>
 
+<h4>10.1.1. Trace on <code>DTRC</code><a name="dtrc"></a></h4>
+<p>Enable the trace mode. Together with <a href="#dtro">DTRO</a> instruction, DTRC is useful to show a part of executed code.</p>
+<h5>Opcode: <code><strong>0x39</strong></code></h5>
+
+<h4>10.1.2. Trace off <code>DTRO</code><a name="dtro"></a></h4>
+<p>Disable the trace mode. Together with <a href="#dtrc">DTRC</a> instruction, DTRO is useful to show a part of executed code.</p>
+<h5>Opcode: <code><strong>0x3d</strong></code></h5>
+
+<h4>10.1.3. Interactive mode on <code>DINT</code><a name="dint"></a></h4>
+<p>Enable the interactive mode. The command line is activated immediately.</p>
+<h5>Opcode: <code><strong>0x29</strong></code></h5>
+
+<h4>10.1.4. Register view <code>DRV</code><a name="drv"></a></h4>
+<p>The instruction dumps the content of all the general registers to the screen.</p>
+<h5>Opcode: <code><strong>0x37</strong></code></h5>
+
+<h4>10.1.5. Halt machine <code>DHLT</code><a name="dhlt"></a></h4>
+<p>Halt the machine as well as the simulation immediately. Useful also as the power off feature.</p>
+<h5>Opcode: <code><strong>0x28</strong></code></h5>
+
+<h4>10.1.6. View value <code>DVAL</code><a name="dval"></a></h4>
+<p>Print the content of the <code>a0</code> (<code>r4</code>) register.
+The instruction can be used to instantly print a value of a variable.</p>
+<h5>Opcode: <code><strong>0x35</strong></code></h5>
+
+<h4>10.1.7. CP0 Register view <code>DCRV</code><a name="dcrv"></a></h4>
+<p>The instruction dumps the content of all the registers of CP0 coprocessor to the screen.</p>
+<h5>Opcode: <code><strong>0x0e</strong></code></h5>
+
+<h3>10.2. RISC-V instructions</h3>
+<dl>
+	<dt><a href="#ehalt">EHALT</a></dt>
+		<dd>Halt the simulation.</dd>
+	<dt><a href="#edump">EDUMP</a></dt>
+		<dd>Dump the content of all general registers to the screen.</dd>
+</dl>
+
+<h4>10.2.1. Environment Halt<code>EHALT</code><a name="ehalt"></a></h4>
+<p>Halt the machine as well as the simulation immediately.</p>
+<h5>Opcode: <code><strong>0x00200073</strong></code></h5>
+
+<h4>10.2.2. Environment Dump Registers<code>EDUMP</code><a name="edump"></a></h4>
+<p>The instruction dumps the content of all the general registers to the screen.</p>
+<h5>Opcode: <code><strong>0x00300073</strong></code></h5>
+
 <h4>Example</h4>
 <p>The following example shows an implementation in GCC:</p>
 <pre class="c"><span class="lnr"> 1 </span><span class="preproc">#define ___trace_on()      asm volatile ( &quot;.word 0x39\n&quot;);</span>
@@ -1829,34 +1901,9 @@ place of code required, with only a minimal influence to the debugged code.</p>
 <span class="lnr"> 4 </span><span class="preproc">#define ___halt()          asm volatile ( &quot;.word 0x28\n&quot;);</span>
 <span class="lnr"> 5 </span><span class="preproc">#define ___val(i)          asm volatile ( &quot;.word 0x35\n&quot; :: &quot;r&quot; (i));</span></pre>
 
-<h3>10.1. Trace on <code>DTRC</code><a name="dtrc"></a></h3>
-<p>Enable the trace mode. Together with <a href="#dtro">DTRO</a> instruction, DTRC is useful to show a part of executed code.</p>
-<h4>Opcode: <code><strong>0x39</strong></code></h4>
 
-<h3>10.2. Trace off <code>DTRO</code><a name="dtro"></a></h3>
-<p>Disable the trace mode. Together with <a href="#dtrc">DTRC</a> instruction, DTRO is useful to show a part of executed code.</p>
-<h4>Opcode: <code><strong>0x3d</strong></code></h4>
 
-<h3>10.3. Interactive mode on <code>DINT</code><a name="dint"></a></h3>
-<p>Enable the interactive mode. The command line is activated immediately.</p>
-<h4>Opcode: <code><strong>0x29</strong></code></h4>
 
-<h3>10.4. Register view <code>DRV</code><a name="drv"></a></h3>
-<p>The instruction dumps the content of all the general registers to the screen.</p>
-<h4>Opcode: <code><strong>0x37</strong></code></h4>
-
-<h3>10.5. Halt machine <code>DHLT</code><a name="dhlt"></a></h3>
-<p>Halt the machine as well as the simulation immediately. Useful also as the power off feature.</p>
-<h4>Opcode: <code><strong>0x28</strong></code></h4>
-
-<h3>10.6. View value <code>DVAL</code><a name="dval"></a></h3>
-<p>Print the content of the <code>a0</code> (<code>r4</code>) register.
-The instruction can be used to instantly print a value of a variable.</p>
-<h4>Opcode: <code><strong>0x35</strong></code></h4>
-
-<h3>10.7. CP0 Register view <code>DCRV</code><a name="dcrv"></a></h3>
-<p>The instruction dumps the content of all the registers of CP0 coprocessor to the screen.</p>
-<h4>Opcode: <code><strong>0x0e</strong></code></h4>
 
 <h2>11. GDB support<a name="GDB_support"></a></h2>
 

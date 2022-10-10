@@ -159,12 +159,11 @@ When the cpu is stalled, instret and count counters do no increment.
 - 10 - branches taken
 - 11 - branches not taken
 
-
 ## interface viewpoint
 
 `device` is an interface, that the cpu implements (partially)
 
-`cpu` can a another interface, that the processors will implement.
+`cpu` can be another interface, that the processors will implement.
 The implementation will be similar to the device abstraction,
 but with specific functionality.
 
@@ -224,6 +223,8 @@ Also, if the writes raised exceptions, AMO instructions would need to be reimple
 #### EBREAK
 
 just enters interactive mode, should be enough for now
+
+spec says throw an exception, but this would be unfortunate for basic needs in an emulator.
 
 #### EHALT
 

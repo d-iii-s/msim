@@ -593,7 +593,7 @@ disassembler:</p>
 	</tr>
 	<tr>
 		<td>0</td>
-		<td>Processor-oriented</td>
+		<td>Numerical Names</td>
 		<td>x0 x1 x2 x3 x4 x5 x6 x7 x8 x9 x10 x11 x12 x13 x14 x15 x16 x17 x18 x19 x20 x21 x22 x23 x24 x25 x26 x27 x28 x29 x30 x31</td>
 	</tr>
 	<tr>
@@ -674,25 +674,25 @@ either in the interactive mode or in a configuration file.</p>
 		<dd>Add a new device into the system.</dd>
 	<dt><a href="#Quit">quit</a></dt>
 		<dd>Exit MSIM.</dd>
-	<dt><a href="#Memory_dump">md</a></dt>
+	<dt><a href="#Memory_dump">dumpmem</a></dt>
 		<dd>Dump words from unmapped memory.</dd>
-	<dt><a href="#Instruction_dump">id</a></dt>
+	<dt><a href="#Instruction_dump">dumpins</a></dt>
 		<dd>Dump instructions from unmapped memory.</dd>
-	<dt><a href="#Device_dump">dd</a></dt>
+	<dt><a href="#Device_dump">dumpdev</a></dt>
 		<dd>Dump all installed devices.</dd>
-	<dt><a href="#Memory_block_dump">mbd</a></dt>
+	<dt><a href="#Memory_block_dump">dumpphys</a></dt>
 		<dd>Dump all installed memory blocks.</dd>
 	<dt><a href="#Breakpoint">break</a></dt>
 		<dd>Add memory breakpoint.</dd>
-	<dt><a href="#Breakpoint_dump">bd</a></dt>
+	<dt><a href="#Breakpoint_dump">dumpbreak</a></dt>
 		<dd>Dump memory breakpoints.</dd>
-	<dt><a href="#Breakpoint_remove">br</a></dt>
+	<dt><a href="#Breakpoint_remove">rembreak</a></dt>
 		<dd>Remove memory breakpoint.</dd>
 	<dt><a href="#Statistics">stat</a></dt>
-		<dd>Dump available statistic information.</dd>
+		<dd>Dump available statistic information. (Not implemented)</dd>
 	<dt><a href="#Print">echo</a></dt>
 		<dd>Print user message.</dd>
-	<dt><a href="#Continue">Continue</a></dt>
+	<dt><a href="#Continue">continue</a></dt>
 		<dd>Continue simulaton.</dd>
 	<dt><a href="#Step">step</a></dt>
 		<dd>Simulate one or a specified number of instructions.</dd>
@@ -755,7 +755,7 @@ either in the interactive mode or in a configuration file.</p>
 <p>where</p>
 <dl>
 	<dt><code>cpu</code></dt>
-		<dd>CPU architecture instructions of which will be dumped.</dd>
+		<dd>CPU architecture instructions of which will be dumped. (<code>r4k</code> or <code>rv</code>)</dd>
 	<dt><code>address</code></dt>
 		<dd>Starting address of the memory block.</dd>
 	<dt><code>count</code></dt>
@@ -991,7 +991,7 @@ properties.</p>
 <dl>
 	<dt><a href="#dr4kcpu">dr4kcpu</a></dt>
 		<dd>MIPS R4000 Processor (CPU)</dd>
-	<dt><a href="#drvcpu">dr4kcpu</a></dt>
+	<dt><a href="#drvcpu">drvcpu</a></dt>
 		<dd>RISC-V Processor (CPU)</dd>
 	<dt><a href="#rwm">rwm</a></dt>
 		<dd>Read/write memory</dd>
@@ -1133,7 +1133,43 @@ processor p0
 
 <p>The <code>drvcpu</code> device encapsulates a RISC-V RV32IMA processor.</p>
 
-<!--TODO: write more-->
+<h4>Initialization parameters: <emph>none</emph></h4>
+
+<h4>Commands</h4>
+<dl>
+	<dt><code><strong>help</strong> [cmd]</code></dt>
+		<dd>Display a help text for the specified command or a list of available commands.</dd>
+	<dt><code><strong>info</strong></code></dt>
+		<dd>Display the processor configuration</dd>
+	<dt><code><strong>rd</strong></code></dt>
+		<dd>Dump contents of CPU general registers</dd>
+	<dt><code><strong>csrrd</strong> [name/number]</code></dt>
+		<dd>Dump the contents of the specified CSR or all CSRs.</dd>
+</dl>
+
+<h4>Examples</h4>
+
+<p>Example of the <code>rd</code> command:</p>
+
+<pre class="cmd"><strong>[msim]</strong> risc1 rd<span class="key">Enter</span>
+processor 0
+  zero:        0    ra:        0    sp:        0    gp:        0
+    tp:        0    t0:        0    t1:        0    t2:        0
+ s0/fp:        0    s1:        0    a0:        0    a1:        0
+    a2:        0    a3:        0    a4:        0    a5:        0
+    a6:        0    a7:        0    s2:        0    s3:        0
+    s4:        0    s5:        0    s6:        0    s7:        0
+    s8:        0    s9:        0   s10:        0   s11:        0
+    t3:        0    t4:        0    t5:        0    t6:        0
+    pc: f0000000
+<strong>[msim]</strong> </pre>
+
+<p>Example of the <code>csrrd</code> command:</p>
+
+<pre class="cmd"><strong>[msim]</strong> risc1 csrrd sstatus<span class="key">Enter</span>
+sstatus (0x100):
+sstatus 0x00000000 [ SD 0, MXR 0, SUM 0, XS 00, FS 00, VS 00, SPP U, UBE 0, SPIE 0, SIE 0 ]
+<strong>[msim]</strong> </pre>
 
 <h3>9.3. Read/write memory <code>rwm</code><a name="rwm"></a></h3>
 

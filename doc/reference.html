@@ -1963,22 +1963,6 @@ The instruction can be used to instantly print a value of a variable.</p>
 <p>The instruction dumps the content of all the registers of CP0 coprocessor to the screen.</p>
 <h5>Opcode: <code><strong>0x0e</strong></code></h5>
 
-<h3>10.2. RISC-V instructions</h3>
-<dl>
-	<dt><a href="#ehalt">EHALT</a></dt>
-		<dd>Halt the simulation.</dd>
-	<dt><a href="#edump">EDUMP</a></dt>
-		<dd>Dump the content of all general registers to the screen.</dd>
-</dl>
-
-<h4>10.2.1. Environment Halt<code>EHALT</code><a name="ehalt"></a></h4>
-<p>Halt the machine as well as the simulation immediately.</p>
-<h5>Opcode: <code><strong>0x00200073</strong></code></h5>
-
-<h4>10.2.2. Environment Dump Registers<code>EDUMP</code><a name="edump"></a></h4>
-<p>The instruction dumps the content of all the general registers to the screen.</p>
-<h5>Opcode: <code><strong>0x00300073</strong></code></h5>
-
 <h4>Example</h4>
 <p>The following example shows an implementation in GCC:</p>
 <pre class="c"><span class="lnr"> 1 </span><span class="preproc">#define ___trace_on()      asm volatile ( &quot;.word 0x39\n&quot;);</span>
@@ -1990,11 +1974,32 @@ The instruction can be used to instantly print a value of a variable.</p>
 
 
 
+<h3>10.2. RISC-V instructions</h3>
+<dl>
+	<dt><a href="#ehalt">EHALT</a></dt>
+		<dd>Halt the simulation.</dd>
+	<dt><a href="#edump">EDUMP</a></dt>
+		<dd>Dump the content of all general registers to the screen.</dd>
+</dl>
 
+<h4>10.2.1. Environment Halt <code>EHALT</code><a name="ehalt"></a></h4>
+<p>Halt the machine as well as the simulation immediately.</p>
+<h5>Opcode: <code><strong>0x00200073</strong></code></h5>
+
+<h4>10.2.2. Environment Dump Registers <code>EDUMP</code><a name="edump"></a></h4>
+<p>The instruction dumps the content of all the general registers to the screen.</p>
+<h5>Opcode: <code><strong>0x00300073</strong></code></h5>
+
+<h4>Example</h4>
+<p>The following example shows an implementation in GCC:</p>
+<pre class="c">
+<span class="lnr"> 1 </span><span class="preproc">#define ___ehalt()      asm volatile ( &quot;.word 0x00200073\n&quot;);</span>
+<span class="lnr"> 2 </span><span class="preproc">#define ___edump()      asm volatile ( &quot;.word 0x00300073\n&quot;);</span>
+</pre>
 
 <h2>11. GDB support<a name="GDB_support"></a></h2>
 
-<p>The GDB support is needs to be documented.</p>
+<p>The GDB support needs to be documented.</p>
 
 </body>
 </html>

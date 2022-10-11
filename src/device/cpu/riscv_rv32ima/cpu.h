@@ -27,6 +27,7 @@
 #define RV_INTERRUPT_EXC_BITS UINT32_C(0x80000000)
 #define RV_EXCEPTION_EXC_BITS UINT32_C(0)
 #define RV_EXCEPTION_MASK(exc) (1U << (exc & ~RV_INTERRUPT_EXC_BITS))
+#define RV_INTERRUPT_NO(interrupt) ((interrupt) & ~RV_INTERRUPT_EXC_BITS)
 
 typedef enum rv_exc {
 	rv_exc_supervisor_software_interrupt = RV_INTERRUPT_EXC_BITS | 1,

@@ -56,7 +56,7 @@ static bool drvcpu_init(token_t *parm, device_t *dev){
 }
 
 static bool drvcpu_info(token_t *parm, device_t *dev){
-    printf("RV32IMA\n");
+    printf("RV32IMA (processor ID: %i)\n", ((general_cpu_t *)dev->data)->cpuno);
     return true;
 }
 

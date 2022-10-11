@@ -782,12 +782,12 @@ void rv_interrupt_up(rv_cpu_t *cpu, unsigned int no){
     ASSERT(cpu != NULL);
 
     // default to MEI if no is invalid
-    if( no != rv_exc_supervisor_software_interrupt &&
-        no != rv_exc_machine_software_interrupt &&
-        no != rv_exc_supervisor_external_interrupt &&
-        no != rv_exc_machine_external_interrupt
+    if( no != RV_INTERRUPT_NO(rv_exc_supervisor_software_interrupt) &&
+        no != RV_INTERRUPT_NO(rv_exc_machine_software_interrupt) &&
+        no != RV_INTERRUPT_NO(rv_exc_supervisor_external_interrupt) &&
+        no != RV_INTERRUPT_NO(rv_exc_machine_external_interrupt)
     ){
-        no = rv_exc_machine_external_interrupt;
+        no = RV_INTERRUPT_NO(rv_exc_machine_external_interrupt);
     }
 
     uint32_t mask = RV_EXCEPTION_MASK(no);
@@ -802,12 +802,12 @@ void rv_interrupt_down(rv_cpu_t *cpu, unsigned int no){
     //! this would not work!
     
     // default to MEI if no is invalid
-    if( no != rv_exc_supervisor_software_interrupt &&
-        no != rv_exc_machine_software_interrupt &&
-        no != rv_exc_supervisor_external_interrupt &&
-        no != rv_exc_machine_external_interrupt
+    if( no != RV_INTERRUPT_NO(rv_exc_supervisor_software_interrupt) &&
+        no != RV_INTERRUPT_NO(rv_exc_machine_software_interrupt) &&
+        no != RV_INTERRUPT_NO(rv_exc_supervisor_external_interrupt) &&
+        no != RV_INTERRUPT_NO(rv_exc_machine_external_interrupt)
     ){
-        no = rv_exc_machine_external_interrupt;
+        no = RV_INTERRUPT_NO(rv_exc_machine_external_interrupt);
     }
 
     uint32_t mask = RV_EXCEPTION_MASK(no);

@@ -103,8 +103,8 @@ for <a href="http://d3s.mff.cuni.cz/~holub/sw/msim/">MSIM</a> version 2.0.0.</p>
 
 <h2>1. Introduction<a name="Introduction"></a></h2>
 
-<p>MSIM is a light-weight computer simulator based on MIPS R4000 and RISC-V. It is used for
-education and research purposes, mainly to teach the construction and
+<p>MSIM is a light-weight computer simulator, supporting MIPS R4000 and RISC-V RV32IMA CPUs.
+It is used for education and research purposes, mainly to teach the construction and
 implementation of operating systems. MSIM is distributed with source code under
 the GNU GPL license to make possible modifications for users and works on most
 POSIX-compliance environments (mainly GNU/Linux, Mac&nbsp;OS&nbsp;X, but can be
@@ -263,7 +263,7 @@ mode on startup.</p>
 <!--TODO: change exapmle output-->
 <pre class="cmd"><strong>$</strong> msim -V<span class="key">Enter</span>
 MSIM version 1.4.0
-copyright (c) 2000-2010 Viliam Holub, Martin Decky</pre>
+copyright (c) 2000-2022 Viliam Holub, Martin Decky, Jan Papesch</pre>
 
 <h3>3.2. Configuration file <code>-c</code>, <code>--config</code><a name="cmd_configuration"></a></h3>
 
@@ -301,7 +301,7 @@ rules.</p>
 
 <h4>Synopsis</h4>
 <p>Enter the GDB mode which allows a MIPS GDB to be connected to the running
-MSIM for remote debugging. The GDB mode is rather experimental in version 1.4.0.</p>
+MSIM for remote debugging. The GDB mode is rather experimental.</p>
 <h4>Syntax: <code><strong>-g</strong>|<strong>--remote-gdb[=]</strong>port_number</code></h4>
 
 <h3>3.6. Help <code>-h</code>, <code>--help</code><a name="cmd_help"></a></h3>
@@ -416,15 +416,18 @@ variables are available:</p>
 		<dd>Enable additional comments (such as number conversions) in disassembler</dd>
 	<dt><a href="#iregch">iregch</a></dt>
 		<dd>Show register changes in disassembler</dd>
-	<dt><a href="#ireg">ireg</a></dt>
-		<dd>Set type of register names</dd>
+		<dd>Supported only for MIPS R4000</dd>
+	<dt><a href="#r4k_ireg">r4k_ireg</a></dt>
+		<dd>Set type of MIPS register names</dd>
+	<dt><a href="#rv_ireg">r4k_ireg</a></dt>
+		<dd>Set type of RISC-V register names</dd>
 </dl>
 
 <p>The following table and examples demonstrate how the various variables
-affect the fields which are printed in disassembler.</p>
+affect the fields which are printed in MIPS and RISC-V disassembler.</p>
 
 <table>
-	<caption>Instruction disassembling overview</caption>
+	<caption>MIPS Instruction disassembling overview</caption>
 	<tr>
 		<td></td>
 		<th>Address</th>
@@ -437,7 +440,7 @@ affect the fields which are printed in disassembler.</p>
 		<th>Variable</th>
 		<td><code>iaddr</code></td>
 		<td><code>iopc</code></td>
-		<td><code>ireg</code></td>
+		<td><code>r4k_ireg</code></td>
 		<td><code>icmt</code></td>
 		<td><code>iregch</code></td>
 	</tr>
@@ -448,6 +451,32 @@ affect the fields which are printed in disassembler.</p>
 		<td><code>addiu a0, a0, 0x100</code>&nbsp;&nbsp;</td>
 		<td><code># 0x100=256</code></td>
 		<td><code>, a0: 0x4-&gt;0x104</code></td>
+	</tr>
+</table>
+
+<table>
+	<caption>RISC-V Instruction disassembling overview</caption>
+	<tr>
+		<td></td>
+		<th>Address</th>
+		<th>Opcode</th>
+		<th>Instruction</th>
+		<th>Conversion</th>
+	</tr>
+	<tr>
+		<th>Variable</th>
+		<td><code>iaddr</code></td>
+		<td><code>iopc</code></td>
+		<td><code>rv_ireg</code></td>
+		<td><code>icmt</code></td>
+	</tr>
+	<tr>
+		<th>Sample output</th>
+		<td><code>0xf0000008</code>&nbsp;</td>
+		<td><code>00b50633</code>&nbsp;&nbsp;</td>
+		<td><code>add a2, a0, a1</code>&nbsp;&nbsp;</td>
+		<td><code>[ a2 = a0 + a1 ]</code></td>
+		
 	</tr>
 </table>
 
@@ -504,13 +533,13 @@ affect the fields which are printed in disassembler.</p>
     0  80400EF0    subu  a0, a0, v0        # a0: 0xe9e3a6c0-&gt;0xc571c1
 <strong>[msim]</strong> </pre>
 
-<p>The <code>ireg</code> selects the scheme for register names used by the
+<p>The <code>r4k_ireg</code> and <code>rv_ireg</code> selects the scheme for register names used by the
 disassembler:</p>
 
 <table>
-	<caption>Basic processor registers</caption>
+	<caption>Basic MIPS processor registers</caption>
 	<tr>
-		<th><code>ireg</code></td>
+		<th><code>r4k_ireg</code></td>
 		<th>Description</th>
 		<th>List of register names</th>
 	</tr>
@@ -532,9 +561,9 @@ disassembler:</p>
 </table>
 
 <table>
-	<caption>CP0 registers</caption>
+	<caption>MIPS CP0 registers</caption>
 	<tr>
-		<th><code>ireg</code></td>
+		<th><code>r4k_ireg</code></td>
 		<th>Description</th>
 		<th>List of register names</th>
 	</tr>
@@ -555,21 +584,40 @@ disassembler:</p>
 	</tr>
 </table>
 
+<table>
+	<caption>Basic RISC-V processor registers</caption>
+	<tr>
+		<th><code>rv_ireg</code></td>
+		<th>Description</th>
+		<th>List of register names</th>
+	</tr>
+	<tr>
+		<td>0</td>
+		<td>Processor-oriented</td>
+		<td>x0 x1 x2 x3 x4 x5 x6 x7 x8 x9 x10 x11 x12 x13 x14 x15 x16 x17 x18 x19 x20 x21 x22 x23 x24 x25 x26 x27 x28 x29 x30 x31</td>
+	</tr>
+	<tr>
+		<td>1</td>
+		<td>ABI Names</td>
+		<td>zero ra sp gp tp t0 t1 t2 s0/fp s1 a0 a1 a2 a3 a4 a5 a6 a7 s2 s3 s4 s5 s6 s7 s8 s9 s10 s11 t3 t4 t5 t6</td>
+	</tr>
+</table>
+
 <p>Sample of usage:</p>
 
-<pre class="cmd"><strong>[msim]</strong> set ireg=0<span class="key">Enter</span>
+<pre class="cmd"><strong>[msim]</strong> set r4k_ireg=0<span class="key">Enter</span>
 <strong>[msim]</strong> id 0x00400efc 4<span class="key">Enter</span>
     00400EFC    srl   r4, r4, 0x08
     00400F00    andi  r4, r4, 0x000f    # 0xfh=15
     00400F04    addiu r4, r4, 0x100     # 0x100=256
     00400F08    sltu  r4, r6, r4
-<strong>[msim]</strong> set ireg=1<span class="key">Enter</span>
+<strong>[msim]</strong> set r4k_ireg=1<span class="key">Enter</span>
 <strong>[msim]</strong> id 0x00400efc 4<span class="key">Enter</span>
     00400EFC    srl   $4, $4, 0x08
     00400F00    andi  $4, $4, 0x000f    # 0xfh=15
     00400F04    addiu $4, $4, 0x100     # 0x100=256
     00400F08    sltu  $4, $6, $4
-<strong>[msim]</strong> set ireg=2<span class="key">Enter</span>
+<strong>[msim]</strong> set r4k_ireg=2<span class="key">Enter</span>
 <strong>[msim]</strong> id 0x00400efc 4<span class="key">Enter</span>
     00400EFC    srl   a0, a0, 0x08
     00400F00    andi  a0, a0, 0x000f    # 0xfh=15
@@ -882,7 +930,8 @@ Disassembling features
                        iopc       off
                        icmt       on
                        iregch     on
-                       ireg       2
+                       r4k_ireg   2
+                       rv_ireg    1
 Debugging features
                        trace      off
 <strong>[msim]</strong> </pre>
@@ -893,10 +942,10 @@ Debugging features
     0  80401378    addiu a0, a0, 0x40      # 0x40=64, a0: 0xb7b8-&gt;0xf8
 <strong>[msim]</strong> </pre>
 <p>And in the third example, we set the type of register names:</p>
-<pre class="cmd">[msim] set ireg = 2<span class="key">Enter</span>
+<pre class="cmd">[msim] set r4k_ireg = 2<span class="key">Enter</span>
 [msim] id 0x00401330 1<span class="key">Enter</span>
     00401330    srl   v0, v0, 0x01
-[msim] set ireg = 0<span class="key">Enter</span>
+[msim] set r4k_ireg = 0<span class="key">Enter</span>
 [msim] id 0x00401330 1<span class="key">Enter</span>
     00401330    srl   r2, r2, 0x01
 [msim] </pre>

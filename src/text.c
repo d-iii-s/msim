@@ -75,7 +75,7 @@ const char *txt_exc[] = {
 };
 
 const char txt_version[] =
-	"MSIM version " VERSION "\nCopyright (c) 2000-2011 Viliam Holub, Martin Decky\n";
+	"MSIM version " VERSION "\nCopyright (c) 2000-2022 Viliam Holub, Martin Decky, Jan Papesch\n";
 
 const char txt_help[] =
 	"  -V, --version               display version info\n"

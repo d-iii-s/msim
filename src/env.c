@@ -416,6 +416,11 @@ static bool set_uint(const env_t *env, token_t *parm)
 {
 	ASSERT(env != NULL);
 	ASSERT(parm != NULL);
+
+	if(parm_type(parm) != tt_uint) {
+		error("Integer parameter expected");
+		return false;
+	}
 	
 	if (env->func)
 		((set_uint_t) env->func)(parm_uint(parm));

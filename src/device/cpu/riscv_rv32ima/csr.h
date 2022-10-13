@@ -437,6 +437,10 @@ typedef struct {
 	// next value for stval/mtval
 	uint32_t tval_next;
 
+	// Keeps whether SEI is pending from an external source
+	// Full explanation RISC-V Privileged spec section 3.1.9 Machine Interrupt Registers (mip and mie)
+	bool external_SEIP;
+
 	// Value of memory-mapped register mtime
 	uint64_t mtime;
 	// The timestamp of the last clock cycle

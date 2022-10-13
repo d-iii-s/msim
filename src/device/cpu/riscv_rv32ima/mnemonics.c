@@ -905,13 +905,14 @@ static void print_mip(rv_cpu_t *cpu, string_t* mnemonics, string_t* comments) {
 
 	string_printf(mnemonics, "%s 0x%08x", "mip", cpu->csr.mip);
 	string_printf(comments,
-		"MEIP %s, SEIP %s, MTIP %s, STIP %s, MSIP %s, SSIP %s",
+		"MEIP %s, SEIP %s, MTIP %s, STIP %s, MSIP %s, SSIP %s (External SEIP %s)",
 		bit_string(meip),
 		bit_string(seip),
 		bit_string(mtip),
 		bit_string(stip),
 		bit_string(msip),
-		bit_string(ssip)
+		bit_string(ssip),
+		bit_string(cpu->csr.external_SEIP)
 	);
 }
 
@@ -992,10 +993,11 @@ static void print_sip(rv_cpu_t *cpu, string_t* mnemonics, string_t* comments) {
 
 	string_printf(mnemonics, "%s 0x%08x", "sip", cpu->csr.mip & rv_csr_si_mask);
 	string_printf(comments,
-		"SEIP %s, STIP %s, SSIP %s",
+		"SEIP %s, STIP %s, SSIP %s (External SEIP %s)",
 		bit_string(seip),
 		bit_string(stip),
-		bit_string(ssip)
+		bit_string(ssip),
+		bit_string(cpu->csr.external_SEIP)
 	);
 }
 

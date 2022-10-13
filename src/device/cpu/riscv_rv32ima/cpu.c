@@ -781,9 +781,15 @@ bool rv_sc_access(rv_cpu_t *cpu, ptr36_t phys){
 void rv_interrupt_up(rv_cpu_t *cpu, unsigned int no){
     ASSERT(cpu != NULL);
 
+    // Edge case, where we don't want to set SEIP, because SEIP is writable from M mode
+    // Full explanation RISC-V Privileged spec section 3.1.9 Machine Interrupt Registers (mip and mie)
+    if(no == rv_exc_supervisor_software_interrupt){
+        cpu->csr.external_SEIP = true;
+        return;
+    }
+
     // default to MEI if no is invalid
-    if( no != RV_INTERRUPT_NO(rv_exc_supervisor_software_interrupt) &&
-        no != RV_INTERRUPT_NO(rv_exc_machine_software_interrupt) &&
+    if( no != RV_INTERRUPT_NO(rv_exc_machine_software_interrupt) &&
         no != RV_INTERRUPT_NO(rv_exc_supervisor_external_interrupt) &&
         no != RV_INTERRUPT_NO(rv_exc_machine_external_interrupt)
     ){
@@ -800,10 +806,16 @@ void rv_interrupt_down(rv_cpu_t *cpu, unsigned int no){
     //! for simplicity just clears the bit
     //! if this interrupt could be raised by different means,
     //! this would not work!
+
+    // Edge case, where we don't want to clear SEIP, because SEIP is writable from M mode
+    // Full explanation RISC-V Privileged spec section 3.1.9 Machine Interrupt Registers (mip and mie)
+    if(no == rv_exc_supervisor_software_interrupt){
+        cpu->csr.external_SEIP = false;
+        return;
+    }
     
     // default to MEI if no is invalid
-    if( no != RV_INTERRUPT_NO(rv_exc_supervisor_software_interrupt) &&
-        no != RV_INTERRUPT_NO(rv_exc_machine_software_interrupt) &&
+    if( no != RV_INTERRUPT_NO(rv_exc_machine_software_interrupt) &&
         no != RV_INTERRUPT_NO(rv_exc_supervisor_external_interrupt) &&
         no != RV_INTERRUPT_NO(rv_exc_machine_external_interrupt)
     ){

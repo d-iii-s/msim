@@ -362,7 +362,10 @@ static rv_exc_t sie_clear(rv_cpu_t* cpu, int csr, uint32_t target){
 
 static rv_exc_t sip_read(rv_cpu_t* cpu, int csr, uint32_t* target){
     minimal_privilege(rv_smode, cpu);
-    *target = cpu->csr.mip & rv_csr_si_mask;
+    
+    // The SEIP bit is the logical OR of the value in MIP and the status from external interrupt controller
+    // Full explanation RISC-V Privileged spec section 3.1.9 Machine Interrupt Registers (mip and mie)
+    *target = (cpu->csr.mip & rv_csr_si_mask) | (cpu->csr.external_SEIP ? rv_csr_sei_mask : 0);
     return rv_exc_none;
 }
 
@@ -787,7 +790,10 @@ static rv_exc_t mie_clear(rv_cpu_t* cpu, int csr, uint32_t target){
 
 static rv_exc_t mip_read(rv_cpu_t* cpu, int csr, uint32_t* target){
     minimal_privilege(rv_mmode, cpu);
-    *target = cpu->csr.mip;
+
+    // The SEIP bit is the logical OR of the value in MIP and the status from external interrupt controller
+    // Full explanation RISC-V Privileged spec section 3.1.9 Machine Interrupt Registers (mip and mie)
+    *target = cpu->csr.mip | (cpu->csr.external_SEIP ? rv_csr_sei_mask : 0);
     return rv_exc_none;
 }
 
@@ -796,6 +802,7 @@ static rv_exc_t mip_read(rv_cpu_t* cpu, int csr, uint32_t* target){
 
 static rv_exc_t mip_write(rv_cpu_t* cpu, int csr, uint32_t target){
     minimal_privilege(rv_mmode, cpu);
+
     cpu->csr.mip = target & mip_mask;
     return rv_exc_none;
 }

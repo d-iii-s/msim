@@ -15,7 +15,7 @@
 #include "list.h"
 
 #define MAX_CPUS   32
-#define MAX_INTRS  6
+#define MAX_INTRS  11
 
 /** Physical frame number type */
 typedef uint32_t pfn_t;

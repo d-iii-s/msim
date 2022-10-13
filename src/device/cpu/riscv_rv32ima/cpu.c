@@ -579,8 +579,13 @@ static void handle_exception(rv_cpu_t* cpu, rv_exc_t ex){
 }
 
 static void try_handle_interrupt(rv_cpu_t* cpu){
+
+    // Effective mip includes the external SEIP
+    // Full explanation RISC-V Privileged spec section 3.1.9 Machine Interrupt Registers (mip and mie)
+    uint32_t mip = cpu->csr.mip | (cpu->csr.external_SEIP ? rv_csr_sei_mask : 0);
+
     // no interrupt pending
-    if(cpu->csr.mip == 0) return;
+    if(mip == 0) return;
 
     // PRIORITY: MEI, MSI, MTI, SEI, SSI, STI
     #define trap_if_set(cpu, mask, interrupt, trap_func)    \
@@ -595,7 +600,7 @@ static void try_handle_interrupt(rv_cpu_t* cpu){
     bool can_trap_to_M = (cpu->priv_mode == rv_mmode && rv_csr_mstatus_mie(cpu)) || (cpu->priv_mode < rv_mmode);
 
     if(can_trap_to_M) {
-        uint32_t m_mode_active_interrupt_mask = cpu->csr.mip & cpu->csr.mie & ~cpu->csr.mideleg;
+        uint32_t m_mode_active_interrupt_mask = mip & cpu->csr.mie & ~cpu->csr.mideleg;
         
         trap_if_set(cpu, m_mode_active_interrupt_mask, rv_exc_machine_external_interrupt, m_trap);
         trap_if_set(cpu, m_mode_active_interrupt_mask, rv_exc_machine_software_interrupt, m_trap);
@@ -611,7 +616,7 @@ static void try_handle_interrupt(rv_cpu_t* cpu){
     bool can_trap_to_S = (cpu->priv_mode == rv_smode && rv_csr_sstatus_sie(cpu)) || (cpu->priv_mode < rv_smode);
     if(can_trap_to_S) {
         // mask to only account S mode interrupts
-        uint32_t s_mode_active_interrupt_mask = cpu->csr.mip & cpu->csr.mie & rv_csr_si_mask;
+        uint32_t s_mode_active_interrupt_mask = mip & cpu->csr.mie & rv_csr_si_mask;
 
         // M-interrupts can be here theoretically by spec, but we don't allow the delegation of M interrupts in msim (which is allowed in spec)
         trap_if_set(cpu, s_mode_active_interrupt_mask, rv_exc_supervisor_external_interrupt, s_trap);
@@ -783,14 +788,14 @@ void rv_interrupt_up(rv_cpu_t *cpu, unsigned int no){
 
     // Edge case, where we don't want to set SEIP, because SEIP is writable from M mode
     // Full explanation RISC-V Privileged spec section 3.1.9 Machine Interrupt Registers (mip and mie)
-    if(no == rv_exc_supervisor_software_interrupt){
+    if(no == RV_INTERRUPT_NO(rv_exc_supervisor_external_interrupt)){
         cpu->csr.external_SEIP = true;
         return;
     }
 
     // default to MEI if no is invalid
     if( no != RV_INTERRUPT_NO(rv_exc_machine_software_interrupt) &&
-        no != RV_INTERRUPT_NO(rv_exc_supervisor_external_interrupt) &&
+        no != RV_INTERRUPT_NO(rv_exc_supervisor_software_interrupt) &&
         no != RV_INTERRUPT_NO(rv_exc_machine_external_interrupt)
     ){
         no = RV_INTERRUPT_NO(rv_exc_machine_external_interrupt);
@@ -809,14 +814,14 @@ void rv_interrupt_down(rv_cpu_t *cpu, unsigned int no){
 
     // Edge case, where we don't want to clear SEIP, because SEIP is writable from M mode
     // Full explanation RISC-V Privileged spec section 3.1.9 Machine Interrupt Registers (mip and mie)
-    if(no == rv_exc_supervisor_software_interrupt){
+    if(no == RV_INTERRUPT_NO(rv_exc_supervisor_external_interrupt)){
         cpu->csr.external_SEIP = false;
         return;
     }
     
     // default to MEI if no is invalid
     if( no != RV_INTERRUPT_NO(rv_exc_machine_software_interrupt) &&
-        no != RV_INTERRUPT_NO(rv_exc_supervisor_external_interrupt) &&
+        no != RV_INTERRUPT_NO(rv_exc_supervisor_software_interrupt) &&
         no != RV_INTERRUPT_NO(rv_exc_machine_external_interrupt)
     ){
         no = RV_INTERRUPT_NO(rv_exc_machine_external_interrupt);

@@ -17,31 +17,32 @@ void rv_init_csr(csr_t *csr, unsigned int procno){
 
 #define minimal_privilege(priv, cpu) {if(cpu->priv_mode < priv) return rv_exc_illegal_instruction;}
 #define default_csr_functions(csr_name, priv)                                       \
-    static rv_exc_t csr_name##_read(rv_cpu_t* cpu, int csr, uint32_t* target){      \
+    static rv_exc_t csr_name##_read(rv_cpu_t* cpu, csr_num_t csr, uint32_t* target){\
         minimal_privilege(priv, cpu);                                               \
         *target = cpu->csr.csr_name;                                                \
         return rv_exc_none;                                                         \
     }                                                                               \
-    static rv_exc_t csr_name##_write(rv_cpu_t* cpu, int csr, uint32_t target){      \
+    static rv_exc_t csr_name##_write(rv_cpu_t* cpu, csr_num_t csr, uint32_t value){ \
         minimal_privilege(priv, cpu);                                               \
-        cpu->csr.csr_name = target;                                                 \
+        cpu->csr.csr_name = value;                                                  \
         return rv_exc_none;                                                         \
     }                                                                               \
-    static rv_exc_t csr_name##_set(rv_cpu_t* cpu, int csr, uint32_t target){        \
+    static rv_exc_t csr_name##_set(rv_cpu_t* cpu, csr_num_t csr, uint32_t value){   \
         minimal_privilege(priv, cpu);                                               \
-        cpu->csr.csr_name |= target;                                                \
+        cpu->csr.csr_name |= value;                                                 \
         return rv_exc_none;                                                         \
     }                                                                               \
-    static rv_exc_t csr_name##_clear(rv_cpu_t* cpu, int csr, uint32_t target){      \
+    static rv_exc_t csr_name##_clear(rv_cpu_t* cpu, csr_num_t csr, uint32_t value){ \
         minimal_privilege(priv, cpu);                                               \
-        cpu->csr.csr_name &= ~target;                                               \
+        cpu->csr.csr_name &= ~value;                                                \
         return rv_exc_none;                                                         \
     }
 
-static rv_exc_t invalid_read(rv_cpu_t* cpu, int csr, uint32_t* target){
+
+static rv_exc_t invalid_read(rv_cpu_t* cpu, csr_num_t csr, uint32_t* target){
     return rv_exc_illegal_instruction;
 }
-static rv_exc_t invalid_write(rv_cpu_t* cpu, int csr, uint32_t target){
+static rv_exc_t invalid_write(rv_cpu_t* cpu, csr_num_t csr, uint32_t value){
     return rv_exc_illegal_instruction;
 }
 
@@ -49,7 +50,7 @@ static rv_exc_t invalid_write(rv_cpu_t* cpu, int csr, uint32_t target){
 #define is_counter_enabled_s(cpu, counter) (cpu->csr.scounteren & (1<<counter))
 #define is_high_counter(csr) (csr & 0x080)
 
-static inline void read_counter_csr_unchecked(rv_cpu_t* cpu, int csr, uint32_t* target){
+static inline void read_counter_csr_unchecked(rv_cpu_t* cpu, csr_num_t csr, uint32_t* target){
     int counter = csr & 0x1F;
 
     int offset = is_high_counter(csr) ? 32 : 0;
@@ -75,7 +76,7 @@ static inline void read_counter_csr_unchecked(rv_cpu_t* cpu, int csr, uint32_t* 
     }
 }
 
-static rv_exc_t counter_read(rv_cpu_t* cpu, int csr, uint32_t* target){
+static rv_exc_t counter_read(rv_cpu_t* cpu, csr_num_t csr, uint32_t* target){
 
     // lowest 5 bits
     int counter = csr * 0x1F;
@@ -102,7 +103,7 @@ static rv_exc_t counter_read(rv_cpu_t* cpu, int csr, uint32_t* target){
     return rv_exc_none;
 }
 
-static rv_exc_t counter_write(rv_cpu_t* cpu, int csr, uint32_t target){
+static rv_exc_t counter_write(rv_cpu_t* cpu, csr_num_t csr, uint32_t value){
 
     // only mmode can write to counters
     minimal_privilege(rv_mmode, cpu);
@@ -119,11 +120,11 @@ static rv_exc_t counter_write(rv_cpu_t* cpu, int csr, uint32_t target){
     uint64_t mask = 0;
 
     if(is_high_counter(csr)){
-        val = ((uint64_t)target) << 32;
+        val = ((uint64_t)value) << 32;
         mask = 0x00000000FFFFFFFF;
     }
     else {
-        val = target;
+        val = value;
         mask = 0xFFFFFFFF00000000;
     }
 
@@ -146,7 +147,7 @@ static rv_exc_t counter_write(rv_cpu_t* cpu, int csr, uint32_t target){
     return rv_exc_none;
 }
 
-static rv_exc_t counter_set(rv_cpu_t* cpu, int csr, uint32_t target){
+static rv_exc_t counter_set(rv_cpu_t* cpu, csr_num_t csr, uint32_t value){
 
     // only mmode can write to counters
     minimal_privilege(rv_mmode, cpu);
@@ -159,7 +160,7 @@ static rv_exc_t counter_set(rv_cpu_t* cpu, int csr, uint32_t target){
     // mtime is not a csr
     if (counter == (csr_time & 0x1F)) return rv_exc_illegal_instruction;
 
-    uint64_t val = is_high_counter(csr) ? ((uint64_t)target) << 32 : target;
+    uint64_t val = is_high_counter(csr) ? ((uint64_t)value) << 32 : value;
 
     switch(csr){
         case (csr_mcycle): {
@@ -179,7 +180,7 @@ static rv_exc_t counter_set(rv_cpu_t* cpu, int csr, uint32_t target){
     return rv_exc_none;
 }
 
-static rv_exc_t counter_clear(rv_cpu_t* cpu, int csr, uint32_t target){
+static rv_exc_t counter_clear(rv_cpu_t* cpu, csr_num_t csr, uint32_t value){
     // only mmode can write to counters
     minimal_privilege(rv_mmode, cpu);
 
@@ -191,7 +192,7 @@ static rv_exc_t counter_clear(rv_cpu_t* cpu, int csr, uint32_t target){
     // mtime is not a csr
     if (counter == (csr_time & 0x1F)) return rv_exc_illegal_instruction;
 
-    uint64_t val = is_high_counter(csr) ? ((uint64_t)target) << 32 : target;
+    uint64_t val = is_high_counter(csr) ? ((uint64_t)value) << 32 : value;
 
     switch(csr){
         case (csr_mcycle): {
@@ -213,52 +214,52 @@ static rv_exc_t counter_clear(rv_cpu_t* cpu, int csr, uint32_t target){
 
 #define mcountinhibit_mask (~UINT32_C(0b10))
 
-static rv_exc_t mcountinhibit_read(rv_cpu_t* cpu, int csr, uint32_t* target){
+static rv_exc_t mcountinhibit_read(rv_cpu_t* cpu, csr_num_t csr, uint32_t* target){
     minimal_privilege(rv_mmode, cpu);
     *target = cpu->csr.mcountinhibit;
     return rv_exc_none;
 }
 
-static rv_exc_t mcountinhibit_write(rv_cpu_t* cpu, int csr, uint32_t target){
+static rv_exc_t mcountinhibit_write(rv_cpu_t* cpu, csr_num_t csr, uint32_t value){
     minimal_privilege(rv_mmode, cpu);
-    cpu->csr.mcountinhibit = target & mcountinhibit_mask;
+    cpu->csr.mcountinhibit = value & mcountinhibit_mask;
     return rv_exc_none;
 }
 
-static rv_exc_t mcountinhibit_set(rv_cpu_t* cpu, int csr, uint32_t target){
+static rv_exc_t mcountinhibit_set(rv_cpu_t* cpu, csr_num_t csr, uint32_t value){
     minimal_privilege(rv_mmode, cpu);
-    cpu->csr.mcountinhibit |= target & mcountinhibit_mask;
+    cpu->csr.mcountinhibit |= value & mcountinhibit_mask;
     return rv_exc_none;
 }
 
-static rv_exc_t mcountinhibit_clear(rv_cpu_t* cpu, int csr, uint32_t target){
+static rv_exc_t mcountinhibit_clear(rv_cpu_t* cpu, csr_num_t csr, uint32_t value){
     minimal_privilege(rv_mmode, cpu);
-    cpu->csr.mcountinhibit &= ~(target & mcountinhibit_mask);
+    cpu->csr.mcountinhibit &= ~(value & mcountinhibit_mask);
     return rv_exc_none;
 }
 
-static rv_exc_t mhpmevent_read(rv_cpu_t* cpu, int csr, uint32_t* target){
+static rv_exc_t mhpmevent_read(rv_cpu_t* cpu, csr_num_t csr, uint32_t* target){
     minimal_privilege(rv_mmode, cpu);
     int event = (csr & 0x1F) - 3;
     *target = cpu->csr.hpmevents[event];
     return rv_exc_none;
 }
 
-static rv_exc_t mhpmevent_write(rv_cpu_t* cpu, int csr, uint32_t target){
+static rv_exc_t mhpmevent_write(rv_cpu_t* cpu, csr_num_t csr, uint32_t value){
     minimal_privilege(rv_mmode, cpu);
     int event = (csr & 0x1F) - 3;
 
-    if (target < hpm_event_count){
-        cpu->csr.hpmevents[event] = target;
+    if (value < hpm_event_count){
+        cpu->csr.hpmevents[event] = value;
     }
     return rv_exc_none;
 }
 
-static rv_exc_t mhpmevent_set(rv_cpu_t* cpu, int csr, uint32_t target){
+static rv_exc_t mhpmevent_set(rv_cpu_t* cpu, csr_num_t csr, uint32_t value){
     minimal_privilege(rv_mmode, cpu);
     int event = (csr & 0x1F) - 3;
 
-    int val = cpu->csr.hpmevents[event] | target;
+    int val = cpu->csr.hpmevents[event] | value;
 
     if (val < hpm_event_count){
         cpu->csr.hpmevents[event] = val;
@@ -266,11 +267,11 @@ static rv_exc_t mhpmevent_set(rv_cpu_t* cpu, int csr, uint32_t target){
     return rv_exc_none;
 }
 
-static rv_exc_t mhpmevent_clear(rv_cpu_t* cpu, int csr, uint32_t target){
+static rv_exc_t mhpmevent_clear(rv_cpu_t* cpu, csr_num_t csr, uint32_t value){
     minimal_privilege(rv_mmode, cpu);
     int event = (csr & 0x1F) - 3;
 
-    int val = cpu->csr.hpmevents[event] & ~target;
+    int val = cpu->csr.hpmevents[event] & ~value;
 
     if (val < hpm_event_count){
         cpu->csr.hpmevents[event] = val;
@@ -279,88 +280,88 @@ static rv_exc_t mhpmevent_clear(rv_cpu_t* cpu, int csr, uint32_t target){
     return rv_exc_none;
 }
 
-static rv_exc_t pmpcfg_read(rv_cpu_t* cpu, int csr, uint32_t* target){
+static rv_exc_t pmpcfg_read(rv_cpu_t* cpu, csr_num_t csr, uint32_t* target){
     return rv_exc_illegal_instruction;
 }
 
-static rv_exc_t pmpcfg_write(rv_cpu_t* cpu, int csr, uint32_t target){
+static rv_exc_t pmpcfg_write(rv_cpu_t* cpu, csr_num_t csr, uint32_t value){
     return rv_exc_illegal_instruction;
 }
 
-static rv_exc_t pmpcfg_set(rv_cpu_t* cpu, int csr, uint32_t target){
+static rv_exc_t pmpcfg_set(rv_cpu_t* cpu, csr_num_t csr, uint32_t value){
     return rv_exc_illegal_instruction;
 }
 
-static rv_exc_t pmpcfg_clear(rv_cpu_t* cpu, int csr, uint32_t target){
+static rv_exc_t pmpcfg_clear(rv_cpu_t* cpu, csr_num_t csr, uint32_t value){
     return rv_exc_illegal_instruction;
 }
 
-static rv_exc_t pmpaddr_read(rv_cpu_t* cpu, int csr, uint32_t* target){
+static rv_exc_t pmpaddr_read(rv_cpu_t* cpu, csr_num_t csr, uint32_t* target){
     return rv_exc_illegal_instruction;
 }
 
-static rv_exc_t pmpaddr_write(rv_cpu_t* cpu, int csr, uint32_t target){
+static rv_exc_t pmpaddr_write(rv_cpu_t* cpu, csr_num_t csr, uint32_t value){
     return rv_exc_illegal_instruction;
 }
 
-static rv_exc_t pmpaddr_set(rv_cpu_t* cpu, int csr, uint32_t target){
+static rv_exc_t pmpaddr_set(rv_cpu_t* cpu, csr_num_t csr, uint32_t value){
     return rv_exc_illegal_instruction;
 }
 
-static rv_exc_t pmpaddr_clear(rv_cpu_t* cpu, int csr, uint32_t target){
+static rv_exc_t pmpaddr_clear(rv_cpu_t* cpu, csr_num_t csr, uint32_t value){
     return rv_exc_illegal_instruction;
 }
 
-static rv_exc_t sstatus_read(rv_cpu_t* cpu, int csr, uint32_t* target){
+static rv_exc_t sstatus_read(rv_cpu_t* cpu, csr_num_t csr, uint32_t* target){
     minimal_privilege(rv_smode, cpu);
     *target = cpu->csr.mstatus & rv_csr_sstatus_mask;
     return rv_exc_none;
 }
 
-static rv_exc_t sstatus_set(rv_cpu_t* cpu, int csr, uint32_t target){
+static rv_exc_t sstatus_set(rv_cpu_t* cpu, csr_num_t csr, uint32_t value){
     minimal_privilege(rv_smode, cpu);
     // setting different bits is prohibited!
-    if((target & ~rv_csr_sstatus_mask) != 0) return rv_exc_illegal_instruction;
-    cpu->csr.mstatus |= target;
+    if((value & ~rv_csr_sstatus_mask) != 0) return rv_exc_illegal_instruction;
+    cpu->csr.mstatus |= value;
     return rv_exc_none;
 }
 
-static rv_exc_t sstatus_clear(rv_cpu_t* cpu, int csr, uint32_t target){
+static rv_exc_t sstatus_clear(rv_cpu_t* cpu, csr_num_t csr, uint32_t value){
     minimal_privilege(rv_smode, cpu);
     // clearing different bits is prohibited!
-    if((target & ~rv_csr_sstatus_mask) != 0) return rv_exc_illegal_instruction;
-    cpu->csr.mstatus &= ~target;
+    if((value & ~rv_csr_sstatus_mask) != 0) return rv_exc_illegal_instruction;
+    cpu->csr.mstatus &= ~value;
     return rv_exc_none;
 }
 
-static rv_exc_t sie_read(rv_cpu_t* cpu, int csr, uint32_t* target){
+static rv_exc_t sie_read(rv_cpu_t* cpu, csr_num_t csr, uint32_t* target){
     minimal_privilege(rv_smode, cpu);
     *target = cpu->csr.mie & rv_csr_si_mask;
     return rv_exc_none;
 }
 
-static rv_exc_t sie_write(rv_cpu_t* cpu, int csr, uint32_t target){
+static rv_exc_t sie_write(rv_cpu_t* cpu, csr_num_t csr, uint32_t value){
     minimal_privilege(rv_smode, cpu);
     
     // write only to si bits, preserve rest
     cpu->csr.mie &= ~rv_csr_si_mask;
-    cpu->csr.mie |= target & rv_csr_si_mask;
+    cpu->csr.mie |= value & rv_csr_si_mask;
     return rv_exc_none;
 }
 
-static rv_exc_t sie_set(rv_cpu_t* cpu, int csr, uint32_t target){
+static rv_exc_t sie_set(rv_cpu_t* cpu, csr_num_t csr, uint32_t value){
     minimal_privilege(rv_smode, cpu);
-    cpu->csr.mie |= target & rv_csr_si_mask;
+    cpu->csr.mie |= value & rv_csr_si_mask;
     return rv_exc_none;
 }
 
-static rv_exc_t sie_clear(rv_cpu_t* cpu, int csr, uint32_t target){
+static rv_exc_t sie_clear(rv_cpu_t* cpu, csr_num_t csr, uint32_t value){
     minimal_privilege(rv_smode, cpu);
-    cpu->csr.mie &= ~(target & rv_csr_si_mask);
+    cpu->csr.mie &= ~(value & rv_csr_si_mask);
     return rv_exc_none;
 }
 
-static rv_exc_t sip_read(rv_cpu_t* cpu, int csr, uint32_t* target){
+static rv_exc_t sip_read(rv_cpu_t* cpu, csr_num_t csr, uint32_t* target){
     minimal_privilege(rv_smode, cpu);
     
     // The SEIP bit is the logical OR of the value in MIP and the status from external interrupt controller
@@ -369,50 +370,50 @@ static rv_exc_t sip_read(rv_cpu_t* cpu, int csr, uint32_t* target){
     return rv_exc_none;
 }
 
-static rv_exc_t sip_write(rv_cpu_t* cpu, int csr, uint32_t target){
+static rv_exc_t sip_write(rv_cpu_t* cpu, csr_num_t csr, uint32_t value){
     minimal_privilege(rv_smode, cpu);
     
     // only ssip is writable
     cpu->csr.mip &= ~rv_csr_ssi_mask;
-    cpu->csr.mip |= target & rv_csr_ssi_mask;
+    cpu->csr.mip |= value & rv_csr_ssi_mask;
     return rv_exc_none;
 }
 
-static rv_exc_t sip_set(rv_cpu_t* cpu, int csr, uint32_t target){
+static rv_exc_t sip_set(rv_cpu_t* cpu, csr_num_t csr, uint32_t value){
     minimal_privilege(rv_smode, cpu);
-    cpu->csr.mip |= target & rv_csr_ssi_mask;
+    cpu->csr.mip |= value & rv_csr_ssi_mask;
     return rv_exc_none;
 }
 
-static rv_exc_t sip_clear(rv_cpu_t* cpu, int csr, uint32_t target){
+static rv_exc_t sip_clear(rv_cpu_t* cpu, csr_num_t csr, uint32_t value){
     minimal_privilege(rv_smode, cpu);
-    cpu->csr.mip &= ~(target & rv_csr_ssi_mask);
+    cpu->csr.mip &= ~(value & rv_csr_ssi_mask);
     return rv_exc_none;
 }
 
 #define scvec_mask 0xFFFFFFFD
 
-static rv_exc_t stvec_read(rv_cpu_t* cpu, int csr, uint32_t* target){
+static rv_exc_t stvec_read(rv_cpu_t* cpu, csr_num_t csr, uint32_t* target){
     minimal_privilege(rv_smode, cpu);
     *target = cpu->csr.stvec;
     return rv_exc_none;
 }
 
-static rv_exc_t stvec_write(rv_cpu_t* cpu, int csr, uint32_t target){
+static rv_exc_t stvec_write(rv_cpu_t* cpu, csr_num_t csr, uint32_t value){
     minimal_privilege(rv_smode, cpu);
-    cpu->csr.stvec = target & scvec_mask;
+    cpu->csr.stvec = value & scvec_mask;
     return rv_exc_none;
 }
 
-static rv_exc_t stvec_set(rv_cpu_t* cpu, int csr, uint32_t target){
+static rv_exc_t stvec_set(rv_cpu_t* cpu, csr_num_t csr, uint32_t value){
     minimal_privilege(rv_smode, cpu);
-    cpu->csr.stvec |= target & scvec_mask;
+    cpu->csr.stvec |= value & scvec_mask;
     return rv_exc_none;
 }
 
-static rv_exc_t stvec_clear(rv_cpu_t* cpu, int csr, uint32_t target){
+static rv_exc_t stvec_clear(rv_cpu_t* cpu, csr_num_t csr, uint32_t value){
     minimal_privilege(rv_smode, cpu);
-    cpu->csr.stvec &= ~(target & scvec_mask);
+    cpu->csr.stvec &= ~(value & scvec_mask);
     return rv_exc_none;
 }
 
@@ -420,27 +421,27 @@ default_csr_functions(scounteren, rv_smode)
 
 #define senvcfg_mask 0x71
 
-static rv_exc_t senvcfg_read(rv_cpu_t* cpu, int csr, uint32_t* target){
+static rv_exc_t senvcfg_read(rv_cpu_t* cpu, csr_num_t csr, uint32_t* target){
     minimal_privilege(rv_smode, cpu);
     *target = cpu->csr.senvcfg;
     return rv_exc_none;
 }
 
-static rv_exc_t senvcfg_set(rv_cpu_t* cpu, int csr, uint32_t target){
+static rv_exc_t senvcfg_set(rv_cpu_t* cpu, csr_num_t csr, uint32_t value){
     minimal_privilege(rv_smode, cpu);
     // Setting WPRI bits causes exception
-    if((target & ~senvcfg_mask) != 0) return rv_exc_illegal_instruction;
+    if((value & ~senvcfg_mask) != 0) return rv_exc_illegal_instruction;
 
-    cpu->csr.senvcfg |= target & senvcfg_mask;
+    cpu->csr.senvcfg |= value & senvcfg_mask;
     return rv_exc_none;
 }
 
-static rv_exc_t senvcfg_clear(rv_cpu_t* cpu, int csr, uint32_t target){
+static rv_exc_t senvcfg_clear(rv_cpu_t* cpu, csr_num_t csr, uint32_t value){
     minimal_privilege(rv_smode, cpu);
     // Clearing WPRI bits causes exception
-    if((target & ~senvcfg_mask) != 0) return rv_exc_illegal_instruction;
+    if((value & ~senvcfg_mask) != 0) return rv_exc_illegal_instruction;
 
-    cpu->csr.senvcfg &= ~(target & senvcfg_mask);
+    cpu->csr.senvcfg &= ~(value & senvcfg_mask);
     return rv_exc_none;
 }
 
@@ -448,70 +449,49 @@ default_csr_functions(sscratch, rv_smode)
 
 #define sepc_mask 0xFFFFFFFC
 
-static rv_exc_t sepc_read(rv_cpu_t* cpu, int csr, uint32_t* target){
+static rv_exc_t sepc_read(rv_cpu_t* cpu, csr_num_t csr, uint32_t* target){
     minimal_privilege(rv_smode, cpu);
     *target = cpu->csr.sepc;
     return rv_exc_none;
 }
 
-static rv_exc_t sepc_write(rv_cpu_t* cpu, int csr, uint32_t target){
+static rv_exc_t sepc_write(rv_cpu_t* cpu, csr_num_t csr, uint32_t value){
     minimal_privilege(rv_smode, cpu);
-    cpu->csr.sepc = target & sepc_mask;
+    cpu->csr.sepc = value & sepc_mask;
     return rv_exc_none;
 }
 
-static rv_exc_t sepc_set(rv_cpu_t* cpu, int csr, uint32_t target){
+static rv_exc_t sepc_set(rv_cpu_t* cpu, csr_num_t csr, uint32_t value){
     minimal_privilege(rv_smode, cpu);
-    cpu->csr.sepc |= target & sepc_mask;
+    cpu->csr.sepc |= value & sepc_mask;
     return rv_exc_none;
 }
 
-static rv_exc_t sepc_clear(rv_cpu_t* cpu, int csr, uint32_t target){
+static rv_exc_t sepc_clear(rv_cpu_t* cpu, csr_num_t csr, uint32_t value){
     minimal_privilege(rv_smode, cpu);
-    cpu->csr.sepc &= ~(target & sepc_mask);
+    cpu->csr.sepc &= ~(value & sepc_mask);
     return rv_exc_none;
 }
 
-static bool is_exception(uint32_t num){
-    switch(num){
-        case (rv_exc_supervisor_software_interrupt):
-        case (rv_exc_machine_software_interrupt):
-        case (rv_exc_supervisor_timer_interrupt):
-        case (rv_exc_machine_timer_interrupt):
-        case (rv_exc_supervisor_external_interrupt):
-        case (rv_exc_machine_external_interrupt):
-        case (rv_exc_instruction_address_misaligned):
-        case (rv_exc_instruction_access_fault):
-        case (rv_exc_illegal_instruction):
-        case (rv_exc_breakpoint):
-        case (rv_exc_load_address_misaligned):
-        case (rv_exc_load_access_fault):
-        case (rv_exc_store_amo_address_misaligned):
-        case (rv_exc_store_amo_access_fault):
-        case (rv_exc_umode_environment_call):
-        case (rv_exc_smode_environment_call):
-        case (rv_exc_mmode_environment_call):
-        case (rv_exc_instruction_page_fault):
-        case (rv_exc_load_page_fault):
-        case (rv_exc_store_amo_page_fault):
-            return true;
-        default:
-            return false;
+static bool is_exception_code(uint32_t num){
+    if(RV_INTERRUPT_EXC_BITS & num){
+        return RV_EXCEPTION_MASK(num) & RV_INTERRUPTS_MASK;
     }
+    return RV_EXCEPTION_MASK(num) & RV_EXCEPTIONS_MASK;
 }
 
 
-static rv_exc_t scause_read(rv_cpu_t* cpu, int csr, uint32_t* target){
+static rv_exc_t scause_read(rv_cpu_t* cpu, csr_num_t csr, uint32_t* target){
     minimal_privilege(rv_smode, cpu);
     *target = cpu->csr.scause;
     return rv_exc_none;
 }
 
-static rv_exc_t scause_write(rv_cpu_t* cpu, int csr, uint32_t target){
+static rv_exc_t scause_write(rv_cpu_t* cpu, csr_num_t csr, uint32_t value){
     minimal_privilege(rv_smode, cpu);
 
-    if(is_exception(target)){
-        cpu->csr.scause = target;
+    if(is_exception_code(value)){
+        cpu->csr.scause = value;
     }
     else {
         return rv_exc_illegal_instruction;
@@ -520,11 +500,11 @@ static rv_exc_t scause_write(rv_cpu_t* cpu, int csr, uint32_t target){
     return rv_exc_none;
 }
 
-static rv_exc_t scause_set(rv_cpu_t* cpu, int csr, uint32_t target){
+static rv_exc_t scause_set(rv_cpu_t* cpu, csr_num_t csr, uint32_t value){
     minimal_privilege(rv_smode, cpu);
 
-    uint32_t val = target | cpu->csr.scause;
-    if(is_exception(val)){
+    uint32_t val = value | cpu->csr.scause;
+    if(is_exception_code(val)){
         cpu->csr.scause = val;
     }
     else {
@@ -534,11 +514,11 @@ static rv_exc_t scause_set(rv_cpu_t* cpu, int csr, uint32_t target){
     return rv_exc_none;
 }
 
-static rv_exc_t scause_clear(rv_cpu_t* cpu, int csr, uint32_t target){
+static rv_exc_t scause_clear(rv_cpu_t* cpu, csr_num_t csr, uint32_t value){
     minimal_privilege(rv_smode, cpu);
 
-    uint32_t val = ~target & cpu->csr.scause;
-    if(is_exception(val)){
+    uint32_t val = ~value & cpu->csr.scause;
+    if(is_exception_code(val)){
         cpu->csr.scause = val;
     }
     else {
@@ -550,7 +530,7 @@ static rv_exc_t scause_clear(rv_cpu_t* cpu, int csr, uint32_t target){
 
 default_csr_functions(stval, rv_smode)
 
-static rv_exc_t satp_read(rv_cpu_t* cpu, int csr, uint32_t* target){
+static rv_exc_t satp_read(rv_cpu_t* cpu, csr_num_t csr, uint32_t* target){
     minimal_privilege(rv_smode, cpu);
     if(rv_csr_mstatus_tvm(cpu)) return rv_exc_illegal_instruction;
 
@@ -558,11 +538,11 @@ static rv_exc_t satp_read(rv_cpu_t* cpu, int csr, uint32_t* target){
     return rv_exc_none;
 }
 
-static rv_exc_t satp_write(rv_cpu_t* cpu, int csr, uint32_t target){
+static rv_exc_t satp_write(rv_cpu_t* cpu, csr_num_t csr, uint32_t value){
     minimal_privilege(rv_smode, cpu);
     if(rv_csr_mstatus_tvm(cpu)) return rv_exc_illegal_instruction;
 
-    cpu->csr.satp = target;
+    cpu->csr.satp = value;
     
     if(rv_csr_satp_is_bare(cpu)){
         cpu->csr.satp = 0;
@@ -571,11 +551,11 @@ static rv_exc_t satp_write(rv_cpu_t* cpu, int csr, uint32_t target){
     return rv_exc_none;
 }
 
-static rv_exc_t satp_set(rv_cpu_t* cpu, int csr, uint32_t target){
+static rv_exc_t satp_set(rv_cpu_t* cpu, csr_num_t csr, uint32_t value){
     minimal_privilege(rv_smode, cpu);
     if(rv_csr_mstatus_tvm(cpu)) return rv_exc_illegal_instruction;
 
-    cpu->csr.satp |= target;
+    cpu->csr.satp |= value;
 
     if(rv_csr_satp_is_bare(cpu)){
         cpu->csr.satp = 0;
@@ -584,11 +564,11 @@ static rv_exc_t satp_set(rv_cpu_t* cpu, int csr, uint32_t target){
     return rv_exc_none;
 }
 
-static rv_exc_t satp_clear(rv_cpu_t* cpu, int csr, uint32_t target){
+static rv_exc_t satp_clear(rv_cpu_t* cpu, csr_num_t csr, uint32_t value){
     minimal_privilege(rv_smode, cpu);
     if(rv_csr_mstatus_tvm(cpu)) return rv_exc_illegal_instruction;
 
-    cpu->csr.satp &= target;
+    cpu->csr.satp &= value;
 
     if(rv_csr_satp_is_bare(cpu)){
         cpu->csr.satp = 0;
@@ -600,31 +580,31 @@ static rv_exc_t satp_clear(rv_cpu_t* cpu, int csr, uint32_t target){
 default_csr_functions(scontext, rv_smode)
 default_csr_functions(scyclecmp, rv_smode)
 
-static rv_exc_t mvendorid_read(rv_cpu_t* cpu, int csr, uint32_t* target){
+static rv_exc_t mvendorid_read(rv_cpu_t* cpu, csr_num_t csr, uint32_t* target){
     minimal_privilege(rv_mmode, cpu);
     *target = cpu->csr.mvendorid;
     return rv_exc_none;
 }
 
-static rv_exc_t marchid_read(rv_cpu_t* cpu, int csr, uint32_t* target){
+static rv_exc_t marchid_read(rv_cpu_t* cpu, csr_num_t csr, uint32_t* target){
     minimal_privilege(rv_mmode, cpu);
     *target = cpu->csr.marchid;
     return rv_exc_none;
 }
 
-static rv_exc_t mimpid_read(rv_cpu_t* cpu, int csr, uint32_t* target){
+static rv_exc_t mimpid_read(rv_cpu_t* cpu, csr_num_t csr, uint32_t* target){
     minimal_privilege(rv_mmode, cpu);
     *target = cpu->csr.mimpid;
     return rv_exc_none;
 }
 
-static rv_exc_t mhartid_read(rv_cpu_t* cpu, int csr, uint32_t* target){
+static rv_exc_t mhartid_read(rv_cpu_t* cpu, csr_num_t csr, uint32_t* target){
     minimal_privilege(rv_mmode, cpu);
     *target = cpu->csr.mhartid;
     return rv_exc_none;
 }
 
-static rv_exc_t mconfigptr_read(rv_cpu_t* cpu, int csr, uint32_t* target){
+static rv_exc_t mconfigptr_read(rv_cpu_t* cpu, csr_num_t csr, uint32_t* target){
     minimal_privilege(rv_mmode, cpu);
     *target = cpu->csr.mconfigptr;
     return rv_exc_none;
@@ -632,80 +612,80 @@ static rv_exc_t mconfigptr_read(rv_cpu_t* cpu, int csr, uint32_t* target){
 
 
 
-static rv_exc_t mstatus_read(rv_cpu_t* cpu, int csr, uint32_t* target){
+static rv_exc_t mstatus_read(rv_cpu_t* cpu, csr_num_t csr, uint32_t* target){
     minimal_privilege(rv_mmode, cpu);
     *target = (uint32_t)cpu->csr.mstatus;
     return rv_exc_none;
 }
 
-static rv_exc_t mstatus_set(rv_cpu_t* cpu, int csr, uint32_t target){
+static rv_exc_t mstatus_set(rv_cpu_t* cpu, csr_num_t csr, uint32_t value){
     minimal_privilege(rv_mmode, cpu);
-    if((target & ~rv_csr_mstatus_mask) != 0) return rv_exc_illegal_instruction;
+    if((value & ~rv_csr_mstatus_mask) != 0) return rv_exc_illegal_instruction;
     
-    uint64_t val = (uint64_t)target | cpu->csr.mstatus;
+    uint64_t val = (uint64_t)value | cpu->csr.mstatus;
 
     // if the new mpp mode would be hmode, don't modify the mpp
     if(((val & rv_csr_mstatus_mpp_mask) >> 11) == rv_hmode){
-        target &= ~rv_csr_mstatus_mpp_mask;
+        value &= ~rv_csr_mstatus_mpp_mask;
     }
 
-    cpu->csr.mstatus |= (uint64_t)target;
+    cpu->csr.mstatus |= (uint64_t)value;
 
     return rv_exc_none;
 }
 
-static rv_exc_t mstatus_clear(rv_cpu_t* cpu, int csr, uint32_t target){
+static rv_exc_t mstatus_clear(rv_cpu_t* cpu, csr_num_t csr, uint32_t value){
     minimal_privilege(rv_mmode, cpu);
-    if((target & ~rv_csr_mstatus_mask) != 0) return rv_exc_illegal_instruction;
+    if((value & ~rv_csr_mstatus_mask) != 0) return rv_exc_illegal_instruction;
 
-    uint64_t val = ~(uint64_t)target & cpu->csr.mstatus;
+    uint64_t val = ~(uint64_t)value & cpu->csr.mstatus;
 
     // if the new mpp mode would be hmode, don't modify the mpp
     if(((val & rv_csr_mstatus_mpp_mask) >> 11) == rv_hmode){
-        target &= ~rv_csr_mstatus_mpp_mask;
+        value &= ~rv_csr_mstatus_mpp_mask;
     }
 
-    cpu->csr.mstatus &= ~((uint64_t)target);
+    cpu->csr.mstatus &= ~((uint64_t)value);
     return rv_exc_none;
 }
 
 // Since MBE and SBE are both R/O zero and other bits re WPRI, whole mstatush is R/O zero
-static rv_exc_t mstatush_read(rv_cpu_t* cpu, int csr, uint32_t* target){
+static rv_exc_t mstatush_read(rv_cpu_t* cpu, csr_num_t csr, uint32_t* target){
     minimal_privilege(rv_mmode, cpu);
     *target = (uint32_t)(cpu->csr.mstatus >> 32);
     return rv_exc_none;
 }
 
-static rv_exc_t mstatush_set(rv_cpu_t* cpu, int csr, uint32_t target){
+static rv_exc_t mstatush_set(rv_cpu_t* cpu, csr_num_t csr, uint32_t value){
     minimal_privilege(rv_mmode, cpu);
-    if(target != 0) return rv_exc_illegal_instruction;
+    if(value != 0) return rv_exc_illegal_instruction;
     return rv_exc_none;
 }
 
-static rv_exc_t mstatush_clear(rv_cpu_t* cpu, int csr, uint32_t target){
+static rv_exc_t mstatush_clear(rv_cpu_t* cpu, csr_num_t csr, uint32_t value){
     minimal_privilege(rv_mmode, cpu);
-    if(target != 0) return rv_exc_illegal_instruction;
+    if(value != 0) return rv_exc_illegal_instruction;
     return rv_exc_none;
 }
 
-static rv_exc_t misa_read(rv_cpu_t* cpu, int csr, uint32_t* target){
+static rv_exc_t misa_read(rv_cpu_t* cpu, csr_num_t csr, uint32_t* target){
     minimal_privilege(rv_mmode, cpu);
     *target = cpu->csr.misa;
     return rv_exc_none;
 }
 
 // misa writes do nothing, we don't allow the change of extensions or MXLEN
-static rv_exc_t misa_write(rv_cpu_t* cpu, int csr, uint32_t target){
+static rv_exc_t misa_write(rv_cpu_t* cpu, csr_num_t csr, uint32_t value){
     minimal_privilege(rv_mmode, cpu);
     return rv_exc_none;
 }
 
-static rv_exc_t misa_set(rv_cpu_t* cpu, int csr, uint32_t target){
+static rv_exc_t misa_set(rv_cpu_t* cpu, csr_num_t csr, uint32_t value){
     minimal_privilege(rv_mmode, cpu);
     return rv_exc_none;
 }
 
-static rv_exc_t misa_clear(rv_cpu_t* cpu, int csr, uint32_t target){
+static rv_exc_t misa_clear(rv_cpu_t* cpu, csr_num_t csr, uint32_t value){
     minimal_privilege(rv_mmode, cpu);
     return rv_exc_none;
 }
@@ -714,31 +694,31 @@ static rv_exc_t misa_clear(rv_cpu_t* cpu, int csr, uint32_t target){
 // mmode ecall can't be delegated
 #define medeleg_mask (RV_EXCEPTIONS_MASK & ~RV_EXCEPTION_MASK(rv_exc_mmode_environment_call))
 
-static rv_exc_t medeleg_read(rv_cpu_t* cpu, int csr, uint32_t* target){
+static rv_exc_t medeleg_read(rv_cpu_t* cpu, csr_num_t csr, uint32_t* target){
     minimal_privilege(rv_mmode, cpu);
     *target = cpu->csr.medeleg;
     return rv_exc_none;
 }
 
-static rv_exc_t medeleg_write(rv_cpu_t* cpu, int csr, uint32_t target){
+static rv_exc_t medeleg_write(rv_cpu_t* cpu, csr_num_t csr, uint32_t value){
     minimal_privilege(rv_mmode, cpu);
-    cpu->csr.medeleg = target & medeleg_mask;
+    cpu->csr.medeleg = value & medeleg_mask;
     return rv_exc_none;
 }
 
-static rv_exc_t medeleg_set(rv_cpu_t* cpu, int csr, uint32_t target){
+static rv_exc_t medeleg_set(rv_cpu_t* cpu, csr_num_t csr, uint32_t value){
     minimal_privilege(rv_mmode, cpu);
-    cpu->csr.medeleg |= target & medeleg_mask;
+    cpu->csr.medeleg |= value & medeleg_mask;
     return rv_exc_none;
 }
 
-static rv_exc_t medeleg_clear(rv_cpu_t* cpu, int csr, uint32_t target){
+static rv_exc_t medeleg_clear(rv_cpu_t* cpu, csr_num_t csr, uint32_t value){
     minimal_privilege(rv_mmode, cpu);
-    cpu->csr.medeleg &= ~(target & medeleg_mask);
+    cpu->csr.medeleg &= ~(value & medeleg_mask);
     return rv_exc_none;
 }
 
-static rv_exc_t mideleg_read(rv_cpu_t* cpu, int csr, uint32_t* target){
+static rv_exc_t mideleg_read(rv_cpu_t* cpu, csr_num_t csr, uint32_t* target){
     minimal_privilege(rv_mmode, cpu);
     *target = cpu->csr.mideleg;
     return rv_exc_none;
@@ -746,49 +726,49 @@ static rv_exc_t mideleg_read(rv_cpu_t* cpu, int csr, uint32_t* target){
 
 
 // we allow only smode interrupts to be delegatable
-static rv_exc_t mideleg_write(rv_cpu_t* cpu, int csr, uint32_t target){
+static rv_exc_t mideleg_write(rv_cpu_t* cpu, csr_num_t csr, uint32_t value){
     minimal_privilege(rv_mmode, cpu);
-    cpu->csr.mideleg = target & rv_csr_si_mask;
+    cpu->csr.mideleg = value & rv_csr_si_mask;
     return rv_exc_none;
 }
 
-static rv_exc_t mideleg_set(rv_cpu_t* cpu, int csr, uint32_t target){
+static rv_exc_t mideleg_set(rv_cpu_t* cpu, csr_num_t csr, uint32_t value){
     minimal_privilege(rv_mmode, cpu);
-    cpu->csr.mideleg |= target & rv_csr_si_mask;
+    cpu->csr.mideleg |= value & rv_csr_si_mask;
     return rv_exc_none;
 }
 
-static rv_exc_t mideleg_clear(rv_cpu_t* cpu, int csr, uint32_t target){
+static rv_exc_t mideleg_clear(rv_cpu_t* cpu, csr_num_t csr, uint32_t value){
     minimal_privilege(rv_mmode, cpu);
-    cpu->csr.mideleg &= ~(target & rv_csr_si_mask);
+    cpu->csr.mideleg &= ~(value & rv_csr_si_mask);
     return rv_exc_none;
 }
 
-static rv_exc_t mie_read(rv_cpu_t* cpu, int csr, uint32_t* target){
+static rv_exc_t mie_read(rv_cpu_t* cpu, csr_num_t csr, uint32_t* target){
     minimal_privilege(rv_mmode, cpu);
     *target = cpu->csr.mie;
     return rv_exc_none;
 }
 
-static rv_exc_t mie_write(rv_cpu_t* cpu, int csr, uint32_t target){
+static rv_exc_t mie_write(rv_cpu_t* cpu, csr_num_t csr, uint32_t value){
     minimal_privilege(rv_mmode, cpu);
-    cpu->csr.mie = target & rv_csr_mi_mask;
+    cpu->csr.mie = value & rv_csr_mi_mask;
     return rv_exc_none;
 }
 
-static rv_exc_t mie_set(rv_cpu_t* cpu, int csr, uint32_t target){
+static rv_exc_t mie_set(rv_cpu_t* cpu, csr_num_t csr, uint32_t value){
     minimal_privilege(rv_mmode, cpu);
-    cpu->csr.mie |= target & rv_csr_mi_mask;
+    cpu->csr.mie |= value & rv_csr_mi_mask;
     return rv_exc_none;
 }
 
-static rv_exc_t mie_clear(rv_cpu_t* cpu, int csr, uint32_t target){
+static rv_exc_t mie_clear(rv_cpu_t* cpu, csr_num_t csr, uint32_t value){
     minimal_privilege(rv_mmode, cpu);
-    cpu->csr.mie &= ~(target & rv_csr_mi_mask);
+    cpu->csr.mie &= ~(value & rv_csr_mi_mask);
     return rv_exc_none;
 }
 
-static rv_exc_t mip_read(rv_cpu_t* cpu, int csr, uint32_t* target){
+static rv_exc_t mip_read(rv_cpu_t* cpu, csr_num_t csr, uint32_t* target){
     minimal_privilege(rv_mmode, cpu);
 
     // The SEIP bit is the logical OR of the value in MIP and the status from external interrupt controller
@@ -800,48 +780,48 @@ static rv_exc_t mip_read(rv_cpu_t* cpu, int csr, uint32_t* target){
 // M-mode interrupts are not directly writable, but all S-mode interrupts are
 #define mip_mask rv_csr_si_mask
 
-static rv_exc_t mip_write(rv_cpu_t* cpu, int csr, uint32_t target){
+static rv_exc_t mip_write(rv_cpu_t* cpu, csr_num_t csr, uint32_t value){
     minimal_privilege(rv_mmode, cpu);
 
-    cpu->csr.mip = target & mip_mask;
+    cpu->csr.mip = value & mip_mask;
     return rv_exc_none;
 }
 
-static rv_exc_t mip_set(rv_cpu_t* cpu, int csr, uint32_t target){
+static rv_exc_t mip_set(rv_cpu_t* cpu, csr_num_t csr, uint32_t value){
     minimal_privilege(rv_mmode, cpu);
-    cpu->csr.mip |= target & mip_mask;
+    cpu->csr.mip |= value & mip_mask;
     return rv_exc_none;
 }
 
-static rv_exc_t mip_clear(rv_cpu_t* cpu, int csr, uint32_t target){
+static rv_exc_t mip_clear(rv_cpu_t* cpu, csr_num_t csr, uint32_t value){
     minimal_privilege(rv_mmode, cpu);
-    cpu->csr.mip &= ~(target & mip_mask);
+    cpu->csr.mip &= ~(value & mip_mask);
     return rv_exc_none;
 }
 
 #define mtvec_mask (~UINT32_C(2))
 
-static rv_exc_t mtvec_read(rv_cpu_t* cpu, int csr, uint32_t* target){
+static rv_exc_t mtvec_read(rv_cpu_t* cpu, csr_num_t csr, uint32_t* target){
     minimal_privilege(rv_mmode, cpu);
     *target = cpu->csr.mtvec;
     return rv_exc_none;
 }
 
-static rv_exc_t mtvec_write(rv_cpu_t* cpu, int csr, uint32_t target){
+static rv_exc_t mtvec_write(rv_cpu_t* cpu, csr_num_t csr, uint32_t value){
     minimal_privilege(rv_mmode, cpu);
-    cpu->csr.mtvec = target & mtvec_mask;
+    cpu->csr.mtvec = value & mtvec_mask;
     return rv_exc_none;
 }
 
-static rv_exc_t mtvec_set(rv_cpu_t* cpu, int csr, uint32_t target){
+static rv_exc_t mtvec_set(rv_cpu_t* cpu, csr_num_t csr, uint32_t value){
     minimal_privilege(rv_mmode, cpu);
-    cpu->csr.mtvec |= target & mtvec_mask;
+    cpu->csr.mtvec |= value & mtvec_mask;
     return rv_exc_none;
 }
 
-static rv_exc_t mtvec_clear(rv_cpu_t* cpu, int csr, uint32_t target){
+static rv_exc_t mtvec_clear(rv_cpu_t* cpu, csr_num_t csr, uint32_t value){
     minimal_privilege(rv_mmode, cpu);
-    cpu->csr.mtvec &= ~(target & mtvec_mask);
+    cpu->csr.mtvec &= ~(value & mtvec_mask);
     return rv_exc_none;
 }
 
@@ -851,16 +831,16 @@ default_csr_functions(mcounteren, rv_mmode)
 default_csr_functions(mscratch, rv_mmode)
 default_csr_functions(mepc, rv_mmode)
 
-static rv_exc_t mcause_read(rv_cpu_t* cpu, int csr, uint32_t* target){
+static rv_exc_t mcause_read(rv_cpu_t* cpu, csr_num_t csr, uint32_t* target){
     minimal_privilege(rv_mmode, cpu);
     *target = cpu->csr.mcause;
     return rv_exc_none;
 }
 
-static rv_exc_t mcause_write(rv_cpu_t* cpu, int csr, uint32_t target){
+static rv_exc_t mcause_write(rv_cpu_t* cpu, csr_num_t csr, uint32_t value){
     minimal_privilege(rv_mmode, cpu);
-    if(is_exception(target)){
-        cpu->csr.mcause = target;
+    if(is_exception_code(value)){
+        cpu->csr.mcause = value;
     }
     else {
         return rv_exc_illegal_instruction;
@@ -868,12 +848,12 @@ static rv_exc_t mcause_write(rv_cpu_t* cpu, int csr, uint32_t target){
     return rv_exc_none;
 }
 
-static rv_exc_t mcause_set(rv_cpu_t* cpu, int csr, uint32_t target){
+static rv_exc_t mcause_set(rv_cpu_t* cpu, csr_num_t csr, uint32_t value){
     minimal_privilege(rv_mmode, cpu);
 
-    uint32_t val = cpu->csr.mcause | target;
+    uint32_t val = cpu->csr.mcause | value;
 
-    if(is_exception(val)){
+    if(is_exception_code(val)){
         cpu->csr.mcause = val;
     }
     else {
@@ -882,11 +862,11 @@ static rv_exc_t mcause_set(rv_cpu_t* cpu, int csr, uint32_t target){
     return rv_exc_none;
 }
 
-static rv_exc_t mcause_clear(rv_cpu_t* cpu, int csr, uint32_t target){
+static rv_exc_t mcause_clear(rv_cpu_t* cpu, csr_num_t csr, uint32_t value){
     minimal_privilege(rv_mmode, cpu);
-    uint32_t val = cpu->csr.mcause & ~target;
+    uint32_t val = cpu->csr.mcause & ~value;
 
-    if(is_exception(val)){
+    if(is_exception_code(val)){
         cpu->csr.mcause = val;
     }
     else {
@@ -897,277 +877,281 @@ static rv_exc_t mcause_clear(rv_cpu_t* cpu, int csr, uint32_t target){
 
 default_csr_functions(mtval, rv_mmode)
 
-static rv_exc_t mtinst_read(rv_cpu_t* cpu, int csr, uint32_t* target){
+static rv_exc_t mtinst_read(rv_cpu_t* cpu, csr_num_t csr, uint32_t* target){
     return rv_exc_illegal_instruction;
 }
 
-static rv_exc_t mtinst_write(rv_cpu_t* cpu, int csr, uint32_t target){
+static rv_exc_t mtinst_write(rv_cpu_t* cpu, csr_num_t csr, uint32_t value){
     return rv_exc_illegal_instruction;
 }
 
-static rv_exc_t mtinst_set(rv_cpu_t* cpu, int csr, uint32_t target){
+static rv_exc_t mtinst_set(rv_cpu_t* cpu, csr_num_t csr, uint32_t value){
     return rv_exc_illegal_instruction;
 }
 
-static rv_exc_t mtinst_clear(rv_cpu_t* cpu, int csr, uint32_t target){
+static rv_exc_t mtinst_clear(rv_cpu_t* cpu, csr_num_t csr, uint32_t value){
     return rv_exc_illegal_instruction;
 }
 
-static rv_exc_t mtval2_read(rv_cpu_t* cpu, int csr, uint32_t* target){
+static rv_exc_t mtval2_read(rv_cpu_t* cpu, csr_num_t csr, uint32_t* target){
     return rv_exc_illegal_instruction;
 }
 
-static rv_exc_t mtval2_write(rv_cpu_t* cpu, int csr, uint32_t target){
+static rv_exc_t mtval2_write(rv_cpu_t* cpu, csr_num_t csr, uint32_t value){
     return rv_exc_illegal_instruction;
 }
 
-static rv_exc_t mtval2_set(rv_cpu_t* cpu, int csr, uint32_t target){
+static rv_exc_t mtval2_set(rv_cpu_t* cpu, csr_num_t csr, uint32_t value){
     return rv_exc_illegal_instruction;
 }
 
-static rv_exc_t mtval2_clear(rv_cpu_t* cpu, int csr, uint32_t target){
+static rv_exc_t mtval2_clear(rv_cpu_t* cpu, csr_num_t csr, uint32_t value){
     return rv_exc_illegal_instruction;
 }
 
 #define menvcfg_fiom_mask UINT32_C(1)
 
-static rv_exc_t menvcfg_read(rv_cpu_t* cpu, int csr, uint32_t* target){
+static rv_exc_t menvcfg_read(rv_cpu_t* cpu, csr_num_t csr, uint32_t* target){
     minimal_privilege(rv_mmode, cpu);
     *target = (uint32_t)cpu->csr.menvcfg;
     return rv_exc_none;
 }
 
-static rv_exc_t menvcfg_set(rv_cpu_t* cpu, int csr, uint32_t target){
+static rv_exc_t menvcfg_set(rv_cpu_t* cpu, csr_num_t csr, uint32_t value){
     minimal_privilege(rv_mmode, cpu);
     // Writing to unwritable fields
-    if((target & ~menvcfg_fiom_mask) != 0) return rv_exc_illegal_instruction;
+    if((value & ~menvcfg_fiom_mask) != 0) return rv_exc_illegal_instruction;
 
-    cpu->csr.menvcfg |= (uint64_t)target;
+    cpu->csr.menvcfg |= (uint64_t)value;
     return rv_exc_none;
 }
 
-static rv_exc_t menvcfg_clear(rv_cpu_t* cpu, int csr, uint32_t target){
+static rv_exc_t menvcfg_clear(rv_cpu_t* cpu, csr_num_t csr, uint32_t value){
     minimal_privilege(rv_mmode, cpu);
     // Writing to unwritable fields
-    if((target & ~menvcfg_fiom_mask) != 0) return rv_exc_illegal_instruction;
+    if((value & ~menvcfg_fiom_mask) != 0) return rv_exc_illegal_instruction;
 
-    cpu->csr.menvcfg &= ~((uint64_t)target);
+    cpu->csr.menvcfg &= ~((uint64_t)value);
     return rv_exc_none;
 }
 
-static rv_exc_t menvcfgh_read(rv_cpu_t* cpu, int csr, uint32_t* target){
+static rv_exc_t menvcfgh_read(rv_cpu_t* cpu, csr_num_t csr, uint32_t* target){
     minimal_privilege(rv_mmode, cpu);
     *target = cpu->csr.menvcfg >> 32;
     return rv_exc_none;
 }
 
-static rv_exc_t menvcfgh_set(rv_cpu_t* cpu, int csr, uint32_t target){
+static rv_exc_t menvcfgh_set(rv_cpu_t* cpu, csr_num_t csr, uint32_t value){
     minimal_privilege(rv_mmode, cpu);
     // no bits are writable in menvcfgh on RV32I
-    if(target != 0) return rv_exc_illegal_instruction;
+    if(value != 0) return rv_exc_illegal_instruction;
     return rv_exc_none;
 }
 
-static rv_exc_t menvcfgh_clear(rv_cpu_t* cpu, int csr, uint32_t target){
+static rv_exc_t menvcfgh_clear(rv_cpu_t* cpu, csr_num_t csr, uint32_t value){
     minimal_privilege(rv_mmode, cpu);
-    if(target != 0) return rv_exc_illegal_instruction;
+    if(value != 0) return rv_exc_illegal_instruction;
     return rv_exc_none;
 }
 
 // mseccfg(h) do nothing as of now, so they are read-only 0
-static rv_exc_t mseccfg_read(rv_cpu_t* cpu, int csr, uint32_t* target){
+static rv_exc_t mseccfg_read(rv_cpu_t* cpu, csr_num_t csr, uint32_t* target){
     minimal_privilege(rv_mmode, cpu);
     *target = cpu->csr.mseccfg;
     return rv_exc_none;
 }
 
-static rv_exc_t mseccfg_set(rv_cpu_t* cpu, int csr, uint32_t target){
+static rv_exc_t mseccfg_set(rv_cpu_t* cpu, csr_num_t csr, uint32_t value){
     minimal_privilege(rv_mmode, cpu);
-    if(target != 0) return rv_exc_illegal_instruction;
+    if(value != 0) return rv_exc_illegal_instruction;
     return rv_exc_none;
 }
 
-static rv_exc_t mseccfg_clear(rv_cpu_t* cpu, int csr, uint32_t target){
+static rv_exc_t mseccfg_clear(rv_cpu_t* cpu, csr_num_t csr, uint32_t value){
     minimal_privilege(rv_mmode, cpu);
-    if(target != 0) return rv_exc_illegal_instruction;
+    if(value != 0) return rv_exc_illegal_instruction;
     return rv_exc_none;
 }
 
-static rv_exc_t mseccfgh_read(rv_cpu_t* cpu, int csr, uint32_t* target){
+static rv_exc_t mseccfgh_read(rv_cpu_t* cpu, csr_num_t csr, uint32_t* target){
     minimal_privilege(rv_mmode, cpu);
     *target = 0;
     return rv_exc_none;
 }
 
-static rv_exc_t mseccfgh_set(rv_cpu_t* cpu, int csr, uint32_t target){
+static rv_exc_t mseccfgh_set(rv_cpu_t* cpu, csr_num_t csr, uint32_t value){
     minimal_privilege(rv_mmode, cpu);
-    if(target != 0) return rv_exc_illegal_instruction;
+    if(value != 0) return rv_exc_illegal_instruction;
     return rv_exc_none;
 }
 
-static rv_exc_t mseccfgh_clear(rv_cpu_t* cpu, int csr, uint32_t target){
+static rv_exc_t mseccfgh_clear(rv_cpu_t* cpu, csr_num_t csr, uint32_t value){
     minimal_privilege(rv_mmode, cpu);
-    if(target != 0) return rv_exc_illegal_instruction;
+    if(value != 0) return rv_exc_illegal_instruction;
     return rv_exc_none;
 }
 
-static rv_exc_t tselect_read(rv_cpu_t* cpu, int csr, uint32_t* target){
+static rv_exc_t tselect_read(rv_cpu_t* cpu, csr_num_t csr, uint32_t* target){
     return rv_exc_illegal_instruction;
 }
 
-static rv_exc_t tselect_write(rv_cpu_t* cpu, int csr, uint32_t target){
+static rv_exc_t tselect_write(rv_cpu_t* cpu, csr_num_t csr, uint32_t value){
     return rv_exc_illegal_instruction;
 }
 
-static rv_exc_t tselect_set(rv_cpu_t* cpu, int csr, uint32_t target){
+static rv_exc_t tselect_set(rv_cpu_t* cpu, csr_num_t csr, uint32_t value){
     return rv_exc_illegal_instruction;
 }
 
-static rv_exc_t tselect_clear(rv_cpu_t* cpu, int csr, uint32_t target){
+static rv_exc_t tselect_clear(rv_cpu_t* cpu, csr_num_t csr, uint32_t value){
     return rv_exc_illegal_instruction;
 }
 
-static rv_exc_t tdata1_read(rv_cpu_t* cpu, int csr, uint32_t* target){
+static rv_exc_t tdata1_read(rv_cpu_t* cpu, csr_num_t csr, uint32_t* target){
     return rv_exc_illegal_instruction;
 }
 
-static rv_exc_t tdata1_write(rv_cpu_t* cpu, int csr, uint32_t target){
+static rv_exc_t tdata1_write(rv_cpu_t* cpu, csr_num_t csr, uint32_t value){
     return rv_exc_illegal_instruction;
 }
 
-static rv_exc_t tdata1_set(rv_cpu_t* cpu, int csr, uint32_t target){
+static rv_exc_t tdata1_set(rv_cpu_t* cpu, csr_num_t csr, uint32_t value){
     return rv_exc_illegal_instruction;
 }
 
-static rv_exc_t tdata1_clear(rv_cpu_t* cpu, int csr, uint32_t target){
+static rv_exc_t tdata1_clear(rv_cpu_t* cpu, csr_num_t csr, uint32_t value){
     return rv_exc_illegal_instruction;
 }
 
-static rv_exc_t tdata2_read(rv_cpu_t* cpu, int csr, uint32_t* target){
+static rv_exc_t tdata2_read(rv_cpu_t* cpu, csr_num_t csr, uint32_t* target){
     return rv_exc_illegal_instruction;
 }
 
-static rv_exc_t tdata2_write(rv_cpu_t* cpu, int csr, uint32_t target){
+static rv_exc_t tdata2_write(rv_cpu_t* cpu, csr_num_t csr, uint32_t value){
     return rv_exc_illegal_instruction;
 }
 
-static rv_exc_t tdata2_set(rv_cpu_t* cpu, int csr, uint32_t target){
+static rv_exc_t tdata2_set(rv_cpu_t* cpu, csr_num_t csr, uint32_t value){
     return rv_exc_illegal_instruction;
 }
 
-static rv_exc_t tdata2_clear(rv_cpu_t* cpu, int csr, uint32_t target){
+static rv_exc_t tdata2_clear(rv_cpu_t* cpu, csr_num_t csr, uint32_t value){
     return rv_exc_illegal_instruction;
 }
 
-static rv_exc_t tdata3_read(rv_cpu_t* cpu, int csr, uint32_t* target){
+static rv_exc_t tdata3_read(rv_cpu_t* cpu, csr_num_t csr, uint32_t* target){
     return rv_exc_illegal_instruction;
 }
 
-static rv_exc_t tdata3_write(rv_cpu_t* cpu, int csr, uint32_t target){
+static rv_exc_t tdata3_write(rv_cpu_t* cpu, csr_num_t csr, uint32_t value){
     return rv_exc_illegal_instruction;
 }
 
-static rv_exc_t tdata3_set(rv_cpu_t* cpu, int csr, uint32_t target){
+static rv_exc_t tdata3_set(rv_cpu_t* cpu, csr_num_t csr, uint32_t value){
     return rv_exc_illegal_instruction;
 }
 
-static rv_exc_t tdata3_clear(rv_cpu_t* cpu, int csr, uint32_t target){
+static rv_exc_t tdata3_clear(rv_cpu_t* cpu, csr_num_t csr, uint32_t value){
     return rv_exc_illegal_instruction;
 }
 
-static rv_exc_t mcontext_read(rv_cpu_t* cpu, int csr, uint32_t* target){
+static rv_exc_t mcontext_read(rv_cpu_t* cpu, csr_num_t csr, uint32_t* target){
     return rv_exc_illegal_instruction;
 }
 
-static rv_exc_t mcontext_write(rv_cpu_t* cpu, int csr, uint32_t target){
+static rv_exc_t mcontext_write(rv_cpu_t* cpu, csr_num_t csr, uint32_t value){
     return rv_exc_illegal_instruction;
 }
 
-static rv_exc_t mcontext_set(rv_cpu_t* cpu, int csr, uint32_t target){
+static rv_exc_t mcontext_set(rv_cpu_t* cpu, csr_num_t csr, uint32_t value){
     return rv_exc_illegal_instruction;
 }
 
-static rv_exc_t mcontext_clear(rv_cpu_t* cpu, int csr, uint32_t target){
+static rv_exc_t mcontext_clear(rv_cpu_t* cpu, csr_num_t csr, uint32_t value){
     return rv_exc_illegal_instruction;
 }
 
-static rv_exc_t dcsr_read(rv_cpu_t* cpu, int csr, uint32_t* target){
+static rv_exc_t dcsr_read(rv_cpu_t* cpu, csr_num_t csr, uint32_t* target){
     return rv_exc_illegal_instruction;
 }
 
-static rv_exc_t dcsr_write(rv_cpu_t* cpu, int csr, uint32_t target){
+static rv_exc_t dcsr_write(rv_cpu_t* cpu, csr_num_t csr, uint32_t value){
     return rv_exc_illegal_instruction;
 }
 
-static rv_exc_t dcsr_set(rv_cpu_t* cpu, int csr, uint32_t target){
+static rv_exc_t dcsr_set(rv_cpu_t* cpu, csr_num_t csr, uint32_t value){
     return rv_exc_illegal_instruction;
 }
 
-static rv_exc_t dcsr_clear(rv_cpu_t* cpu, int csr, uint32_t target){
+static rv_exc_t dcsr_clear(rv_cpu_t* cpu, csr_num_t csr, uint32_t value){
     return rv_exc_illegal_instruction;
 }
 
-static rv_exc_t dpc_read(rv_cpu_t* cpu, int csr, uint32_t* target){
+static rv_exc_t dpc_read(rv_cpu_t* cpu, csr_num_t csr, uint32_t* target){
     return rv_exc_illegal_instruction;
 }
 
-static rv_exc_t dpc_write(rv_cpu_t* cpu, int csr, uint32_t target){
+static rv_exc_t dpc_write(rv_cpu_t* cpu, csr_num_t csr, uint32_t value){
     return rv_exc_illegal_instruction;
 }
 
-static rv_exc_t dpc_set(rv_cpu_t* cpu, int csr, uint32_t target){
+static rv_exc_t dpc_set(rv_cpu_t* cpu, csr_num_t csr, uint32_t value){
     return rv_exc_illegal_instruction;
 }
 
-static rv_exc_t dpc_clear(rv_cpu_t* cpu, int csr, uint32_t target){
+static rv_exc_t dpc_clear(rv_cpu_t* cpu, csr_num_t csr, uint32_t value){
     return rv_exc_illegal_instruction;
 }
 
-static rv_exc_t dscratch0_read(rv_cpu_t* cpu, int csr, uint32_t* target){
+static rv_exc_t dscratch0_read(rv_cpu_t* cpu, csr_num_t csr, uint32_t* target){
     return rv_exc_illegal_instruction;
 }
 
-static rv_exc_t dscratch0_write(rv_cpu_t* cpu, int csr, uint32_t target){
+static rv_exc_t dscratch0_write(rv_cpu_t* cpu, csr_num_t csr, uint32_t value){
     return rv_exc_illegal_instruction;
 }
 
-static rv_exc_t dscratch0_set(rv_cpu_t* cpu, int csr, uint32_t target){
+static rv_exc_t dscratch0_set(rv_cpu_t* cpu, csr_num_t csr, uint32_t value){
     return rv_exc_illegal_instruction;
 }
 
-static rv_exc_t dscratch0_clear(rv_cpu_t* cpu, int csr, uint32_t target){
+static rv_exc_t dscratch0_clear(rv_cpu_t* cpu, csr_num_t csr, uint32_t value){
     return rv_exc_illegal_instruction;
 }
 
-static rv_exc_t dscratch1_read(rv_cpu_t* cpu, int csr, uint32_t* target){
+static rv_exc_t dscratch1_read(rv_cpu_t* cpu, csr_num_t csr, uint32_t* target){
     return rv_exc_illegal_instruction;
 }
 
-static rv_exc_t dscratch1_write(rv_cpu_t* cpu, int csr, uint32_t target){
+static rv_exc_t dscratch1_write(rv_cpu_t* cpu, csr_num_t csr, uint32_t value){
     return rv_exc_illegal_instruction;
 }
 
-static rv_exc_t dscratch1_set(rv_cpu_t* cpu, int csr, uint32_t target){
+static rv_exc_t dscratch1_set(rv_cpu_t* cpu, csr_num_t csr, uint32_t value){
     return rv_exc_illegal_instruction;
 }
 
-static rv_exc_t dscratch1_clear(rv_cpu_t* cpu, int csr, uint32_t target){
+static rv_exc_t dscratch1_clear(rv_cpu_t* cpu, csr_num_t csr, uint32_t value){
     return rv_exc_illegal_instruction;
 }
 
-typedef rv_exc_t (*csr_read_func_t)(rv_cpu_t*, int csr, uint32_t*);
-typedef rv_exc_t (*csr_write_func_t)(rv_cpu_t*, int csr, uint32_t);
-typedef rv_exc_t (*csr_set_func_t)(rv_cpu_t*, int csr, uint32_t);
-typedef rv_exc_t (*csr_clear_func_t)(rv_cpu_t*, int csr, uint32_t);
+typedef rv_exc_t (*csr_read_func_t)(rv_cpu_t*, csr_num_t csr, uint32_t*);
+typedef rv_exc_t (*csr_write_func_t)(rv_cpu_t*, csr_num_t csr, uint32_t);
+typedef rv_exc_t (*csr_set_func_t)(rv_cpu_t*, csr_num_t csr, uint32_t);
+typedef rv_exc_t (*csr_clear_func_t)(rv_cpu_t*, csr_num_t csr, uint32_t);
 
+/**
+ * Structure holding the basic CSR operations
+ */
 typedef struct {
-    csr_read_func_t read;
-    csr_write_func_t write;
-    csr_set_func_t set;
-    csr_clear_func_t clear;
+    csr_read_func_t read; /** Reads the whole CSR */
+    csr_write_func_t write; /** Writes the whole CSR */
+    csr_set_func_t set; /** Sets the bits on position that has a bit set in the given value (writing only to those bits)*/
+    csr_clear_func_t clear; /** Clears the bits on position that has a bit set in the given value (writing only to those bits)*/
 } csr_ops_t;
 
-static csr_ops_t get_csr_ops(int csr){
+/** Retrieves the CSR ops for the given csr*/
+static csr_ops_t get_csr_ops(csr_num_t csr){
     csr_ops_t ops = {
         .read = invalid_read,
         .write = invalid_write,
@@ -1527,8 +1511,22 @@ static csr_ops_t get_csr_ops(int csr){
     }
 
     return ops;
+
+    #undef default_case
+    #undef read_only_case
+    #undef invalid_write_case
 }
 
+/**
+ * @brief Reads the old value from the CSR, then writes the specified value
+ * 
+ * @param cpu The cpu on which this operation is done
+ * @param csr The csr on which this operation is done
+ * @param value The value to be written
+ * @param read_target The location where the read original value will be stored on success
+ * @param write Whether the write should be done
+ * @return rv_exc_t The exception code
+ */
 rv_exc_t rv_csr_rw(rv_cpu_t* cpu, csr_num_t csr, uint32_t value, uint32_t* read_target, bool read){
 
     csr_ops_t ops = get_csr_ops(csr);
@@ -1549,6 +1547,17 @@ rv_exc_t rv_csr_rw(rv_cpu_t* cpu, csr_num_t csr, uint32_t value, uint32_t* read_
 
     return ex;
 }
+
+/**
+ * @brief Reads the old value from the CSR, then sets the specified bits
+ * 
+ * @param cpu The cpu on which this operation is done
+ * @param csr The csr on which this operation is done
+ * @param value The value specifying which bits to set
+ * @param read_target The location where the read original value will be stored on success
+ * @param write Whether the bits should be set
+ * @return rv_exc_t The exception code
+ */
 rv_exc_t rv_csr_rs(rv_cpu_t* cpu, csr_num_t csr, uint32_t value, uint32_t* read_target, bool write){
     csr_ops_t ops = get_csr_ops(csr);
     
@@ -1566,6 +1575,17 @@ rv_exc_t rv_csr_rs(rv_cpu_t* cpu, csr_num_t csr, uint32_t value, uint32_t* read_
 
     return ex;
 }
+
+/**
+ * @brief Reads the old value from the CSR, then clears the specified bits
+ * 
+ * @param cpu The cpu on which this operation is done
+ * @param csr The csr on which this operation is done
+ * @param value The value specifying which bits to clear
+ * @param read_target The location where the read original value will be stored on success
+ * @param write Whether the bits should be cleared
+ * @return rv_exc_t The exception code
+ */
 rv_exc_t rv_csr_rc(rv_cpu_t* cpu, csr_num_t csr, uint32_t value, uint32_t* read_target, bool write){
    
     csr_ops_t ops = get_csr_ops(csr);
@@ -1583,6 +1603,9 @@ rv_exc_t rv_csr_rc(rv_cpu_t* cpu, csr_num_t csr, uint32_t value, uint32_t* read_
     return ex;
 }
 
+/**
+ * @brief The minimal privilege from which the given csr can be accessed
+ */
 rv_priv_mode_t rv_csr_min_priv_mode(csr_num_t csr) {
     return (rv_priv_mode_t)(((unsigned int)csr >> 8) & 0b11);
 }

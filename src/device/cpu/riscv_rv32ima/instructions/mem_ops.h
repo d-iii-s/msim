@@ -1,3 +1,8 @@
+/*
+ * Instructions that provide memory access
+ * (Including LR/SC atomics from the A extension)
+ */
+
 #ifndef RISCV_RV32IMA_INSTR_MEM_OPS_H_
 #define RISCV_RV32IMA_INSTR_MEM_OPS_H_
 

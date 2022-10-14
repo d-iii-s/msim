@@ -4,6 +4,11 @@
 #include "../../../assert.h"
 #include "../../../utils.h"
 
+/**
+ * Initialize CSRs
+ * 
+ * Expects the csr parameter to be zero-initialized
+ */
 void rv_init_csr(csr_t *csr, unsigned int procno){
     
     csr->misa = RV_ISA;
@@ -11,7 +16,8 @@ void rv_init_csr(csr_t *csr, unsigned int procno){
     csr->marchid = RV_ARCH_ID;
     csr->mimpid = RV_IMPLEMENTATION_ID;
     csr->mhartid = procno;
-  
+    
+    csr->mtime = current_timestamp();
     csr->last_tick_time = csr->mtime;
 }
 
@@ -1524,7 +1530,7 @@ static csr_ops_t get_csr_ops(csr_num_t csr){
  * @param csr The csr on which this operation is done
  * @param value The value to be written
  * @param read_target The location where the read original value will be stored on success
- * @param write Whether the write should be done
+ * @param read Whether the read should be done
  * @return rv_exc_t The exception code
  */
 rv_exc_t rv_csr_rw(rv_cpu_t* cpu, csr_num_t csr, uint32_t value, uint32_t* read_target, bool read){

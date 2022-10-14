@@ -1,3 +1,8 @@
+/*
+ * Instructions that make arithmetic operations
+ * (including AMO atomics from the A extension)
+ */
+
 #ifndef RISCV_RV32IMA_INSTR_COMPUTATIONS_H_
 #define RISCV_RV32IMA_INSTR_COMPUTATIONS_H_
 

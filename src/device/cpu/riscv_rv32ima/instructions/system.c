@@ -129,7 +129,8 @@ rv_exc_t wfi_instr(rv_cpu_t *cpu, rv_instr_t instr){
     return rv_exc_none;
 }
 
-// Note: reads with rd = x0 shall not read the CSR and shall not have any side-efects based on the read
+// Note: csrrw reads with rd = x0 shall not read the CSR and shall not have any side-efects based on the read
+//       similarly, csrrs and csrrc writes with rs1 = x0 (or uimm = 0) shall not write anything
 
 rv_exc_t csrrw_instr(rv_cpu_t *cpu, rv_instr_t instr){
     int csr = ((uint32_t)instr.i.imm) & 0xFFF;
@@ -160,7 +161,7 @@ rv_exc_t csrrc_instr(rv_cpu_t *cpu, rv_instr_t instr){
 
 rv_exc_t csrrwi_instr(rv_cpu_t *cpu, rv_instr_t instr){
     int csr = ((uint32_t)instr.i.imm) & 0xFFF;
-    uint32_t val = instr.i.rs1;
+    uint32_t val = instr.i.rs1; // Zero extended
     uint32_t* rd = &cpu->regs[instr.i.rd];  
     bool read = instr.i.rd != 0;
 
@@ -169,7 +170,7 @@ rv_exc_t csrrwi_instr(rv_cpu_t *cpu, rv_instr_t instr){
 
 rv_exc_t csrrsi_instr(rv_cpu_t *cpu, rv_instr_t instr){
     int csr = ((uint32_t)instr.i.imm) & 0xFFF;
-    uint32_t val = instr.i.rs1;
+    uint32_t val = instr.i.rs1; // Zero extended
     uint32_t* rd = &cpu->regs[instr.i.rd];  
     bool write = instr.i.rs1 != 0;
 
@@ -178,7 +179,7 @@ rv_exc_t csrrsi_instr(rv_cpu_t *cpu, rv_instr_t instr){
 
 rv_exc_t csrrci_instr(rv_cpu_t *cpu, rv_instr_t instr){
     int csr = ((uint32_t)instr.i.imm) & 0xFFF;
-    uint32_t val = instr.i.rs1;
+    uint32_t val = instr.i.rs1; // Zero extended
     uint32_t* rd = &cpu->regs[instr.i.rd];  
     bool write = instr.i.rs1 != 0;
 
@@ -190,5 +191,4 @@ rv_exc_t sfence_instr(rv_cpu_t *cpu, rv_instr_t instr) {
         return rv_exc_illegal_instruction;
     }
     return rv_exc_none;
-    
 }

@@ -364,6 +364,10 @@ char** rv_interruptnames;
 
 static rv_regname_type_t curr_regname_type = rv_regname_abi;
 
+/**
+ * @brief Initialize the debugging features
+ * 
+ */
 void rv_debug_init(void){
     rv_regnames = rv_reg_name_table[curr_regname_type];
     rv_csrnames = rv_csr_name_table;
@@ -371,6 +375,9 @@ void rv_debug_init(void){
 	rv_interruptnames = interrupt_name_table;
 }
 
+/**
+ * @brief Change the names of the general purpose registers
+ */
 bool rv_debug_change_regnames(unsigned int type){
     if(type >= __rv_regname_type_count){
         error("Index out of range 0..%u", __rv_regname_type_count - 1);
@@ -381,6 +388,9 @@ bool rv_debug_change_regnames(unsigned int type){
     return true;
 }
 
+/**
+ * @brief Dump the content of the general purpose registers to stdout
+ */
 void rv_reg_dump(rv_cpu_t *cpu){
 
     ASSERT(cpu != NULL);
@@ -409,6 +419,9 @@ static void idump_common(uint32_t addr, rv_instr_t instr, string_t *s_opc,
     mnem_func(addr, instr, s_mnemonics, s_comments);
 }
 
+/**
+ * @brief Dump the given instruction as if it lied the given address in the context of the given CPU
+ */
 void rv_idump(rv_cpu_t *cpu, uint32_t addr, rv_instr_t instr){
     string_t s_cpu;
 	string_t s_addr;
@@ -452,10 +465,16 @@ void rv_idump(rv_cpu_t *cpu, uint32_t addr, rv_instr_t instr){
 	string_done(&s_comments);
 }
 
- void rv_idump_phys(uint32_t addr, rv_instr_t instr){
-	rv_idump(NULL, addr, instr);
- }
+/**
+ * @brief Dump the given instruction as if it lied on the given address from the global point of view
+ */
+void rv_idump_phys(uint32_t addr, rv_instr_t instr){
+    rv_idump(NULL, addr, instr);
+}
 
+/**
+ * @brief Dump the content of all CSRs
+ */
 void rv_csr_dump_all(rv_cpu_t *cpu){
 	printf("Unprivileged Counters/Timers\n");
 	rv_csr_dump_common(cpu, csr_cycle);
@@ -532,6 +551,9 @@ void rv_csr_dump_all(rv_cpu_t *cpu){
 	rv_csr_dump_common(cpu, csr_mcontext);
 }
 
+/**
+ * @brief Dump the content of the given CSR
+ */
 bool rv_csr_dump(rv_cpu_t *cpu, csr_num_t csr){
 	ASSERT((csr >= 0 && csr < 0x1000));
 	ASSERT(cpu != NULL);
@@ -547,6 +569,9 @@ bool rv_csr_dump(rv_cpu_t *cpu, csr_num_t csr){
 	return true;
 }
 
+/**
+ * @brief Dump the content of the given CSR based on the name
+ */
 bool rv_csr_dump_by_name(rv_cpu_t *cpu, const char* name){
 	for(int i = 0; i < 0x1000; ++i){
 		if(rv_csr_name_table[i] == NULL) continue;

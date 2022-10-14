@@ -801,6 +801,7 @@ static void account(rv_cpu_t* cpu, bool exception_raised){
     if(!(cpu->csr.mcountinhibit & 0b001))
         cpu->csr.cycle++;
 
+    // mtime cannot be inhibited
     uint64_t current_tick_time = current_timestamp();
     cpu->csr.mtime += (current_tick_time - cpu->csr.last_tick_time);
     cpu->csr.last_tick_time = current_tick_time;

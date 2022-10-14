@@ -1,3 +1,7 @@
+/*
+ * Jump and branch instructions
+ */
+
 #ifndef RISCV_RV32IMA_INSTR_CONTROL_TRANSFER_H_
 #define RISCV_RV32IMA_INSTR_CONTROL_TRANSFER_H_
 

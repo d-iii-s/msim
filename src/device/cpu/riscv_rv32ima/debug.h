@@ -7,17 +7,17 @@
 #include "csr.h"
 #include "cpu.h"
 
+/** The types of the general register names*/
 typedef enum {
     rv_regname_numeric,
     rv_regname_abi,
     __rv_regname_type_count
 } rv_regname_type_t;
 
-extern char** rv_regnames;
-extern char** rv_csrnames;
-extern char** rv_excnames;
-extern char** rv_interruptnames;
-
+extern char** rv_regnames; /** The currently selected names of registers */
+extern char** rv_csrnames; /** The names of CSRs */
+extern char** rv_excnames; /** The names of exceptions */
+extern char** rv_interruptnames; /** The names of interrupts */
 
 extern void rv_debug_init(void);
 extern bool rv_debug_change_regnames(rv_regname_type_t type);

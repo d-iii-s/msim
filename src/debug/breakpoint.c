@@ -40,6 +40,7 @@
 #include "../utils.h"
 #include "breakpoint.h"
 #include "../device/cpu/general_cpu.h"
+#include "../device/dr4kcpu.h"
 #include "../device/cpu/mips_r4000/cpu.h"
 #include "gdb.h"
 
@@ -311,7 +312,7 @@ bool breakpoint_check_for_code_breakpoints(void)
 	device_t *dev = NULL;
 	
 	while (dev_next(&dev, DEVICE_FILTER_R4K_PROCESSOR)) {
-		r4k_cpu_t *cpu = (r4k_cpu_t *) ((general_cpu_t*)dev->data)->data;
+		r4k_cpu_t *cpu = get_r4k(dev);
 		
 		if (breakpoint_hit_by_address(cpu->bps, cpu->pc))
 			hit = true;

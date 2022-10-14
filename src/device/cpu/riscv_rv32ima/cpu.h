@@ -26,9 +26,14 @@
 
 #define RV_INTERRUPT_EXC_BITS UINT32_C(0x80000000)
 #define RV_EXCEPTION_EXC_BITS UINT32_C(0)
-#define RV_EXCEPTION_MASK(exc) (1U << (exc & ~RV_INTERRUPT_EXC_BITS))
+#define RV_EXCEPTION_MASK(exc) (1U << ((exc) & ~RV_INTERRUPT_EXC_BITS))
 #define RV_INTERRUPT_NO(interrupt) ((interrupt) & ~RV_INTERRUPT_EXC_BITS)
 
+/**
+ * RISC-V exception codes
+ * 
+ * Includes Interrupt exception codes
+ */
 typedef enum rv_exc {
 	rv_exc_supervisor_software_interrupt = RV_INTERRUPT_EXC_BITS | 1,
 	rv_exc_machine_software_interrupt = RV_INTERRUPT_EXC_BITS | 3,
@@ -50,9 +55,10 @@ typedef enum rv_exc {
 	rv_exc_instruction_page_fault = RV_EXCEPTION_EXC_BITS | 12,
 	rv_exc_load_page_fault = RV_EXCEPTION_EXC_BITS | 13,
 	rv_exc_store_amo_page_fault = RV_EXCEPTION_EXC_BITS | 15,
-	rv_exc_none = RV_EXCEPTION_EXC_BITS | 24
+	rv_exc_none = RV_EXCEPTION_EXC_BITS | 24	/** Custom exception code, with the meaning that no exception has been raised */
 } rv_exc_t;
 
+/** Bitmask that has a bit set on every position that symbolizes an existing exception */
 #define RV_EXCEPTIONS_MASK (									\
 	RV_EXCEPTION_MASK(rv_exc_instruction_address_misaligned) |	\
 	RV_EXCEPTION_MASK(rv_exc_instruction_access_fault) |		\
@@ -69,7 +75,7 @@ typedef enum rv_exc {
 	RV_EXCEPTION_MASK(rv_exc_load_page_fault) |					\
 	RV_EXCEPTION_MASK(rv_exc_store_amo_page_fault)				\
 )
-
+/** Bitmask that has a bit set on every position that symbolizes an existing interrupt */
 #define RV_INTERRUPTS_MASK (\
 	RV_EXCEPTION_MASK(rv_exc_supervisor_software_interrupt) |\
 	RV_EXCEPTION_MASK(rv_exc_machine_software_interrupt)    |\
@@ -79,7 +85,7 @@ typedef enum rv_exc {
 	RV_EXCEPTION_MASK(rv_exc_machine_timer_interrupt)        \
 )
 
-// Privilege modes
+/** Privilege modes */
 typedef enum rv_priv_mode {
 	rv_umode = 0b00,
 	rv_smode = 0b01,
@@ -89,24 +95,29 @@ typedef enum rv_priv_mode {
 
 /** Main processor structure */
 typedef struct rv_cpu {
-	bool stdby;
-
-	// Non privileged registers
+	/** Non privileged registers */
 	uint32_t regs[RV_REG_COUNT];
 
-	// Control and status registers	(most are privileged)
+	/** Control and status registers */
 	csr_t csr;
 
+	/** Program counter */
 	uint32_t pc;
-	// Used to implement jumps and branches easily
+
+	/** The next value of PC
+	 *  Used for implementing jumps, branches and traps
+	 */
 	uint32_t pc_next;
 
-	// Current privilege mode
+	/** Current privilege mode */
 	rv_priv_mode_t priv_mode;
 
 	// LR and SC
-	bool reserved_valid;
-	ptr36_t reserved_addr; // physical address of the last LR
+	bool reserved_valid; /** Is the current LR reservation valid */
+	ptr36_t reserved_addr; /** physical address of the last LR */
+
+	/** Tells if the processor is executing or waiting */
+	bool stdby;
 } rv_cpu_t;
 
 

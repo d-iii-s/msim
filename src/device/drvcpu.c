@@ -32,6 +32,9 @@ static const cpu_ops_t rv_cpu = {
 	.sc_access = (sc_access_func_t)rv_sc_access
 };
 
+/**
+ * Initialization
+ */
 static bool drvcpu_init(token_t *parm, device_t *dev){
     
     unsigned int id = get_free_cpuno();
@@ -55,11 +58,17 @@ static bool drvcpu_init(token_t *parm, device_t *dev){
     return true;
 }
 
+/**
+ * Info command implementation
+ */
 static bool drvcpu_info(token_t *parm, device_t *dev){
     printf("RV32IMA (processor ID: %i)\n", ((general_cpu_t *)dev->data)->cpuno);
     return true;
 }
 
+/**
+ * RD command implementation
+ */
 static bool drvcpu_rd(token_t *parm, device_t *dev){
     ASSERT(dev != NULL);
 
@@ -67,6 +76,9 @@ static bool drvcpu_rd(token_t *parm, device_t *dev){
     return true;
 }
 
+/**
+ * CSRRD command implementation
+ */
 static bool drvcpu_csr_rd(token_t *parm, device_t *dev){
     ASSERT(dev != NULL);
 
@@ -91,17 +103,25 @@ static bool drvcpu_csr_rd(token_t *parm, device_t *dev){
     return false;
 }
 
-
+/**
+ * Done device operation
+ */
 static void drvcpu_done(device_t *dev){
     rv_cpu_done(get_rv(dev));
     safe_free(((general_cpu_t *)dev->data)->data);
     safe_free(dev->data)
 }
 
+/**
+ * Step device operation
+ */
 static void drvcpu_step(device_t *dev){
     rv_cpu_step(get_rv(dev));
 }
 
+/**
+ * Device commands specification
+ */
 cmd_t drvcpu_cmds[] = {
     {
         "init",
@@ -150,6 +170,9 @@ cmd_t drvcpu_cmds[] = {
     }
 };
 
+/**
+ * Device type specification
+ */
 device_type_t drvcpu = {
     .nondet = false,
 
@@ -157,7 +180,7 @@ device_type_t drvcpu = {
 
     .brief = "RISC-V RV32IMA processor",
 
-    .full = "RISC-V RV32IMA processor",
+    .full = "RISC-V processor, supporting M and A extensions, with support for Machine, Supervisor and User mode and with virtual memory support.",
 
     .done = drvcpu_done,
     .step = drvcpu_step,

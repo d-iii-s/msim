@@ -1,3 +1,16 @@
+/*
+ * Copyright (c) 2004-2007 Viliam Holub
+ * Copyright (c) 2008-2011 Martin Decky
+ * Copyright (c) 2022      Jan Papesch
+ * All rights reserved.
+ *
+ * Distributed under the terms of GPL.
+ *
+ *
+ *  Physical memory
+ *
+ */
+
 #ifndef PHYSMEM_H_
 #define PHYSMEM_H_
 
@@ -8,7 +21,6 @@
 #include "main.h"
 #include "list.h"
 #include "utils.h"
-#include "device/cpu/general_cpu.h"
 
 #define FRAME_WIDTH   12
 #define FRAME_SIZE    (1 << FRAME_WIDTH)
@@ -82,6 +94,7 @@ extern bool physmem_write32(unsigned int cpu, ptr36_t addr, uint32_t val,
 extern bool physmem_write64(unsigned int cpu, ptr36_t addr, uint64_t val,
     bool protected);
 
+/** Store-conditional control */
 extern void sc_register(unsigned int procno);
 extern void sc_unregister(unsigned int procno);
 

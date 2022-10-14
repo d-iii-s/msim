@@ -4,6 +4,9 @@
 #include <stdint.h>
 #include <stdbool.h>
 
+/**
+ * The numerical codes of CSRs
+ */
 typedef enum {
 	
 	/********************************
@@ -349,7 +352,9 @@ typedef enum {
 
 } csr_num_t;
 
-
+/**
+ * Types of HPM events
+ */
 typedef enum {
     hpm_no_event,
     hpm_u_cycles,
@@ -361,6 +366,9 @@ typedef enum {
 	hpm_event_count
 } csr_hpm_event_t;
 
+/**
+ * Structure holding CSR data
+ */
 typedef struct {
     /* Counters/Timers */
     uint64_t cycle;
@@ -510,7 +518,7 @@ enum rv_priv_mode;
 
 #define rv_csr_sstatus_spp_pos 8
 
-// Doesn't include UBE, because msim is strictly Little Endian
+// Doesn't include UBE, because riscv in msim is strictly Little Endian
 #define rv_csr_sstatus_mask (rv_csr_sstatus_mxr_mask | rv_csr_sstatus_sum_mask | rv_csr_sstatus_spp_mask | rv_csr_sstatus_spie_mask | rv_csr_sstatus_sie_mask)
 #define rv_csr_mstatus_mask (rv_csr_sstatus_mask | rv_csr_mstatus_tsr_mask | rv_csr_mstatus_tw_mask | rv_csr_mstatus_tvm_mask | rv_csr_mstatus_mprv_mask | rv_csr_mstatus_mpp_mask | rv_csr_mstatus_mpie_mask | rv_csr_mstatus_mie_mask)
 
@@ -537,11 +545,11 @@ enum rv_priv_mode;
 #define rv_csr_satp_mode_mask 0x80000000
 #define rv_csr_asid_mask      0x7FC00000
 #define rv_csr_satp_ppn_mask  0x003FFFFF
-#define rv_csr_satp_is_bare(cpu) (~cpu->csr.satp & rv_csr_satp_mode_mask)
-#define rv_csr_satp_asid(cpu) ((cpu->csr.satp & rv_csr_asid_mask) >> 22)
-#define rv_csr_satp_ppn(cpu) (cpu->csr.satp & rv_csr_satp_ppn_mask)
+#define rv_csr_satp_is_bare(cpu) (~(cpu)->csr.satp & rv_csr_satp_mode_mask)
+#define rv_csr_satp_asid(cpu) (((cpu)->csr.satp & rv_csr_asid_mask) >> 22)
+#define rv_csr_satp_ppn(cpu) ((cpu)->csr.satp & rv_csr_satp_ppn_mask)
 
-#define rv_csr_is_read_only(csr) ((csr >> 30) == 0b11)
+#define rv_csr_is_read_only(csr) (((csr) >> 30) == 0b11)
 
 extern void rv_init_csr(csr_t *csr, unsigned int procno);
 

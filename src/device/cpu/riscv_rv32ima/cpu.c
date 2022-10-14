@@ -104,7 +104,9 @@ static void init_regs(rv_cpu_t *cpu) {
     cpu->pc_next = RV_START_ADDRESS + 4;
 }
 
-
+/**
+ * @brief Initialize the CPU
+ */
 void rv_cpu_init(rv_cpu_t *cpu, unsigned int procno){
 
     ASSERT(cpu!=NULL);
@@ -118,6 +120,9 @@ void rv_cpu_init(rv_cpu_t *cpu, unsigned int procno){
     cpu->priv_mode = rv_mmode;
 }
 
+/**
+ * @brief Cleanup CPU structures
+ */
 void rv_cpu_done(rv_cpu_t *cpu) {
     // Clean whole cache for simplicity whenever any cpu is done
     while(!is_empty(&rv_instruction_cache)){
@@ -189,6 +194,17 @@ static ptr36_t make_phys_from_ppn(uint32_t virt, sv32_pte_t pte, bool megapage){
     return pte_ppn1 | phys_ppn0 | page_offset;
 }
 
+/**
+ * @brief Converts the address from virtual memory space to physical memory space
+ * 
+ * @param cpu The CPU, from the point of which, is the translation made
+ * @param virt The virtual address to be converted
+ * @param phys Pointer to where the physical address will be stored
+ * @param wr Is the conversion made for a write operation
+ * @param fetch Is the conversion made for an instruction fetch
+ * @param noisy Shall this function change the processor and global state
+ * @return rv_exc_t The exception code of this operation
+ */
 rv_exc_t rv_convert_addr(rv_cpu_t *cpu, uint32_t virt, ptr36_t *phys, bool wr, bool fetch, bool noisy){
     ASSERT(cpu != NULL);
     ASSERT(phys != NULL);
@@ -313,6 +329,16 @@ static bool try_write_memory_mapped_regs(rv_cpu_t *cpu, uint32_t virt, uint32_t 
     }                                   \
     return ex;                          \
 
+/**
+ * @brief Reads 32 bits from virtual memory
+ * 
+ * @param cpu The cpu which makes the read
+ * @param virt The virtual address of the read target
+ * @param value The pointer where will the read value be stored on success
+ * @param fetch If the read is instruction fetch or data read
+ * @param noisy Shall this operation change the global and cpu state
+ * @return rv_exc_t The exception code
+ */
 rv_exc_t rv_read_mem32(rv_cpu_t *cpu, uint32_t virt, uint32_t *value, bool fetch, bool noisy){
     ASSERT(cpu != NULL);
     ASSERT(value != NULL);
@@ -337,6 +363,16 @@ rv_exc_t rv_read_mem32(rv_cpu_t *cpu, uint32_t virt, uint32_t *value, bool fetch
     return rv_exc_none;
 }
 
+/**
+ * @brief Reads 16 bits from virtual memory
+ * 
+ * @param cpu The cpu which makes the read
+ * @param virt The virtual address of the read target
+ * @param value The pointer where will the read value be stored on success
+ * @param fetch If the read is instruction fetch or data read
+ * @param noisy Shall this operation change the global and cpu state
+ * @return rv_exc_t The exception code
+ */
 rv_exc_t rv_read_mem16(rv_cpu_t *cpu, uint32_t virt, uint16_t *value, bool fetch, bool noisy){
     ASSERT(cpu != NULL);
     ASSERT(value != NULL);
@@ -358,6 +394,16 @@ rv_exc_t rv_read_mem16(rv_cpu_t *cpu, uint32_t virt, uint16_t *value, bool fetch
     return rv_exc_none;
 }
 
+/**
+ * @brief Reads 8 bits from virtual memory
+ * 
+ * @param cpu The cpu which makes the read
+ * @param virt The virtual address of the read target
+ * @param value The pointer where will the read value be stored on success
+ * @param fetch If the read is instruction fetch or data read
+ * @param noisy Shall this operation change the global and cpu state
+ * @return rv_exc_t The exception code
+ */
 rv_exc_t rv_read_mem8(rv_cpu_t *cpu, uint32_t virt, uint8_t *value, bool noisy){
     ASSERT(cpu != NULL);
     ASSERT(value != NULL);
@@ -375,6 +421,15 @@ rv_exc_t rv_read_mem8(rv_cpu_t *cpu, uint32_t virt, uint8_t *value, bool noisy){
     return rv_exc_none;
 }
 
+/**
+ * @brief Writes 8 bits to the specified virtual address
+ * 
+ * @param cpu The cpu which makes the write
+ * @param virt The virtual address
+ * @param value The value to be written
+ * @param noisy Shall this operation change the global and cpu state
+ * @return rv_exc_t The exception code
+ */
 rv_exc_t rv_write_mem8(rv_cpu_t *cpu, uint32_t virt, uint8_t value, bool noisy){
     ASSERT(cpu != NULL);
 
@@ -391,11 +446,20 @@ rv_exc_t rv_write_mem8(rv_cpu_t *cpu, uint32_t virt, uint8_t value, bool noisy){
         return rv_exc_none;
     }
     
-    // writing invalid memory
+    // writing to invalid memory
     // throw_ex(cpu, virt, rv_exc_store_amo_access_fault, noisy);
     return rv_exc_none;
 }
 
+/**
+ * @brief Writes 16 bits to the specified virtual address
+ * 
+ * @param cpu The cpu which makes the write
+ * @param virt The virtual address
+ * @param value The value to be written
+ * @param noisy Shall this operation change the global and cpu state
+ * @return rv_exc_t The exception code
+ */
 rv_exc_t rv_write_mem16(rv_cpu_t *cpu, uint32_t virt, uint16_t value, bool noisy){
     ASSERT(cpu != NULL);
 
@@ -417,12 +481,20 @@ rv_exc_t rv_write_mem16(rv_cpu_t *cpu, uint32_t virt, uint16_t value, bool noisy
         return rv_exc_none;
     }
 
-    // writing invalid memory
+    // writing to invalid memory
     // throw_ex(cpu, virt, rv_exc_store_amo_access_fault, noisy);
     return rv_exc_none;
 }
 
-
+/**
+ * @brief Writes 32 bits to the specified virtual address
+ * 
+ * @param cpu The cpu which makes the write
+ * @param virt The virtual address
+ * @param value The value to be written
+ * @param noisy Shall this operation change the global and cpu state
+ * @return rv_exc_t The exception code
+ */
 rv_exc_t rv_write_mem32(rv_cpu_t *cpu, uint32_t virt, uint32_t value, bool noisy){
     ASSERT(cpu != NULL);
 
@@ -443,13 +515,17 @@ rv_exc_t rv_write_mem32(rv_cpu_t *cpu, uint32_t virt, uint32_t value, bool noisy
         return rv_exc_none;
     }
 
-    // writing invalid memory
+    // writing to invalid memory
     // throw_ex(cpu, virt, rv_exc_store_amo_access_fault, noisy);
     return rv_exc_none;
 }
 
 #undef throw_ex
 
+/**
+ * @brief Sets the PC to the given virtual address
+ * 
+ */
 void rv_cpu_set_pc(rv_cpu_t *cpu, uint32_t value){
     ASSERT(cpu != NULL);
     if(!IS_ALIGNED(value, 4)) return;
@@ -462,6 +538,11 @@ void rv_cpu_set_pc(rv_cpu_t *cpu, uint32_t value){
     cpu->pc_next = value+4;    
 }
 
+/**
+ * @brief Trap to M mode
+ * 
+ * @param ex The exception/interrupt that caused the trap
+ */
 static void m_trap(rv_cpu_t* cpu, rv_exc_t ex){
     ASSERT(ex != rv_exc_none);
 
@@ -514,6 +595,11 @@ static void m_trap(rv_cpu_t* cpu, rv_exc_t ex){
     }
 }
 
+/**
+ * @brief Trap to S mode
+ * 
+ * @param ex The exception/interrupt that caused the trap
+ */
 static void s_trap(rv_cpu_t* cpu, rv_exc_t ex){
     ASSERT(ex != rv_exc_none);
 
@@ -566,6 +652,9 @@ static void s_trap(rv_cpu_t* cpu, rv_exc_t ex){
     }
 }
 
+/**
+ * @brief Causes an exception trap to the proper privilege level
+ */
 static void handle_exception(rv_cpu_t* cpu, rv_exc_t ex){
     uint32_t mask = RV_EXCEPTION_MASK(ex);
     bool delegated = cpu->csr.medeleg & mask;
@@ -578,6 +667,12 @@ static void handle_exception(rv_cpu_t* cpu, rv_exc_t ex){
     }
 }
 
+/**
+ * @brief Traps if an interrupt is pending and is enabled
+ * 
+ * Respects the proper interrupt priorities
+ * 
+ */
 static void try_handle_interrupt(rv_cpu_t* cpu){
 
     // Effective mip includes the external SEIP
@@ -627,6 +722,12 @@ static void try_handle_interrupt(rv_cpu_t* cpu){
     #undef trap_if_set
 }
 
+/**
+ * @brief Increases the HPM counters based in the event specifying CSRs
+ * 
+ * @param cpu The cpu on which these counters are
+ * @param i The index of the HPM in range [0..29)
+ */
 static void account_hmp(rv_cpu_t* cpu, int i){
     ASSERT((i >= 0 && i < 29));
     
@@ -667,7 +768,11 @@ static void account_hmp(rv_cpu_t* cpu, int i){
     }
 }
 
-static void raise_timer_interrupts(rv_cpu_t* cpu){
+/**
+ * @brief Raises and clears timer interrupts based on the content of the coresponding CSRs
+ * 
+ */
+static void manage_timer_interrupts(rv_cpu_t* cpu){
     // raise or clear scyclecmp STIP
     if(((uint32_t)cpu->csr.cycle) >= cpu->csr.scyclecmp) {
         // Set supervisor timer interrupt pending
@@ -689,7 +794,9 @@ static void raise_timer_interrupts(rv_cpu_t* cpu){
     }
 }
 
-
+/**
+ * @brief Increase the counter CSRs
+ */
 static void account(rv_cpu_t* cpu, bool exception_raised){
     if(!(cpu->csr.mcountinhibit & 0b001))
         cpu->csr.cycle++;
@@ -705,9 +812,12 @@ static void account(rv_cpu_t* cpu, bool exception_raised){
         account_hmp(cpu, i);
     }
 
-    raise_timer_interrupts(cpu);
+    manage_timer_interrupts(cpu);
 }
 
+/**
+ * @brief Execute the instruction that PC is pointing to and handle interrupts or exceptions
+ */
 static rv_exc_t execute(rv_cpu_t *cpu) {
     ptr36_t phys;
     rv_exc_t ex = rv_convert_addr(cpu, cpu->pc, &phys, false, true, true);
@@ -736,6 +846,9 @@ static rv_exc_t execute(rv_cpu_t *cpu) {
     return ex;
 }
 
+/**
+ * @brief Simulate one step of the CPU
+ */
 void rv_cpu_step(rv_cpu_t *cpu){
     ASSERT(cpu != NULL);
 
@@ -765,6 +878,13 @@ void rv_cpu_step(rv_cpu_t *cpu){
     cpu->csr.tval_next = 0;
 }
 
+/**
+ * @brief Notify the CPU that an adress has been writen ti
+ * 
+ * Used for implementing the LR/SC atomics
+ * 
+ * @returns Whether we hit the LR reserved address
+ */
 bool rv_sc_access(rv_cpu_t *cpu, ptr36_t phys){
     ASSERT(cpu != NULL);
     // We align down because of writes that are shorter than 4 B
@@ -780,9 +900,14 @@ bool rv_sc_access(rv_cpu_t *cpu, ptr36_t phys){
  * This is supposed to be used with devices and interprocessor communication,
  * devices should raise a Machine/Supervisor External Interrupt,
  * but interprocessor interrupts should be Machine/Supervisor Software Interrupts.
- * So we use the argument no to differentiate based on the exception code (see rv_exc_t definiton)
+ * So we use the argument `no` to differentiate based on the exception code (see `rv_exc_t` definiton)
  */
 
+/**
+ * @brief Raises the interrupt of the given number
+ * 
+ * @param no The interrupt number (1 = SSI, 3 = MSI, 5 = STI, 7 = MTI, 9 = SEI, 11 = MEI)
+ */
 void rv_interrupt_up(rv_cpu_t *cpu, unsigned int no){
     ASSERT(cpu != NULL);
 
@@ -806,6 +931,11 @@ void rv_interrupt_up(rv_cpu_t *cpu, unsigned int no){
     cpu->csr.mip |= mask;
 }
 
+/**
+ * @brief Clears the interrupt of the given number
+ * 
+ * @param no The interrupt number (1 = SSI, 3 = MSI, 5 = STI, 7 = MTI, 9 = SEI, 11 = MEI)
+ */
 void rv_interrupt_down(rv_cpu_t *cpu, unsigned int no){
     ASSERT(cpu != NULL);
     //! for simplicity just clears the bit

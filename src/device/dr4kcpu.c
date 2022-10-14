@@ -24,12 +24,9 @@
 #include "../main.h"
 #include "../utils.h"
 
-
-//? rename?
 static bool r4k_cpu_convert_addr(r4k_cpu_t *cpu, ptr64_t virt, ptr36_t *phys, bool write){
 	return r4k_convert_addr(cpu, virt, phys, write, false) == r4k_excNone;
 }
-
 
 static const cpu_ops_t r4k_cpu = {
 	.interrupt_up = (interrupt_func_t)r4k_interrupt_up,

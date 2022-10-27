@@ -1,5 +1,15 @@
-#include <string.h>
+/*
+ * Copyright (c) 2022 Jan Papesch
+ * All rights reserved.
+ *
+ * Distributed under the terms of GPL.
+ *
+ *
+ *  RISC-V Debugging utilities
+ *
+ */
 
+#include <string.h>
 #include "debug.h"
 #include "cpu.h"
 #include "csr.h"

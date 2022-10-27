@@ -1,6 +1,12 @@
 /*
- * Instructions that make arithmetic operations
- * (including AMO atomics from the A extension)
+ * Copyright (c) 2022 Jan Papesch
+ * All rights reserved.
+ *
+ * Distributed under the terms of GPL.
+ *
+ *
+ *  RISC-V arithmetic instructions (includes AMO instructions from A extension)
+ *
  */
 
 #ifndef RISCV_RV32IMA_INSTR_COMPUTATIONS_H_

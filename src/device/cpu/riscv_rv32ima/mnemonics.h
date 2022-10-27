@@ -1,3 +1,14 @@
+/*
+ * Copyright (c) 2022 Jan Papesch
+ * All rights reserved.
+ *
+ * Distributed under the terms of GPL.
+ *
+ *
+ *  RISC-V debugging information formatting
+ *
+ */
+
 #ifndef RISCV_RV32IMA_MNEMONICS_H_
 #define RISCV_RV32IMA_MNEMONICS_H_
 

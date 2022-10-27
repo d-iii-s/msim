@@ -1,3 +1,14 @@
+/*
+ * Copyright (c) 2022 Jan Papesch
+ * All rights reserved.
+ *
+ * Distributed under the terms of GPL.
+ *
+ *
+ * RISC-V System instructions
+ *
+ */
+
 #include <stdint.h>
 #include "system.h"
 #include "../../../../assert.h"

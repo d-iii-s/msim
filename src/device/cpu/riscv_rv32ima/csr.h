@@ -1,3 +1,14 @@
+/*
+ * Copyright (c) 2022 Jan Papesch
+ * All rights reserved.
+ *
+ * Distributed under the terms of GPL.
+ *
+ *
+ *  RISC-V Control and Status registers
+ *
+ */
+
 #ifndef RISCV_CSR_H_
 #define RISCV_CSR_H_
 

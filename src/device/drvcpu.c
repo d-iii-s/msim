@@ -1,3 +1,16 @@
+/*
+ * Copyright (c) 2004-2007 Viliam Holub
+ * Copyright (c) 2008-2011 Martin Decky
+ * Copyright (c) 2022   Jan Papesch
+ * All rights reserved.
+ *
+ * Distributed under the terms of GPL.
+ *
+ *
+ *  RISC-V RV32IMA device
+ *
+ */
+
 #include <stdlib.h>
 #include <string.h>
 #include <stdbool.h>

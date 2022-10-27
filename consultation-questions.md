@@ -127,3 +127,37 @@ sc t0, 0x04(0)
 - (jaké jsou dobré hw eventy na profiling)
   - (inspirace by se dala vykrást z vtune)
 - timer interrupt by měl být pro účely OSů deterministický => prostudovat možnosti
+
+
+[//]: # (Druhé konzultace)
+
+## Copyright
+
+- Nakolik řešit a dávat komentář do všech souborů?
+jo
+
+## Verze
+
+- Je v pořádku prohlásit přidání RISCu za msim 2.0.0 ?
+
+## Dokumentace
+
+- Jak moc dopodrobna musí být vše dokumentované?
+- Stačí tak jak to je teď? (fce a structy v headerech, enumy ne každý člen)
+- Jak citovat MSIM referenci?
+- dopsat úvodní stranu doxygen reference
+
+## Ztracené osy
+
+- z gitlabu se smazaly moje OSY. Leží někde záloha, nebo je to navždy ztraceno?
+
+## Rozvržení témat
+
+### Implementace
+
+- O samotné implementaci toho není moc co psát, takže je ta kapitola trošku prázdná
+
+
+Noteworthy features => implementation
+knihovna má nástroje na angličtinu (formulace a tak)
+zotero.org - i extension do firefoxu

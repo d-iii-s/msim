@@ -1,3 +1,14 @@
+/*
+ * Copyright (c) 2022 Jan Papesch
+ * All rights reserved.
+ *
+ * Distributed under the terms of GPL.
+ *
+ *
+ *  RISC-V Debugging utilities
+ *
+ */
+
 #ifndef RISCV_RV32IMA_DEBUG_H_
 #define RISCV_RV32IMA_DEBUG_H_
 

@@ -1,6 +1,14 @@
 /*
- * System instructions
+ * Copyright (c) 2022 Jan Papesch
+ * All rights reserved.
+ *
+ * Distributed under the terms of GPL.
+ *
+ *
+ * RISC-V System instructions
+ *
  */
+
 #ifndef RISCV_RV32IMA_INSTR_SYSTEM_H_
 #define RISCV_RV32IMA_INSTR_SYSYEM_H_
 

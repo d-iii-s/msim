@@ -1,5 +1,12 @@
 /*
- * Jump and branch instructions
+ * Copyright (c) 2022 Jan Papesch
+ * All rights reserved.
+ *
+ * Distributed under the terms of GPL.
+ *
+ *
+ *  RISC-V Jump and branch instructions
+ *
  */
 
 #ifndef RISCV_RV32IMA_INSTR_CONTROL_TRANSFER_H_

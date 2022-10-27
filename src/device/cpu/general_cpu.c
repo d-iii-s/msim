@@ -1,3 +1,14 @@
+/*
+ * Copyright (c) 2022 Jan Papesch
+ * All rights reserved.
+ *
+ * Distributed under the terms of GPL.
+ *
+ *
+ *  General interface for cpu devices
+ *
+ */
+
 #include "general_cpu.h"
 #include "../../main.h"
 #include "../../assert.h"

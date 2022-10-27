@@ -12,3 +12,5 @@
 .vscode
 doxygen/
 stamp-h
+/consultations-questions.md
+/notes.md

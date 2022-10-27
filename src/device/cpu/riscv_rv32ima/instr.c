@@ -1,3 +1,14 @@
+/*
+ * Copyright (c) 2022 Jan Papesch
+ * All rights reserved.
+ *
+ * Distributed under the terms of GPL.
+ *
+ *
+ *  RISC-V Instruction decoding
+ *
+ */
+
 #include <stdio.h>
 #include "instr.h"
 #include "cpu.h"

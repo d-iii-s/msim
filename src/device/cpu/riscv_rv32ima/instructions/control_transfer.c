@@ -1,3 +1,14 @@
+/*
+ * Copyright (c) 2022 Jan Papesch
+ * All rights reserved.
+ *
+ * Distributed under the terms of GPL.
+ *
+ *
+ *  RISC-V Jump and branch instructions
+ *
+ */
+
 #include "control_transfer.h"
 #include "../../../../assert.h"
 #include "../../../../utils.h"

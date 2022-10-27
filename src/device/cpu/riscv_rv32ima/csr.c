@@ -1,3 +1,14 @@
+/*
+ * Copyright (c) 2022 Jan Papesch
+ * All rights reserved.
+ *
+ * Distributed under the terms of GPL.
+ *
+ *
+ *  RISC-V Control and Status registers implementation
+ *
+ */
+
 #include <stdint.h>
 #include "csr.h"
 #include "cpu.h"

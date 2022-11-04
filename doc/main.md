@@ -28,5 +28,4 @@ The general cpu interface in located in [device/cpu/general_cpu.h](@ref general_
 
 The cpu architectures are implemented in their own directories device/cpu/mips_r4000 and device/cpu/riscv_rv32ima.
 
-
 List of all source files can be found [here](files.html).

@@ -224,6 +224,6 @@ typedef enum rv_exc (*rv_instr_func_t)(struct rv_cpu*, rv_instr_t);
 
 extern rv_instr_func_t rv_instr_decode(rv_instr_t instr);
 
-extern enum rv_exc illegal_instr(struct rv_cpu *cpu, rv_instr_t instr);
+extern enum rv_exc rv_illegal_instr(struct rv_cpu *cpu, rv_instr_t instr);
 
 #endif // RISCV_RV32IMA_INSTR_H_

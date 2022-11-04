@@ -20,7 +20,7 @@
 #include "instructions/control_transfer.h"
 #include "instructions/system.h"
 
-rv_exc_t illegal_instr(rv_cpu_t *cpu, rv_instr_t instr){
+rv_exc_t rv_illegal_instr(rv_cpu_t *cpu, rv_instr_t instr){
     return machine_undefined ? rv_exc_none : rv_exc_illegal_instruction;
 }
 
@@ -28,26 +28,26 @@ static rv_instr_func_t decode_LOAD(rv_instr_t instr) {
     ASSERT(instr.i.opcode == rv_opcLOAD);
     switch(instr.i.funct3){
         case rv_func_LB:
-            return lb_instr;
+            return rv_lb_instr;
         case rv_func_LH:
-            return lh_instr;
+            return rv_lh_instr;
         case rv_func_LW:
-            return lw_instr;
+            return rv_lw_instr;
         case rv_func_LBU:
-            return lbu_instr;
+            return rv_lbu_instr;
         case rv_func_LHU:
-            return lhu_instr;
+            return rv_lhu_instr;
         default:
-            return illegal_instr;
+            return rv_illegal_instr;
     }
 }
 
 static rv_instr_func_t decode_MISC_MEM(rv_instr_t instr) {
     ASSERT(instr.r.opcode == rv_opcMISC_MEM);
     if(instr.i.funct3 == 0){
-        return fence_instr;
+        return rv_fence_instr;
     }
-    return illegal_instr; 
+    return rv_illegal_instr; 
 }
 
 static rv_instr_func_t decode_OP_IMM(rv_instr_t instr) {
@@ -55,55 +55,55 @@ static rv_instr_func_t decode_OP_IMM(rv_instr_t instr) {
 
     switch(instr.i.funct3){
         case rv_func_ADDI:
-            return addi_instr;
+            return rv_addi_instr;
         case rv_func_SLTI:
-            return slti_instr;
+            return rv_slti_instr;
         case rv_func_SLTIU:
-            return sltiu_instr;
+            return rv_sltiu_instr;
         case rv_func_XORI:
-            return xori_instr;
+            return rv_xori_instr;
         case rv_func_ORI:
-            return ori_instr;
+            return rv_ori_instr;
         case rv_func_ANDI:
-            return andi_instr;
+            return rv_andi_instr;
         case rv_func_SLLI:{
             if(instr.i.imm >> 5 == 0){
-                return slli_instr;
+                return rv_slli_instr;
             } else{
-                return illegal_instr;
+                return rv_illegal_instr;
             }
         }
         case rv_func_SRI: {
             switch(instr.i.imm >> 5){
                 case rv_SRAI:
-                    return srai_instr;
+                    return rv_srai_instr;
                 case rv_SRLI:
-                    return srli_instr;
+                    return rv_srli_instr;
                 default:
-                    return illegal_instr; 
+                    return rv_illegal_instr; 
             }
         }
         default:
-            return illegal_instr; 
+            return rv_illegal_instr; 
     }
 }
 
 static rv_instr_func_t decode_AUIPC(rv_instr_t instr) {
     ASSERT(instr.r.opcode == rv_opcAUIPC);
-    return auipc_instr; 
+    return rv_auipc_instr; 
 }
 
 static rv_instr_func_t decode_STORE(rv_instr_t instr) {
     ASSERT(instr.s.opcode == rv_opcSTORE);
     switch(instr.s.funct3){
         case rv_func_SB:
-            return sb_instr;
+            return rv_sb_instr;
         case rv_func_SH:
-            return sh_instr;
+            return rv_sh_instr;
         case rv_func_SW:
-            return sw_instr;
+            return rv_sw_instr;
         default:
-            return illegal_instr;
+            return rv_illegal_instr;
     }
 }
 
@@ -112,34 +112,34 @@ static rv_instr_func_t decode_AMO(rv_instr_t instr) {
 
     // only 32 bit width is supported
     if(instr.r.funct3 != RV_AMO_32_WLEN){
-        return illegal_instr;
+        return rv_illegal_instr;
     }
 
     switch(RV_AMO_FUNCT(instr)){
         case rv_funcLR:
-            return instr.r.rs2 == 0 ? lr_instr : illegal_instr;
+            return instr.r.rs2 == 0 ? rv_lr_instr : rv_illegal_instr;
         case rv_funcSC:
-            return sc_instr;
+            return rv_sc_instr;
         case rv_funcAMOSWAP:
-            return amoswap_instr;
+            return rv_amoswap_instr;
         case rv_funcAMOADD:
-            return amoadd_instr;
+            return rv_amoadd_instr;
         case rv_funcAMOXOR:
-            return amoxor_instr;
+            return rv_amoxor_instr;
         case rv_funcAMOAND:
-            return amoand_instr;
+            return rv_amoand_instr;
         case rv_funcAMOOR:
-            return amoor_instr;
+            return rv_amoor_instr;
         case rv_funcAMOMIN:
-            return amomin_instr;
+            return rv_amomin_instr;
         case rv_funcAMOMAX:
-            return amomax_instr;
+            return rv_amomax_instr;
         case rv_funcAMOMINU:
-            return amominu_instr;
+            return rv_amominu_instr;
         case rv_funcAMOMAXU:
-            return amomaxu_instr;
+            return rv_amomaxu_instr;
         default:
-            return illegal_instr; 
+            return rv_illegal_instr; 
     }
 }
 
@@ -148,69 +148,69 @@ static rv_instr_func_t decode_OP(rv_instr_t instr) {
     uint32_t funct = RV_R_FUNCT(instr);
     switch(funct){
         case rv_func_ADD:
-            return add_instr;
+            return rv_add_instr;
         case rv_func_SUB:
-            return sub_instr;
+            return rv_sub_instr;
         case rv_func_SLL:
-            return sll_instr;
+            return rv_sll_instr;
         case rv_func_SLT:
-            return slt_instr;
+            return rv_slt_instr;
         case rv_func_SLTU:
-            return sltu_instr;
+            return rv_sltu_instr;
         case rv_func_XOR:
-            return xor_instr;
+            return rv_xor_instr;
         case rv_func_SRL:
-            return srl_instr;
+            return rv_srl_instr;
         case rv_func_SRA:
-            return sra_instr;
+            return rv_sra_instr;
         case rv_func_OR:
-            return or_instr;
+            return rv_or_instr;
         case rv_func_AND:
-            return and_instr;
+            return rv_and_instr;
         // M extension
         case rv_func_MUL:
-            return mul_instr;
+            return rv_mul_instr;
         case rv_func_MULH:
-            return mulh_instr;
+            return rv_mulh_instr;
         case rv_func_MULHSU:
-            return mulhsu_instr;
+            return rv_mulhsu_instr;
         case rv_func_MULHU:
-            return mulhu_instr;
+            return rv_mulhu_instr;
         case rv_func_DIV:
-            return div_instr;
+            return rv_div_instr;
         case rv_func_DIVU:
-            return divu_instr;
+            return rv_divu_instr;
         case rv_func_REM:
-            return rem_instr;
+            return rv_rem_instr;
         case rv_func_REMU:
-            return remu_instr;
+            return rv_remu_instr;
         default:
-            return illegal_instr;
+            return rv_illegal_instr;
     }    
 }
 
 static rv_instr_func_t decode_LUI(rv_instr_t instr) {
     ASSERT(instr.r.opcode == rv_opcLUI);
-    return lui_instr; 
+    return rv_lui_instr; 
 }
 
 static rv_instr_func_t decode_BRANCH(rv_instr_t instr) {
     ASSERT(instr.b.opcode == rv_opcBRANCH);
     switch(instr.b.funct3){
         case rv_func_BEQ:
-            return beq_instr;
+            return rv_beq_instr;
         case rv_func_BNE:
-            return bne_instr;
+            return rv_bne_instr;
         case rv_func_BLT:
-            return blt_instr;
+            return rv_blt_instr;
         case rv_func_BLTU:
-            return bltu_instr;
+            return rv_bltu_instr;
         case rv_func_BGE:
-            return bge_instr;
+            return rv_bge_instr;
         case rv_func_BGEU:
-            return bgeu_instr;
+            return rv_bgeu_instr;
         default: 
-            return illegal_instr; 
+            return rv_illegal_instr; 
     }
 }
 
@@ -218,14 +218,14 @@ static rv_instr_func_t decode_JALR(rv_instr_t instr) {
     ASSERT(instr.i.opcode == rv_opcJALR);
 
     if(instr.i.funct3 != 0) {
-        return illegal_instr;
+        return rv_illegal_instr;
     }    
-    return jalr_instr; 
+    return rv_jalr_instr; 
 }
 
 static rv_instr_func_t decode_JAL(rv_instr_t instr) {
     ASSERT(instr.r.opcode == rv_opcJAL);
-    return jal_instr; 
+    return rv_jal_instr; 
 }
 
 
@@ -234,26 +234,26 @@ static rv_instr_func_t decode_PRIV(rv_instr_t instr){
     ASSERT(instr.i.funct3 == rv_funcPRIV);
 
     if (instr.r.funct7 == rv_privSFENCEVMA_FUNCT7) {
-        return sfence_instr;
+        return rv_sfence_instr;
     }
 
     switch (instr.i.imm) {
         case rv_privEBREAK:
-            return break_instr;
+            return rv_break_instr;
         case rv_privEHALT:
-            return machine_specific_instructions ? halt_instr : illegal_instr;
+            return machine_specific_instructions ? rv_halt_instr : rv_illegal_instr;
         case rv_privEDUMP:
-            return machine_specific_instructions ? dump_instr : illegal_instr;
+            return machine_specific_instructions ? rv_dump_instr : rv_illegal_instr;
         case rv_privECALL:
-            return call_instr;
+            return rv_call_instr;
         case rv_privSRET:
-            return sret_instr;
+            return rv_sret_instr;
         case rv_privMRET:
-            return mret_instr;
+            return rv_mret_instr;
         case rv_privWFI:
-            return wfi_instr;
+            return rv_wfi_instr;
         default:
-            return illegal_instr;
+            return rv_illegal_instr;
     }
 }
 
@@ -263,19 +263,19 @@ static rv_instr_func_t decode_SYSTEM(rv_instr_t instr) {
         case rv_funcPRIV:
             return decode_PRIV(instr);
         case rv_funcCSRRW:
-            return csrrw_instr;
+            return rv_csrrw_instr;
         case rv_funcCSRRS:
-            return csrrs_instr;
+            return rv_csrrs_instr;
         case rv_funcCSRRC:
-            return csrrc_instr;
+            return rv_csrrc_instr;
         case rv_funcCSRRWI:
-            return csrrwi_instr;
+            return rv_csrrwi_instr;
         case rv_funcCSRRSI:
-            return csrrsi_instr;
+            return rv_csrrsi_instr;
         case rv_funcCSRRCI:
-            return csrrci_instr;
+            return rv_csrrci_instr;
         default:
-            return illegal_instr;
+            return rv_illegal_instr;
     }
 }
 
@@ -307,7 +307,7 @@ rv_instr_func_t rv_instr_decode(rv_instr_t instr){
         case rv_opcSYSTEM: 
             return decode_SYSTEM(instr);
         default: {
-            return illegal_instr;
+            return rv_illegal_instr;
         }
     }
 }

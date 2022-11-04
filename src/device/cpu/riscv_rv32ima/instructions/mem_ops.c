@@ -17,7 +17,7 @@
 #include "../../../../fault.h"
 #include "../../../../utils.h"
 
-rv_exc_t lb_instr(rv_cpu_t *cpu, rv_instr_t instr){
+rv_exc_t rv_lb_instr(rv_cpu_t *cpu, rv_instr_t instr){
     ASSERT(cpu != NULL);
     ASSERT(instr.i.opcode == rv_opcLOAD);
 
@@ -37,7 +37,7 @@ rv_exc_t lb_instr(rv_cpu_t *cpu, rv_instr_t instr){
     return rv_exc_none;
 }
 
-rv_exc_t lh_instr(rv_cpu_t *cpu, rv_instr_t instr){
+rv_exc_t rv_lh_instr(rv_cpu_t *cpu, rv_instr_t instr){
     ASSERT(cpu != NULL);
     ASSERT(instr.i.opcode == rv_opcLOAD);
 
@@ -57,7 +57,7 @@ rv_exc_t lh_instr(rv_cpu_t *cpu, rv_instr_t instr){
     return rv_exc_none;
 }
 
-rv_exc_t lw_instr(rv_cpu_t *cpu, rv_instr_t instr){
+rv_exc_t rv_lw_instr(rv_cpu_t *cpu, rv_instr_t instr){
     ASSERT(cpu != NULL);
     ASSERT(instr.i.opcode == rv_opcLOAD);
 
@@ -81,7 +81,7 @@ rv_exc_t lw_instr(rv_cpu_t *cpu, rv_instr_t instr){
     return rv_exc_none;
 }
 
-rv_exc_t lbu_instr(rv_cpu_t *cpu, rv_instr_t instr){
+rv_exc_t rv_lbu_instr(rv_cpu_t *cpu, rv_instr_t instr){
     ASSERT(cpu != NULL);
     ASSERT(instr.i.opcode == rv_opcLOAD);
 
@@ -100,7 +100,7 @@ rv_exc_t lbu_instr(rv_cpu_t *cpu, rv_instr_t instr){
     return rv_exc_none;
 }
 
-rv_exc_t lhu_instr(rv_cpu_t *cpu, rv_instr_t instr){
+rv_exc_t rv_lhu_instr(rv_cpu_t *cpu, rv_instr_t instr){
     ASSERT(cpu != NULL);
     ASSERT(instr.i.opcode == rv_opcLOAD);
 
@@ -124,7 +124,7 @@ rv_exc_t lhu_instr(rv_cpu_t *cpu, rv_instr_t instr){
     return rv_exc_none;
 }
 
-rv_exc_t sb_instr(rv_cpu_t *cpu, rv_instr_t instr){
+rv_exc_t rv_sb_instr(rv_cpu_t *cpu, rv_instr_t instr){
     ASSERT(cpu != NULL);
     ASSERT(instr.s.opcode == rv_opcSTORE);
 
@@ -133,7 +133,7 @@ rv_exc_t sb_instr(rv_cpu_t *cpu, rv_instr_t instr){
     return rv_write_mem8(cpu, virt, (uint8_t)cpu->regs[instr.s.rs2], true);
 }
 
-rv_exc_t sh_instr(rv_cpu_t *cpu, rv_instr_t instr){
+rv_exc_t rv_sh_instr(rv_cpu_t *cpu, rv_instr_t instr){
     ASSERT(cpu != NULL);
     ASSERT(instr.s.opcode == rv_opcSTORE);
 
@@ -142,7 +142,7 @@ rv_exc_t sh_instr(rv_cpu_t *cpu, rv_instr_t instr){
     return rv_write_mem16(cpu, virt, (uint16_t)cpu->regs[instr.s.rs2], true);
 }
 
-rv_exc_t sw_instr(rv_cpu_t *cpu, rv_instr_t instr){
+rv_exc_t rv_sw_instr(rv_cpu_t *cpu, rv_instr_t instr){
     ASSERT(cpu != NULL);
     ASSERT(instr.s.opcode == rv_opcSTORE);
 
@@ -152,7 +152,7 @@ rv_exc_t sw_instr(rv_cpu_t *cpu, rv_instr_t instr){
 }
 
 
-rv_exc_t fence_instr(rv_cpu_t *cpu, rv_instr_t instr){
+rv_exc_t rv_fence_instr(rv_cpu_t *cpu, rv_instr_t instr){
     // FENCE instruction does nothing in deterministic emulator,
     // where out-of-order processing is not allowed
     return rv_exc_none;
@@ -160,7 +160,7 @@ rv_exc_t fence_instr(rv_cpu_t *cpu, rv_instr_t instr){
 
 /* A extension LR and SC */
 
-rv_exc_t lr_instr(rv_cpu_t *cpu, rv_instr_t instr){
+rv_exc_t rv_lr_instr(rv_cpu_t *cpu, rv_instr_t instr){
     ASSERT(cpu != NULL);
     ASSERT(instr.r.opcode == rv_opcAMO);
     ASSERT(instr.r.rs2 == 0);
@@ -205,7 +205,7 @@ rv_exc_t lr_instr(rv_cpu_t *cpu, rv_instr_t instr){
     return rv_exc_none;
 }
 
-rv_exc_t sc_instr(rv_cpu_t *cpu, rv_instr_t instr){
+rv_exc_t rv_sc_instr(rv_cpu_t *cpu, rv_instr_t instr){
     ASSERT(cpu != NULL);
     ASSERT(instr.r.opcode == rv_opcAMO);
 

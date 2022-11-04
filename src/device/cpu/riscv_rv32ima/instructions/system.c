@@ -15,7 +15,7 @@
 #include "../csr.h"
 #include "../debug.h"
 
-rv_exc_t break_instr(rv_cpu_t *cpu, rv_instr_t instr){
+rv_exc_t rv_break_instr(rv_cpu_t *cpu, rv_instr_t instr){
     ASSERT(cpu != NULL);
     ASSERT(instr.i.opcode == rv_opcSYSTEM);
 
@@ -24,7 +24,7 @@ rv_exc_t break_instr(rv_cpu_t *cpu, rv_instr_t instr){
     return rv_exc_none;
 }
 
-rv_exc_t halt_instr(rv_cpu_t *cpu, rv_instr_t instr){
+rv_exc_t rv_halt_instr(rv_cpu_t *cpu, rv_instr_t instr){
     ASSERT(cpu != NULL);
     ASSERT(instr.i.opcode == rv_opcSYSTEM);
 
@@ -34,7 +34,7 @@ rv_exc_t halt_instr(rv_cpu_t *cpu, rv_instr_t instr){
     return rv_exc_none;
 }
 
-rv_exc_t dump_instr(rv_cpu_t *cpu, rv_instr_t instr){
+rv_exc_t rv_dump_instr(rv_cpu_t *cpu, rv_instr_t instr){
     ASSERT(cpu != NULL);
     ASSERT(instr.i.opcode == rv_opcSYSTEM);
     alert("EDUMP: Dumping general registers");
@@ -42,7 +42,7 @@ rv_exc_t dump_instr(rv_cpu_t *cpu, rv_instr_t instr){
     return rv_exc_none;
 }
 
-rv_exc_t call_instr(rv_cpu_t *cpu, rv_instr_t instr){
+rv_exc_t rv_call_instr(rv_cpu_t *cpu, rv_instr_t instr){
     switch(cpu->priv_mode){
         case rv_umode:
             return rv_exc_umode_environment_call;
@@ -55,7 +55,7 @@ rv_exc_t call_instr(rv_cpu_t *cpu, rv_instr_t instr){
     }
 }
 
-rv_exc_t sret_instr(rv_cpu_t *cpu, rv_instr_t instr){
+rv_exc_t rv_sret_instr(rv_cpu_t *cpu, rv_instr_t instr){
     if(rv_csr_mstatus_tsr(cpu)) return rv_exc_illegal_instruction;
     if(cpu->priv_mode < rv_smode) return rv_exc_illegal_instruction;
 
@@ -93,7 +93,7 @@ rv_exc_t sret_instr(rv_cpu_t *cpu, rv_instr_t instr){
     return rv_exc_none;
 }
 
-rv_exc_t mret_instr(rv_cpu_t *cpu, rv_instr_t instr){
+rv_exc_t rv_mret_instr(rv_cpu_t *cpu, rv_instr_t instr){
     if(cpu->priv_mode < rv_mmode) return rv_exc_illegal_instruction;
 
     rv_priv_mode_t mpp_priv = rv_csr_mstatus_mpp(cpu);
@@ -130,7 +130,7 @@ rv_exc_t mret_instr(rv_cpu_t *cpu, rv_instr_t instr){
     return rv_exc_none;
 }
 
-rv_exc_t wfi_instr(rv_cpu_t *cpu, rv_instr_t instr){
+rv_exc_t rv_wfi_instr(rv_cpu_t *cpu, rv_instr_t instr){
     
     if(rv_csr_mstatus_tw(cpu) && cpu->priv_mode != rv_mmode){
         return rv_exc_illegal_instruction;
@@ -143,7 +143,7 @@ rv_exc_t wfi_instr(rv_cpu_t *cpu, rv_instr_t instr){
 // Note: csrrw reads with rd = x0 shall not read the CSR and shall not have any side-efects based on the read
 //       similarly, csrrs and csrrc writes with rs1 = x0 (or uimm = 0) shall not write anything
 
-rv_exc_t csrrw_instr(rv_cpu_t *cpu, rv_instr_t instr){
+rv_exc_t rv_csrrw_instr(rv_cpu_t *cpu, rv_instr_t instr){
     int csr = ((uint32_t)instr.i.imm) & 0xFFF;
     uint32_t val = cpu->regs[instr.i.rs1];
     uint32_t* rd = &cpu->regs[instr.i.rd];  
@@ -152,7 +152,7 @@ rv_exc_t csrrw_instr(rv_cpu_t *cpu, rv_instr_t instr){
     return rv_csr_rw(cpu, csr, val, rd, read);
 }
 
-rv_exc_t csrrs_instr(rv_cpu_t *cpu, rv_instr_t instr){
+rv_exc_t rv_csrrs_instr(rv_cpu_t *cpu, rv_instr_t instr){
     int csr = ((uint32_t)instr.i.imm) & 0xFFF;
     uint32_t val = cpu->regs[instr.i.rs1];
     uint32_t* rd = &cpu->regs[instr.i.rd];  
@@ -161,7 +161,7 @@ rv_exc_t csrrs_instr(rv_cpu_t *cpu, rv_instr_t instr){
     return rv_csr_rs(cpu, csr, val, rd, write);
 }
 
-rv_exc_t csrrc_instr(rv_cpu_t *cpu, rv_instr_t instr){
+rv_exc_t rv_csrrc_instr(rv_cpu_t *cpu, rv_instr_t instr){
     int csr = ((uint32_t)instr.i.imm) & 0xFFF;
     uint32_t val = cpu->regs[instr.i.rs1];
     uint32_t* rd = &cpu->regs[instr.i.rd]; 
@@ -170,7 +170,7 @@ rv_exc_t csrrc_instr(rv_cpu_t *cpu, rv_instr_t instr){
     return rv_csr_rc(cpu, csr, val, rd, write);
 }
 
-rv_exc_t csrrwi_instr(rv_cpu_t *cpu, rv_instr_t instr){
+rv_exc_t rv_csrrwi_instr(rv_cpu_t *cpu, rv_instr_t instr){
     int csr = ((uint32_t)instr.i.imm) & 0xFFF;
     uint32_t val = instr.i.rs1; // Zero extended
     uint32_t* rd = &cpu->regs[instr.i.rd];  
@@ -179,7 +179,7 @@ rv_exc_t csrrwi_instr(rv_cpu_t *cpu, rv_instr_t instr){
     return rv_csr_rw(cpu, csr, val, rd, read);
 }
 
-rv_exc_t csrrsi_instr(rv_cpu_t *cpu, rv_instr_t instr){
+rv_exc_t rv_csrrsi_instr(rv_cpu_t *cpu, rv_instr_t instr){
     int csr = ((uint32_t)instr.i.imm) & 0xFFF;
     uint32_t val = instr.i.rs1; // Zero extended
     uint32_t* rd = &cpu->regs[instr.i.rd];  
@@ -188,7 +188,7 @@ rv_exc_t csrrsi_instr(rv_cpu_t *cpu, rv_instr_t instr){
     return rv_csr_rs(cpu, csr, val, rd, write);
 }
 
-rv_exc_t csrrci_instr(rv_cpu_t *cpu, rv_instr_t instr){
+rv_exc_t rv_csrrci_instr(rv_cpu_t *cpu, rv_instr_t instr){
     int csr = ((uint32_t)instr.i.imm) & 0xFFF;
     uint32_t val = instr.i.rs1; // Zero extended
     uint32_t* rd = &cpu->regs[instr.i.rd];  
@@ -197,7 +197,7 @@ rv_exc_t csrrci_instr(rv_cpu_t *cpu, rv_instr_t instr){
     return rv_csr_rc(cpu, csr, val, rd, write);
 }
 
-rv_exc_t sfence_instr(rv_cpu_t *cpu, rv_instr_t instr) {
+rv_exc_t rv_sfence_instr(rv_cpu_t *cpu, rv_instr_t instr) {
     if(rv_csr_mstatus_tvm(cpu)){
         return rv_exc_illegal_instruction;
     }

@@ -13,7 +13,7 @@
 #include "../../../../assert.h"
 #include "../../../../utils.h"
 
-rv_exc_t jal_instr(rv_cpu_t *cpu, rv_instr_t instr){
+rv_exc_t rv_jal_instr(rv_cpu_t *cpu, rv_instr_t instr){
     ASSERT(cpu != NULL);
     ASSERT(instr.j.opcode == rv_opcJAL);
 
@@ -31,7 +31,7 @@ rv_exc_t jal_instr(rv_cpu_t *cpu, rv_instr_t instr){
     return rv_exc_none;
 }
 
-rv_exc_t jalr_instr(rv_cpu_t *cpu, rv_instr_t instr) {
+rv_exc_t rv_jalr_instr(rv_cpu_t *cpu, rv_instr_t instr) {
     ASSERT(cpu != NULL);
     ASSERT(instr.i.opcode == rv_opcJALR);
     ASSERT(instr.i.funct3 == 0);
@@ -51,7 +51,7 @@ rv_exc_t jalr_instr(rv_cpu_t *cpu, rv_instr_t instr) {
     return rv_exc_none;
 }
 
-rv_exc_t beq_instr(rv_cpu_t *cpu, rv_instr_t instr){
+rv_exc_t rv_beq_instr(rv_cpu_t *cpu, rv_instr_t instr){
     ASSERT(cpu != NULL);
     ASSERT(instr.b.opcode == rv_opcBRANCH);
 
@@ -73,7 +73,7 @@ rv_exc_t beq_instr(rv_cpu_t *cpu, rv_instr_t instr){
     return rv_exc_none;
 }
 
-rv_exc_t bne_instr(rv_cpu_t *cpu, rv_instr_t instr){
+rv_exc_t rv_bne_instr(rv_cpu_t *cpu, rv_instr_t instr){
     ASSERT(cpu != NULL);
     ASSERT(instr.b.opcode == rv_opcBRANCH);
 
@@ -95,7 +95,7 @@ rv_exc_t bne_instr(rv_cpu_t *cpu, rv_instr_t instr){
     return rv_exc_none;
 }
 
-rv_exc_t blt_instr(rv_cpu_t *cpu, rv_instr_t instr){
+rv_exc_t rv_blt_instr(rv_cpu_t *cpu, rv_instr_t instr){
     ASSERT(cpu != NULL);
     ASSERT(instr.b.opcode == rv_opcBRANCH);
 
@@ -116,7 +116,7 @@ rv_exc_t blt_instr(rv_cpu_t *cpu, rv_instr_t instr){
     return rv_exc_none;
 }
 
-rv_exc_t bltu_instr(rv_cpu_t *cpu, rv_instr_t instr){
+rv_exc_t rv_bltu_instr(rv_cpu_t *cpu, rv_instr_t instr){
     ASSERT(cpu != NULL);
     ASSERT(instr.b.opcode == rv_opcBRANCH);
 
@@ -138,7 +138,7 @@ rv_exc_t bltu_instr(rv_cpu_t *cpu, rv_instr_t instr){
     return rv_exc_none;
 }
 
-rv_exc_t bge_instr(rv_cpu_t *cpu, rv_instr_t instr){
+rv_exc_t rv_bge_instr(rv_cpu_t *cpu, rv_instr_t instr){
     ASSERT(cpu != NULL);
     ASSERT(instr.b.opcode == rv_opcBRANCH);
 
@@ -159,7 +159,7 @@ rv_exc_t bge_instr(rv_cpu_t *cpu, rv_instr_t instr){
     return rv_exc_none;
 }
 
-rv_exc_t bgeu_instr(rv_cpu_t *cpu, rv_instr_t instr){
+rv_exc_t rv_bgeu_instr(rv_cpu_t *cpu, rv_instr_t instr){
     ASSERT(cpu != NULL);
     ASSERT(instr.b.opcode == rv_opcBRANCH);
 

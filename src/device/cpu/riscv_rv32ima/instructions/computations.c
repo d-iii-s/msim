@@ -18,7 +18,7 @@
  * OP *
  ******/
 
-rv_exc_t add_instr(rv_cpu_t *cpu, rv_instr_t instr){
+rv_exc_t rv_add_instr(rv_cpu_t *cpu, rv_instr_t instr){
     ASSERT(cpu != NULL);
     ASSERT(instr.r.opcode == rv_opcOP);
 
@@ -30,7 +30,7 @@ rv_exc_t add_instr(rv_cpu_t *cpu, rv_instr_t instr){
     return rv_exc_none;
 }
 
-rv_exc_t sub_instr(rv_cpu_t *cpu, rv_instr_t instr){
+rv_exc_t rv_sub_instr(rv_cpu_t *cpu, rv_instr_t instr){
     ASSERT(cpu != NULL);
     ASSERT(instr.r.opcode == rv_opcOP);
 
@@ -41,7 +41,7 @@ rv_exc_t sub_instr(rv_cpu_t *cpu, rv_instr_t instr){
 
     return rv_exc_none;
 }
-rv_exc_t sll_instr(rv_cpu_t *cpu, rv_instr_t instr){
+rv_exc_t rv_sll_instr(rv_cpu_t *cpu, rv_instr_t instr){
     ASSERT(cpu != NULL);
     ASSERT(instr.r.opcode == rv_opcOP);
 
@@ -53,7 +53,7 @@ rv_exc_t sll_instr(rv_cpu_t *cpu, rv_instr_t instr){
 
     return rv_exc_none;
 }
-rv_exc_t slt_instr(rv_cpu_t *cpu, rv_instr_t instr){
+rv_exc_t rv_slt_instr(rv_cpu_t *cpu, rv_instr_t instr){
     ASSERT(cpu != NULL);
     ASSERT(instr.r.opcode == rv_opcOP);
 
@@ -64,7 +64,7 @@ rv_exc_t slt_instr(rv_cpu_t *cpu, rv_instr_t instr){
 
     return rv_exc_none;
 }
-rv_exc_t sltu_instr(rv_cpu_t *cpu, rv_instr_t instr){
+rv_exc_t rv_sltu_instr(rv_cpu_t *cpu, rv_instr_t instr){
     ASSERT(cpu != NULL);
     ASSERT(instr.r.opcode == rv_opcOP);
 
@@ -75,7 +75,7 @@ rv_exc_t sltu_instr(rv_cpu_t *cpu, rv_instr_t instr){
 
     return rv_exc_none;
 }
-rv_exc_t xor_instr(rv_cpu_t *cpu, rv_instr_t instr){
+rv_exc_t rv_xor_instr(rv_cpu_t *cpu, rv_instr_t instr){
     ASSERT(cpu != NULL);
     ASSERT(instr.r.opcode == rv_opcOP);
 
@@ -86,7 +86,7 @@ rv_exc_t xor_instr(rv_cpu_t *cpu, rv_instr_t instr){
 
     return rv_exc_none;
 }
-rv_exc_t srl_instr(rv_cpu_t *cpu, rv_instr_t instr){
+rv_exc_t rv_srl_instr(rv_cpu_t *cpu, rv_instr_t instr){
     ASSERT(cpu != NULL);
     ASSERT(instr.r.opcode == rv_opcOP);
 
@@ -98,7 +98,7 @@ rv_exc_t srl_instr(rv_cpu_t *cpu, rv_instr_t instr){
 
     return rv_exc_none;
 }
-rv_exc_t sra_instr(rv_cpu_t *cpu, rv_instr_t instr){
+rv_exc_t rv_sra_instr(rv_cpu_t *cpu, rv_instr_t instr){
     ASSERT(cpu != NULL);
     ASSERT(instr.r.opcode == rv_opcOP);
 
@@ -110,7 +110,7 @@ rv_exc_t sra_instr(rv_cpu_t *cpu, rv_instr_t instr){
 
     return rv_exc_none;
 }
-rv_exc_t or_instr(rv_cpu_t *cpu, rv_instr_t instr){
+rv_exc_t rv_or_instr(rv_cpu_t *cpu, rv_instr_t instr){
     ASSERT(cpu != NULL);
     ASSERT(instr.r.opcode == rv_opcOP);
 
@@ -121,7 +121,7 @@ rv_exc_t or_instr(rv_cpu_t *cpu, rv_instr_t instr){
 
     return rv_exc_none;
 }
-rv_exc_t and_instr(rv_cpu_t *cpu, rv_instr_t instr){
+rv_exc_t rv_and_instr(rv_cpu_t *cpu, rv_instr_t instr){
     ASSERT(cpu != NULL);
     ASSERT(instr.r.opcode == rv_opcOP);
 
@@ -137,7 +137,7 @@ rv_exc_t and_instr(rv_cpu_t *cpu, rv_instr_t instr){
  * OP-IMM *
  **********/
 
-rv_exc_t addi_instr(rv_cpu_t *cpu, rv_instr_t instr){
+rv_exc_t rv_addi_instr(rv_cpu_t *cpu, rv_instr_t instr){
     ASSERT(cpu != NULL);
     ASSERT(instr.i.opcode == rv_opcOP_IMM);
 
@@ -150,7 +150,7 @@ rv_exc_t addi_instr(rv_cpu_t *cpu, rv_instr_t instr){
     return rv_exc_none;
 }
 
-rv_exc_t slti_instr(rv_cpu_t *cpu, rv_instr_t instr){
+rv_exc_t rv_slti_instr(rv_cpu_t *cpu, rv_instr_t instr){
     ASSERT(cpu != NULL);
     ASSERT(instr.i.opcode == rv_opcOP_IMM);
 
@@ -163,7 +163,7 @@ rv_exc_t slti_instr(rv_cpu_t *cpu, rv_instr_t instr){
     return rv_exc_none;
 }
 
-rv_exc_t sltiu_instr(rv_cpu_t *cpu, rv_instr_t instr){
+rv_exc_t rv_sltiu_instr(rv_cpu_t *cpu, rv_instr_t instr){
     ASSERT(cpu != NULL);
     ASSERT(instr.i.opcode == rv_opcOP_IMM);
 
@@ -177,7 +177,7 @@ rv_exc_t sltiu_instr(rv_cpu_t *cpu, rv_instr_t instr){
     return rv_exc_none;
 }
 
-rv_exc_t andi_instr(rv_cpu_t *cpu, rv_instr_t instr){
+rv_exc_t rv_andi_instr(rv_cpu_t *cpu, rv_instr_t instr){
     ASSERT(cpu != NULL);
     ASSERT(instr.i.opcode == rv_opcOP_IMM);
 
@@ -190,7 +190,7 @@ rv_exc_t andi_instr(rv_cpu_t *cpu, rv_instr_t instr){
     return rv_exc_none;
 }
 
-rv_exc_t ori_instr(rv_cpu_t *cpu, rv_instr_t instr){
+rv_exc_t rv_ori_instr(rv_cpu_t *cpu, rv_instr_t instr){
     ASSERT(cpu != NULL);
     ASSERT(instr.i.opcode == rv_opcOP_IMM);
 
@@ -203,7 +203,7 @@ rv_exc_t ori_instr(rv_cpu_t *cpu, rv_instr_t instr){
     return rv_exc_none;
 }
 
-rv_exc_t xori_instr(rv_cpu_t *cpu, rv_instr_t instr){
+rv_exc_t rv_xori_instr(rv_cpu_t *cpu, rv_instr_t instr){
     ASSERT(cpu != NULL);
     ASSERT(instr.i.opcode == rv_opcOP_IMM);
     
@@ -216,7 +216,7 @@ rv_exc_t xori_instr(rv_cpu_t *cpu, rv_instr_t instr){
     return rv_exc_none;
 }
 
-rv_exc_t slli_instr(rv_cpu_t *cpu, rv_instr_t instr){
+rv_exc_t rv_slli_instr(rv_cpu_t *cpu, rv_instr_t instr){
     ASSERT(cpu != NULL);
     ASSERT(instr.i.opcode == rv_opcOP_IMM);
     
@@ -229,7 +229,7 @@ rv_exc_t slli_instr(rv_cpu_t *cpu, rv_instr_t instr){
     return rv_exc_none;
 }
 
-rv_exc_t srli_instr(rv_cpu_t *cpu, rv_instr_t instr){
+rv_exc_t rv_srli_instr(rv_cpu_t *cpu, rv_instr_t instr){
     ASSERT(cpu != NULL);
     ASSERT(instr.i.opcode == rv_opcOP_IMM);
 
@@ -242,7 +242,7 @@ rv_exc_t srli_instr(rv_cpu_t *cpu, rv_instr_t instr){
     return rv_exc_none;
 }
 
-rv_exc_t srai_instr(rv_cpu_t *cpu, rv_instr_t instr){
+rv_exc_t rv_srai_instr(rv_cpu_t *cpu, rv_instr_t instr){
     ASSERT(cpu != NULL);
     ASSERT(instr.i.opcode == rv_opcOP_IMM);
 
@@ -259,7 +259,7 @@ rv_exc_t srai_instr(rv_cpu_t *cpu, rv_instr_t instr){
  * LUI and AUIPC *
  *****************/
 
-rv_exc_t lui_instr(rv_cpu_t *cpu, rv_instr_t instr){
+rv_exc_t rv_lui_instr(rv_cpu_t *cpu, rv_instr_t instr){
     ASSERT(cpu != NULL);
     ASSERT(instr.u.opcode == rv_opcLUI);
 
@@ -268,7 +268,7 @@ rv_exc_t lui_instr(rv_cpu_t *cpu, rv_instr_t instr){
     return rv_exc_none;
 }
 
-rv_exc_t auipc_instr(rv_cpu_t *cpu, rv_instr_t instr){
+rv_exc_t rv_auipc_instr(rv_cpu_t *cpu, rv_instr_t instr){
     ASSERT(cpu != NULL);
     ASSERT(instr.u.opcode == rv_opcAUIPC);
 
@@ -285,7 +285,7 @@ rv_exc_t auipc_instr(rv_cpu_t *cpu, rv_instr_t instr){
  * M extension *
  ***************/
 
-extern rv_exc_t mul_instr(rv_cpu_t *cpu, rv_instr_t instr){
+extern rv_exc_t rv_mul_instr(rv_cpu_t *cpu, rv_instr_t instr){
     ASSERT(cpu != NULL);
     ASSERT(instr.r.opcode == rv_opcOP);
 
@@ -297,7 +297,7 @@ extern rv_exc_t mul_instr(rv_cpu_t *cpu, rv_instr_t instr){
     return rv_exc_none;
 }
 
-extern rv_exc_t mulh_instr(rv_cpu_t *cpu, rv_instr_t instr){
+extern rv_exc_t rv_mulh_instr(rv_cpu_t *cpu, rv_instr_t instr){
     ASSERT(cpu != NULL);
     ASSERT(instr.r.opcode == rv_opcOP);
 
@@ -312,7 +312,7 @@ extern rv_exc_t mulh_instr(rv_cpu_t *cpu, rv_instr_t instr){
     return rv_exc_none;
 }
 
-extern rv_exc_t mulhsu_instr(rv_cpu_t *cpu, rv_instr_t instr){
+extern rv_exc_t rv_mulhsu_instr(rv_cpu_t *cpu, rv_instr_t instr){
     ASSERT(cpu != NULL);
     ASSERT(instr.r.opcode == rv_opcOP);
 
@@ -327,7 +327,7 @@ extern rv_exc_t mulhsu_instr(rv_cpu_t *cpu, rv_instr_t instr){
     return rv_exc_none;
 }
 
-extern rv_exc_t mulhu_instr(rv_cpu_t *cpu, rv_instr_t instr){
+extern rv_exc_t rv_mulhu_instr(rv_cpu_t *cpu, rv_instr_t instr){
     ASSERT(cpu != NULL);
     ASSERT(instr.r.opcode == rv_opcOP);
 
@@ -342,7 +342,7 @@ extern rv_exc_t mulhu_instr(rv_cpu_t *cpu, rv_instr_t instr){
     return rv_exc_none;
 }
 
-extern rv_exc_t div_instr(rv_cpu_t *cpu, rv_instr_t instr){
+extern rv_exc_t rv_div_instr(rv_cpu_t *cpu, rv_instr_t instr){
     ASSERT(cpu != NULL);
     ASSERT(instr.r.opcode == rv_opcOP);
 
@@ -365,7 +365,7 @@ extern rv_exc_t div_instr(rv_cpu_t *cpu, rv_instr_t instr){
     return rv_exc_none;
 }
 
-extern rv_exc_t divu_instr(rv_cpu_t *cpu, rv_instr_t instr){
+extern rv_exc_t rv_divu_instr(rv_cpu_t *cpu, rv_instr_t instr){
     ASSERT(cpu != NULL);
     ASSERT(instr.r.opcode == rv_opcOP);
 
@@ -382,7 +382,7 @@ extern rv_exc_t divu_instr(rv_cpu_t *cpu, rv_instr_t instr){
     return rv_exc_none;
 }
 
-extern rv_exc_t rem_instr(rv_cpu_t *cpu, rv_instr_t instr){
+extern rv_exc_t rv_rem_instr(rv_cpu_t *cpu, rv_instr_t instr){
     ASSERT(cpu != NULL);
     ASSERT(instr.r.opcode == rv_opcOP);
 
@@ -405,7 +405,7 @@ extern rv_exc_t rem_instr(rv_cpu_t *cpu, rv_instr_t instr){
     return rv_exc_none;
 }
 
-extern rv_exc_t remu_instr(rv_cpu_t *cpu, rv_instr_t instr){
+extern rv_exc_t rv_remu_instr(rv_cpu_t *cpu, rv_instr_t instr){
     ASSERT(cpu != NULL);
     ASSERT(instr.r.opcode == rv_opcOP);
 
@@ -443,7 +443,7 @@ extern rv_exc_t remu_instr(rv_cpu_t *cpu, rv_instr_t instr){
 }
 
 
-rv_exc_t amoswap_instr(rv_cpu_t *cpu, rv_instr_t instr){
+rv_exc_t rv_amoswap_instr(rv_cpu_t *cpu, rv_instr_t instr){
     ASSERT(cpu != NULL);
     ASSERT(instr.r.opcode == rv_opcAMO);
 
@@ -466,7 +466,7 @@ rv_exc_t amoswap_instr(rv_cpu_t *cpu, rv_instr_t instr){
     return rv_exc_none;
 }
 
-rv_exc_t amoadd_instr(rv_cpu_t *cpu, rv_instr_t instr){
+rv_exc_t rv_amoadd_instr(rv_cpu_t *cpu, rv_instr_t instr){
 
     uint32_t virt = cpu->regs[instr.r.rs1];
 
@@ -492,7 +492,7 @@ rv_exc_t amoadd_instr(rv_cpu_t *cpu, rv_instr_t instr){
     
 }
 
-rv_exc_t amoxor_instr(rv_cpu_t *cpu, rv_instr_t instr) {
+rv_exc_t rv_amoxor_instr(rv_cpu_t *cpu, rv_instr_t instr) {
 
     uint32_t virt = cpu->regs[instr.r.rs1];
 
@@ -513,7 +513,7 @@ rv_exc_t amoxor_instr(rv_cpu_t *cpu, rv_instr_t instr) {
     return ex;
 }
 
-rv_exc_t amoand_instr(rv_cpu_t *cpu, rv_instr_t instr){
+rv_exc_t rv_amoand_instr(rv_cpu_t *cpu, rv_instr_t instr){
 
     uint32_t virt = cpu->regs[instr.r.rs1];
 
@@ -534,7 +534,7 @@ rv_exc_t amoand_instr(rv_cpu_t *cpu, rv_instr_t instr){
     return ex;
 }
 
-rv_exc_t amoor_instr(rv_cpu_t *cpu, rv_instr_t instr){
+rv_exc_t rv_amoor_instr(rv_cpu_t *cpu, rv_instr_t instr){
 
     uint32_t virt = cpu->regs[instr.r.rs1];
 
@@ -555,7 +555,7 @@ rv_exc_t amoor_instr(rv_cpu_t *cpu, rv_instr_t instr){
     return ex;
 }
 
-rv_exc_t amomin_instr(rv_cpu_t *cpu, rv_instr_t instr){
+rv_exc_t rv_amomin_instr(rv_cpu_t *cpu, rv_instr_t instr){
 
     uint32_t virt = cpu->regs[instr.r.rs1];
 
@@ -577,7 +577,7 @@ rv_exc_t amomin_instr(rv_cpu_t *cpu, rv_instr_t instr){
     return ex;
 }
 
-rv_exc_t amomax_instr(rv_cpu_t *cpu, rv_instr_t instr){
+rv_exc_t rv_amomax_instr(rv_cpu_t *cpu, rv_instr_t instr){
 
     uint32_t virt = cpu->regs[instr.r.rs1];
     
@@ -599,7 +599,7 @@ rv_exc_t amomax_instr(rv_cpu_t *cpu, rv_instr_t instr){
     return ex;
 }
 
-rv_exc_t amominu_instr(rv_cpu_t *cpu, rv_instr_t instr){
+rv_exc_t rv_amominu_instr(rv_cpu_t *cpu, rv_instr_t instr){
 
     uint32_t virt = cpu->regs[instr.r.rs1];
 
@@ -622,7 +622,7 @@ rv_exc_t amominu_instr(rv_cpu_t *cpu, rv_instr_t instr){
     return ex;
 }
 
-rv_exc_t amomaxu_instr(rv_cpu_t *cpu, rv_instr_t instr){
+rv_exc_t rv_amomaxu_instr(rv_cpu_t *cpu, rv_instr_t instr){
 
     uint32_t virt = cpu->regs[instr.r.rs1];
 

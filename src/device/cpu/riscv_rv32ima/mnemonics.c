@@ -29,7 +29,7 @@ extern rv_mnemonics_func_t rv_decode_mnemonics(rv_instr_t instr){
 
     // very dirty indeed, but only one decode is needed
 
-    #define IF_SAME_DECODE(expected_instr) if(instr_func == expected_instr ## _instr) return rv_ ## expected_instr ## _mnemonics
+    #define IF_SAME_DECODE(expected_instr) if(instr_func == rv_ ## expected_instr ## _instr) return rv_ ## expected_instr ## _mnemonics
 
     IF_SAME_DECODE(lui);
     IF_SAME_DECODE(auipc);
@@ -78,17 +78,17 @@ extern rv_mnemonics_func_t rv_decode_mnemonics(rv_instr_t instr){
 
     // SYSTEM 
 
-    if(instr_func == break_instr)
+    if(instr_func == rv_break_instr)
         return rv_ebreak_mnemonics;
     
-    if(instr_func == halt_instr)
+    if(instr_func == rv_halt_instr)
         return rv_ehalt_mnemonics;
 
 	
-    if(instr_func == dump_instr)
+    if(instr_func == rv_dump_instr)
         return rv_edump_mnemonics;
 
-    if(instr_func == call_instr)
+    if(instr_func == rv_call_instr)
         return rv_ecall_mnemonics;
 
     IF_SAME_DECODE(sret);

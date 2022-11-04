@@ -25,7 +25,7 @@ PCUT_TEST(add_no_ex){
         .funct7 = rv_func_ADD >> 3,
     } };
 
-    rv_exc_t ex = add_instr(&cpu, instr);
+    rv_exc_t ex = rv_add_instr(&cpu, instr);
 
     PCUT_ASSERT_INT_EQUALS(rv_exc_none, ex);
 }
@@ -36,7 +36,7 @@ PCUT_TEST(jal_address_misaligned){
         .imm10_1 = 1
     } };
 
-    rv_exc_t ex = jal_instr(&cpu, instr);
+    rv_exc_t ex = rv_jal_instr(&cpu, instr);
 
     PCUT_ASSERT_INT_EQUALS(rv_exc_instruction_address_misaligned, ex);
 }
@@ -47,7 +47,7 @@ PCUT_TEST(jalr_address_misaligned){
         .imm = 2
     } };
 
-    rv_exc_t ex = jalr_instr(&cpu, instr);
+    rv_exc_t ex = rv_jalr_instr(&cpu, instr);
 
     PCUT_ASSERT_INT_EQUALS(rv_exc_instruction_address_misaligned, ex);
 }
@@ -65,7 +65,7 @@ PCUT_TEST(beq_address_misaligned_taken){
     cpu.regs[0] = 0;
     cpu.regs[1] = 0;
 
-    rv_exc_t ex = beq_instr(&cpu, instr);
+    rv_exc_t ex = rv_beq_instr(&cpu, instr);
     PCUT_ASSERT_INT_EQUALS(rv_exc_instruction_address_misaligned, ex);
 }
 
@@ -80,7 +80,7 @@ PCUT_TEST(beq_address_misaligned_not_taken){
     cpu.regs[0] = 0;
     cpu.regs[1] = 1;
 
-    rv_exc_t ex = beq_instr(&cpu, instr);
+    rv_exc_t ex = rv_beq_instr(&cpu, instr);
     PCUT_ASSERT_INT_EQUALS(rv_exc_none, ex);
 }
 
@@ -91,7 +91,7 @@ PCUT_TEST(lh_address_misaligned){
         .imm = 1
     } };
 
-    rv_exc_t ex = lh_instr(&cpu, instr);
+    rv_exc_t ex = rv_lh_instr(&cpu, instr);
 
     PCUT_ASSERT_INT_EQUALS(rv_exc_load_address_misaligned, ex);
 }
@@ -105,7 +105,7 @@ PCUT_TEST(lw_address_misaligned){
         .imm = 2
     } };
 
-    rv_exc_t ex = lw_instr(&cpu, instr);
+    rv_exc_t ex = rv_lw_instr(&cpu, instr);
 
     PCUT_ASSERT_INT_EQUALS(rv_exc_load_address_misaligned, ex);
 }
@@ -117,7 +117,7 @@ PCUT_TEST(sh_address_misaligned){
         .imm4_0 = 1
     } };
 
-    rv_exc_t ex = sh_instr(&cpu, instr);
+    rv_exc_t ex = rv_sh_instr(&cpu, instr);
 
     PCUT_ASSERT_INT_EQUALS(rv_exc_store_amo_address_misaligned, ex);
 }
@@ -129,7 +129,7 @@ PCUT_TEST(sw_address_misaligned){
         .imm4_0 = 2
     } };
 
-    rv_exc_t ex = sw_instr(&cpu, instr);
+    rv_exc_t ex = rv_sw_instr(&cpu, instr);
 
     PCUT_ASSERT_INT_EQUALS(rv_exc_store_amo_address_misaligned, ex);
 }
@@ -142,7 +142,7 @@ PCUT_TEST(syscall_umode) {
     } };
     cpu.priv_mode = rv_umode;
 
-    rv_exc_t ex = call_instr(&cpu, instr);
+    rv_exc_t ex = rv_call_instr(&cpu, instr);
     PCUT_ASSERT_INT_EQUALS(rv_exc_umode_environment_call, ex);
 }
 
@@ -154,7 +154,7 @@ PCUT_TEST(syscall_smode) {
     } };
     cpu.priv_mode = rv_smode;
 
-    rv_exc_t ex = call_instr(&cpu, instr);
+    rv_exc_t ex = rv_call_instr(&cpu, instr);
     PCUT_ASSERT_INT_EQUALS(rv_exc_smode_environment_call, ex);
 }
 
@@ -168,7 +168,7 @@ PCUT_TEST(syscall_mmode) {
     } };
     cpu.priv_mode = rv_mmode;
 
-    rv_exc_t ex = call_instr(&cpu, instr);
+    rv_exc_t ex = rv_call_instr(&cpu, instr);
     PCUT_ASSERT_INT_EQUALS(rv_exc_mmode_environment_call, ex);
 }
 
@@ -182,7 +182,7 @@ PCUT_TEST(sret_trapped) {
     // TSR bit => sret traps
     cpu.csr.mstatus |= 1 << 22;
 
-    rv_exc_t ex = sret_instr(&cpu, instr);
+    rv_exc_t ex = rv_sret_instr(&cpu, instr);
 
     PCUT_ASSERT_INT_EQUALS(rv_exc_illegal_instruction, ex);
 }
@@ -197,7 +197,7 @@ PCUT_TEST(wfi_trapped_Smode) {
     // TW => Trap wait for interrupt (in smode or umode)
     cpu.csr.mstatus |= 1 << 21;
 
-    rv_exc_t ex = wfi_instr(&cpu, instr);
+    rv_exc_t ex = rv_wfi_instr(&cpu, instr);
 
     PCUT_ASSERT_INT_EQUALS(rv_exc_illegal_instruction, ex);
 }
@@ -212,7 +212,7 @@ PCUT_TEST(wfi_trapped_Mmode) {
     // TW => Trap wait for interrupt (in smode or umode)
     cpu.csr.mstatus |= 1 << 21;
 
-    rv_exc_t ex = wfi_instr(&cpu, instr);
+    rv_exc_t ex = rv_wfi_instr(&cpu, instr);
 
     PCUT_ASSERT_INT_EQUALS(rv_exc_none, ex);
 }
@@ -227,7 +227,7 @@ PCUT_TEST(sfence_vma_trapped) {
     // TVM => Trap virtual memory (sfence.vma)
     cpu.csr.mstatus |= 1 << 20;
 
-    rv_exc_t ex = sfence_instr(&cpu, instr);
+    rv_exc_t ex = rv_sfence_instr(&cpu, instr);
 
     PCUT_ASSERT_INT_EQUALS(rv_exc_illegal_instruction, ex);
 }
@@ -242,7 +242,7 @@ PCUT_TEST(lr_address_missaligned) {
 
     cpu.regs[0] = 2;
 
-    rv_exc_t ex = lr_instr(&cpu, instr);
+    rv_exc_t ex = rv_lr_instr(&cpu, instr);
     PCUT_ASSERT_INT_EQUALS(rv_exc_load_address_misaligned, ex);
 }
 
@@ -257,7 +257,7 @@ PCUT_TEST(sc_address_missaligned) {
     cpu.regs[0] = 2;
     cpu.reserved_valid = true;
 
-    rv_exc_t ex = sc_instr(&cpu, instr);
+    rv_exc_t ex = rv_sc_instr(&cpu, instr);
     PCUT_ASSERT_INT_EQUALS(rv_exc_store_amo_address_misaligned, ex);
 }
 
@@ -272,7 +272,7 @@ PCUT_TEST(amo_address_missaligned) {
 
     cpu.regs[0] = 2;
 
-    rv_exc_t ex = amoswap_instr(&cpu, instr);
+    rv_exc_t ex = rv_amoswap_instr(&cpu, instr);
     PCUT_ASSERT_INT_EQUALS(rv_exc_store_amo_address_misaligned, ex);
 }
 
@@ -284,7 +284,7 @@ PCUT_TEST(csrrw_non_existent_csr){
         .rd = 1
     }};
 
-    rv_exc_t ex = csrrw_instr(&cpu, instr);
+    rv_exc_t ex = rv_csrrw_instr(&cpu, instr);
 
     PCUT_ASSERT_INT_EQUALS(rv_exc_illegal_instruction, ex);
 }
@@ -300,7 +300,7 @@ PCUT_TEST(csrrsi_wrong_privilege){
     cpu.priv_mode = rv_smode;
 
     //modifying mmode register in smode
-    rv_exc_t ex = csrrsi_instr(&cpu, instr);
+    rv_exc_t ex = rv_csrrsi_instr(&cpu, instr);
 
     PCUT_ASSERT_INT_EQUALS(rv_exc_illegal_instruction, ex);
 }
@@ -317,7 +317,7 @@ PCUT_TEST(csrrw_write_read_only_csr){
     cpu.regs[instr.i.rd] = (uint32_t)-1;
     cpu.priv_mode = rv_mmode;
 
-    rv_exc_t ex = csrrw_instr(&cpu, instr);
+    rv_exc_t ex = rv_csrrw_instr(&cpu, instr);
 
     PCUT_ASSERT_INT_EQUALS(rv_exc_illegal_instruction, ex);
     // value in rd didn't change
@@ -334,7 +334,7 @@ PCUT_TEST(csrrsi_read_read_only_csr){
     }};
     cpu.priv_mode = rv_mmode;
 
-    rv_exc_t ex = csrrsi_instr(&cpu, instr);
+    rv_exc_t ex = rv_csrrsi_instr(&cpu, instr);
 
     PCUT_ASSERT_INT_EQUALS(rv_exc_none, ex);
 }
@@ -350,7 +350,7 @@ PCUT_TEST(csrrw_WLRL_write_illegal){
     cpu.regs[instr.i.rs1] = RV_EXCEPTION_EXC_BITS | 48; // Exception designated for custom use that is not used int msim
     cpu.priv_mode = rv_mmode;
 
-    rv_exc_t ex = csrrw_instr(&cpu, instr);
+    rv_exc_t ex = rv_csrrw_instr(&cpu, instr);
 
     PCUT_ASSERT_INT_EQUALS(rv_exc_illegal_instruction, ex);
 }
@@ -366,7 +366,7 @@ PCUT_TEST(csrrw_WARL_write_illegal){
     cpu.regs[instr.i.rs1] = 2; // Illegal MODE
     cpu.priv_mode = rv_mmode;
 
-    rv_exc_t ex = csrrw_instr(&cpu, instr);
+    rv_exc_t ex = rv_csrrw_instr(&cpu, instr);
 
     // No Exception
     PCUT_ASSERT_INT_EQUALS(rv_exc_none, ex);
@@ -388,7 +388,7 @@ PCUT_TEST(csrrsi_read_from_disabled_counter_Smode){
     cpu.csr.mcounteren = 0;
     cpu.priv_mode = rv_smode;
 
-    rv_exc_t ex = csrrsi_instr(&cpu, instr);
+    rv_exc_t ex = rv_csrrsi_instr(&cpu, instr);
 
     PCUT_ASSERT_INT_EQUALS(rv_exc_illegal_instruction, ex);
 }
@@ -407,7 +407,7 @@ PCUT_TEST(csrrsi_read_from_disabled_counter_Mmode){
     cpu.csr.mcounteren = 0;
     cpu.priv_mode = rv_mmode;
 
-    rv_exc_t ex = csrrsi_instr(&cpu, instr);
+    rv_exc_t ex = rv_csrrsi_instr(&cpu, instr);
 
     PCUT_ASSERT_INT_EQUALS(rv_exc_none, ex);
 }
@@ -427,7 +427,7 @@ PCUT_TEST(csrrsi_read_from_M_disabled_counter_Umode){
     cpu.csr.scounteren = (uint32_t)-1;
     cpu.priv_mode = rv_umode;
 
-    rv_exc_t ex = csrrsi_instr(&cpu, instr);
+    rv_exc_t ex = rv_csrrsi_instr(&cpu, instr);
 
     PCUT_ASSERT_INT_EQUALS(rv_exc_illegal_instruction, ex);
 }
@@ -447,7 +447,7 @@ PCUT_TEST(csrrsi_read_from_S_disabled_counter_Umode){
     cpu.csr.scounteren = 0;
     cpu.priv_mode = rv_umode;
 
-    rv_exc_t ex = csrrsi_instr(&cpu, instr);
+    rv_exc_t ex = rv_csrrsi_instr(&cpu, instr);
 
     PCUT_ASSERT_INT_EQUALS(rv_exc_illegal_instruction, ex);
 }
@@ -467,7 +467,7 @@ PCUT_TEST(csrrsi_read_from_enabled_counter_Umode){
     cpu.csr.scounteren = (uint32_t)-1;
     cpu.priv_mode = rv_umode;
 
-    rv_exc_t ex = csrrsi_instr(&cpu, instr);
+    rv_exc_t ex = rv_csrrsi_instr(&cpu, instr);
 
     PCUT_ASSERT_INT_EQUALS(rv_exc_none, ex);
 }
@@ -487,7 +487,7 @@ PCUT_TEST(csrrsi_read_from_M_enabled_S_disabled_counter_Smode){
     cpu.csr.scounteren = 0;
     cpu.priv_mode = rv_smode;
 
-    rv_exc_t ex = csrrsi_instr(&cpu, instr);
+    rv_exc_t ex = rv_csrrsi_instr(&cpu, instr);
 
     PCUT_ASSERT_INT_EQUALS(rv_exc_none, ex);
 }
@@ -505,7 +505,7 @@ PCUT_TEST(csrrw_satp_vm_trapped){
     // TVM => Trap virtual memory (any satp interaction)
     cpu.csr.mstatus |= 1 << 20;
 
-    rv_exc_t ex = csrrw_instr(&cpu, instr);
+    rv_exc_t ex = rv_csrrw_instr(&cpu, instr);
 
     PCUT_ASSERT_INT_EQUALS(rv_exc_illegal_instruction, ex);
 }

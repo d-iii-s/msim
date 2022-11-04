@@ -22,10 +22,15 @@
 #include "../../../main.h"
 #include "../../../list.h"
 
+/// Caching of decoded instructions
+
+/**
+ * @brief Item of a list of pages of cached instructions
+ */
 typedef struct {
-    item_t item;
-    ptr36_t addr;
-    rv_instr_func_t instrs[FRAME_SIZE / sizeof(rv_instr_t)];
+    item_t item; // The list item
+    ptr36_t addr; // The base address of the page
+    rv_instr_func_t instrs[FRAME_SIZE / sizeof(rv_instr_t)]; // Decoded instructions (represented as function pointers)
 } cache_item_t;
 
 #define PHYS2CACHEINSTR(phys) (((phys) & FRAME_MASK)/sizeof(rv_instr_t))
@@ -38,6 +43,12 @@ static void cache_item_init(cache_item_t* cache_item){
 
 list_t rv_instruction_cache = LIST_INITIALIZER;
 
+/**
+ * @brief Looks into cache for the instruction on the given physical address
+ * @par phys The physical address to check
+ * @par cache_item A pointer to a found cache_item_t will be stored here on success
+ * @returns Whether the address is in the cache
+ */
 static bool cache_hit(ptr36_t phys, cache_item_t** cache_item){
     ptr36_t target_page = ALIGN_DOWN(phys, FRAME_SIZE);
     cache_item_t* c;
@@ -50,6 +61,9 @@ static bool cache_hit(ptr36_t phys, cache_item_t** cache_item){
     return false;
 }
 
+/**
+ * @brief Fills the cache_item instrs field with decoded data based on the addr field
+ */
 static void cache_item_page_decode(rv_cpu_t* cpu, cache_item_t* cache_item) {
     for(size_t i = 0; i < FRAME_SIZE / sizeof(rv_instr_t); ++i){
         ptr36_t addr = cache_item->addr + (i * sizeof(rv_instr_t));
@@ -58,6 +72,9 @@ static void cache_item_page_decode(rv_cpu_t* cpu, cache_item_t* cache_item) {
     }
 }
 
+/**
+ * @brief Updates the cache item to represent the data in memory
+ */
 static void update_cache_item(rv_cpu_t* cpu, cache_item_t* cache_item) {
     frame_t* frame = physmem_find_frame(cache_item->addr);
     ASSERT(frame != NULL);
@@ -70,6 +87,11 @@ static void update_cache_item(rv_cpu_t* cpu, cache_item_t* cache_item) {
     return;
 }
 
+/**
+ * @brief Tries to add a new entry to the cache based on the given address
+ * 
+ * @return cache_item_t* the added intem or NULL, if the address does not lead to valid memory area
+ */
 static cache_item_t* cache_try_add(rv_cpu_t* cpu, ptr36_t phys) {
     frame_t* frame = physmem_find_frame(phys);
     if(frame == NULL) return NULL;
@@ -87,6 +109,11 @@ static cache_item_t* cache_try_add(rv_cpu_t* cpu, ptr36_t phys) {
     return cache_item;
 }
 
+/**
+ * @brief Fethes a decoded instruction from memory
+ * 
+ * Consults the cache first and updates the cache on misses or on invalid memory
+ */
 static rv_instr_func_t fetch_instr(rv_cpu_t* cpu, ptr36_t phys){
     cache_item_t* cache_item = NULL;
 
@@ -142,6 +169,10 @@ void rv_cpu_done(rv_cpu_t *cpu) {
         safe_free(cache_item);
     }
 }
+
+/**
+ * @brief Structure describing the Page Table Entry for SV32 virtual addressing
+ */
 typedef struct {
     unsigned int v: 1;
     unsigned int r: 1;
@@ -167,12 +198,19 @@ typedef union {
     sv32_pte_t pte;
     uint32_t val;
 } sv32_pte_helper_t;
+
 #define pte_from_uint(val) (((sv32_pte_helper_t)(val)).pte)
 #define uint_from_pte(pte) (((sv32_pte_helper_t)(pte)).val)
 
 #define sv32_effective_priv(cpu) (rv_csr_mstatus_mprv(cpu) ? rv_csr_mstatus_mpp(cpu) : cpu->priv_mode)
 #define effective_priv(cpu) (rv_csr_satp_is_bare(cpu) ? cpu->priv_mode : sv32_effective_priv(cpu))
 
+/**
+ * @brief Tests, whether a given memory access is allowed on the page specified by the pte
+ * 
+ * @par wr True for Write, False for Read
+ * @par fetch whether the access is an instruction fetch
+ */
 static bool is_access_allowed(rv_cpu_t *cpu, sv32_pte_t pte, bool wr, bool fetch) {
     if(wr && !pte.w) return false;
 
@@ -195,6 +233,9 @@ static bool is_access_allowed(rv_cpu_t *cpu, sv32_pte_t pte, bool wr, bool fetch
     return true;
 }
 
+/**
+ * @brief Constructs the resulting physical address based on the given virtual address and pte (and whether it is a megapage)
+ */
 static ptr36_t make_phys_from_ppn(uint32_t virt, sv32_pte_t pte, bool megapage){
     ptr36_t page_offset = virt & 0x00000FFF;
     ptr36_t virt_vpn0   = virt & 0x003FF000;
@@ -304,20 +345,24 @@ rv_exc_t rv_convert_addr(rv_cpu_t *cpu, uint32_t virt, ptr36_t *phys, bool wr, b
     }                                                                           \
     return false;                                                           
 
+/** @brief Reads from memory mapped registers if there are any located on the given address */
 static bool try_read_memory_mapped_regs_32(rv_cpu_t *cpu, uint32_t virt, uint32_t* value){
     try_read_memory_mapped_regs_body(cpu, virt, value, 32, uint32_t)
 }
 
+/** @brief Reads from memory mapped registers if there are any located on the given address */
 static bool try_read_memory_mapped_regs_16(rv_cpu_t *cpu, uint32_t virt, uint16_t* value){
     try_read_memory_mapped_regs_body(cpu, virt, value, 16, uint16_t)
 }
 
+/** @brief Reads from memory mapped registers if there are any located on the given address */
 static bool try_read_memory_mapped_regs_8(rv_cpu_t *cpu, uint32_t virt, uint8_t* value){
     try_read_memory_mapped_regs_body(cpu, virt, value, 8, uint8_t)
 }
 
 #undef try_read_memory_mapped_regs_body
 
+/** @brief Writes to memory mapped registers if there are any located on the given address */
 static bool try_write_memory_mapped_regs(rv_cpu_t *cpu, uint32_t virt, uint32_t value, int width){
     if(!IS_ALIGNED(virt, width / 8)) return false;
 

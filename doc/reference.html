@@ -76,29 +76,47 @@ for <a href="http://d3s.mff.cuni.cz/~holub/sw/msim/">MSIM</a> version 2.0.0.</p>
 	<li><a href="#Devices">9. Devices</a><br />
 		<ul>
 			<li><a href="#Devices_list">9.1. List of devices<code></code></a></li>
-			<li><a href="#dcpu">9.2. Processor <code>dcpu</code></a></li>
-			<li><a href="#rwm">9.3. Read/write memory <code>rwm</code></a></li>
-			<li><a href="#rom">9.4. Read-only memory <code>rom</code></a></li>
-			<li><a href="#dprinter">9.5. Character output device <code>dprinter</code></a></li>
-			<li><a href="#dkeyboard">9.6. Character input device <code>dkeyboard</code></a></li>
-			<li><a href="#ddisk">9.7. Block device <code>ddisk</code></a></li>
-			<li><a href="#dorder">9.8. Interprocessor communication device <code>dorder</code></a></li>
-			<li><a href="#dtime">9.9. Real-time clock <code>dtime</code></a></li>
-			<li><a href="#dcycle">9.10. CPU cycle counter <code>dcycle</code></a></li>
+			<li><a href="#dr4kcpu">9.2. MIPS Processor <code>dr4kcpu</code></a></li>
+			<li><a href="#drvkcpu">9.3. RISC-V Processor <code>drvkcpu</code></a></li>
+			<li><a href="#rwm">9.4. Read/write memory <code>rwm</code></a></li>
+			<li><a href="#rom">9.5. Read-only memory <code>rom</code></a></li>
+			<li><a href="#dprinter">9.6. Character output device <code>dprinter</code></a></li>
+			<li><a href="#dkeyboard">9.7. Character input device <code>dkeyboard</code></a></li>
+			<li><a href="#ddisk">9.8. Block device <code>ddisk</code></a></li>
+			<li><a href="#dorder">9.9. Interprocessor communication device <code>dorder</code></a></li>
+			<li><a href="#dtime">9.10. Real-time clock <code>dtime</code></a></li>
+			<li><a href="#dcycle">9.11. CPU cycle counter <code>dcycle</code></a></li>
 			</ul>
 		</li>
 	<li><a href="#Special_instructions">10. Special instructions</a></li>
 		<ul>
-			<li><a href="#dtrc">10.1. Trace on <code>DTRC</code></a></li>
-			<li><a href="#dtro">10.2. Trace off <code>DTRO</code></a></li>
-			<li><a href="#dint">10.3. Interactive mode on <code>DINT</code></a></li>
-			<li><a href="#drv">10.4. Register view <code>DRV</code></a></li>
-			<li><a href="#dhlt">10.5. Halt machine <code>DHLT</code></a></li>
-			<li><a href="#dval">10.6. View value <code>DVAL</code></a></li>
-			<li><a href="#dcrv">10.7. CP0 Register view <code>DCRV</code></a></li>
+			<li><a href="#Special_MIPS">10.1 MIPS Instructions</a></li>
+			<ul>
+				<li><a href="#dtrc">10.1.1 Trace on <code>DTRC</code></a></li>
+				<li><a href="#dtro">10.1.2. Trace off <code>DTRO</code></a></li>
+				<li><a href="#dint">10.1.3. Interactive mode on <code>DINT</code></a></li>
+				<li><a href="#drv">10.1.4. Register view <code>DRV</code></a></li>
+				<li><a href="#dhlt">10.1.5. Halt machine <code>DHLT</code></a></li>
+				<li><a href="#dval">10.1.6. View value <code>DVAL</code></a></li>
+				<li><a href="#dcrv">10.1.7. CP0 Register view <code>DCRV</code></a></li>
+			</ul>
+			<li><a href="#Special_RISC">10.2. RISC-V instructions</a></li>
+			<ul>
+				<li><a href="#ehalt">10.2.1 EHALT</a></li>
+				<li><a href="#edump">10.2.2 EDUMP</a></li>
+			</ul>
 		</ul>
 	</li>
-	<li><a href="#GDB_support">11. GDB support</a></li>
+	<li><a href="#predefined">11. RISC-V pre-defined addresses</a></li>
+	<ul>
+		<li><a href="#memory-mapped">11.1. Memory-mapped registers</a></li>
+		<ul>
+			<li><a href="#mtime">mtime</a></li>
+			<li><a href="#mtimecmp">mtimecmp</a></li>
+		</ul>
+		<li><a href="#start_address">10.3.2 Start address</a></li>
+	</ul>
+	<li><a href="#GDB_support">12. GDB support</a></li>
 </ul>
 
 <h2>1. Introduction<a name="Introduction"></a></h2>
@@ -1011,7 +1029,7 @@ properties.</p>
 		<dd>CPU cycle counter</dd>
 </dl>
 
-<h3>9.2. Processor <code>dr4kcpu</code><a name="dr4kcpu"></a></h3>
+<h3>9.2. MIPS Processor <code>dr4kcpu</code><a name="dr4kcpu"></a></h3>
 
 <p>The <code>dr4kcpu</code> device encapsulates a MIPS R4000 processor.</p>
 
@@ -1129,7 +1147,7 @@ processor p0
   fp 00000000   ra 80401308   pc 80401310   lo 40689065   hi 320BBCB7
 <strong>[msim]</strong> </pre>
 
-<h3>9.2. Processor <code>drvcpu</code><a name="dvcpu"></a></h3>
+<h3>9.3. RISC-V Processor <code>drvcpu</code><a name="drvcpu"></a></h3>
 
 <p>The <code>drvcpu</code> device encapsulates a RISC-V RV32IMA processor.</p>
 
@@ -1171,7 +1189,7 @@ sstatus (0x100):
 sstatus 0x00000000 [ SD 0, MXR 0, SUM 0, XS 00, FS 00, VS 00, SPP U, UBE 0, SPIE 0, SIE 0 ]
 <strong>[msim]</strong> </pre>
 
-<h3>9.3. Read/write memory <code>rwm</code><a name="rwm"></a></h3>
+<h3>9.4. Read/write memory <code>rwm</code><a name="rwm"></a></h3>
 
 <p>The <code>rwm</code> device represents a read/write random
 access memory region. The memory block could be a general memory
@@ -1227,7 +1245,7 @@ from the code running in the simulator:</p>
 <span class="lnr"> 3 </span>*p += 1;
 <span class="lnr"> 4 </span><span class="keyword">char</span> d = *p;  <span class="comment">/* d contains a byte value read from the address 0x00001001 */</span></pre>
 
-<h3>9.4. Read-only memory <code>rom</code><a name="rom"></a></h3>
+<h3>9.5. Read-only memory <code>rom</code><a name="rom"></a></h3>
 
 <p>The <code>rom</code> device represents a read-only random access memory region.</p>
 
@@ -1276,7 +1294,7 @@ via the <code>generic</code> command.</p>
 <span class="lnr"> 3 </span>*p = ~c;      <span class="comment">/* write access is ignored */</span>
 <span class="lnr"> 4 </span><span class="keyword">char</span> d = *p;  <span class="comment">/* c == d */</span></pre>
 
-<h3>9.5. Character output device <code>dprinter</code><a name="dprinter"></a></h3>
+<h3>9.6. Character output device <code>dprinter</code><a name="dprinter"></a></h3>
 
 <p>The character output device simulates a simple character printer or a serial console.</p>
 
@@ -1356,7 +1374,7 @@ count:11385
 <span class="lnr"> 16 </span>}
 </pre>
 
-<h3>9.6. Character input device <code>dkeyboard</code><a name="dkeyboard"></a></h3>
+<h3>9.7. Character input device <code>dkeyboard</code><a name="dkeyboard"></a></h3>
 <p>The character input device simulates a keyboard connected to the machine.
 When a key is pressed, the keyboard asserts an interrupt and the ASCII key code
 can be read from the memory-mapped register. Any read operation on the register
@@ -1423,7 +1441,7 @@ address:0x10000000 intno:3 regs(key:0x00 ig:0)
 intrc:11 keycount:11 overrun:0
 <strong>[msim]</strong> </pre>
 
-<h3>9.7. Block device <code>ddisk</code><a name="ddisk"></a></h3>
+<h3>9.8. Block device <code>ddisk</code><a name="ddisk"></a></h3>
 
 <p>The block device simulates a simple hard disk with DMA capabilities.
 The device can be accesses by linearly ordered 512&nbsp;B-sized sectors.
@@ -1665,7 +1683,7 @@ running MSIM.</p>
 		<dd>Save the contents of the block device to a file specified.</dd>
 </dl>
 
-<h3>9.8. Interprocessor communication device <code>dorder</code><a name="dorder"></a></h3>
+<h3>9.9. Interprocessor communication device <code>dorder</code><a name="dorder"></a></h3>
 
 <p>This device allows to obtain a processor serial number in a multiprocessor
 configuration and asserting an interprocessor interrupt on a specified processor.</p>
@@ -1762,7 +1780,7 @@ on the physical address 0x10000000.</p>
 <span class="lnr"> 26 </span>    *((<span class="keyword">volatile unsigned int</span> *) (ORDER + 4)) = (1 &lt;&lt; id);
 <span class="lnr"> 27 </span>}</pre>
 
-<h3>9.9. Real-time clock <code>dtime</code><a name="dtime"></a></h3>
+<h3>9.10. Real-time clock <code>dtime</code><a name="dtime"></a></h3>
 <p>This device passes the system time of the host machine to the simulated environment.</p>
 
 <h4>Initialization parameters: <code>address</code></h4>
@@ -1840,7 +1858,7 @@ on the physical address 0x10000000.</p>
 		<dd>Print device statistics (none).</dd>
 </dl>
 
-<h3>9.10. CPU cycle counter <code>dcycle</code><a name="dcycle"></a></h3>
+<h3>9.11. CPU cycle counter <code>dcycle</code><a name="dcycle"></a></h3>
 <p>This device returns a 64-bit CPU cycle counter.</p>
 
 <h4>Initialization parameters: <code>address</code></h4>
@@ -1918,7 +1936,7 @@ there are several non-standard MIPS and RISC-V instructions available.
 This allows to change the behaviour of the simulator exactly at the
 place of code required, with only a minimal influence to the debugged code.</p>
 
-<h3>10.1. MIPS instructions</h3>
+<h3>10.1. MIPS instructions<a name="Special_MIPS"></a></h3>
 <dl>
 	<dt><a href="#dtrc">DTRC</a></dt>
 		<dd>Enable the trace mode.</dd>
@@ -1974,7 +1992,7 @@ The instruction can be used to instantly print a value of a variable.</p>
 
 
 
-<h3>10.2. RISC-V instructions</h3>
+<h3>10.2. RISC-V instructions<a name="Special_RISC"></a></h3>
 <dl>
 	<dt><a href="#ehalt">EHALT</a></dt>
 		<dd>Halt the simulation.</dd>
@@ -1997,7 +2015,21 @@ The instruction can be used to instantly print a value of a variable.</p>
 <span class="lnr"> 2 </span><span class="preproc">#define ___edump()      asm volatile ( &quot;.word 0x00300073\n&quot;);</span>
 </pre>
 
-<h2>11. GDB support<a name="GDB_support"></a></h2>
+<h3>11. RISC-V pre-defined addresses<a name="predefined"></a></h3>
+
+<h4>11.1. Memory-mapped registers<a name="memory-mapped"></a></h4>
+
+<dl>
+	<dt>mtime<a name="mtime"></a></dt>
+		<dd><code>0xFF000000</code></dd><dd>64-bit</dd>
+	<dt>mtimecmp<a name="mtimecmp"></a></dt>
+		<dd><code>0xFF000008</code></dd><dd>64-bit</dd>
+</dl>
+
+<h4>10.3.2 Start address (reset vector)<a name="start_address"></a></h4>
+<code>0xF0000000</code>
+
+<h2>12. GDB support<a name="GDB_support"></a></h2>
 
 <p>The GDB support needs to be documented.</p>
 

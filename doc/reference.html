@@ -114,9 +114,11 @@ for <a href="http://d3s.mff.cuni.cz/~holub/sw/msim/">MSIM</a> version 2.0.0.</p>
 			<li><a href="#mtime">mtime</a></li>
 			<li><a href="#mtimecmp">mtimecmp</a></li>
 		</ul>
-		<li><a href="#start_address">10.3.2 Start address</a></li>
+		<li><a href="#start_address">11.2 Start address</a></li>
+		<li><a href="#start_address">11.3 Custom CSR numbers</a></li>
 	</ul>
-	<li><a href="#GDB_support">12. GDB support</a></li>
+	<li><a href="#scyclecmp">12. Special RISC-V CSR</a></li>
+	<li><a href="#GDB_support">13. GDB support</a></li>
 </ul>
 
 <h2>1. Introduction<a name="Introduction"></a></h2>
@@ -2015,7 +2017,7 @@ The instruction can be used to instantly print a value of a variable.</p>
 <span class="lnr"> 2 </span><span class="preproc">#define ___edump()      asm volatile ( &quot;.word 0x00300073\n&quot;);</span>
 </pre>
 
-<h3>11. RISC-V pre-defined addresses<a name="predefined"></a></h3>
+<h3>11. RISC-V pre-defined constants<a name="predefined"></a></h3>
 
 <h4>11.1. Memory-mapped registers<a name="memory-mapped"></a></h4>
 
@@ -2026,10 +2028,24 @@ The instruction can be used to instantly print a value of a variable.</p>
 		<dd><code>0xFF000008</code></dd><dd>64-bit</dd>
 </dl>
 
-<h4>10.3.2 Start address (reset vector)<a name="start_address"></a></h4>
+<h4>11.2 Start address (reset vector)<a name="start_address"></a></h4>
 <code>0xF0000000</code>
 
-<h2>12. GDB support<a name="GDB_support"></a></h2>
+<h4>11.3 Custom CSR numbers</h4>
+<dl>
+	<dt><a href="#scyclecmp">scyclecmp</a></dt>
+		<dd><code>0x5C0</code></dd>
+</dl>
+
+<h2>12. Special RISC-V CSR</h2>
+<a name="scyclecmp"></a>
+To support deterministic timer interrupts, there is
+a non-standard 32-bit wide CSR named <code>scyclecmp</code>.
+When the value in <code>mcycle</code> (same as value in <code>cycle</code>) is greater than or equal to the value
+stored in <code>scyclecmp</code> a Supervisor Timer Interrupt is raised.
+This interrupt is cleared by setting either of these two CSRs so that <code>mcycle</code> is greater than <code>scyclecmp</code>.
+
+<h2>13. GDB support<a name="GDB_support"></a></h2>
 
 <p>The GDB support needs to be documented.</p>
 

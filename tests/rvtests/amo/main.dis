@@ -44,9 +44,9 @@ Disassembly of section .text:
   90:	00c29863          	bne	t0,a2,a0 <error>
   94:	05300293          	li	t0,83
   98:	00542023          	sw	t0,0(s0) # 90000000 <error+0x8fffff60>
-  9c:	00200073          	.word	0x00200073
+  9c:	8c000073          	.word	0x8c000073
 
 000000a0 <error>:
   a0:	04600293          	li	t0,70
   a4:	00542023          	sw	t0,0(s0)
-  a8:	00200073          	.word	0x00200073
+  a8:	8c000073          	.word	0x8c000073

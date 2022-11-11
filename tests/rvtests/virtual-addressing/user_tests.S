@@ -1,4 +1,4 @@
-#define ehalt .word 0x00200073
+#define ehalt .word 0x8C000073
 user_read_user_page:    // 
     li t0, 0x10003000
 

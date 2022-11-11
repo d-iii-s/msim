@@ -11,4 +11,4 @@ Disassembly of section .text:
    c:	900002b7          	lui	t0,0x90000
   10:	04600313          	li	t1,70
   14:	0062a023          	sw	t1,0(t0) # 90000000 <.text+0x90000000>
-  18:	00200073          	.word	0x00200073
+  18:	8c000073          	.word	0x8c000073

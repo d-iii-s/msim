@@ -1,4 +1,4 @@
-#define ehalt .word 0x00200073
+#define ehalt .word 0x8C000073
 .text
 li a0, 0 // address on which the instructions will be executed. First value is 0
 li s0, 0x90000000

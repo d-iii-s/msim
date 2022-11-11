@@ -1,4 +1,4 @@
-#define ehalt .word 0x00200073
+#define ehalt .word 0x8C000073
 #define scyclecmp 0x5C0
 #define mstatus_mie 1<<3
 #define sti 1<<5

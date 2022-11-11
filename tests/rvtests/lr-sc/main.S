@@ -1,4 +1,4 @@
-#define ehalt .word 0x00200073
+#define ehalt .word 0x8C000073
 .text
 li a0, 0
 addi a1, a0, 4 

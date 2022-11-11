@@ -1,4 +1,4 @@
-#define ehalt .word 0x00200073
+#define ehalt .word 0x8C000073
 .text
 li t0, 0x80000000
 csrw mtvec, t0

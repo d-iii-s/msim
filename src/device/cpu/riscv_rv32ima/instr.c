@@ -237,7 +237,7 @@ static rv_instr_func_t decode_PRIV(rv_instr_t instr){
         return rv_sfence_instr;
     }
 
-    switch (instr.i.imm) {
+    switch (instr.i.imm & 0xFFF) {
         case rv_privEBREAK:
             return rv_break_instr;
         case rv_privEHALT:

@@ -1,5 +1,5 @@
-#define ehalt .word 0x00200073
-#define edump .word 0x00300073
+#define ehalt .word 0x8C000073
+#define edump .word 0x8C100073
 .text
 /* Read vals from mem, tests all inter register ops and halts */
 li a0, 1

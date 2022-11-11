@@ -641,8 +641,8 @@ static rv_exc_t mstatus_set(rv_cpu_t* cpu, csr_num_t csr, uint32_t value){
     
     uint64_t val = (uint64_t)value | cpu->csr.mstatus;
 
-    // if the new mpp mode would be hmode, don't modify the mpp
-    if(((val & rv_csr_mstatus_mpp_mask) >> 11) == rv_hmode){
+    // if the new mpp mode would be rmode (reserved, invalid value), don't modify the mpp
+    if(((val & rv_csr_mstatus_mpp_mask) >> 11) == rv_rmode){
         value &= ~rv_csr_mstatus_mpp_mask;
     }
 
@@ -657,8 +657,8 @@ static rv_exc_t mstatus_clear(rv_cpu_t* cpu, csr_num_t csr, uint32_t value){
 
     uint64_t val = ~(uint64_t)value & cpu->csr.mstatus;
 
-    // if the new mpp mode would be hmode, don't modify the mpp
-    if(((val & rv_csr_mstatus_mpp_mask) >> 11) == rv_hmode){
+    // if the new mpp mode would be rmode (reserved, invalid value), don't modify the mpp
+    if(((val & rv_csr_mstatus_mpp_mask) >> 11) == rv_rmode){
         value &= ~rv_csr_mstatus_mpp_mask;
     }
 

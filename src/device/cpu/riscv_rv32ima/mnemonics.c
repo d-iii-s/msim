@@ -777,7 +777,7 @@ static void print_mstatus(rv_cpu_t *cpu, string_t* mnemonics, string_t* comments
 	int xs = (cpu->csr.mstatus & 0x18000) >> 15;
 	int fs = (cpu->csr.mstatus & 0x6000) >> 13;
 	rv_priv_mode_t mpp = rv_csr_mstatus_mpp(cpu);
-	char* mpp_s = (mpp == rv_mmode) ? "M" : ((mpp == rv_hmode) ? "H" : ((mpp == rv_smode) ? "S" : "U"));
+	char* mpp_s = (mpp == rv_mmode) ? "M" : ((mpp == rv_rmode) ? "(RESERVED)" : ((mpp == rv_smode) ? "S" : "U"));
 	int vs = (cpu->csr.mstatus & 0x600) >> 9;
 	rv_priv_mode_t spp = rv_csr_sstatus_spp(cpu);
 	char* spp_s = ((spp == rv_smode) ? "S" : "U");

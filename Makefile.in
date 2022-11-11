@@ -39,3 +39,4 @@ rvtest:
 	$(MAKE) -C src rvtest
 	@echo "\nSystem tests:"
 	cd tests/rvtests ; python3 run_tests.py
+	@echo "\n All Tests Passed!"

@@ -12,4 +12,4 @@ Disassembly of section .text:
   10:	00802283          	lw	t0,8(zero) # 8 <.text+0x8>
   14:	90000337          	lui	t1,0x90000
   18:	00532023          	sw	t0,0(t1) # 90000000 <.text+0x90000000>
-  1c:	00200073          	.word	0x00200073
+  1c:	8c000073          	.word	0x8c000073

@@ -255,4 +255,4 @@ Disassembly of section .text:
  35c:	900002b7          	lui	t0,0x90000
  360:	04600313          	li	t1,70
  364:	0062a023          	sw	t1,0(t0) # 90000000 <fail+0x8ffffca4>
- 368:	00200073          	.word	0x00200073
+ 368:	8c000073          	.word	0x8c000073

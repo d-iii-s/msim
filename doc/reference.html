@@ -2004,17 +2004,17 @@ The instruction can be used to instantly print a value of a variable.</p>
 
 <h4>10.2.1. Environment Halt <code>EHALT</code><a name="ehalt"></a></h4>
 <p>Halt the machine as well as the simulation immediately.</p>
-<h5>Opcode: <code><strong>0x00200073</strong></code></h5>
+<h5>Opcode: <code><strong>0x8C000073</strong></code></h5>
 
 <h4>10.2.2. Environment Dump Registers <code>EDUMP</code><a name="edump"></a></h4>
 <p>The instruction dumps the content of all the general registers to the screen.</p>
-<h5>Opcode: <code><strong>0x00300073</strong></code></h5>
+<h5>Opcode: <code><strong>0x8C100073</strong></code></h5>
 
 <h4>Example</h4>
 <p>The following example shows an implementation in GCC:</p>
 <pre class="c">
-<span class="lnr"> 1 </span><span class="preproc">#define ___ehalt()      asm volatile ( &quot;.word 0x00200073\n&quot;);</span>
-<span class="lnr"> 2 </span><span class="preproc">#define ___edump()      asm volatile ( &quot;.word 0x00300073\n&quot;);</span>
+<span class="lnr"> 1 </span><span class="preproc">#define ___ehalt()      asm volatile ( &quot;.word 0x8C000073\n&quot;);</span>
+<span class="lnr"> 2 </span><span class="preproc">#define ___edump()      asm volatile ( &quot;.word 0x8C100073\n&quot;);</span>
 </pre>
 
 <h3>11. RISC-V pre-defined constants<a name="predefined"></a></h3>

@@ -18,5 +18,5 @@ Disassembly of section .text:
   28:	4015dc13          	srai	s8,a1,0x1
   2c:	80001cb7          	lui	s9,0x80001
   30:	80001d17          	auipc	s10,0x80001
-  34:	00300073          	.word	0x00300073
-  38:	00200073          	.word	0x00200073
+  34:	8c100073          	.word	0x8c100073
+  38:	8c000073          	.word	0x8c000073

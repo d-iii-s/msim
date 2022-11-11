@@ -43,9 +43,9 @@ Disassembly of section .text:
   8c:	00028863          	beqz	t0,9c <fail>
   90:	05300493          	li	s1,83
   94:	00942023          	sw	s1,0(s0) # 90000000 <fail+0x8fffff64>
-  98:	00200073          	.word	0x00200073
+  98:	8c000073          	.word	0x8c000073
 
 0000009c <fail>:
   9c:	04600493          	li	s1,70
   a0:	00942023          	sw	s1,0(s0)
-  a4:	00200073          	.word	0x00200073
+  a4:	8c000073          	.word	0x8c000073

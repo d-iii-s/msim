@@ -18,4 +18,4 @@ Disassembly of section .text:
   28:	c01022f3          	rdtime	t0
   2c:	00100073          	ebreak
   30:	10500073          	wfi
-  34:	00200073          	.word	0x00200073
+  34:	8c000073          	.word	0x8c000073

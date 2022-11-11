@@ -19,5 +19,5 @@ Disassembly of section .text:
   2c:	00c02983          	lw	s3,12(zero) # c <.text+0xc>
   30:	01002a03          	lw	s4,16(zero) # 10 <.text+0x10>
   34:	01402a83          	lw	s5,20(zero) # 14 <.text+0x14>
-  38:	00300073          	.word	0x00300073
-  3c:	00200073          	.word	0x00200073
+  38:	8c100073          	.word	0x8c100073
+  3c:	8c000073          	.word	0x8c000073

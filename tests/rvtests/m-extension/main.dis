@@ -28,5 +28,5 @@ Disassembly of section .text:
   50:	02f7ce33          	div	t3,a5,a5
   54:	02a5deb3          	divu	t4,a1,a0
   58:	02a5ff33          	remu	t5,a1,a0
-  5c:	00300073          	.word	0x00300073
-  60:	00200073          	.word	0x00200073
+  5c:	8c100073          	.word	0x8c100073
+  60:	8c000073          	.word	0x8c000073

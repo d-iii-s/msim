@@ -12,4 +12,4 @@ csrrci  zero, mtvec, 0b11111
 rdtime t0
 ebreak
 wfi
-.word 0x00200073
+.word 0x8C000073

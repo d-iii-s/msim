@@ -29,7 +29,7 @@ typedef void (*reg_dump_func_t)(void*);
 /** Function type for setting the program counter of a cpu */
 typedef void (*set_pc_func_t)(void*, ptr64_t);
 /** Function type for notifying the processor about a write to a memory location, used for implementing SC atomic*/
-typedef bool (*sc_access_func_t)(void*, ptr36_t);
+typedef bool (*sc_access_func_t)(void*, ptr36_t, int);
 
 /** Cpu method table
  * 
@@ -109,13 +109,15 @@ extern bool cpu_convert_addr(general_cpu_t *cpu, ptr64_t virt, ptr36_t *phys, bo
 extern void cpu_reg_dump(general_cpu_t *cpu);
 
 extern void cpu_set_pc(general_cpu_t *cpu, ptr64_t pc);
+
 /**
  * @brief signals to the cpu, that an address has been written to, for sc control
  * 
  * @param cpu the processor pointer
  * @param addr the address that is written to
+ * @param size the width of the access
  * @return whether the address was linked/reserved
  */
-extern bool cpu_sc_access(general_cpu_t *cpu, ptr36_t addr);
+extern bool cpu_sc_access(general_cpu_t *cpu, ptr36_t addr, int size);
 
 #endif // GENERAL_CPU_H_

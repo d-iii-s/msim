@@ -736,13 +736,13 @@ void sc_unregister(unsigned int procno)
 /** Load Linked and Store Conditional control
  *
  */
-static void sc_control(ptr36_t addr)
+static void sc_control(ptr36_t addr, int size)
 {
 	sc_item_t *sc_item = (sc_item_t *) sc_list.head;
 	
 	while (sc_item != NULL) {
 		
-		if (cpu_sc_access(get_cpu(sc_item->procno), addr)) {
+		if (cpu_sc_access(get_cpu(sc_item->procno), addr, size)) {
 			sc_item_t *tmp = sc_item;
 			sc_item = (sc_item_t *) sc_item->item.next;
 			
@@ -788,7 +788,7 @@ bool physmem_write8(unsigned int procno, ptr36_t addr, uint8_t val, bool protect
 	if ((!frame->area->writable) && (protected))
 		return false;
 	
-	sc_control(addr);
+	sc_control(addr, 1);
 	
 	/* Check for memory write breakpoints */
 	if (protected)
@@ -836,7 +836,7 @@ bool physmem_write16(unsigned int procno, ptr36_t addr, uint16_t val, bool prote
 	if ((!frame->area->writable) && (protected))
 		return false;
 	
-	sc_control(addr);
+	sc_control(addr, 2);
 	
 	/* Check for memory write breakpoints */
 	if (protected)
@@ -884,7 +884,7 @@ bool physmem_write32(unsigned int procno, ptr36_t addr, uint32_t val, bool prote
 	if ((!frame->area->writable) && (protected))
 		return false;
 	
-	sc_control(addr);
+	sc_control(addr, 4);
 	
 	/* Check for memory write breakpoints */
 	if (protected)
@@ -932,7 +932,7 @@ bool physmem_write64(unsigned int procno, ptr36_t addr, uint64_t val, bool prote
 	if ((!frame->area->writable) && (protected))
 		return false;
 	
-	sc_control(addr);
+	sc_control(addr, 8);
 	
 	/* Check for memory write breakpoints */
 	if (protected)

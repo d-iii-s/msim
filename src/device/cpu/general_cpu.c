@@ -129,12 +129,13 @@ void cpu_set_pc(general_cpu_t *cpu, ptr64_t pc){
  * 
  * @param cpu the processor pointer
  * @param addr the address that is written to
+ * @param size the width of the access
  * @return whether the address was linked/reserved
  */
-extern bool cpu_sc_access(general_cpu_t *cpu, ptr36_t addr){
+extern bool cpu_sc_access(general_cpu_t *cpu, ptr36_t addr, int size){
     if(cpu == NULL){
         cpu = get_cpu(0);
     }
     ASSERT(cpu != NULL);
-    return cpu->type->sc_access(cpu->data, addr);
+    return cpu->type->sc_access(cpu->data, addr, size);
 }

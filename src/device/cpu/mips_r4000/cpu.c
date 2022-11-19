@@ -3174,8 +3174,10 @@ void r4k_step(r4k_cpu_t *cpu)
 	account(cpu);
 }
 
-bool r4k_sc_access(r4k_cpu_t *cpu, ptr36_t addr) {
-	bool hit = cpu->lladdr == ALIGN_DOWN(addr, 4);
+bool r4k_sc_access(r4k_cpu_t *cpu, ptr36_t addr, int size) {
+	// MIPS R4K SC fails on write to whole cache line
+	// We allow only aligned accesses so this works
+	bool hit = cpu->lladdr == ALIGN_DOWN(addr, 64);
 	if(hit){
 		cpu->llbit = false;
 	}

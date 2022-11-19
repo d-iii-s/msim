@@ -40,6 +40,9 @@
 #define WRITE_BITS(target, val, start, end) \
 	((target & ~BIT_MASK(start, end)) | ((val << start) & BIT_MASK(start, end)))
 
+#define AREAS_OVERLAP(base1, size1, base2, size2) \
+	(((base1) >= (base2) && (base1) < (base2) + (size2)) || ((base2) >= (base1) && (base2) < (base1) + (size1)))
+
 #define safe_free(ptr) \
 	{ \
 		if (ptr != NULL) { \

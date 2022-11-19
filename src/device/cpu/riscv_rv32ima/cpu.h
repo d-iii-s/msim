@@ -139,6 +139,6 @@ extern rv_exc_t rv_read_mem32(rv_cpu_t *cpu, uint32_t virt, uint32_t *value, boo
 extern rv_exc_t rv_write_mem8(rv_cpu_t *cpu, uint32_t virt, uint8_t value, bool noisy);
 extern rv_exc_t rv_write_mem16(rv_cpu_t *cpu, uint32_t virt, uint16_t value, bool noisy);
 extern rv_exc_t rv_write_mem32(rv_cpu_t *cpu, uint32_t virt, uint32_t value, bool noisy);
-extern bool rv_sc_access(rv_cpu_t *cpu, ptr36_t phys);
+extern bool rv_sc_access(rv_cpu_t *cpu, ptr36_t phys, int size);
 
 #endif //RISCV_RV32IMA_CPU_H_

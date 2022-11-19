@@ -974,6 +974,6 @@ extern r4k_exc_t r4k_read_mem32(r4k_cpu_t *cpu, ptr64_t addr, uint32_t *value,
 extern void r4k_interrupt_up(r4k_cpu_t *cpu, unsigned int no);
 extern void r4k_interrupt_down(r4k_cpu_t *cpu, unsigned int no);
 
-extern bool r4k_sc_access(r4k_cpu_t *cpu, ptr36_t addr);
+extern bool r4k_sc_access(r4k_cpu_t *cpu, ptr36_t addr, int size);
 
 #endif

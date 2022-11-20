@@ -915,8 +915,6 @@ void rv_cpu_step(rv_cpu_t *cpu){
         ex = execute(cpu);
     }
 
-    account(cpu, ex != rv_exc_none);
- 
     if(ex != rv_exc_none){
         handle_exception(cpu, ex);
     }
@@ -924,6 +922,8 @@ void rv_cpu_step(rv_cpu_t *cpu){
         // If any interrupts are pending, handle them
         try_handle_interrupt(cpu);
     }
+
+    account(cpu, ex != rv_exc_none);
 
     if(!cpu->stdby){
         cpu->pc = cpu->pc_next;

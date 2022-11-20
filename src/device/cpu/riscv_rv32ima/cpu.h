@@ -61,28 +61,28 @@ typedef enum rv_exc {
 /** Bitmask that has a bit set on every position that symbolizes an existing exception */
 #define RV_EXCEPTIONS_MASK (									\
 	RV_EXCEPTION_MASK(rv_exc_instruction_address_misaligned) |	\
-	RV_EXCEPTION_MASK(rv_exc_instruction_access_fault) |		\
-	RV_EXCEPTION_MASK(rv_exc_illegal_instruction) |				\
-	RV_EXCEPTION_MASK(rv_exc_breakpoint) |						\
-	RV_EXCEPTION_MASK(rv_exc_load_address_misaligned) |			\
-	RV_EXCEPTION_MASK(rv_exc_load_access_fault) |				\
-	RV_EXCEPTION_MASK(rv_exc_store_amo_address_misaligned) |	\
-	RV_EXCEPTION_MASK(rv_exc_store_amo_access_fault) |			\
-	RV_EXCEPTION_MASK(rv_exc_umode_environment_call) |			\
-	RV_EXCEPTION_MASK(rv_exc_smode_environment_call) |			\
-	RV_EXCEPTION_MASK(rv_exc_mmode_environment_call) |			\
-	RV_EXCEPTION_MASK(rv_exc_instruction_page_fault) |			\
-	RV_EXCEPTION_MASK(rv_exc_load_page_fault) |					\
+	RV_EXCEPTION_MASK(rv_exc_instruction_access_fault)       |  \
+	RV_EXCEPTION_MASK(rv_exc_illegal_instruction)            |  \
+	RV_EXCEPTION_MASK(rv_exc_breakpoint)                     |  \
+	RV_EXCEPTION_MASK(rv_exc_load_address_misaligned)        |  \
+	RV_EXCEPTION_MASK(rv_exc_load_access_fault)              |  \
+	RV_EXCEPTION_MASK(rv_exc_store_amo_address_misaligned)   |  \
+	RV_EXCEPTION_MASK(rv_exc_store_amo_access_fault)         |  \
+	RV_EXCEPTION_MASK(rv_exc_umode_environment_call)         |  \
+	RV_EXCEPTION_MASK(rv_exc_smode_environment_call)         |  \
+	RV_EXCEPTION_MASK(rv_exc_mmode_environment_call)         |  \
+	RV_EXCEPTION_MASK(rv_exc_instruction_page_fault)         |  \
+	RV_EXCEPTION_MASK(rv_exc_load_page_fault)                |  \
 	RV_EXCEPTION_MASK(rv_exc_store_amo_page_fault)				\
 )
 /** Bitmask that has a bit set on every position that symbolizes an existing interrupt */
 #define RV_INTERRUPTS_MASK (\
-	RV_EXCEPTION_MASK(rv_exc_supervisor_software_interrupt) |\
-	RV_EXCEPTION_MASK(rv_exc_machine_software_interrupt)    |\
-	RV_EXCEPTION_MASK(rv_exc_supervisor_external_interrupt) |\
-	RV_EXCEPTION_MASK(rv_exc_machine_external_interrupt)    |\
-	RV_EXCEPTION_MASK(rv_exc_supervisor_timer_interrupt)    |\
-	RV_EXCEPTION_MASK(rv_exc_machine_timer_interrupt)        \
+	RV_EXCEPTION_MASK(rv_exc_supervisor_software_interrupt) |   \
+	RV_EXCEPTION_MASK(rv_exc_machine_software_interrupt)    |   \
+	RV_EXCEPTION_MASK(rv_exc_supervisor_external_interrupt) |   \
+	RV_EXCEPTION_MASK(rv_exc_machine_external_interrupt)    |   \
+	RV_EXCEPTION_MASK(rv_exc_supervisor_timer_interrupt)    |   \
+	RV_EXCEPTION_MASK(rv_exc_machine_timer_interrupt)           \
 )
 
 /** Privilege modes */

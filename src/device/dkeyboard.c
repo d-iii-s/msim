@@ -49,6 +49,7 @@ static void gen_key(device_t *dev, char c)
 {
 	keyboard_data_s *data = (keyboard_data_s *) dev->data;
 	
+	//TODO: Generate SC check?
 	data->incomming = c;
 	data->keycount++;
 	

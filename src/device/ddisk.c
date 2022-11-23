@@ -690,6 +690,8 @@ static void ddisk_step(device_t *dev)
 	disk_data_s *data = (disk_data_s *) dev->data;
 	size_t pos;
 	
+	//TODO: generate SC checks on changed mem registers?
+	
 	/* Reading */
 	switch (data->action) {
 	case ACTION_READ:

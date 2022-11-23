@@ -21,6 +21,8 @@
 #include "../fault.h"
 #include "../utils.h"
 
+// TODO: Add SC checks on each change of value?
+
 /** Registers */
 #define REGISTER_SEC    0
 #define REGISTER_USEC   4

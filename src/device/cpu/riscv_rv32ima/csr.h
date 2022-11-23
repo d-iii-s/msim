@@ -470,6 +470,7 @@ typedef struct {
 	// Supervisor cycle compare used for STI
 	//? is 32 bits enough?
 	uint32_t scyclecmp;
+	bool external_STIP;
 
 } csr_t;
 

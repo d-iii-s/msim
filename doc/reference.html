@@ -116,6 +116,7 @@ for <a href="http://d3s.mff.cuni.cz/~holub/sw/msim/">MSIM</a> version 2.0.0.</p>
 		</ul>
 		<li><a href="#start_address">11.2 Start address</a></li>
 		<li><a href="#riscv_csr_nums">11.3 Custom CSR numbers</a></li>
+		<li><a href="#riscv_hpm">11.4 HPM counter events</a></li>
 	</ul>
 	<li><a href="#scyclecmp">12. Special RISC-V CSR</a></li>
 	<li><a href="#GDB_support">13. GDB support</a></li>
@@ -2035,6 +2036,20 @@ The instruction can be used to instantly print a value of a variable.</p>
 <dl>
 	<dt><a href="#scyclecmp">scyclecmp</a></dt>
 		<dd><code>0x5C0</code></dd>
+</dl>
+
+<h4>11.4 HPM counter events<a name="riscv_hpm"></a></h4>
+<dl>
+	<dt>no event</dt>
+		<dd>0</dd>
+	<dt>User-level cycles</dt>
+		<dd>1</dd><dd>Cycles that the CPU has ended in U-mode</dd>
+	<dt>Supervisor-level cycles</dt>
+		<dd>2</dd><dd>Cycles that the CPU has ended in S-mode</dd>
+	<dt>Machine-level cycles</dt>
+		<dd>4</dd><dd>Cycles that the CPU has ended in M-mode</dd>
+	<dt>Waiting cycles</dt>
+		<dd>5</dd><dd>Cycles that the CPU has spent idling</dd>
 </dl>
 
 <h2>12. Special RISC-V CSR</h2>

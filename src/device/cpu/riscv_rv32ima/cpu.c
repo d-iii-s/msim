@@ -733,10 +733,12 @@ static void try_handle_interrupt(rv_cpu_t* cpu){
 
     // Effective mip includes the external SEIP
     // Full explanation RISC-V Privileged spec section 3.1.9 Machine Interrupt Registers (mip and mie)
-    uint32_t mip = cpu->csr.mip | (cpu->csr.external_SEIP ? rv_csr_sei_mask : 0);
+    uint32_t mip = cpu->csr.mip
+                   | (cpu->csr.external_SEIP ? rv_csr_sei_mask : 0)
+                   | (cpu->csr.external_STIP ? rv_csr_sti_mask : 0);
 
     // no interrupt pending
-    if(mip == 0) return;
+    if(mip == 0 ) return;
 
     // PRIORITY: MEI, MSI, MTI, SEI, SSI, STI
     #define trap_if_set(cpu, mask, interrupt, trap_func)    \
@@ -749,6 +751,7 @@ static void try_handle_interrupt(rv_cpu_t* cpu){
     // ((priv_mode == M && MIE) || (priv_mode < M)) && MIP[i] && MIE[i] && !MIDELEG[i]
 
     bool can_trap_to_M = (cpu->priv_mode == rv_mmode && rv_csr_mstatus_mie(cpu)) || (cpu->priv_mode < rv_mmode);
+
 
     if(can_trap_to_M) {
         uint32_t m_mode_active_interrupt_mask = mip & cpu->csr.mie & ~cpu->csr.mideleg;
@@ -829,14 +832,14 @@ static void account_hmp(rv_cpu_t* cpu, int i){
  * 
  */
 static void manage_timer_interrupts(rv_cpu_t* cpu){
-    // raise or clear scyclecmp STIP
+    // raise or clear scyclecmp ESTIP
     if(((uint32_t)cpu->csr.cycle) >= cpu->csr.scyclecmp) {
-        // Set supervisor timer interrupt pending
-        cpu->csr.mip |= rv_csr_sti_mask;
+        // Set external supervisor timer interrupt pending
+        cpu->csr.external_STIP = true;
     }
     else {
-        // Clear STIP
-        cpu->csr.mip &= ~rv_csr_sti_mask;
+        // Clear ESTIP
+        cpu->csr.external_STIP = false;
     }
 
     // raise or clear mtimecmp MTIP

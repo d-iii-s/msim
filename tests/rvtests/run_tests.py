@@ -25,7 +25,8 @@ TESTS = [
     "exceptions/interrupt_delegated",
     "exceptions/interrupt_delegation_masks",
     "virtual-addressing",
-    "external-SEIP"
+    "external-SEIP",
+    "m-mode-STIP"
 ]
 
 MSIM_PATH = "../../msim"

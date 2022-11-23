@@ -1,5 +1,4 @@
 
-#define ehalt __asm__(".word 0x00200073")
 #define ebreak __asm__("ebreak")
 
 #define PRINTER_ADDR 0x90000000

@@ -370,7 +370,7 @@ typedef enum {
     hpm_no_event,
     hpm_u_cycles,
     hpm_s_cycles,
-    hpm_h_cycles, // reserved
+    hpm_r_cycles, //! RESERVED
     hpm_m_cycles,
     hpm_w_cycles,
     // rest TBA

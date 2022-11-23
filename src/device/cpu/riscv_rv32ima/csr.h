@@ -374,7 +374,7 @@ typedef enum {
     hpm_m_cycles,
     hpm_w_cycles,
     // rest TBA
-	hpm_event_count
+	hpm_event_count // Last enum member holding the count
 } csr_hpm_event_t;
 
 /**

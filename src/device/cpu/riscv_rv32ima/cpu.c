@@ -857,7 +857,7 @@ static void manage_timer_interrupts(rv_cpu_t* cpu){
 }
 
 /**
- * @brief Increase the counter CSRs
+ * @brief Increase the counter CSRs and raise timer interrupts if desired
  */
 static void account(rv_cpu_t* cpu, bool instruction_retired){
     if(!(cpu->csr.mcountinhibit & 0b001))

@@ -96,7 +96,7 @@ PCUT_TEST(lh_address_misaligned){
     PCUT_ASSERT_INT_EQUALS(rv_exc_load_address_misaligned, ex);
 }
 
-// lwu and swu tests are missing, but I thing this should suffice
+// lwu and swu tests are missing, but I think this should suffice
 
 PCUT_TEST(lw_address_misaligned){
      rv_instr_t instr = { .i = {

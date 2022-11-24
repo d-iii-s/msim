@@ -781,6 +781,7 @@ static void try_handle_interrupt(rv_cpu_t* cpu){
     }
 
     #undef trap_if_set
+
 }
 
 /**
@@ -858,7 +859,7 @@ static void manage_timer_interrupts(rv_cpu_t* cpu){
 /**
  * @brief Increase the counter CSRs
  */
-static void account(rv_cpu_t* cpu, bool exception_raised){
+static void account(rv_cpu_t* cpu, bool instruction_retired){
     if(!(cpu->csr.mcountinhibit & 0b001))
         cpu->csr.cycle++;
 
@@ -867,7 +868,7 @@ static void account(rv_cpu_t* cpu, bool exception_raised){
     cpu->csr.mtime += (current_tick_time - cpu->csr.last_tick_time);
     cpu->csr.last_tick_time = current_tick_time;
 
-    if(!(cpu->csr.mcountinhibit & 0b100) && !exception_raised && !cpu->stdby)
+    if(!(cpu->csr.mcountinhibit & 0b100) && instruction_retired && !cpu->stdby)
         cpu->csr.instret++;
 
     for(int i = 0; i < 29; ++i){
@@ -915,9 +916,11 @@ void rv_cpu_step(rv_cpu_t *cpu){
     ASSERT(cpu != NULL);
 
     rv_exc_t ex = rv_exc_none;
+    bool instruction_retired = false;
 
     if(!cpu->stdby) {
         ex = execute(cpu);
+        instruction_retired = (ex == rv_exc_none);
     }
 
     if(ex != rv_exc_none){
@@ -928,7 +931,7 @@ void rv_cpu_step(rv_cpu_t *cpu){
         try_handle_interrupt(cpu);
     }
 
-    account(cpu, ex != rv_exc_none);
+    account(cpu, instruction_retired);
 
     if(!cpu->stdby){
         cpu->pc = cpu->pc_next;

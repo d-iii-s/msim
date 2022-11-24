@@ -379,11 +379,13 @@ static bool try_write_memory_mapped_regs(rv_cpu_t *cpu, uint32_t virt, uint32_t 
     return false;                                                           
 }
 
-#define throw_ex(cpu, virt, ex, noisy)  \
-    if(noisy){                          \
-        cpu->csr.tval_next = virt;      \
-    }                                   \
-    return ex;                          \
+#define throw_ex(cpu, virt, ex, noisy)      \
+    {                                       \
+        if(noisy){                          \
+            (cpu)->csr.tval_next = (virt);  \
+        }                                   \
+        return (ex);                        \
+    }
 
 /**
  * @brief Reads 32 bits from virtual memory

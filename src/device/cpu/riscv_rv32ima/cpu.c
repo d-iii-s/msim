@@ -868,7 +868,7 @@ static void account(rv_cpu_t* cpu, bool instruction_retired){
     cpu->csr.mtime += (current_tick_time - cpu->csr.last_tick_time);
     cpu->csr.last_tick_time = current_tick_time;
 
-    if(!(cpu->csr.mcountinhibit & 0b100) && instruction_retired && !cpu->stdby)
+    if(!(cpu->csr.mcountinhibit & 0b100) && instruction_retired)
         cpu->csr.instret++;
 
     for(int i = 0; i < 29; ++i){

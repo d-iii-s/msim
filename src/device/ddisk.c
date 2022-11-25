@@ -591,6 +591,9 @@ static void ddisk_read32(unsigned int procno, device_t *dev, ptr36_t addr,
 static void ddisk_write32(unsigned int procno, device_t *dev, ptr36_t addr,
     uint32_t val)
 {
+
+	//TODO: generate SC checks on changed mem registers?
+
 	disk_data_s *data = (disk_data_s *) dev->data;
 	
 	/* Ignore if the disk is not initialized */
@@ -617,7 +620,6 @@ static void ddisk_write32(unsigned int procno, device_t *dev, ptr36_t addr,
 		if (data->disk_command & COMMAND_INT_ACK) {
 			data->disk_status &= ~STATUS_INT;
 			data->ig = false;
-			// todo: NULL or hardwired 0?
 			cpu_interrupt_down(NULL, data->intno);
 		}
 		
@@ -626,7 +628,6 @@ static void ddisk_write32(unsigned int procno, device_t *dev, ptr36_t addr,
 		    (data->disk_command & COMMAND_WRITE)) {
 			/* Simultaneous read/write command */
 			data->disk_status = STATUS_INT | STATUS_ERROR;
-			// todo: NULL or hardwired 0?
 			cpu_interrupt_up(NULL, data->intno);
 			data->ig = true;
 			data->intrcount++;
@@ -638,7 +639,6 @@ static void ddisk_write32(unsigned int procno, device_t *dev, ptr36_t addr,
 		    (data->action != ACTION_NONE)) {
 			/* Command in progress */
 			data->disk_status = STATUS_INT | STATUS_ERROR;
-			// todo: NULL or hardwired 0?
 			cpu_interrupt_up(NULL, data->intno);
 			data->ig = true;
 			data->intrcount++;
@@ -650,7 +650,6 @@ static void ddisk_write32(unsigned int procno, device_t *dev, ptr36_t addr,
 		if (((uint64_t) data->disk_secno + 1) * 512 > data->size) {
 			/* Generate interrupt to indicate error */
 			data->disk_status = STATUS_INT | STATUS_ERROR;
-			// todo: NULL or hardwired 0?
 			cpu_interrupt_up(NULL, data->intno);
 			data->ig = true;
 			data->intrcount++;
@@ -718,7 +717,6 @@ static void ddisk_step(device_t *dev)
 	if (data->cnt == 128) {
 		data->action = ACTION_NONE;
 		data->disk_status = STATUS_INT;
-		// todo: NULL or hardwired 0?
 		cpu_interrupt_up(NULL, data->intno);
 		data->ig = true;
 		data->intrcount++;

@@ -59,35 +59,40 @@ void remove_cpu(general_cpu_t *cpu){
     list_remove(&cpu_list, &cpu->item);
 }
 
+static general_cpu_t* get_fallback_cpu(void){
+    general_cpu_t* cpu = get_cpu(0);
+    if(cpu == NULL){
+        cpu = (general_cpu_t*)cpu_list.head;
+    }
+    ASSERT(cpu != NULL);
+    return cpu;
+}
+
 
 void cpu_interrupt_up(general_cpu_t *cpu, unsigned int no){
     if(cpu == NULL){
-        cpu = get_cpu(0);
+        cpu = get_fallback_cpu();
     }
-    ASSERT(cpu != NULL);
     cpu->type->interrupt_up(cpu->data, no);
 }
 
 void cpu_interrupt_down(general_cpu_t *cpu, unsigned int no){
     if(cpu == NULL){
-        cpu = get_cpu(0);
+        cpu = get_fallback_cpu();
     }
-    ASSERT(cpu != NULL);
     cpu->type->interrupt_down(cpu->data, no);
 }
 
 void cpu_insert_breakpoint(general_cpu_t *cpu, ptr64_t addr, breakpoint_t kind){
     if(cpu == NULL){
-        cpu = get_cpu(0);
+        cpu = get_fallback_cpu();
     }
-    ASSERT(cpu != NULL);
     cpu->type->insert_breakpoint(cpu->data, addr, kind);
 }
 void cpu_remove_breakpoint(general_cpu_t *cpu, ptr64_t addr){
     if(cpu == NULL){
-        cpu = get_cpu(0);
+        cpu = get_fallback_cpu();
     }
-    ASSERT(cpu != NULL);
     cpu->type->remove_breakpoint(cpu->data, addr);
 }
 
@@ -103,25 +108,22 @@ void cpu_remove_breakpoint(general_cpu_t *cpu, ptr64_t addr){
  */
 bool cpu_convert_addr(general_cpu_t *cpu, ptr64_t virt, ptr36_t *phys, bool write){
     if(cpu == NULL){
-        cpu = get_cpu(0);
+        cpu = get_fallback_cpu();
     }
-    ASSERT(cpu != NULL);
     return cpu->type->convert_addr(cpu->data, virt, phys, write);
 }
 
 void cpu_reg_dump(general_cpu_t *cpu){
     if(cpu == NULL){
-        cpu = get_cpu(0);
+        cpu = get_fallback_cpu();
     }
-    ASSERT(cpu != NULL);
     cpu->type->reg_dump(cpu->data);
 }
 
 void cpu_set_pc(general_cpu_t *cpu, ptr64_t pc){
     if(cpu == NULL){
-        cpu = get_cpu(0);
+        cpu = get_fallback_cpu();
     }
-    ASSERT(cpu != NULL);
     cpu->type->set_pc(cpu->data, pc);
 }
 /**
@@ -134,8 +136,7 @@ void cpu_set_pc(general_cpu_t *cpu, ptr64_t pc){
  */
 extern bool cpu_sc_access(general_cpu_t *cpu, ptr36_t addr, int size){
     if(cpu == NULL){
-        cpu = get_cpu(0);
+        cpu = get_fallback_cpu();
     }
-    ASSERT(cpu != NULL);
     return cpu->type->sc_access(cpu->data, addr, size);
 }

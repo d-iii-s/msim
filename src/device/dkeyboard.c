@@ -56,7 +56,6 @@ static void gen_key(device_t *dev, char c)
 	if (!data->ig) {
 		data->ig = true;
 		data->intrcount++;
-		// TODO: should it be null or does it need to be hardwired to 0?
 		cpu_interrupt_up(NULL, data->intno);
 	} else
 		/* Increase the number of overrun characters */
@@ -202,7 +201,6 @@ static void keyboard_read32(unsigned int procno, device_t *dev, ptr36_t addr, ui
 		data->incomming = 0;
 		if (data->ig) {
 			data->ig = false;
-			// TODO: should it be null or does it need to be hardwired to 0?
 			cpu_interrupt_down(NULL, data->intno);
 		}
 		break;

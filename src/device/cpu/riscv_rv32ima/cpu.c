@@ -362,6 +362,17 @@ static bool try_read_memory_mapped_regs_8(rv_cpu_t *cpu, uint32_t virt, uint8_t*
 
 #undef try_read_memory_mapped_regs_body
 
+static void handle_mtip(rv_cpu_t* cpu){
+    if(cpu->csr.mtime >= cpu->csr.mtimecmp){
+        // Set MTIP
+        cpu->csr.mip |= rv_csr_mti_mask;
+    }
+    else {
+        // Clear MTIP
+        cpu->csr.mip &= ~rv_csr_mti_mask;
+    }
+}
+
 /** @brief Writes to memory mapped registers if there are any located on the given address */
 static bool try_write_memory_mapped_regs(rv_cpu_t *cpu, uint32_t virt, uint32_t value, int width){
     if(!IS_ALIGNED(virt, width / 8)) return false;
@@ -370,10 +381,12 @@ static bool try_write_memory_mapped_regs(rv_cpu_t *cpu, uint32_t virt, uint32_t 
     int offset = (virt & 0x7) * 8;                                              
     if(ALIGN_DOWN(virt, 8) == RV_MTIME_ADDRESS){                                
         cpu->csr.mtime = WRITE_BITS(cpu->csr.mtime, value, offset, offset + width);
-        return true;                                                            
+        handle_mtip(cpu);
+        return true;
     }                                                                           
     if(ALIGN_DOWN(virt, 8) == RV_MTIMECMP_ADDRESS){                             
-        cpu->csr.mtimecmp = WRITE_BITS(cpu->csr.mtimecmp, value, offset, offset + width); 
+        cpu->csr.mtimecmp = WRITE_BITS(cpu->csr.mtimecmp, value, offset, offset + width);
+        handle_mtip(cpu); 
         return true;                                                            
     }                                                                           
     return false;                                                           
@@ -836,24 +849,10 @@ static void account_hmp(rv_cpu_t* cpu, int i){
  */
 static void manage_timer_interrupts(rv_cpu_t* cpu){
     // raise or clear scyclecmp ESTIP
-    if(((uint32_t)cpu->csr.cycle) >= cpu->csr.scyclecmp) {
-        // Set external supervisor timer interrupt pending
-        cpu->csr.external_STIP = true;
-    }
-    else {
-        // Clear ESTIP
-        cpu->csr.external_STIP = false;
-    }
+    cpu->csr.external_STIP = ((uint32_t)cpu->csr.cycle) >= cpu->csr.scyclecmp;
 
     // raise or clear mtimecmp MTIP
-    if(cpu->csr.mtime >= cpu->csr.mtimecmp){
-        // Set MTIP
-        cpu->csr.mip |= rv_csr_mti_mask;
-    }
-    else {
-        // Clear MTIP
-        cpu->csr.mip &= ~rv_csr_mti_mask;
-    }
+    handle_mtip(cpu);
 }
 
 /**

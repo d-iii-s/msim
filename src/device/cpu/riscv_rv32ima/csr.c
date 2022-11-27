@@ -148,6 +148,7 @@ static rv_exc_t counter_write(rv_cpu_t* cpu, csr_num_t csr, uint32_t value){
     switch(csr){
         case (csr_mcycle): {
             cpu->csr.cycle = (cpu->csr.cycle & mask) | val;
+            cpu->csr.external_STIP = ((uint32_t)cpu->csr.cycle) >= cpu->csr.scyclecmp;
             break;
         }
         case (csr_minstret): {
@@ -182,6 +183,7 @@ static rv_exc_t counter_set(rv_cpu_t* cpu, csr_num_t csr, uint32_t value){
     switch(csr){
         case (csr_mcycle): {
             cpu->csr.cycle |= val;
+            cpu->csr.external_STIP = ((uint32_t)cpu->csr.cycle) >= cpu->csr.scyclecmp;
             break;
         }
         case (csr_minstret): {
@@ -214,6 +216,7 @@ static rv_exc_t counter_clear(rv_cpu_t* cpu, csr_num_t csr, uint32_t value){
     switch(csr){
         case (csr_mcycle): {
             cpu->csr.cycle &= ~val;
+            cpu->csr.external_STIP = ((uint32_t)cpu->csr.cycle) >= cpu->csr.scyclecmp;
             break;
         }
         case (csr_minstret): {
@@ -597,7 +600,34 @@ static rv_exc_t satp_clear(rv_cpu_t* cpu, csr_num_t csr, uint32_t value){
 }
 
 default_csr_functions(scontext, rv_smode)
-default_csr_functions(scyclecmp, rv_smode)
+
+// Writes to scyclecmp request or unrequest STI (based on the low 32 bits of cycle)
+
+static rv_exc_t scyclecmp_read(rv_cpu_t* cpu, csr_num_t csr, uint32_t* target){
+    minimal_privilege(rv_smode, cpu);
+    *target = cpu->csr.scyclecmp;
+    return rv_exc_none;
+}
+
+static rv_exc_t scyclecmp_write(rv_cpu_t* cpu, csr_num_t csr, uint32_t value){
+    minimal_privilege(rv_smode, cpu);
+    cpu->csr.scyclecmp = value;
+    cpu->csr.external_STIP = ((uint32_t)cpu->csr.cycle) >= cpu->csr.scyclecmp;
+    return rv_exc_none;
+}
+static rv_exc_t scyclecmp_set(rv_cpu_t* cpu, csr_num_t csr, uint32_t value){
+    minimal_privilege(rv_smode, cpu);
+    cpu->csr.scyclecmp |= value;
+    cpu->csr.external_STIP = ((uint32_t)cpu->csr.cycle) >= cpu->csr.scyclecmp;
+    return rv_exc_none;
+}
+static rv_exc_t scyclecmp_clear(rv_cpu_t* cpu, csr_num_t csr, uint32_t value){
+    minimal_privilege(rv_smode, cpu);
+    cpu->csr.scyclecmp &= ~value;
+    cpu->csr.external_STIP = ((uint32_t)cpu->csr.cycle) >= cpu->csr.scyclecmp;
+    return rv_exc_none;
+}
+
 
 static rv_exc_t mvendorid_read(rv_cpu_t* cpu, csr_num_t csr, uint32_t* target){
     minimal_privilege(rv_mmode, cpu);

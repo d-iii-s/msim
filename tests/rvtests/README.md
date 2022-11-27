@@ -27,3 +27,15 @@ To run all system tests, run `./run_tests.py` in this directory.
 
 The compilation and link scripts together with bootloaders for compiling C code into RISC-V machine code that can be run on MSIM can be found in the `execute_c` directory.
 There is a `Makefile` script written for compilation of the code, but for the same reason as with system tests, the compiled code is also present in this directory.
+
+## Compilation of tests from sources
+
+To compile the machine code from the RISC-V assembly or C, you will need the [RISC-V GNU Compiler Toolchain](https://github.com/riscv-collab/riscv-gnu-toolchain).
+
+MSIM is built for `RV32IMA`.
+The `gcc` toolchain needs to be configured with the right architecture when building.
+
+```shell
+./configure --prefix=... --with-arch=rv32ima
+make
+```

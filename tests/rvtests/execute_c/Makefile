@@ -1,5 +1,5 @@
 CC := riscv32-unknown-elf-gcc
-CFLAGS := -msmall-data-limit=0 -mstrict-align -fno-pic -fno-builtin -ffreestanding -nostdlib -nostdinc -g
+CFLAGS := -msmall-data-limit=0 -mstrict-align -fno-pic -fno-builtin -ffreestanding -nostdlib -nostdinc -mno-riscv-attribute -g
 LD := riscv32-unknown-elf-ld
 OBJCOPY := riscv32-unknown-elf-objcopy
 OBJDUMP := riscv32-unknown-elf-objdump

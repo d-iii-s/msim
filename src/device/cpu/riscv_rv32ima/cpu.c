@@ -727,6 +727,8 @@ static void s_trap(rv_cpu_t* cpu, rv_exc_t ex){
  * @brief Causes an exception trap to the proper privilege level
  */
 static void handle_exception(rv_cpu_t* cpu, rv_exc_t ex){
+    ASSERT(!(ex & RV_INTERRUPT_EXC_BITS));
+
     uint32_t mask = RV_EXCEPTION_MASK(ex);
     bool delegated = cpu->csr.medeleg & mask;
 

@@ -97,12 +97,12 @@ void main(void) {
         print_int(factorial_rec(i));
     }
     puts("\nFib rec\n");
-    for(int i = 0; i < 30; ++i){
+    for(int i = 0; i < 20; ++i){
         print_int(fib_rec(i));
     }
 
     puts("\nFib loop\n");
-    for(int i = 0; i < 30; ++i){
+    for(int i = 0; i < 20; ++i){
         print_int(fib_loop(i));
     }
 

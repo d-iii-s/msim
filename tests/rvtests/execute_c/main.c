@@ -258,5 +258,4 @@ void stress_test(void){
 void main(void) {
     //demonstration();
     stress_test();
-    
 }

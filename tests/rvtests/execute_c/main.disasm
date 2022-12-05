@@ -5,7 +5,7 @@ main.raw:     file format elf32-littleriscv
 Disassembly of section .main:
 
 80000000 <start>:
-80000000:	7cc000ef          	jal	ra,800007cc <main>
+80000000:	29d000ef          	jal	ra,80000a9c <main>
 80000004:	8c000073          	.4byte	0x8c000073
 
 80000008 <memset>:
@@ -60,7 +60,7 @@ void putchar(char c) {
     *p = c;
 80000088:	fec42783          	lw	a5,-20(s0)
 8000008c:	fdf44703          	lbu	a4,-33(s0)
-80000090:	00e78023          	sb	a4,0(a5) # 90000000 <global_int+0xffff64c>
+80000090:	00e78023          	sb	a4,0(a5) # 90000000 <global_int+0xffff53c>
 }
 80000094:	00000013          	nop
 80000098:	02c12403          	lw	s0,44(sp)
@@ -422,7 +422,7 @@ unsigned int fib_loop(unsigned int n){
 800004bc:	00008067          	ret
 
 800004c0 <print_mat>:
-
+// We store 3 matrices on the stack (which is ~16 KiB)
 #define MAT_DIM 32
 
 typedef int matrix[MAT_DIM][MAT_DIM];
@@ -452,7 +452,7 @@ void print_mat(matrix *m){
 80000508:	db5ff0ef          	jal	ra,800002bc <print_int>
             puts(" ");
 8000050c:	800017b7          	lui	a5,0x80001
-80000510:	9b878513          	addi	a0,a5,-1608 # 800009b8 <global_int+0x4>
+80000510:	ac878513          	addi	a0,a5,-1336 # 80000ac8 <global_int+0x4>
 80000514:	b91ff0ef          	jal	ra,800000a4 <puts>
         for(int j = 0; j < MAT_DIM; ++j){
 80000518:	fe842783          	lw	a5,-24(s0)
@@ -464,7 +464,7 @@ void print_mat(matrix *m){
         }
         puts("\n");
 80000530:	800017b7          	lui	a5,0x80001
-80000534:	9bc78513          	addi	a0,a5,-1604 # 800009bc <global_int+0x8>
+80000534:	acc78513          	addi	a0,a5,-1332 # 80000acc <global_int+0x8>
 80000538:	b6dff0ef          	jal	ra,800000a4 <puts>
     for(int i = 0; i < MAT_DIM; ++i){
 8000053c:	fec42783          	lw	a5,-20(s0)
@@ -675,9 +675,10 @@ void mat_mul(matrix *a, matrix *b, matrix *res){
 800007c4:	03010113          	addi	sp,sp,48
 800007c8:	00008067          	ret
 
-800007cc <main>:
+800007cc <demonstration>:
 
-void main(void) {
+
+void demonstration(void){
 800007cc:	fe010113          	addi	sp,sp,-32
 800007d0:	00112e23          	sw	ra,28(sp)
 800007d4:	00812c23          	sw	s0,24(sp)
@@ -686,7 +687,7 @@ void main(void) {
 800007e0:	00510133          	add	sp,sp,t0
     puts("Hello world!\n");
 800007e4:	800017b7          	lui	a5,0x80001
-800007e8:	9c078513          	addi	a0,a5,-1600 # 800009c0 <global_int+0xc>
+800007e8:	ad078513          	addi	a0,a5,-1328 # 80000ad0 <global_int+0xc>
 800007ec:	8b9ff0ef          	jal	ra,800000a4 <puts>
     print_int_ln(42);
 800007f0:	02a00513          	li	a0,42
@@ -694,11 +695,11 @@ void main(void) {
 
     puts("\nFact\n");
 800007f8:	800017b7          	lui	a5,0x80001
-800007fc:	9d078513          	addi	a0,a5,-1584 # 800009d0 <global_int+0x1c>
+800007fc:	ae078513          	addi	a0,a5,-1312 # 80000ae0 <global_int+0x1c>
 80000800:	8a5ff0ef          	jal	ra,800000a4 <puts>
     for(int i = 0; i < 10; ++i){
 80000804:	fe042623          	sw	zero,-20(s0)
-80000808:	0280006f          	j	80000830 <main+0x64>
+80000808:	0280006f          	j	80000830 <demonstration+0x64>
         print_int_ln(factorial_rec(i));
 8000080c:	fec42783          	lw	a5,-20(s0)
 80000810:	00078513          	mv	a0,a5
@@ -712,15 +713,15 @@ void main(void) {
 8000082c:	fef42623          	sw	a5,-20(s0)
 80000830:	fec42703          	lw	a4,-20(s0)
 80000834:	00900793          	li	a5,9
-80000838:	fce7dae3          	bge	a5,a4,8000080c <main+0x40>
+80000838:	fce7dae3          	bge	a5,a4,8000080c <demonstration+0x40>
     }
     puts("\nFib rec\n");
 8000083c:	800017b7          	lui	a5,0x80001
-80000840:	9d878513          	addi	a0,a5,-1576 # 800009d8 <global_int+0x24>
+80000840:	ae878513          	addi	a0,a5,-1304 # 80000ae8 <global_int+0x24>
 80000844:	861ff0ef          	jal	ra,800000a4 <puts>
     for(int i = 0; i < 20; ++i){
 80000848:	fe042423          	sw	zero,-24(s0)
-8000084c:	0280006f          	j	80000874 <main+0xa8>
+8000084c:	0280006f          	j	80000874 <demonstration+0xa8>
         print_int_ln(fib_rec(i));
 80000850:	fe842783          	lw	a5,-24(s0)
 80000854:	00078513          	mv	a0,a5
@@ -734,16 +735,16 @@ void main(void) {
 80000870:	fef42423          	sw	a5,-24(s0)
 80000874:	fe842703          	lw	a4,-24(s0)
 80000878:	01300793          	li	a5,19
-8000087c:	fce7dae3          	bge	a5,a4,80000850 <main+0x84>
+8000087c:	fce7dae3          	bge	a5,a4,80000850 <demonstration+0x84>
     }
 
     puts("\nFib loop\n");
 80000880:	800017b7          	lui	a5,0x80001
-80000884:	9e478513          	addi	a0,a5,-1564 # 800009e4 <global_int+0x30>
+80000884:	af478513          	addi	a0,a5,-1292 # 80000af4 <global_int+0x30>
 80000888:	81dff0ef          	jal	ra,800000a4 <puts>
     for(int i = 0; i < 20; ++i){
 8000088c:	fe042223          	sw	zero,-28(s0)
-80000890:	0280006f          	j	800008b8 <main+0xec>
+80000890:	0280006f          	j	800008b8 <demonstration+0xec>
         print_int_ln(fib_loop(i));
 80000894:	fe442783          	lw	a5,-28(s0)
 80000898:	00078513          	mv	a0,a5
@@ -757,33 +758,33 @@ void main(void) {
 800008b4:	fef42223          	sw	a5,-28(s0)
 800008b8:	fe442703          	lw	a4,-28(s0)
 800008bc:	01300793          	li	a5,19
-800008c0:	fce7dae3          	bge	a5,a4,80000894 <main+0xc8>
+800008c0:	fce7dae3          	bge	a5,a4,80000894 <demonstration+0xc8>
     }
 
     puts("\nGlobal\n");
 800008c4:	800017b7          	lui	a5,0x80001
-800008c8:	9f078513          	addi	a0,a5,-1552 # 800009f0 <global_int+0x3c>
+800008c8:	b0078513          	addi	a0,a5,-1280 # 80000b00 <global_int+0x3c>
 800008cc:	fd8ff0ef          	jal	ra,800000a4 <puts>
     print_int_ln(global_int);
 800008d0:	800017b7          	lui	a5,0x80001
-800008d4:	9b47a783          	lw	a5,-1612(a5) # 800009b4 <global_int+0x0>
+800008d4:	ac47a783          	lw	a5,-1340(a5) # 80000ac4 <global_int+0x0>
 800008d8:	00078513          	mv	a0,a5
 800008dc:	a51ff0ef          	jal	ra,8000032c <print_int_ln>
     global_int += 1;
 800008e0:	800017b7          	lui	a5,0x80001
-800008e4:	9b47a783          	lw	a5,-1612(a5) # 800009b4 <global_int+0x0>
+800008e4:	ac47a783          	lw	a5,-1340(a5) # 80000ac4 <global_int+0x0>
 800008e8:	00178713          	addi	a4,a5,1
 800008ec:	800017b7          	lui	a5,0x80001
-800008f0:	9ae7aa23          	sw	a4,-1612(a5) # 800009b4 <global_int+0x0>
+800008f0:	ace7a223          	sw	a4,-1340(a5) # 80000ac4 <global_int+0x0>
     print_int_ln(global_int);
 800008f4:	800017b7          	lui	a5,0x80001
-800008f8:	9b47a783          	lw	a5,-1612(a5) # 800009b4 <global_int+0x0>
+800008f8:	ac47a783          	lw	a5,-1340(a5) # 80000ac4 <global_int+0x0>
 800008fc:	00078513          	mv	a0,a5
 80000900:	a2dff0ef          	jal	ra,8000032c <print_int_ln>
 
     puts("\nMatrix\n");
 80000904:	800017b7          	lui	a5,0x80001
-80000908:	9fc78513          	addi	a0,a5,-1540 # 800009fc <global_int+0x48>
+80000908:	b0c78513          	addi	a0,a5,-1268 # 80000b0c <global_int+0x48>
 8000090c:	f98ff0ef          	jal	ra,800000a4 <puts>
         .
         .
@@ -792,7 +793,7 @@ void main(void) {
     */
     get_id_mat(&m1);
 80000910:	fffff7b7          	lui	a5,0xfffff
-80000914:	ff478793          	addi	a5,a5,-12 # ffffeff4 <global_int+0x7fffe640>
+80000914:	ff478793          	addi	a5,a5,-12 # ffffeff4 <global_int+0x7fffe530>
 80000918:	ff078793          	addi	a5,a5,-16
 8000091c:	008787b3          	add	a5,a5,s0
 80000920:	00078513          	mv	a0,a5
@@ -804,7 +805,7 @@ void main(void) {
     */
     get_default_mat(&m2);
 80000928:	ffffe7b7          	lui	a5,0xffffe
-8000092c:	ff478793          	addi	a5,a5,-12 # ffffdff4 <global_int+0x7fffd640>
+8000092c:	ff478793          	addi	a5,a5,-12 # ffffdff4 <global_int+0x7fffd530>
 80000930:	ff078793          	addi	a5,a5,-16
 80000934:	008787b3          	add	a5,a5,s0
 80000938:	00078513          	mv	a0,a5
@@ -814,15 +815,15 @@ void main(void) {
 
     mat_mul(&m1, &m2, &m3);
 80000940:	ffffd7b7          	lui	a5,0xffffd
-80000944:	ff478793          	addi	a5,a5,-12 # ffffcff4 <global_int+0x7fffc640>
+80000944:	ff478793          	addi	a5,a5,-12 # ffffcff4 <global_int+0x7fffc530>
 80000948:	ff078793          	addi	a5,a5,-16
 8000094c:	008786b3          	add	a3,a5,s0
 80000950:	ffffe7b7          	lui	a5,0xffffe
-80000954:	ff478793          	addi	a5,a5,-12 # ffffdff4 <global_int+0x7fffd640>
+80000954:	ff478793          	addi	a5,a5,-12 # ffffdff4 <global_int+0x7fffd530>
 80000958:	ff078793          	addi	a5,a5,-16
 8000095c:	00878733          	add	a4,a5,s0
 80000960:	fffff7b7          	lui	a5,0xfffff
-80000964:	ff478793          	addi	a5,a5,-12 # ffffeff4 <global_int+0x7fffe640>
+80000964:	ff478793          	addi	a5,a5,-12 # ffffeff4 <global_int+0x7fffe530>
 80000968:	ff078793          	addi	a5,a5,-16
 8000096c:	008787b3          	add	a5,a5,s0
 80000970:	00068613          	mv	a2,a3
@@ -832,12 +833,12 @@ void main(void) {
 
     print_mat(&m3);
 80000980:	ffffd7b7          	lui	a5,0xffffd
-80000984:	ff478793          	addi	a5,a5,-12 # ffffcff4 <global_int+0x7fffc640>
+80000984:	ff478793          	addi	a5,a5,-12 # ffffcff4 <global_int+0x7fffc530>
 80000988:	ff078793          	addi	a5,a5,-16
 8000098c:	008787b3          	add	a5,a5,s0
 80000990:	00078513          	mv	a0,a5
 80000994:	b2dff0ef          	jal	ra,800004c0 <print_mat>
-    
+}
 80000998:	00000013          	nop
 8000099c:	000032b7          	lui	t0,0x3
 800009a0:	00510133          	add	sp,sp,t0
@@ -846,10 +847,114 @@ void main(void) {
 800009ac:	02010113          	addi	sp,sp,32
 800009b0:	00008067          	ret
 
-800009b4 <global_int>:
-800009b4:	00000005 00000020 0000000a 6c6c6548     .... .......Hell
-800009c4:	6f77206f 21646c72 0000000a 6361460a     o world!.....Fac
-800009d4:	00000a74 6269460a 63657220 0000000a     t....Fib rec....
-800009e4:	6269460a 6f6f6c20 00000a70 6f6c470a     .Fib loop....Glo
-800009f4:	0a6c6162 00000000 74614d0a 0a786972     bal......Matrix.
+800009b4 <stress_test>:
+
+void stress_test(void){
+800009b4:	fe010113          	addi	sp,sp,-32
+800009b8:	00112e23          	sw	ra,28(sp)
+800009bc:	00812c23          	sw	s0,24(sp)
+800009c0:	02010413          	addi	s0,sp,32
+800009c4:	ffffd2b7          	lui	t0,0xffffd
+800009c8:	00510133          	add	sp,sp,t0
+    //     38          389.9       6:30        2 900 088 520    7 438 031
+    //     39          619.7      10:20        4 692 441 407    7 572 117
+
+    // The precompiled version is configured to run the fib calculation for around 10 minutes (n = 39)
+
+    print_int_ln(fib_rec(39));
+800009cc:	02700513          	li	a0,39
+800009d0:	9e9ff0ef          	jal	ra,800003b8 <fib_rec>
+800009d4:	00050793          	mv	a5,a0
+800009d8:	00078513          	mv	a0,a5
+800009dc:	951ff0ef          	jal	ra,8000032c <print_int_ln>
+    //           10           1.8                13 341 256    7 411 808
+    //          300          54.1               399 205 396    7 379 027
+    //         3500         617.6    10:17    4 657 016 597    7 540 506
+
+    matrix m1, m2, m3;
+    int iters = 3500;
+800009e0:	000017b7          	lui	a5,0x1
+800009e4:	dac78793          	addi	a5,a5,-596 # dac <start-0x7ffff254>
+800009e8:	fef42423          	sw	a5,-24(s0)
+
+    get_default_mat(&m1);
+800009ec:	fffff7b7          	lui	a5,0xfffff
+800009f0:	ff878793          	addi	a5,a5,-8 # ffffeff8 <global_int+0x7fffe534>
+800009f4:	ff078793          	addi	a5,a5,-16
+800009f8:	008787b3          	add	a5,a5,s0
+800009fc:	00078513          	mv	a0,a5
+80000a00:	c09ff0ef          	jal	ra,80000608 <get_default_mat>
+    get_default_mat(&m2);
+80000a04:	ffffe7b7          	lui	a5,0xffffe
+80000a08:	ff878793          	addi	a5,a5,-8 # ffffdff8 <global_int+0x7fffd534>
+80000a0c:	ff078793          	addi	a5,a5,-16
+80000a10:	008787b3          	add	a5,a5,s0
+80000a14:	00078513          	mv	a0,a5
+80000a18:	bf1ff0ef          	jal	ra,80000608 <get_default_mat>
+
+    for (int i = 0; i < iters; ++i){
+80000a1c:	fe042623          	sw	zero,-20(s0)
+80000a20:	0500006f          	j	80000a70 <stress_test+0xbc>
+        mat_mul(&m1, &m2, &m3);
+80000a24:	ffffd7b7          	lui	a5,0xffffd
+80000a28:	ff878793          	addi	a5,a5,-8 # ffffcff8 <global_int+0x7fffc534>
+80000a2c:	ff078793          	addi	a5,a5,-16
+80000a30:	008786b3          	add	a3,a5,s0
+80000a34:	ffffe7b7          	lui	a5,0xffffe
+80000a38:	ff878793          	addi	a5,a5,-8 # ffffdff8 <global_int+0x7fffd534>
+80000a3c:	ff078793          	addi	a5,a5,-16
+80000a40:	00878733          	add	a4,a5,s0
+80000a44:	fffff7b7          	lui	a5,0xfffff
+80000a48:	ff878793          	addi	a5,a5,-8 # ffffeff8 <global_int+0x7fffe534>
+80000a4c:	ff078793          	addi	a5,a5,-16
+80000a50:	008787b3          	add	a5,a5,s0
+80000a54:	00068613          	mv	a2,a3
+80000a58:	00070593          	mv	a1,a4
+80000a5c:	00078513          	mv	a0,a5
+80000a60:	c39ff0ef          	jal	ra,80000698 <mat_mul>
+    for (int i = 0; i < iters; ++i){
+80000a64:	fec42783          	lw	a5,-20(s0)
+80000a68:	00178793          	addi	a5,a5,1
+80000a6c:	fef42623          	sw	a5,-20(s0)
+80000a70:	fec42703          	lw	a4,-20(s0)
+80000a74:	fe842783          	lw	a5,-24(s0)
+80000a78:	faf746e3          	blt	a4,a5,80000a24 <stress_test+0x70>
+
+    // Measured times for both (n = 39, iters = 3500)
+    // t (s)    t (min)
+    // 
+   
+}
+80000a7c:	00000013          	nop
+80000a80:	00000013          	nop
+80000a84:	000032b7          	lui	t0,0x3
+80000a88:	00510133          	add	sp,sp,t0
+80000a8c:	01c12083          	lw	ra,28(sp)
+80000a90:	01812403          	lw	s0,24(sp)
+80000a94:	02010113          	addi	sp,sp,32
+80000a98:	00008067          	ret
+
+80000a9c <main>:
+
+void main(void) {
+80000a9c:	ff010113          	addi	sp,sp,-16
+80000aa0:	00112623          	sw	ra,12(sp)
+80000aa4:	00812423          	sw	s0,8(sp)
+80000aa8:	01010413          	addi	s0,sp,16
+    //demonstration();
+    stress_test();
+80000aac:	f09ff0ef          	jal	ra,800009b4 <stress_test>
+    
+80000ab0:	00000013          	nop
+80000ab4:	00c12083          	lw	ra,12(sp)
+80000ab8:	00812403          	lw	s0,8(sp)
+80000abc:	01010113          	addi	sp,sp,16
+80000ac0:	00008067          	ret
+
+80000ac4 <global_int>:
+80000ac4:	00000005 00000020 0000000a 6c6c6548     .... .......Hell
+80000ad4:	6f77206f 21646c72 0000000a 6361460a     o world!.....Fac
+80000ae4:	00000a74 6269460a 63657220 0000000a     t....Fib rec....
+80000af4:	6269460a 6f6f6c20 00000a70 6f6c470a     .Fib loop....Glo
+80000b04:	0a6c6162 00000000 74614d0a 0a786972     bal......Matrix.
 	...

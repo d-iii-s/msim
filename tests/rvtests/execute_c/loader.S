@@ -1,6 +1,6 @@
 // This is loaded at address 0xF0000000
-// We set the stack to start at the end of this page
-// That way, we have an almost entire page of stack space
+// We set the stack to start at the end of the area where this is loaded
+// This area is 16 KiB
 start:
     li t0, 0x80000000
     li sp, 0xF0004000

@@ -137,7 +137,8 @@ void mat_mul(matrix *a, matrix *b, matrix *res){
     }
 }
 
-void main(void) {
+
+void demonstration(void){
     puts("Hello world!\n");
     print_int_ln(42);
 
@@ -192,5 +193,70 @@ void main(void) {
     mat_mul(&m1, &m2, &m3);
 
     print_mat(&m3);
+}
+
+void stress_test(void){
+
+    // Times for both fib and matmul measured on AMD Ryzen 5 3600 (4.15 GHz at time of measurement) WIN 11 WSL 2
+
+    // Run recursive fib, because it is exponential
+   
+    // Measured times for different n of fib_rec(n)
+    //      n          t (s)    t (min)               cycles     cycles/s
+    //     30            8.2                      61 732 461    7 528 348
+    //     31           13.1                      99 884 970    7 624 806
+    //     32           21.9                     161 616 926    7 379 768
+    //     33           35.3                     261 501 329    7 407 969
+    //     34           54.7                     423 117 688    7 735 241
+    //     35           88.1       1:28          684 618 450    7 770 924
+    //     36          142.9       2:23        1 107 735 633    7 751 823
+    //     37          239.9       4:00        1 792 353 516    7 471 252
+    //     38          389.9       6:30        2 900 088 520    7 438 031
+    //     39          619.7      10:20        4 692 441 407    7 572 117
+
+    // The precompiled version is configured to run the fib calculation for around 10 minutes (n = 39)
+
+    print_int_ln(fib_rec(39));
+
+    // Run 32x32 matrix multiplication
+
+    // Measured times for different number of repetetion of the multiplication
+    //        iters         t (s)  t (min)           cycles    cycles/s
+    //           10           1.8                13 341 256    7 411 808
+    //          300          54.1               399 205 396    7 379 027
+    //         3500         617.6    10:17    4 657 016 597    7 540 506
+
+    matrix m1, m2, m3;
+    int iters = 3500;
+
+    get_default_mat(&m1);
+    get_default_mat(&m2);
+
+    for (int i = 0; i < iters; ++i){
+        mat_mul(&m1, &m2, &m3);
+    }
+
+    // 20:28
+
+    // Measured times for both (n = 39, iters = 3500)
+    // t (s)    t (min)          cycles    machine    measurement
+    //  1316      21:56   9 349 457 980        WSL           wsl1
+    //  1328      22:08   9 349 457 980        WSL           wsl1
+    //  1329      22:09   9 349 457 980        WSL           wsl1
+    //  1318      21:58   9 349 457 980        WSL           wsl1
+    //  1327      22:07   9 349 457 980        WSL           wsl1
+    //  1314      21:54   9 349 457 980        WSL           wsl1
+
+
+    // Machines:
+    // WSL - AMD Ryzen 5 3600 WIN 11 WSL 2 (4.05 GHz)
+
+    // Measurements:
+    // wsl1 - 6 tests ran at once
+}
+
+void main(void) {
+    //demonstration();
+    stress_test();
     
 }

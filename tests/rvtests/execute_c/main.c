@@ -93,8 +93,9 @@ unsigned int fib_loop(unsigned int n){
 
 unsigned int global_int = 5;
 
-// 3 16x16 matrices are the most we can fit inside a 4 KiB page (16*16*4 = 1 KiB per matrix)
-#define MAT_DIM 16
+// MAT_DIM * MAT_DIM * 4 = size of one matrix
+// We store 3 matrices on the stack (which is ~16 KiB)
+#define MAT_DIM 32
 
 typedef int matrix[MAT_DIM][MAT_DIM];
 

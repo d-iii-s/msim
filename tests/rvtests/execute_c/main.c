@@ -60,8 +60,13 @@ void print_int(unsigned int num){
     char buffer[print_int_buf_len] = {0};
     if(try_int2s(num, buffer, print_int_buf_len)){
         puts(buffer);
-        putchar('\n');
+        
     }
+}
+
+void print_int_ln(unsigned int num){
+    print_int(num);
+    putchar('\n');
 }
 
 unsigned int factorial_rec(unsigned int n){
@@ -88,26 +93,103 @@ unsigned int fib_loop(unsigned int n){
 
 unsigned int global_int = 5;
 
+// 3 16x16 matrices are the most we can fit inside a 4 KiB page (16*16*4 = 1 KiB per matrix)
+#define MAT_DIM 16
+
+typedef int matrix[MAT_DIM][MAT_DIM];
+
+void print_mat(matrix *m){
+    for(int i = 0; i < MAT_DIM; ++i){
+        for(int j = 0; j < MAT_DIM; ++j){
+            print_int((*m)[i][j]);
+            puts(" ");
+        }
+        puts("\n");
+    }
+}
+
+void get_id_mat(matrix *m){
+    
+    for(int i = 0; i < MAT_DIM; ++i){
+        for(int j = 0; j < MAT_DIM; ++j){
+            (*m)[i][j] = (i == j ? 1 : 0);
+        }
+    }
+}
+
+void get_default_mat(matrix *m){
+    for(int i = 0; i < MAT_DIM; ++i){
+        for(int j = 0; j < MAT_DIM; ++j){
+            (*m)[i][j] = i + j;
+        }
+    }
+}
+
+void mat_mul(matrix *a, matrix *b, matrix *res){
+    for(int i = 0; i < MAT_DIM; ++i){
+        for(int j = 0; j < MAT_DIM; ++j){
+            (*res)[i][j] = 0;
+            for(int k = 0; k < MAT_DIM; ++k){
+                (*res)[i][j] += (*a)[i][k] * (*b)[k][j];
+            }
+        }
+    }
+}
+
 void main(void) {
     puts("Hello world!\n");
-    print_int(42);
+    print_int_ln(42);
 
     puts("\nFact\n");
     for(int i = 0; i < 10; ++i){
-        print_int(factorial_rec(i));
+        print_int_ln(factorial_rec(i));
     }
     puts("\nFib rec\n");
     for(int i = 0; i < 20; ++i){
-        print_int(fib_rec(i));
+        print_int_ln(fib_rec(i));
     }
 
     puts("\nFib loop\n");
     for(int i = 0; i < 20; ++i){
-        print_int(fib_loop(i));
+        print_int_ln(fib_loop(i));
     }
 
     puts("\nGlobal\n");
-    print_int(global_int);
+    print_int_ln(global_int);
     global_int += 1;
-    print_int(global_int);
+    print_int_ln(global_int);
+
+    puts("\nMatrix\n");
+
+    matrix m1, m2, m3;
+
+    /*
+        1 0   ...   0
+        0 1   ...   0
+        .
+        .
+        .
+        0     ...   1
+    
+    */
+    get_id_mat(&m1);
+
+    /*
+      0 1        ...    MAT_DIM - 1
+      1                    
+      .                    .
+      .                    .          
+      .                    .
+
+      MAT_DIM - 1 ...   2 * MAT_DIM - 2  
+    
+    */
+    get_default_mat(&m2);
+
+    // m3 = m1 * m2 = m2
+
+    mat_mul(&m1, &m2, &m3);
+
+    print_mat(&m3);
+    
 }

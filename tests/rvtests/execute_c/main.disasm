@@ -919,11 +919,11 @@ void stress_test(void){
 80000a70:	fec42703          	lw	a4,-20(s0)
 80000a74:	fe842783          	lw	a5,-24(s0)
 80000a78:	faf746e3          	blt	a4,a5,80000a24 <stress_test+0x70>
+    // Machines:
+    // WSL - AMD Ryzen 5 3600 WIN 11 WSL 2 (4.05 GHz)
 
-    // Measured times for both (n = 39, iters = 3500)
-    // t (s)    t (min)
-    // 
-   
+    // Measurements:
+    // wsl1 - 6 tests ran at once
 }
 80000a7c:	00000013          	nop
 80000a80:	00000013          	nop
@@ -941,10 +941,9 @@ void main(void) {
 80000aa0:	00112623          	sw	ra,12(sp)
 80000aa4:	00812423          	sw	s0,8(sp)
 80000aa8:	01010413          	addi	s0,sp,16
-    //demonstration();
-    stress_test();
-80000aac:	f09ff0ef          	jal	ra,800009b4 <stress_test>
-    
+    demonstration();
+80000aac:	d21ff0ef          	jal	ra,800007cc <demonstration>
+    //stress_test();
 80000ab0:	00000013          	nop
 80000ab4:	00c12083          	lw	ra,12(sp)
 80000ab8:	00812403          	lw	s0,8(sp)

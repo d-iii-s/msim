@@ -256,6 +256,6 @@ void stress_test(void){
 }
 
 void main(void) {
-    //demonstration();
-    stress_test();
+    demonstration();
+    //stress_test();
 }

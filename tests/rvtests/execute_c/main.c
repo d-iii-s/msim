@@ -9,7 +9,6 @@
 
 #include <stdio.h>
 
-/*
 void memset(char *p, char val, unsigned long count){
     for(int i = 0; i < count; ++i){
         p[i] = val;
@@ -27,8 +26,6 @@ void puts(char* s){
         putchar(*p);
     }
 }
-*/
-
 
 bool try_int2s(unsigned int num, char* output, int len){
     

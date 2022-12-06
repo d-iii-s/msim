@@ -69,6 +69,7 @@ void putchar(char c) {
 
 800000a4 <puts>:
 
+
 void puts(char* s){
 800000a4:	fd010113          	addi	sp,sp,-48
 800000a8:	02112623          	sw	ra,44(sp)
@@ -919,11 +920,11 @@ void stress_test(void){
 80000a70:	fec42703          	lw	a4,-20(s0)
 80000a74:	fe842783          	lw	a5,-24(s0)
 80000a78:	faf746e3          	blt	a4,a5,80000a24 <stress_test+0x70>
-    // Machines:
     // WSL - AMD Ryzen 5 3600 WIN 11 WSL 2 (4.05 GHz)
 
     // Measurements:
-    // wsl1 - 6 tests ran at once
+    // msim - 6 tests ran at once on RISC-V in msim
+    // native - One test at once compiled to an executable and ran natively
 }
 80000a7c:	00000013          	nop
 80000a80:	00000013          	nop

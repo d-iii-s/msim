@@ -7,6 +7,9 @@
 #define false 0
 #define true 1
 
+#include <stdio.h>
+
+/*
 void memset(char *p, char val, unsigned long count){
     for(int i = 0; i < count; ++i){
         p[i] = val;
@@ -18,11 +21,14 @@ void putchar(char c) {
     *p = c;
 }
 
+
 void puts(char* s){
     for(char* p = s; *p != 0; ++p){
         putchar(*p);
     }
 }
+*/
+
 
 bool try_int2s(unsigned int num, char* output, int len){
     
@@ -239,23 +245,29 @@ void stress_test(void){
     // 20:28
 
     // Measured times for both (n = 39, iters = 3500)
-    // t (s)    t (min)          cycles    machine    measurement
-    //  1316      21:56   9 349 457 980        WSL           wsl1
-    //  1328      22:08   9 349 457 980        WSL           wsl1
-    //  1329      22:09   9 349 457 980        WSL           wsl1
-    //  1318      21:58   9 349 457 980        WSL           wsl1
-    //  1327      22:07   9 349 457 980        WSL           wsl1
-    //  1314      21:54   9 349 457 980        WSL           wsl1
-
+    // t (s)        t (min)          cycles    machine    measurement
+    //  1316          21:56   9 349 457 980        WSL           msim
+    //  1328          22:08   9 349 457 980        WSL           msim
+    //  1329          22:09   9 349 457 980        WSL           msim
+    //  1318          21:58   9 349 457 980        WSL           msim
+    //  1327          22:07   9 349 457 980        WSL           msim
+    //  1314          21:54   9 349 457 980        WSL           msim
+    //     0.685                                   WSL           native
+    //     0.691                                   WSL           native
+    //     0.692                                   WSL           native
+    //     0.690                                   WSL           native
+    //     0.687                                   WSL           native
+    //     0.693                                   WSL           native
 
     // Machines:
     // WSL - AMD Ryzen 5 3600 WIN 11 WSL 2 (4.05 GHz)
 
     // Measurements:
-    // wsl1 - 6 tests ran at once
+    // msim - 6 tests ran at once on RISC-V in msim
+    // native - One test at once compiled to an executable and ran natively
 }
 
 void main(void) {
-    demonstration();
-    //stress_test();
+    //demonstration();
+    stress_test();
 }

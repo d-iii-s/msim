@@ -7,8 +7,6 @@
 #define false 0
 #define true 1
 
-#include <stdio.h>
-
 void memset(char *p, char val, unsigned long count){
     for(int i = 0; i < count; ++i){
         p[i] = val;

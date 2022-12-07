@@ -235,9 +235,7 @@ void stress_test(void){
 
     for (int i = 0; i < iters; ++i){
         mat_mul(&m1, &m2, &m3);
-    }
-
-    // 20:28
+    }    
 
     // Measured times for both (n = 39, iters = 3500)
     // t (s)        t (min)          cycles    machine    measurement

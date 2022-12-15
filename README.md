@@ -35,9 +35,9 @@ rather a fully deterministic simulator useful for kernel debugging.
 There are several other projects which aim speed-optimized simulation
 (e.g. [GXemul](http://gavare.se/gxemul/)), but they are more complex to use.
 
-Project homepage is at <http://d3s.mff.cuni.cz/~holub/sw/msim/>.
+(Old) project homepage is at <http://d3s.mff.cuni.cz/~holub/sw/msim/>.
 
-Development branch is available at <https://github.com/D-iii-S/msim>.
+This project is forked from <https://github.com/D-iii-S/msim>.
 
 Compilation and installation
 ----------------------------

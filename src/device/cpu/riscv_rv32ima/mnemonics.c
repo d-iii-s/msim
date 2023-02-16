@@ -764,8 +764,8 @@ static void print_sstatus(rv_cpu_t *cpu, string_t* mnemonics, string_t* comments
 }
 
 static void print_mstatus(rv_cpu_t *cpu, string_t* mnemonics, string_t* comments) {
-	bool mbe = cpu->csr.mstatus & rv_csr_mstatush_mbe_mask;
-	bool sbe = cpu->csr.mstatus & rv_csr_mstatush_sbe_mask;
+	bool mbe = (cpu->csr.mstatus >> 32) & rv_csr_mstatush_mbe_mask;
+	bool sbe = (cpu->csr.mstatus >> 32) & rv_csr_mstatush_sbe_mask;
 	
 	bool sd = cpu->csr.mstatus & 0x80000000;
 	bool tsr = rv_csr_mstatus_tsr(cpu);

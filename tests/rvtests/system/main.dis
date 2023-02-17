@@ -5,17 +5,18 @@ main.raw:     file format elf32-littleriscv
 Disassembly of section .text:
 
 00000000 <.text>:
-   0:	00000073          	ecall
-   4:	12000073          	sfence.vma
-   8:	10200073          	sret
-   c:	30200073          	mret
-  10:	30529073          	csrw	mtvec,t0
-  14:	3052a073          	csrs	mtvec,t0
-  18:	c0103073          	csrc	time,zero
-  1c:	3050d073          	csrwi	mtvec,1
-  20:	305fe073          	csrsi	mtvec,31
-  24:	305ff073          	csrci	mtvec,31
-  28:	c01022f3          	rdtime	t0
-  2c:	00100073          	ebreak
-  30:	10500073          	wfi
-  34:	8c000073          	.word	0x8c000073
+   0:	30529073          	csrw	mtvec,t0
+   4:	3052a073          	csrs	mtvec,t0
+   8:	c0103073          	csrc	time,zero
+   c:	3050d073          	csrwi	mtvec,1
+  10:	305fe073          	csrsi	mtvec,31
+  14:	305ff073          	csrci	mtvec,31
+  18:	c01022f3          	rdtime	t0
+  1c:	00100073          	ebreak
+  20:	8c200073          	.word	0x8c200073
+  24:	30400293          	li	t0,772
+  28:	8c4002f3          	.word	0x8c4002f3
+  2c:	8c300073          	.word	0x8c300073
+  30:	00000013          	nop
+  34:	8c100073          	.word	0x8c100073
+  38:	8c000073          	.word	0x8c000073

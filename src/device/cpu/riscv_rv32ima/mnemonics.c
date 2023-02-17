@@ -84,9 +84,17 @@ extern rv_mnemonics_func_t rv_decode_mnemonics(rv_instr_t instr){
     if(instr_func == rv_halt_instr)
         return rv_ehalt_mnemonics;
 
-	
     if(instr_func == rv_dump_instr)
         return rv_edump_mnemonics;
+
+    if(instr_func == rv_trace_set_instr)
+        return rv_trace_set_mnemonics;
+    
+    if(instr_func == rv_trace_reset_instr)
+        return rv_trace_reset_mnemonics;
+
+    if(instr_func == rv_csr_rd_instr)
+        return rv_csr_rd_mnemonics;
 
     if(instr_func == rv_call_instr)
         return rv_ecall_mnemonics;
@@ -499,6 +507,16 @@ extern void rv_ehalt_mnemonics(uint32_t addr, rv_instr_t instr, string_t *s_mnem
 
 void rv_edump_mnemonics(uint32_t addr, rv_instr_t instr, string_t *s_mnemonics, string_t *s_comments){
 	string_printf(s_mnemonics, "edump");
+}
+
+void rv_trace_set_mnemonics(uint32_t addr, rv_instr_t instr, string_t *s_mnemonics, string_t *s_comments){
+	string_printf(s_mnemonics, "etraces");
+}
+void rv_trace_reset_mnemonics(uint32_t addr, rv_instr_t instr, string_t *s_mnemonics, string_t *s_comments){
+	string_printf(s_mnemonics, "etracer");
+}
+void rv_csr_rd_mnemonics(uint32_t addr, rv_instr_t instr, string_t *s_mnemonics, string_t *s_comments){
+	string_printf(s_mnemonics, "ecsrrd %s", rv_regnames[instr.i.rd]);
 }
 
 extern void rv_sret_mnemonics(uint32_t addr, rv_instr_t instr, string_t *s_mnemonics, string_t *s_comments){

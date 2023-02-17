@@ -42,6 +42,38 @@ rv_exc_t rv_dump_instr(rv_cpu_t *cpu, rv_instr_t instr){
     return rv_exc_none;
 }
 
+
+extern rv_exc_t rv_trace_set_instr(rv_cpu_t *cpu, rv_instr_t instr){
+    ASSERT(cpu != NULL);
+    ASSERT(instr.i.opcode == rv_opcSYSTEM);
+    alert("ETRACES: Trace Set");
+    machine_trace = true;
+    return rv_exc_none;
+}
+
+extern rv_exc_t rv_trace_reset_instr(rv_cpu_t *cpu, rv_instr_t instr){
+    ASSERT(cpu != NULL);
+    ASSERT(instr.i.opcode == rv_opcSYSTEM);
+    alert("ETRACES: Trace Reset");
+    machine_trace = false;
+    return rv_exc_none;
+}
+
+extern rv_exc_t rv_csr_rd_instr(rv_cpu_t *cpu, rv_instr_t instr){
+    ASSERT(cpu != NULL);
+    ASSERT(instr.i.opcode == rv_opcSYSTEM);
+    alert("ECSRRD: Dump CSR");
+    uint32_t csr = cpu->regs[instr.i.rd] & 0xFFF;
+    
+    if(csr >= 0x1000){
+        alert("Wrong CSR number!");
+    }
+    else {
+        rv_csr_dump(cpu, csr);
+    }
+    return rv_exc_none;
+}
+
 rv_exc_t rv_call_instr(rv_cpu_t *cpu, rv_instr_t instr){
     switch(cpu->priv_mode){
         case rv_umode:

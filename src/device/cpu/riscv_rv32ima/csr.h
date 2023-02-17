@@ -531,6 +531,7 @@ enum rv_priv_mode;
 #define rv_csr_sstatus_spp_pos 8
 
 // Doesn't include UBE, because riscv in msim is strictly Little Endian
+// Also does not include SD, XS, FS abd VS, because these are used for extensions that are not implemented
 #define rv_csr_sstatus_mask (rv_csr_sstatus_mxr_mask | rv_csr_sstatus_sum_mask | rv_csr_sstatus_spp_mask | rv_csr_sstatus_spie_mask | rv_csr_sstatus_sie_mask)
 #define rv_csr_mstatus_mask (rv_csr_sstatus_mask | rv_csr_mstatus_tsr_mask | rv_csr_mstatus_tw_mask | rv_csr_mstatus_tvm_mask | rv_csr_mstatus_mprv_mask | rv_csr_mstatus_mpp_mask | rv_csr_mstatus_mpie_mask | rv_csr_mstatus_mie_mask)
 

@@ -18,6 +18,10 @@
 extern rv_exc_t rv_break_instr(rv_cpu_t *cpu, rv_instr_t instr);
 extern rv_exc_t rv_halt_instr(rv_cpu_t *cpu, rv_instr_t instr);
 extern rv_exc_t rv_dump_instr(rv_cpu_t *cpu, rv_instr_t instr);
+extern rv_exc_t rv_trace_set_instr(rv_cpu_t *cpu, rv_instr_t instr);
+extern rv_exc_t rv_trace_reset_instr(rv_cpu_t *cpu, rv_instr_t instr);
+extern rv_exc_t rv_csr_rd_instr(rv_cpu_t *cpu, rv_instr_t instr);
+
 extern rv_exc_t rv_call_instr(rv_cpu_t *cpu, rv_instr_t instr);
 
 extern rv_exc_t rv_sret_instr(rv_cpu_t *cpu, rv_instr_t instr);

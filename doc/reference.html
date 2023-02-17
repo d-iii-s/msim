@@ -104,6 +104,8 @@ for <a href="http://d3s.mff.cuni.cz/~holub/sw/msim/">MSIM</a> version 2.0.0.</p>
 			<ul>
 				<li><a href="#ehalt">10.2.1 EHALT</a></li>
 				<li><a href="#edump">10.2.2 EDUMP</a></li>
+				<li><a href="#etrace">10.2.3 ETRACES/ETRACER</a></li>
+				<li><a href="#ecsrrd">10.2.4 ECSRRD</a></li>
 			</ul>
 		</ul>
 	</li>
@@ -2001,6 +2003,10 @@ The instruction can be used to instantly print a value of a variable.</p>
 		<dd>Halt the simulation.</dd>
 	<dt><a href="#edump">EDUMP</a></dt>
 		<dd>Dump the content of all general registers to the screen.</dd>
+	<dt><a href="#etrace">ETRACES/ETRACER</a></dt>
+		<dd>Set/Reset trace of instructions.</dd>
+	<dt><a href="#ecsrrd">ECSRRD</a></dt>
+		<dd>Dump specified CSR.</dd>
 </dl>
 
 <h4>10.2.1. Environment Halt <code>EHALT</code><a name="ehalt"></a></h4>
@@ -2010,6 +2016,14 @@ The instruction can be used to instantly print a value of a variable.</p>
 <h4>10.2.2. Environment Dump Registers <code>EDUMP</code><a name="edump"></a></h4>
 <p>The instruction dumps the content of all the general registers to the screen.</p>
 <h5>Opcode: <code><strong>0x8C100073</strong></code></h5>
+
+<h4>10.2.3. Environment Set/Reset Trace <code>ETRACES/ETRACER</code><a name="etrace"></a></h4>
+<p>The instructions turn on/off instruction tracing.</p>
+<h5>Opcode: <code><strong>0x8C200073/0x8C300073</strong></code></h5>
+
+<h4>10.2.4. Environment CSR Dump <code>ECSRRD</code><a name="ecsrrd"></a></h4>
+<p>The instruction prints a specified CSR. The CSR value is taken from the <code>rd</code> register from the I instruction format (bits 7..11)</p>
+<h5>Opcode: <code><strong>0x8C400073</strong> (for register x0)</code></h5>
 
 <h4>Example</h4>
 <p>The following example shows an implementation in GCC:</p>

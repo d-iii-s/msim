@@ -415,8 +415,16 @@ void rv_reg_dump(rv_cpu_t *cpu){
             rv_regnames[i+3], cpu->regs[i+3]
         );
     }
+
+	char* priv_mode = cpu->priv_mode == rv_mmode ? "M" :
+					  cpu->priv_mode == rv_smode ? "S" :
+					  cpu->priv_mode == rv_umode ? "U" :
+					  "ERROR";
     
-    printf(" %5s: %08x\n", "pc", cpu->pc);
+    printf(" %5s: %08x %44s: %s\n",
+		"pc", cpu->pc,
+		"Privilege mode", priv_mode 
+	);
 }
 
 static void idump_common(uint32_t addr, rv_instr_t instr, string_t *s_opc,

@@ -7,6 +7,6 @@ processor 0
     s4:        0    s5: ffffffff    s6: 3fffffff    s7: fffffffd
     s8:        3    s9:        2   s10:        0   s11:        0
     t3:        0    t4:        0    t5:        0    t6:        0
-    pc: 00000034
+    pc: f0000034                               Privilege mode: M
 
-Cycles: 16
+Cycles: 15

@@ -7,7 +7,7 @@ processor 0
     s4:        0    s5:        0    s6:        0    s7:        0
     s8:        0    s9:        0   s10:        0   s11:        0
     t3:        0    t4:        0    t5:        0    t6:        0
-    pc: f0000004
+    pc: f0000004                               Privilege mode: M
 processor 0
   zero:        0    ra:        0    sp:        0    gp:        0
     tp:        0    t0:        0    t1:        0    t2:        0
@@ -17,7 +17,7 @@ processor 0
     s4:        0    s5:        0    s6:        0    s7:        0
     s8:        0    s9:        0   s10:        0   s11:        0
     t3:        0    t4:        0    t5:        0    t6:        0
-    pc: f000000c
+    pc: f000000c                               Privilege mode: M
 processor 0
   zero:        0    ra:        0    sp:        0    gp:        0
     tp:        0    t0:        0    t1:        0    t2:        0
@@ -27,7 +27,7 @@ processor 0
     s4:        0    s5:        0    s6:        0    s7:        0
     s8:        0    s9:        0   s10:        0   s11:        0
     t3:        0    t4:        0    t5:        0    t6:        0
-    pc: f0000014
+    pc: f0000014                               Privilege mode: M
 processor 0
   zero:        0    ra:        0    sp:        0    gp:        0
     tp:        0    t0:        0    t1:        0    t2:        0
@@ -37,7 +37,7 @@ processor 0
     s4:        0    s5:        0    s6:        0    s7:        0
     s8:        0    s9:        0   s10:        0   s11:        0
     t3:        0    t4:        0    t5:        0    t6:        0
-    pc: f000001c
+    pc: f000001c                               Privilege mode: M
 processor 0
   zero:        0    ra:        0    sp:        0    gp:        0
     tp:        0    t0:        0    t1:        0    t2:        0
@@ -47,7 +47,7 @@ processor 0
     s4:        0    s5:        0    s6:        0    s7:        0
     s8:        0    s9:        0   s10:        0   s11:        0
     t3:        0    t4:        0    t5:        0    t6:        0
-    pc: f0000024
+    pc: f0000024                               Privilege mode: M
 processor 0
   zero:        0    ra:        0    sp:        0    gp:        0
     tp:        0    t0:        0    t1:        0    t2:        0
@@ -57,7 +57,7 @@ processor 0
     s4:        0    s5:        0    s6:        0    s7:        0
     s8:        0    s9:        0   s10:        0   s11:        0
     t3:        0    t4:        0    t5:        0    t6:        0
-    pc: f000002c
+    pc: f000002c                               Privilege mode: M
 processor 0
   zero:        0    ra:        0    sp:        0    gp:        0
     tp:        0    t0:        0    t1:        0    t2:        0
@@ -67,7 +67,7 @@ processor 0
     s4:        0    s5:        0    s6:        0    s7:        0
     s8:        0    s9:        0   s10:        0   s11:        0
     t3:        0    t4:        0    t5:        0    t6:        0
-    pc: f0000034
+    pc: f0000034                               Privilege mode: M
 processor 0
   zero:        0    ra:        0    sp:        0    gp:        0
     tp:        0    t0:        0    t1:        0    t2:        0
@@ -77,7 +77,7 @@ processor 0
     s4:        0    s5:        0    s6:        0    s7:        0
     s8:        0    s9:        0   s10:        0   s11:        0
     t3:        0    t4:        0    t5:        0    t6:        0
-    pc: f000003c
+    pc: f000003c                               Privilege mode: M
 processor 0
   zero:        0    ra:        0    sp:        0    gp:        0
     tp:        0    t0:        0    t1:        0    t2:        0
@@ -87,7 +87,7 @@ processor 0
     s4:        0    s5:        0    s6:        0    s7:        0
     s8:        0    s9:        0   s10:        0   s11:        0
     t3:        0    t4:        0    t5:        0    t6:        0
-    pc: f0000044
+    pc: f0000044                               Privilege mode: M
 processor 0
   zero:        0    ra:        0    sp:        0    gp:        0
     tp:        0    t0:        0    t1:        0    t2:        0
@@ -97,6 +97,6 @@ processor 0
     s4:        0    s5:        0    s6:        0    s7:        0
     s8:        0    s9:        0   s10:        0   s11:        0
     t3:        0    t4:        0    t5:        0    t6:        0
-    pc: f000004c
+    pc: f000004c                               Privilege mode: M
 
 Cycles: 21

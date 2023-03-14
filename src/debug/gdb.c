@@ -26,7 +26,9 @@
 #include "gdb.h"
 #include "../arch/network.h"
 #include "../device/cpu/mips_r4000/cpu.h"
-#include "../device/dcpu.h"
+#include "../device/cpu/riscv_rv32ima/cpu.h"
+#include "../device/cpu/general_cpu.h"
+#include "../device/dr4kcpu.h"
 #include "../assert.h"
 #include "../endian.h"
 #include "../fault.h"
@@ -281,7 +283,7 @@ static void gdb_read_physmem(ptr36_t addr, len36_t length)
 	 * endianess.
 	 */
 	while (length > 0) {
-		uint8_t value = physmem_read8(NULL, addr, false);
+		uint8_t value = physmem_read8(-1 /*NULL*/, addr, false);
 		string_printf(&str, "%02" PRIx8, value);
 		
 		length--;
@@ -307,7 +309,7 @@ static void gdb_write_physmem(ptr36_t addr, len36_t length, char *data)
 		}
 		
 		/* Write it */
-		if (!physmem_write8(NULL, addr, (uint8_t) value, false)) {
+		if (!physmem_write8(-1 /*NULL*/, addr, (uint8_t) value, false)) {
 			gdb_send_reply(GDB_REPLY_MEMORY_WRITE_FAIL);
 			return;
 		}
@@ -435,8 +437,10 @@ void gdb_handle_event(gdb_event_t event)
 	string_t msg;
 	string_init(&msg);
 	
-	cpu_t *cpu = dcpu_find_no(cpuno_global);
-	
+	//TODO: implement for both
+	r4k_cpu_t *cpu = (r4k_cpu_t *)get_cpu(cpuno_global)->data;
+	// TODO: ASSERT that it really us r4k 
+
 	string_printf(&msg, "T%02x%02x:", event, GDB_REGISTER_PC);
 	gdb_register_dump(&msg, cpu->pc.ptr);
 	string_push(&msg, ';');
@@ -455,7 +459,9 @@ void gdb_handle_event(gdb_event_t event)
  */
 static void gdb_read_registers(void)
 {
-	cpu_t *cpu = dcpu_find_no(cpuno_global);
+	//TODO: implement for both
+	r4k_cpu_t *cpu = (r4k_cpu_t *)get_cpu(cpuno_global)->data;
+	// TODO: ASSERT that it really us r4k 
 	string_t str;
 	string_init(&str);
 	
@@ -482,7 +488,9 @@ static void gdb_read_registers(void)
 static void gdb_write_registers(char *req)
 {
 	char *query = req + 1;
-	cpu_t *cpu = dcpu_find_no(cpuno_global);
+	//TODO: implement for both
+	r4k_cpu_t *cpu = (r4k_cpu_t *)get_cpu(cpuno_global)->data;
+	// TODO: ASSERT that it really us r4k 
 	
 	if (!gdb_registers_upload(&query, cpu->regs, 32))
 		return;
@@ -528,14 +536,13 @@ static void gdb_cmd_mem_operation(char *req, bool read)
 	}
 	
 	/* Addresses are physical */
-	cpu_t *cpu = dcpu_find_no(cpuno_global);
 	
 	ptr64_t virt;
 	virt.ptr = address;
 	len64_t len = length;
 	ptr36_t phys;
 	
-	if (convert_addr(cpu, virt, &phys, false, false) == excNone) {
+	if (cpu_convert_addr(get_cpu(cpuno_global), virt, &phys, !read)) {
 		if (!read) {
 			/* Move the pointer to the data to be written */
 			query = strchr(query, ':');
@@ -576,8 +583,10 @@ static void gdb_cmd_step(char *req, bool step)
 	if (matched == 1) {
 		ptr64_t addr;
 		addr.ptr = address;
-		cpu_t *cpu = dcpu_find_no(cpuno_step);
-		cpu_set_pc(cpu, addr);
+		//TODO: implement for both
+		r4k_cpu_t *cpu = (r4k_cpu_t *)get_cpu(cpuno_global)->data;
+		// TODO: ASSERT that it really us r4k 
+		r4k_set_pc(cpu, addr);
 	}
 	
 	remote_gdb_step = step;
@@ -686,7 +695,7 @@ static void gdb_reply_event(gdb_event_t event)
 /** Activate code breakpoint
  *
  */
-static void gdb_insert_code_breakpoint(cpu_t *cpu, ptr64_t addr)
+static void gdb_insert_code_breakpoint(r4k_cpu_t *cpu, ptr64_t addr)
 {
 	/*
 	 * Breakpoint insertion should be done in an idempotent way,
@@ -710,7 +719,7 @@ static void gdb_insert_code_breakpoint(cpu_t *cpu, ptr64_t addr)
 /** Deactivate code breakpoint
  *
  */
-static void gdb_remove_code_breakpoint(cpu_t *cpu, ptr64_t addr)
+static void gdb_remove_code_breakpoint(r4k_cpu_t *cpu, ptr64_t addr)
 {
 	breakpoint_t *breakpoint = breakpoint_find_by_address(cpu->bps,
 	    addr, BREAKPOINT_FILTER_DEBUGGER);
@@ -774,7 +783,9 @@ static void gdb_breakpoint(char *req, bool insert)
 	ptr64_t virt;
 	// Extend the address as the GDB sends the address in 32bits.
 	virt.ptr = UINT64_C(0xffffffff00000000) | address;
-	cpu_t* cpu = dcpu_find_no(cpuno_global);
+	//TODO: implement for both
+	r4k_cpu_t *cpu = (r4k_cpu_t *)get_cpu(cpuno_global)->data;
+	// TODO: ASSERT that it really us r4k 
 	
 	if (code_breakpoint) {
 		if (length != 4) {
@@ -789,7 +800,7 @@ static void gdb_breakpoint(char *req, bool insert)
 	} else {
 		ptr36_t phys;
 		
-		if (convert_addr(cpu, virt, &phys, false, false) == excNone) {
+		if (cpu_convert_addr(get_cpu(cpuno_global), virt, &phys, false)) {
 			if (insert)
 				physmem_breakpoint_add(phys, length,
 				    BREAKPOINT_KIND_DEBUGGER, memory_access);
@@ -809,7 +820,9 @@ static void gdb_breakpoint(char *req, bool insert)
  */
 static void gdb_remote_done(bool fail, bool remote_request)
 {
-	cpu_t *cpu = dcpu_find_no(cpuno_global);
+	//TODO: implement for both
+	r4k_cpu_t *cpu = (r4k_cpu_t *)get_cpu(cpuno_global)->data;
+	// TODO: ASSERT that it really us r4k 
 	
 	if (!fail)
 		gdb_send_reply(remote_request ? GDB_REPLY_OK : GDB_REPLY_WARNING);

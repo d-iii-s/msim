@@ -1,0 +1,52 @@
+
+main.raw:     file format elf32-littleriscv
+
+
+Disassembly of section .text:
+
+00000000 <error-0xa0>:
+   0:	00000513          	li	a0,0
+   4:	90000437          	lui	s0,0x90000
+   8:	00500593          	li	a1,5
+   c:	08b522af          	amoswap.w	t0,a1,(a0)
+  10:	08029863          	bnez	t0,a0 <error>
+  14:	00058613          	mv	a2,a1
+  18:	00300593          	li	a1,3
+  1c:	00b522af          	amoadd.w	t0,a1,(a0)
+  20:	08c29063          	bne	t0,a2,a0 <error>
+  24:	00b60633          	add	a2,a2,a1
+  28:	fff00593          	li	a1,-1
+  2c:	20b522af          	amoxor.w	t0,a1,(a0)
+  30:	06c29863          	bne	t0,a2,a0 <error>
+  34:	00b64633          	xor	a2,a2,a1
+  38:	00f00593          	li	a1,15
+  3c:	60b522af          	amoand.w	t0,a1,(a0)
+  40:	06c29063          	bne	t0,a2,a0 <error>
+  44:	00b67633          	and	a2,a2,a1
+  48:	00e00593          	li	a1,14
+  4c:	40b522af          	amoor.w	t0,a1,(a0)
+  50:	04c29863          	bne	t0,a2,a0 <error>
+  54:	00b66633          	or	a2,a2,a1
+  58:	ffe00593          	li	a1,-2
+  5c:	80b522af          	amomin.w	t0,a1,(a0)
+  60:	04c29063          	bne	t0,a2,a0 <error>
+  64:	00058613          	mv	a2,a1
+  68:	fff00593          	li	a1,-1
+  6c:	a0b522af          	amomax.w	t0,a1,(a0)
+  70:	02c29863          	bne	t0,a2,a0 <error>
+  74:	00058613          	mv	a2,a1
+  78:	00000593          	li	a1,0
+  7c:	c0b522af          	amominu.w	t0,a1,(a0)
+  80:	02c29063          	bne	t0,a2,a0 <error>
+  84:	00058613          	mv	a2,a1
+  88:	fff00593          	li	a1,-1
+  8c:	e0b522af          	amomaxu.w	t0,a1,(a0)
+  90:	00c29863          	bne	t0,a2,a0 <error>
+  94:	05300293          	li	t0,83
+  98:	00542023          	sw	t0,0(s0) # 90000000 <error+0x8fffff60>
+  9c:	8c000073          	.word	0x8c000073
+
+000000a0 <error>:
+  a0:	04600293          	li	t0,70
+  a4:	00542023          	sw	t0,0(s0)
+  a8:	8c000073          	.word	0x8c000073

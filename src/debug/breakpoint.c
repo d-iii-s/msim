@@ -39,6 +39,9 @@
 #include "../main.h"
 #include "../utils.h"
 #include "breakpoint.h"
+#include "../device/cpu/general_cpu.h"
+#include "../device/dr4kcpu.h"
+#include "../device/cpu/mips_r4000/cpu.h"
 #include "gdb.h"
 
 list_t physmem_breakpoints = LIST_INITIALIZER;
@@ -304,11 +307,12 @@ breakpoint_t *breakpoint_find_by_address(list_t breakpoints,
  */
 bool breakpoint_check_for_code_breakpoints(void)
 {
+	//TODO: add RV support
 	bool hit = false;
 	device_t *dev = NULL;
 	
-	while (dev_next(&dev, DEVICE_FILTER_PROCESSOR)) {
-		cpu_t* cpu = (cpu_t *) dev->data;
+	while (dev_next(&dev, DEVICE_FILTER_R4K_PROCESSOR)) {
+		r4k_cpu_t *cpu = get_r4k(dev);
 		
 		if (breakpoint_hit_by_address(cpu->bps, cpu->pc))
 			hit = true;

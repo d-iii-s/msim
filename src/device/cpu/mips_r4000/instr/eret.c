@@ -1,9 +1,9 @@
-static exc_t instr_eret(cpu_t *cpu, instr_t instr)
+static r4k_exc_t instr_eret(r4k_cpu_t *cpu, r4k_instr_t instr)
 {
 	if (CP0_USABLE(cpu)) {
 		/* ERET breaks LL-SC (LLD-SCD) address tracking */
 		cpu->llbit = false;
-		sc_unregister(cpu);
+		sc_unregister(cpu->procno);
 		
 		/* Delay slot test */
 		if (cpu->branch != BRANCH_NONE)
@@ -19,14 +19,14 @@ static exc_t instr_eret(cpu_t *cpu, instr_t instr)
 			cp0_status(cpu).val &= ~cp0_status_exl_mask;
 		}
 		
-		return excNone;
+		return r4k_excNone;
 	}
 	
 	cp0_cause(cpu).val &= ~cp0_cause_ce_mask;
-	return excCpU;
+	return r4k_excCpU;
 }
 
-static void mnemonics_eret(ptr64_t addr, instr_t instr,
+static void mnemonics_eret(ptr64_t addr, r4k_instr_t instr,
     string_t *mnemonics, string_t *comments)
 {
 	string_printf(mnemonics, "eret");

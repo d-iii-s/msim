@@ -1,4 +1,4 @@
-static exc_t instr_sd(cpu_t *cpu, instr_t instr)
+static r4k_exc_t instr_sd(r4k_cpu_t *cpu, r4k_instr_t instr)
 {
 	if (CPU_64BIT_INSTRUCTION(cpu)) {
 		ptr64_t addr;
@@ -7,10 +7,10 @@ static exc_t instr_sd(cpu_t *cpu, instr_t instr)
 		return cpu_write_mem64(cpu, addr, cpu->regs[instr.i.rt].val, true);
 	}
 	
-	return excRI;
+	return r4k_excRI;
 }
 
-static void mnemonics_sd(ptr64_t addr, instr_t instr,
+static void mnemonics_sd(ptr64_t addr, r4k_instr_t instr,
     string_t *mnemonics, string_t *comments)
 {
 	string_printf(mnemonics, "sd");

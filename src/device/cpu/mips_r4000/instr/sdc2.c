@@ -1,17 +1,17 @@
-static exc_t instr_sdc2(cpu_t *cpu, instr_t instr)
+static r4k_exc_t instr_sdc2(r4k_cpu_t *cpu, r4k_instr_t instr)
 {
 	if (cp0_status_cu2(cpu)) {
 		/* Ignored */
-		return excNone;
+		return r4k_excNone;
 	}
 	
 	/* Coprocessor unusable */
 	cp0_cause(cpu).val &= ~cp0_cause_ce_mask;
 	cp0_cause(cpu).val |= cp0_cause_ce_cu2;
-	return excCpU;
+	return r4k_excCpU;
 }
 
-static void mnemonics_sdc2(ptr64_t addr, instr_t instr,
+static void mnemonics_sdc2(ptr64_t addr, r4k_instr_t instr,
     string_t *mnemonics, string_t *comments)
 {
 	string_printf(mnemonics, "sdc2");

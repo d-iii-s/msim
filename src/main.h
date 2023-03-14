@@ -15,41 +15,7 @@
 #include "list.h"
 
 #define MAX_CPUS   32
-#define MAX_INTRS  6
-
-/** Exception types */
-typedef enum {
-	excInt   = 0,
-	excMod   = 1,
-	excTLBL  = 2,
-	excTLBS  = 3,
-	excAdEL  = 4,
-	excAdES  = 5,
-	excIBE   = 6,
-	excDBE   = 7,
-	excSys   = 8,
-	excBp    = 9,
-	excRI    = 10,
-	excCpU   = 11,
-	excOv    = 12,
-	excTr    = 13,
-	excVCEI  = 14,
-	excFPE   = 15,
-	excWATCH = 23,
-	excVCED  = 31,
-	
-	/* Special exception types */
-	excTLBR  = 64,
-	excTLBLR = 65,
-	excTLBSR = 66,
-	
-	/* For internal use */
-	excNone = 128,
-	excJump = 129,
-	excAddrError = 130,
-	excTLB = 131,
-	excReset = 132
-} exc_t;
+#define MAX_INTRS  11
 
 /** Physical frame number type */
 typedef uint32_t pfn_t;
@@ -72,7 +38,7 @@ typedef union {
 		uint32_t hi;
 	};
 #endif
-} __attribute__((packed)) ptr64_t;
+} __attribute__((packed, aligned(8))) ptr64_t;
 
 typedef union {
 	uint64_t val;
@@ -87,14 +53,9 @@ typedef union {
 		uint32_t hi;
 	};
 #endif
-} __attribute__((packed)) reg64_t;
+} __attribute__((packed, aligned(8))) reg64_t;
 
-/** Debugging register names */
-extern char **regname;
-extern char **cp0name;
-extern char **cp1name;
-extern char **cp2name;
-extern char **cp3name;
+
 
 /** Configuration file name */
 extern char *config_file;

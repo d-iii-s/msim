@@ -15,6 +15,7 @@
 
 #include <stdlib.h>
 #include <stdbool.h>
+#include <stdint.h>
 #include <stdio.h>
 #include "main.h"
 
@@ -26,6 +27,21 @@
 
 #define ALIGN_UP(addr, align) \
 	(((addr) + ((align) - 1)) & ~((align) - 1))
+
+#define IS_ALIGNED(addr, align) \
+	((addr & (align - 1)) == 0)
+
+#define BIT_MASK(start, end) \
+	(((UINT64_C(1) << (end - start)) - 1) << start)
+
+#define EXTRACT_BITS(val, start, end) \
+	((val >> start) & ( (UINT64_C(1) << (end - start)) - 1))
+
+#define WRITE_BITS(target, val, start, end) \
+	((target & ~BIT_MASK(start, end)) | ((val << start) & BIT_MASK(start, end)))
+
+#define AREAS_OVERLAP(base1, size1, base2, size2) \
+	(((base1) >= (base2) && (base1) < (base2) + (size2)) || ((base2) >= (base1) && (base2) < (base1) + (size1)))
 
 #define safe_free(ptr) \
 	{ \
@@ -74,5 +90,7 @@ extern bool try_ftell(FILE *file, const char *path, size_t *pos);
 extern void safe_fclose(FILE *file, const char *path);
 
 extern void try_munmap(void *ptr, size_t size);
+
+extern uint64_t current_timestamp(void);
 
 #endif

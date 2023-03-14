@@ -1,4 +1,4 @@
-static exc_t instr_sltiu(cpu_t *cpu, instr_t instr)
+static r4k_exc_t instr_sltiu(r4k_cpu_t *cpu, r4k_instr_t instr)
 {
 	if (CPU_64BIT_MODE(cpu)) {
 		uint64_t rs = cpu->regs[instr.i.rs].val;
@@ -12,10 +12,10 @@ static exc_t instr_sltiu(cpu_t *cpu, instr_t instr)
 		cpu->regs[instr.i.rt].val = rs < imm;
 	}
 	
-	return excNone;
+	return r4k_excNone;
 }
 
-static void mnemonics_sltiu(ptr64_t addr, instr_t instr,
+static void mnemonics_sltiu(ptr64_t addr, r4k_instr_t instr,
     string_t *mnemonics, string_t *comments)
 {
 	string_printf(mnemonics, "sltiu");

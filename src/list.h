@@ -50,6 +50,8 @@ typedef struct item {
 		(member) != NULL; \
 		(member) = (type *) (member)->item.next)
 
+#define is_empty(list) ((list)->head == NULL && (list)->tail == NULL)
+
 extern void list_init(list_t *);
 extern void item_init(item_t *);
 extern void list_append(list_t *, item_t *);

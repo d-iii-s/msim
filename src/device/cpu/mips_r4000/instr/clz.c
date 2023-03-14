@@ -1,7 +1,7 @@
-static exc_t instr_clz(cpu_t *cpu, instr_t instr)
+static r4k_exc_t instr_clz(r4k_cpu_t *cpu, r4k_instr_t instr)
 {
 	ASSERT(false);
-	return excNone;
+	return r4k_excNone;
 	/* utmp32 = 0;
 	utmp32b = urrs.lo;
 	

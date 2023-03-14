@@ -1,4 +1,4 @@
-static exc_t instr_bne(cpu_t *cpu, instr_t instr)
+static r4k_exc_t instr_bne(r4k_cpu_t *cpu, r4k_instr_t instr)
 {
 	bool cond;
 	
@@ -11,13 +11,13 @@ static exc_t instr_bne(cpu_t *cpu, instr_t instr)
 		cpu->pc_next.ptr +=
 		    (((int64_t) sign_extend_16_64(instr.i.imm)) << TARGET_SHIFT);
 		cpu->branch = BRANCH_COND;
-		return excJump;
+		return r4k_excJump;
 	}
 	
-	return excNone;
+	return r4k_excNone;
 }
 
-static void mnemonics_bne(ptr64_t addr, instr_t instr,
+static void mnemonics_bne(ptr64_t addr, r4k_instr_t instr,
     string_t *mnemonics, string_t *comments)
 {
 	string_printf(mnemonics, "bne");

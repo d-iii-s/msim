@@ -13,7 +13,7 @@ bindir = @bindir@
 
 BINARY = msim
 
-.PHONY: all install uninstall clean distclean
+.PHONY: all install uninstall clean distclean rvtest
 
 all:
 	$(MAKE) -C src
@@ -27,7 +27,16 @@ uninstall:
 
 clean:
 	$(MAKE) -C src clean
+	$(MAKE) -C tests/rvtests/unit-tests clean
 
 distclean: clean
 	$(MAKE) -C src distclean
+	$(MAKE) -C tests/rvtests/unit-tests distclean
 	$(RM) -f Makefile config.log config.status config.h stamp-h
+
+rvtest:
+	@echo "\nUnit tests:"
+	$(MAKE) -C src rvtest
+	@echo "\nSystem tests:"
+	cd tests/rvtests ; python3 run_tests.py
+	@echo "\n All Tests Passed!"

@@ -16,7 +16,8 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <inttypes.h>
-#include "dcpu.h"
+#include "cpu/general_cpu.h"
+#include "../physmem.h"
 #include "ddisk.h"
 #include "../arch/mmap.h"
 #include "../text.h"
@@ -545,7 +546,7 @@ static void ddisk_done(device_t *dev) {
  * @param val  Read (returned) value
  *
  */
-static void ddisk_read32(cpu_t *cpu, device_t *dev, ptr36_t addr,
+static void ddisk_read32(unsigned int procno, device_t *dev, ptr36_t addr,
     uint32_t *val)
 {
 	disk_data_s *data = (disk_data_s *) dev->data;
@@ -587,9 +588,12 @@ static void ddisk_read32(cpu_t *cpu, device_t *dev, ptr36_t addr,
  * @param val  Value to write
  *
  */
-static void ddisk_write32(cpu_t *cpu, device_t *dev, ptr36_t addr,
+static void ddisk_write32(unsigned int procno, device_t *dev, ptr36_t addr,
     uint32_t val)
 {
+
+	//TODO: generate SC checks on changed mem registers?
+
 	disk_data_s *data = (disk_data_s *) dev->data;
 	
 	/* Ignore if the disk is not initialized */
@@ -616,7 +620,7 @@ static void ddisk_write32(cpu_t *cpu, device_t *dev, ptr36_t addr,
 		if (data->disk_command & COMMAND_INT_ACK) {
 			data->disk_status &= ~STATUS_INT;
 			data->ig = false;
-			dcpu_interrupt_down(0, data->intno);
+			cpu_interrupt_down(NULL, data->intno);
 		}
 		
 		/* Check general errors */
@@ -624,7 +628,7 @@ static void ddisk_write32(cpu_t *cpu, device_t *dev, ptr36_t addr,
 		    (data->disk_command & COMMAND_WRITE)) {
 			/* Simultaneous read/write command */
 			data->disk_status = STATUS_INT | STATUS_ERROR;
-			dcpu_interrupt_up(0, data->intno);
+			cpu_interrupt_up(NULL, data->intno);
 			data->ig = true;
 			data->intrcount++;
 			data->cmds_error++;
@@ -635,7 +639,7 @@ static void ddisk_write32(cpu_t *cpu, device_t *dev, ptr36_t addr,
 		    (data->action != ACTION_NONE)) {
 			/* Command in progress */
 			data->disk_status = STATUS_INT | STATUS_ERROR;
-			dcpu_interrupt_up(0, data->intno);
+			cpu_interrupt_up(NULL, data->intno);
 			data->ig = true;
 			data->intrcount++;
 			data->cmds_error++;
@@ -646,7 +650,7 @@ static void ddisk_write32(cpu_t *cpu, device_t *dev, ptr36_t addr,
 		if (((uint64_t) data->disk_secno + 1) * 512 > data->size) {
 			/* Generate interrupt to indicate error */
 			data->disk_status = STATUS_INT | STATUS_ERROR;
-			dcpu_interrupt_up(0, data->intno);
+			cpu_interrupt_up(NULL, data->intno);
 			data->ig = true;
 			data->intrcount++;
 			data->cmds_error++;
@@ -685,11 +689,13 @@ static void ddisk_step(device_t *dev)
 	disk_data_s *data = (disk_data_s *) dev->data;
 	size_t pos;
 	
+	//TODO: generate SC checks on changed mem registers?
+	
 	/* Reading */
 	switch (data->action) {
 	case ACTION_READ:
 		pos = data->secno * 128 + data->cnt;
-		physmem_write32(NULL, data->disk_ptr, data->img[pos], true);
+		physmem_write32(-1 /*NULL*/, data->disk_ptr, data->img[pos], true);
 		
 		/* Next word */
 		data->disk_ptr += 4;
@@ -697,7 +703,7 @@ static void ddisk_step(device_t *dev)
 		break;
 	case ACTION_WRITE:
 		pos = data->secno * 128 + data->cnt;
-		data->img[pos] = physmem_read32(NULL, data->disk_ptr, true);
+		data->img[pos] = physmem_read32(-1 /*NULL*/, data->disk_ptr, true);
 		
 		/* Next word */
 		data->disk_ptr += 4;
@@ -711,7 +717,7 @@ static void ddisk_step(device_t *dev)
 	if (data->cnt == 128) {
 		data->action = ACTION_NONE;
 		data->disk_status = STATUS_INT;
-		dcpu_interrupt_up(0, data->intno);
+		cpu_interrupt_up(NULL, data->intno);
 		data->ig = true;
 		data->intrcount++;
 	}

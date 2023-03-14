@@ -30,8 +30,9 @@ bool stdin_poll(char *key)
 	
 	if (retval == 1) {
 		/* There is a new character */
-		read(0, key, 1);
-		return true;
+		if(read(0, key, 1) > 0){
+			return true;
+		}
 	}
 	
 	return false;

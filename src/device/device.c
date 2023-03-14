@@ -18,7 +18,8 @@
 #include <stdbool.h>
 #include <inttypes.h>
 #include "mem.h"
-#include "dcpu.h"
+#include "dr4kcpu.h"
+#include "drvcpu.h"
 #include "dcycle.h"
 #include "dkeyboard.h"
 #include "dorder.h"
@@ -33,11 +34,12 @@
 #include "../fault.h"
 
 /** Count of device types */
-#define DEVICE_TYPE_COUNT  9
+#define DEVICE_TYPE_COUNT  10
 
 /* Implemented peripheral list */
 const device_type_t *device_types[DEVICE_TYPE_COUNT] = {
-	&dcpu,
+	&dr4kcpu,
+	&drvcpu,
 	&dcycle,
 	&drwm,
 	&drom,
@@ -100,6 +102,7 @@ device_t *alloc_device(const char *type_string, const char *device_name)
 
 void free_device(device_t *dev)
 {
+	dev->type->done(dev);
 	safe_free(dev->name);
 	safe_free(dev);
 }
@@ -131,8 +134,8 @@ static bool dev_match_to_filter(device_t* device, device_filter_t filter)
 	case DEVICE_FILTER_MEMORY:
 		return (strcmp(device->type->name, "rom") == 0) ||
 		    (strcmp(device->type->name, "rwm") == 0);
-	case DEVICE_FILTER_PROCESSOR:
-		return (strcmp(device->type->name, "dcpu") == 0);
+	case DEVICE_FILTER_R4K_PROCESSOR:
+		return (strcmp(device->type->name, "dr4kcpu") == 0);
 	default:
 		die(ERR_INTERN, "Unexpected device filter");
 	}
@@ -283,16 +286,6 @@ device_t *dev_by_name(const char *searched_name)
 	}
 	
 	return device;
-}
-
-/** Add a new device to the machine.
- *
- * @param device Device to be added.
- *
- */
-void dev_add(device_t *device)
-{
-	list_append(&device_list, &device->item);
 }
 
 /** Remove a device from the machine.

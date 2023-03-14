@@ -8,3 +8,9 @@
 /src/Makefile.depend
 /src/Makefile.depend.prev
 *.o
+.github
+.vscode
+doxygen/
+stamp-h
+consultation-questions.md
+notes.md

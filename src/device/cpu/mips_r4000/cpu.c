@@ -25,364 +25,124 @@
 #include "../../../main.h"
 #include "../../../text.h"
 #include "../../../utils.h"
-#include "instr.h"
 #include "cpu.h"
+#include "debug.h"
+#include "../../../physmem.h"
 
-/** Physical memory management
+/** Register and coprocessor names
  *
  */
-
-#define FTL2_WIDTH  12
-#define FTL1_WIDTH  12
-
-#define FTL2_COUNT  (1 << FTL2_WIDTH)
-#define FTL1_COUNT  (1 << FTL1_WIDTH)
-
-#define FTL2_SHIFT  (FRAME_WIDTH)
-#define FTL1_SHIFT  (FRAME_WIDTH + FTL2_WIDTH)
-
-#define FTL2_MASK   (FTL2_COUNT - 1)
-#define FTL1_MASK   (FTL1_COUNT - 1)
-
-typedef frame_t *ftl1_t[FTL2_COUNT];
-typedef ftl1_t *ftl0_t[FTL1_COUNT];
-
-static ftl0_t ftl0 = {
-	NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
-	NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
-	NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
-	NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
-	NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
-	NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
-	NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
-	NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
-	NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
-	NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
-	NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
-	NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
-	NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
-	NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
-	NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
-	NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
-	NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
-	NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
-	NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
-	NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
-	NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
-	NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
-	NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
-	NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
-	NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
-	NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
-	NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
-	NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
-	NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
-	NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
-	NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
-	NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
-	NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
-	NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
-	NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
-	NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
-	NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
-	NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
-	NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
-	NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
-	NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
-	NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
-	NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
-	NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
-	NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
-	NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
-	NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
-	NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
-	NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
-	NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
-	NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
-	NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
-	NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
-	NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
-	NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
-	NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
-	NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
-	NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
-	NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
-	NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
-	NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
-	NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
-	NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
-	NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
-	NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
-	NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
-	NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
-	NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
-	NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
-	NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
-	NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
-	NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
-	NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
-	NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
-	NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
-	NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
-	NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
-	NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
-	NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
-	NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
-	NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
-	NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
-	NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
-	NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
-	NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
-	NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
-	NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
-	NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
-	NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
-	NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
-	NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
-	NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
-	NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
-	NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
-	NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
-	NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
-	NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
-	NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
-	NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
-	NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
-	NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
-	NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
-	NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
-	NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
-	NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
-	NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
-	NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
-	NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
-	NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
-	NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
-	NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
-	NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
-	NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
-	NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
-	NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
-	NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
-	NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
-	NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
-	NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
-	NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
-	NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
-	NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
-	NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
-	NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
-	NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
-	NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
-	NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
-	NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
-	NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
-	NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
-	NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
-	NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
-	NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
-	NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
-	NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
-	NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
-	NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
-	NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
-	NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
-	NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
-	NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
-	NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
-	NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
-	NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
-	NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
-	NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
-	NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
-	NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
-	NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
-	NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
-	NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
-	NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
-	NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
-	NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
-	NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
-	NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
-	NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
-	NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
-	NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
-	NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
-	NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
-	NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
-	NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
-	NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
-	NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
-	NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
-	NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
-	NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
-	NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
-	NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
-	NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
-	NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
-	NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
-	NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
-	NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
-	NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
-	NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
-	NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
-	NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
-	NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
-	NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
-	NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
-	NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
-	NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
-	NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
-	NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
-	NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
-	NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
-	NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
-	NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
-	NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
-	NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
-	NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
-	NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
-	NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
-	NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
-	NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
-	NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
-	NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
-	NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
-	NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
-	NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
-	NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
-	NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
-	NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
-	NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
-	NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
-	NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
-	NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
-	NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
-	NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
-	NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
-	NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
-	NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
-	NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
-	NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
-	NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
-	NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
-	NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
-	NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
-	NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
-	NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
-	NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
-	NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
-	NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
-	NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
-	NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
-	NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
-	NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
-	NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
-	NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
-	NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
-	NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
-	NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
-	NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
-	NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
-	NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
-	NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
-	NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
-	NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
-	NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
-	NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
-	NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
-	NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
-	NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
-	NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
-	NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
-	NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
-	NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
-	NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
-	NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
-	NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
-	NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
-	NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
-	NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
-	NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL
+char *r4k_reg_name[R4K_REG_VARIANTS][R4K_REG_COUNT] = {
+	{
+		"r0",  "r1",  "r2",  "r3",  "r4",  "r5",  "r6",  "r7",  "r8",  "r9",
+		"r10", "r11", "r12", "r13", "r14", "r15", "r16", "r17", "r18", "r19",
+		"r20", "r21", "r22", "r23", "r24", "r25", "r26", "r27", "r28", "r29",
+		"r30", "r31"
+	},
+	{
+		"$0",  "$1",  "$2",  "$3",  "$4",  "$5",  "$6",  "$7",  "$8",  "$9",
+		"$10", "$11", "$12", "$13", "$14", "$15", "$16", "$17", "$18", "$19",
+		"$20", "$21", "$22", "$23", "$24", "$25", "$26", "$27", "$28", "$29",
+		"$30", "$31"
+	},
+	{
+		"0",  "at", "v0", "v1", "a0", "a1", "a2", "a3", "t0", "t1",
+		"t2", "t3", "t4", "t5", "t6", "t7", "s0", "s1", "s2", "s3",
+		"s4", "s5", "s6", "s7", "t8", "t9", "k0", "k1", "gp", "sp",
+		"fp", "ra"
+	}
 };
 
-void physmem_wire(physmem_area_t *area)
-{
-	ASSERT(area != NULL);
-	ASSERT(area->type != MEMT_NONE);
-	ASSERT(area->count > 0);
-	ASSERT(area->data != NULL);
-	ASSERT(area->trans != NULL);
-	
-	pfn_t pfn;
-	for (pfn = 0; pfn < area->count; pfn++) {
-		ptr36_t addr = FRAME2ADDR(area->start + pfn);
-		
-		/* 1st level frame table */
-		ftl1_t *ftl1 = ftl0[(addr >> FTL1_SHIFT) & FTL1_MASK];
-		if (ftl1 == NULL) {
-			/* Allocate new 2nd level frame table */
-			ftl1 = safe_malloc_t(ftl1_t);
-			memset(ftl1, 0, sizeof(ftl1_t));
-			ftl0[(addr >> FTL1_SHIFT) & FTL1_MASK] = ftl1;
-		}
-		
-		/* 2nd level frame table */
-		frame_t *frame = (*ftl1)[(addr >> FTL2_SHIFT) & FTL2_MASK];
-		if (frame == NULL) {
-			/* Allocate new frame descriptor */
-			frame = safe_malloc_t(frame_t);
-			memset(frame, 0, sizeof(frame_t));
-			(*ftl1)[(addr >> FTL2_SHIFT) & FTL2_MASK] = frame;
-		}
-		
-		/* Frame descriptor */
-		frame->area = area;
-		frame->data = area->data + FRAMES2SIZE(pfn);
-		frame->trans = area->trans + SIZE2INSTRS(FRAMES2SIZE(pfn));
-		frame->valid = false;
+char *r4k_cp0_name[R4K_REG_VARIANTS][R4K_REG_COUNT] = {
+	{
+		"0",  "1",  "2",  "3",  "4",  "5",  "6",  "7",  "8",  "9",
+		"10", "11", "12", "13", "14", "15", "16", "17", "18", "19",
+		"20", "21", "22", "23", "24", "25", "26", "27", "28", "29",
+		"30", "31"
+	},
+	{
+		"$0",  "$1",  "$2",  "$3",  "$4",  "$5",  "$6",  "$7",  "$8",  "$9",
+		"$10", "$11", "$12", "$13", "$14", "$15", "$16", "$17", "$18", "$19",
+		"$20", "$21", "$22", "$23", "$24", "$25", "$26", "$27", "$28", "$29",
+		"$30", "$31"
+	},
+	{
+		"index",    "random",   "entrylo0", "entrylo1",
+		"context",  "pagemask", "wired",    "res_7",
+		"badvaddr", "count",    "entryhi",  "compare",
+		"status",   "cause",    "epc",      "prid",
+		"config",   "lladdr",   "watchlo",  "watchhi",
+		"xcontext", "res_21",   "res_22",   "res_23",
+		"res_24",   "res_25",   "res_26",   "res_27",
+		"res_28",   "res_29",   "errorepc", "res_31"
 	}
-}
+};
 
-void physmem_unwire(physmem_area_t *area)
-{
-	ASSERT(area != NULL);
-	ASSERT(area->type != MEMT_NONE);
-	ASSERT(area->count > 0);
-	ASSERT(area->data != NULL);
-	ASSERT(area->trans != NULL);
-	
-	// FIXME TODO
-	// Deallocate also the ftl1 if no longer needed
-	
-	uint32_t pfn;
-	for (pfn = 0; pfn < area->count; pfn++) {
-		ptr36_t addr = FRAME2ADDR(area->start + pfn);
-		
-		/* 1st level frame table */
-		ftl1_t *ftl1 = ftl0[(addr >> FTL1_SHIFT) & FTL1_MASK];
-		ASSERT(ftl1 != NULL);
-		
-		/* 2nd level frame table */
-		frame_t **frame_ref = &((*ftl1)[(addr >> FTL2_SHIFT) & FTL2_MASK]);
-		ASSERT(*frame_ref != NULL);
-		
-		/* Remove frame */
-		safe_free(*frame_ref);
+char *r4k_cp1_name[R4K_REG_VARIANTS][R4K_REG_COUNT] = {
+	{
+		"0",  "1",  "2",  "3",  "4",  "5",  "6",  "7",  "8",  "9",
+		"10", "11", "12", "13", "14", "15", "16", "17", "18", "19",
+		"20", "21", "22", "23", "24", "25", "26", "27", "28", "29",
+		"30", "31"
+	},
+	{
+		"$0",  "$1",  "$2",  "$3",  "$4",  "$5",  "$6",  "$7",  "$8",  "$9",
+		"$10", "$11", "$12", "$13", "$14", "$15", "$16", "$17", "$18", "$19",
+		"$20", "$21", "$22", "$23", "$24", "$25", "$26", "$27", "$28", "$29",
+		"$30", "$31"
+	},
+	{
+		"cp1_0",  "cp1_1",  "cp1_2",  "cp1_3",  "cp1_4",  "cp1_5",  "cp1_6",
+		"cp1_7",  "cp1_8",  "cp1_9",  "cp1_10", "cp1_11", "cp1_12", "cp1_13",
+		"cp1_14", "cp1_15", "cp1_16", "cp1_17", "cp1_18", "cp1_19", "cp1_20",
+		"cp1_21", "cp1_22", "cp1_23", "cp1_24", "cp1_25", "cp1_26", "cp1_27",
+		"cp1_28", "cp1_29", "cp1_30", "cp1_31"
 	}
-}
+};
 
-static frame_t* physmem_find_frame(ptr36_t addr)
-{
-	ftl1_t *ftl1 = ftl0[(addr >> FTL1_SHIFT) & FTL1_MASK];
-	if (ftl1 != NULL) {
-		frame_t *frame = (*ftl1)[(addr >> FTL2_SHIFT) & FTL2_MASK];
-		if (frame != NULL)
-			return frame;
+char *r4k_cp2_name[R4K_REG_VARIANTS][R4K_REG_COUNT] = {
+	{
+		"0",  "1",  "2",  "3",  "4",  "5",  "6",  "7",  "8",  "9",
+		"10", "11", "12", "13", "14", "15", "16", "17", "18", "19",
+		"20", "21", "22", "23", "24", "25", "26", "27", "28", "29",
+		"30", "31"
+	},
+	{
+		"$0",  "$1",  "$2",  "$3",  "$4",  "$5",  "$6",  "$7",  "$8",  "$9",
+		"$10", "$11", "$12", "$13", "$14", "$15", "$16", "$17", "$18", "$19",
+		"$20", "$21", "$22", "$23", "$24", "$25", "$26", "$27", "$28", "$29",
+		"$30", "$31"
+	},
+	{
+		"cp2_0",  "cp2_1",  "cp2_2",  "cp2_3",  "cp2_4",  "cp2_5",  "cp2_6",
+		"cp2_7",  "cp2_8",  "cp2_9",  "cp2_10", "cp2_11", "cp2_12", "cp2_13",
+		"cp2_14", "cp2_15", "cp2_16", "cp2_17", "cp2_18", "cp2_19", "cp2_20",
+		"cp2_21", "cp2_22", "cp2_23", "cp2_24", "cp2_25", "cp2_26", "cp2_27",
+		"cp2_28", "cp2_29", "cp2_30", "cp2_31"
 	}
-	
-	return NULL;
-}
+};
+
+char *r4k_cp3_name[R4K_REG_VARIANTS][R4K_REG_COUNT] = {
+	{
+		"0",  "1",  "2",  "3",  "4",  "5",  "6",  "7",  "8",  "9",
+		"10", "11", "12", "13", "14", "15", "16", "17", "18", "19",
+		"20", "21", "22", "23", "24", "25", "26", "27", "28", "29",
+		"30", "31"
+	},
+	{
+		"$0",  "$1",  "$2",  "$3",  "$4",  "$5",  "$6",  "$7",  "$8",  "$9",
+		"$10", "$11", "$12", "$13", "$14", "$15", "$16", "$17", "$18", "$19",
+		"$20", "$21", "$22", "$23", "$24", "$25", "$26", "$27", "$28", "$29",
+		"$30", "$31"
+	},
+	{
+		"cp3_0",  "cp3_1",  "cp3_2",  "cp3_3",  "cp3_4",  "cp3_5",  "cp3_6",
+		"cp3_7",  "cp3_8",  "cp3_9",  "cp3_10", "cp3_11", "cp3_12", "cp3_13",
+		"cp3_14", "cp3_15", "cp3_16", "cp3_17", "cp3_18", "cp3_19", "cp3_20",
+		"cp3_21", "cp3_22", "cp3_23", "cp3_24", "cp3_25", "cp3_26", "cp3_27",
+		"cp3_28", "cp3_29", "cp3_30", "cp3_31"
+	}
+};
 
 /** Sign extensions
  *
@@ -588,7 +348,7 @@ static shift_tab_t shift_tab_right_store[] = {
  * See tlb_look_t definition
  *
  */
-static tlb_look_t tlb_look(cpu_t *cpu, ptr64_t virt, ptr36_t *phys, bool wr)
+static tlb_look_t tlb_look(r4k_cpu_t *cpu, ptr64_t virt, ptr36_t *phys, bool wr)
 {
 	ASSERT(cpu != NULL);
 	ASSERT(phys != NULL);
@@ -639,7 +399,7 @@ static tlb_look_t tlb_look(cpu_t *cpu, ptr64_t virt, ptr36_t *phys, bool wr)
 /** Fill up cp0 registers with specified address
  *
  */
-static void fill_tlb_error(cpu_t *cpu, ptr64_t addr)
+static void fill_tlb_error(r4k_cpu_t *cpu, ptr64_t addr)
 {
 	ASSERT(cpu != NULL);
 	
@@ -660,7 +420,7 @@ static void fill_tlb_error(cpu_t *cpu, ptr64_t addr)
 /** Fill registers as the Address error exception occures
  *
  */
-static void fill_addr_error(cpu_t *cpu, ptr64_t addr, bool noisy)
+static void fill_addr_error(r4k_cpu_t *cpu, ptr64_t addr, bool noisy)
 {
 	ASSERT(cpu != NULL);
 	
@@ -675,7 +435,7 @@ static void fill_addr_error(cpu_t *cpu, ptr64_t addr, bool noisy)
 /** Search through TLB and generates apropriate exception (32 bits)
  *
  */
-static exc_t tlb_hit32(cpu_t *cpu, ptr64_t virt, ptr36_t *phys, bool wr,
+static r4k_exc_t tlb_hit32(r4k_cpu_t *cpu, ptr64_t virt, ptr36_t *phys, bool wr,
     bool noisy)
 {
 	ASSERT(cpu != NULL);
@@ -690,30 +450,30 @@ static exc_t tlb_hit32(cpu_t *cpu, ptr64_t virt, ptr36_t *phys, bool wr,
 			fill_tlb_error(cpu, virt);
 		}
 		
-		return excTLBR;
+		return r4k_excTLBR;
 	case TLBL_INVALID:
 		if (noisy) {
 			cpu->tlb_invalid++;
 			fill_tlb_error(cpu, virt);
 		}
 		
-		return excTLB;
+		return r4k_excTLB;
 	case TLBL_MODIFIED:
 		if (noisy) {
 			cpu->tlb_modified++;
 			fill_tlb_error(cpu, virt);
 		}
 		
-		return excMod;
+		return r4k_excMod;
 	}
 	
-	return excNone;
+	return r4k_excNone;
 }
 
 /** Search through TLB and generates apropriate exception (64 bits)
  *
  */
-static exc_t tlb_hit64(cpu_t *cpu, ptr64_t virt, ptr36_t *phys, bool wr,
+static r4k_exc_t tlb_hit64(r4k_cpu_t *cpu, ptr64_t virt, ptr36_t *phys, bool wr,
     bool noisy)
 {
 	ASSERT(cpu != NULL);
@@ -721,13 +481,13 @@ static exc_t tlb_hit64(cpu_t *cpu, ptr64_t virt, ptr36_t *phys, bool wr,
 	
 	ASSERT(false);
 	
-	return excNone;
+	return r4k_excNone;
 }
 
 /** The user mode address conversion (32 bits)
  *
  */
-static exc_t convert_addr_user32(cpu_t *cpu, ptr64_t virt, ptr36_t *phys,
+static r4k_exc_t convert_addr_user32(r4k_cpu_t *cpu, ptr64_t virt, ptr36_t *phys,
     bool wr, bool noisy)
 {
 	ASSERT(cpu != NULL);
@@ -738,13 +498,13 @@ static exc_t convert_addr_user32(cpu_t *cpu, ptr64_t virt, ptr36_t *phys,
 		return tlb_hit32(cpu, virt, phys, wr, noisy);
 	
 	fill_addr_error(cpu, virt, noisy);
-	return excAddrError;
+	return r4k_excAddrError;
 }
 
 /** The user mode address conversion (64 bits)
  *
  */
-static exc_t convert_addr_user64(cpu_t *cpu, ptr64_t virt, ptr36_t *phys,
+static r4k_exc_t convert_addr_user64(r4k_cpu_t *cpu, ptr64_t virt, ptr36_t *phys,
     bool wr, bool noisy)
 {
 	ASSERT(cpu != NULL);
@@ -755,13 +515,13 @@ static exc_t convert_addr_user64(cpu_t *cpu, ptr64_t virt, ptr36_t *phys,
 		return tlb_hit64(cpu, virt, phys, wr, noisy);
 	
 	fill_addr_error(cpu, virt, noisy);
-	return excAddrError;
+	return r4k_excAddrError;
 }
 
 /** The supervisor mode address conversion (32 bits)
  *
  */
-static exc_t convert_addr_supervisor32(cpu_t *cpu, ptr64_t virt, ptr36_t *phys,
+static r4k_exc_t convert_addr_supervisor32(r4k_cpu_t *cpu, ptr64_t virt, ptr36_t *phys,
     bool wr, bool noisy)
 {
 	ASSERT(cpu != NULL);
@@ -775,13 +535,13 @@ static exc_t convert_addr_supervisor32(cpu_t *cpu, ptr64_t virt, ptr36_t *phys,
 		return tlb_hit32(cpu, virt, phys, wr, noisy);
 	
 	fill_addr_error(cpu, virt, noisy);
-	return excAddrError;
+	return r4k_excAddrError;
 }
 
 /** The supervisor mode address conversion (64 bits)
  *
  */
-static exc_t convert_addr_supervisor64(cpu_t *cpu, ptr64_t virt, ptr36_t *phys,
+static r4k_exc_t convert_addr_supervisor64(r4k_cpu_t *cpu, ptr64_t virt, ptr36_t *phys,
     bool wr, bool noisy)
 {
 	ASSERT(cpu != NULL);
@@ -798,13 +558,13 @@ static exc_t convert_addr_supervisor64(cpu_t *cpu, ptr64_t virt, ptr36_t *phys,
 		return tlb_hit64(cpu, virt, phys, wr, noisy);
 	
 	fill_addr_error(cpu, virt, noisy);
-	return excAddrError;
+	return r4k_excAddrError;
 }
 
 /** The kernel mode address conversion (32 bits)
  *
  */
-static exc_t convert_addr_kernel32(cpu_t *cpu, ptr64_t virt, ptr36_t *phys,
+static r4k_exc_t convert_addr_kernel32(r4k_cpu_t *cpu, ptr64_t virt, ptr36_t *phys,
     bool wr, bool noisy)
 {
 	ASSERT(cpu != NULL);
@@ -815,17 +575,17 @@ static exc_t convert_addr_kernel32(cpu_t *cpu, ptr64_t virt, ptr36_t *phys,
 		if (!cp0_status_erl(cpu))
 			return tlb_hit32(cpu, virt, phys, wr, noisy);
 		
-		return excNone;
+		return r4k_excNone;
 	}
 	
 	if ((virt.lo & KSEG0_MASK) == KSEG0_BITS) {
 		*phys = virt.lo - UINT32_C(0x80000000);
-		return excNone;
+		return r4k_excNone;
 	}
 	
 	if ((virt.lo & KSEG1_MASK) == KSEG1_BITS) {
 		*phys = virt.lo - UINT32_C(0xa0000000);
-		return excNone;
+		return r4k_excNone;
 	}
 	
 	if ((virt.lo & KSSEG_MASK) == KSSEG_BITS)
@@ -835,13 +595,13 @@ static exc_t convert_addr_kernel32(cpu_t *cpu, ptr64_t virt, ptr36_t *phys,
 		return tlb_hit32(cpu, virt, phys, wr, noisy);
 	
 	fill_addr_error(cpu, virt, noisy);
-	return excAddrError;
+	return r4k_excAddrError;
 }
 
 /** The kernel mode address conversion (64 bits)
  *
  */
-static exc_t convert_addr_kernel64(cpu_t *cpu, ptr64_t virt, ptr36_t *phys,
+static r4k_exc_t convert_addr_kernel64(r4k_cpu_t *cpu, ptr64_t virt, ptr36_t *phys,
     bool wr, bool noisy)
 {
 	ASSERT(cpu != NULL);
@@ -852,7 +612,7 @@ static exc_t convert_addr_kernel64(cpu_t *cpu, ptr64_t virt, ptr36_t *phys,
 		if (!cp0_status_erl(cpu))
 			return tlb_hit64(cpu, virt, phys, wr, noisy);
 		
-		return excNone;
+		return r4k_excNone;
 	}
 	
 	if ((virt.ptr & XKSSEG_MASK) == XKSSEG_BITS)
@@ -866,12 +626,12 @@ static exc_t convert_addr_kernel64(cpu_t *cpu, ptr64_t virt, ptr36_t *phys,
 	
 	if ((virt.ptr & CKSEG0_MASK) == CKSEG0_BITS) {
 		*phys = virt.ptr - UINT64_C(0x80000000);
-		return excNone;
+		return r4k_excNone;
 	}
 	
 	if ((virt.ptr & CKSEG1_MASK) == CKSEG1_BITS) {
 		*phys = virt.ptr - UINT64_C(0xa0000000);
-		return excNone;
+		return r4k_excNone;
 	}
 	
 	if ((virt.lo & CKSSEG_MASK) == CKSSEG_BITS)
@@ -881,7 +641,7 @@ static exc_t convert_addr_kernel64(cpu_t *cpu, ptr64_t virt, ptr36_t *phys,
 		return tlb_hit64(cpu, virt, phys, wr, noisy);
 	
 	fill_addr_error(cpu, virt, noisy);
-	return excAddrError;
+	return r4k_excAddrError;
 }
 
 /** The conversion of virtual addresses
@@ -891,7 +651,7 @@ static exc_t convert_addr_kernel64(cpu_t *cpu, ptr64_t virt, ptr36_t *phys,
  *              if the address is incorrect.
  *
  */
-exc_t convert_addr(cpu_t *cpu, ptr64_t virt, ptr36_t *phys, bool write,
+r4k_exc_t r4k_convert_addr(r4k_cpu_t *cpu, ptr64_t virt, ptr36_t *phys, bool write,
     bool noisy)
 {
 	ASSERT(cpu != NULL);
@@ -916,7 +676,7 @@ exc_t convert_addr(cpu_t *cpu, ptr64_t virt, ptr36_t *phys, bool write,
 			convert_addr_kernel64(cpu, virt, phys, write, noisy);
 
 		fill_addr_error(cpu, virt, noisy);
-		return excAddrError;
+		return r4k_excAddrError;
 	} else {
 		if (CPU_USER_MODE(cpu))
 			return convert_addr_user32(cpu, virt, phys, write, noisy);
@@ -928,7 +688,7 @@ exc_t convert_addr(cpu_t *cpu, ptr64_t virt, ptr36_t *phys, bool write,
 			return convert_addr_kernel32(cpu, virt, phys, write, noisy);
 
 		fill_addr_error(cpu, virt, noisy);
-		return excAddrError;
+		return r4k_excAddrError;
 	}
 }
 
@@ -937,16 +697,16 @@ exc_t convert_addr(cpu_t *cpu, ptr64_t virt, ptr36_t *phys, bool write,
  * Fill BadVAddr if the alignment is not correct.
  *
  */
-static exc_t align_test16(cpu_t *cpu, ptr64_t addr, bool noisy)
+static r4k_exc_t align_test16(r4k_cpu_t *cpu, ptr64_t addr, bool noisy)
 {
 	ASSERT(cpu != NULL);
 	
 	if ((addr.ptr & 0x01U) != 0) {
 		fill_addr_error(cpu, addr, noisy);
-		return excAddrError;
+		return r4k_excAddrError;
 	}
 	
-	return excNone;
+	return r4k_excNone;
 }
 
 /** Test for correct alignment (32 bits)
@@ -954,16 +714,16 @@ static exc_t align_test16(cpu_t *cpu, ptr64_t addr, bool noisy)
  * Fill BadVAddr if the alignment is not correct.
  *
  */
-static exc_t align_test32(cpu_t *cpu, ptr64_t addr, bool noisy)
+static r4k_exc_t align_test32(r4k_cpu_t *cpu, ptr64_t addr, bool noisy)
 {
 	ASSERT(cpu != NULL);
 	
 	if ((addr.ptr & 0x03U) != 0) {
 		fill_addr_error(cpu, addr, noisy);
-		return excAddrError;
+		return r4k_excAddrError;
 	}
 	
-	return excNone;
+	return r4k_excNone;
 }
 
 /** Test for correct alignment (64 bits)
@@ -971,16 +731,16 @@ static exc_t align_test32(cpu_t *cpu, ptr64_t addr, bool noisy)
  * Fill BadVAddr if the alignment is not correct.
  *
  */
-static exc_t align_test64(cpu_t *cpu, ptr64_t addr, bool noisy)
+static r4k_exc_t align_test64(r4k_cpu_t *cpu, ptr64_t addr, bool noisy)
 {
 	ASSERT(cpu != NULL);
 	
 	if ((addr.ptr & 0x07U) != 0) {
 		fill_addr_error(cpu, addr, noisy);
-		return excAddrError;
+		return r4k_excAddrError;
 	}
 	
-	return excNone;
+	return r4k_excNone;
 }
 
 /** Access the virtual memory
@@ -996,13 +756,13 @@ static exc_t align_test64(cpu_t *cpu, ptr64_t addr, bool noisy)
  * @param noisy Generate exception in case of invalid operation
  *
  */
-static exc_t access_mem(cpu_t *cpu, acc_mode_t mode, ptr64_t virt,
+static r4k_exc_t access_mem(r4k_cpu_t *cpu, acc_mode_t mode, ptr64_t virt,
     ptr36_t *phys, bool noisy)
 {
 	ASSERT(cpu != NULL);
 	ASSERT(phys != NULL);
 	
-	exc_t res = convert_addr(cpu, virt, phys, mode == AM_WRITE, noisy);
+	r4k_exc_t res = r4k_convert_addr(cpu, virt, phys, mode == AM_WRITE, noisy);
 	
 	/* Check for watched address */
 	if (((cp0_watchlo_r(cpu)) && (mode == AM_READ))
@@ -1020,7 +780,7 @@ static exc_t access_mem(cpu_t *cpu, acc_mode_t mode, ptr64_t virt,
 				cpu->wpending = true;
 				cpu->wexcaddr = cpu->pc;
 			} else
-				return excWATCH;
+				return r4k_excWATCH;
 		}
 	}
 	
@@ -1032,27 +792,27 @@ static exc_t access_mem(cpu_t *cpu, acc_mode_t mode, ptr64_t virt,
  * Does not change the value if an exception occurs.
  *
  */
-static exc_t cpu_read_mem8(cpu_t *cpu, ptr64_t addr, uint8_t *val, bool noisy)
+static r4k_exc_t cpu_read_mem8(r4k_cpu_t *cpu, ptr64_t addr, uint8_t *val, bool noisy)
 {
 	ASSERT(cpu != NULL);
 	ASSERT(val != NULL);
 	
 	ptr36_t phys;
-	exc_t res = access_mem(cpu, AM_READ, addr, &phys, noisy);
+	r4k_exc_t res = access_mem(cpu, AM_READ, addr, &phys, noisy);
 	switch (res) {
-	case excNone:
+	case r4k_excNone:
 		break;
-	case excAddrError:
-		return excAdEL;
-	case excTLB:
-		return excTLBL;
-	case excTLBR:
-		return excTLBLR;
+	case r4k_excAddrError:
+		return r4k_excAdEL;
+	case r4k_excTLB:
+		return r4k_excTLBL;
+	case r4k_excTLBR:
+		return r4k_excTLBLR;
 	default:
 		ASSERT(false);
 	}
 	
-	*val = physmem_read8(cpu, phys, true);
+	*val = physmem_read8(cpu->procno, phys, true);
 	return res;
 }
 
@@ -1061,17 +821,17 @@ static exc_t cpu_read_mem8(cpu_t *cpu, ptr64_t addr, uint8_t *val, bool noisy)
  * Does not change the value if an exception occurs.
  *
  */
-static exc_t cpu_read_mem16(cpu_t *cpu, ptr64_t addr, uint16_t *val, bool noisy)
+static r4k_exc_t cpu_read_mem16(r4k_cpu_t *cpu, ptr64_t addr, uint16_t *val, bool noisy)
 {
 	ASSERT(cpu != NULL);
 	ASSERT(val != NULL);
 	
-	exc_t res = align_test16(cpu, addr, noisy);
+	r4k_exc_t res = align_test16(cpu, addr, noisy);
 	switch (res) {
-	case excNone:
+	case r4k_excNone:
 		break;
-	case excAddrError:
-		return excAdEL;
+	case r4k_excAddrError:
+		return r4k_excAdEL;
 	default:
 		ASSERT(false);
 	}
@@ -1079,19 +839,19 @@ static exc_t cpu_read_mem16(cpu_t *cpu, ptr64_t addr, uint16_t *val, bool noisy)
 	ptr36_t phys;
 	res = access_mem(cpu, AM_READ, addr, &phys, noisy);
 	switch (res) {
-	case excNone:
+	case r4k_excNone:
 		break;
-	case excAddrError:
-		return excAdEL;
-	case excTLB:
-		return excTLBL;
-	case excTLBR:
-		return excTLBLR;
+	case r4k_excAddrError:
+		return r4k_excAdEL;
+	case r4k_excTLB:
+		return r4k_excTLBL;
+	case r4k_excTLBR:
+		return r4k_excTLBLR;
 	default:
 		ASSERT(false);
 	}
 	
-	*val = physmem_read16(cpu, phys, true);
+	*val = physmem_read16(cpu->procno, phys, true);
 	return res;
 }
 
@@ -1100,17 +860,17 @@ static exc_t cpu_read_mem16(cpu_t *cpu, ptr64_t addr, uint16_t *val, bool noisy)
  * Does not change the value if an exception occurs.
  *
  */
-exc_t cpu_read_mem32(cpu_t *cpu, ptr64_t addr, uint32_t *val, bool noisy)
+r4k_exc_t r4k_read_mem32(r4k_cpu_t *cpu, ptr64_t addr, uint32_t *val, bool noisy)
 {
 	ASSERT(cpu != NULL);
 	ASSERT(val != NULL);
 	
-	exc_t res = align_test32(cpu, addr, noisy);
+	r4k_exc_t res = align_test32(cpu, addr, noisy);
 	switch (res) {
-	case excNone:
+	case r4k_excNone:
 		break;
-	case excAddrError:
-		return excAdEL;
+	case r4k_excAddrError:
+		return r4k_excAdEL;
 	default:
 		ASSERT(false);
 	}
@@ -1118,19 +878,19 @@ exc_t cpu_read_mem32(cpu_t *cpu, ptr64_t addr, uint32_t *val, bool noisy)
 	ptr36_t phys;
 	res = access_mem(cpu, AM_READ, addr, &phys, noisy);
 	switch (res) {
-	case excNone:
+	case r4k_excNone:
 		break;
-	case excAddrError:
-		return excAdEL;
-	case excTLB:
-		return excTLBL;
-	case excTLBR:
-		return excTLBLR;
+	case r4k_excAddrError:
+		return r4k_excAdEL;
+	case r4k_excTLB:
+		return r4k_excTLBL;
+	case r4k_excTLBR:
+		return r4k_excTLBLR;
 	default:
 		ASSERT(false);
 	}
 	
-	*val = physmem_read32(cpu, phys, true);
+	*val = physmem_read32(cpu->procno, phys, true);
 	return res;
 }
 
@@ -1139,17 +899,17 @@ exc_t cpu_read_mem32(cpu_t *cpu, ptr64_t addr, uint32_t *val, bool noisy)
  * Does not change the value if an exception occurs.
  *
  */
-static exc_t cpu_read_mem64(cpu_t *cpu, ptr64_t addr, uint64_t *val, bool noisy)
+static r4k_exc_t cpu_read_mem64(r4k_cpu_t *cpu, ptr64_t addr, uint64_t *val, bool noisy)
 {
 	ASSERT(cpu != NULL);
 	ASSERT(val != NULL);
 	
-	exc_t res = align_test64(cpu, addr, noisy);
+	r4k_exc_t res = align_test64(cpu, addr, noisy);
 	switch (res) {
-	case excNone:
+	case r4k_excNone:
 		break;
-	case excAddrError:
-		return excAdEL;
+	case r4k_excAddrError:
+		return r4k_excAdEL;
 	default:
 		ASSERT(false);
 	}
@@ -1157,64 +917,64 @@ static exc_t cpu_read_mem64(cpu_t *cpu, ptr64_t addr, uint64_t *val, bool noisy)
 	ptr36_t phys;
 	res = access_mem(cpu, AM_READ, addr, &phys, noisy);
 	switch (res) {
-	case excNone:
+	case r4k_excNone:
 		break;
-	case excAddrError:
-		return excAdEL;
-	case excTLB:
-		return excTLBL;
-	case excTLBR:
-		return excTLBLR;
+	case r4k_excAddrError:
+		return r4k_excAdEL;
+	case r4k_excTLB:
+		return r4k_excTLBL;
+	case r4k_excTLBR:
+		return r4k_excTLBLR;
 	default:
 		ASSERT(false);
 	}
 	
-	*val = physmem_read64(cpu, phys, true);
+	*val = physmem_read64(cpu->procno, phys, true);
 	return res;
 }
 
 /** Perform write operation to the virtual memory (8 bits)
  *
  */
-static exc_t cpu_write_mem8(cpu_t *cpu, ptr64_t addr, uint8_t value, bool noisy)
+static r4k_exc_t cpu_write_mem8(r4k_cpu_t *cpu, ptr64_t addr, uint8_t value, bool noisy)
 {
 	ASSERT(cpu != NULL);
 	
 	ptr36_t phys;
-	exc_t res = access_mem(cpu, AM_WRITE, addr, &phys, noisy);
+	r4k_exc_t res = access_mem(cpu, AM_WRITE, addr, &phys, noisy);
 	switch (res) {
-	case excNone:
+	case r4k_excNone:
 		break;
-	case excAddrError:
-		return excAdES;
-	case excTLB:
-		return excTLBS;
-	case excTLBR:
-		return excTLBSR;
-	case excMod:
-		return excMod;
+	case r4k_excAddrError:
+		return r4k_excAdES;
+	case r4k_excTLB:
+		return r4k_excTLBS;
+	case r4k_excTLBR:
+		return r4k_excTLBSR;
+	case r4k_excMod:
+		return r4k_excMod;
 	default:
 		ASSERT(false);
 	}
 	
-	physmem_write8(cpu, phys, value, true);
+	physmem_write8(cpu->procno, phys, value, true);
 	return res;
 }
 
 /** Perform write operation to the virtual memory (16 bits)
  *
  */
-static exc_t cpu_write_mem16(cpu_t *cpu, ptr64_t addr, uint16_t value,
+static r4k_exc_t cpu_write_mem16(r4k_cpu_t *cpu, ptr64_t addr, uint16_t value,
     bool noisy)
 {
 	ASSERT(cpu != NULL);
 	
-	exc_t res = align_test16(cpu, addr, noisy);
+	r4k_exc_t res = align_test16(cpu, addr, noisy);
 	switch (res) {
-	case excNone:
+	case r4k_excNone:
 		break;
-	case excAddrError:
-		return excAdES;
+	case r4k_excAddrError:
+		return r4k_excAdES;
 	default:
 		ASSERT(false);
 	}
@@ -1222,38 +982,38 @@ static exc_t cpu_write_mem16(cpu_t *cpu, ptr64_t addr, uint16_t value,
 	ptr36_t phys;
 	res = access_mem(cpu, AM_WRITE, addr, &phys, noisy);
 	switch (res) {
-	case excNone:
+	case r4k_excNone:
 		break;
-	case excAddrError:
-		return excAdES;
-	case excTLB:
-		return excTLBS;
-	case excTLBR:
-		return excTLBSR;
-	case excMod:
-		return excMod;
+	case r4k_excAddrError:
+		return r4k_excAdES;
+	case r4k_excTLB:
+		return r4k_excTLBS;
+	case r4k_excTLBR:
+		return r4k_excTLBSR;
+	case r4k_excMod:
+		return r4k_excMod;
 	default:
 		ASSERT(false);
 	}
 	
-	physmem_write16(cpu, phys, value, true);
+	physmem_write16(cpu->procno, phys, value, true);
 	return res;
 }
 
 /** Perform write operation to the virtual memory (32 bits)
  *
  */
-static exc_t cpu_write_mem32(cpu_t *cpu, ptr64_t addr, uint32_t value,
+static r4k_exc_t cpu_write_mem32(r4k_cpu_t *cpu, ptr64_t addr, uint32_t value,
     bool noisy)
 {
 	ASSERT(cpu != NULL);
 	
-	exc_t res = align_test32(cpu, addr, noisy);
+	r4k_exc_t res = align_test32(cpu, addr, noisy);
 	switch (res) {
-	case excNone:
+	case r4k_excNone:
 		break;
-	case excAddrError:
-		return excAdES;
+	case r4k_excAddrError:
+		return r4k_excAdES;
 	default:
 		ASSERT(false);
 	}
@@ -1261,38 +1021,38 @@ static exc_t cpu_write_mem32(cpu_t *cpu, ptr64_t addr, uint32_t value,
 	ptr36_t phys;
 	res = access_mem(cpu, AM_WRITE, addr, &phys, noisy);
 	switch (res) {
-	case excNone:
+	case r4k_excNone:
 		break;
-	case excAddrError:
-		return excAdES;
-	case excTLB:
-		return excTLBS;
-	case excTLBR:
-		return excTLBSR;
-	case excMod:
-		return excMod;
+	case r4k_excAddrError:
+		return r4k_excAdES;
+	case r4k_excTLB:
+		return r4k_excTLBS;
+	case r4k_excTLBR:
+		return r4k_excTLBSR;
+	case r4k_excMod:
+		return r4k_excMod;
 	default:
 		ASSERT(false);
 	}
 	
-	physmem_write32(cpu, phys, value, true);
+	physmem_write32(cpu->procno, phys, value, true);
 	return res;
 }
 
 /** Perform write operation to the virtual memory (64 bits)
  *
  */
-static exc_t cpu_write_mem64(cpu_t *cpu, ptr64_t addr, uint64_t value,
+static r4k_exc_t cpu_write_mem64(r4k_cpu_t *cpu, ptr64_t addr, uint64_t value,
     bool noisy)
 {
 	ASSERT(cpu != NULL);
 	
-	exc_t res = align_test64(cpu, addr, noisy);
+	r4k_exc_t res = align_test64(cpu, addr, noisy);
 	switch (res) {
-	case excNone:
+	case r4k_excNone:
 		break;
-	case excAddrError:
-		return excAdES;
+	case r4k_excAddrError:
+		return r4k_excAdES;
 	default:
 		ASSERT(false);
 	}
@@ -1300,28 +1060,28 @@ static exc_t cpu_write_mem64(cpu_t *cpu, ptr64_t addr, uint64_t value,
 	ptr36_t phys;
 	res = access_mem(cpu, AM_WRITE, addr, &phys, noisy);
 	switch (res) {
-	case excNone:
+	case r4k_excNone:
 		break;
-	case excAddrError:
-		return excAdES;
-	case excTLB:
-		return excTLBS;
-	case excTLBR:
-		return excTLBSR;
-	case excMod:
-		return excMod;
+	case r4k_excAddrError:
+		return r4k_excAdES;
+	case r4k_excTLB:
+		return r4k_excTLBS;
+	case r4k_excTLBR:
+		return r4k_excTLBSR;
+	case r4k_excMod:
+		return r4k_excMod;
 	default:
 		ASSERT(false);
 	}
 	
-	physmem_write64(cpu, phys, value, true);
+	physmem_write64(cpu->procno, phys, value, true);
 	return res;
 }
 
 /** Probe TLB entry
  *
  */
-static exc_t TLBP(cpu_t *cpu)
+static r4k_exc_t TLBP(r4k_cpu_t *cpu)
 {
 	ASSERT(cpu != NULL);
 	
@@ -1348,17 +1108,17 @@ static exc_t TLBP(cpu_t *cpu)
 			}
 		}
 		
-		return excNone;
+		return r4k_excNone;
 	}
 	
 	cp0_cause(cpu).val &= ~cp0_cause_ce_mask;
-	return excCpU;
+	return r4k_excCpU;
 }
 
 /** Read entry from the TLB
  *
  */
-static exc_t TLBR(cpu_t *cpu)
+static r4k_exc_t TLBR(r4k_cpu_t *cpu)
 {
 	ASSERT(cpu != NULL);
 	
@@ -1388,11 +1148,11 @@ static exc_t TLBR(cpu_t *cpu)
 			    | (cpu->tlb[i].global ? 1 : 0);
 		}
 		
-		return excNone;
+		return r4k_excNone;
 	}
 	
 	cp0_cause(cpu).val &= ~cp0_cause_ce_mask;
-	return excCpU;
+	return r4k_excCpU;
 }
 
 /** Write a new entry into the TLB
@@ -1401,7 +1161,7 @@ static exc_t TLBR(cpu_t *cpu)
  * the random register (TLBWR) or index (TLBWI).
  *
  */
-static exc_t TLBW(cpu_t *cpu, bool random)
+static r4k_exc_t TLBW(r4k_cpu_t *cpu, bool random)
 {
 	ASSERT(cpu != NULL);
 	
@@ -1436,73 +1196,18 @@ static exc_t TLBW(cpu_t *cpu, bool random)
 			entry->pg[1].valid = cp0_entrylo1_v(cpu);
 		}
 		
-		/*
-		 * Invalidate current CPU binary translation frame.
-		 * This should be actually only necessary if the page
-		 * with the current PC is affected by the TLB change.
-		 * But let's take this conservative precaution in order
-		 * not to miss any corner cases.
-		 */
-		cpu->frame = NULL;
-		
-		return excNone;
+		return r4k_excNone;
 	}
 	
 	cp0_cause(cpu).val &= ~cp0_cause_ce_mask;
-	return excCpU;
-}
-
-/** SC-LL tracking
- *
- */
-
-typedef struct {
-	item_t item;
-	cpu_t *cpu;
-} sc_item_t;
-
-static list_t sc_list = LIST_INITIALIZER;
-
-/** Register current processor in LL-SC tracking list
- *
- */
-static void sc_register(cpu_t *cpu)
-{
-	/* Ignore if already registered. */
-	sc_item_t *sc_item;
-	
-	for_each(sc_list, sc_item, sc_item_t) {
-		if (sc_item->cpu == cpu)
-			return;
-	}
-	
-	sc_item = safe_malloc_t(sc_item_t);
-	item_init(&sc_item->item);
-	sc_item->cpu = cpu;
-	list_append(&sc_list, &sc_item->item);
-}
-
-/** Remove current processor from the LL-SC tracking list
- *
- */
-static void sc_unregister(cpu_t *cpu)
-{
-	sc_item_t *sc_item;
-	
-	for_each(sc_list, sc_item, sc_item_t) {
-		if (sc_item->cpu == cpu) {
-			list_remove(&sc_list, &sc_item->item);
-			safe_free(sc_item);
-			break;
-		}
-	}
+	return r4k_excCpU;
 }
 
 /** Disassemble aid routines
  *
  */
 
-static void disassemble_offset(ptr64_t addr, instr_t instr,
+static void disassemble_offset(ptr64_t addr, r4k_instr_t instr,
     string_t *mnemonics, string_t *comments)
 {
 	int64_t offset =
@@ -1521,22 +1226,22 @@ static void disassemble_offset(ptr64_t addr, instr_t instr,
 		string_printf(comments, "here");
 }
 
-static void disassemble_rs_offset(ptr64_t addr, instr_t instr,
+static void disassemble_rs_offset(ptr64_t addr, r4k_instr_t instr,
     string_t *mnemonics, string_t *comments)
 {
-	string_printf(mnemonics, " %s,", regname[instr.i.rs]);
+	string_printf(mnemonics, " %s,", r4k_regname[instr.i.rs]);
 	disassemble_offset(addr, instr, mnemonics, comments);
 }
 
-static void disassemble_rs_rt_offset(ptr64_t addr, instr_t instr,
+static void disassemble_rs_rt_offset(ptr64_t addr, r4k_instr_t instr,
     string_t *mnemonics, string_t *comments)
 {
 	string_printf(mnemonics, " %s, %s,",
-	    regname[instr.i.rs], regname[instr.i.rt]);
+	    r4k_regname[instr.i.rs], r4k_regname[instr.i.rt]);
 	disassemble_offset(addr, instr, mnemonics, comments);
 }
 
-static void disassemble_target(ptr64_t addr, instr_t instr,
+static void disassemble_target(ptr64_t addr, r4k_instr_t instr,
     string_t *mnemonics, string_t *comments)
 {
 	ptr64_t target;
@@ -1546,129 +1251,129 @@ static void disassemble_target(ptr64_t addr, instr_t instr,
 	string_printf(mnemonics, " %#" PRIx64, target.ptr);
 }
 
-static void disassemble_rt_offset_base(instr_t instr, string_t *mnemonics,
+static void disassemble_rt_offset_base(r4k_instr_t instr, string_t *mnemonics,
     string_t *comments)
 {
 	int64_t offset = (int64_t) sign_extend_16_64(instr.i.imm);
 	
 	string_printf(mnemonics, " %s, %" PRId64 "(%s)",
-	    regname[instr.i.rt], offset, regname[instr.i.rs]);
+	    r4k_regname[instr.i.rt], offset, r4k_regname[instr.i.rs]);
 }
 
-static void disassemble_rs_rt(instr_t instr, string_t *mnemonics,
+static void disassemble_rs_rt(r4k_instr_t instr, string_t *mnemonics,
     string_t *comments)
 {
 	string_printf(mnemonics, " %s, %s,",
-	    regname[instr.i.rs], regname[instr.i.rt]);
+	    r4k_regname[instr.i.rs], r4k_regname[instr.i.rt]);
 }
 
-static void disassemble_rd_rs_rt(instr_t instr, string_t *mnemonics,
+static void disassemble_rd_rs_rt(r4k_instr_t instr, string_t *mnemonics,
     string_t *comments)
 {
 	string_printf(mnemonics, " %s, %s, %s",
-	    regname[instr.r.rd], regname[instr.r.rs], regname[instr.r.rt]);
+	    r4k_regname[instr.r.rd], r4k_regname[instr.r.rs], r4k_regname[instr.r.rt]);
 }
 
-static void disassemble_rt_rs(instr_t instr, string_t *mnemonics,
+static void disassemble_rt_rs(r4k_instr_t instr, string_t *mnemonics,
     string_t *comments)
 {
 	string_printf(mnemonics, " %s, %s",
-	    regname[instr.r.rt], regname[instr.r.rs]);
+	    r4k_regname[instr.r.rt], r4k_regname[instr.r.rs]);
 }
 
-static void disassemble_rt_cp0(instr_t instr, string_t *mnemonics,
+static void disassemble_rt_cp0(r4k_instr_t instr, string_t *mnemonics,
     string_t *comments)
 {
 	string_printf(mnemonics, " %s, %s",
-	    regname[instr.r.rt], cp0name[instr.r.rd]);
+	    r4k_regname[instr.r.rt], r4k_cp0name[instr.r.rd]);
 }
 
-static void disassemble_rt_fs(instr_t instr, string_t *mnemonics,
+static void disassemble_rt_fs(r4k_instr_t instr, string_t *mnemonics,
     string_t *comments)
 {
 	string_printf(mnemonics, " %s, %s",
-	    regname[instr.r.rt], cp1name[instr.r.rs]);
+	    r4k_regname[instr.r.rt], r4k_cp1name[instr.r.rs]);
 }
 
-static void disassemble_rt_cp2(instr_t instr, string_t *mnemonics,
+static void disassemble_rt_cp2(r4k_instr_t instr, string_t *mnemonics,
     string_t *comments)
 {
 	string_printf(mnemonics, " %s, %s",
-	    regname[instr.r.rt], cp2name[instr.r.rs]);
+	    r4k_regname[instr.r.rt], r4k_cp2name[instr.r.rs]);
 }
 
-static void disassemble_rt_rs_imm(instr_t instr, string_t *mnemonics,
+static void disassemble_rt_rs_imm(r4k_instr_t instr, string_t *mnemonics,
     string_t *comments)
 {
 	int32_t imm = (int32_t) sign_extend_16_32(instr.i.imm);
 	
 	string_printf(mnemonics, " %s, %s, %" PRId32,
-	    regname[instr.i.rt], regname[instr.i.rs], imm);
+	    r4k_regname[instr.i.rt], r4k_regname[instr.i.rs], imm);
 }
 
-static void disassemble_rt_rs_uimm(instr_t instr, string_t *mnemonics,
+static void disassemble_rt_rs_uimm(r4k_instr_t instr, string_t *mnemonics,
     string_t *comments)
 {
 	string_printf(mnemonics, " %s, %s, %#x",
-	    regname[instr.i.rt], regname[instr.i.rs], instr.i.imm);
+	    r4k_regname[instr.i.rt], r4k_regname[instr.i.rs], instr.i.imm);
 }
 
-static void disassemble_rt_imm(instr_t instr, string_t *mnemonics,
+static void disassemble_rt_imm(r4k_instr_t instr, string_t *mnemonics,
     string_t *comments)
 {
 	int32_t imm = (int32_t) sign_extend_16_32(instr.i.imm);
 	
 	string_printf(mnemonics, " %s, %" PRId32,
-	    regname[instr.i.rt], imm);
+	    r4k_regname[instr.i.rt], imm);
 }
 
-static void disassemble_rt_uimm(instr_t instr, string_t *mnemonics,
+static void disassemble_rt_uimm(r4k_instr_t instr, string_t *mnemonics,
     string_t *comments)
 {
 	string_printf(mnemonics, " %s, %#x",
-	    regname[instr.i.rt], instr.i.imm);
+	    r4k_regname[instr.i.rt], instr.i.imm);
 }
 
-static void disassemble_rs_imm(instr_t instr, string_t *mnemonics,
+static void disassemble_rs_imm(r4k_instr_t instr, string_t *mnemonics,
     string_t *comments)
 {
 	int32_t imm = (int32_t) sign_extend_16_32(instr.i.imm);
 	
 	string_printf(mnemonics, " %s, %" PRId32,
-	    regname[instr.i.rs], imm);
+	    r4k_regname[instr.i.rs], imm);
 }
 
-static void disassemble_rd_rt_sa(instr_t instr, string_t *mnemonics,
+static void disassemble_rd_rt_sa(r4k_instr_t instr, string_t *mnemonics,
     string_t *comments)
 {
 	string_printf(mnemonics, " %s, %s, %u",
-	    regname[instr.r.rd], regname[instr.r.rt], instr.r.sa);
+	    r4k_regname[instr.r.rd], r4k_regname[instr.r.rt], instr.r.sa);
 }
 
-static void disassemble_rd_rt_rs(instr_t instr, string_t *mnemonics,
+static void disassemble_rd_rt_rs(r4k_instr_t instr, string_t *mnemonics,
     string_t *comments)
 {
 	string_printf(mnemonics, " %s, %s, %s",
-	    regname[instr.r.rd], regname[instr.r.rt], regname[instr.r.rs]);
+	    r4k_regname[instr.r.rd], r4k_regname[instr.r.rt], r4k_regname[instr.r.rs]);
 }
 
-static void disassemble_rd_rs(instr_t instr, string_t *mnemonics,
+static void disassemble_rd_rs(r4k_instr_t instr, string_t *mnemonics,
     string_t *comments)
 {
 	string_printf(mnemonics, " %s, %s",
-	    regname[instr.r.rd], regname[instr.r.rs]);
+	    r4k_regname[instr.r.rd], r4k_regname[instr.r.rs]);
 }
 
-static void disassemble_rs(instr_t instr, string_t *mnemonics,
+static void disassemble_rs(r4k_instr_t instr, string_t *mnemonics,
     string_t *comments)
 {
-	string_printf(mnemonics, " %s", regname[instr.r.rs]);
+	string_printf(mnemonics, " %s", r4k_regname[instr.r.rs]);
 }
 
-static void disassemble_rd(instr_t instr, string_t *mnemonics,
+static void disassemble_rd(r4k_instr_t instr, string_t *mnemonics,
     string_t *comments)
 {
-	string_printf(mnemonics, " %s", regname[instr.r.rd]);
+	string_printf(mnemonics, " %s", r4k_regname[instr.r.rd]);
 }
 
 /** Implementation of instructions of R4000
@@ -1840,10 +1545,10 @@ static void disassemble_rd(instr_t instr, string_t *mnemonics,
  *
  */
 
-static instr_fnc_t opcode_map[64] = {
+static r4k_instr_fnc_t opcode_map[64] = {
 	/* 0 */
-	instr__reserved,  /* opcSPECIAL */
-	instr__reserved,  /* opcREGIMM */
+	instr__reserved,  /* r4k_opcSPECIAL */
+	instr__reserved,  /* r4k_opcREGIMM */
 	instr_j,
 	instr_jal,
 	instr_beq,
@@ -1862,9 +1567,9 @@ static instr_fnc_t opcode_map[64] = {
 	instr_lui,
 	
 	/* 16 */
-	instr__reserved,  /* opcCOP0 */
-	instr__reserved,  /* opcCOP1 */
-	instr__reserved,  /* opcCOP2 */
+	instr__reserved,  /* r4k_opcCOP0 */
+	instr__reserved,  /* r4k_opcCOP1 */
+	instr__reserved,  /* r4k_opcCOP2 */
 	instr__reserved,  /* unused */
 	instr_beql,
 	instr_bnel,
@@ -1921,7 +1626,7 @@ static instr_fnc_t opcode_map[64] = {
 	instr_sd
 };
 
-static instr_fnc_t func_map[64] = {
+static r4k_instr_fnc_t func_map[64] = {
 	instr_sll,
 	instr__reserved,  /* unused */
 	instr_srl,
@@ -1995,7 +1700,7 @@ static instr_fnc_t func_map[64] = {
 	instr_dsra32
 };
 
-static instr_fnc_t rt_map[32] = {
+static r4k_instr_fnc_t rt_map[32] = {
 	instr_bltz,
 	instr_bgez,
 	instr_bltzl,
@@ -2033,7 +1738,7 @@ static instr_fnc_t rt_map[32] = {
 	instr__reserved   /* unused */
 };
 
-static instr_fnc_t cop0_rs_map[32] = {
+static r4k_instr_fnc_t cop0_rs_map[32] = {
 	instr_mfc0,
 	instr_dmfc0,
 	instr__reserved,  /* unused */
@@ -2071,7 +1776,7 @@ static instr_fnc_t cop0_rs_map[32] = {
 	instr__reserved   /* unused */
 };
 
-static instr_fnc_t cop1_rs_map[32] = {
+static r4k_instr_fnc_t cop1_rs_map[32] = {
 	instr_mfc1,
 	instr_dmfc1,
 	instr_cfc1,
@@ -2109,7 +1814,7 @@ static instr_fnc_t cop1_rs_map[32] = {
 	instr__reserved   /* unused */
 };
 
-static instr_fnc_t cop2_rs_map[32] = {
+static r4k_instr_fnc_t cop2_rs_map[32] = {
 	instr_mfc2,
 	instr__reserved,  /* unused */
 	instr_cfc2,
@@ -2147,7 +1852,7 @@ static instr_fnc_t cop2_rs_map[32] = {
 	instr__reserved   /* unused */
 };
 
-static instr_fnc_t cop0_rt_map[32] = {
+static r4k_instr_fnc_t cop0_rt_map[32] = {
 	instr_bc0f,
 	instr_bc0t,
 	instr_bc0fl,
@@ -2185,7 +1890,7 @@ static instr_fnc_t cop0_rt_map[32] = {
 	instr__reserved   /* unused */
 };
 
-static instr_fnc_t cop1_rt_map[32] = {
+static r4k_instr_fnc_t cop1_rt_map[32] = {
 	instr_bc1f,
 	instr_bc1t,
 	instr_bc1fl,
@@ -2223,7 +1928,7 @@ static instr_fnc_t cop1_rt_map[32] = {
 	instr__reserved   /* unused */
 };
 
-static instr_fnc_t cop2_rt_map[32] = {
+static r4k_instr_fnc_t cop2_rt_map[32] = {
 	instr_bc2f,
 	instr_bc2t,
 	instr_bc2fl,
@@ -2261,7 +1966,7 @@ static instr_fnc_t cop2_rt_map[32] = {
 	instr__reserved   /* unused */
 };
 
-static instr_fnc_t cop0_func_map[64] = {
+static r4k_instr_fnc_t cop0_func_map[64] = {
 	instr__warning,   /* unused */
 	instr_tlbr,
 	instr_tlbwi,
@@ -2337,8 +2042,8 @@ static instr_fnc_t cop0_func_map[64] = {
 
 static mnemonics_fnc_t mnemonics_opcode_map[64] = {
 	/* 0 */
-	mnemonics__reserved,  /* opcSPECIAL */
-	mnemonics__reserved,  /* opcREGIMM */
+	mnemonics__reserved,  /* r4k_opcSPECIAL */
+	mnemonics__reserved,  /* r4k_opcREGIMM */
 	mnemonics_j,
 	mnemonics_jal,
 	mnemonics_beq,
@@ -2357,9 +2062,9 @@ static mnemonics_fnc_t mnemonics_opcode_map[64] = {
 	mnemonics_lui,
 	
 	/* 16 */
-	mnemonics__reserved,  /* opcCOP0 */
-	mnemonics__reserved,  /* opcCOP1 */
-	mnemonics__reserved,  /* opcCOP2 */
+	mnemonics__reserved,  /* r4k_opcCOP0 */
+	mnemonics__reserved,  /* r4k_opcCOP1 */
+	mnemonics__reserved,  /* r4k_opcCOP2 */
 	mnemonics__reserved,  /* unused */
 	mnemonics_beql,
 	mnemonics_bnel,
@@ -2835,7 +2540,7 @@ static mnemonics_fnc_t mnemonics_cop0_func_map[64] = {
  * @return Instruction mnemonics function.
  *
  */
-mnemonics_fnc_t decode_mnemonics(instr_t instr)
+mnemonics_fnc_t decode_mnemonics(r4k_instr_t instr)
 {
 	mnemonics_fnc_t fnc;
 	
@@ -2844,21 +2549,21 @@ mnemonics_fnc_t decode_mnemonics(instr_t instr)
 	 * on the opcode field.
 	 */
 	switch (instr.r.opcode) {
-	case opcSPECIAL:
+	case r4k_opcSPECIAL:
 		/*
 		 * SPECIAL opcode decoding based
 		 * on the func field.
 		 */
 		fnc = mnemonics_func_map[instr.r.func];
 		break;
-	case opcREGIMM:
+	case r4k_opcREGIMM:
 		/*
 		 * REGIMM opcode decoding based
 		 * on the rt field.
 		 */
 		fnc = mnemonics_rt_map[instr.r.rt];
 		break;
-	case opcCOP0:
+	case r4k_opcCOP0:
 		/*
 		 * COP0 opcode decoding based
 		 * on the rs field.
@@ -2882,7 +2587,7 @@ mnemonics_fnc_t decode_mnemonics(instr_t instr)
 			fnc = mnemonics_cop0_rs_map[instr.r.rs];
 		}
 		break;
-	case opcCOP1:
+	case r4k_opcCOP1:
 		/*
 		 * COP1 opcode decoding based
 		 * on the rs field.
@@ -2899,7 +2604,7 @@ mnemonics_fnc_t decode_mnemonics(instr_t instr)
 			fnc = mnemonics_cop1_rs_map[instr.r.rs];
 		}
 		break;
-	case opcCOP2:
+	case r4k_opcCOP2:
 		/*
 		 * COP2 opcode decoding based
 		 * on the rs field.
@@ -2944,7 +2649,7 @@ mnemonics_fnc_t decode_mnemonics(instr_t instr)
 /** Initialize simulation environment
  *
  */
-void cpu_init(cpu_t *cpu, unsigned int procno)
+void r4k_init(r4k_cpu_t *cpu, unsigned int procno)
 {
 	ASSERT(cpu != NULL);
 	
@@ -2952,10 +2657,10 @@ void cpu_init(cpu_t *cpu, unsigned int procno)
 	start_address.ptr = HARD_RESET_START_ADDRESS;
 	
 	/* Initially set all members to zero */
-	memset(cpu, 0, sizeof(cpu_t));
+	memset(cpu, 0, sizeof(r4k_cpu_t));
 	
 	cpu->procno = procno;
-	cpu_set_pc(cpu, start_address);
+	r4k_set_pc(cpu, start_address);
 	
 	/* Inicialize cp0 registers */
 	cp0_config(cpu).val = HARD_RESET_CONFIG;
@@ -2977,7 +2682,7 @@ void cpu_init(cpu_t *cpu, unsigned int procno)
 /** Set the PC register
  *
  */
-void cpu_set_pc(cpu_t *cpu, ptr64_t value)
+void r4k_set_pc(r4k_cpu_t *cpu, ptr64_t value)
 {
 	ASSERT(cpu != NULL);
 	
@@ -2992,17 +2697,17 @@ void cpu_set_pc(cpu_t *cpu, ptr64_t value)
  * the WATCH exception.
  *
  */
-//exc_t cpu_read_ins(cpu_t *cpu, ptr64_t addr, uint32_t *icode, bool noisy)
+//exc_t cpu_read_ins(r4k_cpu_t *cpu, ptr64_t addr, uint32_t *icode, bool noisy)
 //{
 //	ASSERT(cpu != NULL);
 //	ASSERT(icode != NULL);
 //	
 //	exc_t res = align_test32(cpu, addr, noisy);
 //	switch (res) {
-//	case excNone:
+//	case r4k_excNone:
 //		break;
-//	case excAddrError:
-//		return excAdES;
+//	case r4k_excAddrError:
+//		return r4k_excAdES;
 //	default:
 //		ASSERT(false);
 //	}
@@ -3010,535 +2715,32 @@ void cpu_set_pc(cpu_t *cpu, ptr64_t value)
 //	ptr36_t phys;
 //	res = access_mem(cpu, AM_FETCH, addr, &phys, noisy);
 //	switch (res) {
-//	case excNone:
+//	case r4k_excNone:
 //		*icode = physmem_read32(cpu, phys, true);
 //		break;
-//	case excAddrError:
-//		res = excAdEL;
+//	case r4k_excAddrError:
+//		res = r4k_excAdEL;
 //		break;
-//	case excTLB:
-//		res = excTLBL;
+//	case r4k_excTLB:
+//		res = r4k_excTLBL;
 //		break;
-//	case excTLBR:
-//		res = excTLBLR;
+//	case r4k_excTLBR:
+//		res = r4k_excTLBLR;
 //		break;
 //	default:
 //		ASSERT(false);
 //	}
 //	
-//	if ((noisy) && (res != excNone) && (cpu->branch == BRANCH_NONE))
+//	if ((noisy) && (res != r4k_excNone) && (cpu->branch == BRANCH_NONE))
 //		cpu->excaddr = cpu->pc;
 //	
 //	return res;
 //}
 
-/** Find an activated memory breakpoint
- *
- * Find an activated memory breakpoint which would be hit for specified
- * memory address and access conditions.
- *
- * @param addr         Address, where the breakpoint can be hit.
- * @param size         Size of the access operation.
- * @param access_flags Specifies the access condition, under the breakpoint
- *                     will be hit.
- *
- * @return Found breakpoint structure or NULL if there is not any.
- *
- */
-static void physmem_breakpoint_find(ptr36_t addr, len36_t size,
-    access_t access_type)
-{
-	physmem_breakpoint_t *breakpoint;
-	
-	for_each(physmem_breakpoints, breakpoint, physmem_breakpoint_t) {
-		if (breakpoint->addr + breakpoint->size < addr)
-			continue;
-		
-		if (breakpoint->addr > addr + size)
-			continue;
-		
-		if ((access_type & breakpoint->access_flags) != 0) {
-			physmem_breakpoint_hit(breakpoint, access_type);
-			break;
-		}
-	}
-}
-
-static uint8_t devmem_read8(cpu_t *cpu, ptr36_t addr)
-{
-	uint32_t val = (uint32_t) DEFAULT_MEMORY_VALUE;
-	
-	/* List for each device */
-	device_t *dev = NULL;
-	while (dev_next(&dev, DEVICE_FILTER_ALL))
-		if (dev->type->read32)
-			dev->type->read32(cpu, dev, addr, &val);
-	
-	return val;
-}
-
-static uint16_t devmem_read16(cpu_t *cpu, ptr36_t addr)
-{
-	uint32_t val = (uint32_t) DEFAULT_MEMORY_VALUE;
-	
-	/* List for each device */
-	device_t *dev = NULL;
-	while (dev_next(&dev, DEVICE_FILTER_ALL))
-		if (dev->type->read32)
-			dev->type->read32(cpu, dev, addr, &val);
-	
-	return val;
-}
-
-static uint32_t devmem_read32(cpu_t *cpu, ptr36_t addr)
-{
-	uint32_t val = (uint32_t) DEFAULT_MEMORY_VALUE;
-	
-	/* List for each device */
-	device_t *dev = NULL;
-	while (dev_next(&dev, DEVICE_FILTER_ALL))
-		if (dev->type->read32)
-			dev->type->read32(cpu, dev, addr, &val);
-	
-	return val;
-}
-
-static uint64_t devmem_read64(cpu_t *cpu, ptr36_t addr)
-{
-	uint64_t val = (uint64_t) DEFAULT_MEMORY_VALUE;
-	
-	/* List for each device */
-	device_t *dev = NULL;
-	while (dev_next(&dev, DEVICE_FILTER_ALL))
-		if (dev->type->read64)
-			dev->type->read64(cpu, dev, addr, &val);
-	
-	return val;
-}
-
-/** Physical memory read (8 bits)
- *
- * Read 8 bits from memory. At first try to read from configured memory
- * regions, then from a device which supports reading at specified address.
- * If the address is not contained in any memory region and no device
- * manages it, the default value is returned.
- *
- * @param cpu       Processor which wants to read.
- * @param addr      Address of memory to be read.
- * @param protected If true the memory breakpoints check is performed.
- *
- * @return Value in specified piece of memory or the default memory value
- *         if the address is not valid.
- *
- */
-uint8_t physmem_read8(cpu_t *cpu, ptr36_t addr, bool protected)
-{
-	frame_t *frame = physmem_find_frame(addr);
-	
-	/*
-	 * No memory frame found, try to read the value
-	 * from appropriate device or return the default value.
-	 */
-	if (frame == NULL)
-		return devmem_read8(cpu, addr);
-	
-	/* Check for memory read breakpoints */
-	if (protected)
-		physmem_breakpoint_find(addr, 1, ACCESS_READ);
-	
-	ASSERT(frame->data);
-	uint8_t *data = frame->data + (addr & FRAME_MASK);
-	
-	return convert_uint8_t_endian(*data);
-}
-
-/** Physical memory read (16 bits)
- *
- * Read 16 bits from memory. At first try to read from configured memory
- * regions, then from a device which supports reading at specified address.
- * If the address is not contained in any memory region and no device
- * manages it, the default value is returned.
- *
- * @param cpu       Processor which wants to read.
- * @param addr      Address of memory to be read.
- * @param protected If true the memory breakpoints check is performed.
- *
- * @return Value in specified piece of memory or the default memory value
- *         if the address is not valid.
- *
- */
-uint16_t physmem_read16(cpu_t *cpu, ptr36_t addr, bool protected)
-{
-	frame_t *frame = physmem_find_frame(addr);
-	
-	/*
-	 * No memory frame found, try to read the value
-	 * from appropriate device or return the default value.
-	 */
-	if (frame == NULL)
-		return devmem_read16(cpu, addr);
-	
-	/* Check for memory read breakpoints */
-	if (protected)
-		physmem_breakpoint_find(addr, 2, ACCESS_READ);
-	
-	ASSERT(frame->data);
-	uint16_t *data = (uint16_t *) (frame->data + (addr & FRAME_MASK));
-	
-	return convert_uint16_t_endian(*data);
-}
-
-/** Physical memory read (32 bits)
- *
- * Read 32 bits from memory. At first try to read from configured memory
- * regions, then from a device which supports reading at specified address.
- * If the address is not contained in any memory region and no device
- * manages it, the default value is returned.
- *
- * @param cpu       Processor which wants to read.
- * @param addr      Address of memory to be read.
- * @param protected If true the memory breakpoints check is performed.
- *
- * @return Value in specified piece of memory or the default memory value
- *         if the address is not valid.
- *
- */
-uint32_t physmem_read32(cpu_t *cpu, ptr36_t addr, bool protected)
-{
-	frame_t *frame = physmem_find_frame(addr);
-	
-	/*
-	 * No memory frame found, try to read the value
-	 * from appropriate device or return the default value.
-	 */
-	if (frame == NULL)
-		return devmem_read32(cpu, addr);
-	
-	/* Check for memory read breakpoints */
-	if (protected)
-		physmem_breakpoint_find(addr, 4, ACCESS_READ);
-	
-	ASSERT(frame->data);
-	uint32_t *data = (uint32_t *) (frame->data + (addr & FRAME_MASK));
-	
-	return convert_uint32_t_endian(*data);
-}
-
-/** Physical memory read (64 bits)
- *
- * Read 64 bits from memory. At first try to read from configured memory
- * regions, then from a device which supports reading at specified address.
- * If the address is not contained in any memory region and no device
- * manages it, the default value is returned.
- *
- * @param cpu       Processor which wants to read.
- * @param addr      Address of memory to be read.
- * @param protected If true the memory breakpoints check is performed.
- *
- * @return Value in specified piece of memory or the default memory value
- *         if the address is not valid.
- *
- */
-uint64_t physmem_read64(cpu_t *cpu, ptr36_t addr, bool protected)
-{
-	frame_t *frame = physmem_find_frame(addr);
-	
-	/*
-	 * No memory frame found, try to read the value
-	 * from appropriate device or return the default value.
-	 */
-	if (frame == NULL)
-		return devmem_read64(cpu, addr);
-	
-	/* Check for memory read breakpoints */
-	if (protected)
-		physmem_breakpoint_find(addr, 8, ACCESS_READ);
-	
-	ASSERT(frame->data);
-	uint64_t *data = (uint64_t *) (frame->data + (addr & FRAME_MASK));
-	
-	return convert_uint64_t_endian(*data);
-}
-
-/** Load Linked and Store Conditional control
- *
- */
-static void sc_control(ptr36_t addr)
-{
-	sc_item_t *sc_item = (sc_item_t *) sc_list.head;
-	
-	while (sc_item != NULL) {
-		cpu_t *sc_cpu = sc_item->cpu;
-		
-		if (sc_cpu->lladdr == addr) {
-			sc_cpu->llbit = false;
-			
-			sc_item_t *tmp = sc_item;
-			sc_item = (sc_item_t *) sc_item->item.next;
-			
-			list_remove(&sc_list, &tmp->item);
-			safe_free(tmp);
-		} else
-			sc_item = (sc_item_t *) sc_item->item.next;
-	}
-}
-
-static bool devmem_write8(cpu_t *cpu, ptr36_t addr, uint8_t val)
-{
-	bool written = false;
-	
-	/* List for each device */
-	device_t *dev = NULL;
-	while (dev_next(&dev, DEVICE_FILTER_ALL)) {
-		if (dev->type->write32) {
-			dev->type->write32(cpu, dev, addr, val);
-			written = true;
-		}
-	}
-	
-	return written;
-}
-
-static bool devmem_write16(cpu_t *cpu, ptr36_t addr, uint16_t val)
-{
-	bool written = false;
-	
-	/* List for each device */
-	device_t *dev = NULL;
-	while (dev_next(&dev, DEVICE_FILTER_ALL)) {
-		if (dev->type->write32) {
-			dev->type->write32(cpu, dev, addr, val);
-			written = true;
-		}
-	}
-	
-	return written;
-}
-
-static bool devmem_write32(cpu_t *cpu, ptr36_t addr, uint32_t val)
-{
-	bool written = false;
-	
-	/* List for each device */
-	device_t *dev = NULL;
-	while (dev_next(&dev, DEVICE_FILTER_ALL)) {
-		if (dev->type->write32) {
-			dev->type->write32(cpu, dev, addr, val);
-			written = true;
-		}
-	}
-	
-	return written;
-}
-
-static bool devmem_write64(cpu_t *cpu, ptr36_t addr, uint64_t val)
-{
-	bool written = false;
-	
-	/* List for each device */
-	device_t *dev = NULL;
-	while (dev_next(&dev, DEVICE_FILTER_ALL)) {
-		if (dev->type->write64) {
-			dev->type->write64(cpu, dev, addr, val);
-			written = true;
-		}
-	}
-	
-	return written;
-}
-
-/** Physical memory write (8 bits)
- *
- * Write 8 bits of data to memory at given address. At first try to find
- * a configured memory region which contains the given address. If there
- * is no such region, try to write to appropriate device.
- *
- * @param cpu       Processor which wants to write.
- * @param addr      Address of the memory.
- * @param val       Data to be written.
- * @param protected False to allow writing to ROM memory and ignore
- *                  the memory breakpoints check.
- *
- * @return False if there is no configured memory region and device for
- *         given address or the memory is ROM with protected parameter
- *         set to true.
- *
- */
-bool physmem_write8(cpu_t *cpu, ptr36_t addr, uint8_t val, bool protected)
-{
-	frame_t *frame = physmem_find_frame(addr);
-	
-	/* No frame found, try to write the value to appropriate device */
-	if (frame == NULL)
-		return devmem_write8(cpu, addr, val);
-	
-	ASSERT(frame->area);
-	ASSERT(frame->data);
-	
-	/* Writting to ROM? */
-	if ((!frame->area->writable) && (protected))
-		return false;
-	
-	sc_control(addr);
-	
-	/* Check for memory write breakpoints */
-	if (protected)
-		physmem_breakpoint_find(addr, 1, ACCESS_WRITE);
-	
-	/* Invalidate binary translation */
-	frame->valid = false;
-	
-	uint8_t *data = frame->data + (addr & FRAME_MASK);
-	*data = convert_uint8_t_endian(val);
-	
-	return true;
-}
-
-/** Physical memory write (16 bits)
- *
- * Write 16 bits of data to memory at given address. At first try to find
- * a configured memory region which contains the given address. If there
- * is no such region, try to write to appropriate device.
- *
- * @param cpu       Processor which wants to write.
- * @param addr      Address of the memory.
- * @param val       Data to be written.
- * @param protected False to allow writing to ROM memory and ignore
- *                  the memory breakpoints check.
- *
- * @return False if there is no configured memory region and device for
- *         given address or the memory is ROM with protected parameter
- *         set to true.
- *
- */
-bool physmem_write16(cpu_t *cpu, ptr36_t addr, uint16_t val, bool protected)
-{
-	frame_t *frame = physmem_find_frame(addr);
-	
-	/* No frame found, try to write the value to appropriate device */
-	if (frame == NULL)
-		return devmem_write16(cpu, addr, val);
-	
-	ASSERT(frame->area);
-	ASSERT(frame->data);
-	
-	/* Writting to ROM? */
-	if ((!frame->area->writable) && (protected))
-		return false;
-	
-	sc_control(addr);
-	
-	/* Check for memory write breakpoints */
-	if (protected)
-		physmem_breakpoint_find(addr, 2, ACCESS_WRITE);
-	
-	/* Invalidate binary translation */
-	frame->valid = false;
-	
-	uint16_t *data = (uint16_t *) (frame->data + (addr & FRAME_MASK));
-	*data = convert_uint16_t_endian(val);
-	
-	return true;
-}
-
-/** Physical memory write (32 bits)
- *
- * Write 32 bits of data to memory at given address. At first try to find
- * a configured memory region which contains the given address. If there
- * is no such region, try to write to appropriate device.
- *
- * @param cpu       Processor which wants to write.
- * @param addr      Address of the memory.
- * @param val       Data to be written.
- * @param protected False to allow writing to ROM memory and ignore
- *                  the memory breakpoints check.
- *
- * @return False if there is no configured memory region and device for
- *         given address or the memory is ROM with protected parameter
- *         set to true.
- *
- */
-bool physmem_write32(cpu_t *cpu, ptr36_t addr, uint32_t val, bool protected)
-{
-	frame_t *frame = physmem_find_frame(addr);
-	
-	/* No frame found, try to write the value to appropriate device */
-	if (frame == NULL)
-		return devmem_write32(cpu, addr, val);
-	
-	ASSERT(frame->area);
-	ASSERT(frame->data);
-	
-	/* Writting to ROM? */
-	if ((!frame->area->writable) && (protected))
-		return false;
-	
-	sc_control(addr);
-	
-	/* Check for memory write breakpoints */
-	if (protected)
-		physmem_breakpoint_find(addr, 4, ACCESS_WRITE);
-	
-	/* Invalidate binary translation */
-	frame->valid = false;
-	
-	uint32_t *data = (uint32_t *) (frame->data + (addr & FRAME_MASK));
-	*data = convert_uint32_t_endian(val);
-	
-	return true;
-}
-
-/** Physical memory write (64 bits)
- *
- * Write 64 bits of data to memory at given address. At first try to find
- * a configured memory region which contains the given address. If there
- * is no such region, try to write to appropriate device.
- *
- * @param cpu       Processor which wants to write.
- * @param addr      Address of the memory.
- * @param val       Data to be written.
- * @param protected False to allow writing to ROM memory and ignore
- *                  the memory breakpoints check.
- *
- * @return False if there is no configured memory region and device for
- *         given address or the memory is ROM with protected parameter
- *         set to true.
- *
- */
-bool physmem_write64(cpu_t *cpu, ptr36_t addr, uint64_t val, bool protected)
-{
-	frame_t *frame = physmem_find_frame(addr);
-	
-	/* No frame found, try to write the value to appropriate device */
-	if (frame == NULL)
-		return devmem_write64(cpu, addr, val);
-	
-	ASSERT(frame->area);
-	ASSERT(frame->data);
-	
-	/* Writting to ROM? */
-	if ((!frame->area->writable) && (protected))
-		return false;
-	
-	sc_control(addr);
-	
-	/* Check for memory write breakpoints */
-	if (protected)
-		physmem_breakpoint_find(addr, 8, ACCESS_WRITE);
-	
-	/* Invalidate binary translation */
-	frame->valid = false;
-	
-	uint64_t *data = (uint64_t *) (frame->data + (addr & FRAME_MASK));
-	*data = convert_uint64_t_endian(val);
-	
-	return true;
-}
-
 /** Assert the specified interrupt
  *
  */
-void cpu_interrupt_up(cpu_t *cpu, unsigned int no)
+void r4k_interrupt_up(r4k_cpu_t *cpu, unsigned int no)
 {
 	ASSERT(cpu != NULL);
 	ASSERT(no < INTR_COUNT);
@@ -3550,7 +2752,7 @@ void cpu_interrupt_up(cpu_t *cpu, unsigned int no)
 /* Deassert the specified interrupt
  *
  */
-void cpu_interrupt_down(cpu_t *cpu, unsigned int no)
+void r4k_interrupt_down(r4k_cpu_t *cpu, unsigned int no)
 {
 	ASSERT(cpu != NULL);
 	ASSERT(no < INTR_COUNT);
@@ -3563,41 +2765,45 @@ void cpu_interrupt_down(cpu_t *cpu, unsigned int no)
  * @return Instruction implementation.
  *
  */
-static instr_fnc_t decode(instr_t instr)
+static r4k_instr_fnc_t decode(r4k_instr_t instr)
 {
-	instr_fnc_t fnc;
-	
+	r4k_instr_fnc_t fnc;
+
 	/*
 	 * Basic opcode decoding based
 	 * on the opcode field.
 	 */
 	switch (instr.r.opcode) {
-	case opcSPECIAL:
+	case r4k_opcSPECIAL:
 		/*
 		 * SPECIAL opcode decoding based
 		 * on the func field.
 		 */
 		fnc = func_map[instr.r.func];
+		if(instr.r.func == 0x21){
+			ASSERT(fnc == instr_addu);
+		}
 		break;
-	case opcREGIMM:
+	case r4k_opcREGIMM:
 		/*
 		 * REGIMM opcode decoding based
 		 * on the rt field.
 		 */
 		fnc = rt_map[instr.r.rt];
 		break;
-	case opcCOP0:
+	case r4k_opcCOP0:
 		/*
 		 * COP0 opcode decoding based
 		 * on the rs field.
 		 */
-		switch (instr.r.rs) {
+		// should be based on COP format
+		switch (instr.cop.rs) {
 		case cop0rsBC:
 			/*
 			 * COP0/BC opcode decoding
 			 * based on the rt field.
 			 */
-			fnc = cop0_rt_map[instr.r.rt];
+			fnc = cop0_rt_map[instr.cop.rt];
 			break;
 		case cop0rsCO:
 			/*
@@ -3607,41 +2813,41 @@ static instr_fnc_t decode(instr_t instr)
 			fnc = cop0_func_map[instr.cop.func];
 			break;
 		default:
-			fnc = cop0_rs_map[instr.r.rs];
+			fnc = cop0_rs_map[instr.cop.rs];
 		}
 		break;
-	case opcCOP1:
+	case r4k_opcCOP1:
 		/*
 		 * COP1 opcode decoding based
 		 * on the rs field.
 		 */
-		switch (instr.r.rs) {
+		switch (instr.cop.rs) {
 		case cop1rsBC:
 			/*
 			 * COP1/BC opcode decoding
 			 * based on the rt field.
 			 */
-			fnc = cop1_rt_map[instr.r.rt];
+			fnc = cop1_rt_map[instr.cop.rt];
 			break;
 		default:
-			fnc = cop1_rs_map[instr.r.rs];
+			fnc = cop1_rs_map[instr.cop.rs];
 		}
 		break;
-	case opcCOP2:
+	case r4k_opcCOP2:
 		/*
 		 * COP2 opcode decoding based
 		 * on the rs field.
 		 */
-		switch (instr.r.rs) {
+		switch (instr.cop.rs) {
 		case cop2rsBC:
 			/*
 			 * COP2/BC opcode decoding
 			 * based on the rt field.
 			 */
-			fnc = cop2_rt_map[instr.r.rt];
+			fnc = cop2_rt_map[instr.cop.rt];
 			break;
 		default:
-			fnc = cop2_rs_map[instr.r.rs];
+			fnc = cop2_rs_map[instr.cop.rs];
 		}
 		break;
 	default:
@@ -3651,87 +2857,114 @@ static instr_fnc_t decode(instr_t instr)
 	return fnc;
 }
 
-/** Translate instruction virtual address to physical memory frame
- *
- */
-static exc_t cpu_frame(cpu_t *cpu)
-{
-	ASSERT(cpu != NULL);
-	
-	ptr64_t virt;
-	virt.ptr = cpu->pc.ptr;
-	virt.lo &= ~((uint32_t) FRAME_MASK);
-	
-	ptr36_t phys;
-	exc_t res = convert_addr(cpu, virt, &phys, false, true);
-	switch (res) {
-	case excNone:
-		break;
-	case excAddrError:
-		if (cpu->branch == BRANCH_NONE)
-			cpu->excaddr = cpu->pc;
-		return excAdEL;
-	case excTLB:
-		if (cpu->branch == BRANCH_NONE)
-			cpu->excaddr = cpu->pc;
-		return excTLBL;
-	case excTLBR:
-		if (cpu->branch == BRANCH_NONE)
-			cpu->excaddr = cpu->pc;
-		return excTLBLR;
-	default:
-		ASSERT(false);
-	}
-	
-	cpu->frame = physmem_find_frame(phys);
-	if (cpu->frame == NULL) {
-		alert("Trying to fetch instructions from outside of physical memory");
-		return excAdEL;
-	}
-	
-	return excNone;
+
+typedef struct {
+    item_t item;
+    ptr36_t addr;
+    r4k_instr_fnc_t instrs[FRAME_SIZE / sizeof(r4k_instr_t)];
+} cache_item_t;
+
+#define PHYS2CACHEINSTR(phys) (((phys) & FRAME_MASK)/sizeof(rv_instr_t))
+
+static void cache_item_init(cache_item_t* cache_item){
+    item_init(&cache_item->item);
+    cache_item->addr = 0;
+    // Skip instrs init
 }
 
-/** Decode instructions in a physical memory frame
- *
- */
-static void frame_decode(frame_t *frame)
-{
-	ASSERT(frame != NULL);
-	ASSERT(!frame->valid);
-	
-	unsigned int i;
-	for (i = 0; i < ADDR2INSTR(FRAME_SIZE); i++) {
-		instr_t instr = *((instr_t *) (frame->data + INSTR2ADDR(i)));
-		*(frame->trans + i) = decode(instr);
-	}
-	
-	frame->valid = true;
+list_t r4k_instruction_cache = LIST_INITIALIZER;
+
+static bool cache_hit(ptr36_t phys, cache_item_t** cache_item){
+    ptr36_t target_page = ALIGN_DOWN(phys, FRAME_SIZE);
+    cache_item_t* c;
+    for_each(r4k_instruction_cache, c, cache_item_t){
+        if(c->addr == target_page){
+            *cache_item = c;
+            return true;
+        }
+    }
+    return false;
+}
+
+static void cache_item_page_decode(r4k_cpu_t* cpu, cache_item_t* cache_item) {
+    for(size_t i = 0; i < FRAME_SIZE / sizeof(r4k_instr_t); ++i){
+        ptr36_t addr = cache_item->addr + (i * sizeof(r4k_instr_t));
+        r4k_instr_t instr_data = (r4k_instr_t)physmem_read32(cpu->procno, addr, false);
+        cache_item->instrs[i] = decode(instr_data);
+    }
+}
+
+static void update_cache_item(r4k_cpu_t* cpu, cache_item_t* cache_item) {
+    frame_t* frame = physmem_find_frame(cache_item->addr);
+    ASSERT(frame != NULL);
+
+    if(frame->valid) return;
+
+    cache_item_page_decode(cpu, cache_item);
+
+    frame->valid = true;
+    return;
+}
+
+static cache_item_t* cache_try_add(r4k_cpu_t* cpu, ptr36_t phys) {
+    frame_t* frame = physmem_find_frame(phys);
+    if(frame == NULL) return NULL;
+
+    cache_item_t* cache_item = safe_malloc(sizeof(cache_item_t));
+
+    cache_item_init(cache_item);
+    cache_item->addr = ALIGN_DOWN(phys, FRAME_SIZE);
+
+    list_append(&r4k_instruction_cache, &cache_item->item);
+
+    cache_item_page_decode(cpu, cache_item);
+
+    frame->valid = true;
+    return cache_item;
+}
+
+static r4k_instr_fnc_t fetch_instr(r4k_cpu_t* cpu, ptr36_t phys){
+    cache_item_t* cache_item = NULL;
+
+    if(cache_hit(phys, &cache_item)){
+        ASSERT(cache_item != NULL);
+        update_cache_item(cpu, cache_item);
+        return cache_item->instrs[PHYS2CACHEINSTR(phys)];
+    }
+    
+    cache_item = cache_try_add(cpu, phys);
+
+    if(cache_item != NULL) {
+        return cache_item->instrs[PHYS2CACHEINSTR(phys)];
+    }
+
+	alert("Trying to fetch instructions from outside of physical memory");
+    return NULL;
 }
 
 /** Change the processor state according to the exception type
  *
  */
-static void handle_exception(cpu_t *cpu, exc_t res)
+static void handle_exception(r4k_cpu_t *cpu, r4k_exc_t res)
 {
 	ASSERT(cpu != NULL);
-	
+
 	bool tlb_refill = false;
 	
 	/* Convert TLB Refill exceptions */
-	if ((res == excTLBLR) || (res == excTLBSR)) {
+	if ((res == r4k_excTLBLR) || (res == r4k_excTLBSR)) {
 		tlb_refill = true;
-		if (res == excTLBLR)
-			res = excTLBL;
+		if (res == r4k_excTLBLR)
+			res = r4k_excTLBL;
 		else
-			res = excTLBS;
+			res = r4k_excTLBS;
 	}
 	
-	ASSERT(res <= excVCED);
+	ASSERT(res <= r4k_excVCED);
 	
 	/* The standby mode is cancelled by the exception */
 	if (cpu->stdby)
-		cpu_set_pc(cpu, cpu->pc_next);
+		r4k_set_pc(cpu, cpu->pc_next);
 	
 	cpu->stdby = false;
 	
@@ -3755,7 +2988,7 @@ static void handle_exception(cpu_t *cpu, exc_t res)
 	
 	if (!cp0_status_exl(cpu)) {
 		cp0_epc(cpu).val = cpu->excaddr.ptr;
-		if ((res == excInt) && (cpu->branch != BRANCH_COND))
+		if ((res == r4k_excInt) && (cpu->branch != BRANCH_COND))
 			cp0_epc(cpu).val = cpu->pc.ptr;
 	}
 	
@@ -3763,13 +2996,13 @@ static void handle_exception(cpu_t *cpu, exc_t res)
 	/* Exception vector base address */
 	if (cp0_status_bev(cpu)) {
 		/* Boot time */
-		if (res != excReset)
+		if (res != r4k_excReset)
 			exc_pc.ptr = EXCEPTION_BOOT_BASE_ADDRESS;
 		else
 			exc_pc.ptr = EXCEPTION_BOOT_RESET_ADDRESS;
 	} else {
 		/* Normal time */
-		if (res != excReset)
+		if (res != r4k_excReset)
 			exc_pc.ptr = EXCEPTION_NORMAL_BASE_ADDRESS;
 		else
 			exc_pc.ptr = EXCEPTION_NORMAL_RESET_ADDRESS;
@@ -3779,7 +3012,7 @@ static void handle_exception(cpu_t *cpu, exc_t res)
 	if ((cp0_status_exl(cpu)) || (!tlb_refill))
 		exc_pc.ptr += EXCEPTION_OFFSET;
 	
-	cpu_set_pc(cpu, exc_pc);
+	r4k_set_pc(cpu, exc_pc);
 	
 	/* Switch to kernel mode */
 	cp0_status(cpu).val |= cp0_status_exl_mask;
@@ -3788,34 +3021,47 @@ static void handle_exception(cpu_t *cpu, exc_t res)
 /** Execute one CPU instruction
  *
  */
-static exc_t execute(cpu_t *cpu)
+static r4k_exc_t execute(r4k_cpu_t *cpu)
 {
 	ASSERT(cpu != NULL);
 	
-	/* Binary translation */
-	if (cpu->frame == NULL) {
-		exc_t res;
-		
-		do {
-			res = cpu_frame(cpu);
-			if (res != excNone)
-				handle_exception(cpu, res);
-		} while (res != excNone);
+	/* Instruction fetch */
+
+	ptr36_t phys;
+	r4k_exc_t res = r4k_convert_addr(cpu, cpu->pc, &phys, false, true);
+
+	switch (res) {
+	case r4k_excNone:
+		break;
+	case r4k_excAddrError:
+		if (cpu->branch == BRANCH_NONE)
+			cpu->excaddr = cpu->pc;
+		return r4k_excAdEL;
+	case r4k_excTLB:
+		if (cpu->branch == BRANCH_NONE)
+			cpu->excaddr = cpu->pc;
+		return r4k_excTLBL;
+	case r4k_excTLBR:
+		if (cpu->branch == BRANCH_NONE)
+			cpu->excaddr = cpu->pc;
+		return r4k_excTLBLR;
+	default:
+		ASSERT(false);
 	}
-	
-	if (!cpu->frame->valid)
-		frame_decode(cpu->frame);
-	
-	/* Fetch decoded instruction */
-	unsigned int i = cpu->pc.ptr & FRAME_MASK;
-	instr_t instr = *((instr_t *) (cpu->frame->data + i));
-	instr_fnc_t fnc = *(cpu->frame->trans + ADDR2INSTR(i));
-	
+
+	r4k_instr_fnc_t fnc = fetch_instr(cpu, phys);
+
+	if(fnc == NULL){
+		return r4k_excAdEL;
+	}
+
+	r4k_instr_t instr = (r4k_instr_t)physmem_read32(cpu->procno, phys, false);
+
 	/* Execute instruction */
-	exc_t exc = fnc(cpu, instr);
+	r4k_exc_t exc = fnc(cpu, instr);
 	
 	if (machine_trace)
-		idump(cpu, cpu->pc, instr, true);
+		r4k_idump(cpu, cpu->pc, instr, true);
 	
 	/* Branch test */
 	if ((cpu->branch == BRANCH_COND) || (cpu->branch == BRANCH_NONE))
@@ -3825,13 +3071,13 @@ static exc_t execute(cpu_t *cpu)
 	cpu->regs[0].val = 0;
 	
 	/* PC update */
-	if (exc == excJump) {
+	if (exc == r4k_excJump) {
 		/*
 		 * Execute the instruction in the branch
 		 * delay slot. The jump target is stored
 		 * in pc_next.
 		 */
-		exc = excNone;
+		exc = r4k_excNone;
 		cpu->pc.ptr += 4;
 	} else {
 		/*
@@ -3848,20 +3094,20 @@ static exc_t execute(cpu_t *cpu)
 /** CPU management
  *
  */
-static void manage(cpu_t *cpu, exc_t exc, ptr64_t old_pc)
+static void manage(r4k_cpu_t *cpu, r4k_exc_t exc, ptr64_t old_pc)
 {
 	ASSERT(cpu != NULL);
 	
 	/* Test for interrupt request */
-	if ((exc == excNone) &&
+	if ((exc == r4k_excNone) &&
 	    (!cp0_status_exl(cpu)) &&
 	    (!cp0_status_erl(cpu)) &&
 	    (cp0_status_ie(cpu)) &&
 	    ((cp0_cause(cpu).val & cp0_status(cpu).val) & cp0_cause_ip_mask) != 0)
-		exc = excInt;
+		exc = r4k_excInt;
 	
 	/* Exception control */
-	if (exc != excNone)
+	if (exc != r4k_excNone)
 		handle_exception(cpu, exc);
 	
 	/* Increase counter */
@@ -3888,18 +3134,12 @@ static void manage(cpu_t *cpu, exc_t exc, ptr64_t old_pc)
 	if (cpu->branch > BRANCH_NONE)
 		cpu->branch--;
 	
-	/*
-	 * Reset the binary translation if we are outside
-	 * the original frame.
-	 */
-	if ((old_pc.ptr | FRAME_MASK) != (cpu->pc.ptr | FRAME_MASK))
-		cpu->frame = NULL;
 }
 
 /** CPU cycle accounting after one instruction execution
  *
  */
-static void account(cpu_t *cpu)
+static void account(r4k_cpu_t *cpu)
 {
 	ASSERT(cpu != NULL);
 	
@@ -3916,12 +3156,12 @@ static void account(cpu_t *cpu)
 /* Simulate one cycle of the processor
  *
  */
-void cpu_step(cpu_t *cpu)
+void r4k_step(r4k_cpu_t *cpu)
 {
 	ASSERT(cpu != NULL);
 	
 	/* Instruction execute */
-	exc_t exc = excNone;
+	r4k_exc_t exc = r4k_excNone;
 	ptr64_t old_pc = cpu->pc;
 	
 	if (!cpu->stdby)
@@ -3932,4 +3172,23 @@ void cpu_step(cpu_t *cpu)
 	
 	/* Cycle accounting */
 	account(cpu);
+}
+
+bool r4k_sc_access(r4k_cpu_t *cpu, ptr36_t addr, int size) {
+	// MIPS R4K SC fails on write to whole cache line
+	// We allow only aligned accesses so this works
+	bool hit = cpu->lladdr == ALIGN_DOWN(addr, 64);
+	if(hit){
+		cpu->llbit = false;
+	}
+	return hit;
+}
+
+void r4k_done(r4k_cpu_t *cpu) {
+	// Clean whole cache
+	while(!is_empty(&r4k_instruction_cache)){
+        cache_item_t* cache_item = (cache_item_t*)(r4k_instruction_cache.head);
+        list_remove(&r4k_instruction_cache, &cache_item->item);
+        safe_free(cache_item);
+    }
 }

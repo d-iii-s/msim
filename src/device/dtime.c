@@ -21,6 +21,8 @@
 #include "../fault.h"
 #include "../utils.h"
 
+// TODO: Add SC checks on each change of value?
+
 /** Registers */
 #define REGISTER_SEC    0
 #define REGISTER_USEC   4
@@ -123,7 +125,7 @@ static void dtime_done(device_t *dev)
  * @param val  Read (returned) value
  *
  */
-static void dtime_read32(cpu_t *cpu, device_t *dev, ptr36_t addr, uint32_t *val)
+static void dtime_read32(unsigned int procno, device_t *dev, ptr36_t addr, uint32_t *val)
 {
 	ASSERT(dev != NULL);
 	ASSERT(val != NULL);
@@ -154,7 +156,7 @@ static void dtime_read32(cpu_t *cpu, device_t *dev, ptr36_t addr, uint32_t *val)
  * @param val  Read (returned) value
  *
  */
-static void dtime_read64(cpu_t *cpu, device_t *dev, ptr36_t addr, uint64_t *val)
+static void dtime_read64(unsigned int procno, device_t *dev, ptr36_t addr, uint64_t *val)
 {
 	ASSERT(dev != NULL);
 	ASSERT(val != NULL);

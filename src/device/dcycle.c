@@ -125,7 +125,7 @@ static void dcycle_done(device_t *dev)
  * @param val  Read (returned) value
  *
  */
-static void dcycle_read32(cpu_t *cpu, device_t *dev, ptr36_t addr, uint32_t *val)
+static void dcycle_read32(unsigned int procno, device_t *dev, ptr36_t addr, uint32_t *val)
 {
 	ASSERT(dev != NULL);
 	ASSERT(val != NULL);
@@ -149,7 +149,7 @@ static void dcycle_read32(cpu_t *cpu, device_t *dev, ptr36_t addr, uint32_t *val
  * @param val  Read (returned) value
  *
  */
-static void dcycle_read64(cpu_t *cpu, device_t *dev, ptr36_t addr, uint64_t *val)
+static void dcycle_read64(unsigned int procno, device_t *dev, ptr36_t addr, uint64_t *val)
 {
 	ASSERT(dev != NULL);
 	ASSERT(val != NULL);

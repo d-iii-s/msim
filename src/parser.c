@@ -361,7 +361,7 @@ token_t *parm_parse(const char *str)
 		
 		list_append(pars, &token->item);
 	} while ((int_token.ttype != tt_end) && (int_token.ttype < tt_err));
-	
+
 	return ((token_t *) pars->head);
 }
 
@@ -388,6 +388,8 @@ void parm_delete(token_t *parm)
 		list_remove(list, &removed->item);
 		safe_free(removed);
 	}
+
+	safe_free(list);
 }
 
 /** Check for the end of the string

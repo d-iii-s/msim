@@ -15,7 +15,7 @@
 #include <inttypes.h>
 #include "dorder.h"
 #include "device.h"
-#include "dcpu.h"
+#include "cpu/general_cpu.h"
 #include "../fault.h"
 #include "../parser.h"
 #include "../text.h"
@@ -47,9 +47,11 @@ static void sync_up_write(dorder_data_s *data, uint32_t val)
 	unsigned int i;
 	data->cmds++;
 	
-	for (i = 0; i < 32; i++, val >>= 1)
-		if (val & 1)
-			dcpu_interrupt_up(i, data->intno);
+	for (i = 0; i < 32; i++, val >>= 1) {
+		if (val & 1){
+			cpu_interrupt_up(get_cpu(i), data->intno);
+		}
+	}
 }
 
 /** Write to the interrupt-down register - disable pending interrupts.
@@ -63,9 +65,11 @@ static void sync_down_write(dorder_data_s *data, uint32_t val)
 	unsigned int i;
 	data->cmds++;
 	
-	for (i = 0; i < 32; i++, val >>= 1)
-		if (val & 1)
-			dcpu_interrupt_down(i, data->intno);
+	for (i = 0; i < 32; i++, val >>= 1) {
+		if (val & 1) {
+			cpu_interrupt_down(get_cpu(i), data->intno);
+		}
+	}
 }
 
 /** Init command implementation
@@ -198,16 +202,13 @@ static void dorder_done(device_t *dev)
  * @param val  Read (returned) value
  *
  */
-static void dorder_read32(cpu_t *cpu, device_t *dev, ptr36_t addr, uint32_t *val)
+static void dorder_read32(unsigned int procno, device_t *dev, ptr36_t addr, uint32_t *val)
 {
 	dorder_data_s *data = (dorder_data_s *) dev->data;
 	
 	switch (addr - data->addr) {
 	case REGISTER_INT_PEND:
-		if (cpu != NULL)
-			*val = cpu->procno;
-		else
-			*val = (uint32_t) -1;
+		*val = procno;
 		break;
 	case REGISTER_INT_DOWN:
 		*val = 0;
@@ -222,7 +223,7 @@ static void dorder_read32(cpu_t *cpu, device_t *dev, ptr36_t addr, uint32_t *val
  * @param val  Value to write
  *
  */
-static void dorder_write32(cpu_t *cpu, device_t *dev, ptr36_t addr, uint32_t val)
+static void dorder_write32(unsigned int procno, device_t *dev, ptr36_t addr, uint32_t val)
 {
 	dorder_data_s *data = (dorder_data_s *) dev->data;
 	

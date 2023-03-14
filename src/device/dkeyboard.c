@@ -17,7 +17,7 @@
 #include <inttypes.h>
 #include "dkeyboard.h"
 #include "device.h"
-#include "dcpu.h"
+#include "cpu/general_cpu.h"
 #include "../arch/stdin.h"
 #include "../assert.h"
 #include "../env.h"
@@ -49,13 +49,14 @@ static void gen_key(device_t *dev, char c)
 {
 	keyboard_data_s *data = (keyboard_data_s *) dev->data;
 	
+	//TODO: Generate SC check?
 	data->incomming = c;
 	data->keycount++;
 	
 	if (!data->ig) {
 		data->ig = true;
 		data->intrcount++;
-		dcpu_interrupt_up(0, data->intno);
+		cpu_interrupt_up(NULL, data->intno);
 	} else
 		/* Increase the number of overrun characters */
 		data->overrun++;
@@ -187,7 +188,7 @@ static void keyboard_done(device_t *dev)
 	safe_free(dev->data);
 }
 
-static void keyboard_read32(cpu_t *cpu, device_t *dev, ptr36_t addr, uint32_t *val)
+static void keyboard_read32(unsigned int procno, device_t *dev, ptr36_t addr, uint32_t *val)
 {
 	ASSERT(dev != NULL);
 	ASSERT(val != NULL);
@@ -200,7 +201,7 @@ static void keyboard_read32(cpu_t *cpu, device_t *dev, ptr36_t addr, uint32_t *v
 		data->incomming = 0;
 		if (data->ig) {
 			data->ig = false;
-			dcpu_interrupt_down(0, data->intno);
+			cpu_interrupt_down(NULL, data->intno);
 		}
 		break;
 	}

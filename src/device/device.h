@@ -13,9 +13,8 @@
 #define DEVICE_H_
 
 #include <stdint.h>
-
+#include <stddef.h>
 #include "../parser.h"
-#include "cpu/mips_r4000/cpu.h"
 
 struct device;
 
@@ -40,15 +39,15 @@ typedef struct {
 	void (*step4k)(struct device *dev);
 	
 	/** Device memory read */
-	void (*read32)(cpu_t *cpu, struct device *dev, ptr36_t addr,
+	void (*read32)(unsigned int procno, struct device *dev, ptr36_t addr,
 	    uint32_t *val);
-	void (*read64)(cpu_t *cpu, struct device *dev, ptr36_t addr,
+	void (*read64)(unsigned int procno, struct device *dev, ptr36_t addr,
 	    uint64_t *val);
 	
 	/** Device memory write */
-	void (*write32)(cpu_t *cpu, struct device *dev, ptr36_t addr,
+	void (*write32)(unsigned int procno, struct device *dev, ptr36_t addr,
 	    uint32_t val);
-	void (*write64)(cpu_t *cpu, struct device *dev, ptr36_t addr,
+	void (*write64)(unsigned int procno, struct device *dev, ptr36_t addr,
 	    uint64_t val);
 	
 	/**
@@ -78,7 +77,7 @@ typedef enum {
 	DEVICE_FILTER_STEP,
 	DEVICE_FILTER_STEP4K,
 	DEVICE_FILTER_MEMORY,
-	DEVICE_FILTER_PROCESSOR,
+	DEVICE_FILTER_R4K_PROCESSOR,
 } device_filter_t;
 
 /**
@@ -95,6 +94,7 @@ extern device_t *alloc_device(const char *type_string,
     const char *device_name);
 extern void free_device(device_t *dev);
 extern void add_device(device_t *dev);
+extern void dev_remove(device_t *dev);
 
 extern device_t *dev_by_name(const char *name);
 extern const char *dev_type_by_partial_name(const char *prefix_name,
@@ -105,12 +105,6 @@ extern size_t dev_count_by_partial_name(const char *prefix_name,
     device_t **device);
 
 extern bool dev_next(device_t **dev, device_filter_t filter);
-
-/*
- * Link/unlink device functions
- */
-extern void dev_add(device_t *dev);
-extern void dev_remove(device_t *dev);
 
 /*
  * General utilities

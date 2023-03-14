@@ -18,9 +18,14 @@
 #include <string.h>
 #include <stdbool.h>
 #include "arch/signal.h"
+#include "device/cpu/general_cpu.h"
 #include "device/cpu/mips_r4000/cpu.h"
+#include "device/cpu/mips_r4000/debug.h"
+#include "device/cpu/riscv_rv32ima/cpu.h"
+#include "device/cpu/riscv_rv32ima/debug.h"
 #include "debug/gdb.h"
-#include "device/dcpu.h"
+#include "debug/breakpoint.h"
+#include "device/dr4kcpu.h"
 #include "device/device.h"
 #include "assert.h"
 #include "cmd.h"
@@ -32,12 +37,7 @@
 #include "text.h"
 #include "utils.h"
 
-/** Debugging register names */
-char **regname;
-char **cp0name;
-char **cp1name;
-char **cp2name;
-char **cp3name;
+
 
 /** Configuration file name */
 char *config_file = NULL;
@@ -191,7 +191,7 @@ static bool parse_cmdline(int argc, char *args[])
 			machine_trace = true;
 			break;
 		case 'V':
-			printf(txt_version);
+			printf("%s",txt_version);
 			return false;
 		case 'i':
 			machine_interactive = true;
@@ -205,8 +205,8 @@ static bool parse_cmdline(int argc, char *args[])
 			config_file = safe_strdup(optarg);
 			break;
 		case 'h':
-			printf(txt_version);
-			printf(txt_help);
+			printf("%s",txt_version);
+			printf("%s",txt_help);
 			return false;
 		case 'g':
 			setup_remote_gdb(optarg);
@@ -219,6 +219,7 @@ static bool parse_cmdline(int argc, char *args[])
 			break;
 		case '?':
 			die(ERR_PARM, "Unknown parameter or argument required");
+			break;
 		default:
 			die(ERR_PARM, "Unknown parameter \"%c\"", optopt);
 		}
@@ -236,7 +237,7 @@ static bool parse_cmdline(int argc, char *args[])
  *
  */
 static bool gdb_startup(void) {
-	if (dcpu_find_no(0) == NULL) {
+	if (get_cpu(0) == NULL) {
 		error("Cannot debug without any processor");
 		return false;
 	}
@@ -331,16 +332,31 @@ static void machine_run(void)
 	}
 }
 
+static void cleanup() {
+	/* Execute device cycles */
+	device_t *dev = NULL;
+	device_t *next_dev = NULL;
+
+	dev_next(&next_dev, DEVICE_FILTER_ALL);
+	dev = next_dev;
+
+	while(dev_next(&next_dev, DEVICE_FILTER_ALL)) {
+		free_device(dev);
+		dev = next_dev;
+	};
+
+	free_device(dev);
+	input_end();
+}
+
 int main(int argc, char *args[])
 {
 	/*
 	 * Initialization
 	 */
-	regname = reg_name[ireg];
-	cp0name = cp0_name[ireg];
-	cp1name = cp1_name[ireg];
-	cp2name = cp2_name[ireg];
-	cp3name = cp3_name[ireg];
+
+	r4k_debug_init();
+	rv_debug_init();
 	
 	input_init();
 	input_shadow();
@@ -372,6 +388,8 @@ int main(int argc, char *args[])
 	input_back();
 	if (steps > 0)
 		printf("\nCycles: %" PRIu64 "\n", steps);
+
+	cleanup();
 	
 	return 0;
 }

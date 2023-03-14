@@ -28,14 +28,26 @@ SOURCES = \
 	parser.c \
 	list.c \
 	input.c \
+	physmem.c \
 	debug/debug.c \
 	debug/gdb.c \
 	debug/breakpoint.c \
-	device/cpu/mips_r4000/instr.c \
 	device/cpu/mips_r4000/cpu.c \
+	device/cpu/mips_r4000/debug.c \
+	device/cpu/riscv_rv32ima/cpu.c \
+	device/cpu/riscv_rv32ima/csr.c \
+	device/cpu/riscv_rv32ima/instr.c \
+	device/cpu/riscv_rv32ima/mnemonics.c \
+	device/cpu/riscv_rv32ima/debug.c \
+	device/cpu/riscv_rv32ima/instructions/computations.c \
+	device/cpu/riscv_rv32ima/instructions/mem_ops.c \
+	device/cpu/riscv_rv32ima/instructions/control_transfer.c \
+	device/cpu/riscv_rv32ima/instructions/system.c \
+	device/cpu/general_cpu.c \
 	device/mem.c \
 	device/ddisk.c \
-	device/dcpu.c \
+	device/dr4kcpu.c \
+	device/drvcpu.c  \
 	device/dcycle.c \
 	device/dkeyboard.c \
 	device/dorder.c \
@@ -50,7 +62,10 @@ SOURCES = \
 
 OBJECTS := $(addsuffix .o,$(basename $(SOURCES)))
 
-.PHONY: all clean distclean
+export MSIM_OBJECTS = $(OBJECTS)
+export MSIM_LIBS = $(LIBS)
+
+.PHONY: all clean distclean rvtest
 
 all: $(TARGET)
 	-[ -f $(DEPEND) ] && $(CP) -a $(DEPEND) $(DEPEND_PREV)
@@ -72,3 +87,6 @@ $(TARGET): $(OBJECTS) $(DEPEND)
 $(DEPEND):
 	$(MAKEDEPEND) -f - -- $(CFLAGS) -- $(SOURCES) > $@ 2> /dev/null
 	-[ -f $(DEPEND_PREV) ] && $(DIFF) -q $(DEPEND_PREV) $@ && $(MV) -f $(DEPEND_PREV) $@
+
+rvtest: all
+	$(MAKE) -C ../tests/rvtests/unit-tests test

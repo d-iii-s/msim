@@ -1,11 +1,11 @@
-static exc_t instr_scd(cpu_t *cpu, instr_t instr)
+static r4k_exc_t instr_scd(r4k_cpu_t *cpu, r4k_instr_t instr)
 {
 	if (CPU_64BIT_INSTRUCTION(cpu)) {
 		if (!cpu->llbit) {
 			/* If we are not tracking LLD-SCD,
 			   then SC has to fail */
 			cpu->regs[instr.i.rt].val = 0;
-			return excNone;
+			return r4k_excNone;
 		}
 		
 		/* We do track LLD-SCD address */
@@ -15,8 +15,8 @@ static exc_t instr_scd(cpu_t *cpu, instr_t instr)
 		addr.ptr = cpu->regs[instr.i.rs].val + sign_extend_16_64(instr.i.imm);
 		
 		/* Perform the write operation */
-		exc_t res = cpu_write_mem64(cpu, addr, cpu->regs[instr.i.rt].val, true);
-		if (res == excNone) {
+		r4k_exc_t res = cpu_write_mem64(cpu, addr, cpu->regs[instr.i.rt].val, true);
+		if (res == r4k_excNone) {
 			/* The operation has been successful,
 			   write the result, but ... */
 			cpu->regs[instr.i.rt].val = 1;
@@ -25,7 +25,7 @@ static exc_t instr_scd(cpu_t *cpu, instr_t instr)
 			   In such a case, the behaviour of SCD is undefined.
 			   Let's check that. */
 			ptr36_t phys;
-			convert_addr(cpu, addr, &phys, false, false);
+			r4k_convert_addr(cpu, addr, &phys, false, false);
 		
 			/* sc_addr now contains physical target address */
 			if (phys != cpu->lladdr) {
@@ -35,16 +35,16 @@ static exc_t instr_scd(cpu_t *cpu, instr_t instr)
 		}
 		
 		/* SCD always stops LLD-SCD address tracking */
-		sc_unregister(cpu);
+		sc_unregister(cpu->procno);
 		cpu->llbit = false;
 		
 		return res;
 	}
 	
-	return excRI;
+	return r4k_excRI;
 }
 
-static void mnemonics_scd(ptr64_t addr, instr_t instr,
+static void mnemonics_scd(ptr64_t addr, r4k_instr_t instr,
     string_t *mnemonics, string_t *comments)
 {
 	string_printf(mnemonics, "scd");

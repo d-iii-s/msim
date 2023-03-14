@@ -1,0 +1,6 @@
+# Keep *.bin for simpler use (no need to
+# setup paths to the cross-compiler).
+*.raw
+*.o
+*.out
+*/out.txt

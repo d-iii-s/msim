@@ -1,0 +1,12 @@
+processor 0
+  zero:        0    ra:        0    sp:        0    gp:        0
+    tp:        0    t0: ffffffff    t1:        1    t2: 80000000
+ s0/fp:        2    s1:        0    a0:        0    a1:        1
+    a2:        2    a3:        3    a4: ffffffff    a5: 80000000
+    a6: fffffffe    a7:        0    s2: ffffffff    s3: fffffffe
+    s4:        1    s5: ffffffff    s6: 40000000    s7:        1
+    s8:        1    s9:        0   s10:        0   s11:        0
+    t3:        1    t4: ffffffff    t5:        1    t6:        0
+    pc: f000005c                               Privilege mode: M
+
+Cycles: 25

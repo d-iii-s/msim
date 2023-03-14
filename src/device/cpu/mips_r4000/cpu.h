@@ -16,30 +16,17 @@
 #include <stdbool.h>
 #include <inttypes.h>
 #include <unistd.h>
+#include <assert.h>
 #include "../../../list.h"
 #include "../../../utils.h"
-#include "instr.h"
+#include "../../../physmem.h"
 
-#define FRAME_WIDTH   12
-#define FRAME_SIZE    (1 << FRAME_WIDTH)
-#define FRAME_MASK    (FRAME_SIZE - 1)
+#define R4K_REG_COUNT     32
+#define R4K_REG_VARIANTS  3
 
 #define TLB_ENTRIES   48
-#define REG_COUNT     32
 #define INTR_COUNT    8
 #define TLB_PHYSMASK  UINT64_C(0x780000000)
-
-#define FRAMES2SIZE(frames) \
-	(((len36_t) (frames)) << FRAME_WIDTH)
-
-#define SIZE2FRAMES(size) \
-	((size) >> FRAME_WIDTH)
-
-#define FRAME2ADDR(frame) \
-	(((ptr36_t) (frame)) << FRAME_WIDTH)
-
-#define ADDR2FRAME(addr) \
-	((addr) >> FRAME_WIDTH)
 
 #define INSTR2ADDR(instr) \
 	((instr) << 2)
@@ -52,8 +39,6 @@
 
 #define SIZE2INSTRS(size) \
 	((size) >> 2)
-
-#define DEFAULT_MEMORY_VALUE  UINT64_C(0xffffffffffffffff)
 
 /* cp0 registers */
 typedef enum {
@@ -459,6 +444,40 @@ typedef enum {
 /** cp0 Masks */
 #define cp0_SR_EXLMask  UINT32_C(0x00000002)
 
+/** Exception types */
+typedef enum {
+	r4k_excInt   = 0,
+	r4k_excMod   = 1,
+	r4k_excTLBL  = 2,
+	r4k_excTLBS  = 3,
+	r4k_excAdEL  = 4,
+	r4k_excAdES  = 5,
+	r4k_excIBE   = 6,
+	r4k_excDBE   = 7,
+	r4k_excSys   = 8,
+	r4k_excBp    = 9,
+	r4k_excRI    = 10,
+	r4k_excCpU   = 11,
+	r4k_excOv    = 12,
+	r4k_excTr    = 13,
+	r4k_excVCEI  = 14,
+	r4k_excFPE   = 15,
+	r4k_excWATCH = 23,
+	r4k_excVCED  = 31,
+	
+	/* Special exception types */
+	r4k_excTLBR  = 64,
+	r4k_excTLBLR = 65,
+	r4k_excTLBSR = 66,
+	
+	/* For internal use */
+	r4k_excNone = 128,
+	r4k_excJump = 129,
+	r4k_excAddrError = 130,
+	r4k_excTLB = 131,
+	r4k_excReset = 132
+} r4k_exc_t;
+
 /** TLB entity definition */
 typedef struct {
 	ptr36_t pfn;   /**< Physical page number (shifted << 12) */
@@ -481,19 +500,93 @@ typedef enum {
 	BRANCH_COND = 2
 } branch_state_t;
 
+
+/** Instruction decoding structure */
+typedef union r4k_instr {
+	uint32_t val;
+#ifdef WORDS_BIGENDIAN
+	struct {
+		unsigned int opcode : 6;
+		unsigned int rs : 5;
+		unsigned int rt : 5;
+		unsigned int imm : 16;
+	} i;
+	struct {
+		unsigned int opcode : 6;
+		unsigned int target : 26;
+	} j;
+	struct {
+		unsigned int opcode : 6;
+		unsigned int rs : 5;
+		unsigned int rt : 5;
+		unsigned int rd : 5;
+		unsigned int sa : 5;
+		unsigned int func : 6;
+	} r;
+	struct {
+		unsigned int opcode : 6;
+		unsigned int rs : 5;
+		unsigned int rt : 5;
+		unsigned int data : 8;
+		unsigned int func : 8;
+	} cop;
+	struct {
+		unsigned int opcode : 6;
+		unsigned int code : 20;
+		unsigned int func : 6;
+	} sys;
+#else
+	struct {
+		unsigned int imm : 16;
+		unsigned int rt : 5;
+		unsigned int rs : 5;
+		unsigned int opcode : 6;
+	} i;
+	struct {
+		unsigned int target : 26;
+		unsigned int opcode : 6;
+	} j;
+	struct {
+		unsigned int func : 6;
+		unsigned int sa : 5;
+		unsigned int rd : 5;
+		unsigned int rt : 5;
+		unsigned int rs : 5;
+		unsigned int opcode : 6;
+	} r;
+	struct {
+		unsigned int func : 8;
+		unsigned int data : 8;
+		unsigned int rt : 5;
+		unsigned int rs : 5;
+		unsigned int opcode : 6;
+	} cop;
+	struct {
+		unsigned int func : 6;
+		unsigned int code : 20;
+		unsigned int opcode : 6;
+	} sys;
+#endif
+} r4k_instr_t;
+
+static_assert(sizeof(r4k_instr_t) == 4, "wrong r4k_instr_t size!");
+
 struct frame;
+struct r4k_cpu;
+
+/** Instruction implementation */
+typedef r4k_exc_t (*r4k_instr_fnc_t)(struct r4k_cpu *, r4k_instr_t);
 
 /** Main processor structure */
-typedef struct {
+typedef struct r4k_cpu {
 	/* Basic run-time support */
 	unsigned int procno;
 	bool stdby;
-	struct frame *frame;
 	
 	/* Standard registers */
-	reg64_t regs[REG_COUNT];
-	reg64_t cp0[REG_COUNT];
-	uint64_t fpregs[REG_COUNT];
+	reg64_t regs[R4K_REG_COUNT];
+	reg64_t cp0[R4K_REG_COUNT];
+	uint64_t fpregs[R4K_REG_COUNT];
 	reg64_t loreg;
 	reg64_t hireg;
 	
@@ -506,8 +599,8 @@ typedef struct {
 	unsigned int tlb_hint;
 	
 	/* Old registers (for debug info) */
-	reg64_t old_regs[REG_COUNT];
-	reg64_t old_cp0[REG_COUNT];
+	reg64_t old_regs[R4K_REG_COUNT];
+	reg64_t old_cp0[R4K_REG_COUNT];
 	reg64_t old_loreg;
 	reg64_t old_hireg;
 	
@@ -535,91 +628,352 @@ typedef struct {
 	
 	/* breakpoints */
 	list_t bps;
-} cpu_t;
+} r4k_cpu_t;
 
-/** Instruction implementation */
-typedef exc_t (*instr_fnc_t)(cpu_t *, instr_t);
+
+
+/** Opcode numbers
+ *
+ */
+typedef enum {
+	/* 0 */
+	r4k_opcSPECIAL = 0,
+	r4k_opcREGIMM = 1,
+	r4k_opcJ = 2,
+	r4k_opcJAL = 3,
+	r4k_opcBEQ = 4,
+	r4k_opcBNE = 5,
+	r4k_opcBLEZ = 6,
+	r4k_opcBGTZ = 7,
+	
+	/* 8 */
+	r4k_opcADDI = 8,
+	r4k_opcADDIU = 9,
+	r4k_opcSLTI = 10,
+	r4k_opcSLTIU = 11,
+	r4k_opcANDI = 12,
+	r4k_opcORI = 13,
+	r4k_opcXORi = 14,
+	opcLUI = 15,
+	
+	/* 16 */
+	r4k_opcCOP0 = 16,
+	r4k_opcCOP1 = 17,
+	r4k_opcCOP2 = 18,
+	/* opcode 19 unused */
+	r4k_opcBEQL = 20,
+	r4k_opcBNEL = 21,
+	r4k_opcBLEZL = 22,
+	r4k_opcBGTZL = 23,
+	
+	/* 24 */
+	r4k_opcDADDI = 24,
+	r4k_opcDADDIU = 25,
+	r4k_opcLDL = 26,
+	r4k_opcLDR = 27,
+	/* opcode 28 unused */
+	/* opcode 29 unused */
+	/* opcode 30 unused */
+	/* opcode 31 unused */
+	
+	/* 32 */
+	r4k_opcLB = 32,
+	r4k_opcLH = 33,
+	r4k_opcLWL = 34,
+	r4k_opcLW = 35,
+	r4k_opcLBU = 36,
+	r4k_opcLHU = 37,
+	r4k_opcLWR = 38,
+	r4k_opcLWU = 39,
+	
+	/* 40 */
+	r4k_opcSB = 40,
+	r4k_opcSH = 41,
+	r4k_opcSWL = 42,
+	r4k_opcSW = 43,
+	r4k_opcSDL = 44,
+	r4k_opcSDR = 45,
+	r4k_opcSWR = 46,
+	r4k_opcCACHE = 47,
+	
+	/* 48 */
+	r4k_opcLL = 48,
+	r4k_opcLWC1 = 49,
+	r4k_opcLWC2 = 50,
+	/* opcode 51 unused */
+	r4k_opcLDD = 52,
+	r4k_opcLDC1 = 53,
+	r4k_opcLDC2 = 54,
+	r4k_opcLD = 55,
+	
+	/* 56 */
+	r4k_opcSC = 56,
+	r4k_opcSWC1 = 57,
+	r4k_opcSWC2 = 58,
+	/* opcode 59 unused */
+	r4k_opcSCD = 60,
+	r4k_opcSDC1 = 61,
+	r4k_opcSDC2 = 62,
+	r4k_opcSD = 63
+} r4k_instr_opcode_t;
+
+/** Function numbers
+ *
+ * For r4k_opcSPECIAL instructions.
+ *
+ */
+typedef enum {
+	/* 0 */
+	funcSLL = 0,
+	/* function 1 unused */
+	funcSRL = 2,
+	funcSRA = 3,
+	funcSLLV = 4,
+	/* function 5 unused */
+	funcSRLV = 6,
+	funcSRAV = 7,
+	
+	/* 8 */
+	funcJR = 8,
+	funcJALR = 9,
+	/* function 10 unused */
+	/* function 11 unused */
+	funcSYSCALL = 12,
+	funcBREAK = 13,
+	/* function 14 unused */
+	funcSYNC = 15,
+	
+	/* 16 */
+	funcMFHI = 16,
+	funcMTHI = 17,
+	funcMFLO = 18,
+	funcMTLO = 19,
+	funcDSLLV = 20,
+	/* function 21 unused */
+	funcDSRLV = 22,
+	funcDSRAV = 23,
+	
+	/* 24 */
+	funcMULT = 24,
+	funcMULTU = 25,
+	funcDIV = 26,
+	funcDIVU = 27,
+	funcDMULT = 28,
+	funcDMULTU = 29,
+	funcDDIV = 30,
+	funcDDIVU = 31,
+	
+	/* 32 */
+	funcADD = 32,
+	funcADDU = 33,
+	funcSUB = 34,
+	funcSUBU = 35,
+	funcAND = 36,
+	funcOR = 37,
+	funcXOR = 38,
+	funcNOR = 39,
+	
+	/* 40 */
+	/* function 40 unused */
+	func_XINT = 41,
+	funcSLT = 42,
+	funcSLTU = 43,
+	funcDADD = 44,
+	funcDADDU = 45,
+	funcDSUB = 46,
+	funcDSUBu = 47,
+	
+	/* 48 */
+	funcTGE = 48,
+	funcTGEU = 49,
+	funcTLT = 50,
+	funcTLTU = 51,
+	funcTEQ = 52,
+	/* function 53 unused */
+	funcTNE = 54,
+	/* function 55 unused */
+	
+	/* 56 */
+	funcDSLL = 56,
+	/* function 57 unused */
+	funcDSRL = 58,
+	funcDSRA = 59,
+	funcSLL32 = 60,
+	/* function 61 unused */
+	funcDSRL32 = 62,
+	funcDSRA32 = 63
+} instr_func_t;
+
+/** Register rt numbers
+ *
+ * For r4k_opcREGIMM instructions.
+ *
+ */
+typedef enum {
+	/* 0 */
+	rtBLTZ = 0,
+	rtBGEZ = 1,
+	rtBLTZL = 2,
+	rtBGEZL = 3,
+	/* rt 4 unused */
+	/* rt 5 unused */
+	/* rt 6 unused */
+	/* rt 7 unused */
+	
+	/* 8 */
+	rtTGEI = 8,
+	rtTGEIU = 9,
+	rtTLTI = 10,
+	rtTLTIU = 11,
+	rtTEQI = 12,
+	/* rt 13 unused */
+	rtTNEI = 14,
+	/* rt 15 unused */
+	
+	/* 16 */
+	rtBLTZAL = 16,
+	rtBGEZAL = 17,
+	rtBLTZALL = 18,
+	rtBGEZALL = 19
+} instr_rt_t;
 
 typedef enum {
-	MEMT_NONE = 0,  /**< Uninitialized */
-	MEMT_MEM  = 1,  /**< Generic */
-	MEMT_FMAP = 2   /**< File mapped */
-} physmem_type_t;
+	/* 0 */
+	cop0rsMFC0 = 0,
+	cop0rsDMFC0 = 1,
+	/* rs 2 unused */
+	/* rs 3 unused */
+	cop0rsMTC0 = 4,
+	cop0rsDMTC0 = 5,
+	/* rs 6 unused */
+	/* rs 7 unused */
+	
+	/* 8 */
+	cop0rsBC = 8,
+	/* rs 9 unused */
+	/* rs 10 unused */
+	/* rs 11 unused */
+	/* rs 12 unused */
+	/* rs 13 unused */
+	/* rs 14 unused */
+	/* rs 15 unused */
+	
+	/* 16 */
+	cop0rsCO = 16
+} instr_cop0rs_t;
 
-typedef struct {
-	/* Memory area type */
-	physmem_type_t type;
-	bool writable;
+typedef enum {
+	/* 0 */
+	cop1rsMFC1 = 0,
+	cop1rsDMFC1 = 1,
+	cop1rsCFC1 = 2,
+	/* rs 3 unused */
+	cop1rsMTC1 = 4,
+	cop1rsDMTC1 = 5,
+	cop1rsCTC1 = 6,
+	/* rs 7 unused */
 	
-	/* Starting physical frame */
-	pfn_t start;
-	
-	/* Number of physical frames */
-	pfn_t count;
-	
-	/* Memory content */
-	uint8_t *data;
-	
-	/* Binary translated memory content */
-	instr_fnc_t *trans;
-} physmem_area_t;
+	/* 8 */
+	cop1rsBC = 8
+} instr_cop1rs_t;
 
-typedef struct frame {
-	/* Physical memory area containing the frame */
-	physmem_area_t *area;
+typedef enum {
+	/* 0 */
+	cop2rsMFC2 = 0,
+	/* rs 1 unused */
+	cop2rsCFC2 = 2,
+	/* rs 3 unused */
+	/* rs 4 unused */
+	/* rs 5 unused */
+	cop2rsCTC2 = 6,
+	/* rs 7 unused */
 	
-	/* Frame data (with displacement) */
-	uint8_t *data;
+	/* 8 */
+	cop2rsBC = 8
+} instr_cop2rs_t;
+
+typedef enum {
+	/* 0 */
+	cop0rtBC0F = 0,
+	cop0rtBC0T = 1,
+	cop0rtBC0FL = 2,
+	cop0rtBC0TL = 3
+} instr_cop0rt_t;
+
+typedef enum {
+	/* 0 */
+	cop1rtBC1F = 0,
+	cop1rtBC1T = 1,
+	cop1rtBC1FL = 2,
+	cop1rtBC1TL = 3
+} instr_cop1rt_t;
+
+typedef enum {
+	/* 0 */
+	cop2rtBC2F = 0,
+	cop2rtBC2T = 1,
+	cop2rtBC2FL = 2,
+	cop2rtBC2TL = 3
+} instr_cop2rt_t;
+
+typedef enum {
+	/* 0 */
+	/* function 0 unused */
+	cop0funcTLBR = 1,
+	cop0funcTLBWI = 2,
+	/* function 3 unused */
+	/* function 4 unused */
+	/* function 5 unused */
+	cop0funcTLBWR = 6,
+	/* function 7 unused */
 	
-	/* Binary translated instructions (with displacement) */
-	instr_fnc_t *trans;
+	/* 8 */
+	cop0funcTLBP = 8,
+	/* function 9 unused */
+	/* function 10 unused */
+	/* function 11 unused */
+	/* function 12 unused */
+	/* function 13 unused */
+	/* function 14 unused */
+	/* function 15 unused */
 	
-	/* Binary translation valid flag */
-	bool valid;
-} frame_t;
+	/* 16 */
+	cop0funcERET = 16
+} instr_cop0func_t;
 
 /** Instruction decoding tables and mnemonics
  *
  */
-typedef void (*mnemonics_fnc_t)(ptr64_t, instr_t, string_t *, string_t *);
+typedef void (*mnemonics_fnc_t)(ptr64_t, r4k_instr_t, string_t *, string_t *);
+
+/** Register and coprocessor names */
+extern char *r4k_reg_name[R4K_REG_VARIANTS][R4K_REG_COUNT];
+extern char *r4k_cp0_name[R4K_REG_VARIANTS][R4K_REG_COUNT];
+extern char *r4k_cp1_name[R4K_REG_VARIANTS][R4K_REG_COUNT];
+extern char *r4k_cp2_name[R4K_REG_VARIANTS][R4K_REG_COUNT];
+extern char *r4k_cp3_name[R4K_REG_VARIANTS][R4K_REG_COUNT];
 
 /** Decode instruction mnemonics */
-extern mnemonics_fnc_t decode_mnemonics(instr_t);
-
-/** Physical memory management */
-extern void physmem_wire(physmem_area_t *area);
-extern void physmem_unwire(physmem_area_t *area);
+extern mnemonics_fnc_t decode_mnemonics(r4k_instr_t);
 
 /** Basic CPU routines */
-extern void cpu_init(cpu_t *cpu, unsigned int procno);
-extern void cpu_set_pc(cpu_t *cpu, ptr64_t value);
-extern void cpu_step(cpu_t *cpu);
-
-/** Physical memory access */
-extern uint8_t physmem_read8(cpu_t *cpu, ptr36_t addr, bool protected);
-extern uint16_t physmem_read16(cpu_t *cpu, ptr36_t addr, bool protected);
-extern uint32_t physmem_read32(cpu_t *cpu, ptr36_t addr, bool protected);
-extern uint64_t physmem_read64(cpu_t *cpu, ptr36_t addr, bool protected);
-
-extern bool physmem_write8(cpu_t *cpu, ptr36_t addr, uint8_t val,
-    bool protected);
-extern bool physmem_write16(cpu_t *cpu, ptr36_t addr, uint16_t val,
-    bool protected);
-extern bool physmem_write32(cpu_t *cpu, ptr36_t addr, uint32_t val,
-    bool protected);
-extern bool physmem_write64(cpu_t *cpu, ptr36_t addr, uint64_t val,
-    bool protected);
+extern void r4k_init(r4k_cpu_t *cpu, unsigned int procno);
+extern void r4k_set_pc(r4k_cpu_t *cpu, ptr64_t value);
+extern void r4k_step(r4k_cpu_t *cpu);
+extern void r4k_done(r4k_cpu_t *cpu);
 
 /** Addresing function */
-extern exc_t convert_addr(cpu_t *cpu, ptr64_t virt, ptr36_t *phys, bool write,
+extern r4k_exc_t r4k_convert_addr(r4k_cpu_t *cpu, ptr64_t virt, ptr36_t *phys, bool write,
     bool noisy);
 
 /** Virtual memory access */
-extern exc_t cpu_read_mem32(cpu_t *cpu, ptr64_t addr, uint32_t *value,
+extern r4k_exc_t r4k_read_mem32(r4k_cpu_t *cpu, ptr64_t addr, uint32_t *value,
     bool noisy);
 
 /** Interrupts */
-extern void cpu_interrupt_up(cpu_t *cpu, unsigned int no);
-extern void cpu_interrupt_down(cpu_t *cpu, unsigned int no);
+extern void r4k_interrupt_up(r4k_cpu_t *cpu, unsigned int no);
+extern void r4k_interrupt_down(r4k_cpu_t *cpu, unsigned int no);
+
+extern bool r4k_sc_access(r4k_cpu_t *cpu, ptr36_t addr, int size);
 
 #endif

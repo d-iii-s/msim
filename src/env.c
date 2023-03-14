@@ -12,7 +12,9 @@
 #include <stdlib.h>
 #include <string.h>
 #include <stdbool.h>
-#include "device/cpu/mips_r4000/instr.h"
+#include "device/cpu/mips_r4000/cpu.h"
+#include "device/cpu/mips_r4000/debug.h"
+#include "device/cpu/riscv_rv32ima/debug.h"
 #include "fault.h"
 #include "parser.h"
 #include "assert.h"
@@ -26,7 +28,10 @@ bool iaddr = true;
 bool iopc = false;
 bool icmt = true;
 bool iregch = true;
-unsigned int ireg = 2;
+unsigned int r4k_ireg = 2;
+unsigned int __rv_ireg_mock = 1; // this variable is never written to,
+							     // but it has to be here, because of
+							     // the parsing algorithm
 
 /*
  * Boolean constants
@@ -110,20 +115,20 @@ typedef bool (*set_uint_t)(unsigned int);
 typedef bool (*set_bool_t)(bool);
 typedef bool (*set_str_t)(const char *);
 
-/** Change the ireg variable
+/** Change the r4k_ireg variable
  *
  * @return true if successful
  *
  */
 static bool change_ireg(unsigned int i)
 {
-	if (i >= REG_VARIANTS) {
-		error("Index out of range 0..%u", REG_VARIANTS - 1);
+	if (i >= R4K_REG_VARIANTS) {
+		error("Index out of range 0..%u", R4K_REG_VARIANTS - 1);
 		return false;
 	}
 	
-	ireg = i;
-	regname = reg_name[i];
+	r4k_ireg = i;
+	r4k_regname = r4k_reg_name[i];
 	
 	return true;
 }
@@ -190,16 +195,24 @@ const env_t global_env[] = {
 		NULL
 	},
 	{
-		"ireg",
-		"Register name mode",
+		"r4k_ireg",
+		"MIPS Register name mode",
 		"Mode 0 (technical): r0, r12, r22, etc.\n"
 		   "Mode 1 (at&t): $0, $12, $22, etc.\n"
 		   "Mode 2 (textual): at, t4, s2, etc.",
 		vt_uint,
-		&ireg,
+		&r4k_ireg,
 		change_ireg
 	},
-	
+	{
+		"rv_ireg",
+		"RISC-V Register name mode",
+		"Mode 0 (numerical): x0, x12, x22, etc.\n"
+			"Mode 1 (ABI): zero, sp, a0, s5, etc.\n",
+		vt_uint,
+		&__rv_ireg_mock, // unused
+		rv_debug_change_regnames
+	},
 	{
 		"debugging",
 		"Debugging features",
@@ -386,6 +399,10 @@ static void show_help(token_t *parm)
 			printf("\n");
 		}
 	} else {
+		/* Skip '=' constant */
+		ASSERT(strcmp(parm_str(parm), "=") == 0);
+		parm_next(&parm);
+		
 		env = search_variable(parm_str_next(&parm));
 		if (env)
 			printf("%s\n", env->descf);
@@ -399,6 +416,11 @@ static bool set_uint(const env_t *env, token_t *parm)
 {
 	ASSERT(env != NULL);
 	ASSERT(parm != NULL);
+
+	if(parm_type(parm) != tt_uint) {
+		error("Integer parameter expected");
+		return false;
+	}
 	
 	if (env->func)
 		((set_uint_t) env->func)(parm_uint(parm));

@@ -1,0 +1,258 @@
+
+main.raw:     file format elf32-littleriscv
+
+
+Disassembly of section .text:
+
+00000000 <setup_table-0xb4>:
+   0:	800002b7          	lui	t0,0x80000
+   4:	30529073          	csrw	mtvec,t0
+   8:	0ac000ef          	jal	ra,b4 <setup_table>
+   c:	801002b7          	lui	t0,0x80100
+  10:	fd028293          	addi	t0,t0,-48 # 800fffd0 <fail+0x800ffc74>
+  14:	18029073          	csrw	satp,t0
+  18:	000012b7          	lui	t0,0x1
+  1c:	80028293          	addi	t0,t0,-2048 # 800 <fail+0x4a4>
+  20:	3002a073          	csrs	mstatus,t0
+  24:	00000297          	auipc	t0,0x0
+  28:	01028293          	addi	t0,t0,16 # 34 <setup_table-0x80>
+  2c:	34129073          	csrw	mepc,t0
+  30:	30200073          	mret
+  34:	208000ef          	jal	ra,23c <access_dirty>
+  38:	314000ef          	jal	ra,34c <newline>
+  3c:	24c000ef          	jal	ra,288 <write_read_only>
+  40:	30c000ef          	jal	ra,34c <newline>
+  44:	250000ef          	jal	ra,294 <read_execute_only_non_mxr>
+  48:	304000ef          	jal	ra,34c <newline>
+  4c:	254000ef          	jal	ra,2a0 <read_execute_only_set_mxr>
+  50:	2fc000ef          	jal	ra,34c <newline>
+  54:	268000ef          	jal	ra,2bc <read_u_page_not_sum>
+  58:	2f4000ef          	jal	ra,34c <newline>
+  5c:	274000ef          	jal	ra,2d0 <read_u_page_set_sum>
+  60:	2ec000ef          	jal	ra,34c <newline>
+  64:	288000ef          	jal	ra,2ec <execute_from_non_executable>
+  68:	2e4000ef          	jal	ra,34c <newline>
+  6c:	290000ef          	jal	ra,2fc <supervisor_fetch_from_user_page>
+  70:	2dc000ef          	jal	ra,34c <newline>
+  74:	2a0000ef          	jal	ra,314 <read_from_unaligned_megapage>
+  78:	2d4000ef          	jal	ra,34c <newline>
+  7c:	2a4000ef          	jal	ra,320 <read_from_invalid_first_level_pte>
+  80:	2cc000ef          	jal	ra,34c <newline>
+  84:	2a8000ef          	jal	ra,32c <read_from_invalid_second_level_pte>
+  88:	2c4000ef          	jal	ra,34c <newline>
+  8c:	2ac000ef          	jal	ra,338 <read_from_non_leaf_second_level_pte>
+  90:	2bc000ef          	jal	ra,34c <newline>
+  94:	2b0000ef          	jal	ra,344 <read_from_non_mapped>
+  98:	2b4000ef          	jal	ra,34c <newline>
+  9c:	10000293          	li	t0,256
+  a0:	1002b073          	csrc	sstatus,t0
+  a4:	100082b7          	lui	t0,0x10008
+  a8:	14129073          	csrw	sepc,t0
+  ac:	10200073          	sret
+  b0:	2ac0006f          	j	35c <fail>
+
+000000b4 <setup_table>:
+  b4:	fffd02b7          	lui	t0,0xfffd0
+  b8:	00001337          	lui	t1,0x1
+  bc:	f0030313          	addi	t1,t1,-256 # f00 <fail+0xba4>
+  c0:	006283b3          	add	t2,t0,t1
+  c4:	3c000337          	lui	t1,0x3c000
+  c8:	00930313          	addi	t1,t1,9 # 3c000009 <fail+0x3bfffcad>
+  cc:	0063a023          	sw	t1,0(t2)
+  d0:	00001337          	lui	t1,0x1
+  d4:	90030313          	addi	t1,t1,-1792 # 900 <fail+0x5a4>
+  d8:	006283b3          	add	t2,t0,t1
+  dc:	24000337          	lui	t1,0x24000
+  e0:	00730313          	addi	t1,t1,7 # 24000007 <fail+0x23fffcab>
+  e4:	0063a023          	sw	t1,0(t2)
+  e8:	00001337          	lui	t1,0x1
+  ec:	a0030313          	addi	t1,t1,-1536 # a00 <fail+0x6a4>
+  f0:	006283b3          	add	t2,t0,t1
+  f4:	24000337          	lui	t1,0x24000
+  f8:	01730313          	addi	t1,t1,23 # 24000017 <fail+0x23fffcbb>
+  fc:	0063a023          	sw	t1,0(t2)
+ 100:	00001337          	lui	t1,0x1
+ 104:	ffc30313          	addi	t1,t1,-4 # ffc <fail+0xca0>
+ 108:	006283b3          	add	t2,t0,t1
+ 10c:	3ff00337          	lui	t1,0x3ff00
+ 110:	00730313          	addi	t1,t1,7 # 3ff00007 <fail+0x3feffcab>
+ 114:	0063a023          	sw	t1,0(t2)
+ 118:	10000313          	li	t1,256
+ 11c:	006283b3          	add	t2,t0,t1
+ 120:	3fff8337          	lui	t1,0x3fff8
+ 124:	00130313          	addi	t1,t1,1 # 3fff8001 <fail+0x3fff7ca5>
+ 128:	0063a023          	sw	t1,0(t2)
+ 12c:	fffe02b7          	lui	t0,0xfffe0
+ 130:	00000313          	li	t1,0
+ 134:	006283b3          	add	t2,t0,t1
+ 138:	04000337          	lui	t1,0x4000
+ 13c:	00f30313          	addi	t1,t1,15 # 400000f <fail+0x3fffcb3>
+ 140:	0063a023          	sw	t1,0(t2)
+ 144:	00400313          	li	t1,4
+ 148:	006283b3          	add	t2,t0,t1
+ 14c:	04000337          	lui	t1,0x4000
+ 150:	40330313          	addi	t1,t1,1027 # 4000403 <fail+0x40000a7>
+ 154:	0063a023          	sw	t1,0(t2)
+ 158:	00800313          	li	t1,8
+ 15c:	006283b3          	add	t2,t0,t1
+ 160:	04001337          	lui	t1,0x4001
+ 164:	80930313          	addi	t1,t1,-2039 # 4000809 <fail+0x40004ad>
+ 168:	0063a023          	sw	t1,0(t2)
+ 16c:	00c00313          	li	t1,12
+ 170:	006283b3          	add	t2,t0,t1
+ 174:	04001337          	lui	t1,0x4001
+ 178:	c1f30313          	addi	t1,t1,-993 # 4000c1f <fail+0x40008c3>
+ 17c:	0063a023          	sw	t1,0(t2)
+ 180:	01000313          	li	t1,16
+ 184:	006283b3          	add	t2,t0,t1
+ 188:	04000337          	lui	t1,0x4000
+ 18c:	00330313          	addi	t1,t1,3 # 4000003 <fail+0x3fffca7>
+ 190:	0063a023          	sw	t1,0(t2)
+ 194:	01400313          	li	t1,20
+ 198:	006283b3          	add	t2,t0,t1
+ 19c:	04001337          	lui	t1,0x4001
+ 1a0:	80930313          	addi	t1,t1,-2039 # 4000809 <fail+0x40004ad>
+ 1a4:	0063a023          	sw	t1,0(t2)
+ 1a8:	01800313          	li	t1,24
+ 1ac:	006283b3          	add	t2,t0,t1
+ 1b0:	04000337          	lui	t1,0x4000
+ 1b4:	01930313          	addi	t1,t1,25 # 4000019 <fail+0x3fffcbd>
+ 1b8:	0063a023          	sw	t1,0(t2)
+ 1bc:	01c00313          	li	t1,28
+ 1c0:	006283b3          	add	t2,t0,t1
+ 1c4:	04001337          	lui	t1,0x4001
+ 1c8:	80930313          	addi	t1,t1,-2039 # 4000809 <fail+0x40004ad>
+ 1cc:	0063a023          	sw	t1,0(t2)
+ 1d0:	02000313          	li	t1,32
+ 1d4:	006283b3          	add	t2,t0,t1
+ 1d8:	04002337          	lui	t1,0x4002
+ 1dc:	01930313          	addi	t1,t1,25 # 4002019 <fail+0x4001cbd>
+ 1e0:	0063a023          	sw	t1,0(t2)
+ 1e4:	00001337          	lui	t1,0x1
+ 1e8:	ffc30313          	addi	t1,t1,-4 # ffc <fail+0xca0>
+ 1ec:	006283b3          	add	t2,t0,t1
+ 1f0:	00e00313          	li	t1,14
+ 1f4:	0063a023          	sw	t1,0(t2)
+ 1f8:	00001337          	lui	t1,0x1
+ 1fc:	ff830313          	addi	t1,t1,-8 # ff8 <fail+0xc9c>
+ 200:	006283b3          	add	t2,t0,t1
+ 204:	00100313          	li	t1,1
+ 208:	0063a023          	sw	t1,0(t2)
+ 20c:	fffd02b7          	lui	t0,0xfffd0
+ 210:	20000313          	li	t1,512
+ 214:	006283b3          	add	t2,t0,t1
+ 218:	04000337          	lui	t1,0x4000
+ 21c:	40f30313          	addi	t1,t1,1039 # 400040f <fail+0x40000b3>
+ 220:	0063a023          	sw	t1,0(t2)
+ 224:	20400313          	li	t1,516
+ 228:	006283b3          	add	t2,t0,t1
+ 22c:	04000337          	lui	t1,0x4000
+ 230:	00e30313          	addi	t1,t1,14 # 400000e <fail+0x3fffcb2>
+ 234:	0063a023          	sw	t1,0(t2)
+ 238:	00008067          	ret
+
+0000023c <access_dirty>:
+ 23c:	fffe02b7          	lui	t0,0xfffe0
+ 240:	10000337          	lui	t1,0x10000
+ 244:	0002a383          	lw	t2,0(t0) # fffe0000 <fail+0xfffdfca4>
+ 248:	0c03f393          	andi	t2,t2,192
+ 24c:	10039863          	bnez	t2,35c <fail>
+ 250:	00032383          	lw	t2,0(t1) # 10000000 <fail+0xffffca4>
+ 254:	0002a383          	lw	t2,0(t0)
+ 258:	0c03f393          	andi	t2,t2,192
+ 25c:	fc038393          	addi	t2,t2,-64
+ 260:	0e039e63          	bnez	t2,35c <fail>
+ 264:	00732023          	sw	t2,0(t1)
+ 268:	0002a383          	lw	t2,0(t0)
+ 26c:	0c03f393          	andi	t2,t2,192
+ 270:	f4038393          	addi	t2,t2,-192
+ 274:	0e039463          	bnez	t2,35c <fail>
+ 278:	900002b7          	lui	t0,0x90000
+ 27c:	05300313          	li	t1,83
+ 280:	0062a023          	sw	t1,0(t0) # 90000000 <fail+0x8ffffca4>
+ 284:	00008067          	ret
+
+00000288 <write_read_only>:
+ 288:	100012b7          	lui	t0,0x10001
+ 28c:	0002a023          	sw	zero,0(t0) # 10001000 <fail+0x10000ca4>
+ 290:	00008067          	ret
+
+00000294 <read_execute_only_non_mxr>:
+ 294:	100022b7          	lui	t0,0x10002
+ 298:	0002a003          	lw	zero,0(t0) # 10002000 <fail+0x10001ca4>
+ 29c:	00008067          	ret
+
+000002a0 <read_execute_only_set_mxr>:
+ 2a0:	000802b7          	lui	t0,0x80
+ 2a4:	1002a073          	csrs	sstatus,t0
+ 2a8:	100022b7          	lui	t0,0x10002
+ 2ac:	0002a003          	lw	zero,0(t0) # 10002000 <fail+0x10001ca4>
+ 2b0:	000802b7          	lui	t0,0x80
+ 2b4:	1002b073          	csrc	sstatus,t0
+ 2b8:	00008067          	ret
+
+000002bc <read_u_page_not_sum>:
+ 2bc:	000402b7          	lui	t0,0x40
+ 2c0:	1002b073          	csrc	sstatus,t0
+ 2c4:	100032b7          	lui	t0,0x10003
+ 2c8:	0002a003          	lw	zero,0(t0) # 10003000 <fail+0x10002ca4>
+ 2cc:	00008067          	ret
+
+000002d0 <read_u_page_set_sum>:
+ 2d0:	000402b7          	lui	t0,0x40
+ 2d4:	1002a073          	csrs	sstatus,t0
+ 2d8:	100032b7          	lui	t0,0x10003
+ 2dc:	0002a003          	lw	zero,0(t0) # 10003000 <fail+0x10002ca4>
+ 2e0:	000402b7          	lui	t0,0x40
+ 2e4:	1002b073          	csrc	sstatus,t0
+ 2e8:	00008067          	ret
+
+000002ec <execute_from_non_executable>:
+ 2ec:	100052b7          	lui	t0,0x10005
+ 2f0:	ffc28293          	addi	t0,t0,-4 # 10004ffc <fail+0x10004ca0>
+ 2f4:	00028067          	jr	t0
+ 2f8:	0640006f          	j	35c <fail>
+
+000002fc <supervisor_fetch_from_user_page>:
+ 2fc:	000402b7          	lui	t0,0x40
+ 300:	1002a073          	csrs	sstatus,t0
+ 304:	100072b7          	lui	t0,0x10007
+ 308:	ffc28293          	addi	t0,t0,-4 # 10006ffc <fail+0x10006ca0>
+ 30c:	00028067          	jr	t0
+ 310:	04c0006f          	j	35c <fail>
+
+00000314 <read_from_unaligned_megapage>:
+ 314:	200002b7          	lui	t0,0x20000
+ 318:	0002a283          	lw	t0,0(t0) # 20000000 <fail+0x1ffffca4>
+ 31c:	00008067          	ret
+
+00000320 <read_from_invalid_first_level_pte>:
+ 320:	204002b7          	lui	t0,0x20400
+ 324:	0002a283          	lw	t0,0(t0) # 20400000 <fail+0x203ffca4>
+ 328:	00008067          	ret
+
+0000032c <read_from_invalid_second_level_pte>:
+ 32c:	103ff2b7          	lui	t0,0x103ff
+ 330:	0002a283          	lw	t0,0(t0) # 103ff000 <fail+0x103feca4>
+ 334:	00008067          	ret
+
+00000338 <read_from_non_leaf_second_level_pte>:
+ 338:	103fe2b7          	lui	t0,0x103fe
+ 33c:	0002a283          	lw	t0,0(t0) # 103fe000 <fail+0x103fdca4>
+ 340:	00008067          	ret
+
+00000344 <read_from_non_mapped>:
+ 344:	00002283          	lw	t0,0(zero) # 0 <setup_table-0xb4>
+ 348:	00008067          	ret
+
+0000034c <newline>:
+ 34c:	900002b7          	lui	t0,0x90000
+ 350:	00a00313          	li	t1,10
+ 354:	0062a023          	sw	t1,0(t0) # 90000000 <fail+0x8ffffca4>
+ 358:	00008067          	ret
+
+0000035c <fail>:
+ 35c:	900002b7          	lui	t0,0x90000
+ 360:	04600313          	li	t1,70
+ 364:	0062a023          	sw	t1,0(t0) # 90000000 <fail+0x8ffffca4>
+ 368:	8c000073          	.word	0x8c000073

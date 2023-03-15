@@ -1,8 +1,10 @@
-# MSIM Developement Manual
+Developement Manual
+===================
 
 For inforamtion about the project and user documentation see the [Reference](reference.html).
 
-## Structure
+Structure
+---------
 
 The entry point and main event loop are specified in [main.c](@ref main.c).
 

@@ -14,7 +14,7 @@ source_parsers = {
     '.md': CommonMarkParser,
 }
 
-master_doc = 'doc/index'
+master_doc = 'index'
 project = u'MSIM'
 copyright = '2000 - 2023'
 version = 'stable'

@@ -8,6 +8,7 @@ The purpose of this document is to provide a comprehensive reference manual for 
 * © 2021 – 2022 Jan Papesch (janpapuch@seznam.cz) 
 
 .. toctree::
-   :maxdepth: 2
+    :maxdepth: 2
 
-   system_environment
+    intro
+    system_environment

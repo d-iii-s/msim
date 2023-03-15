@@ -9,6 +9,9 @@ possible modifications for users and works on most POSIX-compliance
 environments (mainly GNU/Linux, Mac OS X, but can be also compiled
 in Cygwin or MinGW in Windows).
 
+.. warning::
+   This version of manual is still in development.
+
 .. toctree::
    :maxdepth: 1
 

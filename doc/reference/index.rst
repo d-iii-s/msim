@@ -11,4 +11,5 @@ The purpose of this document is to provide a comprehensive reference manual for 
     :maxdepth: 2
 
     intro
+    deployment
     system_environment

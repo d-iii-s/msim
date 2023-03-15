@@ -1,5 +1,5 @@
-MSIM -- MIPS R4000 system simulator
-===================================
+MSIM -- Machine simulator for MIPS R4000 and RISC-V processor
+=============================================================
 
 MSIM is a light-weight computer simulator based on MIPS R4000 and RISC-V.
 It is used for education and research purposes, mainly to teach
@@ -36,8 +36,6 @@ There are several other projects which aim speed-optimized simulation
 (e.g. [GXemul](http://gavare.se/gxemul/)), but they are more complex to use.
 
 (Old) project homepage is at <http://d3s.mff.cuni.cz/~holub/sw/msim/>.
-
-This project is forked from <https://github.com/D-iii-S/msim>.
 
 Compilation and installation
 ----------------------------

@@ -12,4 +12,5 @@ The purpose of this document is to provide a comprehensive reference manual for 
 
     intro
     deployment
+    cli_options
     system_environment

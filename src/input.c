@@ -25,7 +25,7 @@
 #include "parser.h"
 #include "utils.h"
 
-#define PROMPT  ("[" PACKAGE "] ")
+#define PROMPT  ("[" PACKAGE_NAME "] ")
 
 /** Shared variables for tab completion */
 static char *par_text;

@@ -59,7 +59,7 @@ static void mverror(unsigned int color, const char *fmt, va_list va)
 	tty_ctrl(stderr, CMD_BOLD);
 	tty_ctrl(stderr, CMD_COLOR + color);
 	
-	fprintf(stderr, "<%s> ", PACKAGE);
+	fprintf(stderr, "<%s> ", PACKAGE_NAME);
 	vfprintf(stderr, fmt, va);
 	fprintf(stderr, "\n");
 	

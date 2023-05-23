@@ -1,5 +1,5 @@
-MSIM -- MIPS R4000 system simulator
-===================================
+MSIM -- MIPS R4000 and RISC-V system simulator
+==============================================
 
 MSIM is a light-weight computer simulator based on MIPS R4000 and RISC-V.
 It is used for education and research purposes, mainly to teach

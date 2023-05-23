@@ -5,7 +5,8 @@ Release: 1%{?dist}
 License: GPLv2+
 Group: Development/Tools
 URL: https://d3s.mff.cuni.cz/software/msim/
-Source: {{{ git_dir_pack }}}
+VCS: {{{ git_dir_vcs subtree=".." }}}
+Source: {{{ git_dir_pack path=".." }}}
 Requires: readline
 
 BuildRequires: readline-devel, makedepend, diffutils

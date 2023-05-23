@@ -5,7 +5,6 @@ Release: 1%{?dist}
 License: GPLv2+
 Group: Development/Tools
 URL: https://d3s.mff.cuni.cz/software/msim/
-VCS: {{{ git_vcs }}}
 Source: {{{ git_pack }}}
 Requires: readline
 

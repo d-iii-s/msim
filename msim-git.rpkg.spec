@@ -24,7 +24,7 @@ terminal-style.
 %define pkgdocdir %{_datadir}/doc/%{name}-%{version}
 
 %prep
-%setup -q
+{{{ git_setup_macro dir_name="msim" }}}
 
 %build
 ./configure --prefix=%{_prefix}

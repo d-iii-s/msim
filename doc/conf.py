@@ -6,7 +6,26 @@ from __future__ import division, print_function, unicode_literals
 
 from datetime import datetime
 
+from pygments.lexer import RegexLexer
+from pygments import token
 from recommonmark.parser import CommonMarkParser
+from sphinx.highlighting import lexers
+
+class MsimLexer(RegexLexer):
+    name = 'msim'
+    tokens = {
+        'root': [
+            (r'\[msim\]', token.Generic.Prompt),
+            (r'add', token.Keyword),
+            (r'[a-zA-Z][a-zA-Z_0-9]*', token.Name),
+            (r'0x[0-9a-fA-F]*', token.Literal.Number),
+            (r'[0-9][0-9]*[kM]', token.Literal.Number),
+            (r'"[^"]*"', token.Literal.String),
+            (r'\s', token.Text)
+        ]
+    }
+
+lexers['msim'] = MsimLexer(startinline=True)
 
 extensions = []
 source_suffix = ['.rst', '.md']

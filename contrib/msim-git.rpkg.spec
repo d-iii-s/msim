@@ -23,6 +23,7 @@ terminal-style.
 %define pkgdocdir %{_datadir}/doc/%{name}-%{version}
 
 %prep
+{{{ git_dir_setup_macro }}}
 %setup -q
 
 %build

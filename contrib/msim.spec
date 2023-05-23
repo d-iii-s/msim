@@ -28,7 +28,7 @@ terminal-style.
 
 %build
 ./configure --prefix=%{_prefix}
-make -j8
+make
 
 %install
 rm -rf $RPM_BUILD_ROOT

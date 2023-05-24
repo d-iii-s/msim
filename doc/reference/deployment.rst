@@ -23,7 +23,7 @@ The following commands will checkout the latest version from GitHub.
 .. code-block:: shell
 
     git clone https://github.com/d-iii-s/msim.git
-    cd git
+    cd msim
 
 
 Configuration
@@ -67,3 +67,4 @@ into system-wide prefix.
 
     make install
     # or sudo make install
+    # or make install DESTDIR=$PWD/PKG/

@@ -13,6 +13,7 @@
 #ifndef UTILS_H_
 #define UTILS_H_
 
+#include <stdarg.h>
 #include <stdlib.h>
 #include <stdbool.h>
 #include <stdint.h>

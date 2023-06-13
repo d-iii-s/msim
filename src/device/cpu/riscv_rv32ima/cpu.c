@@ -275,12 +275,13 @@ rv_exc_t rv_convert_addr(rv_cpu_t *cpu, uint32_t virt, ptr36_t *phys, bool wr, b
     uint32_t vpn1     =    (virt & 0xFFC00000) >> 22;
     uint32_t ppn      =     rv_csr_satp_ppn(cpu);
 
-    // name of variables according to spec
-    int PAGESIZE = 12;
-    int PTESIZE = 4;
+    // name of variables according to spec (with RV_ prefix to prevent collision
+    // with limits.h constant)
+    int RV_PAGESIZE = 12;
+    int RV_PTESIZE = 4;
 
-    ptr36_t a = ((ptr36_t)ppn) << PAGESIZE;
-    ptr36_t pte_addr = a + vpn1*PTESIZE;
+    ptr36_t a = ((ptr36_t)ppn) << RV_PAGESIZE;
+    ptr36_t pte_addr = a + vpn1*RV_PTESIZE;
 
     // PMP or PMA check goes here if implemented
     uint32_t pte_val = physmem_read32(cpu->csr.mhartid, pte_addr, noisy);
@@ -301,8 +302,8 @@ rv_exc_t rv_convert_addr(rv_cpu_t *cpu, uint32_t virt, ptr36_t *phys, bool wr, b
         // Non leaf PTE, make second translation step
 
         // PMP or PMA check goes here if implemented
-        a = ((ptr36_t)pte.ppn) << PAGESIZE;
-        pte_addr = a + vpn0*PTESIZE;
+        a = ((ptr36_t)pte.ppn) << RV_PAGESIZE;
+        pte_addr = a + vpn0*RV_PTESIZE;
 
         pte_val = physmem_read32(cpu->csr.mhartid, pte_addr, noisy);
         pte = pte_from_uint(pte_val);

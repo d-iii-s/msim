@@ -3,7 +3,7 @@ AC_INIT([msim], [2.0.0], [github.com/d-iii-s/msim], [https://d3s.mff.cuni.cz/sof
 
 AC_PROG_CC
 if test "$GCC" = "yes" ; then
-	CFLAGS="-g -O3 -Wall -Wextra -Wno-unused-parameter -Wmissing-prototypes"
+	CFLAGS="-g -O3 -Wall -Wextra -Wno-unused-parameter -Wmissing-prototypes $CFLAGS"
 fi
 
 AC_CHECK_PROG(CP, cp, cp, no)

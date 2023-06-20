@@ -8,14 +8,24 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
+
     - uses: actions/checkout@v2
+
     - name: Install dependencies
       run: |
         sudo apt-get update
-        sudo apt-get install -y xutils-dev libreadline-dev
+        sudo apt-get install -y xutils-dev libreadline-dev curl
+        curl -L -o libpcut.deb https://github.com/vhotspur/pcut/releases/download/v0.0.1/libpcut_0.0.1_amd64.deb
+        sudo apt-get install ./libpcut.deb
+
     - name: configure
       run: ./configure
+
     - name: make
       run: make
+
     - name: Show version
       run: ./msim --version
+
+    - name: Run tests
+      run: make rvtest

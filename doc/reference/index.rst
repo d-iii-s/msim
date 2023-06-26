@@ -15,5 +15,7 @@ The purpose of this document is to provide a comprehensive reference manual for 
     cli_options
     system_environment
     config_file
+    input_cli
     special_instructions
+    riscv_special_csr
     gdb

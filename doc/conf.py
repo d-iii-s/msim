@@ -17,16 +17,18 @@ class MsimLexer(RegexLexer):
         'root': [
             (r'\#.*', token.Comment.Single),
             (r'\[msim\]', token.Generic.Prompt),
-            (r'add', token.Keyword),
+            (r'\b(add|quit|dumpmem|dumpins|dumpdev|dumpphys|break|dumpbreak|rembreak|stat|echo|continue|step|set|unset|help)\b', token.Keyword),
             (r'[a-zA-Z][a-zA-Z_0-9]*', token.Name),
             (r'0x[0-9a-fA-F]*', token.Literal.Number),
-            (r'[0-9][0-9]*[kM]', token.Literal.Number),
+            (r'\b[0-9][0-9]*[kM]\b', token.Literal.Number),
             (r'[0-9][0-9]*', token.Literal.Number),
             (r'"[^"]*"', token.Literal.String),
             (r'\s', token.Text),
-            (r'[\[\].]', token.Operator),
+            (r'[-\[\].,()=]', token.Operator),
+            (r'<[^>]*>', token.Generic.Error),
         ]
     }
+
 
 lexers['msim'] = MsimLexer(startinline=True)
 

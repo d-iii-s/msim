@@ -16,3 +16,4 @@ The purpose of this document is to provide a comprehensive reference manual for 
     system_environment
     config_file
     special_instructions
+    gdb

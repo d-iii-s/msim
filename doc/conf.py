@@ -23,7 +23,8 @@ class MsimLexer(RegexLexer):
             (r'[0-9][0-9]*[kM]', token.Literal.Number),
             (r'[0-9][0-9]*', token.Literal.Number),
             (r'"[^"]*"', token.Literal.String),
-            (r'\s', token.Text)
+            (r'\s', token.Text),
+            (r'[\[\].]', token.Operator),
         ]
     }
 

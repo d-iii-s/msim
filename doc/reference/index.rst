@@ -15,6 +15,7 @@ The purpose of this document is to provide a comprehensive reference manual for 
     cli_options
     system_environment
     config_file
+    internal_variables
     input_cli
     system_commands
     special_instructions

@@ -18,6 +18,8 @@ The purpose of this document is to provide a comprehensive reference manual for 
     internal_variables
     input_cli
     system_commands
+    devices
     special_instructions
+    riscv_constants
     riscv_special_csr
     gdb

@@ -1,5 +1,5 @@
-MSIM -- Machine simulator for MIPS R4000 and RISC-V processor
-=============================================================
+MSIM -- MIPS R4000 and RISC-V system simulator
+==============================================
 
 MSIM is a light-weight computer simulator based on MIPS R4000 and RISC-V.
 It is used for education and research purposes, mainly to teach
@@ -18,7 +18,7 @@ MSIM provides following features (along others):
   * multiprocessor support
   * the instruction set is restricted to 32 bits
   * CPU cache is not simulated
-* RISC-V RV32IMA CPU  
+* RISC-V RV32IMA CPU
   * A extension
   * M extension
   * Supervisor and User modes

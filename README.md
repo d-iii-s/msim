@@ -18,7 +18,7 @@ MSIM provides following features (along others):
   * multiprocessor support
   * the instruction set is restricted to 32 bits
   * CPU cache is not simulated
-* RISC-V RV32IMA CPU  
+* RISC-V RV32IMA CPU
   * A extension
   * M extension
   * Supervisor and User modes
@@ -36,8 +36,6 @@ There are several other projects which aim speed-optimized simulation
 (e.g. [GXemul](http://gavare.se/gxemul/)), but they are more complex to use.
 
 (Old) project homepage is at <http://d3s.mff.cuni.cz/~holub/sw/msim/>.
-
-This project is forked from <https://github.com/D-iii-S/msim>.
 
 Compilation and installation
 ----------------------------

@@ -34,12 +34,9 @@ make
 rm -rf $RPM_BUILD_ROOT
 
 make install DESTDIR=$RPM_BUILD_ROOT
-mkdir -p $RPM_BUILD_ROOT%{pkgdocdir}/
-install -m 0644 -t $RPM_BUILD_ROOT%{pkgdocdir}/ doc/reference.html doc/default.css
 
 %files
 %defattr(-,root,root)
-%doc %{pkgdocdir}
 %{_bindir}/msim
 
 %changelog

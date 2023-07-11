@@ -1,10 +1,9 @@
-AC_INIT
-AC_CONFIG_SRCDIR([src/main.c])
-AM_INIT_AUTOMAKE(msim, 1.4.2)
+
+AC_INIT([msim], [2.0.0], [github.com/d-iii-s/msim], [https://d3s.mff.cuni.cz/software/msim/])
 
 AC_PROG_CC
 if test "$GCC" = "yes" ; then
-	CFLAGS="-g -O3 -Wall -Wextra -Wno-unused-parameter -Wmissing-prototypes"
+	CFLAGS="-g -O3 -Wall -Wextra -Wno-unused-parameter -Wmissing-prototypes $CFLAGS"
 fi
 
 AC_CHECK_PROG(CP, cp, cp, no)
@@ -37,7 +36,7 @@ AC_PROG_INSTALL
 AC_CHECK_LIB(readline, readline,, [AC_MSG_FAILURE(Library readline not found.)])
 AC_CHECK_LIB(wsock32, main)
 
-AC_HEADER_STDC
+AC_CHECK_INCLUDES_DEFAULT
 AC_CHECK_HEADERS([ \
 	ctype.h \
 	errno.h \
@@ -71,7 +70,7 @@ AC_SUBST(BUILDLIBS)
 AC_SUBST(AFTERBUILD)
 AC_SUBST(INSTALL_PREFIX)
 
-AM_CONFIG_HEADER(config.h)
+AC_CONFIG_HEADERS([config.h])
 AC_CONFIG_FILES([Makefile src/Makefile])
 
 AC_OUTPUT

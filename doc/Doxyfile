@@ -1599,8 +1599,3 @@ GENERATE_LEGEND        = YES
 
 DOT_CLEANUP            = YES
 
-
-
-INPUT += main.md
-USE_MDFILE_AS_MAINPAGE = main.md
-HTML_EXTRA_FILES += reference.html

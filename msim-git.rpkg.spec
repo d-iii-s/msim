@@ -1,14 +1,14 @@
 Summary: A virtual machine simulator based on a MIPS R4000 and RISC-V processor
-Name: msim
-Version: 2.0.0
+Name: {{{ git_name name="msim-git" }}}
+Version: {{{ git_version lead=2.0.0 }}}
 Release: 1%{?dist}
 License: GPLv2+
 Group: Development/Tools
 URL: https://d3s.mff.cuni.cz/software/msim/
-Source: https://github.com/d-iii-s/msim/archive/refs/tags/v%{version}.tar.gz
+VCS: {{{ git_dir_vcs }}}
+Source: {{{ git_dir_pack }}}
 Requires: readline
 
-BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
 BuildRequires: readline-devel, makedepend, diffutils
 
 %description
@@ -24,7 +24,7 @@ terminal-style.
 %define pkgdocdir %{_datadir}/doc/%{name}-%{version}
 
 %prep
-%setup -q
+{{{ git_setup_macro dir_name="msim" }}}
 
 %build
 ./configure --prefix=%{_prefix}
@@ -40,27 +40,3 @@ make install DESTDIR=$RPM_BUILD_ROOT
 %{_bindir}/msim
 
 %changelog
-* Mon May 22 2023 Vojtech Horky <horky@d3s.mff.cuni.cz> - 2.0.0
-- Bump to 2.0.0
-- Support for RISC-V
-
-* Wed Oct 01 2014 Martin Decky <decky@d3s.mff.cuni.cz> - 1.3.8.4
-- Bump to 1.4.0
-
-* Tue Sep 30 2014 Martin Decky <decky@d3s.mff.cuni.cz> - 1.3.8.4
-- Bump to 1.3.8.4
-
-* Tue Feb 28 2013 Martin Decky <decky@d3s.mff.cuni.cz> - 1.3.8.3
-- Bump to 1.3.8.3
-
-* Tue Oct 09 2012 Martin Decky <decky@d3s.mff.cuni.cz> - 1.3.8.2
-- Bump to 1.3.8.2
-
-* Mon Oct 14 2011 Martin Decky <decky@d3s.mff.cuni.cz> - 1.3.8.1
-- Bump to 1.3.8.1
-
-* Thu Oct 05 2010 Martin Decky <decky@d3s.mff.cuni.cz> - 1.3.8
-- Bump to 1.3.8
-
-* Thu Nov 02 2009 Martin Decky <decky@d3s.mff.cuni.cz> - 1.3.7.1
-- Initial spec file

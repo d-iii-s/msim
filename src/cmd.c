@@ -32,7 +32,7 @@
 #include "main.h"
 #include "utils.h"
 
-static cmd_t system_cmds[];
+static cmd_t *system_cmds;
 
 typedef enum {
 	command_name,
@@ -794,7 +794,7 @@ gen_t find_completion_generator(token_t **parm, const void **data)
  * All system commands are defined here.
  *
  */
-static cmd_t system_cmds[] = {
+static cmd_t system_cmds_array[] = {
 	{
 		"init",
 		NULL,    /* hardwired */
@@ -958,3 +958,4 @@ static cmd_t system_cmds[] = {
 	},
 	LAST_CMD
 };
+static cmd_t *system_cmds = system_cmds_array;

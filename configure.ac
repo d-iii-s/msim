@@ -1,5 +1,5 @@
 
-AC_INIT([msim], [2.0.0], [github.com/d-iii-s/msim], [https://d3s.mff.cuni.cz/software/msim/])
+AC_INIT([msim], [2.0.1], [github.com/d-iii-s/msim], [https://d3s.mff.cuni.cz/software/msim/])
 
 AC_PROG_CC
 if test "$GCC" = "yes" ; then

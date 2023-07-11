@@ -168,6 +168,10 @@ rv_exc_t rv_wfi_instr(rv_cpu_t *cpu, rv_instr_t instr){
         return rv_exc_illegal_instruction;
     }
 
+    if(cpu->priv_mode == rv_umode){
+        return rv_exc_illegal_instruction;
+    }
+
     cpu->stdby = true;
     return rv_exc_none;
 }

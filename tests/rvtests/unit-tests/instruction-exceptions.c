@@ -217,6 +217,21 @@ PCUT_TEST(wfi_trapped_Mmode) {
     PCUT_ASSERT_INT_EQUALS(rv_exc_none, ex);
 }
 
+PCUT_TEST(wfi_illegal_Umode) {
+    rv_instr_t instr = { .i = {
+        .opcode = rv_opcSYSTEM,
+        .funct3 = rv_funcPRIV,
+        .imm = rv_privWFI
+    } };
+    cpu.priv_mode = rv_umode;
+    // TW => Trap wait for interrupt (clear to 0 - does not trap for S or M mode)
+    cpu.csr.mstatus &= ~(1 << 21);
+
+    rv_exc_t ex = rv_wfi_instr(&cpu, instr);
+
+    PCUT_ASSERT_INT_EQUALS(rv_exc_illegal_instruction, ex);
+}
+
 PCUT_TEST(sfence_vma_trapped) {
     rv_instr_t instr = { .r = {
         .opcode = rv_opcSYSTEM,
@@ -508,6 +523,78 @@ PCUT_TEST(csrrw_satp_vm_trapped){
     rv_exc_t ex = rv_csrrw_instr(&cpu, instr);
 
     PCUT_ASSERT_INT_EQUALS(rv_exc_illegal_instruction, ex);
+}
+
+PCUT_TEST(csrrw_WPRI_field_ignores_writes){
+    rv_instr_t instr = { .i = {
+        .opcode = rv_opcSYSTEM,
+        .funct3 = rv_funcCSRRW,
+        .imm = csr_mstatus,
+        .rs1 = 1,
+        .rd  = 2
+    }};
+    cpu.priv_mode = rv_mmode;
+
+    cpu.regs[instr.i.rs1] = 0xFFFFFFFF;
+    cpu.regs[instr.i.rd] = (uint32_t)-1;
+
+    // We expect these fields to be set to 1 and the rest to stay at 0
+    uint64_t expected_mstatus = rv_csr_mstatus_mask;
+
+    rv_exc_t ex = rv_csrrw_instr(&cpu, instr);
+
+    // No exception should occur
+    PCUT_ASSERT_INT_EQUALS(rv_exc_none, ex);
+    PCUT_ASSERT_INT_EQUALS(expected_mstatus, cpu.csr.mstatus);
+}
+
+PCUT_TEST(csrrs_WPRI_field_ignores_writes){
+    rv_instr_t instr = { .i = {
+        .opcode = rv_opcSYSTEM,
+        .funct3 = rv_funcCSRRS,
+        .imm = csr_mstatus,
+        .rs1 = 1,
+        .rd  = 2
+    }};
+    cpu.priv_mode = rv_mmode;
+
+    cpu.regs[instr.i.rs1] = 0xFFFFFFFF;
+    cpu.regs[instr.i.rd] = (uint32_t)-1;
+
+    // We expect these fields to be set to 1 and the rest to stay at 0
+    uint64_t expected_mstatus = rv_csr_mstatus_mask;
+
+    rv_exc_t ex = rv_csrrs_instr(&cpu, instr);
+
+    // No exception should occur
+    PCUT_ASSERT_INT_EQUALS(rv_exc_none, ex);
+    PCUT_ASSERT_INT_EQUALS(expected_mstatus, cpu.csr.mstatus);
+}
+
+PCUT_TEST(csrrc_WPRI_field_ignores_writes){
+    rv_instr_t instr = { .i = {
+        .opcode = rv_opcSYSTEM,
+        .funct3 = rv_funcCSRRC,
+        .imm = csr_mstatus,
+        .rs1 = 1,
+        .rd  = 2
+    }};
+    cpu.priv_mode = rv_mmode;
+
+    cpu.regs[instr.i.rs1] = 0xFFFFFFFF;
+    cpu.regs[instr.i.rd] = (uint32_t)-1;
+
+    // We expect the legal fields to be reset to 0, while the rest stays at 1
+    uint64_t expected_mstatus = (uint32_t)(~rv_csr_mstatus_mask);
+
+    // This is an illegal value only used for this test
+    cpu.csr.mstatus = 0xFFFFFFFF;
+    rv_exc_t ex = rv_csrrc_instr(&cpu, instr);
+
+    // No exception should occur
+    PCUT_ASSERT_INT_EQUALS(rv_exc_none, ex);
+    PCUT_ASSERT_INT_EQUALS(expected_mstatus, cpu.csr.mstatus);
+
 }
 
 PCUT_EXPORT(instruction_exceptions);

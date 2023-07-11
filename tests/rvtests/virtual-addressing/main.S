@@ -12,7 +12,7 @@ csrw satp, t0
 
 // MPP = S
 li t0, 1 << 11
-csrs mstatus, t0
+csrw mstatus, t0
 
 // Enter S mode
 auipc t0, 0

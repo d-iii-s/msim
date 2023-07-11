@@ -13,7 +13,7 @@ Disassembly of section .text:
   14:	18029073          	csrw	satp,t0
   18:	000012b7          	lui	t0,0x1
   1c:	80028293          	addi	t0,t0,-2048 # 800 <fail+0x4a4>
-  20:	3002a073          	csrs	mstatus,t0
+  20:	30029073          	csrw	mstatus,t0
   24:	00000297          	auipc	t0,0x0
   28:	01028293          	addi	t0,t0,16 # 34 <setup_table-0x80>
   2c:	34129073          	csrw	mepc,t0

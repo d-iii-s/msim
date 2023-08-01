@@ -42,5 +42,6 @@ Table of Contents
 .. toctree::
    :maxdepth: 2
 
+   tutorial
    reference/index
    development

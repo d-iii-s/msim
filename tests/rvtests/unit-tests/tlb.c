@@ -24,7 +24,7 @@ PCUT_TEST(simple){
     ptr36_t phys = 0x0;
     unsigned asid = 1;
 
-    sv32_pte_t added_pte;
+    sv32_pte_t added_pte = { 0 };
     added_pte.ppn = phys >> 12;
 
     rv_tlb_add_mapping(&tlb, asid, virt, added_pte, false);
@@ -49,7 +49,7 @@ PCUT_TEST(get_with_offset){
     ptr36_t phys  = 0x1000;
     unsigned asid = 1;
 
-    sv32_pte_t added_pte;
+    sv32_pte_t added_pte = { 0 };
     added_pte.ppn = phys >> 12;
 
     rv_tlb_add_mapping(&tlb, asid, virt, added_pte, false);
@@ -75,7 +75,7 @@ PCUT_TEST(add_with_offset){
     ptr36_t phys  = 0x1000;
     unsigned asid = 1;
 
-    sv32_pte_t added_pte;
+    sv32_pte_t added_pte = { 0 };
     added_pte.ppn = phys >> 12;
 
     rv_tlb_add_mapping(&tlb, asid, virt, added_pte, false);
@@ -101,7 +101,7 @@ PCUT_TEST(simple_megapage){
     ptr36_t phys = 0x0;
     unsigned asid = 1;
 
-    sv32_pte_t added_pte;
+    sv32_pte_t added_pte = { 0 };
     added_pte.ppn = phys >> 12;
 
     rv_tlb_add_mapping(&tlb, asid, virt, added_pte, true);
@@ -124,7 +124,7 @@ PCUT_TEST(simple_megapage_non_base_page_mapping){
     ptr36_t phys = 0x0;
     unsigned asid = 1;
 
-    sv32_pte_t added_pte;
+    sv32_pte_t added_pte = { 0 };
     added_pte.ppn = phys >> 12;
 
     rv_tlb_add_mapping(&tlb, asid, virt, added_pte, true);
@@ -152,7 +152,7 @@ PCUT_TEST(simple_global){
     unsigned asid = 1;
     unsigned different_asid = 2;
 
-    sv32_pte_t added_pte;
+    sv32_pte_t added_pte = { 0 };
     added_pte.ppn = phys >> 12;
     added_pte.g = true;
 
@@ -175,7 +175,7 @@ PCUT_TEST(wrong_asid){
     unsigned asid = 1;
     unsigned different_asid = 2;
 
-    sv32_pte_t added_pte;
+    sv32_pte_t added_pte = { 0 };
     added_pte.ppn = phys >> 12;
     added_pte.g = false;
 
@@ -196,7 +196,7 @@ PCUT_TEST(unmapped_addr){
 
     uint32_t different_virt = 0xFFF0000;
 
-    sv32_pte_t added_pte;
+    sv32_pte_t added_pte = { 0 };
     added_pte.ppn = phys >> 12;
 
     rv_tlb_add_mapping(&tlb, asid, virt, added_pte, false);
@@ -215,10 +215,10 @@ PCUT_TEST(megapage_priority){
     ptr36_t different_phys = 0xF0000000;
     unsigned asid = 1;
 
-    sv32_pte_t added_pte1;
+    sv32_pte_t added_pte1 = { 0 };
     added_pte1.ppn = phys >> 12;
 
-    sv32_pte_t added_pte2;
+    sv32_pte_t added_pte2 = { 0 };
     added_pte2.ppn = different_phys >> 12;
 
     // KTLB mapping
@@ -243,7 +243,7 @@ PCUT_TEST(flush_all){
     ptr36_t phys = 0x0;
     unsigned asid = 1;
 
-    sv32_pte_t added_pte;
+    sv32_pte_t added_pte = { 0 };
     added_pte.ppn = phys >> 12;
 
     rv_tlb_add_mapping(&tlb, asid, virt, added_pte, false);
@@ -265,7 +265,7 @@ PCUT_TEST(flush_by_asid){
     unsigned asid1 = 1;
     unsigned asid2 = 2;
 
-    sv32_pte_t added_pte;
+    sv32_pte_t added_pte = { 0 };
     added_pte.ppn = phys >> 12;
     added_pte.g = false;
 
@@ -290,7 +290,7 @@ PCUT_TEST(flush_by_addr){
     ptr36_t phys = 0x0;
     unsigned asid = 1;
 
-    sv32_pte_t added_pte;
+    sv32_pte_t added_pte = { 0 };
     added_pte.ppn = phys >> 12;
 
     rv_tlb_add_mapping(&tlb, asid, virt1, added_pte, false);
@@ -316,7 +316,7 @@ PCUT_TEST(flush_by_asid_and_addr){
     unsigned asid1 = 1;
     unsigned asid2 = 2;
 
-    sv32_pte_t added_pte;
+    sv32_pte_t added_pte = { 0 };
     added_pte.ppn = phys >> 12;
     added_pte.g = false;
 
@@ -343,7 +343,7 @@ PCUT_TEST(flush_by_asid_ignores_global){
     ptr36_t phys = 0x0;
     unsigned asid = 1;
 
-    sv32_pte_t added_pte;
+    sv32_pte_t added_pte = { 0 };
     added_pte.ppn = phys >> 12;
     added_pte.g = true;
 
@@ -364,7 +364,7 @@ PCUT_TEST(flush_by_asid_and_addr_ignores_global){
     ptr36_t phys = 0x0;
     unsigned asid = 1;
 
-    sv32_pte_t added_pte;
+    sv32_pte_t added_pte = { 0 };
     added_pte.ppn = phys >> 12;
     added_pte.g = true;
 

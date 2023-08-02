@@ -267,6 +267,7 @@ PCUT_TEST(flush_by_asid){
 
     sv32_pte_t added_pte;
     added_pte.ppn = phys >> 12;
+    added_pte.g = false;
 
     rv_tlb_add_mapping(&tlb, asid1, virt1, added_pte, false);
     rv_tlb_add_mapping(&tlb, asid2, virt2, added_pte, false);

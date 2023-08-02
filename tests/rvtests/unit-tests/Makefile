@@ -14,11 +14,12 @@ MSIM_OBJECTS := $(addprefix ../../../src/, $(MSIM_OBJECTS))
 RM = rm
 TARGET = tests
 
-.PHONY: test clean distclean
+.PHONY: test clean distclean main
 
 test: $(OBJECTS)
 	$(CC) $(CFLAGS) -o $(TARGET) $(MSIM_OBJECTS) $(OBJECTS) $(LIBS) $(MSIM_LIBS)
 	./$(TARGET)
+	
 
 %.o: %.c
 	$(CC) -c $(CFLAGS) -o $@ $<

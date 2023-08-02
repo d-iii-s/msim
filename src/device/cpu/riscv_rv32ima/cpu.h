@@ -17,6 +17,7 @@
 #include <stdbool.h>
 #include "instr.h"
 #include "csr.h"
+#include "tlb.h"
 #include "../../../main.h"
 
 #define RV_REG_COUNT	32
@@ -93,6 +94,8 @@ typedef enum rv_priv_mode {
 	rv_mmode = 0b11
 } rv_priv_mode_t;
 
+struct rv_tlb;
+
 /** Main processor structure */
 typedef struct rv_cpu {
 	/** Non privileged registers */
@@ -118,6 +121,10 @@ typedef struct rv_cpu {
 
 	/** Tells if the processor is executing or waiting */
 	bool stdby;
+
+	/** Translation Lookaside Buffer used for caching translated addresses */
+	rv_tlb_t tlb;
+
 } rv_cpu_t;
 
 

@@ -14,6 +14,7 @@
 #include <stdint.h>
 #include <stdbool.h>
 #include "../../../main.h"
+#include "virt_mem.h"
 
 struct rv_tlb_entry;
 
@@ -28,10 +29,11 @@ typedef struct rv_tlb {
 #define DEFAULT_RV_MTLB_SIZE 16
 
 /** Caches a mapping into the TLB */
-extern void rv_tlb_add_mapping(rv_tlb_t* tlb, unsigned asid, uint32_t virt, ptr36_t phys, bool global, bool megapage);
+extern void rv_tlb_add_mapping(rv_tlb_t* tlb, unsigned asid, uint32_t virt, sv32_pte_t pte, bool megapage);
 
 /** Retrieves a cached mapping, giving priority to megapage mappings */
-extern bool rv_tlb_get_mapping(rv_tlb_t* tlb, unsigned asid, uint32_t virt, ptr36_t* phys);
+//TODO: remember access rights!!!
+extern bool rv_tlb_get_mapping(rv_tlb_t* tlb, unsigned asid, uint32_t virt, sv32_pte_t* pte, bool* megapage);
 
 /** TLB flushes */
 extern void rv_tlb_flush(rv_tlb_t* tlb);

@@ -4,7 +4,7 @@
 #include "../../../utils.h"
 
 typedef struct rv_tlb_entry {
-    ptr36_t phys;
+    sv32_pte_t pte;
     uint32_t vpn;
     unsigned asid;
     bool valid;
@@ -23,7 +23,7 @@ static inline size_t hash(size_t num){
     ((tlb)->mtlb[hash((index)) % ((tlb)->mtlb_size)])
 
 /** Caches a mapping into the TLB */
-extern void rv_tlb_add_mapping(rv_tlb_t* tlb, unsigned asid, uint32_t virt, ptr36_t phys, bool global, bool megapage){
+extern void rv_tlb_add_mapping(rv_tlb_t* tlb, unsigned asid, uint32_t virt, sv32_pte_t pte, bool megapage){
     
     // TODO: extract to one place
     uint32_t vpn = virt >> 12;
@@ -32,17 +32,15 @@ extern void rv_tlb_add_mapping(rv_tlb_t* tlb, unsigned asid, uint32_t virt, ptr3
         uint32_t mvpn = vpn >> 10;
 
         index_mtlb(tlb, mvpn).vpn = mvpn;
-        // TODO: numerical constant :(
-        index_mtlb(tlb, mvpn).phys = ALIGN_DOWN(phys, 4096 * 1024);
-        index_mtlb(tlb, mvpn).global = global;
+        index_mtlb(tlb, mvpn).pte = pte;
+        index_mtlb(tlb, mvpn).global = pte.g;
         index_mtlb(tlb, mvpn).asid = asid;
         index_mtlb(tlb, mvpn).valid = true;    
     }
     else {
         index_ktlb(tlb, vpn).vpn = vpn;
-        // TODO: numerical constant :(
-        index_ktlb(tlb, vpn).phys = ALIGN_DOWN(phys, 4096);
-        index_ktlb(tlb, vpn).global = global;
+        index_ktlb(tlb, vpn).pte = pte;
+        index_ktlb(tlb, vpn).global = pte.g;
         index_ktlb(tlb, vpn).asid = asid;
         index_ktlb(tlb, vpn).valid = true;
     }
@@ -51,23 +49,23 @@ extern void rv_tlb_add_mapping(rv_tlb_t* tlb, unsigned asid, uint32_t virt, ptr3
 /** Retrieves a cached mapping
  * gives priority to megapage mappings
  */
-extern bool rv_tlb_get_mapping(rv_tlb_t* tlb, unsigned asid, uint32_t virt, ptr36_t* phys){
+extern bool rv_tlb_get_mapping(rv_tlb_t* tlb, unsigned asid, uint32_t virt, sv32_pte_t* pte, bool* megapage){
     uint32_t vpn = virt >> 12;
     uint32_t mvpn = vpn >> 10;
 
     // Megapages have priority
     if(index_mtlb(tlb, mvpn).valid && index_mtlb(tlb, mvpn).vpn == mvpn){
         if(index_mtlb(tlb, mvpn).global || index_mtlb(tlb, mvpn).asid == asid){
-            // TODO: numerical constant :(
-            *phys = index_mtlb(tlb, mvpn).phys | (virt & 0x3FFFFF);
+            *pte = index_mtlb(tlb, mvpn).pte;
+            *megapage = true;
             return true;
         }
     }
 
     if(index_ktlb(tlb, vpn).valid && index_ktlb(tlb, vpn).vpn == vpn){
         if(index_ktlb(tlb, vpn).global || index_ktlb(tlb, vpn).asid == asid){
-            // TODO: numerical constant :(
-            *phys = index_ktlb(tlb, vpn).phys | (virt & 0xFFF);
+            *pte = index_ktlb(tlb, vpn).pte;
+            *megapage = false;
             return true;
         }
     }
@@ -175,14 +173,15 @@ extern bool rv_tlb_resize_mtlb(rv_tlb_t* tlb, size_t size){
     return true;
 }
 
-static inline void dump_tlb_entry(rv_tlb_entry_t entry, string_t* text){
+static inline void dump_tlb_entry(rv_tlb_entry_t entry, string_t* text, bool megapage){
     if(!entry.valid){
         string_printf(text, "INVALID");
     }
     else{
+        // TODO: is this doing the right thing?
         string_printf(text, "0x%08x => 0x%09lx [ASID: %d, GLOBAL: %s]",
-            entry.vpn << 12,
-            entry.phys,
+            entry.vpn << (megapage ? 22 : 12),
+            (ptr36_t)entry.pte.ppn << 12,
             entry.asid,
             entry.global ? "T" : "F"
         );
@@ -195,14 +194,14 @@ extern void rv_tlb_dump(rv_tlb_t* tlb){
     printf("Kilo TLB:\n");
     for(size_t i = 0; i < tlb->ktlb_size; ++i){
         string_clear(&s_text);
-        dump_tlb_entry(tlb->ktlb[i], &s_text);
+        dump_tlb_entry(tlb->ktlb[i], &s_text, false);
         printf("\t%ld: %s\n", i, s_text.str);
     }
 
     printf("\nMega TLB:\n");
     for(size_t i = 0; i < tlb->mtlb_size; ++i){
         string_clear(&s_text);
-        dump_tlb_entry(tlb->mtlb[i], &s_text);
+        dump_tlb_entry(tlb->mtlb[i], &s_text, true);
         printf("\t%ld: %s\n", i, s_text.str);
     }
 

@@ -246,7 +246,7 @@ rv_exc_t rv_sfence_instr(rv_cpu_t *cpu, rv_instr_t instr) {
         }
         else {
             // rs1 == x0 && rs2 != x0
-            rv_tlb_flush_by_asid(&cpu->tlb, cpu->regs[instr.r.rs2]);
+            rv_tlb_flush_by_asid(&cpu->tlb, cpu->regs[instr.r.rs2] & rv_asid_mask);
         }
     }
     else {
@@ -256,7 +256,7 @@ rv_exc_t rv_sfence_instr(rv_cpu_t *cpu, rv_instr_t instr) {
         }
         else {
             // rs1 != x0 && rs2 != x0
-            rv_tlb_flush_by_asid_and_addr(&cpu->tlb, cpu->regs[instr.r.rs2], cpu->regs[instr.r.rs1]);
+            rv_tlb_flush_by_asid_and_addr(&cpu->tlb, cpu->regs[instr.r.rs2] & rv_asid_mask, cpu->regs[instr.r.rs1]);
         }
     }
     return rv_exc_none;

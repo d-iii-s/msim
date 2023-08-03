@@ -241,12 +241,6 @@ static rv_exc_t rv_pagewalk(rv_cpu_t *cpu, uint32_t virt, ptr36_t *phys, bool wr
     uint32_t vpn1     =    (virt & 0xFFC00000) >> 22;
     uint32_t ppn      =     rv_csr_satp_ppn(cpu);
 
-    // TODO: move to a single location
-    // name of variables according to spec (with RV_ prefix to prevent collision
-    // with limits.h constant)
-    int RV_PAGESIZE = 12;
-    int RV_PTESIZE = 4;
-
     ptr36_t a = ((ptr36_t)ppn) << RV_PAGESIZE;
     ptr36_t pte_addr = a + vpn1*RV_PTESIZE;
 
@@ -313,10 +307,6 @@ static bool pagetable_set_AD(rv_cpu_t *cpu, uint32_t virt, bool wr){
     // name of variables according to spec (with RV_ prefix to prevent collision
     // with limits.h constant)
 
-    // TODO: move to a single location
-    int RV_PAGESIZE = 12;
-    int RV_PTESIZE = 4;
-
     ptr36_t a = ((ptr36_t)ppn) << RV_PAGESIZE;
     ptr36_t pte_addr = a + vpn1*RV_PTESIZE;
 
@@ -380,6 +370,7 @@ rv_exc_t rv_convert_addr(rv_cpu_t *cpu, uint32_t virt, ptr36_t *phys, bool wr, b
 
     // First try the TLB
     if(rv_tlb_get_mapping(&cpu->tlb, asid, virt, &pte, &megapage)) {
+
         // Check access rights of the cached pte
         if(!is_access_allowed(cpu, pte, wr, fetch)) return page_fault_exception;
 

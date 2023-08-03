@@ -25,11 +25,10 @@ static inline size_t hash(size_t num){
 /** Caches a mapping into the TLB */
 extern void rv_tlb_add_mapping(rv_tlb_t* tlb, unsigned asid, uint32_t virt, sv32_pte_t pte, bool megapage, bool global){
     
-    // TODO: extract to one place
-    uint32_t vpn = virt >> 12;
+    uint32_t vpn = virt >> RV_PAGESIZE;
     
     if(megapage){
-        uint32_t mvpn = vpn >> 10;
+        uint32_t mvpn = virt >> RV_MEGAPAGESIZE;
 
         index_mtlb(tlb, mvpn).vpn = mvpn;
         index_mtlb(tlb, mvpn).pte = pte;
@@ -103,9 +102,8 @@ extern void rv_tlb_flush_by_asid(rv_tlb_t* tlb, unsigned asid){
 
 // Invalidates all entries that map the given virtual address
 extern void rv_tlb_flush_by_addr(rv_tlb_t* tlb, uint32_t virt){
-    // TODO: numerical constants :(
-    uint32_t vpn = virt >> 12;
-    uint32_t mvpn = vpn >> 10;
+    uint32_t vpn = virt >> RV_PAGESIZE;
+    uint32_t mvpn = virt >> RV_MEGAPAGESIZE;
     
     index_ktlb(tlb, vpn).valid = false;
     index_mtlb(tlb, mvpn).valid = false;
@@ -113,9 +111,8 @@ extern void rv_tlb_flush_by_addr(rv_tlb_t* tlb, uint32_t virt){
 
 // Invalidates all entries that map the given address and are of the given asid
 extern void rv_tlb_flush_by_asid_and_addr(rv_tlb_t* tlb, unsigned asid, uint32_t virt){
-    // TODO: numerical constant :(
-    uint32_t vpn = virt >> 12;
-    uint32_t mvpn = vpn >> 10;
+    uint32_t vpn = virt >> RV_PAGESIZE;
+    uint32_t mvpn = virt >> RV_MEGAPAGESIZE;
     
     // Flush from KTLB if the mapping is not global and the asid matches
     if(!index_ktlb(tlb, vpn).global && index_ktlb(tlb, vpn).asid == asid)
@@ -178,7 +175,6 @@ static inline void dump_tlb_entry(rv_tlb_entry_t entry, string_t* text, bool meg
         string_printf(text, "INVALID");
     }
     else{
-        // TODO: is this doing the right thing?
         string_printf(text, "0x%08x => 0x%09lx [ASID: %d, GLOBAL: %s]",
             entry.vpn << (megapage ? 22 : 12),
             (ptr36_t)entry.pte.ppn << 12,

@@ -562,6 +562,9 @@ enum rv_priv_mode;
 #define rv_csr_satp_asid(cpu) (((cpu)->csr.satp & rv_csr_asid_mask) >> 22)
 #define rv_csr_satp_ppn(cpu) ((cpu)->csr.satp & rv_csr_satp_ppn_mask)
 
+#define rv_asid_len 9
+#define rv_asid_mask ((1 << rv_asid_len) - 1)
+
 #define rv_csr_is_read_only(csr) (((csr) >> 30) == 0b11)
 
 extern void rv_init_csr(csr_t *csr, unsigned int procno);

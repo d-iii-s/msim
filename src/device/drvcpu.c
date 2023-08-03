@@ -117,6 +117,16 @@ static bool drvcpu_csr_rd(token_t *parm, device_t *dev){
 }
 
 /**
+ * TLBRD command implementation
+ */
+static bool drvcpu_tlb_rd(token_t *parm, device_t *dev){
+    ASSERT(dev != NULL);
+    rv_tlb_dump(&get_rv(dev)->tlb);
+    return true;
+}
+
+
+/**
  * Done device operation
  */
 static void drvcpu_done(device_t *dev){
@@ -180,6 +190,15 @@ cmd_t drvcpu_cmds[] = {
         "Dump content of CSR registers",
         "Dump content of all CSRs if no argument is given, or dump the content of the specified register (numerically or by name)",
         OPT VAR "csr" END
+    },
+    {
+        "tlbrd",
+        (fcmd_t) drvcpu_tlb_rd,
+        DEFAULT,
+        DEFAULT,
+        "Dump content of the TLB",
+        "Dump content of the TLB separated into KiloTLB and MegaTLB for 4K pages and 4M megapages respectively.",
+        NOCMD
     }
 };
 

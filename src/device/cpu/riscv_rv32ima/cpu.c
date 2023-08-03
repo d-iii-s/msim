@@ -236,7 +236,7 @@ static ptr36_t make_phys_from_ppn(uint32_t virt, sv32_pte_t pte, bool megapage){
  * @brief Tranlates the virtual address to physical by Sv32 memory translation algorithm, modifying the pagetable by doing so (setting the Accessed and Dirty bits)
  * 
  */
-static rv_exc_t rv_pagewalk(rv_cpu_t *cpu, uint32_t virt, ptr36_t *phys, bool wr, bool fetch, bool noisy, sv32_pte_t* out_pte, bool* megapage){
+static rv_exc_t rv_pagewalk(rv_cpu_t *cpu, uint32_t virt, ptr36_t *phys, bool wr, bool fetch, bool noisy, sv32_pte_t* out_pte, bool* megapage, bool* global){
     uint32_t vpn0     =    (virt & 0x003FF000) >> 12;
     uint32_t vpn1     =    (virt & 0xFFC00000) >> 22;
     uint32_t ppn      =     rv_csr_satp_ppn(cpu);
@@ -264,6 +264,7 @@ static rv_exc_t rv_pagewalk(rv_cpu_t *cpu, uint32_t virt, ptr36_t *phys, bool wr
         // Missaligned megapage
         if(pte_ppn0(pte) != 0) return page_fault_exception;
         is_megapage = true;
+        *global = pte.g;
     }
     else {
         // Non leaf PTE, make second translation step
@@ -272,6 +273,9 @@ static rv_exc_t rv_pagewalk(rv_cpu_t *cpu, uint32_t virt, ptr36_t *phys, bool wr
         a = ((ptr36_t)pte.ppn) << RV_PAGESIZE;
         pte_addr = a + vpn0*RV_PTESIZE;
 
+        // Global non-leaf PTE implies that the translation is global
+        *global = pte.g;
+
         pte_val = physmem_read32(cpu->csr.mhartid, pte_addr, noisy);
         pte = pte_from_uint(pte_val);
 
@@ -279,6 +283,9 @@ static rv_exc_t rv_pagewalk(rv_cpu_t *cpu, uint32_t virt, ptr36_t *phys, bool wr
 
         // Non-leaf on last level
         if(!is_pte_leaf(pte)) return page_fault_exception;
+
+        // The translation is global if the non-leaf PTE is global or if the leaf PTE is global
+        *global |= pte.g;
     }
 
     if(!is_access_allowed(cpu, pte, wr, fetch)) return page_fault_exception;
@@ -296,8 +303,6 @@ static rv_exc_t rv_pagewalk(rv_cpu_t *cpu, uint32_t virt, ptr36_t *phys, bool wr
     *megapage = is_megapage;
 
     return rv_exc_none;
-
-    
 }
 
 static bool pagetable_set_AD(rv_cpu_t *cpu, uint32_t virt, bool wr){
@@ -383,14 +388,20 @@ rv_exc_t rv_convert_addr(rv_cpu_t *cpu, uint32_t virt, ptr36_t *phys, bool wr, b
             *phys = make_phys_from_ppn(virt, pte, megapage);
             return rv_exc_none;
         }
+        else {
+            // TODO: print notification that something smells here
+        }
         // Here there has been some problem with the pagetable while we tried to set the AD bits
         // We just let the real pagewalk figure it out
     }    
     
-    rv_exc_t exc = rv_pagewalk(cpu, virt, phys, wr, fetch, noisy, &pte, &megapage);
+    bool global;
+
+    // TODO: global non-leaf PTE implies that the underlying leaf PTEs are also global (regardless of their G bit!)
+    rv_exc_t exc = rv_pagewalk(cpu, virt, phys, wr, fetch, noisy, &pte, &megapage, &global);
     if (exc == rv_exc_none){
         // If the pagewalk succeded, add the translation to the TLB
-        rv_tlb_add_mapping(&cpu->tlb, asid, virt, pte, megapage);
+        rv_tlb_add_mapping(&cpu->tlb, asid, virt, pte, megapage, global);
     }
 
     return exc;

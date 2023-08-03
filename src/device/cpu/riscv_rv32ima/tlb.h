@@ -29,10 +29,9 @@ typedef struct rv_tlb {
 #define DEFAULT_RV_MTLB_SIZE 16
 
 /** Caches a mapping into the TLB */
-extern void rv_tlb_add_mapping(rv_tlb_t* tlb, unsigned asid, uint32_t virt, sv32_pte_t pte, bool megapage);
+extern void rv_tlb_add_mapping(rv_tlb_t* tlb, unsigned asid, uint32_t virt, sv32_pte_t pte, bool megapage, bool global);
 
 /** Retrieves a cached mapping, giving priority to megapage mappings */
-//TODO: remember access rights!!!
 extern bool rv_tlb_get_mapping(rv_tlb_t* tlb, unsigned asid, uint32_t virt, sv32_pte_t* pte, bool* megapage);
 
 /** TLB flushes */

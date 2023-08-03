@@ -13,6 +13,7 @@
 #include "system.h"
 #include "../../../../assert.h"
 #include "../csr.h"
+#include "../tlb.h"
 #include "../debug.h"
 
 rv_exc_t rv_break_instr(rv_cpu_t *cpu, rv_instr_t instr){
@@ -234,8 +235,29 @@ rv_exc_t rv_csrrci_instr(rv_cpu_t *cpu, rv_instr_t instr){
 }
 
 rv_exc_t rv_sfence_instr(rv_cpu_t *cpu, rv_instr_t instr) {
-    if(rv_csr_mstatus_tvm(cpu)){
+    if(rv_csr_mstatus_tvm(cpu) || cpu->priv_mode < rv_smode){
         return rv_exc_illegal_instruction;
+    }
+
+    if(instr.r.rs1 == 0){
+        if(instr.r.rs2 == 0){
+            // rs1 == x0 && rs2 == x0
+            rv_tlb_flush(&cpu->tlb);
+        }
+        else {
+            // rs1 == x0 && rs2 != x0
+            rv_tlb_flush_by_asid(&cpu->tlb, cpu->regs[instr.r.rs2]);
+        }
+    }
+    else {
+        if(instr.r.rs2 == 0){
+            // rs1 != x0 && rs2 == x0
+            rv_tlb_flush_by_addr(&cpu->tlb, cpu->regs[instr.r.rs1]);
+        }
+        else {
+            // rs1 != x0 && rs2 != x0
+            rv_tlb_flush_by_asid_and_addr(&cpu->tlb, cpu->regs[instr.r.rs2], cpu->regs[instr.r.rs1]);
+        }
     }
     return rv_exc_none;
 }

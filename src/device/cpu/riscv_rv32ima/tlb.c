@@ -23,7 +23,7 @@ static inline size_t hash(size_t num){
     ((tlb)->mtlb[hash((index)) % ((tlb)->mtlb_size)])
 
 /** Caches a mapping into the TLB */
-extern void rv_tlb_add_mapping(rv_tlb_t* tlb, unsigned asid, uint32_t virt, sv32_pte_t pte, bool megapage){
+extern void rv_tlb_add_mapping(rv_tlb_t* tlb, unsigned asid, uint32_t virt, sv32_pte_t pte, bool megapage, bool global){
     
     // TODO: extract to one place
     uint32_t vpn = virt >> 12;
@@ -33,14 +33,14 @@ extern void rv_tlb_add_mapping(rv_tlb_t* tlb, unsigned asid, uint32_t virt, sv32
 
         index_mtlb(tlb, mvpn).vpn = mvpn;
         index_mtlb(tlb, mvpn).pte = pte;
-        index_mtlb(tlb, mvpn).global = pte.g;
+        index_mtlb(tlb, mvpn).global = global;
         index_mtlb(tlb, mvpn).asid = asid;
         index_mtlb(tlb, mvpn).valid = true;    
     }
     else {
         index_ktlb(tlb, vpn).vpn = vpn;
         index_ktlb(tlb, vpn).pte = pte;
-        index_ktlb(tlb, vpn).global = pte.g;
+        index_ktlb(tlb, vpn).global = global;
         index_ktlb(tlb, vpn).asid = asid;
         index_ktlb(tlb, vpn).valid = true;
     }

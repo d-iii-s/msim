@@ -397,7 +397,6 @@ rv_exc_t rv_convert_addr(rv_cpu_t *cpu, uint32_t virt, ptr36_t *phys, bool wr, b
     
     bool global;
 
-    // TODO: global non-leaf PTE implies that the underlying leaf PTEs are also global (regardless of their G bit!)
     rv_exc_t exc = rv_pagewalk(cpu, virt, phys, wr, fetch, noisy, &pte, &megapage, &global);
     if (exc == rv_exc_none){
         // If the pagewalk succeded, add the translation to the TLB

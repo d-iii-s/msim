@@ -384,16 +384,19 @@ rv_exc_t rv_convert_addr(rv_cpu_t *cpu, uint32_t virt, ptr36_t *phys, bool wr, b
         if(!is_access_allowed(cpu, pte, wr, fetch)) return page_fault_exception;
 
         // Set the Accessed and Dirty bits in the real pagetable
-        if(pagetable_set_AD(cpu, virt, wr)){
-            *phys = make_phys_from_ppn(virt, pte, megapage);
-            return rv_exc_none;
+        bool AD_set_OK = pagetable_set_AD(cpu, virt, wr);
+
+        *phys = make_phys_from_ppn(virt, pte, megapage);
+
+        if(!AD_set_OK){
+            // Here there has been some problem with the pagetable while we tried to set the AD bits
+            // We still use the cached translation and act as if nothing happened
+            // This is done to introduce bugs which show on improper ASID management and SFENCE usage
+            alert("Used Cached Address translation that is not present in pagetable!");
         }
-        else {
-            // TODO: print notification that something smells here
-        }
-        // Here there has been some problem with the pagetable while we tried to set the AD bits
-        // We just let the real pagewalk figure it out
-    }    
+
+        return rv_exc_none;
+    }
     
     bool global;
 
@@ -965,7 +968,7 @@ static rv_exc_t execute(rv_cpu_t *cpu) {
     rv_exc_t ex = rv_convert_addr(cpu, cpu->pc, &phys, false, true, true);
  
     if(ex != rv_exc_none){
-        alert("Fetching from unconvertable address!");;
+        alert("Fetching from unconvertable address!");
         if(machine_trace) {
             rv_idump(cpu, cpu->pc, (rv_instr_t)0U);
         }

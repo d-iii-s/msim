@@ -66,7 +66,7 @@ setup_table:
     li t0, 0xFFFD0000
 
     // Setup execute only megapage for main execution instructions
-    // The megapage is located at 0xFF000000
+    // The megapage is located at 0xF0000000
     li t1, 0xF00
     add t2, t0, t1
     li t1, 0x3C000009

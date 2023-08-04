@@ -14,7 +14,7 @@ jobs:
     - name: Install dependencies
       run: |
         sudo apt-get update
-        sudo apt-get install -y xutils-dev libreadline-dev curl
+        sudo apt-get install -y xutils-dev libreadline-dev curl bats
         curl -L -o libpcut.deb https://github.com/vhotspur/pcut/releases/download/v0.0.1/libpcut_0.0.1_amd64.deb
         sudo apt-get install ./libpcut.deb
 
@@ -28,4 +28,4 @@ jobs:
       run: ./msim --version
 
     - name: Run tests
-      run: make rvtest
+      run: make test

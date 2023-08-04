@@ -10,6 +10,10 @@ load "common.bash"
     fi
 }
 
+@test "Empty run" {
+    config="" expected="" msim_command_check
+}
+
 @test "Add R4000 MIPS CPU" {
     config="
         add dr4kcpu mips
@@ -34,6 +38,17 @@ load "common.bash"
         RV32IMA (processor ID: 0)
         [  name  ] [  type  ] [ parameters...
         riscv      drvcpu     RV32IMA (processor ID: 0)
+    " \
+    msim_command_check
+}
+
+@test "Empty machine device dump" {
+    config="
+        dumpdev
+    " \
+    expected="
+        [  name  ] [  type  ] [ parameters...
+        No matching devices found.
     " \
     msim_command_check
 }

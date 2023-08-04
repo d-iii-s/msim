@@ -172,6 +172,10 @@ Commands
    Dump contents of CPU general registers
 ``csrrd [name/number]``
    Dump the contents of the specified CSR or all CSRs.
+``tlbrd``
+   Dump the contents of the TLB, split by page size.
+``tlbresize ktlbsize mtlbsize``
+   Resize the TLB by specifying the size of the two parts.
 
 Examples
 ^^^^^^^^
@@ -203,7 +207,19 @@ Example of the ``csrrd`` command:
    [msim]
 
 
+Example of the ``tlbrd`` command:
 
+.. code:: msim
+
+   [msim] risc1 tlbrd
+   Kilo TLB        size: 256 entries
+      index:       virt => phys        [ info ]
+            Empty
+
+   Mega TLB        size: 32 entries
+      index:       virt => phys        [ info ]
+         0: 0xf0000000 => 0x0f0000000 [ ASID: 0, GLOBAL: T ]
+         1: 0x00400000 => 0x000000000 [ ASID: 0, GLOBAL: F ]
 
 Read/write memory ``rwm``
 -------------------------

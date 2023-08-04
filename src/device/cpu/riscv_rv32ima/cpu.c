@@ -16,6 +16,7 @@
 #include "cpu.h"
 #include "debug.h"
 #include "csr.h"
+#include "tlb.h"
 #include "../../../assert.h"
 #include "../../../utils.h"
 #include "../../../physmem.h"
@@ -353,6 +354,9 @@ static bool pagetable_set_AD(rv_cpu_t *cpu, uint32_t virt, bool wr){
  * @return rv_exc_t The exception code of this operation
  */
 rv_exc_t rv_convert_addr(rv_cpu_t *cpu, uint32_t virt, ptr36_t *phys, bool wr, bool fetch, bool noisy){
+
+    //TODO: should pagewalk trigger memory breakpoints?
+
     ASSERT(cpu != NULL);
     ASSERT(phys != NULL);
     ASSERT(!(wr && fetch));

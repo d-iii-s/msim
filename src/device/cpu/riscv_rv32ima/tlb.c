@@ -146,9 +146,6 @@ extern void rv_tlb_done(rv_tlb_t* tlb){
 }
 
 extern bool rv_tlb_resize_ktlb(rv_tlb_t* tlb, size_t size){
-    if(size == 0 || !IS_POWER_OF_2(size)){
-        return false;
-    }
     safe_free(tlb->ktlb);
     tlb->ktlb = safe_malloc(size * sizeof(rv_tlb_entry_t));
     tlb->ktlb_size = size;
@@ -158,9 +155,6 @@ extern bool rv_tlb_resize_ktlb(rv_tlb_t* tlb, size_t size){
     return true;
 }
 extern bool rv_tlb_resize_mtlb(rv_tlb_t* tlb, size_t size){
-    if(size == 0 || !IS_POWER_OF_2(size)){
-        return false;
-    }
     safe_free(tlb->mtlb);
     tlb->mtlb = safe_malloc(size * sizeof(rv_tlb_entry_t));
     tlb->mtlb_size = size;
@@ -175,7 +169,7 @@ static inline void dump_tlb_entry(rv_tlb_entry_t entry, string_t* text, bool meg
         string_printf(text, "INVALID");
     }
     else{
-        string_printf(text, "0x%08x => 0x%09lx [ASID: %d, GLOBAL: %s]",
+        string_printf(text, "0x%08x => 0x%09lx [ ASID: %d, GLOBAL: %s ]",
             entry.vpn << (megapage ? 22 : 12),
             (ptr36_t)entry.pte.ppn << 12,
             entry.asid,
@@ -187,18 +181,43 @@ static inline void dump_tlb_entry(rv_tlb_entry_t entry, string_t* text, bool meg
 extern void rv_tlb_dump(rv_tlb_t* tlb){
     string_t s_text;
     string_init(&s_text);
-    printf("Kilo TLB:\n");
+
+    printf("Kilo TLB\tsize: %ld entries\n", tlb->ktlb_size);
+    printf("%8s: %10s => %-11s [ %s ]\n", "index", "virt", "phys", "info");
+
+    bool printed = false;
     for(size_t i = 0; i < tlb->ktlb_size; ++i){
+        // Print only valid entries to not overwhelm the debug output
+        if(!tlb->ktlb[i].valid)
+            continue;
+
+        printed = true;
+        
         string_clear(&s_text);
         dump_tlb_entry(tlb->ktlb[i], &s_text, false);
         printf("\t%ld: %s\n", i, s_text.str);
     }
 
-    printf("\nMega TLB:\n");
+    if(!printed){
+        printf("\t Empty\n");
+    }
+
+    printf("\nMega TLB\tsize: %ld entries\n", tlb->mtlb_size);
+    printf("%8s: %10s => %-11s [ %s ]\n", "index", "virt", "phys", "info");
+    printed = false;
     for(size_t i = 0; i < tlb->mtlb_size; ++i){
+        // Print only valid entries to not overwhelm the debug output
+        if(!tlb->mtlb[i].valid)
+            continue;
+        
+        printed = true;
         string_clear(&s_text);
         dump_tlb_entry(tlb->mtlb[i], &s_text, true);
-        printf("\t%ld: %s\n", i, s_text.str);
+        printf("%8ld: %s\n", i, s_text.str);
+    }
+
+    if(!printed){
+        printf("\t Empty\n");
     }
 
     string_done(&s_text);

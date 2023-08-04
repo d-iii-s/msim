@@ -39,3 +39,9 @@ Machine-level cycles
 Waiting cycles
    5
    Cycles that the CPU has spent idling
+
+Default TLB size
+----------------
+
+Kilo-TLB - 256 entries
+Mega-TLB - 32 entries

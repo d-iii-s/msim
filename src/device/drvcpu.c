@@ -125,6 +125,29 @@ static bool drvcpu_tlb_rd(token_t *parm, device_t *dev){
     return true;
 }
 
+/**
+ * TLBRESIZE command implementation
+ */
+static bool drvcpu_tlb_resize(token_t *parm, device_t *dev){
+    ASSERT(dev != NULL);
+    
+    size_t new_ktlb_size = parm_uint_next(&parm);
+    size_t new_mtlb_size = parm_uint_next(&parm);
+
+    if(new_ktlb_size == 0){
+        error("KTLB size cannot be 0!\n");
+        return false;
+    }
+
+    if(new_mtlb_size == 0){
+        error("MTLB size cannot be 0!\n");
+        return false;
+    }
+
+    rv_tlb_t* tlb = &get_rv(dev)->tlb;
+
+    return rv_tlb_resize_ktlb(tlb, new_ktlb_size) && rv_tlb_resize_mtlb(tlb, new_mtlb_size);
+}
 
 /**
  * Done device operation
@@ -196,9 +219,18 @@ cmd_t drvcpu_cmds[] = {
         (fcmd_t) drvcpu_tlb_rd,
         DEFAULT,
         DEFAULT,
-        "Dump content of the TLB",
-        "Dump content of the TLB separated into KiloTLB and MegaTLB for 4K pages and 4M megapages respectively.",
+        "Dump valid content of the TLB",
+        "Dump content of the TLB separated into KiloTLB and MegaTLB for 4K pages and 4M megapages respectively. Dumps only valid entries.",
         NOCMD
+    },
+    {
+        "tlbresize",
+        (fcmd_t) drvcpu_tlb_resize,
+        DEFAULT,
+        DEFAULT,
+        "Resize the TLB",
+        "Resizes both parts of the TLB, flushing it completely in the process.",
+        REQ INT "KTLB size" NEXT REQ INT "MTLB size" END
     }
 };
 

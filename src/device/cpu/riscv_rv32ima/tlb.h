@@ -25,8 +25,8 @@ typedef struct rv_tlb {
     size_t mtlb_size; 
 } rv_tlb_t;
 
-#define DEFAULT_RV_KTLB_SIZE 32
-#define DEFAULT_RV_MTLB_SIZE 16
+#define DEFAULT_RV_KTLB_SIZE 256
+#define DEFAULT_RV_MTLB_SIZE 32
 
 /** Caches a mapping into the TLB */
 extern void rv_tlb_add_mapping(rv_tlb_t* tlb, unsigned asid, uint32_t virt, sv32_pte_t pte, bool megapage, bool global);

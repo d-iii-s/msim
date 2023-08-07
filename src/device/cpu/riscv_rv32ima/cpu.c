@@ -103,7 +103,7 @@ static cache_item_t* cache_try_add(rv_cpu_t* cpu, ptr36_t phys) {
     cache_item_init(cache_item);
     cache_item->addr = ALIGN_DOWN(phys, FRAME_SIZE);
 
-    list_append(&rv_instruction_cache, &cache_item->item);
+    list_push(&rv_instruction_cache, &cache_item->item);
 
     cache_item_page_decode(cpu, cache_item);
 
@@ -122,6 +122,14 @@ static rv_instr_func_t fetch_instr(rv_cpu_t* cpu, ptr36_t phys){
     if(cache_hit(phys, &cache_item)){
         ASSERT(cache_item != NULL);
         update_cache_item(cpu, cache_item);
+
+        // Move item to front of list on hit
+
+        if(rv_instruction_cache.head != &cache_item->item){
+            list_remove(&rv_instruction_cache, &cache_item->item);
+            list_push(&rv_instruction_cache, &cache_item->item);
+        }
+
         return cache_item->instrs[PHYS2CACHEINSTR(phys)];
     }
     
@@ -133,7 +141,6 @@ static rv_instr_func_t fetch_instr(rv_cpu_t* cpu, ptr36_t phys){
     alert("Trying to fetch instructions from outside of physical memory");
     return rv_instr_decode((rv_instr_t)physmem_read32(cpu->csr.mhartid, phys, true));
 }
-
 
 static void init_regs(rv_cpu_t *cpu) {
     ASSERT(cpu != NULL);

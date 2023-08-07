@@ -60,6 +60,34 @@ void list_append(list_t *list, item_t *item)
 	list->tail = item;
 }
 
+/** Pushes an item to the front of a list
+ * 
+ * @param list The list to push to.
+ * @param item The item to push.
+ */
+void list_push(list_t *list, item_t *item){
+	/* Make sure the item is not a member
+	   of a list, then add it. */
+	ASSERT(item->list == NULL);
+	item->list = list;
+
+	if(is_empty(list)){
+		// List is empty, set item as last
+		list->tail = item;
+	}
+	else {
+		// list is not empty, set the prev of head to item
+		list->head->prev = item;
+	}
+
+	// Set item next and prev
+	item->next = list->head;
+	item->prev = NULL;
+
+	// Adjust list head
+	list->head = item;
+}
+
 /** Remove an item from a list
  *
  * @param list The list to remove from.

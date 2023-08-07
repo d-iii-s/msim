@@ -30,6 +30,8 @@
 #define RV_EXCEPTION_MASK(exc) (1U << ((exc) & ~RV_INTERRUPT_EXC_BITS))
 #define RV_INTERRUPT_NO(interrupt) ((interrupt) & ~RV_INTERRUPT_EXC_BITS)
 
+#define RV_INSTR_CACHE_SIZE 1024
+
 /**
  * RISC-V exception codes
  * 
@@ -125,6 +127,7 @@ typedef struct rv_cpu {
 	/** Translation Lookaside Buffer used for caching translated addresses */
 	rv_tlb_t tlb;
 
+	
 } rv_cpu_t;
 
 

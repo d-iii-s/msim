@@ -1,6 +1,6 @@
 #!/usr/bin/env bats
 
-load "common.bash"
+load "common"
 
 @test "Version switch" {
     run "$MSIM" --version

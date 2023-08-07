@@ -63,14 +63,14 @@ static bool system_add(token_t *parm, void *data)
 	 * the device name and a command name
 	 */
 	
-	if (cmd_find(device_type, system_cmds, NULL) == CMP_HIT) {
+	if (cmd_find(device_name, system_cmds, NULL) == CMP_HIT) {
 		error("Device name \"%s\" is in conflict with a command name",
-		    device_type);
+		    device_name);
 		return false;
 	}
 	
-	if (dev_by_name(device_type)) {
-		error("Device name \"%s\" already added", device_type);
+	if (dev_by_name(device_name)) {
+		error("Device name \"%s\" already added", device_name);
 		return false;
 	}
 	

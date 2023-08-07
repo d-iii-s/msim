@@ -54,28 +54,28 @@ static bool system_add(token_t *parm, void *data)
 {
 	ASSERT(parm != NULL);
 	
-	const char *name = parm_str(parm);
+	const char *device_type = parm_str(parm);
 	parm_next(&parm);
-	const char *instance = parm_str(parm);
+	const char *device_name = parm_str(parm);
 	
 	/*
 	 * Check for conflicts between
 	 * the device name and a command name
 	 */
 	
-	if (cmd_find(name, system_cmds, NULL) == CMP_HIT) {
+	if (cmd_find(device_name, system_cmds, NULL) == CMP_HIT) {
 		error("Device name \"%s\" is in conflict with a command name",
-		    name);
+		    device_name);
 		return false;
 	}
 	
-	if (dev_by_name(name)) {
-		error("Device name \"%s\" already added", name);
+	if (dev_by_name(device_name)) {
+		error("Device name \"%s\" already added", device_name);
 		return false;
 	}
 	
 	/* Allocate device */
-	device_t *dev = alloc_device(name, instance);
+	device_t *dev = alloc_device(device_type, device_name);
 	if (!dev)
 		return false;
 	

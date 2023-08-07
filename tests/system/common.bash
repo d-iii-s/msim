@@ -32,6 +32,7 @@ deindent() {
 
 msim_command_check() {
     local expected="$( echo "$expected" | deindent )"
+    local expected_exit_code_is_zero="${exit_success:-true}"
     echo "$config" | deindent >"$MSIM_TEST_TMPDIR/msim.conf"
     echo "quit" >>"$MSIM_TEST_TMPDIR/msim.conf"
 
@@ -48,8 +49,14 @@ msim_command_check() {
         echo "$output" | sed 's:.*:#  | &:'
     } >&2
 
-    if [ "$status" -ne 0 ]; then
-        fail "MSIM failed with exit code $status."
+    if $expected_exit_code_is_zero; then
+        if [ "$status" -ne 0 ]; then
+            fail "MSIM failed with exit code $status."
+        fi
+    else
+        if [ "$status" -eq 0 ]; then
+            fail "MSIM terminated with exit code 0 but expecting failure."
+        fi
     fi
 
     if [ "$output" != "$expected" ]; then

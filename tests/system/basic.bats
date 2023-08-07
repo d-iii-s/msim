@@ -14,6 +14,21 @@ load "common"
     config="" expected="" msim_command_check
 }
 
+@test "Cannot add device with command name" {
+    config="
+        add dr4kcpu add
+        dumpdev
+    " \
+    expected="
+        <msim> Error in msim.conf on line 1:
+        Device name \"add\" is in conflict with a command name
+        <msim> Fault in msim.conf on line 1:
+        Error in configuration file
+    " \
+    exit_success=false \
+    msim_command_check
+}
+
 @test "Add R4000 MIPS CPU" {
     config="
         add dr4kcpu mips
@@ -50,5 +65,21 @@ load "common"
         [  name  ] [  type  ] [ parameters...
         No matching devices found.
     " \
+    msim_command_check
+}
+
+@test "Cannot add device with same name twice" {
+    config="
+        add dr4kcpu mips
+        add dr4kcpu mips
+        dumpdev
+    " \
+    expected="
+        <msim> Error in msim.conf on line 2:
+        Device name \"mips\" already added
+        <msim> Fault in msim.conf on line 2:
+        Error in configuration file
+    " \
+    exit_success=false \
     msim_command_check
 }

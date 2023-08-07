@@ -25,7 +25,8 @@ class MsimLexer(RegexLexer):
             (r'"[^"]*"', token.Literal.String),
             (r'\s', token.Text),
             (r'[-\[\].,()=:&]', token.Operator),
-            (r'<[^>]*>', token.Generic.Error),
+            (r'<[A-Z][^>]*>', token.Generic.Error),
+            (r'<[^>]*>', token.Text),
         ]
     }
 

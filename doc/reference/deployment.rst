@@ -15,8 +15,37 @@ usual utilities (Bash, GNU Make) are the prerequisites for building MSIM.
 The `GNU readline <http://tiswww.tis.case.edu/~chet/readline/rltop.html>`_
 library is also required.
 
+
+Package installation
+--------------------
+
+We provide automatically built packages for Fedora and other RPM-based
+distributions over `COPR <https://copr.fedorainfracloud.org/>`_
+in `our D3S repository <https://copr.fedorainfracloud.org/coprs/d3s/main/>`_.
+
+Following commands are intended for Fedora and you might need to update them
+to match your distribution.
+
+.. code-block:: shell
+
+    sudo dnf install dnf-plugins-core  # Only if COPR plugin is not installed
+    sudo dnf copr enable d3s/main      # Add our repository
+    sudo dnf install msim              # Install MSIM package
+    msim --version                     # Verify package is installed
+
+
+Manual installation
+------------------
+
+If you cannot use prepackaged version (or you wish to modify MSIM) then the
+following will guide you through the manual installation process.
+
+TL;DR version is: clone our Git repository and execute the standard trio
+if `./configure`, `make` and `sudo make install`.
+
+
 Download
---------
+^^^^^^^^
 
 The following commands will checkout the latest version from GitHub.
 
@@ -27,7 +56,7 @@ The following commands will checkout the latest version from GitHub.
 
 
 Configuration
--------------
+^^^^^^^^^^^^^
 
 To configure the package for compilation use the ``configure``
 scripts. The script should detect all important compilation options
@@ -42,7 +71,7 @@ e.g. ``--prefix=`` to set the installation prefix.
 
 
 Compilation
------------
+^^^^^^^^^^^
 
 After a successful execution of ``configure`` just run
 ``make`` to compile the sources. No special arguments
@@ -56,7 +85,7 @@ Note that MSIM uses ``makedepend`` for dependency generation.
 
 
 Installation
-------------
+^^^^^^^^^^^^
 
 If the compilation is successful, you can use the following command
 to install the binary and supplementary files into the installation

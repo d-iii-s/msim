@@ -345,7 +345,9 @@ static void cleanup() {
 		dev = next_dev;
 	};
 
-	free_device(dev);
+	if (dev != NULL) {
+		free_device(dev);
+	}
 	input_end();
 }
 

@@ -427,9 +427,11 @@ static bool mem_save(token_t *parm, device_t *dev)
 static void mem_done(device_t *dev)
 {
 	physmem_area_t *area = (physmem_area_t *) dev->data;
-	
-	physmem_cleanup(area);
-	safe_free(area);
+
+	if (area != NULL) {
+		physmem_cleanup(area);
+		safe_free(area);
+	}
 	safe_free(dev->name);
 }
 

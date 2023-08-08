@@ -195,7 +195,7 @@ extern void rv_tlb_dump(rv_tlb_t* tlb){
         
         string_clear(&s_text);
         dump_tlb_entry(tlb->ktlb[i], &s_text, false);
-        printf("\t%ld: %s\n", i, s_text.str);
+        printf("%8ld: %s\n", i, s_text.str);
     }
 
     if(!printed){

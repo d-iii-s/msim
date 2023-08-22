@@ -647,10 +647,20 @@ static gen_t system_add_find_generator(token_t **parm, const cmd_t *cmd,
     ASSERT(data != NULL);
     ASSERT(*data == NULL);
 
-    uint32_t first_device_order = 0;
-    if ((parm_type(*parm) == tt_str)
-            && (dev_type_by_partial_name(parm_str(*parm), &first_device_order))
-            && (parm_last(*parm))) {
+    /*
+     * If this does not look like an add command, we bail out.
+     */
+    if (!((parm_type(*parm) == tt_str) && (strcmp(parm_str(*parm), "add") == 0))) {
+        return NULL;
+    }
+
+    /*
+     * We skip the first token - "add" command name - and check that user
+     * supplied only one more parameter (we do not auto-complete for device
+     * properties).
+     */
+    token_t *next = parm_next(parm);
+    if (parm_last(next)) {
         return generator_devtype;
     }
 

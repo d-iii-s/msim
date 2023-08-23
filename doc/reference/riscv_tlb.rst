@@ -10,7 +10,7 @@ The Kilo-TLB (KTLB) caches translations of 4 KiB pages and the Mega-TLB (MTLB)
 caches translations of 4 MiB megapages.
 For more information about the virtual translation process,
 see the Sv32 translation scheme definition in the RISC-V privileged
-specification (link)[https://riscv.org/technical/specifications/].
+specification <https://riscv.org/technical/specifications/> .
 
 The TLB is a directly mapped cache, which is tagged by the ASID
 that has been used at the time the translation has been added to the cache.

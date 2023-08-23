@@ -18,7 +18,7 @@ TARGET = tests
 
 test: $(OBJECTS)
 	$(CC) $(CFLAGS) -o $(TARGET) $(MSIM_OBJECTS) $(OBJECTS) $(LIBS) $(MSIM_LIBS)
-	./$(TARGET)	
+	./$(TARGET)
 
 %.o: %.c
 	$(CC) -c $(CFLAGS) -o $@ $<

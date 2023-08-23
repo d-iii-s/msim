@@ -41,7 +41,7 @@ extern void rv_tlb_flush_by_addr(rv_tlb_t* tlb, uint32_t virt);
 extern void rv_tlb_flush_by_asid_and_addr(rv_tlb_t* tlb, unsigned asid, uint32_t virt);
 
 /** Initializes the TLB data structure */
-extern bool rv_tlb_init(rv_tlb_t* tlb, size_t ktlb_size, size_t mtlb_size);
+extern void rv_tlb_init(rv_tlb_t* tlb, size_t ktlb_size, size_t mtlb_size);
 /** Cleans up the TLB structure */
 extern void rv_tlb_done(rv_tlb_t* tlb);
 

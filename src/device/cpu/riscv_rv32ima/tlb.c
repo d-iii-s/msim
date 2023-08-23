@@ -2,6 +2,7 @@
 
 #include "tlb.h"
 #include "../../../utils.h"
+#include "../../../assert.h"
 
 typedef struct rv_tlb_entry {
     sv32_pte_t pte;
@@ -23,10 +24,7 @@ static inline size_t hash(size_t num){
     ((tlb)->mtlb[hash((index)) % ((tlb)->mtlb_size)])
 
 /** Caches a mapping into the TLB */
-extern void rv_tlb_add_mapping(rv_tlb_t* tlb, unsigned asid, uint32_t virt, sv32_pte_t pte, bool megapage, bool global){
-    
-    uint32_t vpn = virt >> RV_PAGESIZE;
-    
+extern void rv_tlb_add_mapping(rv_tlb_t* tlb, unsigned asid, uint32_t virt, sv32_pte_t pte, bool megapage, bool global){    
     if(megapage){
         uint32_t mvpn = virt >> RV_MEGAPAGESIZE;
 
@@ -37,6 +35,8 @@ extern void rv_tlb_add_mapping(rv_tlb_t* tlb, unsigned asid, uint32_t virt, sv32
         index_mtlb(tlb, mvpn).valid = true;    
     }
     else {
+        uint32_t vpn = virt >> RV_PAGESIZE;
+
         index_ktlb(tlb, vpn).vpn = vpn;
         index_ktlb(tlb, vpn).pte = pte;
         index_ktlb(tlb, vpn).global = global;
@@ -49,8 +49,8 @@ extern void rv_tlb_add_mapping(rv_tlb_t* tlb, unsigned asid, uint32_t virt, sv32
  * gives priority to megapage mappings
  */
 extern bool rv_tlb_get_mapping(rv_tlb_t* tlb, unsigned asid, uint32_t virt, sv32_pte_t* pte, bool* megapage){
-    uint32_t vpn = virt >> 12;
-    uint32_t mvpn = vpn >> 10;
+    uint32_t vpn = virt >> RV_PAGESIZE;
+    uint32_t mvpn = virt >> RV_MEGAPAGESIZE;
 
     // Megapages have priority
     if(index_mtlb(tlb, mvpn).valid && index_mtlb(tlb, mvpn).vpn == mvpn){
@@ -124,10 +124,9 @@ extern void rv_tlb_flush_by_asid_and_addr(rv_tlb_t* tlb, unsigned asid, uint32_t
 }
 
 /** Initializes the TLB data structure */
-extern bool rv_tlb_init(rv_tlb_t* tlb, size_t ktlb_size, size_t mtlb_size){
-    if(ktlb_size == 0 || !IS_POWER_OF_2(ktlb_size) || mtlb_size == 0 || !IS_POWER_OF_2(mtlb_size)){
-        return false;
-    }
+extern void rv_tlb_init(rv_tlb_t* tlb, size_t ktlb_size, size_t mtlb_size){
+    ASSERT(ktlb_size != 0  && mtlb_size != 0);
+
     tlb->ktlb = safe_malloc(ktlb_size * sizeof(rv_tlb_entry_t));
     tlb->ktlb_size = ktlb_size;
     tlb->mtlb = safe_malloc(mtlb_size * sizeof(rv_tlb_entry_t));
@@ -135,8 +134,6 @@ extern bool rv_tlb_init(rv_tlb_t* tlb, size_t ktlb_size, size_t mtlb_size){
 
     memset(tlb->ktlb, 0, ktlb_size * sizeof(rv_tlb_entry_t));
     memset(tlb->mtlb, 0, mtlb_size * sizeof(rv_tlb_entry_t));
-
-    return true;    
 }
 
 /** Cleans up the TLB structure */

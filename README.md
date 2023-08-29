@@ -11,6 +11,10 @@ in Cygwin or MinGW in Windows).
 
 The user interface is simple terminal-style.
 
+* Project homepage: https://d3s.mff.cuni.cz/software/msim/
+* Documentation: https://msim.readthedocs.io/
+* Source code: https://github.com/d-iii-s/msim
+
 MSIM provides following features (along others):
 
 * MIPS R4000 CPU
@@ -34,8 +38,6 @@ MSIM does not aim to be a speed-optimized real hardware simulator, but
 rather a fully deterministic simulator useful for kernel debugging.
 There are several other projects which aim speed-optimized simulation
 (e.g. [GXemul](http://gavare.se/gxemul/)), but they are more complex to use.
-
-(Old) project homepage is at <http://d3s.mff.cuni.cz/~holub/sw/msim/>.
 
 Compilation and installation
 ----------------------------

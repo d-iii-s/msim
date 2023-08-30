@@ -244,7 +244,7 @@ static ptr36_t make_phys_from_ppn(uint32_t virt, sv32_pte_t pte, bool megapage){
  * @brief Tranlates the virtual address to physical by Sv32 memory translation algorithm, modifying the pagetable by doing so (setting the Accessed and Dirty bits)
  * 
  */
-static rv_exc_t rv_pagewalk(rv_cpu_t *cpu, uint32_t virt, ptr36_t *phys, bool wr, bool fetch, bool noisy, sv32_pte_t* out_pte, bool* megapage, bool* global){
+static rv_exc_t rv_pagewalk(rv_cpu_t *cpu, uint32_t virt, ptr36_t *phys, bool wr, bool fetch, bool noisy, sv32_pte_t* out_pte, ptr36_t* out_pte_addr, bool* megapage, bool* global){
     uint32_t vpn0     =    (virt & 0x003FF000) >> 12;
     uint32_t vpn1     =    (virt & 0xFFC00000) >> 22;
     uint32_t ppn      =     rv_csr_satp_ppn(cpu);
@@ -292,61 +292,26 @@ static rv_exc_t rv_pagewalk(rv_cpu_t *cpu, uint32_t virt, ptr36_t *phys, bool wr
 
     if(!is_access_allowed(cpu, pte, wr, fetch)) return page_fault_exception;
 
-    pte.a = 1;
-    pte.d |= wr ? 1 : 0;
+    if(pte.a == 0 || (pte.d == 0 && wr)){
 
-    pte_val = uint_from_pte(pte);
+        // No need to check with memory, we have just read it
 
-    if(noisy){
-        physmem_write32(cpu->csr.mhartid, pte_addr, pte_val, true);
+        pte.a = 1;
+        pte.d |= wr ? 1 : 0;
+
+        pte_val = uint_from_pte(pte);
+
+        if(noisy){
+            physmem_write32(cpu->csr.mhartid, pte_addr, pte_val, true);
+        }
     }
+   
     *phys = make_phys_from_ppn(virt, pte, is_megapage);
     *out_pte = pte;
     *megapage = is_megapage;
+    *out_pte_addr = pte_addr;
 
     return rv_exc_none;
-}
-
-static bool pagetable_set_AD(rv_cpu_t *cpu, uint32_t virt, bool wr){
-    uint32_t vpn0     =    (virt & 0x003FF000) >> 12;
-    uint32_t vpn1     =    (virt & 0xFFC00000) >> 22;
-    uint32_t ppn      =     rv_csr_satp_ppn(cpu);
-
-    // name of variables according to spec (with RV_ prefix to prevent collision
-    // with limits.h constant)
-
-    ptr36_t a = ((ptr36_t)ppn) << RV_PAGESIZE;
-    ptr36_t pte_addr = a + vpn1*RV_PTESIZE;
-
-    //? Should noisy be true here?
-    uint32_t pte_val = physmem_read32(cpu->csr.mhartid, pte_addr, true);
-
-    sv32_pte_t pte = pte_from_uint(pte_val);
-
-    if(!is_pte_valid(pte)) return false;
-
-    if(!is_pte_leaf(pte)) {
-        // Non leaf PTE, make second translation step
-
-        // PMP or PMA check goes here if implemented
-        a = ((ptr36_t)pte.ppn) << RV_PAGESIZE;
-        pte_addr = a + vpn0*RV_PTESIZE;
-
-        //? Should noisy be true here?
-        pte_val = physmem_read32(cpu->csr.mhartid, pte_addr, true);
-        pte = pte_from_uint(pte_val);
-
-        if(!is_pte_valid(pte)) return false;
-
-        // Non-leaf on last level
-        if(!is_pte_leaf(pte)) return false;
-    }
-    pte.a = 1;
-    pte.d |= wr ? 1 : 0;
-
-    pte_val = uint_from_pte(pte);
-    physmem_write32(cpu->csr.mhartid, pte_addr, pte_val, true);
-    return true;
 }
 
 /**
@@ -377,35 +342,34 @@ rv_exc_t rv_convert_addr(rv_cpu_t *cpu, uint32_t virt, ptr36_t *phys, bool wr, b
 
     unsigned asid = rv_csr_satp_asid(cpu);
     sv32_pte_t pte;
+    ptr36_t pte_addr;
     bool megapage;
+    
 
     // First try the TLB
-    if(rv_tlb_get_mapping(&cpu->tlb, asid, virt, &pte, &megapage)) {
+    if(rv_tlb_get_mapping(&cpu->tlb, asid, virt, &pte, &pte_addr, &megapage)) {
+
+        if(!is_pte_valid(pte)) return page_fault_exception;
 
         // Check access rights of the cached pte
         if(!is_access_allowed(cpu, pte, wr, fetch)) return page_fault_exception;
 
-        // Set the Accessed and Dirty bits in the real pagetable
-        bool AD_set_OK = pagetable_set_AD(cpu, virt, wr);
-
-        *phys = make_phys_from_ppn(virt, pte, megapage);
-
-        if(!AD_set_OK){
-            // Here there has been some problem with the pagetable while we tried to set the AD bits
-            // We still use the cached translation and act as if nothing happened
-            // This is done to introduce bugs which show on improper ASID management and SFENCE usage
-            alert("Used Cached Address translation that is not present in pagetable!");
+        // Missaligned magapage
+        if(megapage && pte_ppn0(pte) != 0) return page_fault_exception;
+        
+        // If the AD bits have to be updated, do the full pagewalk and cache the result
+        if(pte.a  && (pte.d || !wr)){
+            *phys = make_phys_from_ppn(virt, pte, megapage);
+            return rv_exc_none;
         }
-
-        return rv_exc_none;
     }
     
     bool global;
-
-    rv_exc_t exc = rv_pagewalk(cpu, virt, phys, wr, fetch, noisy, &pte, &megapage, &global);
+    rv_exc_t exc = rv_pagewalk(cpu, virt, phys, wr, fetch, noisy, &pte, &pte_addr, &megapage, &global);
     if (exc == rv_exc_none){
+
         // If the pagewalk succeded, add the translation to the TLB
-        rv_tlb_add_mapping(&cpu->tlb, asid, virt, pte, megapage, global);
+        rv_tlb_add_mapping(&cpu->tlb, asid, virt, pte, pte_addr, megapage, global);
     }
 
     return exc;

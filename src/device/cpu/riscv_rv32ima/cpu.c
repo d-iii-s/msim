@@ -310,9 +310,10 @@ static rv_exc_t rv_pagewalk(rv_cpu_t *cpu, uint32_t virt, ptr36_t *phys, bool wr
             physmem_write32(cpu->csr.mhartid, pte_addr, pte_val, true);
         }
     }
-   
+    
     *phys = make_phys_from_ppn(virt, pte, is_megapage);
 
+    // Add the leaf PTE of the translation to the TLB
     rv_tlb_add_mapping(&cpu->tlb, rv_csr_satp_asid(cpu), virt, pte, is_megapage, is_global);
 
     return rv_exc_none;

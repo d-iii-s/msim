@@ -7,7 +7,6 @@
 typedef struct rv_tlb_entry {
     sv32_pte_t pte;
     uint32_t vpn;
-    ptr36_t phys;
     unsigned asid;
     bool valid;
     bool global;
@@ -25,12 +24,11 @@ static inline size_t hash(size_t num){
     ((tlb)->mtlb[hash((index)) % ((tlb)->mtlb_size)])
 
 /** Caches a mapping into the TLB */
-extern void rv_tlb_add_mapping(rv_tlb_t* tlb, unsigned asid, uint32_t virt, sv32_pte_t pte, ptr36_t phys, bool megapage, bool global){    
+extern void rv_tlb_add_mapping(rv_tlb_t* tlb, unsigned asid, uint32_t virt, sv32_pte_t pte, bool megapage, bool global){    
     if(megapage){
         uint32_t mvpn = virt >> RV_MEGAPAGESIZE;
 
         index_mtlb(tlb, mvpn).vpn = mvpn;
-        index_mtlb(tlb, mvpn).phys = phys;
         index_mtlb(tlb, mvpn).pte = pte;
         index_mtlb(tlb, mvpn).global = global;
         index_mtlb(tlb, mvpn).asid = asid;
@@ -40,7 +38,6 @@ extern void rv_tlb_add_mapping(rv_tlb_t* tlb, unsigned asid, uint32_t virt, sv32
         uint32_t vpn = virt >> RV_PAGESIZE;
 
         index_ktlb(tlb, vpn).vpn = vpn;
-        index_ktlb(tlb, vpn).phys = phys;
         index_ktlb(tlb, vpn).pte = pte;
         index_ktlb(tlb, vpn).global = global;
         index_ktlb(tlb, vpn).asid = asid;
@@ -51,7 +48,7 @@ extern void rv_tlb_add_mapping(rv_tlb_t* tlb, unsigned asid, uint32_t virt, sv32
 /** Retrieves a cached mapping
  * gives priority to megapage mappings
  */
-extern bool rv_tlb_get_mapping(rv_tlb_t* tlb, unsigned asid, uint32_t virt, sv32_pte_t* pte, ptr36_t *phys, bool* megapage){
+extern bool rv_tlb_get_mapping(rv_tlb_t* tlb, unsigned asid, uint32_t virt, sv32_pte_t* pte, bool* megapage){
     uint32_t vpn = virt >> RV_PAGESIZE;
     uint32_t mvpn = virt >> RV_MEGAPAGESIZE;
 
@@ -60,7 +57,6 @@ extern bool rv_tlb_get_mapping(rv_tlb_t* tlb, unsigned asid, uint32_t virt, sv32
         if(index_mtlb(tlb, mvpn).global || index_mtlb(tlb, mvpn).asid == asid){
             *pte = index_mtlb(tlb, mvpn).pte;
             *megapage = true;
-            *phys = index_mtlb(tlb, mvpn).phys;
             return true;
         }
     }
@@ -69,7 +65,6 @@ extern bool rv_tlb_get_mapping(rv_tlb_t* tlb, unsigned asid, uint32_t virt, sv32
         if(index_ktlb(tlb, vpn).global || index_ktlb(tlb, vpn).asid == asid){
             *pte = index_ktlb(tlb, vpn).pte;
             *megapage = false;
-            *phys = index_ktlb(tlb, vpn).phys;
             return true;
         }
     }

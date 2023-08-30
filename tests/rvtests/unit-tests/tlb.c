@@ -27,13 +27,12 @@ PCUT_TEST(simple){
     sv32_pte_t added_pte = { 0 };
     added_pte.ppn = phys >> 12;
 
-    rv_tlb_add_mapping(&tlb, asid, virt, added_pte, 0, false, false);
+    rv_tlb_add_mapping(&tlb, asid, virt, added_pte, false, false);
 
     sv32_pte_t pte;
-    uintptr_t pte_addr;
     bool megapage;
 
-    bool success = rv_tlb_get_mapping(&tlb, asid, virt, &pte, &pte_addr, &megapage);
+    bool success = rv_tlb_get_mapping(&tlb, asid, virt, &pte, &megapage);
 
     ptr36_t mapped_phys = success ? (ptr36_t)pte.ppn << 12 : 0xFF;
 
@@ -41,7 +40,6 @@ PCUT_TEST(simple){
 
     PCUT_ASSERT_EQUALS(true, success);
     PCUT_ASSERT_EQUALS(false, megapage);
-    PCUT_ASSERT_EQUALS(pte_addr, 0);
     PCUT_ASSERT_INT_EQUALS(expected_phys, mapped_phys);
 }
 
@@ -54,15 +52,14 @@ PCUT_TEST(get_with_offset){
     sv32_pte_t added_pte = { 0 };
     added_pte.ppn = phys >> 12;
 
-    rv_tlb_add_mapping(&tlb, asid, virt, added_pte, 0, false, false);
+    rv_tlb_add_mapping(&tlb, asid, virt, added_pte, false, false);
 
     uint32_t requested_virt = 0x0001;
 
     sv32_pte_t pte;
-    uintptr_t pte_addr;
     bool megapage;
 
-    bool success = rv_tlb_get_mapping(&tlb, asid, requested_virt, &pte, &pte_addr, &megapage);
+    bool success = rv_tlb_get_mapping(&tlb, asid, requested_virt, &pte, &megapage);
 
     ptr36_t mapped_phys = success ? (ptr36_t)pte.ppn << 12 : 0xFF;
 
@@ -81,15 +78,14 @@ PCUT_TEST(add_with_offset){
     sv32_pte_t added_pte = { 0 };
     added_pte.ppn = phys >> 12;
 
-    rv_tlb_add_mapping(&tlb, asid, virt, added_pte, 0, false, false);
+    rv_tlb_add_mapping(&tlb, asid, virt, added_pte, false, false);
 
     uint32_t requested_virt = 0x0;
 
     sv32_pte_t pte;
     bool megapage;
-    uintptr_t pte_addr;
 
-    bool success = rv_tlb_get_mapping(&tlb, asid, requested_virt, &pte, &pte_addr, &megapage);
+    bool success = rv_tlb_get_mapping(&tlb, asid, requested_virt, &pte, &megapage);
 
     ptr36_t mapped_phys = success ? (ptr36_t)pte.ppn << 12 : 0xFF;
 
@@ -108,13 +104,12 @@ PCUT_TEST(simple_megapage){
     sv32_pte_t added_pte = { 0 };
     added_pte.ppn = phys >> 12;
 
-    rv_tlb_add_mapping(&tlb, asid, virt, added_pte, 0, true, false);
+    rv_tlb_add_mapping(&tlb, asid, virt, added_pte, true, false);
 
     sv32_pte_t pte;
     bool megapage;
-    uintptr_t pte_addr;
 
-    bool success = rv_tlb_get_mapping(&tlb, asid, virt, &pte, &pte_addr, &megapage);
+    bool success = rv_tlb_get_mapping(&tlb, asid, virt, &pte, &megapage);
 
     ptr36_t mapped_phys = success ? (ptr36_t)pte.ppn << 12 : 0xFF;
 
@@ -132,15 +127,14 @@ PCUT_TEST(simple_megapage_non_base_page_mapping){
     sv32_pte_t added_pte = { 0 };
     added_pte.ppn = phys >> 12;
 
-    rv_tlb_add_mapping(&tlb, asid, virt, added_pte, 0, true, false);
+    rv_tlb_add_mapping(&tlb, asid, virt, added_pte, true, false);
 
     uint32_t requested_virt = 0x1000;
 
     sv32_pte_t pte;
     bool megapage;
-    uintptr_t pte_addr;
 
-    bool success = rv_tlb_get_mapping(&tlb, asid, requested_virt, &pte, &pte_addr, &megapage);
+    bool success = rv_tlb_get_mapping(&tlb, asid, requested_virt, &pte, &megapage);
 
     ptr36_t mapped_phys = success ? ((ptr36_t)pte.ppn) << 12 : 0xFF;
 
@@ -162,13 +156,12 @@ PCUT_TEST(simple_global){
     added_pte.ppn = phys >> 12;
     added_pte.g = true;
 
-    rv_tlb_add_mapping(&tlb, asid, virt, added_pte, 0, false, true);
+    rv_tlb_add_mapping(&tlb, asid, virt, added_pte, false, true);
 
     sv32_pte_t pte;
     bool megapage;
-    uintptr_t pte_addr;
 
-    bool success = rv_tlb_get_mapping(&tlb, different_asid, virt, &pte, &pte_addr, &megapage);
+    bool success = rv_tlb_get_mapping(&tlb, different_asid, virt, &pte, &megapage);
 
     ptr36_t mapped_phys = success ? (ptr36_t)pte.ppn << 12 : 0xFF;
 
@@ -186,13 +179,12 @@ PCUT_TEST(wrong_asid){
     added_pte.ppn = phys >> 12;
     added_pte.g = false;
 
-    rv_tlb_add_mapping(&tlb, asid, virt, added_pte, 0, false, false);
+    rv_tlb_add_mapping(&tlb, asid, virt, added_pte, false, false);
 
     sv32_pte_t pte;
     bool megapage;
-    uintptr_t pte_addr;
 
-    bool success = rv_tlb_get_mapping(&tlb, different_asid, virt, &pte, &pte_addr, &megapage);
+    bool success = rv_tlb_get_mapping(&tlb, different_asid, virt, &pte, &megapage);
 
     PCUT_ASSERT_EQUALS(false, success);
 }
@@ -207,13 +199,12 @@ PCUT_TEST(unmapped_addr){
     sv32_pte_t added_pte = { 0 };
     added_pte.ppn = phys >> 12;
 
-    rv_tlb_add_mapping(&tlb, asid, virt, added_pte, 0, false, false);
+    rv_tlb_add_mapping(&tlb, asid, virt, added_pte, false, false);
 
     sv32_pte_t pte;
     bool megapage;
-    uintptr_t pte_addr;
 
-    bool success = rv_tlb_get_mapping(&tlb, asid, different_virt, &pte, &pte_addr, &megapage);
+    bool success = rv_tlb_get_mapping(&tlb, asid, different_virt, &pte, &megapage);
 
     PCUT_ASSERT_EQUALS(false, success);   
 }
@@ -231,15 +222,14 @@ PCUT_TEST(megapage_priority){
     added_pte2.ppn = different_phys >> 12;
 
     // KTLB mapping
-    rv_tlb_add_mapping(&tlb, asid, virt, added_pte1, 0, false, false);
+    rv_tlb_add_mapping(&tlb, asid, virt, added_pte1, false, false);
     // MTLB mapping
-    rv_tlb_add_mapping(&tlb, asid, virt, added_pte2, 0, true, false);
+    rv_tlb_add_mapping(&tlb, asid, virt, added_pte2, true, false);
 
     sv32_pte_t pte;
     bool megapage;
-    uintptr_t pte_addr;
 
-    bool success = rv_tlb_get_mapping(&tlb, asid, virt, &pte, &pte_addr, &megapage);
+    bool success = rv_tlb_get_mapping(&tlb, asid, virt, &pte, &megapage);
     
     ptr36_t mapped_phys = success ? (ptr36_t)pte.ppn << 12 : 0xFF;
 
@@ -256,15 +246,14 @@ PCUT_TEST(flush_all){
     sv32_pte_t added_pte = { 0 };
     added_pte.ppn = phys >> 12;
 
-    rv_tlb_add_mapping(&tlb, asid, virt, added_pte, 0, false, false);
+    rv_tlb_add_mapping(&tlb, asid, virt, added_pte, false, false);
 
     rv_tlb_flush(&tlb);
 
     sv32_pte_t pte;
     bool megapage;
-    uintptr_t pte_addr;
 
-    bool success = rv_tlb_get_mapping(&tlb, asid, virt, &pte, &pte_addr, &megapage);
+    bool success = rv_tlb_get_mapping(&tlb, asid, virt, &pte, &megapage);
 
     PCUT_ASSERT_EQUALS(false, success);
 }
@@ -277,15 +266,14 @@ PCUT_TEST(flush_all_global){
     sv32_pte_t added_pte = { 0 };
     added_pte.ppn = phys >> 12;
 
-    rv_tlb_add_mapping(&tlb, asid, virt, added_pte, 0, false, true);
+    rv_tlb_add_mapping(&tlb, asid, virt, added_pte, false, true);
 
     rv_tlb_flush(&tlb);
 
     sv32_pte_t pte;
     bool megapage;
-    uintptr_t pte_addr;
 
-    bool success = rv_tlb_get_mapping(&tlb, asid, virt, &pte, &pte_addr, &megapage);
+    bool success = rv_tlb_get_mapping(&tlb, asid, virt, &pte, &megapage);
 
     PCUT_ASSERT_EQUALS(false, success);
 }
@@ -301,17 +289,16 @@ PCUT_TEST(flush_by_asid){
     added_pte.ppn = phys >> 12;
     added_pte.g = false;
 
-    rv_tlb_add_mapping(&tlb, asid1, virt1, added_pte, 0, false, false);
-    rv_tlb_add_mapping(&tlb, asid2, virt2, added_pte, 0, false, false);
+    rv_tlb_add_mapping(&tlb, asid1, virt1, added_pte, false, false);
+    rv_tlb_add_mapping(&tlb, asid2, virt2, added_pte, false, false);
 
     rv_tlb_flush_by_asid(&tlb, asid1);
 
     sv32_pte_t pte;
     bool megapage;
-    uintptr_t pte_addr;
 
-    bool success1 = rv_tlb_get_mapping(&tlb, asid1, virt1, &pte, &pte_addr, &megapage);
-    bool success2 = rv_tlb_get_mapping(&tlb, asid2, virt2, &pte, &pte_addr, &megapage);
+    bool success1 = rv_tlb_get_mapping(&tlb, asid1, virt1, &pte, &megapage);
+    bool success2 = rv_tlb_get_mapping(&tlb, asid2, virt2, &pte, &megapage);
 
     PCUT_ASSERT_EQUALS(false, success1);
     PCUT_ASSERT_EQUALS(true, success2);
@@ -326,17 +313,16 @@ PCUT_TEST(flush_by_addr){
     sv32_pte_t added_pte = { 0 };
     added_pte.ppn = phys >> 12;
 
-    rv_tlb_add_mapping(&tlb, asid, virt1, added_pte, 0, false, false);
-    rv_tlb_add_mapping(&tlb, asid, virt2, added_pte, 0, false, false);
+    rv_tlb_add_mapping(&tlb, asid, virt1, added_pte, false, false);
+    rv_tlb_add_mapping(&tlb, asid, virt2, added_pte, false, false);
 
     rv_tlb_flush_by_addr(&tlb, virt1);
 
     sv32_pte_t pte;
     bool megapage;
-    uintptr_t pte_addr;
 
-    bool success1 = rv_tlb_get_mapping(&tlb, asid, virt1, &pte, &pte_addr, &megapage);
-    bool success2 = rv_tlb_get_mapping(&tlb, asid, virt2, &pte, &pte_addr, &megapage);
+    bool success1 = rv_tlb_get_mapping(&tlb, asid, virt1, &pte, &megapage);
+    bool success2 = rv_tlb_get_mapping(&tlb, asid, virt2, &pte, &megapage);
 
     PCUT_ASSERT_EQUALS(false, success1);
     PCUT_ASSERT_EQUALS(true, success2);
@@ -354,19 +340,18 @@ PCUT_TEST(flush_by_asid_and_addr){
     added_pte.ppn = phys >> 12;
     added_pte.g = false;
 
-    rv_tlb_add_mapping(&tlb, asid1, virt1, added_pte, 0, false, false);
-    rv_tlb_add_mapping(&tlb, asid1, virt2, added_pte, 0, false, false);
-    rv_tlb_add_mapping(&tlb, asid2, virt3, added_pte, 0, false, false);
+    rv_tlb_add_mapping(&tlb, asid1, virt1, added_pte, false, false);
+    rv_tlb_add_mapping(&tlb, asid1, virt2, added_pte, false, false);
+    rv_tlb_add_mapping(&tlb, asid2, virt3, added_pte, false, false);
 
     rv_tlb_flush_by_asid_and_addr(&tlb, asid1, virt1);
 
     sv32_pte_t pte;
     bool megapage;
-    uintptr_t pte_addr;
 
-    bool success1 = rv_tlb_get_mapping(&tlb, asid1, virt1, &pte, &pte_addr, &megapage);
-    bool success2 = rv_tlb_get_mapping(&tlb, asid1, virt2, &pte, &pte_addr, &megapage);
-    bool success3 = rv_tlb_get_mapping(&tlb, asid2, virt3, &pte, &pte_addr, &megapage);
+    bool success1 = rv_tlb_get_mapping(&tlb, asid1, virt1, &pte, &megapage);
+    bool success2 = rv_tlb_get_mapping(&tlb, asid1, virt2, &pte, &megapage);
+    bool success3 = rv_tlb_get_mapping(&tlb, asid2, virt3, &pte, &megapage);
 
     PCUT_ASSERT_EQUALS(false, success1);
     PCUT_ASSERT_EQUALS(true, success2);
@@ -382,15 +367,14 @@ PCUT_TEST(flush_by_asid_ignores_global){
     added_pte.ppn = phys >> 12;
     added_pte.g = true;
 
-    rv_tlb_add_mapping(&tlb, asid, virt, added_pte, 0, false, true);
+    rv_tlb_add_mapping(&tlb, asid, virt, added_pte, false, true);
 
     rv_tlb_flush_by_asid(&tlb, asid);
 
     sv32_pte_t pte;
     bool megapage;
-    uintptr_t pte_addr;
 
-    bool success = rv_tlb_get_mapping(&tlb, asid, virt, &pte, &pte_addr, &megapage);
+    bool success = rv_tlb_get_mapping(&tlb, asid, virt, &pte, &megapage);
 
     PCUT_ASSERT_EQUALS(true, success);
 }
@@ -404,15 +388,14 @@ PCUT_TEST(flush_by_asid_and_addr_ignores_global){
     added_pte.ppn = phys >> 12;
     added_pte.g = true;
 
-    rv_tlb_add_mapping(&tlb, asid, virt, added_pte, 0, false, true);
+    rv_tlb_add_mapping(&tlb, asid, virt, added_pte, false, true);
 
     rv_tlb_flush_by_asid_and_addr(&tlb, asid, virt);
 
     sv32_pte_t pte;
     bool megapage;
-    uintptr_t pte_addr;
 
-    bool success = rv_tlb_get_mapping(&tlb, asid, virt, &pte, &pte_addr, &megapage);
+    bool success = rv_tlb_get_mapping(&tlb, asid, virt, &pte, &megapage);
 
     PCUT_ASSERT_EQUALS(true, success);
 }

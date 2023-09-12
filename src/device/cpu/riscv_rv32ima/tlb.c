@@ -262,7 +262,7 @@ extern void rv_tlb_dump(rv_tlb_t* tlb){
     string_t s_text;
     string_init(&s_text);
 
-    printf("TLB    size: %ld entries    Entries shown in LRU order.\n", tlb->size);
+    printf("TLB    size: %ld entries\n", tlb->size);
     printf("%8s: %10s => %-11s [ %s ]\n", "index", "virt", "phys", "info");
 
     bool printed = false;

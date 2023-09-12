@@ -212,7 +212,7 @@ Example of the ``tlbrd`` command:
 .. code:: msim
 
    [msim] risc1 tlbrd
-   TLB     size: 48 entries
+   TLB    size: 48 entries    Entries shown in LRU order.
       index:       virt => phys        [ info ]
           0: 0x00400000 => 0x000000000 [ ASID: 0, GLOBAL: F, MEGAPAGE: T ]
           1: 0xf0000000 => 0x0f0000000 [ ASID: 1, GLOBAL: T, MEGAPAGE: F ]

@@ -12,6 +12,7 @@
 #include <stdint.h>
 #include "csr.h"
 #include "cpu.h"
+#include "tlb.h"
 #include "../../../assert.h"
 #include "../../../utils.h"
 
@@ -30,6 +31,8 @@ void rv_init_csr(csr_t *csr, unsigned int procno){
     
     csr->mtime = current_timestamp();
     csr->last_tick_time = csr->mtime;
+
+    csr->asid_len = rv_asid_len;
 }
 
 #define minimal_privilege(priv, cpu) {if(cpu->priv_mode < priv) return rv_exc_illegal_instruction;}
@@ -570,7 +573,13 @@ static rv_exc_t satp_write(rv_cpu_t* cpu, csr_num_t csr, uint32_t value){
     minimal_privilege(rv_smode, cpu);
     if(rv_csr_mstatus_tvm(cpu)) return rv_exc_illegal_instruction;
 
-    cpu->csr.satp = value;
+    // Construct a mask that will zero-out non-active asid bits
+    uint32_t active_asid_mask = ((1<<cpu->csr.asid_len) - 1) << rv_csr_satp_asid_offset;
+
+    // Create a full mask for the SATP CSR
+    uint32_t mask = rv_csr_satp_mode_mask | active_asid_mask | rv_csr_satp_ppn_mask;
+
+    cpu->csr.satp = value & mask;
     
     if(rv_csr_satp_is_bare(cpu)){
         cpu->csr.satp = 0;
@@ -583,7 +592,13 @@ static rv_exc_t satp_set(rv_cpu_t* cpu, csr_num_t csr, uint32_t value){
     minimal_privilege(rv_smode, cpu);
     if(rv_csr_mstatus_tvm(cpu)) return rv_exc_illegal_instruction;
 
-    cpu->csr.satp |= value;
+    // Construct a mask that will zero-out non-active asid bits
+    uint32_t active_asid_mask = ((1<<cpu->csr.asid_len) - 1) << rv_csr_satp_asid_offset;
+
+    // Create a full mask for the SATP CSR
+    uint32_t mask = rv_csr_satp_mode_mask | active_asid_mask | rv_csr_satp_ppn_mask;
+
+    cpu->csr.satp |= value & mask;
 
     if(rv_csr_satp_is_bare(cpu)){
         cpu->csr.satp = 0;
@@ -596,7 +611,13 @@ static rv_exc_t satp_clear(rv_cpu_t* cpu, csr_num_t csr, uint32_t value){
     minimal_privilege(rv_smode, cpu);
     if(rv_csr_mstatus_tvm(cpu)) return rv_exc_illegal_instruction;
 
-    cpu->csr.satp &= value;
+    // Construct a mask that will zero-out non-active asid bits
+    uint32_t active_asid_mask = ((1<<cpu->csr.asid_len) - 1) << rv_csr_satp_asid_offset;
+
+    // Create a full mask for the SATP CSR
+    uint32_t mask = rv_csr_satp_mode_mask | active_asid_mask | rv_csr_satp_ppn_mask;
+
+    cpu->csr.satp &= ~(value & mask);
 
     if(rv_csr_satp_is_bare(cpu)){
         cpu->csr.satp = 0;
@@ -1690,4 +1711,19 @@ rv_exc_t rv_csr_rc(rv_cpu_t* cpu, csr_num_t csr, uint32_t value, uint32_t* read_
  */
 rv_priv_mode_t rv_csr_min_priv_mode(csr_num_t csr) {
     return (rv_priv_mode_t)(((unsigned int)csr >> 8) & 0b11);
+}
+
+/** Change the number of active ASID bits (used in the virtual address translation)
+ *  This function zeroes-out any bits that will not be active in the ASID field of the SATP CSR
+ *  This function fully flushes the TLB
+ */
+extern void rv_csr_set_asid_len(rv_cpu_t *cpu, unsigned asid_len){
+    assert(asid_len <= rv_asid_len);
+
+    cpu->csr.asid_len = asid_len;
+
+    uint32_t zeroing_asid_mask = (rv_asid_mask ^ ((1<<asid_len)-1)) << rv_csr_satp_asid_offset;
+    cpu->csr.satp &= ~zeroing_asid_mask;
+
+    rv_tlb_flush(&cpu->tlb);
 }

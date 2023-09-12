@@ -176,6 +176,8 @@ Commands
    Dump the contents of the TLB, split by page size.
 ``tlbresize size``
    Resize the TLB by specifying its new size.
+``asidlen length``
+   Changes the bit-length of ASIDs.
 
 Examples
 ^^^^^^^^

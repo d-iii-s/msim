@@ -18,6 +18,7 @@
 #include "drvcpu.h"
 #include "cpu/general_cpu.h"
 #include "cpu/riscv_rv32ima/cpu.h"
+#include "cpu/riscv_rv32ima/csr.h"
 #include "cpu/riscv_rv32ima/debug.h"
 #include "../main.h"
 #include "../assert.h"
@@ -144,6 +145,24 @@ static bool drvcpu_tlb_resize(token_t *parm, device_t *dev){
 }
 
 /**
+ * SETASIDLEN command implementation
+ */
+static bool drvcpu_set_asid_len(token_t *parm, device_t *dev){
+    ASSERT(dev != NULL);
+    
+    size_t new_asid_len = parm_uint_next(&parm);
+
+    if(new_asid_len > rv_asid_len){
+        error("Number of bits of ASID cannot exceed 9!\n");
+        return false;
+    }
+
+    rv_csr_set_asid_len(get_rv(dev), new_asid_len);
+
+    return true;
+}
+
+/**
  * Done device operation
  */
 static void drvcpu_done(device_t *dev){
@@ -225,6 +244,16 @@ cmd_t drvcpu_cmds[] = {
         "Resize the TLB",
         "Resizes the TLB, flushing it completely in the process.",
         REQ INT "TLB size" END
+    }
+    ,
+    {
+        "asidlen",
+        (fcmd_t) drvcpu_set_asid_len,
+        DEFAULT,
+        DEFAULT,
+        "Changes the bit-length of ASIDs",
+        "Changes the number of usable bits in the ASID field of the SATP CSR, zeroes-out any deactivated bits and flushes the TLB.",
+        REQ INT "ASID length" END
     }
 };
 

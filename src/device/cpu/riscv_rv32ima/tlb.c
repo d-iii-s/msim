@@ -262,22 +262,22 @@ extern void rv_tlb_dump(rv_tlb_t* tlb){
     string_t s_text;
     string_init(&s_text);
 
-    printf("TLB\tsize: %ld entries\n", tlb->size);
+    printf("TLB    size: %ld entries    Entries shown in LRU order.\n", tlb->size);
     printf("%8s: %10s => %-11s [ %s ]\n", "index", "virt", "phys", "info");
 
     bool printed = false;
-    for(size_t i = 0; i < tlb->size; ++i){
-        // Print only valid entries to not overwhelm the debug output
 
-        if(!is_entry_valid(tlb, &tlb->entries[i])){
-            continue;
-        }
+    rv_tlb_entry_t* entry;
+    size_t i = 0;
 
+    for_each(tlb->lru_list, entry, rv_tlb_entry_t){
         printed = true;
         
         string_clear(&s_text);
-        dump_tlb_entry(tlb->entries[i], &s_text);
+        dump_tlb_entry(*entry, &s_text);
         printf("%8ld: %s\n", i, s_text.str);
+
+        ++i;
     }
 
     if(!printed){

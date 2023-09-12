@@ -389,9 +389,6 @@ static tlb_look_t tlb_look(r4k_cpu_t *cpu, ptr64_t virt, ptr36_t *phys, bool wr)
 			/* Update optimization hint */
 			cpu->tlb_hint = i;
 			
-
-
-			
 			return TLBL_OK;
 		}
 	}

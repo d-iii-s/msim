@@ -14,7 +14,8 @@ typedef struct rv_tlb_entry {
 } rv_tlb_entry_t;
 
 /** Caches a mapping into the TLB */
-extern void rv_tlb_add_mapping(rv_tlb_t* tlb, unsigned asid, uint32_t virt, sv32_pte_t pte, bool megapage, bool global){    
+extern void rv_tlb_add_mapping(rv_tlb_t* tlb, unsigned asid, uint32_t virt, sv32_pte_t pte, bool megapage, bool global){
+
     rv_tlb_entry_t* entry = NULL;
     
     if(!is_empty(&tlb->free_list)){
@@ -77,7 +78,7 @@ extern bool rv_tlb_get_mapping(rv_tlb_t* tlb, unsigned asid, uint32_t virt, sv32
             continue;
         }
 
-        bool correct_address = entry->megapage ? entry->vpn == mvpn : entry->vpn == vpn;
+        bool correct_address = entry->vpn == (entry->megapage ? mvpn : vpn);
 
         if(correct_address){
 
@@ -94,6 +95,8 @@ extern bool rv_tlb_get_mapping(rv_tlb_t* tlb, unsigned asid, uint32_t virt, sv32
     return false;
 }
 
+
+
 static void invalidate_tlb_entry(rv_tlb_t* tlb, rv_tlb_entry_t* entry){
     ASSERT(entry->item.list == &tlb->lru_list);
     
@@ -103,6 +106,29 @@ static void invalidate_tlb_entry(rv_tlb_t* tlb, rv_tlb_entry_t* entry){
 
 static bool is_entry_valid(rv_tlb_t* tlb, rv_tlb_entry_t* entry){
     return entry->item.list == &tlb->lru_list;
+}
+
+extern void rv_tlb_remove_mapping(rv_tlb_t* tlb, unsigned asid, uint32_t virt){
+    uint32_t vpn = virt >> RV_PAGESIZE;
+    uint32_t mvpn = virt >> RV_MEGAPAGESIZE;
+
+    rv_tlb_entry_t* entry;
+
+    for_each(tlb->lru_list, entry, rv_tlb_entry_t){
+
+        // Skip non-global mappings with wrong asid
+        if(!entry->global && entry->asid != asid){
+            continue;
+        }
+
+        bool correct_address = entry->vpn == (entry->megapage ? mvpn : vpn);
+
+        if(correct_address){
+            invalidate_tlb_entry(tlb, entry);
+            return;
+        }
+    }
+
 }
 
 /** TLB flushes */

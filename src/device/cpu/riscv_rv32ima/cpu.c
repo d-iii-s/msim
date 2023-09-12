@@ -365,6 +365,10 @@ rv_exc_t rv_convert_addr(rv_cpu_t *cpu, uint32_t virt, ptr36_t *phys, bool wr, b
             *phys = make_phys_from_ppn(virt, pte, megapage);
             return rv_exc_none;
         }
+        else{
+            // Flush stale entry from cache
+            rv_tlb_remove_mapping(&cpu->tlb, asid, virt);
+        }
     }
     
     // If the TLB lookup failed or if the AD bits need to be updated, perform the full pagewalk

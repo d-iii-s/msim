@@ -34,6 +34,9 @@ extern void rv_tlb_add_mapping(rv_tlb_t* tlb, unsigned asid, uint32_t virt, sv32
 /** Retrieves a cached mapping, giving priority to megapage mappings */
 extern bool rv_tlb_get_mapping(rv_tlb_t* tlb, unsigned asid, uint32_t virt, sv32_pte_t* pte, bool* megapage);
 
+/** Removes the first mapping that matches the given address and is global or has the right ASID */
+extern void rv_tlb_remove_mapping(rv_tlb_t* tlb, unsigned asid, uint32_t virt);
+
 /** TLB flushes */
 extern void rv_tlb_flush(rv_tlb_t* tlb);
 extern void rv_tlb_flush_by_asid(rv_tlb_t* tlb, unsigned asid);

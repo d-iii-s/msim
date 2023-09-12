@@ -333,8 +333,8 @@ PCUT_TEST(flush_by_asid_and_addr){
     uint32_t virt2 = 0x1000;
     uint32_t virt3 = 0x2000;
     ptr36_t phys = 0x0;
-    unsigned asid1 = 1;
-    unsigned asid2 = 2;
+    unsigned asid1 = 42;
+    unsigned asid2 = 43;
 
     sv32_pte_t added_pte = { 0 };
     added_pte.ppn = phys >> 12;

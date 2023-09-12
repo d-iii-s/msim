@@ -131,22 +131,16 @@ static bool drvcpu_tlb_rd(token_t *parm, device_t *dev){
 static bool drvcpu_tlb_resize(token_t *parm, device_t *dev){
     ASSERT(dev != NULL);
     
-    size_t new_ktlb_size = parm_uint_next(&parm);
-    size_t new_mtlb_size = parm_uint_next(&parm);
+    size_t new_tlb_size = parm_uint_next(&parm);
 
-    if(new_ktlb_size == 0){
-        error("KTLB size cannot be 0!\n");
-        return false;
-    }
-
-    if(new_mtlb_size == 0){
-        error("MTLB size cannot be 0!\n");
+    if(new_tlb_size == 0){
+        error("TLB size cannot be 0!\n");
         return false;
     }
 
     rv_tlb_t* tlb = &get_rv(dev)->tlb;
 
-    return rv_tlb_resize_ktlb(tlb, new_ktlb_size) && rv_tlb_resize_mtlb(tlb, new_mtlb_size);
+    return rv_tlb_resize(tlb, new_tlb_size);
 }
 
 /**
@@ -229,8 +223,8 @@ cmd_t drvcpu_cmds[] = {
         DEFAULT,
         DEFAULT,
         "Resize the TLB",
-        "Resizes both parts of the TLB, flushing it completely in the process.",
-        REQ INT "KTLB size" NEXT REQ INT "MTLB size" END
+        "Resizes the TLB, flushing it completely in the process.",
+        REQ INT "TLB size" END
     }
 };
 

@@ -1,0 +1,174 @@
+diff --git a/src/device/cpu/riscv_rv32ima/cpu.c b/src/device/cpu/riscv_rv32ima/cpu.c
+index 2991a8e..e229611 100644
+--- a/src/device/cpu/riscv_rv32ima/cpu.c
++++ b/src/device/cpu/riscv_rv32ima/cpu.c
+@@ -240,11 +240,15 @@ static ptr36_t make_phys_from_ppn(uint32_t virt, sv32_pte_t pte, bool megapage){
+ 
+ #define page_fault_exception (fetch ? rv_exc_instruction_page_fault : (wr ? rv_exc_store_amo_page_fault : rv_exc_load_page_fault))
+ 
++static inline bool pte_access_dirty_update_needed(sv32_pte_t pte, bool wr){
++    return pte.a == 0 || (pte.d == 0 && wr);
++}
++
+ /**
+- * @brief Tranlates the virtual address to physical by Sv32 memory translation algorithm, modifying the pagetable by doing so (setting the Accessed and Dirty bits)
++ * @brief Tranlates the virtual address to physical by Sv32 memory translation algorithm, modifying the pagetable by doing so (setting the Accessed and Dirty bits and populating the TLB)
+  * 
+  */
+-static rv_exc_t rv_pagewalk(rv_cpu_t *cpu, uint32_t virt, ptr36_t *phys, bool wr, bool fetch, bool noisy, sv32_pte_t* out_pte, bool* megapage, bool* global){
++static rv_exc_t rv_pagewalk(rv_cpu_t *cpu, uint32_t virt, ptr36_t *phys, bool wr, bool fetch, bool noisy){
+     uint32_t vpn0     =    (virt & 0x003FF000) >> 12;
+     uint32_t vpn1     =    (virt & 0xFFC00000) >> 22;
+     uint32_t ppn      =     rv_csr_satp_ppn(cpu);
+@@ -260,13 +264,14 @@ static rv_exc_t rv_pagewalk(rv_cpu_t *cpu, uint32_t virt, ptr36_t *phys, bool wr
+     if(!is_pte_valid(pte)) return page_fault_exception;
+ 
+     bool is_megapage = false;
++    bool is_global = false;
+ 
+     if(is_pte_leaf(pte)) {
+         // MEGAPAGE
+         // Missaligned megapage
+         if(pte_ppn0(pte) != 0) return page_fault_exception;
+         is_megapage = true;
+-        *global = pte.g;
++        is_global = pte.g;
+     }
+     else {
+         // Non leaf PTE, make second translation step
+@@ -276,7 +281,7 @@ static rv_exc_t rv_pagewalk(rv_cpu_t *cpu, uint32_t virt, ptr36_t *phys, bool wr
+         pte_addr = a + vpn0*RV_PTESIZE;
+ 
+         // Global non-leaf PTE implies that the translation is global
+-        *global = pte.g;
++        is_global = pte.g;
+ 
+         pte_val = physmem_read32(cpu->csr.mhartid, pte_addr, noisy);
+         pte = pte_from_uint(pte_val);
+@@ -287,66 +292,31 @@ static rv_exc_t rv_pagewalk(rv_cpu_t *cpu, uint32_t virt, ptr36_t *phys, bool wr
+         if(!is_pte_leaf(pte)) return page_fault_exception;
+ 
+         // The translation is global if the non-leaf PTE is global or if the leaf PTE is global
+-        *global |= pte.g;
++        is_global |= pte.g;
+     }
+ 
+     if(!is_access_allowed(cpu, pte, wr, fetch)) return page_fault_exception;
+ 
+-    pte.a = 1;
+-    pte.d |= wr ? 1 : 0;
+-
+-    pte_val = uint_from_pte(pte);
+-
+-    if(noisy){
+-        physmem_write32(cpu->csr.mhartid, pte_addr, pte_val, true);
+-    }
+-    *phys = make_phys_from_ppn(virt, pte, is_megapage);
+-    *out_pte = pte;
+-    *megapage = is_megapage;
+-
+-    return rv_exc_none;
+-}
+-
+-static bool pagetable_set_AD(rv_cpu_t *cpu, uint32_t virt, bool wr){
+-    uint32_t vpn0     =    (virt & 0x003FF000) >> 12;
+-    uint32_t vpn1     =    (virt & 0xFFC00000) >> 22;
+-    uint32_t ppn      =     rv_csr_satp_ppn(cpu);
+-
+-    // name of variables according to spec (with RV_ prefix to prevent collision
+-    // with limits.h constant)
+-
+-    ptr36_t a = ((ptr36_t)ppn) << RV_PAGESIZE;
+-    ptr36_t pte_addr = a + vpn1*RV_PTESIZE;
+-
+-    //? Should noisy be true here?
+-    uint32_t pte_val = physmem_read32(cpu->csr.mhartid, pte_addr, true);
+-
+-    sv32_pte_t pte = pte_from_uint(pte_val);
+-
+-    if(!is_pte_valid(pte)) return false;
+-
+-    if(!is_pte_leaf(pte)) {
+-        // Non leaf PTE, make second translation step
++    if(pte_access_dirty_update_needed(pte, wr)){
+ 
+-        // PMP or PMA check goes here if implemented
+-        a = ((ptr36_t)pte.ppn) << RV_PAGESIZE;
+-        pte_addr = a + vpn0*RV_PTESIZE;
++        // No need to check with memory, we have just read it and this operation is done atomically
+ 
+-        //? Should noisy be true here?
+-        pte_val = physmem_read32(cpu->csr.mhartid, pte_addr, true);
+-        pte = pte_from_uint(pte_val);
++        pte.a = 1;
++        pte.d |= wr ? 1 : 0;
+ 
+-        if(!is_pte_valid(pte)) return false;
++        pte_val = uint_from_pte(pte);
+ 
+-        // Non-leaf on last level
+-        if(!is_pte_leaf(pte)) return false;
++        if(noisy){
++            physmem_write32(cpu->csr.mhartid, pte_addr, pte_val, true);
++        }
+     }
+-    pte.a = 1;
+-    pte.d |= wr ? 1 : 0;
++    
++    *phys = make_phys_from_ppn(virt, pte, is_megapage);
+ 
+-    pte_val = uint_from_pte(pte);
+-    physmem_write32(cpu->csr.mhartid, pte_addr, pte_val, true);
+-    return true;
++    // Add the leaf PTE of the translation to the TLB
++    rv_tlb_add_mapping(&cpu->tlb, rv_csr_satp_asid(cpu), virt, pte, is_megapage, is_global);
++
++    return rv_exc_none;
+ }
+ 
+ /**
+@@ -382,33 +352,23 @@ rv_exc_t rv_convert_addr(rv_cpu_t *cpu, uint32_t virt, ptr36_t *phys, bool wr, b
+     // First try the TLB
+     if(rv_tlb_get_mapping(&cpu->tlb, asid, virt, &pte, &megapage)) {
+ 
++        if(!is_pte_valid(pte)) return page_fault_exception;
++
+         // Check access rights of the cached pte
+         if(!is_access_allowed(cpu, pte, wr, fetch)) return page_fault_exception;
+ 
+-        // Set the Accessed and Dirty bits in the real pagetable
+-        bool AD_set_OK = pagetable_set_AD(cpu, virt, wr);
+-
+-        *phys = make_phys_from_ppn(virt, pte, megapage);
+-
+-        if(!AD_set_OK){
+-            // Here there has been some problem with the pagetable while we tried to set the AD bits
+-            // We still use the cached translation and act as if nothing happened
+-            // This is done to introduce bugs which show on improper ASID management and SFENCE usage
+-            alert("Used Cached Address translation that is not present in pagetable!");
++        // Missaligned magapage
++        if(megapage && pte_ppn0(pte) != 0) return page_fault_exception;
++        
++        // If the A and D bits of the PTE do not need to be updated, we can use the cached result
++        if(!pte_access_dirty_update_needed(pte, wr)){
++            *phys = make_phys_from_ppn(virt, pte, megapage);
++            return rv_exc_none;
+         }
+-
+-        return rv_exc_none;
+     }
+     
+-    bool global;
+-
+-    rv_exc_t exc = rv_pagewalk(cpu, virt, phys, wr, fetch, noisy, &pte, &megapage, &global);
+-    if (exc == rv_exc_none){
+-        // If the pagewalk succeded, add the translation to the TLB
+-        rv_tlb_add_mapping(&cpu->tlb, asid, virt, pte, megapage, global);
+-    }
+-
+-    return exc;
++    // If the TLB lookup failed or if the AD bits need to be updated, perform the full pagewalk
++    return rv_pagewalk(cpu, virt, phys, wr, fetch, noisy);
+ }
+ #undef page_fault_exception
+ 

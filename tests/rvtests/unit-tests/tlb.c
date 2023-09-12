@@ -11,7 +11,7 @@ PCUT_TEST_SUITE(tlb);
 rv_tlb_t tlb;
 
 PCUT_TEST_BEFORE {
-    rv_tlb_init(&tlb, DEFAULT_RV_KTLB_SIZE, DEFAULT_RV_MTLB_SIZE);
+    rv_tlb_init(&tlb, DEFAULT_RV_TLB_SIZE);
 }
 
 PCUT_TEST_AFTER {
@@ -207,35 +207,6 @@ PCUT_TEST(unmapped_addr){
     bool success = rv_tlb_get_mapping(&tlb, asid, different_virt, &pte, &megapage);
 
     PCUT_ASSERT_EQUALS(false, success);   
-}
-
-PCUT_TEST(megapage_priority){
-    uint32_t virt = 0x0;
-    ptr36_t phys = 0x0;
-    ptr36_t different_phys = 0xF0000000;
-    unsigned asid = 1;
-
-    sv32_pte_t added_pte1 = { 0 };
-    added_pte1.ppn = phys >> 12;
-
-    sv32_pte_t added_pte2 = { 0 };
-    added_pte2.ppn = different_phys >> 12;
-
-    // KTLB mapping
-    rv_tlb_add_mapping(&tlb, asid, virt, added_pte1, false, false);
-    // MTLB mapping
-    rv_tlb_add_mapping(&tlb, asid, virt, added_pte2, true, false);
-
-    sv32_pte_t pte;
-    bool megapage;
-
-    bool success = rv_tlb_get_mapping(&tlb, asid, virt, &pte, &megapage);
-    
-    ptr36_t mapped_phys = success ? (ptr36_t)pte.ppn << 12 : 0xFF;
-
-    PCUT_ASSERT_EQUALS(true, success);
-    PCUT_ASSERT_EQUALS(true, megapage);
-    PCUT_ASSERT_INT_EQUALS(different_phys, mapped_phys);
 }
 
 PCUT_TEST(flush_all){

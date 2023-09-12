@@ -214,7 +214,7 @@ cmd_t drvcpu_cmds[] = {
         DEFAULT,
         DEFAULT,
         "Dump valid content of the TLB",
-        "Dump content of the TLB separated into KiloTLB and MegaTLB for 4K pages and 4M megapages respectively. Dumps only valid entries.",
+        "Dump content of the TLB. Dumps only valid entries.",
         NOCMD
     },
     {

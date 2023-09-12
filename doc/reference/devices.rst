@@ -174,8 +174,8 @@ Commands
    Dump the contents of the specified CSR or all CSRs.
 ``tlbrd``
    Dump the contents of the TLB, split by page size.
-``tlbresize ktlbsize mtlbsize``
-   Resize the TLB by specifying the size of the two parts.
+``tlbresize size``
+   Resize the TLB by specifying its new size.
 
 Examples
 ^^^^^^^^
@@ -212,14 +212,12 @@ Example of the ``tlbrd`` command:
 .. code:: msim
 
    [msim] risc1 tlbrd
-   Kilo TLB        size: 256 entries
+   TLB     size: 48 entries
       index:       virt => phys        [ info ]
-            Empty
-
-   Mega TLB        size: 32 entries
-      index:       virt => phys        [ info ]
-         0: 0xf0000000 => 0x0f0000000 [ ASID: 0, GLOBAL: T ]
-         1: 0x00400000 => 0x000000000 [ ASID: 0, GLOBAL: F ]
+          0: 0x00400000 => 0x000000000 [ ASID: 0, GLOBAL: F, MEGAPAGE: T ]
+          1: 0xf0000000 => 0x0f0000000 [ ASID: 1, GLOBAL: T, MEGAPAGE: F ]
+          2: 0x00400000 => 0x000400000 [ ASID: 2, GLOBAL: F, MEGAPAGE: T ]
+   [msim]
 
 Read/write memory ``rwm``
 -------------------------

@@ -222,9 +222,9 @@ extern bool rv_tlb_resize(rv_tlb_t* tlb, size_t size){
     return true;
 }
 
-static inline void dump_tlb_entry(rv_tlb_entry_t entry, string_t* text, bool megapage){
+static inline void dump_tlb_entry(rv_tlb_entry_t entry, string_t* text){
     string_printf(text, "0x%08x => 0x%09lx [ ASID: %d, GLOBAL: %s, MEGAPAGE: %s ]",
-        entry.vpn << (megapage ? RV_MEGAPAGESIZE : RV_PAGESIZE),
+        entry.vpn << (entry.megapage ? RV_MEGAPAGESIZE : RV_PAGESIZE),
         (ptr36_t)entry.pte.ppn << RV_PAGESIZE,
         entry.asid,
         entry.global ? "T" : "F",
@@ -250,7 +250,7 @@ extern void rv_tlb_dump(rv_tlb_t* tlb){
         printed = true;
         
         string_clear(&s_text);
-        dump_tlb_entry(tlb->entries[i], &s_text, false);
+        dump_tlb_entry(tlb->entries[i], &s_text);
         printf("%8ld: %s\n", i, s_text.str);
     }
 

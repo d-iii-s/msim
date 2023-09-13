@@ -4,7 +4,7 @@ set -ue
 
 get_msim_version() {
     # configure.ac shall be the master file to determine the version
-    grep '^AM_INIT_AUTOMAKE' configure.ac | cut '-d,' -f 2 | tr -cd '1-9.'
+    grep '^AC_INIT' configure.ac | cut '-d,' -f 2 | tr -cd '0-9.'
 }
 
 cd "$( dirname "$0" )/.."

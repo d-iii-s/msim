@@ -1,7 +1,3 @@
-2023-07-11 Jan Papesch <janpapuch@seznam.cz>
-	Version 2.0.1
-	Changed WPRI CSR fields to ignore writes instead of causing an exception.
-
 2022-10-07 Jan Papesch <janpapuch@seznam.cz>
 	Version 2.0.0
 	Added support for RISC-V

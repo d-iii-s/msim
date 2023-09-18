@@ -1,7 +1,3 @@
-2023-08-04 Jan Papesch <janpapuch@seznam.cz>
-	Version 2.0.2
-	Added TLB support to RISC-V
-
 2023-07-11 Jan Papesch <janpapuch@seznam.cz>
 	Version 2.0.1
 	Changed WPRI CSR fields to ignore writes instead of causing an exception.

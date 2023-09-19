@@ -1,16 +1,27 @@
+# Autotools
 /Makefile
 /config.h
 /config.log
 /config.status
+/autom4te.cache/
+
+# Build
 /debian-package
 /msim
 /src/Makefile
 /src/Makefile.depend
 /src/Makefile.depend.prev
 *.o
-.github
-.vscode
-doxygen/
+
 stamp-h
-consultation-questions.md
-notes.md
+
+# Documentation
+doxygen/
+/doc/_build
+
+# IDEs and editors
+/.vscode
+/.project
+/.cproject
+/.settings
+/.pydevproject

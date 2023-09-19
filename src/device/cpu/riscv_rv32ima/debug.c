@@ -388,7 +388,7 @@ void rv_debug_init(void){
 /**
  * @brief Change the names of the general purpose registers
  */
-bool rv_debug_change_regnames(unsigned int type){
+bool rv_debug_change_regnames(rv_regname_type_t type){
     if(type >= __rv_regname_type_count){
         error("Index out of range 0..%u", __rv_regname_type_count - 1);
         return false;

@@ -1,6 +1,11 @@
+2023-09-19 Vojtech Horky <horky@d3s.mff.cuni.cz>
+    Version 2.1.0
+    * switch documentation to read-the-docs
+    * simulated TLB for RISC-V (thanks Jan Papesch <janpapuch@seznam.cz>)
+
 2022-10-07 Jan Papesch <janpapuch@seznam.cz>
-	Version 2.0.0
-	Added support for RISC-V
+    Version 2.0.0
+    * added support for RISC-V
 
 2020-11-02 Vojtech Horky <horky@d3s.mff.cuni.cz>
     Version 1.4.2

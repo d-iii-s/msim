@@ -1,6 +1,6 @@
 Summary: A virtual machine simulator based on a MIPS R4000 and RISC-V processor
 Name: msim
-Version: 2.0.0
+Version: 2.1.0
 Release: 1%{?dist}
 License: GPLv2+
 Group: Development/Tools
@@ -40,6 +40,11 @@ make install DESTDIR=$RPM_BUILD_ROOT
 %{_bindir}/msim
 
 %changelog
+* Tue Sep 19 2023 Vojtech Horky <horky@d3s.mff.cuni.cz> - 2.1.0
+- Bump to 2.1.0
+- Simulated TLB for RISC-V
+- Documentation reworked
+
 * Mon May 22 2023 Vojtech Horky <horky@d3s.mff.cuni.cz> - 2.0.0
 - Bump to 2.0.0
 - Support for RISC-V

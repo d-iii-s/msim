@@ -27,5 +27,8 @@ jobs:
     - name: Show version
       run: ./msim --version
 
+    - name: Check versions
+      run: ./contrib/self-version-check.sh
+
     - name: Run tests
       run: make test

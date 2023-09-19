@@ -20,6 +20,7 @@ Following features are available:
   - Supervisor and User modes
   - multiprocessor support
   - cache is not simulated
+  - Sv32 virtual address translation with TLB simulation
 
 - simple debugging features (including disassembling, register content dump)
 - several simple hardware devices

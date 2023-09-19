@@ -12,6 +12,7 @@
 #include <stdint.h>
 #include "csr.h"
 #include "cpu.h"
+#include "tlb.h"
 #include "../../../assert.h"
 #include "../../../utils.h"
 
@@ -30,6 +31,8 @@ void rv_init_csr(csr_t *csr, unsigned int procno){
     
     csr->mtime = current_timestamp();
     csr->last_tick_time = csr->mtime;
+
+    csr->asid_len = rv_asid_len;
 }
 
 #define minimal_privilege(priv, cpu) {if(cpu->priv_mode < priv) return rv_exc_illegal_instruction;}
@@ -338,19 +341,25 @@ static rv_exc_t sstatus_read(rv_cpu_t* cpu, csr_num_t csr, uint32_t* target){
     return rv_exc_none;
 }
 
+static rv_exc_t sstatus_write(rv_cpu_t* cpu, csr_num_t csr, uint32_t value){
+    minimal_privilege(rv_smode, cpu);
+    
+    // Masked write of low 32 bits
+    cpu->csr.mstatus = (cpu->csr.mstatus & 0xFFFFFFFF00000000) | (value & rv_csr_sstatus_mask);
+    return rv_exc_none;
+}
+
 static rv_exc_t sstatus_set(rv_cpu_t* cpu, csr_num_t csr, uint32_t value){
     minimal_privilege(rv_smode, cpu);
-    // setting different bits is prohibited!
-    if((value & ~rv_csr_sstatus_mask) != 0) return rv_exc_illegal_instruction;
-    cpu->csr.mstatus |= value;
+    // Masked write
+    cpu->csr.mstatus |= (value & rv_csr_sstatus_mask);
     return rv_exc_none;
 }
 
 static rv_exc_t sstatus_clear(rv_cpu_t* cpu, csr_num_t csr, uint32_t value){
     minimal_privilege(rv_smode, cpu);
-    // clearing different bits is prohibited!
-    if((value & ~rv_csr_sstatus_mask) != 0) return rv_exc_illegal_instruction;
-    cpu->csr.mstatus &= ~value;
+    // Masked write
+    cpu->csr.mstatus &= ~(value & rv_csr_sstatus_mask);
     return rv_exc_none;
 }
 
@@ -449,20 +458,20 @@ static rv_exc_t senvcfg_read(rv_cpu_t* cpu, csr_num_t csr, uint32_t* target){
     return rv_exc_none;
 }
 
+static rv_exc_t senvcfg_write(rv_cpu_t* cpu, csr_num_t csr, uint32_t value){
+    minimal_privilege(rv_smode, cpu);
+    cpu->csr.senvcfg = value & senvcfg_mask;
+    return rv_exc_none;
+}
+
 static rv_exc_t senvcfg_set(rv_cpu_t* cpu, csr_num_t csr, uint32_t value){
     minimal_privilege(rv_smode, cpu);
-    // Setting WPRI bits causes exception
-    if((value & ~senvcfg_mask) != 0) return rv_exc_illegal_instruction;
-
     cpu->csr.senvcfg |= value & senvcfg_mask;
     return rv_exc_none;
 }
 
 static rv_exc_t senvcfg_clear(rv_cpu_t* cpu, csr_num_t csr, uint32_t value){
     minimal_privilege(rv_smode, cpu);
-    // Clearing WPRI bits causes exception
-    if((value & ~senvcfg_mask) != 0) return rv_exc_illegal_instruction;
-
     cpu->csr.senvcfg &= ~(value & senvcfg_mask);
     return rv_exc_none;
 }
@@ -564,7 +573,13 @@ static rv_exc_t satp_write(rv_cpu_t* cpu, csr_num_t csr, uint32_t value){
     minimal_privilege(rv_smode, cpu);
     if(rv_csr_mstatus_tvm(cpu)) return rv_exc_illegal_instruction;
 
-    cpu->csr.satp = value;
+    // Construct a mask that will zero-out non-active asid bits
+    uint32_t active_asid_mask = ((1<<cpu->csr.asid_len) - 1) << rv_csr_satp_asid_offset;
+
+    // Create a full mask for the SATP CSR
+    uint32_t mask = rv_csr_satp_mode_mask | active_asid_mask | rv_csr_satp_ppn_mask;
+
+    cpu->csr.satp = value & mask;
     
     if(rv_csr_satp_is_bare(cpu)){
         cpu->csr.satp = 0;
@@ -577,7 +592,13 @@ static rv_exc_t satp_set(rv_cpu_t* cpu, csr_num_t csr, uint32_t value){
     minimal_privilege(rv_smode, cpu);
     if(rv_csr_mstatus_tvm(cpu)) return rv_exc_illegal_instruction;
 
-    cpu->csr.satp |= value;
+    // Construct a mask that will zero-out non-active asid bits
+    uint32_t active_asid_mask = ((1<<cpu->csr.asid_len) - 1) << rv_csr_satp_asid_offset;
+
+    // Create a full mask for the SATP CSR
+    uint32_t mask = rv_csr_satp_mode_mask | active_asid_mask | rv_csr_satp_ppn_mask;
+
+    cpu->csr.satp |= value & mask;
 
     if(rv_csr_satp_is_bare(cpu)){
         cpu->csr.satp = 0;
@@ -590,7 +611,13 @@ static rv_exc_t satp_clear(rv_cpu_t* cpu, csr_num_t csr, uint32_t value){
     minimal_privilege(rv_smode, cpu);
     if(rv_csr_mstatus_tvm(cpu)) return rv_exc_illegal_instruction;
 
-    cpu->csr.satp &= value;
+    // Construct a mask that will zero-out non-active asid bits
+    uint32_t active_asid_mask = ((1<<cpu->csr.asid_len) - 1) << rv_csr_satp_asid_offset;
+
+    // Create a full mask for the SATP CSR
+    uint32_t mask = rv_csr_satp_mode_mask | active_asid_mask | rv_csr_satp_ppn_mask;
+
+    cpu->csr.satp &= ~(value & mask);
 
     if(rv_csr_satp_is_bare(cpu)){
         cpu->csr.satp = 0;
@@ -667,34 +694,53 @@ static rv_exc_t mstatus_read(rv_cpu_t* cpu, csr_num_t csr, uint32_t* target){
     return rv_exc_none;
 }
 
+static rv_exc_t mstatus_write(rv_cpu_t* cpu, csr_num_t csr, uint32_t value){
+    minimal_privilege(rv_mmode, cpu);
+
+    uint64_t val = value & rv_csr_mstatus_mask;
+
+    // if the new mpp mode would be rmode (reserved, invalid value), don't modify it
+    if(((val & rv_csr_mstatus_mpp_mask) >> 11) == rv_rmode){
+        // zero out mpp bits from val
+        val &= ~rv_csr_mstatus_mpp_mask;
+        // set the bits to the current value
+        val |= ((uint32_t)cpu->csr.mstatus) & rv_csr_mstatus_mpp_mask;
+    }
+
+    cpu->csr.mstatus = (cpu->csr.mstatus & 0xFFFFFFFF00000000) | val;
+    return rv_exc_none;
+}
+
 static rv_exc_t mstatus_set(rv_cpu_t* cpu, csr_num_t csr, uint32_t value){
     minimal_privilege(rv_mmode, cpu);
-    if((value & ~rv_csr_mstatus_mask) != 0) return rv_exc_illegal_instruction;
     
-    uint64_t val = (uint64_t)value | cpu->csr.mstatus;
+    value &= rv_csr_mstatus_mask;
 
-    // if the new mpp mode would be rmode (reserved, invalid value), don't modify the mpp
-    if(((val & rv_csr_mstatus_mpp_mask) >> 11) == rv_rmode){
+    uint64_t new_val = ((uint64_t)value) | cpu->csr.mstatus;
+
+    // if the new mpp mode would be rmode (reserved, invalid value), don't modify it
+    if(((new_val & rv_csr_mstatus_mpp_mask) >> 11) == rv_rmode){
         value &= ~rv_csr_mstatus_mpp_mask;
     }
 
-    cpu->csr.mstatus |= (uint64_t)value;
+    cpu->csr.mstatus |= value;
 
     return rv_exc_none;
 }
 
 static rv_exc_t mstatus_clear(rv_cpu_t* cpu, csr_num_t csr, uint32_t value){
     minimal_privilege(rv_mmode, cpu);
-    if((value & ~rv_csr_mstatus_mask) != 0) return rv_exc_illegal_instruction;
 
-    uint64_t val = ~(uint64_t)value & cpu->csr.mstatus;
+    value &= rv_csr_mstatus_mask;
+    // Masked write
+    uint64_t new_val = (~(uint64_t)value) & cpu->csr.mstatus;
 
-    // if the new mpp mode would be rmode (reserved, invalid value), don't modify the mpp
-    if(((val & rv_csr_mstatus_mpp_mask) >> 11) == rv_rmode){
+    // if the new mpp mode would be rmode (reserved, invalid value), don't modify it
+    if(((new_val & rv_csr_mstatus_mpp_mask) >> 11) == rv_rmode){
         value &= ~rv_csr_mstatus_mpp_mask;
     }
 
-    cpu->csr.mstatus &= ~((uint64_t)value);
+    cpu->csr.mstatus &= ~value;
     return rv_exc_none;
 }
 
@@ -705,15 +751,21 @@ static rv_exc_t mstatush_read(rv_cpu_t* cpu, csr_num_t csr, uint32_t* target){
     return rv_exc_none;
 }
 
+static rv_exc_t mstatush_write(rv_cpu_t* cpu, csr_num_t csr, uint32_t value){
+    minimal_privilege(rv_mmode, cpu);
+    // writes to mstatush have no effect
+    return rv_exc_none;
+}
+
 static rv_exc_t mstatush_set(rv_cpu_t* cpu, csr_num_t csr, uint32_t value){
     minimal_privilege(rv_mmode, cpu);
-    if(value != 0) return rv_exc_illegal_instruction;
+    // writes to mstatush have no effect
     return rv_exc_none;
 }
 
 static rv_exc_t mstatush_clear(rv_cpu_t* cpu, csr_num_t csr, uint32_t value){
     minimal_privilege(rv_mmode, cpu);
-    if(value != 0) return rv_exc_illegal_instruction;
+    // writes to mstatush have no effect
     return rv_exc_none;
 }
 
@@ -969,21 +1021,22 @@ static rv_exc_t menvcfg_read(rv_cpu_t* cpu, csr_num_t csr, uint32_t* target){
     return rv_exc_none;
 }
 
+static rv_exc_t menvcfg_write(rv_cpu_t* cpu, csr_num_t csr, uint32_t value){
+    minimal_privilege(rv_mmode, cpu);
+    cpu->csr.menvcfg = (cpu->csr.menvcfg & 0xFFFFFFFF00000000) | (value & menvcfg_fiom_mask);
+    return rv_exc_none;
+}
+
 static rv_exc_t menvcfg_set(rv_cpu_t* cpu, csr_num_t csr, uint32_t value){
     minimal_privilege(rv_mmode, cpu);
-    // Writing to unwritable fields
-    if((value & ~menvcfg_fiom_mask) != 0) return rv_exc_illegal_instruction;
-
-    cpu->csr.menvcfg |= (uint64_t)value;
+    cpu->csr.menvcfg |= (uint64_t)(value & menvcfg_fiom_mask);
     return rv_exc_none;
 }
 
 static rv_exc_t menvcfg_clear(rv_cpu_t* cpu, csr_num_t csr, uint32_t value){
     minimal_privilege(rv_mmode, cpu);
     // Writing to unwritable fields
-    if((value & ~menvcfg_fiom_mask) != 0) return rv_exc_illegal_instruction;
-
-    cpu->csr.menvcfg &= ~((uint64_t)value);
+    cpu->csr.menvcfg &= ~((uint64_t)(value & menvcfg_fiom_mask));
     return rv_exc_none;
 }
 
@@ -993,16 +1046,18 @@ static rv_exc_t menvcfgh_read(rv_cpu_t* cpu, csr_num_t csr, uint32_t* target){
     return rv_exc_none;
 }
 
+static rv_exc_t menvcfgh_write(rv_cpu_t* cpu, csr_num_t csr, uint32_t value){
+    minimal_privilege(rv_mmode, cpu);
+    return rv_exc_none;
+}
+
 static rv_exc_t menvcfgh_set(rv_cpu_t* cpu, csr_num_t csr, uint32_t value){
     minimal_privilege(rv_mmode, cpu);
-    // no bits are writable in menvcfgh on RV32I
-    if(value != 0) return rv_exc_illegal_instruction;
     return rv_exc_none;
 }
 
 static rv_exc_t menvcfgh_clear(rv_cpu_t* cpu, csr_num_t csr, uint32_t value){
     minimal_privilege(rv_mmode, cpu);
-    if(value != 0) return rv_exc_illegal_instruction;
     return rv_exc_none;
 }
 
@@ -1013,15 +1068,18 @@ static rv_exc_t mseccfg_read(rv_cpu_t* cpu, csr_num_t csr, uint32_t* target){
     return rv_exc_none;
 }
 
+static rv_exc_t mseccfg_write(rv_cpu_t* cpu, csr_num_t csr, uint32_t value){
+    minimal_privilege(rv_mmode, cpu);
+    return rv_exc_none;
+}
+
 static rv_exc_t mseccfg_set(rv_cpu_t* cpu, csr_num_t csr, uint32_t value){
     minimal_privilege(rv_mmode, cpu);
-    if(value != 0) return rv_exc_illegal_instruction;
     return rv_exc_none;
 }
 
 static rv_exc_t mseccfg_clear(rv_cpu_t* cpu, csr_num_t csr, uint32_t value){
     minimal_privilege(rv_mmode, cpu);
-    if(value != 0) return rv_exc_illegal_instruction;
     return rv_exc_none;
 }
 
@@ -1031,15 +1089,18 @@ static rv_exc_t mseccfgh_read(rv_cpu_t* cpu, csr_num_t csr, uint32_t* target){
     return rv_exc_none;
 }
 
+static rv_exc_t mseccfgh_write(rv_cpu_t* cpu, csr_num_t csr, uint32_t value){
+    minimal_privilege(rv_mmode, cpu);
+    return rv_exc_none;
+}
+
 static rv_exc_t mseccfgh_set(rv_cpu_t* cpu, csr_num_t csr, uint32_t value){
     minimal_privilege(rv_mmode, cpu);
-    if(value != 0) return rv_exc_illegal_instruction;
     return rv_exc_none;
 }
 
 static rv_exc_t mseccfgh_clear(rv_cpu_t* cpu, csr_num_t csr, uint32_t value){
     minimal_privilege(rv_mmode, cpu);
-    if(value != 0) return rv_exc_illegal_instruction;
     return rv_exc_none;
 }
 
@@ -1227,16 +1288,7 @@ static csr_ops_t get_csr_ops(csr_num_t csr){
         ops.set = invalid_write;        \
         ops.clear = invalid_write;      \
         break;                          \
-    }      
-
-    #define invalid_write_case(csr)     \
-    case csr_##csr: {                   \
-        ops.read = csr##_read;          \
-        ops.write = invalid_write;      \
-        ops.set = csr##_set;            \
-        ops.clear = csr##_clear;        \
-        break;                          \
-    }                           
+    }                            
 
     switch(csr){
         case(csr_cycle):
@@ -1504,13 +1556,13 @@ static csr_ops_t get_csr_ops(csr_num_t csr){
 
         default_case(mcountinhibit)
 
-        invalid_write_case(sstatus)
+        default_case(sstatus)
     
         default_case(sie)
         default_case(stvec)
         default_case(scounteren)
     
-        invalid_write_case(senvcfg)
+        default_case(senvcfg)
     
         default_case(sscratch)
         default_case(sepc)
@@ -1527,7 +1579,7 @@ static csr_ops_t get_csr_ops(csr_num_t csr){
         read_only_case(mhartid)
         read_only_case(mconfigptr)
 
-        invalid_write_case(mstatus)
+        default_case(mstatus)
     
         default_case(misa)
         default_case(medeleg)
@@ -1536,7 +1588,7 @@ static csr_ops_t get_csr_ops(csr_num_t csr){
         default_case(mtvec)
         default_case(mcounteren)
     
-        invalid_write_case(mstatush)
+        default_case(mstatush)
     
         default_case(mscratch)
         default_case(mepc)
@@ -1546,10 +1598,10 @@ static csr_ops_t get_csr_ops(csr_num_t csr){
         default_case(mtinst)
         default_case(mtval2)
     
-        invalid_write_case(menvcfg)
-        invalid_write_case(menvcfgh)
-        invalid_write_case(mseccfg)
-        invalid_write_case(mseccfgh)
+        default_case(menvcfg)
+        default_case(menvcfgh)
+        default_case(mseccfg)
+        default_case(mseccfgh)
     
         default_case(tselect)
         default_case(tdata1)
@@ -1566,7 +1618,6 @@ static csr_ops_t get_csr_ops(csr_num_t csr){
 
     #undef default_case
     #undef read_only_case
-    #undef invalid_write_case
 }
 
 /**
@@ -1660,4 +1711,19 @@ rv_exc_t rv_csr_rc(rv_cpu_t* cpu, csr_num_t csr, uint32_t value, uint32_t* read_
  */
 rv_priv_mode_t rv_csr_min_priv_mode(csr_num_t csr) {
     return (rv_priv_mode_t)(((unsigned int)csr >> 8) & 0b11);
+}
+
+/** Change the number of active ASID bits (used in the virtual address translation)
+ *  This function zeroes-out any bits that will not be active in the ASID field of the SATP CSR
+ *  This function fully flushes the TLB
+ */
+extern void rv_csr_set_asid_len(rv_cpu_t *cpu, unsigned asid_len){
+    assert(asid_len <= rv_asid_len);
+
+    cpu->csr.asid_len = asid_len;
+
+    uint32_t zeroing_asid_mask = (rv_asid_mask ^ ((1<<asid_len)-1)) << rv_csr_satp_asid_offset;
+    cpu->csr.satp &= ~zeroing_asid_mask;
+
+    rv_tlb_flush(&cpu->tlb);
 }

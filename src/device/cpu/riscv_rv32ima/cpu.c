@@ -16,11 +16,13 @@
 #include "cpu.h"
 #include "debug.h"
 #include "csr.h"
+#include "tlb.h"
 #include "../../../assert.h"
 #include "../../../utils.h"
 #include "../../../physmem.h"
 #include "../../../main.h"
 #include "../../../list.h"
+#include "virt_mem.h"
 
 /// Caching of decoded instructions
 
@@ -101,7 +103,7 @@ static cache_item_t* cache_try_add(rv_cpu_t* cpu, ptr36_t phys) {
     cache_item_init(cache_item);
     cache_item->addr = ALIGN_DOWN(phys, FRAME_SIZE);
 
-    list_append(&rv_instruction_cache, &cache_item->item);
+    list_push(&rv_instruction_cache, &cache_item->item);
 
     cache_item_page_decode(cpu, cache_item);
 
@@ -120,6 +122,14 @@ static rv_instr_func_t fetch_instr(rv_cpu_t* cpu, ptr36_t phys){
     if(cache_hit(phys, &cache_item)){
         ASSERT(cache_item != NULL);
         update_cache_item(cpu, cache_item);
+
+        // Move item to front of list on hit
+
+        if(rv_instruction_cache.head != &cache_item->item){
+            list_remove(&rv_instruction_cache, &cache_item->item);
+            list_push(&rv_instruction_cache, &cache_item->item);
+        }
+
         return cache_item->instrs[PHYS2CACHEINSTR(phys)];
     }
     
@@ -131,7 +141,6 @@ static rv_instr_func_t fetch_instr(rv_cpu_t* cpu, ptr36_t phys){
     alert("Trying to fetch instructions from outside of physical memory");
     return rv_instr_decode((rv_instr_t)physmem_read32(cpu->csr.mhartid, phys, true));
 }
-
 
 static void init_regs(rv_cpu_t *cpu) {
     ASSERT(cpu != NULL);
@@ -155,6 +164,8 @@ void rv_cpu_init(rv_cpu_t *cpu, unsigned int procno){
 
     rv_init_csr(&cpu->csr, procno);
 
+    rv_tlb_init(&cpu->tlb, DEFAULT_RV_TLB_SIZE);
+
     cpu->priv_mode = rv_mmode;
 }
 
@@ -168,30 +179,11 @@ void rv_cpu_done(rv_cpu_t *cpu) {
         list_remove(&rv_instruction_cache, &cache_item->item);
         safe_free(cache_item);
     }
+
+    rv_tlb_done(&cpu->tlb);
 }
 
-/**
- * @brief Structure describing the Page Table Entry for SV32 virtual addressing
- */
-typedef struct {
-    unsigned int v: 1;
-    unsigned int r: 1;
-    unsigned int w: 1;
-    unsigned int x: 1;
-    unsigned int u: 1;
-    unsigned int g: 1;
-    unsigned int a: 1;
-    unsigned int d: 1;
-    unsigned int rsw: 2;
-    unsigned int ppn: 22;
-} sv32_pte_t;
-
 static_assert((sizeof(sv32_pte_t) == 4), "wrong size of sv32_pte_t");
-
-#define is_pte_leaf(pte) ((pte).r | (pte).w | (pte).x)
-#define is_pte_valid(pte) ((pte).v && (!(pte).w || (pte).r))
-#define pte_ppn0(pte) ((pte).ppn & 0x0003FF)
-#define pte_ppn1(pte) ((pte).ppn & 0x3FFC00)
 
 // Dirty hack
 typedef union {
@@ -246,39 +238,20 @@ static ptr36_t make_phys_from_ppn(uint32_t virt, sv32_pte_t pte, bool megapage){
     return pte_ppn1 | phys_ppn0 | page_offset;
 }
 
+#define page_fault_exception (fetch ? rv_exc_instruction_page_fault : (wr ? rv_exc_store_amo_page_fault : rv_exc_load_page_fault))
+
+static inline bool pte_access_dirty_update_needed(sv32_pte_t pte, bool wr){
+    return pte.a == 0 || (pte.d == 0 && wr);
+}
+
 /**
- * @brief Converts the address from virtual memory space to physical memory space
+ * @brief Tranlates the virtual address to physical by Sv32 memory translation algorithm, modifying the pagetable by doing so (setting the Accessed and Dirty bits and populating the TLB)
  * 
- * @param cpu The CPU, from the point of which, is the translation made
- * @param virt The virtual address to be converted
- * @param phys Pointer to where the physical address will be stored
- * @param wr Is the conversion made for a write operation
- * @param fetch Is the conversion made for an instruction fetch
- * @param noisy Shall this function change the processor and global state
- * @return rv_exc_t The exception code of this operation
  */
-rv_exc_t rv_convert_addr(rv_cpu_t *cpu, uint32_t virt, ptr36_t *phys, bool wr, bool fetch, bool noisy){
-    ASSERT(cpu != NULL);
-    ASSERT(phys != NULL);
-    ASSERT(!(wr && fetch));
-
-    #define page_fault_exception (fetch ? rv_exc_instruction_page_fault : (wr ? rv_exc_store_amo_page_fault : rv_exc_load_page_fault))
-
-    bool satp_active = (!rv_csr_satp_is_bare(cpu)) && (sv32_effective_priv(cpu) <= rv_smode);
-
-    if(!satp_active){
-        *phys = virt;
-        return rv_exc_none;
-    }
-
+static rv_exc_t rv_pagewalk(rv_cpu_t *cpu, uint32_t virt, ptr36_t *phys, bool wr, bool fetch, bool noisy){
     uint32_t vpn0     =    (virt & 0x003FF000) >> 12;
     uint32_t vpn1     =    (virt & 0xFFC00000) >> 22;
     uint32_t ppn      =     rv_csr_satp_ppn(cpu);
-
-    // name of variables according to spec (with RV_ prefix to prevent collision
-    // with limits.h constant)
-    int RV_PAGESIZE = 12;
-    int RV_PTESIZE = 4;
 
     ptr36_t a = ((ptr36_t)ppn) << RV_PAGESIZE;
     ptr36_t pte_addr = a + vpn1*RV_PTESIZE;
@@ -291,12 +264,14 @@ rv_exc_t rv_convert_addr(rv_cpu_t *cpu, uint32_t virt, ptr36_t *phys, bool wr, b
     if(!is_pte_valid(pte)) return page_fault_exception;
 
     bool is_megapage = false;
+    bool is_global = false;
 
     if(is_pte_leaf(pte)) {
         // MEGAPAGE
         // Missaligned megapage
         if(pte_ppn0(pte) != 0) return page_fault_exception;
         is_megapage = true;
+        is_global = pte.g;
     }
     else {
         // Non leaf PTE, make second translation step
@@ -305,6 +280,9 @@ rv_exc_t rv_convert_addr(rv_cpu_t *cpu, uint32_t virt, ptr36_t *phys, bool wr, b
         a = ((ptr36_t)pte.ppn) << RV_PAGESIZE;
         pte_addr = a + vpn0*RV_PTESIZE;
 
+        // Global non-leaf PTE implies that the translation is global
+        is_global = pte.g;
+
         pte_val = physmem_read32(cpu->csr.mhartid, pte_addr, noisy);
         pte = pte_from_uint(pte_val);
 
@@ -312,23 +290,91 @@ rv_exc_t rv_convert_addr(rv_cpu_t *cpu, uint32_t virt, ptr36_t *phys, bool wr, b
 
         // Non-leaf on last level
         if(!is_pte_leaf(pte)) return page_fault_exception;
+
+        // The translation is global if the non-leaf PTE is global or if the leaf PTE is global
+        is_global |= pte.g;
     }
 
     if(!is_access_allowed(cpu, pte, wr, fetch)) return page_fault_exception;
 
-    pte.a = 1;
-    pte.d |= wr ? 1 : 0;
+    if(pte_access_dirty_update_needed(pte, wr)){
 
-    pte_val = uint_from_pte(pte);
+        // No need to check with memory, we have just read it and this operation is done atomically
 
-    if(noisy){
-        physmem_write32(cpu->csr.mhartid, pte_addr, pte_val, true);
+        pte.a = 1;
+        pte.d |= wr ? 1 : 0;
+
+        pte_val = uint_from_pte(pte);
+
+        if(noisy){
+            physmem_write32(cpu->csr.mhartid, pte_addr, pte_val, true);
+        }
     }
+    
     *phys = make_phys_from_ppn(virt, pte, is_megapage);
-    return rv_exc_none;
 
-    #undef page_fault_exception
+    // Add the leaf PTE of the translation to the TLB
+    rv_tlb_add_mapping(&cpu->tlb, rv_csr_satp_asid(cpu), virt, pte, is_megapage, is_global);
+
+    return rv_exc_none;
 }
+
+/**
+ * @brief Converts the address from virtual memory space to physical memory space
+ * 
+ * @param cpu The CPU, from the point of which, is the translation made
+ * @param virt The virtual address to be converted
+ * @param phys Pointer to where the physical address will be stored
+ * @param wr Is the conversion made for a write operation
+ * @param fetch Is the conversion made for an instruction fetch
+ * @param noisy Shall this function change the processor and global state
+ * @return rv_exc_t The exception code of this operation
+ */
+rv_exc_t rv_convert_addr(rv_cpu_t *cpu, uint32_t virt, ptr36_t *phys, bool wr, bool fetch, bool noisy){
+
+    //TODO: should pagewalk trigger memory breakpoints?
+
+    ASSERT(cpu != NULL);
+    ASSERT(phys != NULL);
+    ASSERT(!(wr && fetch));
+
+    bool satp_active = (!rv_csr_satp_is_bare(cpu)) && (sv32_effective_priv(cpu) <= rv_smode);
+
+    if(!satp_active){
+        *phys = virt;
+        return rv_exc_none;
+    }
+
+    unsigned asid = rv_csr_satp_asid(cpu);
+    sv32_pte_t pte;
+    bool megapage;
+
+    // First try the TLB
+    if(rv_tlb_get_mapping(&cpu->tlb, asid, virt, &pte, &megapage)) {
+
+        if(!is_pte_valid(pte)) return page_fault_exception;
+
+        // Check access rights of the cached pte
+        if(!is_access_allowed(cpu, pte, wr, fetch)) return page_fault_exception;
+
+        // Missaligned magapage
+        if(megapage && pte_ppn0(pte) != 0) return page_fault_exception;
+        
+        // If the A and D bits of the PTE do not need to be updated, we can use the cached result
+        if(!pte_access_dirty_update_needed(pte, wr)){
+            *phys = make_phys_from_ppn(virt, pte, megapage);
+            return rv_exc_none;
+        }
+        else{
+            // Flush stale entry from cache
+            rv_tlb_remove_mapping(&cpu->tlb, asid, virt);
+        }
+    }
+    
+    // If the TLB lookup failed or if the AD bits need to be updated, perform the full pagewalk
+    return rv_pagewalk(cpu, virt, phys, wr, fetch, noisy);
+}
+#undef page_fault_exception
 
 #define read_address_misaligned_exception (fetch ? rv_exc_instruction_address_misaligned : rv_exc_load_address_misaligned)
 
@@ -888,7 +934,7 @@ static rv_exc_t execute(rv_cpu_t *cpu) {
     rv_exc_t ex = rv_convert_addr(cpu, cpu->pc, &phys, false, true, true);
  
     if(ex != rv_exc_none){
-        alert("Fetching from unconvertable address!");;
+        alert("Fetching from unconvertable address!");
         if(machine_trace) {
             rv_idump(cpu, cpu->pc, (rv_instr_t)0U);
         }

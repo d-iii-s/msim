@@ -57,6 +57,7 @@ typedef struct item {
 extern void list_init(list_t *);
 extern void item_init(item_t *);
 extern void list_append(list_t *, item_t *);
+extern void list_push(list_t *, item_t *);
 extern void list_remove(list_t *, item_t *);
 extern void list_insert_after(item_t *, item_t *);
 

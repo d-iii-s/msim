@@ -18,6 +18,7 @@
 #include "drvcpu.h"
 #include "cpu/general_cpu.h"
 #include "cpu/riscv_rv32ima/cpu.h"
+#include "cpu/riscv_rv32ima/csr.h"
 #include "cpu/riscv_rv32ima/debug.h"
 #include "../main.h"
 #include "../assert.h"
@@ -117,6 +118,51 @@ static bool drvcpu_csr_rd(token_t *parm, device_t *dev){
 }
 
 /**
+ * TLBRD command implementation
+ */
+static bool drvcpu_tlb_rd(token_t *parm, device_t *dev){
+    ASSERT(dev != NULL);
+    rv_tlb_dump(&get_rv(dev)->tlb);
+    return true;
+}
+
+/**
+ * TLBRESIZE command implementation
+ */
+static bool drvcpu_tlb_resize(token_t *parm, device_t *dev){
+    ASSERT(dev != NULL);
+    
+    size_t new_tlb_size = parm_uint_next(&parm);
+
+    if(new_tlb_size == 0){
+        error("TLB size cannot be 0!\n");
+        return false;
+    }
+
+    rv_tlb_t* tlb = &get_rv(dev)->tlb;
+
+    return rv_tlb_resize(tlb, new_tlb_size);
+}
+
+/**
+ * SETASIDLEN command implementation
+ */
+static bool drvcpu_set_asid_len(token_t *parm, device_t *dev){
+    ASSERT(dev != NULL);
+    
+    size_t new_asid_len = parm_uint_next(&parm);
+
+    if(new_asid_len > rv_asid_len){
+        error("Number of bits of ASID cannot exceed 9!\n");
+        return false;
+    }
+
+    rv_csr_set_asid_len(get_rv(dev), new_asid_len);
+
+    return true;
+}
+
+/**
  * Done device operation
  */
 static void drvcpu_done(device_t *dev){
@@ -180,6 +226,34 @@ cmd_t drvcpu_cmds[] = {
         "Dump content of CSR registers",
         "Dump content of all CSRs if no argument is given, or dump the content of the specified register (numerically or by name)",
         OPT VAR "csr" END
+    },
+    {
+        "tlbrd",
+        (fcmd_t) drvcpu_tlb_rd,
+        DEFAULT,
+        DEFAULT,
+        "Dump valid content of the TLB",
+        "Dump content of the TLB. Dumps only valid entries.",
+        NOCMD
+    },
+    {
+        "tlbresize",
+        (fcmd_t) drvcpu_tlb_resize,
+        DEFAULT,
+        DEFAULT,
+        "Resize the TLB",
+        "Resizes the TLB, flushing it completely in the process.",
+        REQ INT "TLB size" END
+    }
+    ,
+    {
+        "asidlen",
+        (fcmd_t) drvcpu_set_asid_len,
+        DEFAULT,
+        DEFAULT,
+        "Changes the bit-length of ASIDs",
+        "Changes the number of usable bits in the ASID field of the SATP CSR, zeroes-out any deactivated bits and flushes the TLB.",
+        REQ INT "ASID length" END
     }
 };
 

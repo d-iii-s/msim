@@ -1,0 +1,287 @@
+
+main.raw:     file format elf32-littleriscv
+
+
+Disassembly of section .text:
+
+00000000 <setup_pagetable-0xa8>:
+   0:	800002b7          	lui	t0,0x80000
+   4:	30529073          	csrw	mtvec,t0
+   8:	fffd0537          	lui	a0,0xfffd0
+   c:	00000593          	li	a1,0
+  10:	098000ef          	jal	ra,a8 <setup_pagetable>
+  14:	fffe0537          	lui	a0,0xfffe0
+  18:	004005b7          	lui	a1,0x400
+  1c:	08c000ef          	jal	ra,a8 <setup_pagetable>
+  20:	00000293          	li	t0,0
+  24:	00100313          	li	t1,1
+  28:	0062a023          	sw	t1,0(t0) # 80000000 <fail+0x7ffffc20>
+  2c:	004002b7          	lui	t0,0x400
+  30:	00200313          	li	t1,2
+  34:	0062a023          	sw	t1,0(t0) # 400000 <fail+0x3ffc20>
+  38:	000012b7          	lui	t0,0x1
+  3c:	80028293          	addi	t0,t0,-2048 # 800 <fail+0x420>
+  40:	30029073          	csrw	mstatus,t0
+  44:	00000297          	auipc	t0,0x0
+  48:	01028293          	addi	t0,t0,16 # 54 <setup_pagetable-0x54>
+  4c:	34129073          	csrw	mepc,t0
+  50:	30200073          	mret
+  54:	094000ef          	jal	ra,e8 <same_asid_no_sfence>
+  58:	0cc000ef          	jal	ra,124 <same_asid_full_sfence>
+  5c:	12000073          	sfence.vma
+  60:	104000ef          	jal	ra,164 <same_asid_correct_address_sfence>
+  64:	12000073          	sfence.vma
+  68:	140000ef          	jal	ra,1a8 <same_asid_incorrect_address_sfence>
+  6c:	12000073          	sfence.vma
+  70:	17c000ef          	jal	ra,1ec <same_asid_correct_asid_sfence>
+  74:	12000073          	sfence.vma
+  78:	1b8000ef          	jal	ra,230 <same_asid_incorrect_asid_sfence>
+  7c:	12000073          	sfence.vma
+  80:	1f4000ef          	jal	ra,274 <same_asid_correct_asid_and_addr_sfence>
+  84:	12000073          	sfence.vma
+  88:	234000ef          	jal	ra,2bc <same_asid_correct_asid_and_incorrect_addr_sfence>
+  8c:	12000073          	sfence.vma
+  90:	274000ef          	jal	ra,304 <same_asid_incorrect_asid_and_correct_addr_sfence>
+  94:	12000073          	sfence.vma
+  98:	2b4000ef          	jal	ra,34c <same_asid_incorrect_asid_and_addr_sfence>
+  9c:	12000073          	sfence.vma
+  a0:	2f4000ef          	jal	ra,394 <different_asid_no_sfence>
+  a4:	32c0006f          	j	3d0 <success>
+
+000000a8 <setup_pagetable>:
+  a8:	00001337          	lui	t1,0x1
+  ac:	f0030313          	addi	t1,t1,-256 # f00 <fail+0xb20>
+  b0:	006503b3          	add	t2,a0,t1
+  b4:	3c000337          	lui	t1,0x3c000
+  b8:	02930313          	addi	t1,t1,41 # 3c000029 <fail+0x3bfffc49>
+  bc:	0063a023          	sw	t1,0(t2)
+  c0:	00001337          	lui	t1,0x1
+  c4:	90030313          	addi	t1,t1,-1792 # 900 <fail+0x520>
+  c8:	006503b3          	add	t2,a0,t1
+  cc:	24000337          	lui	t1,0x24000
+  d0:	00730313          	addi	t1,t1,7 # 24000007 <fail+0x23fffc27>
+  d4:	0063a023          	sw	t1,0(t2)
+  d8:	0025d293          	srli	t0,a1,0x2
+  dc:	00f2e313          	ori	t1,t0,15
+  e0:	00652223          	sw	t1,4(a0) # fffe0004 <fail+0xfffdfc24>
+  e4:	00008067          	ret
+
+000000e8 <same_asid_no_sfence>:
+  e8:	801002b7          	lui	t0,0x80100
+  ec:	fd028293          	addi	t0,t0,-48 # 800fffd0 <fail+0x800ffbf0>
+  f0:	18029073          	csrw	satp,t0
+  f4:	004002b7          	lui	t0,0x400
+  f8:	0002a503          	lw	a0,0(t0) # 400000 <fail+0x3ffc20>
+  fc:	00100293          	li	t0,1
+ 100:	2e551063          	bne	a0,t0,3e0 <fail>
+ 104:	801002b7          	lui	t0,0x80100
+ 108:	fe028293          	addi	t0,t0,-32 # 800fffe0 <fail+0x800ffc00>
+ 10c:	18029073          	csrw	satp,t0
+ 110:	004002b7          	lui	t0,0x400
+ 114:	0002a503          	lw	a0,0(t0) # 400000 <fail+0x3ffc20>
+ 118:	00100293          	li	t0,1
+ 11c:	2c551263          	bne	a0,t0,3e0 <fail>
+ 120:	00008067          	ret
+
+00000124 <same_asid_full_sfence>:
+ 124:	801002b7          	lui	t0,0x80100
+ 128:	fd028293          	addi	t0,t0,-48 # 800fffd0 <fail+0x800ffbf0>
+ 12c:	18029073          	csrw	satp,t0
+ 130:	004002b7          	lui	t0,0x400
+ 134:	0002a503          	lw	a0,0(t0) # 400000 <fail+0x3ffc20>
+ 138:	00100293          	li	t0,1
+ 13c:	2a551263          	bne	a0,t0,3e0 <fail>
+ 140:	801002b7          	lui	t0,0x80100
+ 144:	fe028293          	addi	t0,t0,-32 # 800fffe0 <fail+0x800ffc00>
+ 148:	18029073          	csrw	satp,t0
+ 14c:	12000073          	sfence.vma
+ 150:	004002b7          	lui	t0,0x400
+ 154:	0002a503          	lw	a0,0(t0) # 400000 <fail+0x3ffc20>
+ 158:	00200293          	li	t0,2
+ 15c:	28551263          	bne	a0,t0,3e0 <fail>
+ 160:	00008067          	ret
+
+00000164 <same_asid_correct_address_sfence>:
+ 164:	801002b7          	lui	t0,0x80100
+ 168:	fd028293          	addi	t0,t0,-48 # 800fffd0 <fail+0x800ffbf0>
+ 16c:	18029073          	csrw	satp,t0
+ 170:	004002b7          	lui	t0,0x400
+ 174:	0002a503          	lw	a0,0(t0) # 400000 <fail+0x3ffc20>
+ 178:	00100293          	li	t0,1
+ 17c:	26551263          	bne	a0,t0,3e0 <fail>
+ 180:	801002b7          	lui	t0,0x80100
+ 184:	fe028293          	addi	t0,t0,-32 # 800fffe0 <fail+0x800ffc00>
+ 188:	18029073          	csrw	satp,t0
+ 18c:	004002b7          	lui	t0,0x400
+ 190:	12028073          	sfence.vma	t0
+ 194:	004002b7          	lui	t0,0x400
+ 198:	0002a503          	lw	a0,0(t0) # 400000 <fail+0x3ffc20>
+ 19c:	00200293          	li	t0,2
+ 1a0:	24551063          	bne	a0,t0,3e0 <fail>
+ 1a4:	00008067          	ret
+
+000001a8 <same_asid_incorrect_address_sfence>:
+ 1a8:	801002b7          	lui	t0,0x80100
+ 1ac:	fd028293          	addi	t0,t0,-48 # 800fffd0 <fail+0x800ffbf0>
+ 1b0:	18029073          	csrw	satp,t0
+ 1b4:	004002b7          	lui	t0,0x400
+ 1b8:	0002a503          	lw	a0,0(t0) # 400000 <fail+0x3ffc20>
+ 1bc:	00100293          	li	t0,1
+ 1c0:	22551063          	bne	a0,t0,3e0 <fail>
+ 1c4:	801002b7          	lui	t0,0x80100
+ 1c8:	fe028293          	addi	t0,t0,-32 # 800fffe0 <fail+0x800ffc00>
+ 1cc:	18029073          	csrw	satp,t0
+ 1d0:	00000293          	li	t0,0
+ 1d4:	12028073          	sfence.vma	t0
+ 1d8:	004002b7          	lui	t0,0x400
+ 1dc:	0002a503          	lw	a0,0(t0) # 400000 <fail+0x3ffc20>
+ 1e0:	00100293          	li	t0,1
+ 1e4:	1e551e63          	bne	a0,t0,3e0 <fail>
+ 1e8:	00008067          	ret
+
+000001ec <same_asid_correct_asid_sfence>:
+ 1ec:	801002b7          	lui	t0,0x80100
+ 1f0:	fd028293          	addi	t0,t0,-48 # 800fffd0 <fail+0x800ffbf0>
+ 1f4:	18029073          	csrw	satp,t0
+ 1f8:	004002b7          	lui	t0,0x400
+ 1fc:	0002a503          	lw	a0,0(t0) # 400000 <fail+0x3ffc20>
+ 200:	00100293          	li	t0,1
+ 204:	1c551e63          	bne	a0,t0,3e0 <fail>
+ 208:	801002b7          	lui	t0,0x80100
+ 20c:	fe028293          	addi	t0,t0,-32 # 800fffe0 <fail+0x800ffc00>
+ 210:	18029073          	csrw	satp,t0
+ 214:	00000293          	li	t0,0
+ 218:	12500073          	sfence.vma	zero,t0
+ 21c:	004002b7          	lui	t0,0x400
+ 220:	0002a503          	lw	a0,0(t0) # 400000 <fail+0x3ffc20>
+ 224:	00200293          	li	t0,2
+ 228:	1a551c63          	bne	a0,t0,3e0 <fail>
+ 22c:	00008067          	ret
+
+00000230 <same_asid_incorrect_asid_sfence>:
+ 230:	801002b7          	lui	t0,0x80100
+ 234:	fd028293          	addi	t0,t0,-48 # 800fffd0 <fail+0x800ffbf0>
+ 238:	18029073          	csrw	satp,t0
+ 23c:	004002b7          	lui	t0,0x400
+ 240:	0002a503          	lw	a0,0(t0) # 400000 <fail+0x3ffc20>
+ 244:	00100293          	li	t0,1
+ 248:	18551c63          	bne	a0,t0,3e0 <fail>
+ 24c:	801002b7          	lui	t0,0x80100
+ 250:	fe028293          	addi	t0,t0,-32 # 800fffe0 <fail+0x800ffc00>
+ 254:	18029073          	csrw	satp,t0
+ 258:	00100293          	li	t0,1
+ 25c:	12500073          	sfence.vma	zero,t0
+ 260:	004002b7          	lui	t0,0x400
+ 264:	0002a503          	lw	a0,0(t0) # 400000 <fail+0x3ffc20>
+ 268:	00100293          	li	t0,1
+ 26c:	16551a63          	bne	a0,t0,3e0 <fail>
+ 270:	00008067          	ret
+
+00000274 <same_asid_correct_asid_and_addr_sfence>:
+ 274:	801002b7          	lui	t0,0x80100
+ 278:	fd028293          	addi	t0,t0,-48 # 800fffd0 <fail+0x800ffbf0>
+ 27c:	18029073          	csrw	satp,t0
+ 280:	004002b7          	lui	t0,0x400
+ 284:	0002a503          	lw	a0,0(t0) # 400000 <fail+0x3ffc20>
+ 288:	00100293          	li	t0,1
+ 28c:	14551a63          	bne	a0,t0,3e0 <fail>
+ 290:	801002b7          	lui	t0,0x80100
+ 294:	fe028293          	addi	t0,t0,-32 # 800fffe0 <fail+0x800ffc00>
+ 298:	18029073          	csrw	satp,t0
+ 29c:	004002b7          	lui	t0,0x400
+ 2a0:	00000313          	li	t1,0
+ 2a4:	12628073          	sfence.vma	t0,t1
+ 2a8:	004002b7          	lui	t0,0x400
+ 2ac:	0002a503          	lw	a0,0(t0) # 400000 <fail+0x3ffc20>
+ 2b0:	00200293          	li	t0,2
+ 2b4:	12551663          	bne	a0,t0,3e0 <fail>
+ 2b8:	00008067          	ret
+
+000002bc <same_asid_correct_asid_and_incorrect_addr_sfence>:
+ 2bc:	801002b7          	lui	t0,0x80100
+ 2c0:	fd028293          	addi	t0,t0,-48 # 800fffd0 <fail+0x800ffbf0>
+ 2c4:	18029073          	csrw	satp,t0
+ 2c8:	004002b7          	lui	t0,0x400
+ 2cc:	0002a503          	lw	a0,0(t0) # 400000 <fail+0x3ffc20>
+ 2d0:	00100293          	li	t0,1
+ 2d4:	10551663          	bne	a0,t0,3e0 <fail>
+ 2d8:	801002b7          	lui	t0,0x80100
+ 2dc:	fe028293          	addi	t0,t0,-32 # 800fffe0 <fail+0x800ffc00>
+ 2e0:	18029073          	csrw	satp,t0
+ 2e4:	00000293          	li	t0,0
+ 2e8:	00000313          	li	t1,0
+ 2ec:	12628073          	sfence.vma	t0,t1
+ 2f0:	004002b7          	lui	t0,0x400
+ 2f4:	0002a503          	lw	a0,0(t0) # 400000 <fail+0x3ffc20>
+ 2f8:	00100293          	li	t0,1
+ 2fc:	0e551263          	bne	a0,t0,3e0 <fail>
+ 300:	00008067          	ret
+
+00000304 <same_asid_incorrect_asid_and_correct_addr_sfence>:
+ 304:	801002b7          	lui	t0,0x80100
+ 308:	fd028293          	addi	t0,t0,-48 # 800fffd0 <fail+0x800ffbf0>
+ 30c:	18029073          	csrw	satp,t0
+ 310:	004002b7          	lui	t0,0x400
+ 314:	0002a503          	lw	a0,0(t0) # 400000 <fail+0x3ffc20>
+ 318:	00100293          	li	t0,1
+ 31c:	0c551263          	bne	a0,t0,3e0 <fail>
+ 320:	801002b7          	lui	t0,0x80100
+ 324:	fe028293          	addi	t0,t0,-32 # 800fffe0 <fail+0x800ffc00>
+ 328:	18029073          	csrw	satp,t0
+ 32c:	004002b7          	lui	t0,0x400
+ 330:	00100313          	li	t1,1
+ 334:	12628073          	sfence.vma	t0,t1
+ 338:	004002b7          	lui	t0,0x400
+ 33c:	0002a503          	lw	a0,0(t0) # 400000 <fail+0x3ffc20>
+ 340:	00100293          	li	t0,1
+ 344:	08551e63          	bne	a0,t0,3e0 <fail>
+ 348:	00008067          	ret
+
+0000034c <same_asid_incorrect_asid_and_addr_sfence>:
+ 34c:	801002b7          	lui	t0,0x80100
+ 350:	fd028293          	addi	t0,t0,-48 # 800fffd0 <fail+0x800ffbf0>
+ 354:	18029073          	csrw	satp,t0
+ 358:	004002b7          	lui	t0,0x400
+ 35c:	0002a503          	lw	a0,0(t0) # 400000 <fail+0x3ffc20>
+ 360:	00100293          	li	t0,1
+ 364:	06551e63          	bne	a0,t0,3e0 <fail>
+ 368:	801002b7          	lui	t0,0x80100
+ 36c:	fe028293          	addi	t0,t0,-32 # 800fffe0 <fail+0x800ffc00>
+ 370:	18029073          	csrw	satp,t0
+ 374:	00000293          	li	t0,0
+ 378:	00100313          	li	t1,1
+ 37c:	12628073          	sfence.vma	t0,t1
+ 380:	004002b7          	lui	t0,0x400
+ 384:	0002a503          	lw	a0,0(t0) # 400000 <fail+0x3ffc20>
+ 388:	00100293          	li	t0,1
+ 38c:	04551a63          	bne	a0,t0,3e0 <fail>
+ 390:	00008067          	ret
+
+00000394 <different_asid_no_sfence>:
+ 394:	801002b7          	lui	t0,0x80100
+ 398:	fd028293          	addi	t0,t0,-48 # 800fffd0 <fail+0x800ffbf0>
+ 39c:	18029073          	csrw	satp,t0
+ 3a0:	004002b7          	lui	t0,0x400
+ 3a4:	0002a503          	lw	a0,0(t0) # 400000 <fail+0x3ffc20>
+ 3a8:	00100293          	li	t0,1
+ 3ac:	02551a63          	bne	a0,t0,3e0 <fail>
+ 3b0:	805002b7          	lui	t0,0x80500
+ 3b4:	fe028293          	addi	t0,t0,-32 # 804fffe0 <fail+0x804ffc00>
+ 3b8:	18029073          	csrw	satp,t0
+ 3bc:	004002b7          	lui	t0,0x400
+ 3c0:	0002a503          	lw	a0,0(t0) # 400000 <fail+0x3ffc20>
+ 3c4:	00200293          	li	t0,2
+ 3c8:	00551c63          	bne	a0,t0,3e0 <fail>
+ 3cc:	00008067          	ret
+
+000003d0 <success>:
+ 3d0:	900002b7          	lui	t0,0x90000
+ 3d4:	05300313          	li	t1,83
+ 3d8:	0062a023          	sw	t1,0(t0) # 90000000 <fail+0x8ffffc20>
+ 3dc:	8c000073          	.word	0x8c000073
+
+000003e0 <fail>:
+ 3e0:	900002b7          	lui	t0,0x90000
+ 3e4:	04600313          	li	t1,70
+ 3e8:	0062a023          	sw	t1,0(t0) # 90000000 <fail+0x8ffffc20>
+ 3ec:	8c000073          	.word	0x8c000073

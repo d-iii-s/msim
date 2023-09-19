@@ -472,6 +472,9 @@ typedef struct {
 	uint32_t scyclecmp;
 	bool external_STIP;
 
+	// Number of bits used in the ASID field of SATP CSR - Should be between 0 and 9.
+	unsigned asid_len;
+
 } csr_t;
 
 enum rv_priv_mode;
@@ -562,6 +565,11 @@ enum rv_priv_mode;
 #define rv_csr_satp_asid(cpu) (((cpu)->csr.satp & rv_csr_asid_mask) >> 22)
 #define rv_csr_satp_ppn(cpu) ((cpu)->csr.satp & rv_csr_satp_ppn_mask)
 
+#define rv_csr_satp_asid_offset 22
+
+#define rv_asid_len 9
+#define rv_asid_mask ((1 << rv_asid_len) - 1)
+
 #define rv_csr_is_read_only(csr) (((csr) >> 30) == 0b11)
 
 extern void rv_init_csr(csr_t *csr, unsigned int procno);
@@ -574,5 +582,11 @@ struct rv_cpu;
 extern enum rv_exc rv_csr_rw(struct rv_cpu* cpu, csr_num_t csr, uint32_t value, uint32_t* read_target, bool read);
 extern enum rv_exc rv_csr_rs(struct rv_cpu* cpu, csr_num_t csr, uint32_t value, uint32_t* read_target, bool write);
 extern enum rv_exc rv_csr_rc(struct rv_cpu* cpu, csr_num_t csr, uint32_t value, uint32_t* read_target, bool write);
+
+/** Change the number of active ASID bits (used in the virtual address translation)
+ *  This function zeroes-out any bits that will not be active in the ASID field of the SATP CSR
+ *  This function fully flushes the TLB
+ */
+extern void rv_csr_set_asid_len(struct rv_cpu* cpu, unsigned asid_active_bits);
 
 #endif // RISCV_CSR_H_

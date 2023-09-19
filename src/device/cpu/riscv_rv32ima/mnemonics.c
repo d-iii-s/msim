@@ -1058,17 +1058,30 @@ static void print_senvcfg(rv_cpu_t *cpu, string_t* mnemonics, string_t* comments
 static void print_satp(rv_cpu_t *cpu, string_t* mnemonics, string_t* comments) {
 	string_printf(mnemonics, "%s 0x%08x", "satp", cpu->csr.satp);
 	char* mode = (rv_csr_satp_is_bare(cpu)) ? "Bare" : "Sv32";
-	
+
 	string_printf(comments, "Mode: %s", mode);
+
 	if(!rv_csr_satp_is_bare(cpu)){
 		int asid = rv_csr_satp_asid(cpu);
 		uint32_t ppn =  rv_csr_satp_ppn(cpu);
-		string_printf(comments,
-			" ASID: %i PPN: 0x%06x (Physical address: 0x%09lx)",
-			asid,
-			ppn,
-			(uint64_t)ppn << 12
-		);
+
+		if(cpu->csr.asid_len == rv_asid_len){
+			string_printf(comments,
+				" ASID: %i PPN: 0x%06x (Physical address: 0x%09lx)",
+				asid,
+				ppn,
+				(uint64_t)ppn << RV_PAGESIZE
+			);
+		}
+		else {
+			string_printf(comments,
+				" ASID: %i (%d active bits) PPN: 0x%06x (Physical address: 0x%09lx)",
+				asid,
+				cpu->csr.asid_len,
+				ppn,
+				(uint64_t)ppn << RV_PAGESIZE
+			);
+		}
 	}
 }
 

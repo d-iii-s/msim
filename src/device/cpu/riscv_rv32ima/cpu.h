@@ -17,6 +17,7 @@
 #include <stdbool.h>
 #include "instr.h"
 #include "csr.h"
+#include "tlb.h"
 #include "../../../main.h"
 
 #define RV_REG_COUNT	32
@@ -28,6 +29,8 @@
 #define RV_EXCEPTION_EXC_BITS UINT32_C(0)
 #define RV_EXCEPTION_MASK(exc) (1U << ((exc) & ~RV_INTERRUPT_EXC_BITS))
 #define RV_INTERRUPT_NO(interrupt) ((interrupt) & ~RV_INTERRUPT_EXC_BITS)
+
+#define RV_INSTR_CACHE_SIZE 1024
 
 /**
  * RISC-V exception codes
@@ -93,6 +96,8 @@ typedef enum rv_priv_mode {
 	rv_mmode = 0b11
 } rv_priv_mode_t;
 
+struct rv_tlb;
+
 /** Main processor structure */
 typedef struct rv_cpu {
 	/** Non privileged registers */
@@ -118,6 +123,10 @@ typedef struct rv_cpu {
 
 	/** Tells if the processor is executing or waiting */
 	bool stdby;
+
+	/** Translation Lookaside Buffer used for caching translated addresses */
+	rv_tlb_t tlb;
+
 } rv_cpu_t;
 
 
@@ -132,7 +141,6 @@ extern void rv_interrupt_up(rv_cpu_t *cpu, unsigned int no);
 extern void rv_interrupt_down(rv_cpu_t *cpu, unsigned int no);
 
 /** Memory operations */
-extern rv_exc_t rv_convert_addr(rv_cpu_t *cpu, uint32_t virt, ptr36_t *phys, bool wr, bool fetch, bool noisy);
 extern rv_exc_t rv_read_mem8(rv_cpu_t *cpu, uint32_t virt, uint8_t *value, bool noisy);
 extern rv_exc_t rv_read_mem16(rv_cpu_t *cpu, uint32_t virt, uint16_t *value, bool fetch, bool noisy);
 extern rv_exc_t rv_read_mem32(rv_cpu_t *cpu, uint32_t virt, uint32_t *value, bool fetch, bool noisy);

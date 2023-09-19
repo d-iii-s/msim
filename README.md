@@ -28,6 +28,7 @@ MSIM provides following features (along others):
   * Supervisor and User modes
   * multiprocessor support
   * Cache is not simulated
+  * Sv32 virtual address translation with TLB simulation
 * simple debugging features (including disassembling, register content dump)
 * several simple hardware devices
 * various hardware-manipulating commands

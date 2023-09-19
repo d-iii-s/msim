@@ -154,7 +154,7 @@ rv_exc_t rv_sw_instr(rv_cpu_t *cpu, rv_instr_t instr){
 
 rv_exc_t rv_fence_instr(rv_cpu_t *cpu, rv_instr_t instr){
     // FENCE instruction does nothing in deterministic emulator,
-    // where out-of-order processing is not allowed
+    // where out-of-order processing is not allowed 
     return rv_exc_none;
 }
 

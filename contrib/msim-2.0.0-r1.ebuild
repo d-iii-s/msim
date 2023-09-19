@@ -1,6 +1,6 @@
-DESCRIPTION="A virtual machine simulator based on a MIPS R4000 processor"
-HOMEPAGE="http://d3s.mff.cuni.cz/~holub/sw/msim/"
-SRC_URI="http://d3s.mff.cuni.cz/~holub/sw/${PN}/${P}.tar.bz2"
+DESCRIPTION="Light-weight MIPS R4000 and RISC-V system simulator"
+HOMEPAGE="https://d3s.mff.cuni.cz/software/msim/"
+SRC_URI="https://github.com/d-iii-s/${PN}/archive/refs/tags/v${PV}.tar.gz
 
 LICENSE="GPL-2"
 SLOT="0"
@@ -17,5 +17,4 @@ src_compile() {
 
 src_install() {
 	dobin bin/msim
-	dodoc doc/reference.html doc/default.css
 }

@@ -33,6 +33,6 @@ jobs:
         copr-cli --config copr.conf build-package --nowait main --name msim-git
 
     - name: Trigger COPR rebuild (release)
-      if: ${{ github.event_name == 'published' }}
+      if: ${{ github.event_name == 'release' }}
       run: |
         copr-cli --config copr.conf build-package --nowait main --name msim

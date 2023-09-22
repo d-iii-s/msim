@@ -74,3 +74,56 @@ msim_command_check() {
         } | fail
     fi
 }
+
+msim_run_code() {
+    local test_dir="$( dirname "$BATS_TEST_FILENAME" )/$1"
+    local expected_from_guest="$( cat "$test_dir/guest.expected" )"
+    local expected_from_simulator="$( cat "$test_dir/host.expected" )"
+
+    echo "quit" >>"$MSIM_TEST_TMPDIR/msim.conf"
+    (
+        sed "s#\"boot.bin\"#\"$test_dir/boot.bin\"#" <"$test_dir/msim.conf"
+        echo "printer redir \"$MSIM_TEST_TMPDIR/printer.output\""
+    ) >"$MSIM_TEST_TMPDIR/msim.conf"
+
+    {
+        echo
+        echo "# MSIM configuration msim.conf"
+        sed 's:.*:#  | &:' "$MSIM_TEST_TMPDIR/msim.conf"
+    } >&2
+
+    run bash -c "cd '$MSIM_TEST_TMPDIR' && '$MSIM' </dev/null"
+    {
+        echo
+        echo "# MSIM output (stdout and stderr interleaved)"
+        echo "$output" | sed 's:.*:#  | &:'
+    } >&2
+
+    if [ "$status" -ne 0 ]; then
+        fail "MSIM failed with exit code $status."
+    fi
+
+    if [ "$output" != "$expected_from_simulator" ]; then
+        {
+            echo "Failure: unexpected simulator output."
+            echo "-- Expected --"
+            echo "$expected_from_simulator"
+            echo "-- Actual --"
+            echo "$output"
+            echo "--"
+        } | fail
+    fi
+
+    local guest_output="$( cat "$MSIM_TEST_TMPDIR/printer.output" )"
+
+    if [ "$guest_output" != "$expected_from_guest" ]; then
+        {
+            echo "Failure: unexpected guest output."
+            echo "-- Expected --"
+            echo "$expected_from_guest"
+            echo "-- Actual --"
+            echo "$guest_output"
+            echo "--"
+        } | fail
+    fi
+}

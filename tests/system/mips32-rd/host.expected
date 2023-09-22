@@ -1,0 +1,40 @@
+<msim> Alert: XRD: Register dump
+processor 0
+   0                0   at                0   v0                0   v1                0   a0                0
+  a1                0   a2                0   a3                0   t0                0   t1                0
+  t2                0   t3                0   t4                0   t5                0   t6                0
+  t7                0   s0                0   s1                0   s2                0   s3                0
+  s4                0   s5                0   s6                0   s7                0   t8                0
+  t9                0   k0                0   k1                0   gp                0   sp                0
+  fp                0   ra                0   pc ffffffffbfc00004   lo                0   hi                0
+<msim> Alert: XCRD: CP0 register dump
+  no name       hex dump  readable dump
+  00 Index	00000000  index: 00 res: 0 p: 0 
+  01 Random	0000002C  random: 2C, res: 0000000
+  02 EntryLo0	00000000  g: 0 v: 0 d: 0 c: 0 pfn: 000000 res: 0
+  03 EntryLo1	00000000  g: 0 v: 0 d: 0 c: 0 pfn: 000000 res: 0
+  04 Context	00000000  res: 0 badvpn2: 00000 ptebase: 000
+  05 PageMask	00000000  res1: 0000 mask: 000 (4k) res2: 00
+  06 Wired	00000000  wired: 0 res: 0000000
+  08 BadVAddr	00000000
+  09 Count	00000003
+  0a EntryHi	00000000  asid: 00 res: 0 vpn2: 00000
+  0b Compare	00000000
+  0c Status	00400004  ie: 0 exl: 0 erl: 1 ksu: 0 ux: 0 sx: 0 kx: 0
+			  im: 00 de: 0 ce: 0 ch: 0 res1: 0 sr: 0 ts: 0
+			  bev: 1 res2: 0 re: 0 fr: 0 rp: 0 cu: 0
+  0d Cause	00000000  res1: 0 exccode: 00 (Interrupt) res2: 0 ip: 00 res3: 00
+			  ce: 0 res4: 0 bd: 0
+  0e EPC	00000000
+  0f PRId	00000400  rev: 00 imp: 04 res: 0000
+  10 Config	00000000  k0: 0 cu: 0 db: 0 b: 0 dc: 0 ic: 0 res: 0 eb: 0
+			  em: 0 be: 0 sm: 0 sc: 0 ew: 0 sw: 0 ss: 0 sb: 0
+			  ep: 0 ec: 0 cm: 0
+  11 LLAddr	00000000
+  12 WatchLo	00000000  w: 0 r: 0 res: 0 paddr0: 00000000
+  13 WatchHi	00000000  res: 00000000 paddr1: 0
+  14 XContext
+  1e ErrorEPC	00000000  errorepc: 00000000
+<msim> Alert: XHLT: Machine halt
+
+Cycles: 6

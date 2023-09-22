@@ -23,6 +23,23 @@ check_version() {
 
 msim_version="$( get_msim_version )"
 
+if [ "${1:-}" = "--make-release" ]; then
+    new_version="${2:-}"
+    if [ -z "$new_version" ]; then
+        echo "Missing second parameter with new version number." >&2
+        exit 1
+    fi
+    for i in \
+            configure.ac \
+            contrib/msim.spec msim-git.rpkg.spec \
+            doc/Doxyfile doc/tutorial.rst \
+            .github/workflows/package.yml .github/workflows/release.yml; do
+        sed -i -e "s#$msim_version#$new_version#g" "$i";
+    done
+    autoconf
+    exit 0
+fi
+
 echo "Current MSIM version is $msim_version."
 check_version "configure" "$( grep '^PACKAGE_VERSION=' configure | cut -d = -f 2 | tr -d "'" )"
 check_version "contrib/msim.spec" "$( grep '^Version:' contrib/msim.spec | cut -d : -f 2 )"

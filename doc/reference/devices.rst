@@ -344,6 +344,75 @@ All attempts to write into read-only memory are silently ignored.
 
 
 
+No-access memory ``dnomem``
+---------------------------
+
+The ``dnomem`` device represents a memory region where any reads or writes
+terminates with simulation failure.
+
+The device is meant as a debugging aid to ensure we code is not accessing
+non-existent memory.
+
+The device operates in three modes. In the default ``warn`` mode, attempts
+to access are printed to console but the simulation continues.
+In ``debug`` mode, the simulation is switched to interactive mode after each
+access.
+And in ``halt`` mode, the simulation is immediately terminated.
+
+
+Initialization parameters: ``address`` ``size``
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+``address``
+   Starting physical address of the memory block.
+``size``
+   Memory size.
+
+Commands
+^^^^^^^^
+
+``help [cmd]``
+   Print a help on the command specified or a list of available commands.
+``info``
+   Print the device information (block address, size and mode)
+``mode``
+   Set device mode (either ``warn``, ``halt`` or ``debug``).
+
+
+Examples
+^^^^^^^^
+
+In the following example, the ``add`` command creates a protected memory
+region ``nomem`` starting at the physical address 0x08000000.
+The size of the region is set to 4 KB.
+
+.. code:: msim
+
+   [msim] add dnomem nomem 0x08000000 0x1000
+   [msim]
+
+All attempts to read/write into this memory are reported.
+
+.. code:: asm
+
+    la $a0, 0x88000004
+    lw $a1, 0($a0)
+    /* <msim> Alert: Ignoring READ (at 0x008000004, 0x4 inside nomem). */
+
+If we configure the device to ``mode`` ``halt``, the simulation is halted upon
+reaching the ``lw`` instruction.
+
+.. code:: msim
+
+   [msim] nomem mode halt
+   [msim]
+   # la $a0, 0x88000004
+   # lw $a1, 0($a0)
+   # <msim> Alert: Halting after forbidden READ (at 0x008000004, 0x4 inside nomem).
+
+
+
+
 Character output device ``dprinter``
 ------------------------------------
 

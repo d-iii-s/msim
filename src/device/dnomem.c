@@ -142,7 +142,6 @@ static bool dnomem_info(token_t *parm, device_t *dev)
  *
  */
 static void dnomem_done(device_t *dev) {
-	safe_free(dev->name);
 	safe_free(dev->data);
 }
 

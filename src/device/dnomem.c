@@ -35,6 +35,19 @@ typedef struct {
 } dnomem_data_s;
 
 
+static const char *nomem_access_handling_as_str(enum nomem_access_handling_e mode)
+{
+	switch (mode) {
+	case NOMEM_ACCESS_WARN:
+		return "warn";
+	case NOMEM_ACCESS_ENTER_DEBUGGER:
+		return "debug";
+	case NOMEM_ACCESS_HALT_MACHINE:
+		return "halt";
+	}
+	return "unknown";
+}
+
 /** Init command implementation
  *
  * @param parm Command-line parameters
@@ -115,9 +128,9 @@ static bool dnomem_info(token_t *parm, device_t *dev)
 {
 	dnomem_data_s *data = (dnomem_data_s *) dev->data;
 
-	printf("[address  ] [size       ]\n"
-	    "%#011" PRIx64 " %#011" PRIx64 "\n",
-	    data->addr, data->size);
+	printf("[address  ] [size     ] [mode]\n"
+	    "%#011" PRIx64 " %#011" PRIx64 " %s\n",
+	    data->addr, data->size, nomem_access_handling_as_str(data->mode));
 
 	return true;
 }
@@ -146,7 +159,7 @@ static void dnomem_access32(const char *operation_name, device_t *dev, ptr36_t a
 		alert("Ignoring %s (at %#011" PRIx64 ", %#" PRIx64 " inside %s).", operation_name, addr, offset, dev->name);
 		break;
 	case NOMEM_ACCESS_ENTER_DEBUGGER:
-		alert("Entering interactive mode because of invalid %s (at %#011" PRIx64 ", %#" PRIx64 " inside %s),",
+		alert("Entering interactive mode because of invalid %s (at %#011" PRIx64 ", %#" PRIx64 " inside %s).",
 				operation_name, addr, offset, dev->name);
 		machine_interactive = true;
 		break;

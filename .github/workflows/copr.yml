@@ -4,23 +4,35 @@ on:
   push:
     branches:
     - master
+  release:
+    types:
+    - published
 
 jobs:
   copr-build:
-    permissions:
-      contents: read
-      packages: read
     runs-on: ubuntu-latest
-    container:
-      image: ghcr.io/akdev1l/copr-build:latest
     steps:
-    - name: Trigger COPR rebuild
-      uses: akdev1l/copr-build@v1.0.2
-      id: copr-build
-      env:
-        COPR_API_TOKEN_CONFIG: ${{ secrets.D3S_COPR_API_TOKEN }}
+
+    - name: Setup Python dependencies
+      run: echo copr-cli >requirements.txt
+
+    - uses: actions/setup-python@v4
       with:
-        owner: d3s
-        project-name: main
-        package-name: msim-git
-        committish: master
+       python-version: '3.11'
+       cache: pip
+
+    - name: Install COPR CLI
+      run: pip install -r requirements.txt
+
+    - name: Setup COPR credentials
+      run: echo "${{ secrets.D3S_COPR_CONFIG }}" >copr.conf
+
+    - name: Trigger COPR rebuild (master)
+      if: ${{ github.event_name == 'push' }}
+      run: |
+        copr-cli --config copr.conf build-package --nowait main --name msim-git
+
+    - name: Trigger COPR rebuild (release)
+      if: ${{ github.event_name == 'published' }}
+      run: |
+        copr-cli --config copr.conf build-package --nowait main --name msim

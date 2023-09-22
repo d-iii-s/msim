@@ -30,3 +30,5 @@ check_version "contrib/msim-VER.ebuild" "$( ls contrib/msim-*.ebuild | cut -d- -
 check_version "doc/Doxyfile" "$( grep '^PROJECT_NUMBER' doc/Doxyfile | cut -d = -f 2 )"
 check_version "doc/tutorial.rst" "$( sed -n 's#.*<msim> Alert: MSIM \([0-9].*\)#\1#p' doc/tutorial.rst )"
 check_version "msim-git.rpkg.spec" "$( grep '^Version:' msim-git.rpkg.spec | sed 's:.*lead=\([^ ]*\) .*:\1:' )"
+check_version ".github/workflows/package.yml" "$( grep PACKAGE_VERSION: .github/workflows/package.yml | cut -d : -f 2 )"
+check_version ".github/workflows/release.yml" "$( grep PACKAGE_VERSION: .github/workflows/release.yml | cut -d : -f 2 )"

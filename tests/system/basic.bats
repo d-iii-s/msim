@@ -83,3 +83,17 @@ load "common"
     exit_success=false \
     msim_command_check
 }
+
+@test "Invalid call to add terminates with error (issue 44)" {
+    config="
+        add ddisk disk
+    " \
+    expected="
+        <msim> Error in msim.conf on line 1:
+        Missing parameter \"register block address\"
+        <msim> Fault in msim.conf on line 1:
+        Error in configuration file
+    " \
+    exit_success=false \
+    msim_command_check
+}

@@ -114,7 +114,6 @@ static bool dcycle_stat(token_t *parm, device_t *dev)
  */
 static void dcycle_done(device_t *dev)
 {
-	safe_free(dev->name);
 	safe_free(dev->data);
 }
 

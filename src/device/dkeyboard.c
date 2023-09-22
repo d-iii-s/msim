@@ -184,7 +184,6 @@ static bool dkeyboard_gen(token_t *parm, device_t *dev)
  */
 static void keyboard_done(device_t *dev)
 {
-	safe_free(dev->name);
 	safe_free(dev->data);
 }
 

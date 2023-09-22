@@ -155,7 +155,6 @@ static void printer_done(device_t *dev)
 		safe_free(data->fname);
 	}
 
-	safe_free(dev->name);
 	safe_free(dev->data);
 }
 

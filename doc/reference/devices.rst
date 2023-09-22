@@ -350,7 +350,7 @@ No-access memory ``dnomem``
 The ``dnomem`` device represents a memory region where any reads or writes
 terminates with simulation failure.
 
-The device is meant as a debugging aid to ensure we code is not accessing
+The device is meant as a debugging aid to ensure our code is not accessing
 non-existent memory.
 
 The device operates in three modes. In the default ``warn`` mode, attempts

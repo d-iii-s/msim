@@ -1,0 +1,26 @@
+name: Fedora COPR integration
+
+on:
+  push:
+    branches:
+    - master
+
+jobs:
+  copr-build:
+    permissions:
+      contents: read
+      packages: read
+    runs-on: ubuntu-latest
+    container:
+      image: ghcr.io/akdev1l/copr-build:latest
+    steps:
+    - name: Trigger COPR rebuild
+      uses: akdev1l/copr-build@v1.0.2
+      id: copr-build
+      env:
+        COPR_API_TOKEN_CONFIG: ${{ secrets.D3S_COPR_API_TOKEN }}
+      with:
+        owner: d3s
+        project-name: main
+        package-name: msim-git
+        committish: master

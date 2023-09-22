@@ -95,6 +95,18 @@ static void dnomem_done(device_t *dev) {
 	safe_free(dev->data);
 }
 
+static void dnomem_access32(const char *operation_name, device_t *dev, ptr36_t addr)
+{
+	dnomem_data_s *data = (dnomem_data_s *) dev->data;
+	ptr36_t offset = addr - data->addr;
+	if (offset >= data->size) {
+		return;
+	}
+
+	alert("Ignoring %s (at %#011" PRIx64 ", %#" PRIx64 " inside %s).", operation_name, addr, offset, dev->name);
+	machine_interactive = true;
+}
+
 /** Read command implementation
  *
  * @param dev  Device pointer
@@ -105,15 +117,7 @@ static void dnomem_done(device_t *dev) {
 static void dnomem_read32(unsigned int procno, device_t *dev, ptr36_t addr,
     uint32_t *val)
 {
-	dnomem_data_s *data = (dnomem_data_s *) dev->data;
-	ptr36_t offset = addr - data->addr;
-	if (offset >= data->size) {
-		return;
-	}
-
-	alert("Ignoring READ from %#011" PRIx64 " (%#011" PRIx64 " inside %s)", addr, offset, dev->name);
-	*val = 0;
-	machine_interactive = true;
+	dnomem_access32("READ", dev, addr);
 }
 
 /** Write command implementation
@@ -126,14 +130,7 @@ static void dnomem_read32(unsigned int procno, device_t *dev, ptr36_t addr,
 static void dnomem_write32(unsigned int procno, device_t *dev, ptr36_t addr,
     uint32_t val)
 {
-	dnomem_data_s *data = (dnomem_data_s *) dev->data;
-	ptr36_t offset = addr - data->addr;
-	if (offset >= data->size) {
-		return;
-	}
-
-	alert("Ignoring WRITE to %#011" PRIx64 " (%#" PRIx64 " inside %s)", addr, offset, dev->name);
-	machine_interactive = true;
+	dnomem_access32("WRITE", dev, addr);
 }
 
 

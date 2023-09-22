@@ -535,7 +535,6 @@ static void ddisk_done(device_t *dev) {
 	disk_data_s *data = (disk_data_s *) dev->data;
 	
 	ddisk_clean_up(data);
-	safe_free(dev->name);
 	safe_free(dev->data);
 }
 

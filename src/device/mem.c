@@ -432,7 +432,6 @@ static void mem_done(device_t *dev)
 		physmem_cleanup(area);
 		safe_free(area);
 	}
-	safe_free(dev->name);
 }
 
 cmd_t dmem_cmds[] = {

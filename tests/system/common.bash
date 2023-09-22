@@ -33,6 +33,7 @@ deindent() {
 msim_command_check() {
     local expected="$( echo "$expected" | deindent )"
     local expected_exit_code_is_zero="${exit_success:-true}"
+    local expected_exit_code="${expected_exit_code:-}"
     echo "$config" | deindent >"$MSIM_TEST_TMPDIR/msim.conf"
     echo "quit" >>"$MSIM_TEST_TMPDIR/msim.conf"
 
@@ -56,6 +57,9 @@ msim_command_check() {
     else
         if [ "$status" -eq 0 ]; then
             fail "MSIM terminated with exit code 0 but expecting failure."
+        fi
+        if [ "$status" -eq 139 ]; then
+            fail "MSIM terminated with exit code 139 SIGSEGV."
         fi
     fi
 

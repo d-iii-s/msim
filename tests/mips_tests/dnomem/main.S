@@ -12,8 +12,9 @@ __start:
 	 * Try to store to 0x88000000
 	 */
 	la $a0, 0x88000004
-	la $a1, 0xff
 	lw $a1, 0($a0)
+	la $a2, 0xff
+	sw $a2, 0($a0)
 	nop
 	nop
 	nop

@@ -58,5 +58,5 @@ jobs:
         uses: softprops/action-gh-release@v1
         with:
           files: |
-            *.deb
-            *.rpm
+            msim*.deb
+            msim*.rpm

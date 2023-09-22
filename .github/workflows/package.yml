@@ -46,7 +46,7 @@ jobs:
         with:
           name: deb-package
           path: |
-            ./*.deb
+            ./msim*.deb
 
       - uses: jiro4989/build-rpm-action@v2
         with:
@@ -61,4 +61,4 @@ jobs:
         with:
           name: rpm-package
           path: |
-            ./*.rpm
+            ./msim*.rpm

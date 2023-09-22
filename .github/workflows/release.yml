@@ -1,0 +1,65 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - "v*.*.*"
+
+env:
+  PACKAGE_NAME: msim
+  PACKAGE_MAINTAINER: vhotspur
+  PACKAGE_SUMMARY: "A virtual machine simulator based on a MIPS R4000 and RISC-V processor"
+  PACKAGE_VERSION: 2.1.0
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+
+      steps:
+      - uses: actions/checkout@v3
+
+      - name: Install dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y xutils-dev libreadline-dev curl bats
+          curl -L -o libpcut.deb https://github.com/vhotspur/pcut/releases/download/v0.0.1/libpcut_0.0.1_amd64.deb
+          sudo apt-get install ./libpcut.deb
+
+      - name: configure
+        run: ./configure
+
+      - name: make
+        run: make
+
+      - name: Prepare install for Debian
+        run: make install DESTDIR=${{github.workspace}}/pkg-deb
+
+      - name: Prepare install for RPM
+        run: make install DESTDIR=${{github.workspace}}/pkg-rpm
+
+      - uses: jiro4989/build-deb-action@v3
+        with:
+          package_root: ${{github.workspace}}/pkg-deb
+          package: ${{ env.PACKAGE_NAME }}
+          maintainer: ${{ env.PACKAGE_MAINTAINER }}
+          desc: '${{ env.PACKAGE_SUMMARY }}'
+          version: '${{ env.PACKAGE_VERSION }}'
+          arch: 'amd64'
+
+      - uses: jiro4989/build-rpm-action@v2
+        with:
+          package_root: ${{github.workspace}}/pkg-rpm
+          package: ${{ env.PACKAGE_NAME }}
+          maintainer: ${{ env.PACKAGE_MAINTAINER }}
+          summary: '${{ env.PACKAGE_SUMMARY }}'
+          version: '${{ env.PACKAGE_VERSION }}'
+          arch: 'x86_64'
+
+      - name: Release
+        uses: softprops/action-gh-release@v1
+        with:
+          files: |
+            *.deb
+            *.rpm

@@ -11,16 +11,27 @@
  */
 
 #include <stdlib.h>
+#include <string.h>
 #include <inttypes.h>
 #include "dnomem.h"
 #include "../fault.h"
 #include "../utils.h"
 
+/** Access handling */
+enum nomem_access_handling_e {
+	NOMEM_ACCESS_WARN,
+	NOMEM_ACCESS_ENTER_DEBUGGER,
+	NOMEM_ACCESS_HALT_MACHINE,
+};
 
 /** Device no-mem instance data structure */
 typedef struct {
-	ptr36_t addr;                /**< No-memory location */
-	uint64_t size;               /**< No-memory size */
+	/** No-memory location. */
+	ptr36_t addr;
+	/** No-memory size. */
+	uint64_t size;
+	/** No-memory behavior on access. */
+	enum nomem_access_handling_e mode;
 } dnomem_data_s;
 
 
@@ -61,6 +72,33 @@ static bool dnomem_init(token_t *parm, device_t *dev)
 	/* Basic structure inicialization */
 	data->addr = start_addr;
 	data->size = size;
+	data->mode = NOMEM_ACCESS_WARN;
+
+	return true;
+}
+
+/** mode command implementation.
+ *
+ * @param parm Command-line parameters
+ * @param dev  Device instance structure
+ *
+ * @return True if successful
+ */
+static bool dnomem_setmode(token_t *parm, device_t *dev)
+{
+	dnomem_data_s *data = (dnomem_data_s *) dev->data;
+	const char *const mode = parm_str(parm);
+
+	if (strcmp(mode, "warn") == 0) {
+		data->mode = NOMEM_ACCESS_WARN;
+	} else if (strcmp(mode, "debug") == 0) {
+		data->mode = NOMEM_ACCESS_ENTER_DEBUGGER;
+	} else if (strcmp(mode, "halt") == 0) {
+		data->mode = NOMEM_ACCESS_HALT_MACHINE;
+	} else {
+		error("Unknown mode %s, expecting warn, debug or halt.", mode);
+		return false;
+	}
 
 	return true;
 }
@@ -103,8 +141,21 @@ static void dnomem_access32(const char *operation_name, device_t *dev, ptr36_t a
 		return;
 	}
 
-	alert("Ignoring %s (at %#011" PRIx64 ", %#" PRIx64 " inside %s).", operation_name, addr, offset, dev->name);
-	machine_interactive = true;
+	switch (data->mode) {
+	case NOMEM_ACCESS_WARN:
+		alert("Ignoring %s (at %#011" PRIx64 ", %#" PRIx64 " inside %s).", operation_name, addr, offset, dev->name);
+		break;
+	case NOMEM_ACCESS_ENTER_DEBUGGER:
+		alert("Entering interactive mode because of invalid %s (at %#011" PRIx64 ", %#" PRIx64 " inside %s),",
+				operation_name, addr, offset, dev->name);
+		machine_interactive = true;
+		break;
+	case NOMEM_ACCESS_HALT_MACHINE:
+		alert("Halting after forbidden %s (at %#011" PRIx64 ", %#" PRIx64 " inside %s).",
+				operation_name, addr, offset, dev->name);
+		machine_halt = true;
+		break;
+	}
 }
 
 /** Read command implementation
@@ -145,6 +196,15 @@ cmd_t dnomem_cmds[] = {
 		REQ STR "name/nomem name" NEXT
 		REQ INT "addr/start address" NEXT
 		REQ INT "size/size of the memory" END
+	},
+	{
+		"mode",
+		(fcmd_t) dnomem_setmode,
+		DEFAULT,
+		DEFAULT,
+		"Set mode",
+		"Set mode",
+		REQ STR "mode/Mode name (warn, debug, halt)" END
 	},
 	{
 		"help",

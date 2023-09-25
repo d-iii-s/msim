@@ -1,5 +1,7 @@
 /*
  * Acess dnomem region.
+ *
+ * This file is shared among multiple tests.
  */
 
 .text
@@ -23,6 +25,8 @@ __start:
 	sw $a1, 0($a0)
 	la $a1, 0x64
 	sw $a1, 0($a0)
+	la $a1, 0x0a
+	sw $a1, 0($a0)
 
 	/*
 	 * Try to read from 0x88000000
@@ -42,6 +46,8 @@ __start:
 	la $a1, 0x74
 	sw $a1, 0($a0)
 	la $a1, 0x65
+	sw $a1, 0($a0)
+	la $a1, 0x0a
 	sw $a1, 0($a0)
 
 	/*

@@ -2,4 +2,4 @@
 <msim> Alert: Ignoring WRITE (at 0x008000004, 0x4 inside nomem).
 <msim> Alert: XHLT: Machine halt
 
-Cycles: 27
+Cycles: 29

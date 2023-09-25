@@ -17,12 +17,11 @@
 #include "../fault.h"
 #include "../utils.h"
 
-/** Access handling */
-enum nomem_access_handling_e {
-	NOMEM_ACCESS_WARN,
-	NOMEM_ACCESS_BREAK,
-	NOMEM_ACCESS_HALT,
-};
+/** Access handling. */
+typedef struct {
+	const char *name;
+	void (*access32)(const char *operation_name, device_t *dev, ptr36_t addr, ptr36_t offset);
+} dnomem_access_mode_t;
 
 /** Device no-mem instance data structure */
 typedef struct {
@@ -31,22 +30,40 @@ typedef struct {
 	/** No-memory size. */
 	uint64_t size;
 	/** No-memory behavior on access. */
-	enum nomem_access_handling_e mode;
+	dnomem_access_mode_t *mode;
 } dnomem_data_s;
 
-
-static const char *nomem_access_handling_as_str(enum nomem_access_handling_e mode)
+static void dnomem_access32_warn(const char *operation_name, device_t *dev, ptr36_t addr, ptr36_t offset)
 {
-	switch (mode) {
-	case NOMEM_ACCESS_WARN:
-		return "warn";
-	case NOMEM_ACCESS_BREAK:
-		return "break";
-	case NOMEM_ACCESS_HALT:
-		return "halt";
-	}
-	return "unknown";
+	alert("Ignoring %s (at %#011" PRIx64 ", %#" PRIx64 " inside %s).", operation_name, addr, offset, dev->name);
 }
+
+static void dnomem_access32_break(const char *operation_name, device_t *dev, ptr36_t addr, ptr36_t offset)
+{
+	alert("Entering interactive mode because of invalid %s (at %#011" PRIx64 ", %#" PRIx64 " inside %s).",
+			operation_name, addr, offset, dev->name);
+	machine_interactive = true;
+}
+
+static void dnomem_access32_halt(const char *operation_name, device_t *dev, ptr36_t addr, ptr36_t offset)
+{
+	alert("Halting after forbidden %s (at %#011" PRIx64 ", %#" PRIx64 " inside %s).",
+			operation_name, addr, offset, dev->name);
+	machine_halt = true;
+}
+
+static dnomem_access_mode_t access_mode_warn = {
+	.name = "warn",
+	.access32 = dnomem_access32_warn,
+};
+static dnomem_access_mode_t access_mode_break = {
+	.name = "break",
+	.access32 = dnomem_access32_break,
+};
+static dnomem_access_mode_t access_mode_halt = {
+	.name = "halt",
+	.access32 = dnomem_access32_halt,
+};
 
 /** Init command implementation
  *
@@ -85,7 +102,7 @@ static bool dnomem_init(token_t *parm, device_t *dev)
 	/* Basic structure inicialization */
 	data->addr = start_addr;
 	data->size = size;
-	data->mode = NOMEM_ACCESS_WARN;
+	data->mode = &access_mode_warn;
 
 	return true;
 }
@@ -103,11 +120,11 @@ static bool dnomem_setmode(token_t *parm, device_t *dev)
 	const char *const mode = parm_str(parm);
 
 	if (strcmp(mode, "warn") == 0) {
-		data->mode = NOMEM_ACCESS_WARN;
+		data->mode = &access_mode_warn;
 	} else if (strcmp(mode, "break") == 0) {
-		data->mode = NOMEM_ACCESS_BREAK;
+		data->mode = &access_mode_break;
 	} else if (strcmp(mode, "halt") == 0) {
-		data->mode = NOMEM_ACCESS_HALT;
+		data->mode = &access_mode_halt;
 	} else {
 		error("Unknown mode %s, expecting warn, break or halt.", mode);
 		return false;
@@ -130,7 +147,7 @@ static bool dnomem_info(token_t *parm, device_t *dev)
 
 	printf("[address  ] [size     ] [mode]\n"
 	    "%#011" PRIx64 " %#011" PRIx64 " %s\n",
-	    data->addr, data->size, nomem_access_handling_as_str(data->mode));
+	    data->addr, data->size, data->mode->name);
 
 	return true;
 }
@@ -153,21 +170,7 @@ static void dnomem_access32(const char *operation_name, device_t *dev, ptr36_t a
 		return;
 	}
 
-	switch (data->mode) {
-	case NOMEM_ACCESS_WARN:
-		alert("Ignoring %s (at %#011" PRIx64 ", %#" PRIx64 " inside %s).", operation_name, addr, offset, dev->name);
-		break;
-	case NOMEM_ACCESS_BREAK:
-		alert("Entering interactive mode because of invalid %s (at %#011" PRIx64 ", %#" PRIx64 " inside %s).",
-				operation_name, addr, offset, dev->name);
-		machine_interactive = true;
-		break;
-	case NOMEM_ACCESS_HALT:
-		alert("Halting after forbidden %s (at %#011" PRIx64 ", %#" PRIx64 " inside %s).",
-				operation_name, addr, offset, dev->name);
-		machine_halt = true;
-		break;
-	}
+	data->mode->access32(operation_name, dev, addr, offset);
 }
 
 /** Read command implementation
@@ -216,7 +219,7 @@ cmd_t dnomem_cmds[] = {
 		DEFAULT,
 		"Set mode",
 		"Set mode",
-		REQ STR "mode/Mode name (warn, debug, halt)" END
+		REQ STR "mode/Mode name (warn, break, halt)" END
 	},
 	{
 		"help",

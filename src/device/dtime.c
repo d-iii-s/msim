@@ -112,7 +112,6 @@ static bool dtime_stat(token_t *parm, device_t *dev)
  */
 static void dtime_done(device_t *dev)
 {
-	safe_free(dev->name);
 	safe_free(dev->data);
 }
 

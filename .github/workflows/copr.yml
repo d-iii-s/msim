@@ -1,0 +1,42 @@
+name: Fedora COPR integration
+
+on:
+  push:
+    branches:
+    - master
+  release:
+    types:
+    - published
+  workflow_run:
+    workflows: [Release]
+    types:
+      - completed
+
+jobs:
+  copr-build:
+    runs-on: ubuntu-latest
+    steps:
+
+    - name: Setup Python dependencies
+      run: echo copr-cli >requirements.txt
+
+    - uses: actions/setup-python@v4
+      with:
+       python-version: '3.11'
+       cache: pip
+
+    - name: Install COPR CLI
+      run: pip install -r requirements.txt
+
+    - name: Setup COPR credentials
+      run: echo "${{ secrets.D3S_COPR_CONFIG }}" >copr.conf
+
+    - name: Trigger COPR rebuild (master)
+      if: ${{ github.event_name == 'push' }}
+      run: |
+        copr-cli --config copr.conf build-package --nowait main --name msim-git
+
+    - name: Trigger COPR rebuild (release)
+      if: ${{ github.event_name != 'push' }}
+      run: |
+        copr-cli --config copr.conf build-package --nowait main --name msim

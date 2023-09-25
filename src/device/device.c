@@ -104,7 +104,10 @@ device_t *alloc_device(const char *type_string, const char *device_name)
 
 void free_device(device_t *dev)
 {
-	dev->type->done(dev);
+	/* Clean-up only if possible and if the device was initialized. */
+	if (dev->type->done && dev->data) {
+		dev->type->done(dev);
+	}
 	safe_free(dev->name);
 	safe_free(dev);
 }

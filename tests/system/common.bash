@@ -103,6 +103,8 @@ msim_run_code() {
         fail "MSIM failed with exit code $status."
     fi
 
+    output="$( echo "$output" | sed 's#^\[msim\] $#[msim]#' )"
+
     if [ "$output" != "$expected_from_simulator" ]; then
         {
             echo "Failure: unexpected simulator output."

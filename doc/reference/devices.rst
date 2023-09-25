@@ -355,7 +355,7 @@ non-existent memory.
 
 The device operates in three modes. In the default ``warn`` mode, attempts
 to access are printed to console but the simulation continues.
-In ``debug`` mode, the simulation is switched to interactive mode after each
+In ``break`` mode, the simulation is switched to interactive mode after each
 access.
 And in ``halt`` mode, the simulation is immediately terminated.
 
@@ -376,7 +376,7 @@ Commands
 ``info``
    Print the device information (block address, size and mode)
 ``mode``
-   Set device mode (either ``warn``, ``halt`` or ``debug``).
+   Set device mode (either ``warn``, ``halt`` or ``break``).
 
 
 Examples

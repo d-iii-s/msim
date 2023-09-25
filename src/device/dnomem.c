@@ -20,8 +20,8 @@
 /** Access handling */
 enum nomem_access_handling_e {
 	NOMEM_ACCESS_WARN,
-	NOMEM_ACCESS_ENTER_DEBUGGER,
-	NOMEM_ACCESS_HALT_MACHINE,
+	NOMEM_ACCESS_BREAK,
+	NOMEM_ACCESS_HALT,
 };
 
 /** Device no-mem instance data structure */
@@ -40,9 +40,9 @@ static const char *nomem_access_handling_as_str(enum nomem_access_handling_e mod
 	switch (mode) {
 	case NOMEM_ACCESS_WARN:
 		return "warn";
-	case NOMEM_ACCESS_ENTER_DEBUGGER:
-		return "debug";
-	case NOMEM_ACCESS_HALT_MACHINE:
+	case NOMEM_ACCESS_BREAK:
+		return "break";
+	case NOMEM_ACCESS_HALT:
 		return "halt";
 	}
 	return "unknown";
@@ -104,12 +104,12 @@ static bool dnomem_setmode(token_t *parm, device_t *dev)
 
 	if (strcmp(mode, "warn") == 0) {
 		data->mode = NOMEM_ACCESS_WARN;
-	} else if (strcmp(mode, "debug") == 0) {
-		data->mode = NOMEM_ACCESS_ENTER_DEBUGGER;
+	} else if (strcmp(mode, "break") == 0) {
+		data->mode = NOMEM_ACCESS_BREAK;
 	} else if (strcmp(mode, "halt") == 0) {
-		data->mode = NOMEM_ACCESS_HALT_MACHINE;
+		data->mode = NOMEM_ACCESS_HALT;
 	} else {
-		error("Unknown mode %s, expecting warn, debug or halt.", mode);
+		error("Unknown mode %s, expecting warn, break or halt.", mode);
 		return false;
 	}
 
@@ -157,12 +157,12 @@ static void dnomem_access32(const char *operation_name, device_t *dev, ptr36_t a
 	case NOMEM_ACCESS_WARN:
 		alert("Ignoring %s (at %#011" PRIx64 ", %#" PRIx64 " inside %s).", operation_name, addr, offset, dev->name);
 		break;
-	case NOMEM_ACCESS_ENTER_DEBUGGER:
+	case NOMEM_ACCESS_BREAK:
 		alert("Entering interactive mode because of invalid %s (at %#011" PRIx64 ", %#" PRIx64 " inside %s).",
 				operation_name, addr, offset, dev->name);
 		machine_interactive = true;
 		break;
-	case NOMEM_ACCESS_HALT_MACHINE:
+	case NOMEM_ACCESS_HALT:
 		alert("Halting after forbidden %s (at %#011" PRIx64 ", %#" PRIx64 " inside %s).",
 				operation_name, addr, offset, dev->name);
 		machine_halt = true;

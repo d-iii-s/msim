@@ -1,0 +1,1 @@
+../mips32-dnomem-warn/main.S

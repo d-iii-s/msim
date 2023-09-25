@@ -2,6 +2,9 @@
 MIPS32_TOOLCHAIN_DIR =
 
 MIPS32_TESTS = \
+	dnomem-break \
+	dnomem-halt \
+	dnomem-warn \
 	dval \
 	hello \
 	rd \

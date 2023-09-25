@@ -1,3 +1,7 @@
+2023-09-25 Vojtech Horky <horky@d3s.mff.cuni.cz>
+    Version 2.2.0
+    * Add debugging dnomem device
+
 2023-09-22 Vojtech Horky <horky@d3s.mff.cuni.cz>
     Version 2.1.2
     * CI improvements

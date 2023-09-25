@@ -14,8 +14,10 @@
 #include <string.h>
 #include <inttypes.h>
 #include "dnomem.h"
+#include "../assert.h"
 #include "../fault.h"
 #include "../utils.h"
+#include "cpu/general_cpu.h"
 
 /** Access handling. */
 typedef struct {
@@ -29,6 +31,8 @@ typedef struct {
 	ptr36_t addr;
 	/** No-memory size. */
 	uint64_t size;
+	/** Dump registers of CPU that caused the access. */
+	bool register_dump;
 	/** No-memory behavior on access. */
 	dnomem_access_mode_t *mode;
 } dnomem_data_s;
@@ -103,6 +107,7 @@ static bool dnomem_init(token_t *parm, device_t *dev)
 	data->addr = start_addr;
 	data->size = size;
 	data->mode = &access_mode_warn;
+	data->register_dump = false;
 
 	return true;
 }
@@ -133,6 +138,30 @@ static bool dnomem_setmode(token_t *parm, device_t *dev)
 	return true;
 }
 
+/** rd command implementation.
+ *
+ * @param parm Command-line parameters
+ * @param dev  Device instance structure
+ *
+ * @return True if successful
+ */
+static bool dnomem_setrd(token_t *parm, device_t *dev)
+{
+	dnomem_data_s *data = (dnomem_data_s *) dev->data;
+	const char *const yes_no = parm_str(parm);
+
+	if (strcmp(yes_no, "yes") == 0) {
+		data->register_dump = true;
+	} else if (strcmp(yes_no, "no") == 0) {
+		data->register_dump = false;
+	} else {
+		error("Unknown register dump mode %s, expecting yes or no.", yes_no);
+		return false;
+	}
+
+	return true;
+}
+
 /** Info command implementation
  *
  * @param parm Command-line parameters
@@ -145,9 +174,9 @@ static bool dnomem_info(token_t *parm, device_t *dev)
 {
 	dnomem_data_s *data = (dnomem_data_s *) dev->data;
 
-	printf("[address  ] [size     ] [mode]\n"
-	    "%#011" PRIx64 " %#011" PRIx64 " %s\n",
-	    data->addr, data->size, data->mode->name);
+	printf("[address  ] [size     ] [mode  ] [regdump]\n"
+	    "%#011" PRIx64 " %#011" PRIx64 " %-8s %s\n",
+	    data->addr, data->size, data->mode->name, data->register_dump ? "yes" : "no");
 
 	return true;
 }
@@ -162,7 +191,7 @@ static void dnomem_done(device_t *dev) {
 	safe_free(dev->data);
 }
 
-static void dnomem_access32(const char *operation_name, device_t *dev, ptr36_t addr)
+static void dnomem_access32(const char *operation_name, unsigned int procno, device_t *dev, ptr36_t addr)
 {
 	dnomem_data_s *data = (dnomem_data_s *) dev->data;
 	ptr36_t offset = addr - data->addr;
@@ -170,6 +199,11 @@ static void dnomem_access32(const char *operation_name, device_t *dev, ptr36_t a
 		return;
 	}
 
+	if (data->register_dump) {
+		general_cpu_t* causing_cpu = get_cpu(procno);
+		ASSERT((causing_cpu != NULL) && "CPU that causes illegal access to dnomem not found");
+		cpu_reg_dump(causing_cpu);
+	}
 	data->mode->access32(operation_name, dev, addr, offset);
 }
 
@@ -183,7 +217,7 @@ static void dnomem_access32(const char *operation_name, device_t *dev, ptr36_t a
 static void dnomem_read32(unsigned int procno, device_t *dev, ptr36_t addr,
     uint32_t *val)
 {
-	dnomem_access32("READ", dev, addr);
+	dnomem_access32("READ", procno, dev, addr);
 }
 
 /** Write command implementation
@@ -196,7 +230,7 @@ static void dnomem_read32(unsigned int procno, device_t *dev, ptr36_t addr,
 static void dnomem_write32(unsigned int procno, device_t *dev, ptr36_t addr,
     uint32_t val)
 {
-	dnomem_access32("WRITE", dev, addr);
+	dnomem_access32("WRITE", procno, dev, addr);
 }
 
 
@@ -220,6 +254,15 @@ cmd_t dnomem_cmds[] = {
 		"Set mode",
 		"Set mode",
 		REQ STR "mode/Mode name (warn, break, halt)" END
+	},
+	{
+		"rd",
+		(fcmd_t) dnomem_setrd,
+		DEFAULT,
+		DEFAULT,
+		"Whether to dump registers on access",
+		"Whether to dump registers on access",
+		REQ STR "rd/Dump registers on access (yes, no)" END
 	},
 	{
 		"help",

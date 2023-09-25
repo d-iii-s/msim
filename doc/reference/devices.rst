@@ -359,6 +359,9 @@ In ``break`` mode, the simulation is switched to interactive mode after each
 access.
 And in ``halt`` mode, the simulation is immediately terminated.
 
+It is possible to dump registers of the CPU that caused the violation
+automatically by setting ``rd yes``.
+
 
 Initialization parameters: ``address`` ``size``
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -377,6 +380,8 @@ Commands
    Print the device information (block address, size and mode)
 ``mode``
    Set device mode (either ``warn``, ``halt`` or ``break``).
+``rd``
+   Whether to dump registers on violation (``yes`` or ``no``).
 
 
 Examples
@@ -400,10 +405,12 @@ All attempts to read/write into this memory are reported.
     /* <msim> Alert: Ignoring READ (at 0x008000004, 0x4 inside nomem). */
 
 If we configure the device to ``mode`` ``halt``, the simulation is halted upon
-reaching the ``lw`` instruction.
+reaching the ``lw`` instruction. By using ``nomem rd yes``, registers are
+dumped before the machine is halted.
 
 .. code:: msim
 
+   [msim] nomem rd yes
    [msim] nomem mode halt
    [msim]
    # la $a0, 0x88000004

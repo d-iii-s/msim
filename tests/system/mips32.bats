@@ -18,6 +18,10 @@ load "common"
     msim_run_code "mips32-dnomem-halt"
 }
 
+@test "MIPS32: dnomem device in halt mode with register dump" {
+    msim_run_code "mips32-dnomem-rd"
+}
+
 @test "MIPS32: XINT instruction" {
     msim_run_code "mips32-xint"
 }

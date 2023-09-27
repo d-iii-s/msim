@@ -40,40 +40,4 @@ make install DESTDIR=$RPM_BUILD_ROOT
 %{_bindir}/msim
 
 %changelog
-* Tue Sep 19 2023 Vojtech Horky <horky@d3s.mff.cuni.cz> - 2.1.0
-- Bump to 2.2.0
-- Add dnomem device
-
-* Tue Sep 19 2023 Vojtech Horky <horky@d3s.mff.cuni.cz> - 2.1.0
-- Bump to 2.1.2
-- Fix broken device cleanup
-
-* Tue Sep 19 2023 Vojtech Horky <horky@d3s.mff.cuni.cz> - 2.1.0
-- Bump to 2.1.0
-- Simulated TLB for RISC-V
-- Documentation reworked
-
-* Mon May 22 2023 Vojtech Horky <horky@d3s.mff.cuni.cz> - 2.0.0
-- Bump to 2.0.0
-- Support for RISC-V
-
-* Wed Oct 01 2014 Martin Decky <decky@d3s.mff.cuni.cz> - 1.3.8.4
-- Bump to 1.4.0
-
-* Tue Sep 30 2014 Martin Decky <decky@d3s.mff.cuni.cz> - 1.3.8.4
-- Bump to 1.3.8.4
-
-* Tue Feb 28 2013 Martin Decky <decky@d3s.mff.cuni.cz> - 1.3.8.3
-- Bump to 1.3.8.3
-
-* Tue Oct 09 2012 Martin Decky <decky@d3s.mff.cuni.cz> - 1.3.8.2
-- Bump to 1.3.8.2
-
-* Mon Oct 14 2011 Martin Decky <decky@d3s.mff.cuni.cz> - 1.3.8.1
-- Bump to 1.3.8.1
-
-* Thu Oct 05 2010 Martin Decky <decky@d3s.mff.cuni.cz> - 1.3.8
-- Bump to 1.3.8
-
-* Thu Nov 02 2009 Martin Decky <decky@d3s.mff.cuni.cz> - 1.3.7.1
-- Initial spec file
+See the ChangeLog file in the Git repository at https://github.com/d-iii-s/msim

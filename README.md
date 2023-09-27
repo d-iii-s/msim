@@ -40,7 +40,17 @@ rather a fully deterministic simulator useful for kernel debugging.
 There are several other projects which aim speed-optimized simulation
 (e.g. [GXemul](http://gavare.se/gxemul/)), but they are more complex to use.
 
+
 Compilation and installation
 ----------------------------
 
-    ./configure && make install
+We provide a simple DEB package as part of every
+[GitHub release](https://github.com/d-iii-s/msim/releases).
+For RPM-based systems we build `msim-git` and `msim` packages at our
+[COPR repository](https://copr.fedorainfracloud.org/coprs/d3s/main/)
+(`msim` is build with each release while `msim-git` follows the `master`
+branch).
+
+Building from sources is possible with standard commands.
+
+    ./configure && make && make test && sudo make install

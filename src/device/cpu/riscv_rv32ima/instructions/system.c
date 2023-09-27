@@ -11,6 +11,8 @@
 
 #include <stdint.h>
 #include "system.h"
+#include "../../../../input.h"
+#include "../../../../main.h"
 #include "../../../../assert.h"
 #include "../csr.h"
 #include "../tlb.h"

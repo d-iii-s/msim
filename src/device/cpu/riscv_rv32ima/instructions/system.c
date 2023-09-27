@@ -20,8 +20,14 @@ rv_exc_t rv_break_instr(rv_cpu_t *cpu, rv_instr_t instr){
     ASSERT(cpu != NULL);
     ASSERT(instr.i.opcode == rv_opcSYSTEM);
 
-    alert("EBREAK: breakpoint reached, entering interactive mode");
-    machine_interactive = true;
+    if (input_is_terminal() || machine_allow_interactive_without_tty) {
+        alert("EBREAK: breakpoint reached, entering interactive mode");
+        machine_interactive = true;
+    } else {
+        alert("EBREAK: Machine halt when no tty available.");
+        machine_halt = true;
+    }
+
     return rv_exc_none;
 }
 

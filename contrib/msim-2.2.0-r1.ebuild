@@ -1,6 +1,8 @@
+EAPI=8
 DESCRIPTION="Light-weight MIPS R4000 and RISC-V system simulator"
 HOMEPAGE="https://d3s.mff.cuni.cz/software/msim/"
-SRC_URI="https://github.com/d-iii-s/${PN}/archive/refs/tags/v${PV}.tar.gz
+SRC_URI="https://github.com/d-iii-s/${PN}/archive/refs/tags/v${PV}.tar.gz"
+RESTRICT="mirror"
 
 LICENSE="GPL-2"
 SLOT="0"
@@ -16,5 +18,6 @@ src_compile() {
 }
 
 src_install() {
-	dobin bin/msim
+	dobin msim
+	dodoc README.md AUTHORS ChangeLog
 }

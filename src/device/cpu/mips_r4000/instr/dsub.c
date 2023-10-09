@@ -4,14 +4,14 @@ static r4k_exc_t instr_dsub(r4k_cpu_t *cpu, r4k_instr_t instr)
 		uint64_t rs = cpu->regs[instr.r.rs].val;
 		uint64_t rt = cpu->regs[instr.r.rt].val;
 		uint64_t dif = rs - rt;
-		
+
 		if (!((rs ^ rt) & SBIT64) && ((rs ^ dif) & SBIT64))
 			return r4k_excOv;
-		
+
 		cpu->regs[instr.r.rd].val = dif;
 	} else
 		return r4k_excRI;
-	
+
 	return r4k_excNone;
 }
 

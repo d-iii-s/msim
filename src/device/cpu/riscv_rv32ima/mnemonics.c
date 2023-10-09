@@ -76,11 +76,11 @@ extern rv_mnemonics_func_t rv_decode_mnemonics(rv_instr_t instr){
 
     IF_SAME_DECODE(fence);
 
-    // SYSTEM 
+    // SYSTEM
 
     if(instr_func == rv_break_instr)
         return rv_ebreak_mnemonics;
-    
+
     if(instr_func == rv_halt_instr)
         return rv_ehalt_mnemonics;
 
@@ -89,7 +89,7 @@ extern rv_mnemonics_func_t rv_decode_mnemonics(rv_instr_t instr){
 
     if(instr_func == rv_trace_set_instr)
         return rv_trace_set_mnemonics;
-    
+
     if(instr_func == rv_trace_reset_instr)
         return rv_trace_reset_mnemonics;
 
@@ -531,7 +531,7 @@ extern void rv_wfi_mnemonics(uint32_t addr, rv_instr_t instr, string_t *s_mnemon
     string_printf(s_mnemonics, "wfi");
 }
 extern void rv_sfence_mnemonics(uint32_t addr, rv_instr_t instr, string_t *s_mnemonics, string_t *s_comments){
-   string_printf(s_mnemonics, "sfence.vma"); 
+   string_printf(s_mnemonics, "sfence.vma");
 }
 
 // CSR
@@ -688,7 +688,7 @@ extern void rv_amomaxu_mnemonics(uint32_t addr, rv_instr_t instr, string_t *s_mn
 #define default_print_function(csr_name) 													\
 	static void print_##csr_name(rv_cpu_t *cpu, string_t* mnemonics, string_t* comments){ 	\
 		string_printf(mnemonics, "%s 0x%08x", #csr_name, cpu->csr.csr_name);				\
-	}	
+	}
 
 static void print_64_reg(uint64_t val, const char* name, string_t* s){
 	string_printf(s, "%s 0x%016lx (%sh = 0x%08x, %s = 0x%08x)", name, val, name, (uint32_t)(val >> 32), name, (uint32_t)val);
@@ -766,7 +766,7 @@ static void print_sstatus(rv_cpu_t *cpu, string_t* mnemonics, string_t* comments
 	bool sie = rv_csr_sstatus_sie(cpu);
 
 	string_printf(mnemonics, "%s 0x%08x","sstatus",sstatus);
-	
+
 	string_printf(comments, "SD %s, MXR %s, SUM %s, XS %i%i, FS %i%i, VS %i%i, SPP %s, UBE %s, SPIE %s, SIE %s",
 		bit_string(sd),
 		bit_string(mxr),
@@ -784,7 +784,7 @@ static void print_sstatus(rv_cpu_t *cpu, string_t* mnemonics, string_t* comments
 static void print_mstatus(rv_cpu_t *cpu, string_t* mnemonics, string_t* comments) {
 	bool mbe = (cpu->csr.mstatus >> 32) & rv_csr_mstatush_mbe_mask;
 	bool sbe = (cpu->csr.mstatus >> 32) & rv_csr_mstatush_sbe_mask;
-	
+
 	bool sd = cpu->csr.mstatus & 0x80000000;
 	bool tsr = rv_csr_mstatus_tsr(cpu);
 	bool tw = rv_csr_mstatus_tw(cpu);
@@ -837,7 +837,7 @@ static void print_misa(rv_cpu_t *cpu, string_t* mnemonics, string_t* comments) {
 	string_printf(mnemonics, "%s 0x%08x", "misa", misa);
 
 	int mxl = 16 << (misa >> 30);
-	
+
 	string_printf(comments, "Machine XLEN: %i Extensions: ", mxl);
 	if(misa & RV_A_EXTENSION_BITS) string_printf(comments, "A");
 	if(misa & RV_C_EXTENSION_BITS) string_printf(comments, "C");
@@ -996,7 +996,7 @@ static void print_stvec(rv_cpu_t *cpu, string_t* mnemonics, string_t* comments){
 	string_printf(comments, "Base: 0x%08x Mode: %s",
 		cpu->csr.stvec & ~0b11,
 		(((cpu->csr.stvec & 0b11) == 0) ? "Direct" : "Vectored")
-	); 
+	);
 }
 
 
@@ -1123,7 +1123,7 @@ void rv_csr_dump_common(rv_cpu_t *cpu, csr_num_t csr) {
 
 		case csr_timeh:
 		default_case(time)
-		
+
 		case csr_instreth:
 		case csr_minstret:
 		case csr_minstreth:
@@ -1278,7 +1278,7 @@ void rv_csr_dump_common(rv_cpu_t *cpu, csr_num_t csr) {
 		case csr_mhpmevent31:
 			print_hpm_event(cpu, csr & 0x1F, &s_mnemonics, &s_comments);
 			break;
-		
+
 		default_case(misa)
 		default_case(mvendorid)
 		default_case(marchid)
@@ -1297,7 +1297,7 @@ void rv_csr_dump_common(rv_cpu_t *cpu, csr_num_t csr) {
 		default_case(mtval)
 		default_case(mconfigptr)
         default_case(mcontext)
-		default_case(sstatus) 
+		default_case(sstatus)
 		default_case(stvec)
 		default_case(sie)
 		default_case(sip)
@@ -1323,7 +1323,7 @@ void rv_csr_dump_common(rv_cpu_t *cpu, csr_num_t csr) {
 		default:
 			printf("Not implemented CSR number!\n");
 			return;
-		
+
 	}
 
 	printf("%s", s_mnemonics.str);

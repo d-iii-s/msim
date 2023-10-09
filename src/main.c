@@ -158,17 +158,17 @@ static struct option long_options[] = {
 static void setup_remote_gdb(const char *opt)
 {
 	ASSERT(opt != NULL);
-	
+
 	char *endp;
 	long int port_no;
-	
+
 	port_no = strtol(opt, &endp, 0);
 	if (!endp)
 		die(ERR_PARM, "Port number expected");
-	
+
 	if ((port_no < 0) || (port_no > 65534))
 		die(ERR_PARM, "Invalid port number");
-	
+
 	remote_gdb = true;
 	remote_gdb_port = port_no;
 }
@@ -176,16 +176,16 @@ static void setup_remote_gdb(const char *opt)
 static bool parse_cmdline(int argc, char *args[])
 {
 	opterr = 0;
-	
+
 	while (true) {
 		int option_index = 0;
-		
+
 		int c = getopt_long(argc, args, "tVic:hg:nXI",
 		    long_options, &option_index);
-		
+
 		if (c == -1)
 			break;
-		
+
 		switch (c) {
 		case 't':
 			machine_trace = true;
@@ -224,10 +224,10 @@ static bool parse_cmdline(int argc, char *args[])
 			die(ERR_PARM, "Unknown parameter \"%c\"", optopt);
 		}
 	}
-	
+
 	if (optind < argc)
 		die(ERR_PARM, "Unexpected arguments");
-	
+
 	return true;
 }
 
@@ -241,12 +241,12 @@ static bool gdb_startup(void) {
 		error("Cannot debug without any processor");
 		return false;
 	}
-	
+
 	remote_gdb_conn = gdb_remote_init();
-	
+
 	if (!remote_gdb_conn)
 		return false;
-	
+
 	/*
 	 * In case of succesfull opening the debugging session will start
 	 * in stopped state and in case of unsuccesfull opening the
@@ -254,7 +254,7 @@ static bool gdb_startup(void) {
 	 */
 	remote_gdb_listen = remote_gdb_conn;
 	remote_gdb = remote_gdb_conn;
-	
+
 	return true;
 }
 
@@ -267,10 +267,10 @@ static void machine_step(void)
 	device_t *dev = NULL;
 	while (dev_next(&dev, DEVICE_FILTER_STEP))
 		dev->type->step(dev);
-	
+
 	/* Increase machine cycle counter */
 	steps++;
-	
+
 	/* Every 4096th cycle execute
 	   the step4k device functions */
 	if ((steps % 4096) == 0) {
@@ -292,16 +292,16 @@ static void machine_run(void)
 		 * is hit.
 		 */
 		breakpoint_check_for_code_breakpoints();
-		
+
 		/*
 		 * If the remote GDB debugging is allowed and the
 		 * connection has not been opened yet, then wait
 		 * for the connection from the remote GDB.
 		 */
-		
+
 		if ((remote_gdb) && (!remote_gdb_conn))
 			machine_interactive = !gdb_startup();
-		
+
 		/*
 		 * If the simulation was stopped due to the remote
 		 * GDB debugging session, then read a command from
@@ -311,19 +311,19 @@ static void machine_run(void)
 			remote_gdb_listen = false;
 			gdb_session();
 		}
-		
+
 		/* Stepping check */
 		if (stepping > 0) {
 			stepping--;
-			
+
 			if (stepping == 0)
 				machine_interactive = true;
 		}
-		
+
 		/* Interactive mode control */
 		if (machine_interactive)
 			interactive_control();
-		
+
 		/*
 		 * Continue with the simulation
 		 */
@@ -359,11 +359,11 @@ int main(int argc, char *args[])
 
 	r4k_debug_init();
 	rv_debug_init();
-	
+
 	input_init();
 	input_shadow();
 	register_signal_handlers();
-	
+
 	/*
 	 * Run-time configuration
 	 */
@@ -371,9 +371,9 @@ int main(int argc, char *args[])
 		input_back();
 		return 0;
 	}
-	
+
 	script();
-	
+
 	if (machine_interactive) {
 		alert("MSIM %s", PACKAGE_VERSION);
 		alert("Entering interactive mode, type `help' for help.");
@@ -383,7 +383,7 @@ int main(int argc, char *args[])
 	 * Main simulation loop
 	 */
 	machine_run();
-	
+
 	/*
 	 * Finalization
 	 */
@@ -392,6 +392,6 @@ int main(int argc, char *args[])
 		printf("\nCycles: %" PRIu64 "\n", steps);
 
 	cleanup();
-	
+
 	return 0;
 }

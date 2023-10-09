@@ -1,11 +1,11 @@
 static r4k_exc_t instr_dmtc0(r4k_cpu_t *cpu, r4k_instr_t instr)
 {
 	ASSERT(false);
-	
+
 	if (CPU_64BIT_INSTRUCTION(cpu)) {
 		if (CP0_USABLE(cpu)) {
 			reg64_t reg = cpu->regs[instr.r.rt];
-			
+
 			switch (instr.r.rd) {
 			/* 0 */
 			case cp0_Index:
@@ -45,7 +45,7 @@ static r4k_exc_t instr_dmtc0(r4k_cpu_t *cpu, r4k_instr_t instr)
 			case cp0_Res1:
 				/* Ignored, reserved */
 				break;
-			
+
 			/* 8 */
 			case cp0_BadVAddr:
 				/* Ignored, read-only */
@@ -73,7 +73,7 @@ static r4k_exc_t instr_dmtc0(r4k_cpu_t *cpu, r4k_instr_t instr)
 			case cp0_PRId:
 				/* Ignored, read-only */
 				break;
-			
+
 			/* 16 */
 			case cp0_Config:
 				/* Ignored for simulation */
@@ -107,7 +107,7 @@ static r4k_exc_t instr_dmtc0(r4k_cpu_t *cpu, r4k_instr_t instr)
 			case cp0_Res4:
 				/* Ignored, reserved */
 				break;
-			
+
 			/* 24 */
 			case cp0_Res5:
 				/* Ignored, reserved */
@@ -137,15 +137,15 @@ static r4k_exc_t instr_dmtc0(r4k_cpu_t *cpu, r4k_instr_t instr)
 			default:
 				alert("R4000: Undefined CP0 register to set");
 			}
-			
+
 			return r4k_excNone;
 		}
-		
+
 		/* Coprocessor unusable */
 		cp0_cause(cpu).val &= ~cp0_cause_ce_mask;
 		return r4k_excCpU;
 	}
-	
+
 	return r4k_excRI;
 }
 

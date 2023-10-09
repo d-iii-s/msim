@@ -28,7 +28,7 @@ general_cpu_t* get_cpu(unsigned int no){
 
 /**
  * @brief Get first available cpu number
- * 
+ *
  * @return First available cpu number or MAX_CPUS if no more CPU slots are available
  */
 
@@ -98,7 +98,7 @@ void cpu_remove_breakpoint(general_cpu_t *cpu, ptr64_t addr){
 
 /**
  * @brief converts an address from virtual to physical memory, not modifying cpu state
- * 
+ *
  * @param cpu the processor pointer
  * @param virt virtual address
  * @param phys physical return address
@@ -128,7 +128,7 @@ void cpu_set_pc(general_cpu_t *cpu, ptr64_t pc){
 }
 /**
  * @brief signals to the cpu, that an address has been written to, for sc control
- * 
+ *
  * @param cpu the processor pointer
  * @param addr the address that is written to
  * @param size the width of the access

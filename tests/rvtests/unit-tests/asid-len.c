@@ -22,13 +22,13 @@ PCUT_TEST(shorter_asid_zeroes_out){
 
     uint32_t ppn = 0x12345;
 
-    // set asid to max value of 511 
+    // set asid to max value of 511
     cpu0.csr.satp = rv_csr_satp_mode_mask | rv_csr_asid_mask | ppn;
 
     rv_csr_set_asid_len(&cpu0, 7);
 
     unsigned expected_asid = 0x7F;
-    
+
     uint32_t mode_after = cpu0.csr.satp & rv_csr_satp_mode_mask;
     unsigned asid_after = (cpu0.csr.satp & rv_csr_asid_mask) >> rv_csr_satp_asid_offset;
     uint32_t ppn_after = cpu0.csr.satp & rv_csr_satp_ppn_mask;
@@ -45,7 +45,7 @@ PCUT_TEST(longer_asid_perserves){
     uint32_t ppn = 0x12345;
     unsigned asid = 0x7F;
 
-    // set asid to max value of 511 
+    // set asid to max value of 511
     cpu0.csr.satp = rv_csr_satp_mode_mask | (asid << rv_csr_satp_asid_offset) | ppn;
 
     rv_csr_set_asid_len(&cpu0, 9);

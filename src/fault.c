@@ -45,7 +45,7 @@ typedef enum {
 static void tty_ctrl(FILE *tty, unsigned int mode)
 {
 	int fd = fileno(tty);
-	
+
 	if ((fd != -1) && (isatty(fd))) {
 		fprintf(tty, "\033[%um", mode);
 		fflush(tty);
@@ -58,11 +58,11 @@ static void mverror(unsigned int color, const char *fmt, va_list va)
 	tty_ctrl(stderr, CMD_RESET);
 	tty_ctrl(stderr, CMD_BOLD);
 	tty_ctrl(stderr, CMD_COLOR + color);
-	
+
 	fprintf(stderr, "<%s> ", PACKAGE_NAME);
 	vfprintf(stderr, fmt, va);
 	fprintf(stderr, "\n");
-	
+
 	tty_ctrl(stderr, CMD_RESET);
 }
 
@@ -70,7 +70,7 @@ static __attribute__((format(printf, 2, 3)))
     void mferror(unsigned int color, const char *fmt, ...)
 {
 	va_list va;
-	
+
 	va_start(va, fmt);
 	mverror(color, fmt, va);
 	va_end(va);
@@ -80,12 +80,12 @@ void error(const char *fmt, ...)
 {
 	string_t out;
 	string_init(&out);
-	
+
 	va_list va;
 	va_start(va, fmt);
 	string_vprintf(&out, fmt, va);
 	va_end(va);
-	
+
 	if (lineno_ptr != NULL) {
 		if (script_name)
 			mferror(COLOR_YELLOW, "Error in %s on line %zu:\n%s",
@@ -95,7 +95,7 @@ void error(const char *fmt, ...)
 			    *lineno_ptr, out.str);
 	} else
 		mferror(COLOR_YELLOW, "Error: %s", out.str);
-	
+
 	string_done(&out);
 }
 
@@ -103,12 +103,12 @@ void intr_error(const char *fmt, ...)
 {
 	string_t out;
 	string_init(&out);
-	
+
 	va_list va;
 	va_start(va, fmt);
 	string_vprintf(&out, fmt, va);
 	va_end(va);
-	
+
 	if (lineno_ptr != NULL) {
 		if (script_name)
 			mferror(COLOR_WHITE, "Internal error in %s on line %zu:\n%s",
@@ -118,7 +118,7 @@ void intr_error(const char *fmt, ...)
 			    *lineno_ptr, out.str);
 	} else
 		mferror(COLOR_WHITE, "Internal error: %s", out.str);
-	
+
 	string_done(&out);
 }
 
@@ -126,12 +126,12 @@ void alert(const char *fmt, ...)
 {
 	string_t out;
 	string_init(&out);
-	
+
 	va_list va;
 	va_start(va, fmt);
 	string_vprintf(&out, fmt, va);
 	va_end(va);
-	
+
 	if (lineno_ptr != NULL) {
 		if (script_name)
 			mferror(COLOR_CYAN, "Alert in %s on line %zu:\n%s",
@@ -141,7 +141,7 @@ void alert(const char *fmt, ...)
 			    *lineno_ptr, out.str);
 	} else
 		mferror(COLOR_CYAN, "Alert: %s", out.str);
-	
+
 	string_done(&out);
 }
 
@@ -149,12 +149,12 @@ void die(int status, const char *fmt, ...)
 {
 	string_t out;
 	string_init(&out);
-	
+
 	va_list va;
 	va_start(va, fmt);
 	string_vprintf(&out, fmt, va);
 	va_end(va);
-	
+
 	if (lineno_ptr != NULL) {
 		if (script_name)
 			mferror(COLOR_RED, "Fault in %s on line %zu:\n%s",
@@ -164,9 +164,9 @@ void die(int status, const char *fmt, ...)
 			    *lineno_ptr, out.str);
 	} else
 		mferror(COLOR_RED, "Fault: %s", out.str);
-	
+
 	string_done(&out);
-	
+
 	input_back();
 	if (status == ERR_INTERN)
 		abort();

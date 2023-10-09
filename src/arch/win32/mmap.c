@@ -23,7 +23,7 @@ void *mmap(void *addr, size_t length, int prot, int flags, int fd,
 		errno = EBADF;
 		return MAP_FAILED;
 	}
-	
+
 	DWORD protect = 0;
 	DWORD access = 0;
 	if ((prot & PROT_EXEC) == PROT_EXEC) {
@@ -53,21 +53,21 @@ void *mmap(void *addr, size_t length, int prot, int flags, int fd,
 				access = FILE_MAP_WRITE;
 		}
 	}
-	
+
 	HANDLE handle = CreateFileMapping(fh, NULL, protect,
 	    ((uint64_t) length) >> 32, length & UINT32_C(0xffffffff), NULL);
 	if (handle == NULL) {
 		errno = EPERM;
 		return MAP_FAILED;
 	}
-	
+
 	void *map = MapViewOfFile(handle, access, ((uint64_t) offset) >> 32,
 	    offset & UINT32_C(0xffffffff), length & UINT32_C(0xffffffff));
 	if (map == NULL) {
 		errno = ENOMEM;
 		return MAP_FAILED;
 	}
-	
+
 	CloseHandle(handle);
 	return map;
 }
@@ -76,7 +76,7 @@ int munmap(void *addr, size_t length)
 {
 	if (!UnmapViewOfFile(addr))
 		return -1;
-	
+
 	return 0;
 }
 

@@ -126,10 +126,10 @@ static bool change_ireg(unsigned int i)
 		error("Index out of range 0..%u", R4K_REG_VARIANTS - 1);
 		return false;
 	}
-	
+
 	r4k_ireg = i;
 	r4k_regname = r4k_reg_name[i];
-	
+
 	return true;
 }
 
@@ -238,7 +238,7 @@ const env_t global_env[] = {
 static void print_all_variables(void)
 {
 	printf("[Group               ] [Variable] [Value   ]\n");
-	
+
 	const env_t *env;
 	for (env = global_env; env->name; env++) {
 		if (env->val) {
@@ -272,10 +272,10 @@ bool env_check_varname(const char *name, var_type_t *type)
 {
 	if (name == NULL)
 		name = "";
-	
+
 	bool ret = false;
 	const env_t *env;
-	
+
 	for (env = global_env; env->name; env++) {
 		if ((env->val) && (!strcmp(name, env->name))) {
 			ret = true;
@@ -284,7 +284,7 @@ bool env_check_varname(const char *name, var_type_t *type)
 			break;
 		}
 	}
-	
+
 	return ret;
 }
 
@@ -295,17 +295,17 @@ bool env_check_type(const char *name, var_type_t type)
 {
 	if (name == NULL)
 		name = "";
-	
+
 	bool ret = false;
 	const env_t *env;
-	
+
 	for (env = global_env; env->name; env++) {
 		if ((env->val) && (!strcmp(name, env->name))) {
 			ret = (env->type == type);
 			break;
 		}
 	}
-	
+
 	return ret;
 }
 
@@ -313,15 +313,15 @@ unsigned int env_cnt_partial_varname(const char *name)
 {
 	if (name == NULL)
 		name = "";
-	
+
 	const env_t *env;
 	unsigned int cnt = 0;
-	
+
 	for (env = global_env; env->name; env++) {
 		if ((env->val) && (prefix(name, env->name)))
 			cnt++;
 	}
-	
+
 	return cnt;
 }
 
@@ -329,17 +329,17 @@ static bool env_by_partial_varname(const char *name, const env_t **envp)
 {
 	if (name == NULL)
 		name = "";
-	
+
 	const env_t *env = ((envp) && (*envp)) ? (*envp + 1) : global_env;
-	
+
 	for (; env->name; env++) {
 		if ((env->val) && (prefix(name, env->name)))
 			break;
 	}
-	
+
 	if ((env->name) && (envp))
 		*envp = env;
-	
+
 	return (!!env->name);
 }
 
@@ -356,19 +356,19 @@ static bool env_by_partial_varname(const char *name, const env_t **envp)
 static const env_t *search_variable(const char *name)
 {
 	ASSERT(name != NULL);
-	
+
 	const env_t *env;
-	
+
 	for (env = global_env; env->name; env++) {
 		if ((env->val) && (!strcmp(name, env->name)))
 			break;
 	}
-	
+
 	if (!env->name) {
 		error("Unknown variable \"%s\"", name);
 		return NULL;
 	}
-	
+
 	return env;
 }
 
@@ -383,9 +383,9 @@ static const env_t *search_variable(const char *name)
 static void show_help(token_t *parm)
 {
 	ASSERT(parm != NULL);
-	
+
 	const env_t *env;
-	
+
 	if (parm_type(parm) == tt_end) {
 		printf("[Group               ] [Variable] [Description\n");
 		for (env = global_env; env->name; env++) {
@@ -402,7 +402,7 @@ static void show_help(token_t *parm)
 		/* Skip '=' constant */
 		ASSERT(strcmp(parm_str(parm), "=") == 0);
 		parm_next(&parm);
-		
+
 		env = search_variable(parm_str_next(&parm));
 		if (env)
 			printf("%s\n", env->descf);
@@ -421,12 +421,12 @@ static bool set_uint(const env_t *env, token_t *parm)
 		error("Integer parameter expected");
 		return false;
 	}
-	
+
 	if (env->func)
 		((set_uint_t) env->func)(parm_uint(parm));
 	else
 		*((unsigned int *) env->val) = parm_uint(parm);
-		
+
 	return true;
 }
 
@@ -437,14 +437,14 @@ static bool set_bool(const env_t *env, token_t *parm)
 {
 	ASSERT(env != NULL);
 	ASSERT(parm != NULL);
-	
+
 	bool val = !!parm_uint(parm);
-	
+
 	if (env->func)
 		((set_bool_t) env->func)(val);
 	else
 		*((bool *) env->val) = val;
-	
+
 	return true;
 }
 
@@ -455,14 +455,14 @@ static bool set_str(const env_t *env, token_t *parm)
 {
 	ASSERT(env != NULL);
 	ASSERT(parm != NULL);
-	
+
 	if (env->func)
 		((set_str_t) env->func)(parm_str(parm));
 	else {
 		free(env->val);
 		*((char **) env->val) = safe_strdup(parm_str(parm));
 	}
-	
+
 	return true;
 }
 
@@ -472,31 +472,31 @@ static bool set_str(const env_t *env, token_t *parm)
 static bool bool_sanitize(token_t *parm)
 {
 	ASSERT(parm != NULL);
-	
+
 	const char **str;
-	
+
 	if (parm_type(parm) == tt_str) {
 		/* Test for true */
 		for (str = t_true_all; *str; str++)
 			if (!strcmp(parm_str(parm), *str))
 				break;
-		
+
 		if (*str) {
 			parm_set_uint(parm, 1);
 			return true;
 		}
-		
+
 		/* Test for false */
 		for (str = t_false_all; *str; str++)
 			if (!strcmp(parm_str(parm), *str))
 				break;
-		
+
 		if (*str) {
 			parm_set_uint(parm, 0);
 			return true;
 		}
 	}
-	
+
 	return false;
 }
 
@@ -506,12 +506,12 @@ static bool bool_sanitize(token_t *parm)
 static bool set_variable(const char *name, token_t *parm)
 {
 	ASSERT(parm != NULL);
-	
+
 	const env_t *env = search_variable(name);
-	
+
 	if (!env)
 		return false;
-	
+
 	switch (env->type) {
 	case vt_uint:
 		return set_uint(env, parm);
@@ -535,20 +535,20 @@ static bool set_variable(const char *name, token_t *parm)
 static bool set_bool_variable(const char *name, bool val)
 {
 	ASSERT(name != NULL);
-	
+
 	const env_t *env = search_variable(name);
-	
+
 	if (env) {
 		token_t *token = safe_malloc_t(token_t);
 		parm_init(token);
 		parm_set_uint(token, val);
-		
+
 		bool ret = set_bool(env, token);
-		
+
 		safe_free(token);
 		return ret;
 	}
-	
+
 	return false;
 }
 
@@ -558,29 +558,29 @@ static bool set_bool_variable(const char *name, bool val)
 bool env_cmd_set(token_t *parm)
 {
 	ASSERT(parm != NULL);
-	
+
 	if (parm_type(parm) == tt_end) {
 		/* Show all variables */
 		print_all_variables();
 		return true;
 	}
-	
+
 	const char *name = parm_str_next(&parm);
-	
+
 	if (strcmp(name, "help") == 0) {
 		/* Show help */
 		show_help(parm);
 		return true;
 	}
-	
+
 	/* Implicit boolean? */
 	if (parm_type(parm) == tt_end)
 		return set_bool_variable(name, true);
-	
+
 	/* Skip '=' constant */
 	ASSERT(strcmp(parm_str(parm), "=") == 0);
 	parm_next(&parm);
-	
+
 	/* Set the variable */
 	return set_variable(name, parm);
 }
@@ -591,7 +591,7 @@ bool env_cmd_set(token_t *parm)
 bool env_cmd_unset(token_t *parm)
 {
 	ASSERT(parm != NULL);
-	
+
 	const char *name = parm_str(parm);
 	return set_bool_variable(name, false);
 }
@@ -605,20 +605,20 @@ char *generator_env_name(token_t *parm, const void *data, unsigned int level)
 {
 	ASSERT(parm != NULL);
 	ASSERT((parm_type(parm) == tt_str) || (parm_type(parm) == tt_end));
-	
+
 	/* Iterator initialization */
 	if (level == 0)
 		last_env = NULL;
-	
+
 	const char *name =
 	    (parm_type(parm) == tt_str) ? parm_str(parm) : "";
-	
+
 	/* Find next suitable entry */
 	bool fnd = env_by_partial_varname(name, &last_env);
-	
+
 	if (fnd)
 		return safe_strdup(last_env->name);
-	
+
 	return NULL;
 }
 
@@ -632,23 +632,23 @@ char *generator_env_booltype(token_t *parm, const void *data,
 {
 	ASSERT(parm != NULL);
 	ASSERT((parm_type(parm) == tt_str) || (parm_type(parm) == tt_end));
-	
+
 	/* Iterator initialization */
 	if (level == 0)
 		last_bool = t_bool;
 	else
 		last_bool++;
-	
+
 	/* Find next suitable entry */
 	while (*last_bool) {
 		if (prefix(parm_str(parm), *last_bool))
 			break;
 		last_bool++;
 	}
-	
+
 	if (*last_bool)
 		return safe_strdup(*last_bool);
-	
+
 	return NULL;
 }
 
@@ -662,23 +662,23 @@ char *generator_bool_envname(token_t *parm, const void *data,
 {
 	ASSERT(parm != NULL);
 	ASSERT((parm_type(parm) == tt_str) || parm_type(parm) == tt_end);
-	
+
 	/* Iterator initialization */
 	if (level == 0)
 		last_benv = NULL;
-	
+
 	/* Find next suitable entry */
 	bool fnd;
 	do {
 		const char *name =
 		    (parm_type(parm) == tt_str) ? parm_str(parm) : "";
-		
+
 		fnd = env_by_partial_varname(name, &last_benv);
 	} while ((fnd) && (last_benv->type != vt_bool));
-	
+
 	if (fnd)
 		return safe_strdup(last_benv->name);
-	
+
 	return NULL;
 }
 
@@ -690,9 +690,9 @@ char *generator_equal_char(token_t *token, const void *data,
 {
 	ASSERT(token != NULL);
 	ASSERT((parm_type(token) == tt_str) || (parm_type(token) == tt_end));
-	
+
 	if (level == 0)
 		return safe_strdup("=");
-	
+
 	return NULL;
 }

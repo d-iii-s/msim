@@ -51,10 +51,10 @@ static uint64_t read_multiply(const char **str)
 {
 	ASSERT(str != NULL);
 	ASSERT(*str != NULL);
-	
+
 	const char *tmp = *str;
 	uint64_t mply;
-	
+
 	switch (*tmp) {
 	case 'k':
 		mply = UINT64_C(1000);
@@ -75,7 +75,7 @@ static uint64_t read_multiply(const char **str)
 	default:
 		mply = 1;
 	}
-	
+
 	*str = tmp;
 	return mply;
 }
@@ -130,14 +130,14 @@ static void skip_whitespace_chars(const char **str)
 {
 	ASSERT(str != NULL);
 	ASSERT(*str != NULL);
-	
+
 	const char *tmp = *str;
-	
+
 	do {
 		/* Skip whitespace chars */
 		while ((*tmp) && (whitespace(*tmp)))
 			tmp++;
-		
+
 		/* Skip comments */
 		if (*tmp == '#') {
 			while ((*tmp) && (*tmp != '\n'))
@@ -145,7 +145,7 @@ static void skip_whitespace_chars(const char **str)
 			continue;
 		}
 	} while (false);
-	
+
 	*str = tmp;
 }
 
@@ -158,13 +158,13 @@ static unsigned int char2uint(char c)
 {
 	if ((c >= '0') && (c <= '9'))
 		return (c - '0');
-	
+
 	if ((c >= 'a') && (c <= 'z'))
 		return (c - 'a' + 10);
-	
+
 	if ((c >= 'A') && (c <= 'Z'))
 		return (c - 'A' + 10);
-	
+
 	die(ERR_INTERN, "Character error");
 	return 0;
 }
@@ -177,27 +177,27 @@ static void read_number(const char **str, int_token_t *token)
 	ASSERT(str != NULL);
 	ASSERT(*str != NULL);
 	ASSERT(token != NULL);
-	
+
 	const char *tmp = *str;
 	uint64_t i = 0;
-	
+
 	if ((tmp[0] == '0') && (tmp[1] == 'x')) {
 		/* Hex number */
 		tmp += 2;
-		
+
 		while (hexadecimal(*tmp)) {
 			uint64_t orig_i = i;
 			i <<= 4;
 			i += char2uint(*tmp);
 			tmp++;
-			
+
 			/* Overflow test */
 			if (i < orig_i) {
 				token->ttype = tt_err_overflow;
 				return;
 			}
 		}
-		
+
 		if (tmp > *str)
 			token->ttype = tt_uint;
 		else
@@ -209,20 +209,20 @@ static void read_number(const char **str, int_token_t *token)
 			i *= 10;
 			i += char2uint(*tmp);
 			tmp++;
-			
+
 			/* Overflow test */
 			if (i < orig_i) {
 				token->ttype = tt_err_overflow;
 				return;
 			}
 		}
-		
+
 		if (tmp > *str) {
 			token->ttype = tt_uint;
-			
+
 			uint64_t orig_i = i;
 			i *= read_multiply(&tmp);
-			
+
 			/* Overflow test */
 			if (i < orig_i) {
 				token->ttype = tt_err_overflow;
@@ -231,13 +231,13 @@ static void read_number(const char **str, int_token_t *token)
 		} else
 			token->ttype = tt_err_invalid_num;
 	}
-	
+
 	/* Error test */
 	if ((*tmp) && (alphanum(*tmp))) {
 		token->ttype = tt_err_invalid_num;
 		return;
 	}
-	
+
 	token->i = i;
 	*str = tmp;
 }
@@ -250,15 +250,15 @@ static void read_string(const char **str, int_token_t *token)
 	ASSERT(str != NULL);
 	ASSERT(*str != NULL);
 	ASSERT(token != NULL);
-	
+
 	const char *tmp = *str;
 	string_t out;
 	string_init(&out);
-	
+
 	if ((*tmp == '"') || (*tmp == '\'')) {
 		char quote = *tmp;
 		tmp++;
-		
+
 		/* Test for quote */
 		if (*tmp == quote) {
 			tmp++;
@@ -267,12 +267,12 @@ static void read_string(const char **str, int_token_t *token)
 				string_push(&out, *tmp);
 				tmp++;
 			}
-			
+
 			if (*tmp == '\n') {
 				token->ttype = tt_err_string_noend;
 				return;
 			}
-			
+
 			tmp++;
 		}
 	} else {
@@ -285,7 +285,7 @@ static void read_string(const char **str, int_token_t *token)
 			}
 		}
 	}
-	
+
 	*str = tmp;
 	token->ttype = tt_str;
 	token->str = out;
@@ -299,7 +299,7 @@ static void read_token(const char **str, int_token_t *token)
 	ASSERT(str != NULL);
 	ASSERT(*str != NULL);
 	ASSERT(token != NULL);
-	
+
 	if ((**str == 0) || (**str == '\n')) {
 		token->ttype = tt_end;
 		(*str)++;
@@ -319,7 +319,7 @@ static void parse_token(const char **str, int_token_t *token)
 	ASSERT(str != NULL);
 	ASSERT(*str != NULL);
 	ASSERT(token != NULL);
-	
+
 	skip_whitespace_chars(str);
 	read_token(str, token);
 }
@@ -330,22 +330,22 @@ static void parse_token(const char **str, int_token_t *token)
 token_t *parm_parse(const char *str)
 {
 	ASSERT(str != NULL);
-	
+
 	int_token_t int_token;
 	int_token.i = 0;
 	int_token.str.str = NULL;
-	
+
 	list_t *pars = safe_malloc_t(list_t);
 	list_init(pars);
-	
+
 	do {
 		/* Parse next token */
 		parse_token(&str, &int_token);
-		
+
 		/* Allocate a new node */
 		token_t *token = safe_malloc_t(token_t);
 		item_init(&token->item);
-		
+
 		/* Copy parameters */
 		token->ttype = int_token.ttype;
 		switch (int_token.ttype) {
@@ -358,7 +358,7 @@ token_t *parm_parse(const char *str)
 		default:
 			break;
 		}
-		
+
 		list_append(pars, &token->item);
 	} while ((int_token.ttype != tt_end) && (int_token.ttype < tt_err));
 
@@ -374,17 +374,17 @@ void parm_delete(token_t *parm)
 {
 	ASSERT(parm != NULL);
 	ASSERT(parm->item.list != NULL);
-	
+
 	list_t *list = parm->item.list;
 	token_t *token = (token_t *) list->head;
-	
+
 	while (token != NULL) {
 		if (token->ttype == tt_str)
 			safe_free(token->tval.str);
-		
+
 		token_t *removed = token;
 		token = (token_t *) token->item.next;
-		
+
 		list_remove(list, &removed->item);
 		safe_free(removed);
 	}
@@ -402,19 +402,19 @@ void parm_check_end(token_t *parm, const char *str)
 {
 	ASSERT(parm != NULL);
 	ASSERT(str != NULL);
-	
+
 	if (parm_type(parm) == tt_end)
 		return;
-	
+
 	size_t len = strlen(str);
-	
+
 	if ((len > 0) && (whitespace(str[len - 1]))) {
 		/* Find the end of the parameter list */
-		
+
 		token_t *pre = parm;
 		while (parm_type(parm_next(&parm)) != tt_end)
 			pre = parm;
-		
+
 		parm_insert_str(pre, safe_strdup(""));
 	}
 }
@@ -427,7 +427,7 @@ token_t *parm_next(token_t **parm)
 	ASSERT(parm != NULL);
 	ASSERT(*parm != NULL);
 	ASSERT((*parm)->item.next != NULL);
-	
+
 	*parm = (token_t *) ((*parm)->item.next);
 	return *parm;
 }
@@ -438,7 +438,7 @@ token_t *parm_next(token_t **parm)
 token_type_t parm_type(token_t *parm)
 {
 	ASSERT(parm != NULL);
-	
+
 	return parm->ttype;
 }
 
@@ -448,10 +448,10 @@ token_type_t parm_type(token_t *parm)
 bool parm_last(token_t *parm)
 {
 	ASSERT(parm != NULL);
-	
+
 	if (parm->item.next == NULL)
 		return false;
-	
+
 	token_t *next = (token_t *) (parm->item.next);
 	return (next->ttype == tt_end);
 }
@@ -463,7 +463,7 @@ uint64_t parm_uint(token_t *parm)
 {
 	ASSERT(parm != NULL);
 	ASSERT(parm->ttype == tt_uint);
-	
+
 	return parm->tval.i;
 }
 
@@ -474,7 +474,7 @@ char *parm_str(token_t *parm)
 {
 	ASSERT(parm != NULL);
 	ASSERT(parm->ttype == tt_str);
-	
+
 	return parm->tval.str;
 }
 
@@ -485,10 +485,10 @@ uint64_t parm_uint_next(token_t **parm)
 {
 	ASSERT(parm != NULL);
 	ASSERT(*parm != NULL);
-	
+
 	uint64_t i = parm_uint(*parm);
 	parm_next(parm);
-	
+
 	return i;
 }
 
@@ -499,10 +499,10 @@ char *parm_str_next(token_t **parm)
 {
 	ASSERT(parm != NULL);
 	ASSERT(*parm != NULL);
-	
+
 	char *str = parm_str(*parm);
 	parm_next(parm);
-	
+
 	return str;
 }
 
@@ -514,13 +514,13 @@ char *parm_str_next(token_t **parm)
 void parm_insert_uint(token_t *parm, uint64_t val)
 {
 	ASSERT(parm != NULL);
-	
+
 	token_t *ntoken = safe_malloc_t(token_t);
-	
+
 	item_init(&ntoken->item);
 	ntoken->ttype = tt_uint;
 	ntoken->tval.i = val;
-	
+
 	list_insert_after(&parm->item, &ntoken->item);
 }
 
@@ -533,20 +533,20 @@ void parm_insert_str(token_t *parm, char *str)
 {
 	ASSERT(parm != NULL);
 	ASSERT(str != NULL);
-	
+
 	token_t *ntoken = safe_malloc_t(token_t);
-	
+
 	item_init(&ntoken->item);
 	ntoken->ttype = tt_str;
 	ntoken->tval.str = str;
-	
+
 	list_insert_after(&parm->item, &ntoken->item);
 }
 
 void parm_init(token_t *parm)
 {
 	ASSERT(parm != NULL);
-	
+
 	item_init(&parm->item);
 	parm->ttype = tt_end;
 }
@@ -557,10 +557,10 @@ void parm_init(token_t *parm)
 void parm_set_uint(token_t *parm, uint64_t val)
 {
 	ASSERT(parm != NULL);
-	
+
 	if (parm->ttype == tt_str)
 		safe_free(parm->tval.str);
-	
+
 	parm->ttype = tt_uint;
 	parm->tval.i = val;
 }
@@ -572,10 +572,10 @@ void parm_set_str(token_t *parm, char *str)
 {
 	ASSERT(parm != NULL);
 	ASSERT(str != NULL);
-	
+
 	if (parm->ttype == tt_str)
 		safe_free(parm->tval.str);
-	
+
 	parm->ttype = tt_str;
 	parm->tval.str = str;
 }
@@ -590,7 +590,7 @@ static void find_next_parm(const char **str)
 {
 	ASSERT(str != NULL);
 	ASSERT(*str != NULL);
-	
+
 	while (*(*str)++);
 }
 
@@ -611,19 +611,19 @@ static cmd_find_res_t cmd_compare(const char *str, const char *cmd)
 {
 	ASSERT(str != NULL);
 	ASSERT(cmd != NULL);
-	
+
 	/* Compare strings */
 	const char *tmp;
 	for (tmp = str; (*cmd) && (*tmp == *cmd); tmp++, cmd++);
-	
+
 	/* Check for full match */
 	if (*tmp == 0) {
 		if (*cmd == 0)
 			return CMP_HIT;
-		
+
 		return CMP_PARTIAL_HIT;
 	}
-	
+
 	return CMP_NO_HIT;
 }
 
@@ -633,7 +633,7 @@ static cmd_find_res_t cmd_compare(const char *str, const char *cmd)
 static const char *parm_skipq(const char *str)
 {
 	ASSERT(str != NULL);
-	
+
 	return (str + 2);
 }
 
@@ -652,9 +652,9 @@ cmd_find_res_t cmd_find(const char *cmd_name, const cmd_t *cmds,
 {
 	ASSERT(cmd_name != NULL);
 	ASSERT(cmds != NULL);
-	
+
 	cmd_find_res_t res;
-	
+
 	/* Find the command */
 	for (res = CMP_NO_HIT; (res != CMP_HIT) && (cmds->name); cmds++) {
 		switch (cmd_compare(cmd_name, cmds->name)) {
@@ -677,7 +677,7 @@ cmd_find_res_t cmd_find(const char *cmd_name, const cmd_t *cmds,
 			die(ERR_INTERN, "Command identification error");
 		}
 	}
-	
+
 	return res;
 }
 
@@ -692,29 +692,29 @@ cmd_find_res_t cmd_find(const char *cmd_name, const cmd_t *cmds,
 static const char *find_name(const char *str)
 {
 	ASSERT(str != NULL);
-	
+
 	if ((str[0] == 0) || (str[1] == 0))
 		return str;
-	
+
 	/* Search for a separator */
 	const char *tmp;
 	for (tmp = str + 2; (*tmp != 0) && (*tmp != '/'); tmp++);
-	
+
 	if (*tmp != 0)
 		return (tmp + 1);
-	
+
 	return str + 2;
 }
 
 static size_t sname_len(const char *str)
 {
 	ASSERT(str != NULL);
-	
+
 	/* Search for a separator */
 	const char *tmp;
 	size_t len;
 	for (tmp = str, len = 0; (*tmp != 0) && (*tmp != '/'); tmp++, len++);
-	
+
 	return len;
 }
 
@@ -725,9 +725,9 @@ bool cmd_run_by_spec(const cmd_t *cmd, token_t *parm, void *data)
 {
 	ASSERT(cmd != NULL);
 	ASSERT(parm != NULL);
-	
+
 	token_t *orig_parm = parm;
-	
+
 	/*
 	 * Check all parameters.
 	 */
@@ -738,7 +738,7 @@ bool cmd_run_by_spec(const cmd_t *cmd, token_t *parm, void *data)
 			error("Invalid parameter quantifier \"%s\"", pars);
 			return false;
 		}
-		
+
 		if ((*pars == OPTC) && (parm->ttype == tt_end))
 			break;
 		else {
@@ -747,7 +747,7 @@ bool cmd_run_by_spec(const cmd_t *cmd, token_t *parm, void *data)
 				return false;
 			}
 		}
-		
+
 		/* Check type */
 		switch (pars[1]) {
 		case INTC:
@@ -783,17 +783,17 @@ bool cmd_run_by_spec(const cmd_t *cmd, token_t *parm, void *data)
 			error("Invalid parameter type \"%s\"", pars);
 			return false;
 		}
-		
+
 		/* Go to next parameter and token */
 		find_next_parm(&pars);
 		parm_next(&parm);
 	}
-	
+
 	if ((*pars == ENDC) && (parm->ttype != tt_end)) {
 		error("Too many parameters");
 		return false;
 	}
-	
+
 	/*
 	 * Check whether the specified function
 	 * is already implemented. If so, call it.
@@ -802,7 +802,7 @@ bool cmd_run_by_spec(const cmd_t *cmd, token_t *parm, void *data)
 		intr_error("Command not implemented");
 		return false;
 	}
-	
+
 	return cmd->func(orig_parm, data);
 }
 
@@ -819,9 +819,9 @@ bool cmd_run_by_name(const char *cmd_name, token_t *parm, const cmd_t *cmds,
 	ASSERT(cmd_name != NULL);
 	ASSERT(parm != NULL);
 	ASSERT(cmds != NULL);
-	
+
 	const cmd_t *cmd = NULL;
-	
+
 	/* Find fine command */
 	switch (cmd_find(cmd_name, cmds, &cmd)) {
 	case CMP_HIT:
@@ -836,7 +836,7 @@ bool cmd_run_by_name(const char *cmd_name, token_t *parm, const cmd_t *cmds,
 		intr_error("Ambiguous command \"%s\"", cmd_name);
 		return false;
 	}
-	
+
 	return cmd_run_by_spec(cmd, parm, data);
 }
 
@@ -849,13 +849,13 @@ bool cmd_run_by_parm(token_t *parm, const cmd_t *cmds, void *data)
 {
 	ASSERT(parm != NULL);
 	ASSERT(cmds != NULL);
-	
+
 	/* Check whether the first token is a string */
 	if (parm_type(parm) != tt_str) {
 		intr_error("Command name string expected");
 		return false;
 	}
-	
+
 	const char *cmd_name = parm_str_next(&parm);
 	return cmd_run_by_name(cmd_name, parm, cmds, data);
 }
@@ -871,70 +871,70 @@ char *generator_cmd(token_t *parm, const void *data, unsigned int level)
 	ASSERT(parm != NULL);
 	ASSERT(data != NULL);
 	ASSERT((parm_type(parm) == tt_str) || (parm_type(parm) == tt_end));
-	
+
 	if (level == 0)
 		last_cmd = (cmd_t *) data;
-	
+
 	/* Find command */
 	const char *cmd_prefix = (parm_type(parm) == tt_str) ?
 	    parm_str(parm) : "";
-	
+
 	/* Device command list is ended by LAST_CMD */
 	while (last_cmd->name) {
 		if (prefix(cmd_prefix, last_cmd->name))
 			break;
-		
+
 		last_cmd++;
 	}
-	
+
 	if (last_cmd->name == NULL)
 		return NULL;
-	
+
 	char *name = safe_strdup(last_cmd->name);
 	last_cmd++;
-	
+
 	return name;
 }
 
 static char *cmd_get_syntax(const cmd_t *cmd)
 {
 	ASSERT(cmd != NULL);
-	
+
 	string_t msg;
 	string_init(&msg);
-	
+
 	string_append(&msg, cmd->name);
-	
+
 	unsigned int opt = 0;
 	const char *pars = cmd->pars;
-	
+
 	while ((*pars != ENDC) && (*pars != CONTC)) {
 		/* Append a space */
 		string_push(&msg, ' ');
-		
+
 		/* Check optional */
 		if (*pars == OPTC) {
 			string_push(&msg, '[');
 			opt++;
 		}
-		
+
 		/* Short parameter name */
 		if (pars[1] != CONC) {
 			char *name = safe_strdup(parm_skipq(pars));
 			name[sname_len(name)] = 0;
-			
+
 			string_printf(&msg, "<%s>", name);
 			safe_free(name);
 		} else
 			string_append(&msg, parm_skipq(pars));
-		
+
 		find_next_parm(&pars);
 	}
-	
+
 	/* Close brackets */
 	for (; opt; opt--)
 		string_push(&msg, ']');
-	
+
 	return msg.str;
 }
 
@@ -948,12 +948,12 @@ static char *cmd_get_syntax(const cmd_t *cmd)
 void cmd_print_help(const cmd_t *cmds)
 {
 	ASSERT(cmds != NULL);
-	
+
 	/* Ignore the hardwired "init" command */
 	cmds++;
-	
+
 	printf("[Command and arguments       ] [Description\n");
-	
+
 	while (cmds->name) {
 		char *syntax = cmd_get_syntax(cmds);
 		printf("%-30s %s\n", syntax, cmds->desc);
@@ -973,15 +973,15 @@ void cmd_print_extended_help(const cmd_t *cmds, token_t *parm)
 {
 	ASSERT(cmds != NULL);
 	ASSERT(parm != NULL);
-	
+
 	if (parm_type(parm) == tt_end) {
 		cmd_print_help(cmds);
 		return;
 	}
-	
+
 	const char *cmd_name = parm_str(parm);
 	const cmd_t *cmd = NULL;
-	
+
 	/* Find command */
 	switch (cmd_find(cmd_name, cmds, &cmd)) {
 	case CMP_HIT:
@@ -996,23 +996,23 @@ void cmd_print_extended_help(const cmd_t *cmds, token_t *parm)
 		intr_error("Ambiguous command \"%s\"", cmd_name);
 		return;
 	}
-	
+
 	printf("%s\n", cmd->descf);
-	
+
 	char *syntax = cmd_get_syntax(cmd);
 	printf("Syntax: %s\n", syntax);
 	safe_free(syntax);
-	
+
 	const char *pars = cmd->pars;
 	while ((*pars != ENDC) && (*pars != CONTC)) {
 		if (pars[1] != CONC) {
 			char *name = safe_strdup(parm_skipq(pars));
 			name[sname_len(name)] = 0;
-			
+
 			printf("\t<%s> %s\n", name, find_name(pars));
 			safe_free(name);
 		}
-		
+
 		find_next_parm(&pars);
 	}
 }

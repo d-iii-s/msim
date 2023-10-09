@@ -4,7 +4,7 @@ static r4k_exc_t instr_dmultu(r4k_cpu_t *cpu, r4k_instr_t instr)
 		ASSERT(false);
 		return r4k_excNone;
 	}
-	
+
 	return r4k_excRI;
 }
 

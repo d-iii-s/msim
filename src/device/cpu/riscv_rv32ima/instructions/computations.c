@@ -206,7 +206,7 @@ rv_exc_t rv_ori_instr(rv_cpu_t *cpu, rv_instr_t instr){
 rv_exc_t rv_xori_instr(rv_cpu_t *cpu, rv_instr_t instr){
     ASSERT(cpu != NULL);
     ASSERT(instr.i.opcode == rv_opcOP_IMM);
-    
+
     int32_t imm = instr.i.imm;
 
     uint32_t val = cpu->regs[instr.i.rs1] ^ imm;
@@ -219,7 +219,7 @@ rv_exc_t rv_xori_instr(rv_cpu_t *cpu, rv_instr_t instr){
 rv_exc_t rv_slli_instr(rv_cpu_t *cpu, rv_instr_t instr){
     ASSERT(cpu != NULL);
     ASSERT(instr.i.opcode == rv_opcOP_IMM);
-    
+
     uint32_t imm = instr.i.imm & RV_IMM_SHIFT_SHAMT_MASK;
 
     uint32_t val = (uint32_t)cpu->regs[instr.i.rs1] << imm;
@@ -455,14 +455,14 @@ rv_exc_t rv_amoswap_instr(rv_cpu_t *cpu, rv_instr_t instr){
     throw_if_misaligned(cpu, virt);
 
     uint32_t val;
-    
+
     rv_exc_t ex = rv_read_mem32(cpu, virt, &val, false, true);
     ASSERT(ex == rv_exc_none);
 
     ex = rv_write_mem32(cpu, virt, cpu->regs[instr.r.rs2], true);
     ASSERT(ex == rv_exc_none);
 
-    cpu->regs[instr.r.rd] = val;   
+    cpu->regs[instr.r.rd] = val;
     return rv_exc_none;
 }
 
@@ -484,12 +484,12 @@ rv_exc_t rv_amoadd_instr(rv_cpu_t *cpu, rv_instr_t instr){
     cpu->regs[instr.r.rd] = val;
     // add with rs2
     val += cpu->regs[instr.r.rs2];
-    
+
     //  write to mem
     ex = rv_write_mem32(cpu, virt, val, true);
     ASSERT(ex == rv_exc_none);
     return ex;
-    
+
 }
 
 rv_exc_t rv_amoxor_instr(rv_cpu_t *cpu, rv_instr_t instr) {
@@ -580,7 +580,7 @@ rv_exc_t rv_amomin_instr(rv_cpu_t *cpu, rv_instr_t instr){
 rv_exc_t rv_amomax_instr(rv_cpu_t *cpu, rv_instr_t instr){
 
     uint32_t virt = cpu->regs[instr.r.rs1];
-    
+
     // Check write privileges first
     throw_if_wrong_privilege(cpu, virt);
     // Then alignment
@@ -630,7 +630,7 @@ rv_exc_t rv_amomaxu_instr(rv_cpu_t *cpu, rv_instr_t instr){
     throw_if_wrong_privilege(cpu, virt);
     // Then alignment
     throw_if_misaligned(cpu, virt);
-    
+
     uint32_t val;
     rv_exc_t ex = rv_read_mem32(cpu, virt, &val, false, true);
     ASSERT(ex == rv_exc_none);
@@ -638,7 +638,7 @@ rv_exc_t rv_amomaxu_instr(rv_cpu_t *cpu, rv_instr_t instr){
     cpu->regs[instr.r.rd] = val;
     uint32_t rs2 = cpu->regs[instr.r.rs2];
     val =  rs2 > val ? rs2 : val;
-    
+
     ex = rv_write_mem32(cpu, virt, val, true);
     ASSERT(ex == rv_exc_none);
     return ex;

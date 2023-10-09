@@ -43,7 +43,7 @@ typedef enum {
 /** Structure for the code breakpoints */
 typedef struct {
 	item_t item;
-	
+
 	breakpoint_kind_t kind;
 	ptr64_t pc;
 	uint64_t hits;
@@ -52,7 +52,7 @@ typedef struct {
 /** Structure for the memory breakpoints */
 typedef struct {
 	item_t item;
-	
+
 	breakpoint_kind_t kind;
 	ptr36_t addr;
 	len36_t size;

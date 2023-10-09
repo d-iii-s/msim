@@ -19,7 +19,7 @@ PCUT_TEST_AFTER {
 }
 
 PCUT_TEST(simple){
-    
+
     uint32_t virt = 0x0;
     ptr36_t phys = 0x0;
     unsigned asid = 1;
@@ -44,7 +44,7 @@ PCUT_TEST(simple){
 }
 
 PCUT_TEST(get_with_offset){
-    
+
     uint32_t virt = 0x0;
     ptr36_t phys  = 0x1000;
     unsigned asid = 1;
@@ -70,7 +70,7 @@ PCUT_TEST(get_with_offset){
 }
 
 PCUT_TEST(add_with_offset){
-    
+
     uint32_t virt = 0x0001;
     ptr36_t phys  = 0x1000;
     unsigned asid = 1;
@@ -96,7 +96,7 @@ PCUT_TEST(add_with_offset){
 }
 
 PCUT_TEST(simple_megapage){
-    
+
     uint32_t virt = 0x0;
     ptr36_t phys = 0x0;
     unsigned asid = 1;
@@ -119,7 +119,7 @@ PCUT_TEST(simple_megapage){
 }
 
 PCUT_TEST(simple_megapage_non_base_page_mapping){
-    
+
     uint32_t virt = 0x0;
     ptr36_t phys = 0x0;
     unsigned asid = 1;
@@ -146,7 +146,7 @@ PCUT_TEST(simple_megapage_non_base_page_mapping){
 }
 
 PCUT_TEST(simple_global){
-    
+
     uint32_t virt = 0x0;
     ptr36_t phys = 0x0;
     unsigned asid = 1;
@@ -206,7 +206,7 @@ PCUT_TEST(unmapped_addr){
 
     bool success = rv_tlb_get_mapping(&tlb, asid, different_virt, &pte, &megapage);
 
-    PCUT_ASSERT_EQUALS(false, success);   
+    PCUT_ASSERT_EQUALS(false, success);
 }
 
 PCUT_TEST(flush_all){

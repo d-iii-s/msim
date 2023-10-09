@@ -51,13 +51,13 @@ typedef struct {
 	/* Memory area type */
 	physmem_type_t type;
 	bool writable;
-	
+
 	/* Starting physical frame */
 	pfn_t start;
-	
+
 	/* Number of physical frames */
 	pfn_t count;
-	
+
 	/* Memory content */
 	uint8_t *data;
 } physmem_area_t;
@@ -65,10 +65,10 @@ typedef struct {
 typedef struct frame {
 	/* Physical memory area containing the frame */
 	physmem_area_t *area;
-	
+
 	/* Frame data (with displacement) */
 	uint8_t *data;
-	
+
 	/* Binary translation valid flag */
 	bool valid;
 } frame_t;

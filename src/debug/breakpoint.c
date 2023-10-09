@@ -8,7 +8,7 @@
  *
  * The simulator supports memory breakpoints for stopping after r/w access
  * to specified address in the memory and code breakpoints for stopping
- * after the specified processor executes instruction on the specified 
+ * after the specified processor executes instruction on the specified
  * address. (stopping after is probably a wrong behavior, because the gdb
  * expects stopping before the execution of instruction) The memory
  *
@@ -66,14 +66,14 @@ static physmem_breakpoint_t *physmem_breakpoint_init(ptr36_t address,
     len36_t size, breakpoint_kind_t kind, access_filter_t access_flags)
 {
 	physmem_breakpoint_t *breakpoint = safe_malloc_t(physmem_breakpoint_t);
-	
+
 	item_init(&breakpoint->item);
 	breakpoint->kind = kind;
 	breakpoint->addr = address;
 	breakpoint->size = size;
 	breakpoint->hits = 0;
 	breakpoint->access_flags = access_flags;
-	
+
 	return breakpoint;
 }
 
@@ -92,7 +92,7 @@ void physmem_breakpoint_add(ptr36_t address, len36_t length,
 {
 	physmem_breakpoint_t *breakpoint =
 	    physmem_breakpoint_init(address, length, kind, access_flags);
-	
+
 	list_append(&physmem_breakpoints, &breakpoint->item);
 }
 
@@ -107,18 +107,18 @@ bool physmem_breakpoint_remove(ptr36_t address)
 {
 	physmem_breakpoint_t *breakpoint =
 	    (physmem_breakpoint_t *) physmem_breakpoints.head;
-	
+
 	while (breakpoint != NULL) {
 		if (breakpoint->addr == address) {
 			list_remove(&physmem_breakpoints, &breakpoint->item);
 			safe_free(breakpoint);
-			
+
 			return true;
 		}
-		
+
 		breakpoint = (physmem_breakpoint_t *) breakpoint->item.next;
 	}
-	
+
 	return false;
 }
 
@@ -131,15 +131,15 @@ void physmem_breakpoint_remove_filtered(breakpoint_filter_t filter)
 {
 	physmem_breakpoint_t *breakpoint =
 	    (physmem_breakpoint_t *) physmem_breakpoints.head;
-	
+
 	while (breakpoint != NULL) {
 		physmem_breakpoint_t *removed = breakpoint;
 		breakpoint = (physmem_breakpoint_t *) breakpoint->item.next;
-		
+
 		/* Ignore breakpoints which are not filtered */
 		if ((removed->kind & filter) == 0)
 			continue;
-		
+
 		list_remove(&physmem_breakpoints, &removed->item);
 		safe_free(removed);
 	}
@@ -149,12 +149,12 @@ void physmem_breakpoint_remove_filtered(breakpoint_filter_t filter)
 void physmem_breakpoint_print_list(void)
 {
 	printf("[address         ] [mode] [hits              ]\n");
-	
+
 	physmem_breakpoint_t *breakpoint = NULL;
 	for_each(physmem_breakpoints, breakpoint, physmem_breakpoint_t) {
 		bool read = breakpoint->access_flags & ACCESS_READ;
 		bool write = breakpoint->access_flags & ACCESS_WRITE;
-		
+
 		printf("%#018" PRIx64 " %c%c     %20" PRIu64 "\n",
 		    breakpoint->addr,
 		    read ? 'r' : '-', write ? 'w' : '-',
@@ -175,7 +175,7 @@ void physmem_breakpoint_hit(physmem_breakpoint_t *breakpoint,
     access_t access_type)
 {
 	ASSERT(breakpoint != NULL);
-	
+
 	switch (breakpoint->kind) {
 	case BREAKPOINT_KIND_SIMULATOR:
 		if (access_type == ACCESS_READ)
@@ -184,7 +184,7 @@ void physmem_breakpoint_hit(physmem_breakpoint_t *breakpoint,
 		else
 			alert("Debug: Written to address %#0" PRIx64,
 			    breakpoint->addr);
-		
+
 		breakpoint->hits++;
 		machine_interactive = true;
 		break;
@@ -212,12 +212,12 @@ breakpoint_t *breakpoint_init(ptr64_t address, breakpoint_kind_t kind)
 {
 	breakpoint_t *breakpoint =
 	    (breakpoint_t *) safe_malloc_t(breakpoint_t);
-	
+
 	item_init(&breakpoint->item);
 	breakpoint->pc = address;
 	breakpoint->hits = 0;
 	breakpoint->kind = kind;
-	
+
 	return breakpoint;
 }
 
@@ -229,7 +229,7 @@ breakpoint_t *breakpoint_init(ptr64_t address, breakpoint_kind_t kind)
 static void breakpoint_hit(breakpoint_t *breakpoint)
 {
 	breakpoint->hits++;
-	
+
 	switch (breakpoint->kind) {
 	case BREAKPOINT_KIND_SIMULATOR:
 		alert("Debug: Hit breakpoint at %#0" PRIx64, breakpoint->pc.ptr);
@@ -257,7 +257,7 @@ static void breakpoint_hit(breakpoint_t *breakpoint)
 static bool breakpoint_hit_by_address(list_t breakpoints, ptr64_t address)
 {
 	bool hit = false;
-	
+
 	breakpoint_t *breakpoint = NULL;
 	for_each (breakpoints, breakpoint, breakpoint_t) {
 		if (breakpoint->pc.ptr == address.ptr) {
@@ -265,7 +265,7 @@ static bool breakpoint_hit_by_address(list_t breakpoints, ptr64_t address)
 			hit = true;
 		}
 	}
-	
+
 	return hit;
 }
 
@@ -286,13 +286,13 @@ breakpoint_t *breakpoint_find_by_address(list_t breakpoints,
     ptr64_t address, breakpoint_filter_t filter)
 {
 	breakpoint_t *breakpoint = NULL;
-	
+
 	for_each (breakpoints, breakpoint, breakpoint_t) {
 		if ((breakpoint->pc.ptr == address.ptr) &&
 		    ((breakpoint->kind & filter) != 0))
 				return breakpoint;
 	}
-	
+
 	return NULL;
 }
 
@@ -310,13 +310,13 @@ bool breakpoint_check_for_code_breakpoints(void)
 	//TODO: add RV support
 	bool hit = false;
 	device_t *dev = NULL;
-	
+
 	while (dev_next(&dev, DEVICE_FILTER_R4K_PROCESSOR)) {
 		r4k_cpu_t *cpu = get_r4k(dev);
-		
+
 		if (breakpoint_hit_by_address(cpu->bps, cpu->pc))
 			hit = true;
 	}
-	
+
 	return hit;
 }

@@ -18,7 +18,7 @@ bool remote_gdb_step = false;
 /** General simulator behaviour */
 bool machine_nondet = false;
 
-// set to true for debugging 
+// set to true for debugging
 bool machine_trace = false;
 bool machine_halt = false;
 bool machine_break = false;

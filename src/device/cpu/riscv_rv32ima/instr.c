@@ -47,7 +47,7 @@ static rv_instr_func_t decode_MISC_MEM(rv_instr_t instr) {
     if(instr.i.funct3 == 0){
         return rv_fence_instr;
     }
-    return rv_illegal_instr; 
+    return rv_illegal_instr;
 }
 
 static rv_instr_func_t decode_OP_IMM(rv_instr_t instr) {
@@ -80,17 +80,17 @@ static rv_instr_func_t decode_OP_IMM(rv_instr_t instr) {
                 case rv_SRLI:
                     return rv_srli_instr;
                 default:
-                    return rv_illegal_instr; 
+                    return rv_illegal_instr;
             }
         }
         default:
-            return rv_illegal_instr; 
+            return rv_illegal_instr;
     }
 }
 
 static rv_instr_func_t decode_AUIPC(rv_instr_t instr) {
     ASSERT(instr.r.opcode == rv_opcAUIPC);
-    return rv_auipc_instr; 
+    return rv_auipc_instr;
 }
 
 static rv_instr_func_t decode_STORE(rv_instr_t instr) {
@@ -139,7 +139,7 @@ static rv_instr_func_t decode_AMO(rv_instr_t instr) {
         case rv_funcAMOMAXU:
             return rv_amomaxu_instr;
         default:
-            return rv_illegal_instr; 
+            return rv_illegal_instr;
     }
 }
 
@@ -186,12 +186,12 @@ static rv_instr_func_t decode_OP(rv_instr_t instr) {
             return rv_remu_instr;
         default:
             return rv_illegal_instr;
-    }    
+    }
 }
 
 static rv_instr_func_t decode_LUI(rv_instr_t instr) {
     ASSERT(instr.r.opcode == rv_opcLUI);
-    return rv_lui_instr; 
+    return rv_lui_instr;
 }
 
 static rv_instr_func_t decode_BRANCH(rv_instr_t instr) {
@@ -209,8 +209,8 @@ static rv_instr_func_t decode_BRANCH(rv_instr_t instr) {
             return rv_bge_instr;
         case rv_func_BGEU:
             return rv_bgeu_instr;
-        default: 
-            return rv_illegal_instr; 
+        default:
+            return rv_illegal_instr;
     }
 }
 
@@ -219,13 +219,13 @@ static rv_instr_func_t decode_JALR(rv_instr_t instr) {
 
     if(instr.i.funct3 != 0) {
         return rv_illegal_instr;
-    }    
-    return rv_jalr_instr; 
+    }
+    return rv_jalr_instr;
 }
 
 static rv_instr_func_t decode_JAL(rv_instr_t instr) {
     ASSERT(instr.r.opcode == rv_opcJAL);
-    return rv_jal_instr; 
+    return rv_jal_instr;
 }
 
 
@@ -288,7 +288,7 @@ static rv_instr_func_t decode_SYSTEM(rv_instr_t instr) {
 rv_instr_func_t rv_instr_decode(rv_instr_t instr){
     // opcode is at the same spot in all encodings, so any can be chosen
     switch (instr.r.opcode) {
-        case rv_opcLOAD: 
+        case rv_opcLOAD:
             return decode_LOAD(instr);
         case rv_opcMISC_MEM:
             return decode_MISC_MEM(instr);
@@ -310,7 +310,7 @@ rv_instr_func_t rv_instr_decode(rv_instr_t instr){
             return decode_JALR(instr);
         case rv_opcJAL:
             return decode_JAL(instr);
-        case rv_opcSYSTEM: 
+        case rv_opcSYSTEM:
             return decode_SYSTEM(instr);
         default: {
             return rv_illegal_instr;

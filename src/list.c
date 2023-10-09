@@ -43,25 +43,25 @@ void list_append(list_t *list, item_t *item)
 	   of a list, then add it. */
 	ASSERT(item->list == NULL);
 	item->list = list;
-	
+
 	/* In an empty list, attach us as head.
 	   Otherwise, attach us to current tail. */
 	if (list->tail == NULL)
 		list->head = item;
 	else
 		list->tail->next = item;
-	
+
 	/* Our previous item is current tail.
 	   We obviously have no next item. */
 	item->prev = list->tail;
 	item->next = NULL;
-	
+
 	/* We are the new tail. */
 	list->tail = item;
 }
 
 /** Pushes an item to the front of a list
- * 
+ *
  * @param list The list to push to.
  * @param item The item to push.
  */
@@ -100,7 +100,7 @@ void list_remove(list_t *list, item_t *item)
 	   of the list, then remove it. */
 	ASSERT(item->list == list);
 	item->list = NULL;
-	
+
 	if (item->prev == NULL)
 		/* If we are list head, our next item is the new head.
 		   This works even if we happen to be the tail too. */
@@ -109,7 +109,7 @@ void list_remove(list_t *list, item_t *item)
 		/* Otherwise, just make our previous
 		   item point to our next item. */
 		item->prev->next = item->next;
-	
+
 	/* The same for the other end of the list. */
 	if (item->next == NULL)
 		list->tail = item->prev;
@@ -121,7 +121,7 @@ void list_insert_after(item_t *anchor, item_t *item)
 {
 	ASSERT(anchor->list != NULL);
 	ASSERT(item->list == NULL);
-	
+
 	if (anchor->list->tail == anchor)
 		/* If the anchor item is the last item,
 		   use the usual append */

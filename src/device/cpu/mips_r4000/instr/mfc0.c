@@ -4,7 +4,7 @@ static r4k_exc_t instr_mfc0(r4k_cpu_t *cpu, r4k_instr_t instr)
 		cpu->regs[instr.r.rt].val = sign_extend_32_64(cpu->cp0[instr.r.rd].lo);
 		return r4k_excNone;
 	}
-	
+
 	/* Coprocessor unusable */
 	cp0_cause(cpu).val &= ~cp0_cause_ce_mask;
 	return r4k_excCpU;

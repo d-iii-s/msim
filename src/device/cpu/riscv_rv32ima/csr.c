@@ -18,17 +18,17 @@
 
 /**
  * Initialize CSRs
- * 
+ *
  * Expects the csr parameter to be zero-initialized
  */
 void rv_init_csr(csr_t *csr, unsigned int procno){
-    
+
     csr->misa = RV_ISA;
     csr->mvendorid = RV_VENDOR_ID;
     csr->marchid = RV_ARCH_ID;
     csr->mimpid = RV_IMPLEMENTATION_ID;
     csr->mhartid = procno;
-    
+
     csr->mtime = current_timestamp();
     csr->last_tick_time = csr->mtime;
 
@@ -105,7 +105,7 @@ static rv_exc_t counter_read(rv_cpu_t* cpu, csr_num_t csr, uint32_t* target){
 
         if(cpu->priv_mode == rv_smode && !is_counter_enabled_m(cpu, counter))
             return rv_exc_illegal_instruction;
-        
+
         if(cpu->priv_mode == rv_umode && !(is_counter_enabled_m(cpu, counter) && is_counter_enabled_s(cpu, counter)))
             return rv_exc_illegal_instruction;
 
@@ -343,7 +343,7 @@ static rv_exc_t sstatus_read(rv_cpu_t* cpu, csr_num_t csr, uint32_t* target){
 
 static rv_exc_t sstatus_write(rv_cpu_t* cpu, csr_num_t csr, uint32_t value){
     minimal_privilege(rv_smode, cpu);
-    
+
     // Masked write of low 32 bits
     cpu->csr.mstatus = (cpu->csr.mstatus & 0xFFFFFFFF00000000) | (value & rv_csr_sstatus_mask);
     return rv_exc_none;
@@ -371,7 +371,7 @@ static rv_exc_t sie_read(rv_cpu_t* cpu, csr_num_t csr, uint32_t* target){
 
 static rv_exc_t sie_write(rv_cpu_t* cpu, csr_num_t csr, uint32_t value){
     minimal_privilege(rv_smode, cpu);
-    
+
     // write only to si bits, preserve rest
     cpu->csr.mie &= ~rv_csr_si_mask;
     cpu->csr.mie |= value & rv_csr_si_mask;
@@ -392,7 +392,7 @@ static rv_exc_t sie_clear(rv_cpu_t* cpu, csr_num_t csr, uint32_t value){
 
 static rv_exc_t sip_read(rv_cpu_t* cpu, csr_num_t csr, uint32_t* target){
     minimal_privilege(rv_smode, cpu);
-    
+
     // The SEIP bit is the logical OR of the value in MIP and the status from external interrupt controller
     // Full explanation RISC-V Privileged spec section 3.1.9 Machine Interrupt Registers (mip and mie)
     *target = (cpu->csr.mip & rv_csr_si_mask)
@@ -403,7 +403,7 @@ static rv_exc_t sip_read(rv_cpu_t* cpu, csr_num_t csr, uint32_t* target){
 
 static rv_exc_t sip_write(rv_cpu_t* cpu, csr_num_t csr, uint32_t value){
     minimal_privilege(rv_smode, cpu);
-    
+
     // only ssip is writable
     cpu->csr.mip &= ~rv_csr_ssi_mask;
     cpu->csr.mip |= value & rv_csr_ssi_mask;
@@ -555,7 +555,7 @@ static rv_exc_t scause_clear(rv_cpu_t* cpu, csr_num_t csr, uint32_t value){
     else {
         return rv_exc_illegal_instruction;
     }
-    
+
     return rv_exc_none;
 }
 
@@ -580,11 +580,11 @@ static rv_exc_t satp_write(rv_cpu_t* cpu, csr_num_t csr, uint32_t value){
     uint32_t mask = rv_csr_satp_mode_mask | active_asid_mask | rv_csr_satp_ppn_mask;
 
     cpu->csr.satp = value & mask;
-    
+
     if(rv_csr_satp_is_bare(cpu)){
         cpu->csr.satp = 0;
     }
-    
+
     return rv_exc_none;
 }
 
@@ -713,7 +713,7 @@ static rv_exc_t mstatus_write(rv_cpu_t* cpu, csr_num_t csr, uint32_t value){
 
 static rv_exc_t mstatus_set(rv_cpu_t* cpu, csr_num_t csr, uint32_t value){
     minimal_privilege(rv_mmode, cpu);
-    
+
     value &= rv_csr_mstatus_mask;
 
     uint64_t new_val = ((uint64_t)value) | cpu->csr.mstatus;
@@ -1288,7 +1288,7 @@ static csr_ops_t get_csr_ops(csr_num_t csr){
         ops.set = invalid_write;        \
         ops.clear = invalid_write;      \
         break;                          \
-    }                            
+    }
 
     switch(csr){
         case(csr_cycle):
@@ -1557,13 +1557,13 @@ static csr_ops_t get_csr_ops(csr_num_t csr){
         default_case(mcountinhibit)
 
         default_case(sstatus)
-    
+
         default_case(sie)
         default_case(stvec)
         default_case(scounteren)
-    
+
         default_case(senvcfg)
-    
+
         default_case(sscratch)
         default_case(sepc)
         default_case(scause)
@@ -1572,7 +1572,7 @@ static csr_ops_t get_csr_ops(csr_num_t csr){
         default_case(satp)
         default_case(scontext)
         default_case(scyclecmp)
-        
+
         read_only_case(mvendorid)
         read_only_case(marchid)
         read_only_case(mimpid)
@@ -1580,16 +1580,16 @@ static csr_ops_t get_csr_ops(csr_num_t csr){
         read_only_case(mconfigptr)
 
         default_case(mstatus)
-    
+
         default_case(misa)
         default_case(medeleg)
         default_case(mideleg)
         default_case(mie)
         default_case(mtvec)
         default_case(mcounteren)
-    
+
         default_case(mstatush)
-    
+
         default_case(mscratch)
         default_case(mepc)
         default_case(mcause)
@@ -1597,12 +1597,12 @@ static csr_ops_t get_csr_ops(csr_num_t csr){
         default_case(mip)
         default_case(mtinst)
         default_case(mtval2)
-    
+
         default_case(menvcfg)
         default_case(menvcfgh)
         default_case(mseccfg)
         default_case(mseccfgh)
-    
+
         default_case(tselect)
         default_case(tdata1)
         default_case(tdata2)
@@ -1622,7 +1622,7 @@ static csr_ops_t get_csr_ops(csr_num_t csr){
 
 /**
  * @brief Reads the old value from the CSR, then writes the specified value
- * 
+ *
  * @param cpu The cpu on which this operation is done
  * @param csr The csr on which this operation is done
  * @param value The value to be written
@@ -1653,7 +1653,7 @@ rv_exc_t rv_csr_rw(rv_cpu_t* cpu, csr_num_t csr, uint32_t value, uint32_t* read_
 
 /**
  * @brief Reads the old value from the CSR, then sets the specified bits
- * 
+ *
  * @param cpu The cpu on which this operation is done
  * @param csr The csr on which this operation is done
  * @param value The value specifying which bits to set
@@ -1663,7 +1663,7 @@ rv_exc_t rv_csr_rw(rv_cpu_t* cpu, csr_num_t csr, uint32_t value, uint32_t* read_
  */
 rv_exc_t rv_csr_rs(rv_cpu_t* cpu, csr_num_t csr, uint32_t value, uint32_t* read_target, bool write){
     csr_ops_t ops = get_csr_ops(csr);
-    
+
     uint32_t temp_read_target = 0;
 
     rv_exc_t ex = ops.read(cpu, csr, &temp_read_target);
@@ -1681,7 +1681,7 @@ rv_exc_t rv_csr_rs(rv_cpu_t* cpu, csr_num_t csr, uint32_t value, uint32_t* read_
 
 /**
  * @brief Reads the old value from the CSR, then clears the specified bits
- * 
+ *
  * @param cpu The cpu on which this operation is done
  * @param csr The csr on which this operation is done
  * @param value The value specifying which bits to clear
@@ -1690,11 +1690,11 @@ rv_exc_t rv_csr_rs(rv_cpu_t* cpu, csr_num_t csr, uint32_t value, uint32_t* read_
  * @return rv_exc_t The exception code
  */
 rv_exc_t rv_csr_rc(rv_cpu_t* cpu, csr_num_t csr, uint32_t value, uint32_t* read_target, bool write){
-   
+
     csr_ops_t ops = get_csr_ops(csr);
     uint32_t temp_read_target = 0;
     rv_exc_t ex = ops.read(cpu, csr, &temp_read_target);
-    
+
     if(ex == rv_exc_none && write){
         ex = ops.clear(cpu, csr, value);
     }

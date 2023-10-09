@@ -1,5 +1,5 @@
 #define ehalt .word 0x8C000073
-user_read_user_page:    // 
+user_read_user_page:    //
     li t0, 0x10003000
 
     // no trap
@@ -18,7 +18,7 @@ jal ra, newline
 // End of all tests
 ehalt
 
-newline: 
+newline:
     li t0, 0xA0000000
     li t1, '\n'
     sw t1, (t0)

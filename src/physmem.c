@@ -307,11 +307,11 @@ void physmem_wire(physmem_area_t *area)
 	ASSERT(area->count > 0);
 	ASSERT(area->data != NULL);
 	//ASSERT(area->trans != NULL);
-	
+
 	pfn_t pfn;
 	for (pfn = 0; pfn < area->count; pfn++) {
 		ptr36_t addr = FRAME2ADDR(area->start + pfn);
-		
+
 		/* 1st level frame table */
 		ftl1_t *ftl1 = ftl0[(addr >> FTL1_SHIFT) & FTL1_MASK];
 		if (ftl1 == NULL) {
@@ -320,7 +320,7 @@ void physmem_wire(physmem_area_t *area)
 			memset(ftl1, 0, sizeof(ftl1_t));
 			ftl0[(addr >> FTL1_SHIFT) & FTL1_MASK] = ftl1;
 		}
-		
+
 		/* 2nd level frame table */
 		frame_t *frame = (*ftl1)[(addr >> FTL2_SHIFT) & FTL2_MASK];
 		if (frame == NULL) {
@@ -329,7 +329,7 @@ void physmem_wire(physmem_area_t *area)
 			memset(frame, 0, sizeof(frame_t));
 			(*ftl1)[(addr >> FTL2_SHIFT) & FTL2_MASK] = frame;
 		}
-		
+
 		/* Frame descriptor */
 		frame->area = area;
 		frame->data = area->data + FRAMES2SIZE(pfn);
@@ -348,15 +348,15 @@ void physmem_unwire(physmem_area_t *area)
 	uint32_t pfn;
 	for (pfn = 0; pfn < area->count; pfn++) {
 		ptr36_t addr = FRAME2ADDR(area->start + pfn);
-		
+
 		/* 1st level frame table */
 		ftl1_t *ftl1 = ftl0[(addr >> FTL1_SHIFT) & FTL1_MASK];
 		ASSERT(ftl1 != NULL);
-		
+
 		/* 2nd level frame table */
 		frame_t **frame_ref = &((*ftl1)[(addr >> FTL2_SHIFT) & FTL2_MASK]);
 		ASSERT(*frame_ref != NULL);
-		
+
 		/* Remove frame */
 		safe_free(*frame_ref);
 
@@ -384,7 +384,7 @@ frame_t* physmem_find_frame(ptr36_t addr)
 		if (frame != NULL)
 			return frame;
 	}
-	
+
 	return NULL;
 }
 
@@ -406,14 +406,14 @@ static void physmem_breakpoint_find(ptr36_t addr, len36_t size,
     access_t access_type)
 {
 	physmem_breakpoint_t *breakpoint;
-	
+
 	for_each(physmem_breakpoints, breakpoint, physmem_breakpoint_t) {
 		if (breakpoint->addr + breakpoint->size < addr)
 			continue;
-		
+
 		if (breakpoint->addr > addr + size)
 			continue;
-		
+
 		if ((access_type & breakpoint->access_flags) != 0) {
 			physmem_breakpoint_hit(breakpoint, access_type);
 			break;
@@ -424,52 +424,52 @@ static void physmem_breakpoint_find(ptr36_t addr, len36_t size,
 static uint8_t devmem_read8(unsigned int procno, ptr36_t addr)
 {
 	uint32_t val = (uint32_t) DEFAULT_MEMORY_VALUE;
-	
+
 	/* List for each device */
 	device_t *dev = NULL;
 	while (dev_next(&dev, DEVICE_FILTER_ALL))
 		if (dev->type->read32)
 			dev->type->read32(procno, dev, addr, &val);
-	
+
 	return val;
 }
 
 static uint16_t devmem_read16(unsigned int procno, ptr36_t addr)
 {
 	uint32_t val = (uint32_t) DEFAULT_MEMORY_VALUE;
-	
+
 	/* List for each device */
 	device_t *dev = NULL;
 	while (dev_next(&dev, DEVICE_FILTER_ALL))
 		if (dev->type->read32)
 			dev->type->read32(procno, dev, addr, &val);
-	
+
 	return val;
 }
 
 static uint32_t devmem_read32(unsigned int procno, ptr36_t addr)
 {
 	uint32_t val = (uint32_t) DEFAULT_MEMORY_VALUE;
-	
+
 	/* List for each device */
 	device_t *dev = NULL;
 	while (dev_next(&dev, DEVICE_FILTER_ALL))
 		if (dev->type->read32)
 			dev->type->read32(procno, dev, addr, &val);
-	
+
 	return val;
 }
 
 static uint64_t devmem_read64(unsigned int procno, ptr36_t addr)
 {
 	uint64_t val = (uint64_t) DEFAULT_MEMORY_VALUE;
-	
+
 	/* List for each device */
 	device_t *dev = NULL;
 	while (dev_next(&dev, DEVICE_FILTER_ALL))
 		if (dev->type->read64)
 			dev->type->read64(procno, dev, addr, &val);
-	
+
 	return val;
 }
 
@@ -491,7 +491,7 @@ static uint64_t devmem_read64(unsigned int procno, ptr36_t addr)
 uint8_t physmem_read8(unsigned int procno, ptr36_t addr, bool protected)
 {
 	frame_t *frame = physmem_find_frame(addr);
-	
+
 	/*
 	 * No memory frame found, try to read the value
 	 * from appropriate device or return the default value.
@@ -499,14 +499,14 @@ uint8_t physmem_read8(unsigned int procno, ptr36_t addr, bool protected)
 	if (frame == NULL){
 		return devmem_read8(procno, addr);
 	}
-	
+
 	/* Check for memory read breakpoints */
 	if (protected)
 		physmem_breakpoint_find(addr, 1, ACCESS_READ);
-	
+
 	ASSERT(frame->data);
 	uint8_t *data = frame->data + (addr & FRAME_MASK);
-	
+
 	return convert_uint8_t_endian(*data);
 }
 
@@ -528,7 +528,7 @@ uint8_t physmem_read8(unsigned int procno, ptr36_t addr, bool protected)
 uint16_t physmem_read16(unsigned int procno, ptr36_t addr, bool protected)
 {
 	frame_t *frame = physmem_find_frame(addr);
-	
+
 	/*
 	 * No memory frame found, try to read the value
 	 * from appropriate device or return the default value.
@@ -536,14 +536,14 @@ uint16_t physmem_read16(unsigned int procno, ptr36_t addr, bool protected)
 	if (frame == NULL){
 		return devmem_read16(procno, addr);
 	}
-	
+
 	/* Check for memory read breakpoints */
 	if (protected)
 		physmem_breakpoint_find(addr, 2, ACCESS_READ);
-	
+
 	ASSERT(frame->data);
 	uint16_t *data = (uint16_t *) (frame->data + (addr & FRAME_MASK));
-	
+
 	return convert_uint16_t_endian(*data);
 }
 
@@ -565,7 +565,7 @@ uint16_t physmem_read16(unsigned int procno, ptr36_t addr, bool protected)
 uint32_t physmem_read32(unsigned int procno, ptr36_t addr, bool protected)
 {
 	frame_t *frame = physmem_find_frame(addr);
-	
+
 	/*
 	 * No memory frame found, try to read the value
 	 * from appropriate device or return the default value.
@@ -573,14 +573,14 @@ uint32_t physmem_read32(unsigned int procno, ptr36_t addr, bool protected)
 	if (frame == NULL){
 		return devmem_read32(procno, addr);
 	}
-	
+
 	/* Check for memory read breakpoints */
 	if (protected)
 		physmem_breakpoint_find(addr, 4, ACCESS_READ);
-	
+
 	ASSERT(frame->data);
 	uint32_t *data = (uint32_t *) (frame->data + (addr & FRAME_MASK));
-	
+
 	return convert_uint32_t_endian(*data);
 }
 
@@ -602,7 +602,7 @@ uint32_t physmem_read32(unsigned int procno, ptr36_t addr, bool protected)
 uint64_t physmem_read64(unsigned int procno, ptr36_t addr, bool protected)
 {
 	frame_t *frame = physmem_find_frame(addr);
-	
+
 	/*
 	 * No memory frame found, try to read the value
 	 * from appropriate device or return the default value.
@@ -610,14 +610,14 @@ uint64_t physmem_read64(unsigned int procno, ptr36_t addr, bool protected)
 	if (frame == NULL){
 		return devmem_read64(procno, addr);
 	}
-	
+
 	/* Check for memory read breakpoints */
 	if (protected)
 		physmem_breakpoint_find(addr, 8, ACCESS_READ);
-	
+
 	ASSERT(frame->data);
 	uint64_t *data = (uint64_t *) (frame->data + (addr & FRAME_MASK));
-	
+
 	return convert_uint64_t_endian(*data);
 }
 
@@ -625,7 +625,7 @@ uint64_t physmem_read64(unsigned int procno, ptr36_t addr, bool protected)
 static bool devmem_write8(unsigned int procno, ptr36_t addr, uint8_t val)
 {
 	bool written = false;
-	
+
 	/* List for each device */
 	device_t *dev = NULL;
 	while (dev_next(&dev, DEVICE_FILTER_ALL)) {
@@ -634,14 +634,14 @@ static bool devmem_write8(unsigned int procno, ptr36_t addr, uint8_t val)
 			written = true;
 		}
 	}
-	
+
 	return written;
 }
 
 static bool devmem_write16(unsigned int procno, ptr36_t addr, uint16_t val)
 {
 	bool written = false;
-	
+
 	/* List for each device */
 	device_t *dev = NULL;
 	while (dev_next(&dev, DEVICE_FILTER_ALL)) {
@@ -650,14 +650,14 @@ static bool devmem_write16(unsigned int procno, ptr36_t addr, uint16_t val)
 			written = true;
 		}
 	}
-	
+
 	return written;
 }
 
 static bool devmem_write32(unsigned int procno, ptr36_t addr, uint32_t val)
 {
 	bool written = false;
-	
+
 	/* List for each device */
 	device_t *dev = NULL;
 	while (dev_next(&dev, DEVICE_FILTER_ALL)) {
@@ -666,14 +666,14 @@ static bool devmem_write32(unsigned int procno, ptr36_t addr, uint32_t val)
 			written = true;
 		}
 	}
-	
+
 	return written;
 }
 
 static bool devmem_write64(unsigned int procno, ptr36_t addr, uint64_t val)
 {
 	bool written = false;
-	
+
 	/* List for each device */
 	device_t *dev = NULL;
 	while (dev_next(&dev, DEVICE_FILTER_ALL)) {
@@ -682,7 +682,7 @@ static bool devmem_write64(unsigned int procno, ptr36_t addr, uint64_t val)
 			written = true;
 		}
 	}
-	
+
 	return written;
 }
 
@@ -705,12 +705,12 @@ void sc_register(unsigned int procno)
 {
 	/* Ignore if already registered. */
 	sc_item_t *sc_item;
-	
+
 	for_each(sc_list, sc_item, sc_item_t) {
 		if (sc_item->procno == procno)
 			return;
 	}
-	
+
 	sc_item = safe_malloc_t(sc_item_t);
 	item_init(&sc_item->item);
 	sc_item->procno = procno;
@@ -723,7 +723,7 @@ void sc_register(unsigned int procno)
 void sc_unregister(unsigned int procno)
 {
 	sc_item_t *sc_item;
-	
+
 	for_each(sc_list, sc_item, sc_item_t) {
 		if (sc_item->procno == procno) {
 			list_remove(&sc_list, &sc_item->item);
@@ -739,13 +739,13 @@ void sc_unregister(unsigned int procno)
 static void sc_control(ptr36_t addr, int size)
 {
 	sc_item_t *sc_item = (sc_item_t *) sc_list.head;
-	
+
 	while (sc_item != NULL) {
-		
+
 		if (cpu_sc_access(get_cpu(sc_item->procno), addr, size)) {
 			sc_item_t *tmp = sc_item;
 			sc_item = (sc_item_t *) sc_item->item.next;
-			
+
 			list_remove(&sc_list, &tmp->item);
 			safe_free(tmp);
 		}
@@ -775,31 +775,31 @@ static void sc_control(ptr36_t addr, int size)
 bool physmem_write8(unsigned int procno, ptr36_t addr, uint8_t val, bool protected)
 {
 	frame_t *frame = physmem_find_frame(addr);
-	
+
 	/* No frame found, try to write the value to appropriate device */
 	if (frame == NULL){
 		return devmem_write8(procno, addr, val);
 	}
-	
+
 	ASSERT(frame->area);
 	ASSERT(frame->data);
-	
+
 	/* Writting to ROM? */
 	if ((!frame->area->writable) && (protected))
 		return false;
-	
+
 	sc_control(addr, 1);
-	
+
 	/* Check for memory write breakpoints */
 	if (protected)
 		physmem_breakpoint_find(addr, 1, ACCESS_WRITE);
-	
+
 	/* Invalidate binary translation */
 	frame->valid = false;
-	
+
 	uint8_t *data = frame->data + (addr & FRAME_MASK);
 	*data = convert_uint8_t_endian(val);
-	
+
 	return true;
 }
 
@@ -823,31 +823,31 @@ bool physmem_write8(unsigned int procno, ptr36_t addr, uint8_t val, bool protect
 bool physmem_write16(unsigned int procno, ptr36_t addr, uint16_t val, bool protected)
 {
 	frame_t *frame = physmem_find_frame(addr);
-	
+
 	/* No frame found, try to write the value to appropriate device */
 	if (frame == NULL){
 		return devmem_write16(procno, addr, val);
 	}
-	
+
 	ASSERT(frame->area);
 	ASSERT(frame->data);
-	
+
 	/* Writting to ROM? */
 	if ((!frame->area->writable) && (protected))
 		return false;
-	
+
 	sc_control(addr, 2);
-	
+
 	/* Check for memory write breakpoints */
 	if (protected)
 		physmem_breakpoint_find(addr, 2, ACCESS_WRITE);
-	
+
 	/* Invalidate binary translation */
 	frame->valid = false;
-	
+
 	uint16_t *data = (uint16_t *) (frame->data + (addr & FRAME_MASK));
 	*data = convert_uint16_t_endian(val);
-	
+
 	return true;
 }
 
@@ -871,31 +871,31 @@ bool physmem_write16(unsigned int procno, ptr36_t addr, uint16_t val, bool prote
 bool physmem_write32(unsigned int procno, ptr36_t addr, uint32_t val, bool protected)
 {
 	frame_t *frame = physmem_find_frame(addr);
-	
+
 	/* No frame found, try to write the value to appropriate device */
 	if (frame == NULL){
 		return devmem_write32(procno, addr, val);
 	}
-	
+
 	ASSERT(frame->area);
 	ASSERT(frame->data);
-	
+
 	/* Writting to ROM? */
 	if ((!frame->area->writable) && (protected))
 		return false;
-	
+
 	sc_control(addr, 4);
-	
+
 	/* Check for memory write breakpoints */
 	if (protected)
 		physmem_breakpoint_find(addr, 4, ACCESS_WRITE);
-	
+
 	/* Invalidate binary translation */
 	frame->valid = false;
-	
+
 	uint32_t *data = (uint32_t *) (frame->data + (addr & FRAME_MASK));
 	*data = convert_uint32_t_endian(val);
-	
+
 	return true;
 }
 
@@ -919,31 +919,31 @@ bool physmem_write32(unsigned int procno, ptr36_t addr, uint32_t val, bool prote
 bool physmem_write64(unsigned int procno, ptr36_t addr, uint64_t val, bool protected)
 {
 	frame_t *frame = physmem_find_frame(addr);
-	
+
 	/* No frame found, try to write the value to appropriate device */
 	if (frame == NULL) {
 		return devmem_write64(procno, addr, val);
 	}
-	
+
 	ASSERT(frame->area);
 	ASSERT(frame->data);
-	
+
 	/* Writting to ROM? */
 	if ((!frame->area->writable) && (protected))
 		return false;
-	
+
 	sc_control(addr, 8);
-	
+
 	/* Check for memory write breakpoints */
 	if (protected)
 		physmem_breakpoint_find(addr, 8, ACCESS_WRITE);
-	
+
 	/* Invalidate binary translation */
 	frame->valid = false;
-	
+
 	uint64_t *data = (uint64_t *) (frame->data + (addr & FRAME_MASK));
 	*data = convert_uint64_t_endian(val);
-	
+
 	return true;
 }
 

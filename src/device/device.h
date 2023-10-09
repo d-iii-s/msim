@@ -28,28 +28,28 @@ typedef struct {
 	const char *const name;   /**< Device type name (i82xx etc.). */
 	const char *const brief;  /**< Brief decription of the device type. */
 	const char *const full;   /**< Full device type description. */
-	
+
 	/** Dispose internal data. */
 	void (*done)(struct device *dev);
-	
+
 	/** Called every machine cycle. */
 	void (*step)(struct device *dev);
-	
+
 	/** Called every 4096th machine cycle. */
 	void (*step4k)(struct device *dev);
-	
+
 	/** Device memory read */
 	void (*read32)(unsigned int procno, struct device *dev, ptr36_t addr,
 	    uint32_t *val);
 	void (*read64)(unsigned int procno, struct device *dev, ptr36_t addr,
 	    uint64_t *val);
-	
+
 	/** Device memory write */
 	void (*write32)(unsigned int procno, struct device *dev, ptr36_t addr,
 	    uint32_t val);
 	void (*write64)(unsigned int procno, struct device *dev, ptr36_t addr,
 	    uint64_t val);
-	
+
 	/**
 	 * An array of commands supported by the device.
 	 * The last command should be the LAST_CMS macro.
@@ -64,7 +64,7 @@ typedef struct {
  */
 typedef struct device {
 	item_t item;
-	
+
 	const device_type_t *type;  /**< Pointer to the device type description. */
 	char *name;                 /**< Device name given by the user.
 	                                 Must be unique. */

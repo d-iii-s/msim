@@ -44,7 +44,7 @@ typedef struct sv32_pte {
 
 /**
  * @brief Converts the address from virtual memory space to physical memory space
- * 
+ *
  * @param cpu The CPU, from the point of which, is the translation made
  * @param virt The virtual address to be converted
  * @param phys Pointer to where the physical address will be stored

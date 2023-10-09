@@ -102,9 +102,9 @@ char *rv_csr_name_table[0x1000] = {
 	[csr_hpmcounter30h ] = 	"hpmcounter30h",
 	[csr_hpmcounter31h ] = 	"hpmcounter31h",
 
-    [csr_sstatus]        =  "sstatus", 	
+    [csr_sstatus]        =  "sstatus",
 	[csr_sie]            = 	"sie",
-    [csr_stvec]          = 	"stvec",    
+    [csr_stvec]          = 	"stvec",
 	[csr_scounteren]     =  "scounteren",
 
     [csr_senvcfg]        =  "senvcfg",
@@ -148,7 +148,7 @@ char *rv_csr_name_table[0x1000] = {
 
 	[csr_scyclecmp]		 =    "scyclecmp",
 
-	[csr_pmpcfg0]        =    "pmpcfg0",    
+	[csr_pmpcfg0]        =    "pmpcfg0",
 	[csr_pmpcfg1]        =    "pmpcfg1",
 	[csr_pmpcfg2]        =    "pmpcfg2",
 	[csr_pmpcfg3]        =    "pmpcfg3",
@@ -232,7 +232,7 @@ char *rv_csr_name_table[0x1000] = {
 
 	[csr_mcycle] 		 =	"mcycle",
 	[csr_minstret] 	     =	"minstret",
-	
+
 	[csr_mhpmcounter3]   = 	"mhpmcounter3",
 	[csr_mhpmcounter4]   = 	"mhpmcounter4",
 	[csr_mhpmcounter5]   = 	"mhpmcounter5",
@@ -297,7 +297,7 @@ char *rv_csr_name_table[0x1000] = {
 	[csr_mhpmcounter31h]  = 	"mhpmcounter31h",
 
 	[csr_mcountinhibit]  =    "mcountinhibit",
-	
+
 	[csr_mhpmevent3]     =	"mhpmevent3",
 	[csr_mhpmevent4]     =	"mhpmevent4",
 	[csr_mhpmevent5]     =	"mhpmevent5",
@@ -333,11 +333,11 @@ char *rv_csr_name_table[0x1000] = {
 	[csr_tdata2]         =    "tdata2",
 	[csr_tdata3]         =    "tdata3",
 	[csr_mcontext]       =    "mcontext",
-	
+
 	[csr_dcsr]           =    "dcsr",
 	[csr_dpc]            =    "dpc",
 	[csr_dscratch0]      =    "dscratch0",
-	[csr_dscratch1]      =    "dscratch1" 
+	[csr_dscratch1]      =    "dscratch1"
 };
 
 char *exc_name_table[32] = {
@@ -376,7 +376,7 @@ static rv_regname_type_t curr_regname_type = rv_regname_abi;
 
 /**
  * @brief Initialize the debugging features
- * 
+ *
  */
 void rv_debug_init(void){
     rv_regnames = rv_reg_name_table[curr_regname_type];
@@ -406,7 +406,7 @@ void rv_reg_dump(rv_cpu_t *cpu){
     ASSERT(cpu != NULL);
 
     printf("processor %u\n", cpu->csr.mhartid);
-    
+
     for(unsigned int i=0; i<RV_REG_COUNT; i+=4){
         printf(" %5s: %8x %5s: %8x %5s: %8x %5s: %8x\n",
             rv_regnames[i],   cpu->regs[i],
@@ -420,10 +420,10 @@ void rv_reg_dump(rv_cpu_t *cpu){
 					  cpu->priv_mode == rv_smode ? "S" :
 					  cpu->priv_mode == rv_umode ? "U" :
 					  "ERROR";
-    
+
     printf(" %5s: %08x %44s: %s\n",
 		"pc", cpu->pc,
-		"Privilege mode", priv_mode 
+		"Privilege mode", priv_mode
 	);
 }
 
@@ -465,15 +465,15 @@ void rv_idump(rv_cpu_t *cpu, uint32_t addr, rv_instr_t instr){
         printf("%-5s ", s_cpu.str);
     if(iaddr)
         printf("%-10s ", s_addr.str);
-    if(iopc)        
+    if(iopc)
         printf("%-8s ", s_opc.str);
-    
+
     printf("%-24s", s_mnemonics.str);
 
     if(icmt && s_comments.size > 0 && s_comments.str[0] != 0){
         printf("    [ %s ]", s_comments.str);
     }
-    
+
     printf("\n");
 
 	string_done(&s_cpu);

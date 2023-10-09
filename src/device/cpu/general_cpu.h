@@ -32,8 +32,8 @@ typedef void (*set_pc_func_t)(void*, ptr64_t);
 typedef bool (*sc_access_func_t)(void*, ptr36_t, int);
 
 /** Cpu method table
- * 
- * NULL value means "not implemented" 
+ *
+ * NULL value means "not implemented"
  */
 typedef struct {
     interrupt_func_t interrupt_up; /** Rainse an interrupt */
@@ -73,16 +73,16 @@ extern void add_cpu(general_cpu_t *cpu);
  */
 extern void remove_cpu(general_cpu_t *cpu);
 
-/** 
+/**
  * @brief Raises an interrupt
- * 
+ *
  * @param cpu The cpu on which the interrupt will be raised
  * @param no The interrupt number that will be raised
  */
 extern void cpu_interrupt_up(general_cpu_t *cpu, unsigned int no);
 /**
  * @brief Cancels an interrupt
- * 
+ *
  * @param cpu The cpu in which the interrupt will be canceled
  * @param no The interrupt number, that will be canceled
  */
@@ -93,7 +93,7 @@ extern void cpu_remove_breakpoint(general_cpu_t *cpu, ptr64_t addr);
 
 /**
  * @brief converts an address from virtual to physical memory, not modifying cpu state
- * 
+ *
  * @param cpu the processor pointer
  * @param virt virtual address
  * @param phys physical return address
@@ -112,7 +112,7 @@ extern void cpu_set_pc(general_cpu_t *cpu, ptr64_t pc);
 
 /**
  * @brief signals to the cpu, that an address has been written to, for sc control
- * 
+ *
  * @param cpu the processor pointer
  * @param addr the address that is written to
  * @param size the width of the access

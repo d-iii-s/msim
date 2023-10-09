@@ -34,7 +34,7 @@
 
 /**
  * RISC-V exception codes
- * 
+ *
  * Includes Interrupt exception codes
  */
 typedef enum rv_exc {

@@ -51,7 +51,7 @@ typedef enum {
 	cp0_PageMask,
 	cp0_Wired,
 	cp0_Res1,
-	
+
 	/* 8 */
 	cp0_BadVAddr,
 	cp0_Count,
@@ -61,17 +61,17 @@ typedef enum {
 	cp0_Cause,
 	cp0_EPC,
 	cp0_PRId,
-	
+
 	/* 16 */
 	cp0_Config,
 	cp0_LLAddr,
 	cp0_WatchLo,
 	cp0_WatchHi,
 	cp0_XContext,
-	cp0_Res2, 
+	cp0_Res2,
 	cp0_Res3,
 	cp0_Res4,
-	
+
 	/* 24 */
 	cp0_Res5,
 	cp0_Res6,
@@ -464,12 +464,12 @@ typedef enum {
 	r4k_excFPE   = 15,
 	r4k_excWATCH = 23,
 	r4k_excVCED  = 31,
-	
+
 	/* Special exception types */
 	r4k_excTLBR  = 64,
 	r4k_excTLBLR = 65,
 	r4k_excTLBSR = 66,
-	
+
 	/* For internal use */
 	r4k_excNone = 128,
 	r4k_excJump = 129,
@@ -582,50 +582,50 @@ typedef struct r4k_cpu {
 	/* Basic run-time support */
 	unsigned int procno;
 	bool stdby;
-	
+
 	/* Standard registers */
 	reg64_t regs[R4K_REG_COUNT];
 	reg64_t cp0[R4K_REG_COUNT];
 	uint64_t fpregs[R4K_REG_COUNT];
 	reg64_t loreg;
 	reg64_t hireg;
-	
+
 	/* Program counter */
 	ptr64_t pc;
 	ptr64_t pc_next;
-	
+
 	/* TLB structures */
 	tlb_entry_t tlb[TLB_ENTRIES];
 	unsigned int tlb_hint;
-	
+
 	/* Old registers (for debug info) */
 	reg64_t old_regs[R4K_REG_COUNT];
 	reg64_t old_cp0[R4K_REG_COUNT];
 	reg64_t old_loreg;
 	reg64_t old_hireg;
-	
+
 	ptr64_t excaddr;
 	branch_state_t branch;
-	
+
 	/* LL and SC track support */
 	bool llbit;      /**< Track the address flag */
 	ptr36_t lladdr;  /**< Physical tracked address */
-	
+
 	/* Watch support */
 	ptr36_t waddr;
 	ptr64_t wexcaddr;
 	bool wpending;
-	
+
 	/* Statistics */
 	uint64_t k_cycles;
 	uint64_t u_cycles;
 	uint64_t w_cycles;
-	
+
 	uint64_t tlb_refill;
 	uint64_t tlb_invalid;
 	uint64_t tlb_modified;
 	uint64_t intr[INTR_COUNT];
-	
+
 	/* breakpoints */
 	list_t bps;
 } r4k_cpu_t;
@@ -645,7 +645,7 @@ typedef enum {
 	r4k_opcBNE = 5,
 	r4k_opcBLEZ = 6,
 	r4k_opcBGTZ = 7,
-	
+
 	/* 8 */
 	r4k_opcADDI = 8,
 	r4k_opcADDIU = 9,
@@ -655,7 +655,7 @@ typedef enum {
 	r4k_opcORI = 13,
 	r4k_opcXORi = 14,
 	opcLUI = 15,
-	
+
 	/* 16 */
 	r4k_opcCOP0 = 16,
 	r4k_opcCOP1 = 17,
@@ -665,7 +665,7 @@ typedef enum {
 	r4k_opcBNEL = 21,
 	r4k_opcBLEZL = 22,
 	r4k_opcBGTZL = 23,
-	
+
 	/* 24 */
 	r4k_opcDADDI = 24,
 	r4k_opcDADDIU = 25,
@@ -675,7 +675,7 @@ typedef enum {
 	/* opcode 29 unused */
 	/* opcode 30 unused */
 	/* opcode 31 unused */
-	
+
 	/* 32 */
 	r4k_opcLB = 32,
 	r4k_opcLH = 33,
@@ -685,7 +685,7 @@ typedef enum {
 	r4k_opcLHU = 37,
 	r4k_opcLWR = 38,
 	r4k_opcLWU = 39,
-	
+
 	/* 40 */
 	r4k_opcSB = 40,
 	r4k_opcSH = 41,
@@ -695,7 +695,7 @@ typedef enum {
 	r4k_opcSDR = 45,
 	r4k_opcSWR = 46,
 	r4k_opcCACHE = 47,
-	
+
 	/* 48 */
 	r4k_opcLL = 48,
 	r4k_opcLWC1 = 49,
@@ -705,7 +705,7 @@ typedef enum {
 	r4k_opcLDC1 = 53,
 	r4k_opcLDC2 = 54,
 	r4k_opcLD = 55,
-	
+
 	/* 56 */
 	r4k_opcSC = 56,
 	r4k_opcSWC1 = 57,
@@ -732,7 +732,7 @@ typedef enum {
 	/* function 5 unused */
 	funcSRLV = 6,
 	funcSRAV = 7,
-	
+
 	/* 8 */
 	funcJR = 8,
 	funcJALR = 9,
@@ -742,7 +742,7 @@ typedef enum {
 	funcBREAK = 13,
 	/* function 14 unused */
 	funcSYNC = 15,
-	
+
 	/* 16 */
 	funcMFHI = 16,
 	funcMTHI = 17,
@@ -752,7 +752,7 @@ typedef enum {
 	/* function 21 unused */
 	funcDSRLV = 22,
 	funcDSRAV = 23,
-	
+
 	/* 24 */
 	funcMULT = 24,
 	funcMULTU = 25,
@@ -762,7 +762,7 @@ typedef enum {
 	funcDMULTU = 29,
 	funcDDIV = 30,
 	funcDDIVU = 31,
-	
+
 	/* 32 */
 	funcADD = 32,
 	funcADDU = 33,
@@ -772,7 +772,7 @@ typedef enum {
 	funcOR = 37,
 	funcXOR = 38,
 	funcNOR = 39,
-	
+
 	/* 40 */
 	/* function 40 unused */
 	func_XINT = 41,
@@ -782,7 +782,7 @@ typedef enum {
 	funcDADDU = 45,
 	funcDSUB = 46,
 	funcDSUBu = 47,
-	
+
 	/* 48 */
 	funcTGE = 48,
 	funcTGEU = 49,
@@ -792,7 +792,7 @@ typedef enum {
 	/* function 53 unused */
 	funcTNE = 54,
 	/* function 55 unused */
-	
+
 	/* 56 */
 	funcDSLL = 56,
 	/* function 57 unused */
@@ -819,7 +819,7 @@ typedef enum {
 	/* rt 5 unused */
 	/* rt 6 unused */
 	/* rt 7 unused */
-	
+
 	/* 8 */
 	rtTGEI = 8,
 	rtTGEIU = 9,
@@ -829,7 +829,7 @@ typedef enum {
 	/* rt 13 unused */
 	rtTNEI = 14,
 	/* rt 15 unused */
-	
+
 	/* 16 */
 	rtBLTZAL = 16,
 	rtBGEZAL = 17,
@@ -847,7 +847,7 @@ typedef enum {
 	cop0rsDMTC0 = 5,
 	/* rs 6 unused */
 	/* rs 7 unused */
-	
+
 	/* 8 */
 	cop0rsBC = 8,
 	/* rs 9 unused */
@@ -857,7 +857,7 @@ typedef enum {
 	/* rs 13 unused */
 	/* rs 14 unused */
 	/* rs 15 unused */
-	
+
 	/* 16 */
 	cop0rsCO = 16
 } instr_cop0rs_t;
@@ -872,7 +872,7 @@ typedef enum {
 	cop1rsDMTC1 = 5,
 	cop1rsCTC1 = 6,
 	/* rs 7 unused */
-	
+
 	/* 8 */
 	cop1rsBC = 8
 } instr_cop1rs_t;
@@ -887,7 +887,7 @@ typedef enum {
 	/* rs 5 unused */
 	cop2rsCTC2 = 6,
 	/* rs 7 unused */
-	
+
 	/* 8 */
 	cop2rsBC = 8
 } instr_cop2rs_t;
@@ -926,7 +926,7 @@ typedef enum {
 	/* function 5 unused */
 	cop0funcTLBWR = 6,
 	/* function 7 unused */
-	
+
 	/* 8 */
 	cop0funcTLBP = 8,
 	/* function 9 unused */
@@ -936,7 +936,7 @@ typedef enum {
 	/* function 13 unused */
 	/* function 14 unused */
 	/* function 15 unused */
-	
+
 	/* 16 */
 	cop0funcERET = 16
 } instr_cop0func_t;

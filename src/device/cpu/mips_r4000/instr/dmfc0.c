@@ -5,12 +5,12 @@ static r4k_exc_t instr_dmfc0(r4k_cpu_t *cpu, r4k_instr_t instr)
 			cpu->regs[instr.r.rt].val = cpu->cp0[instr.r.rd].val;
 			return r4k_excNone;
 		}
-		
+
 		/* Coprocessor unusable */
 		cp0_cause(cpu).val &= ~cp0_cause_ce_mask;
 		return r4k_excCpU;
 	}
-	
+
 	return r4k_excRI;
 }
 

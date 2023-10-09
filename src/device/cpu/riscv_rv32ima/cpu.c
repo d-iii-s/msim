@@ -91,7 +91,7 @@ static void update_cache_item(rv_cpu_t* cpu, cache_item_t* cache_item) {
 
 /**
  * @brief Tries to add a new entry to the cache based on the given address
- * 
+ *
  * @return cache_item_t* the added intem or NULL, if the address does not lead to valid memory area
  */
 static cache_item_t* cache_try_add(rv_cpu_t* cpu, ptr36_t phys) {
@@ -113,7 +113,7 @@ static cache_item_t* cache_try_add(rv_cpu_t* cpu, ptr36_t phys) {
 
 /**
  * @brief Fethes a decoded instruction from memory
- * 
+ *
  * Consults the cache first and updates the cache on misses or on invalid memory
  */
 static rv_instr_func_t fetch_instr(rv_cpu_t* cpu, ptr36_t phys){
@@ -132,7 +132,7 @@ static rv_instr_func_t fetch_instr(rv_cpu_t* cpu, ptr36_t phys){
 
         return cache_item->instrs[PHYS2CACHEINSTR(phys)];
     }
-    
+
     cache_item = cache_try_add(cpu, phys);
 
     if(cache_item != NULL) {
@@ -199,7 +199,7 @@ typedef union {
 
 /**
  * @brief Tests, whether a given memory access is allowed on the page specified by the pte
- * 
+ *
  * @par wr True for Write, False for Read
  * @par fetch whether the access is an instruction fetch
  */
@@ -210,7 +210,7 @@ static bool is_access_allowed(rv_cpu_t *cpu, sv32_pte_t pte, bool wr, bool fetch
 
     // Page is executable and I can read from executable pages
     bool rx = rv_csr_sstatus_mxr(cpu) && pte.x;
-    
+
     if(!wr && !fetch && !pte.r && !rx) return false;
 
     if(sv32_effective_priv(cpu) == rv_smode){
@@ -246,7 +246,7 @@ static inline bool pte_access_dirty_update_needed(sv32_pte_t pte, bool wr){
 
 /**
  * @brief Tranlates the virtual address to physical by Sv32 memory translation algorithm, modifying the pagetable by doing so (setting the Accessed and Dirty bits and populating the TLB)
- * 
+ *
  */
 static rv_exc_t rv_pagewalk(rv_cpu_t *cpu, uint32_t virt, ptr36_t *phys, bool wr, bool fetch, bool noisy){
     uint32_t vpn0     =    (virt & 0x003FF000) >> 12;
@@ -310,7 +310,7 @@ static rv_exc_t rv_pagewalk(rv_cpu_t *cpu, uint32_t virt, ptr36_t *phys, bool wr
             physmem_write32(cpu->csr.mhartid, pte_addr, pte_val, true);
         }
     }
-    
+
     *phys = make_phys_from_ppn(virt, pte, is_megapage);
 
     // Add the leaf PTE of the translation to the TLB
@@ -321,7 +321,7 @@ static rv_exc_t rv_pagewalk(rv_cpu_t *cpu, uint32_t virt, ptr36_t *phys, bool wr
 
 /**
  * @brief Converts the address from virtual memory space to physical memory space
- * 
+ *
  * @param cpu The CPU, from the point of which, is the translation made
  * @param virt The virtual address to be converted
  * @param phys Pointer to where the physical address will be stored
@@ -359,7 +359,7 @@ rv_exc_t rv_convert_addr(rv_cpu_t *cpu, uint32_t virt, ptr36_t *phys, bool wr, b
 
         // Missaligned magapage
         if(megapage && pte_ppn0(pte) != 0) return page_fault_exception;
-        
+
         // If the A and D bits of the PTE do not need to be updated, we can use the cached result
         if(!pte_access_dirty_update_needed(pte, wr)){
             *phys = make_phys_from_ppn(virt, pte, megapage);
@@ -370,7 +370,7 @@ rv_exc_t rv_convert_addr(rv_cpu_t *cpu, uint32_t virt, ptr36_t *phys, bool wr, b
             rv_tlb_remove_mapping(&cpu->tlb, asid, virt);
         }
     }
-    
+
     // If the TLB lookup failed or if the AD bits need to be updated, perform the full pagewalk
     return rv_pagewalk(cpu, virt, phys, wr, fetch, noisy);
 }
@@ -390,7 +390,7 @@ rv_exc_t rv_convert_addr(rv_cpu_t *cpu, uint32_t virt, ptr36_t *phys, bool wr, b
         *value = (type)EXTRACT_BITS(cpu->csr.mtimecmp, offset, offset + width); \
         return true;                                                            \
     }                                                                           \
-    return false;                                                           
+    return false;
 
 /** @brief Reads from memory mapped registers if there are any located on the given address */
 static bool try_read_memory_mapped_regs_32(rv_cpu_t *cpu, uint32_t virt, uint32_t* value){
@@ -424,19 +424,19 @@ static void handle_mtip(rv_cpu_t* cpu){
 static bool try_write_memory_mapped_regs(rv_cpu_t *cpu, uint32_t virt, uint32_t value, int width){
     if(!IS_ALIGNED(virt, width / 8)) return false;
 
-    if(effective_priv(cpu) != rv_mmode) return false;                           
-    int offset = (virt & 0x7) * 8;                                              
-    if(ALIGN_DOWN(virt, 8) == RV_MTIME_ADDRESS){                                
+    if(effective_priv(cpu) != rv_mmode) return false;
+    int offset = (virt & 0x7) * 8;
+    if(ALIGN_DOWN(virt, 8) == RV_MTIME_ADDRESS){
         cpu->csr.mtime = WRITE_BITS(cpu->csr.mtime, value, offset, offset + width);
         handle_mtip(cpu);
         return true;
-    }                                                                           
-    if(ALIGN_DOWN(virt, 8) == RV_MTIMECMP_ADDRESS){                             
+    }
+    if(ALIGN_DOWN(virt, 8) == RV_MTIMECMP_ADDRESS){
         cpu->csr.mtimecmp = WRITE_BITS(cpu->csr.mtimecmp, value, offset, offset + width);
-        handle_mtip(cpu); 
-        return true;                                                            
-    }                                                                           
-    return false;                                                           
+        handle_mtip(cpu);
+        return true;
+    }
+    return false;
 }
 
 #define throw_ex(cpu, virt, ex, noisy)      \
@@ -449,7 +449,7 @@ static bool try_write_memory_mapped_regs(rv_cpu_t *cpu, uint32_t virt, uint32_t 
 
 /**
  * @brief Reads 32 bits from virtual memory
- * 
+ *
  * @param cpu The cpu which makes the read
  * @param virt The virtual address of the read target
  * @param value The pointer where will the read value be stored on success
@@ -472,7 +472,7 @@ rv_exc_t rv_read_mem32(rv_cpu_t *cpu, uint32_t virt, uint32_t *value, bool fetch
     if(ex != rv_exc_none){
         throw_ex(cpu, virt, ex, noisy);
     }
-    
+
     if(!IS_ALIGNED(virt, 4)){
         throw_ex(cpu, virt, read_address_misaligned_exception, noisy);
     }
@@ -483,7 +483,7 @@ rv_exc_t rv_read_mem32(rv_cpu_t *cpu, uint32_t virt, uint32_t *value, bool fetch
 
 /**
  * @brief Reads 16 bits from virtual memory
- * 
+ *
  * @param cpu The cpu which makes the read
  * @param virt The virtual address of the read target
  * @param value The pointer where will the read value be stored on success
@@ -499,7 +499,7 @@ rv_exc_t rv_read_mem16(rv_cpu_t *cpu, uint32_t virt, uint16_t *value, bool fetch
 
     ptr36_t phys;
     rv_exc_t ex = rv_convert_addr(cpu, virt, &phys, false, fetch, noisy);
-    
+
     if(ex != rv_exc_none){
         throw_ex(cpu, virt, ex, noisy);
     }
@@ -514,7 +514,7 @@ rv_exc_t rv_read_mem16(rv_cpu_t *cpu, uint32_t virt, uint16_t *value, bool fetch
 
 /**
  * @brief Reads 8 bits from virtual memory
- * 
+ *
  * @param cpu The cpu which makes the read
  * @param virt The virtual address of the read target
  * @param value The pointer where will the read value be stored on success
@@ -530,7 +530,7 @@ rv_exc_t rv_read_mem8(rv_cpu_t *cpu, uint32_t virt, uint8_t *value, bool noisy){
 
     ptr36_t phys;
     rv_exc_t ex = rv_convert_addr(cpu, virt, &phys, false, false, noisy);
-    
+
     if(ex != rv_exc_none){
         throw_ex(cpu, virt, ex, noisy);
     }
@@ -541,7 +541,7 @@ rv_exc_t rv_read_mem8(rv_cpu_t *cpu, uint32_t virt, uint8_t *value, bool noisy){
 
 /**
  * @brief Writes 8 bits to the specified virtual address
- * 
+ *
  * @param cpu The cpu which makes the write
  * @param virt The virtual address
  * @param value The value to be written
@@ -555,7 +555,7 @@ rv_exc_t rv_write_mem8(rv_cpu_t *cpu, uint32_t virt, uint8_t value, bool noisy){
 
     ptr36_t phys;
     rv_exc_t ex = rv_convert_addr(cpu, virt, &phys, true, false, noisy);
-    
+
     if(ex != rv_exc_none){
         throw_ex(cpu, virt, ex, noisy);
     }
@@ -563,7 +563,7 @@ rv_exc_t rv_write_mem8(rv_cpu_t *cpu, uint32_t virt, uint8_t value, bool noisy){
     if(physmem_write8(cpu->csr.mhartid, phys, value, true)){
         return rv_exc_none;
     }
-    
+
     // writing to invalid memory
     // throw_ex(cpu, virt, rv_exc_store_amo_access_fault, noisy);
     return rv_exc_none;
@@ -571,7 +571,7 @@ rv_exc_t rv_write_mem8(rv_cpu_t *cpu, uint32_t virt, uint8_t value, bool noisy){
 
 /**
  * @brief Writes 16 bits to the specified virtual address
- * 
+ *
  * @param cpu The cpu which makes the write
  * @param virt The virtual address
  * @param value The value to be written
@@ -606,7 +606,7 @@ rv_exc_t rv_write_mem16(rv_cpu_t *cpu, uint32_t virt, uint16_t value, bool noisy
 
 /**
  * @brief Writes 32 bits to the specified virtual address
- * 
+ *
  * @param cpu The cpu which makes the write
  * @param virt The virtual address
  * @param value The value to be written
@@ -620,7 +620,7 @@ rv_exc_t rv_write_mem32(rv_cpu_t *cpu, uint32_t virt, uint32_t value, bool noisy
 
     ptr36_t phys;
     rv_exc_t ex = rv_convert_addr(cpu, virt, &phys, true, false, noisy);
-    
+
     if(ex != rv_exc_none){
         throw_ex(cpu, virt, ex, noisy);
     }
@@ -642,7 +642,7 @@ rv_exc_t rv_write_mem32(rv_cpu_t *cpu, uint32_t virt, uint32_t value, bool noisy
 
 /**
  * @brief Sets the PC to the given virtual address
- * 
+ *
  */
 void rv_cpu_set_pc(rv_cpu_t *cpu, uint32_t value){
     ASSERT(cpu != NULL);
@@ -653,12 +653,12 @@ void rv_cpu_set_pc(rv_cpu_t *cpu, uint32_t value){
      * the processor would then jump back to where it was before this call
      */
     cpu->pc = value;
-    cpu->pc_next = value+4;    
+    cpu->pc_next = value+4;
 }
 
 /**
  * @brief Trap to M mode
- * 
+ *
  * @param ex The exception/interrupt that caused the trap
  */
 static void m_trap(rv_cpu_t* cpu, rv_exc_t ex){
@@ -666,7 +666,7 @@ static void m_trap(rv_cpu_t* cpu, rv_exc_t ex){
 
     bool is_interrupt = ex & RV_INTERRUPT_EXC_BITS;
     cpu->stdby = false;
-    
+
     cpu->csr.mepc = is_interrupt ? cpu->pc_next : cpu->pc;
     cpu->csr.mcause = ex;
     cpu->csr.mtval = cpu->csr.tval_next;
@@ -715,7 +715,7 @@ static void m_trap(rv_cpu_t* cpu, rv_exc_t ex){
 
 /**
  * @brief Trap to S mode
- * 
+ *
  * @param ex The exception/interrupt that caused the trap
  */
 static void s_trap(rv_cpu_t* cpu, rv_exc_t ex){
@@ -789,9 +789,9 @@ static void handle_exception(rv_cpu_t* cpu, rv_exc_t ex){
 
 /**
  * @brief Traps if an interrupt is pending and is enabled
- * 
+ *
  * Respects the proper interrupt priorities
- * 
+ *
  */
 static void try_handle_interrupt(rv_cpu_t* cpu){
 
@@ -819,7 +819,7 @@ static void try_handle_interrupt(rv_cpu_t* cpu){
 
     if(can_trap_to_M) {
         uint32_t m_mode_active_interrupt_mask = mip & cpu->csr.mie & ~cpu->csr.mideleg;
-        
+
         trap_if_set(cpu, m_mode_active_interrupt_mask, rv_exc_machine_external_interrupt, m_trap);
         trap_if_set(cpu, m_mode_active_interrupt_mask, rv_exc_machine_software_interrupt, m_trap);
         trap_if_set(cpu, m_mode_active_interrupt_mask, rv_exc_machine_timer_interrupt, m_trap);
@@ -848,16 +848,16 @@ static void try_handle_interrupt(rv_cpu_t* cpu){
 
 /**
  * @brief Increases the HPM counters based in the event specifying CSRs
- * 
+ *
  * @param cpu The cpu on which these counters are
  * @param i The index of the HPM in range [0..29)
  */
 static void account_hmp(rv_cpu_t* cpu, int i){
     ASSERT((i >= 0 && i < 29));
-    
+
     uint32_t mask = (1 << (i + 3));
     bool inhibited = cpu->csr.mcountinhibit & mask;
-    
+
     if(inhibited) return;
 
     csr_hpm_event_t event = cpu->csr.hpmevents[i];
@@ -894,7 +894,7 @@ static void account_hmp(rv_cpu_t* cpu, int i){
 
 /**
  * @brief Raises and clears timer interrupts based on the content of the coresponding CSRs
- * 
+ *
  */
 static void manage_timer_interrupts(rv_cpu_t* cpu){
     // raise or clear scyclecmp ESTIP
@@ -932,7 +932,7 @@ static void account(rv_cpu_t* cpu, bool instruction_retired){
 static rv_exc_t execute(rv_cpu_t *cpu) {
     ptr36_t phys;
     rv_exc_t ex = rv_convert_addr(cpu, cpu->pc, &phys, false, true, true);
- 
+
     if(ex != rv_exc_none){
         alert("Fetching from unconvertable address!");
         if(machine_trace) {
@@ -943,7 +943,7 @@ static rv_exc_t execute(rv_cpu_t *cpu) {
 
     rv_instr_func_t instr_func = fetch_instr(cpu, phys);
     rv_instr_t instr_data = (rv_instr_t)physmem_read32(cpu->csr.mhartid, phys, true);
-    
+
     if(machine_trace) {
         rv_idump(cpu, cpu->pc, instr_data);
     }
@@ -993,9 +993,9 @@ void rv_cpu_step(rv_cpu_t *cpu){
 
 /**
  * @brief Notify the CPU that an adress has been writen ti
- * 
+ *
  * Used for implementing the LR/SC atomics
- * 
+ *
  * @returns Whether we hit the LR reserved address
  */
 bool rv_sc_access(rv_cpu_t *cpu, ptr36_t phys, int size){
@@ -1005,7 +1005,7 @@ bool rv_sc_access(rv_cpu_t *cpu, ptr36_t phys, int size){
 
     // The size of the reservation is 4B, we check whether the write overlaps
     bool hit = AREAS_OVERLAP(res_addr, 4, phys, size);
-    
+
     if(hit) {
         cpu->reserved_valid = false;
     }
@@ -1021,7 +1021,7 @@ bool rv_sc_access(rv_cpu_t *cpu, ptr36_t phys, int size){
 
 /**
  * @brief Raises the interrupt of the given number
- * 
+ *
  * @param no The interrupt number (1 = SSI, 3 = MSI, 5 = STI, 7 = MTI, 9 = SEI, 11 = MEI)
  */
 void rv_interrupt_up(rv_cpu_t *cpu, unsigned int no){
@@ -1049,7 +1049,7 @@ void rv_interrupt_up(rv_cpu_t *cpu, unsigned int no){
 
 /**
  * @brief Clears the interrupt of the given number
- * 
+ *
  * @param no The interrupt number (1 = SSI, 3 = MSI, 5 = STI, 7 = MTI, 9 = SEI, 11 = MEI)
  */
 void rv_interrupt_down(rv_cpu_t *cpu, unsigned int no){
@@ -1064,7 +1064,7 @@ void rv_interrupt_down(rv_cpu_t *cpu, unsigned int no){
         cpu->csr.external_SEIP = false;
         return;
     }
-    
+
     // default to MEI if no is invalid
     if( no != RV_INTERRUPT_NO(rv_exc_machine_software_interrupt) &&
         no != RV_INTERRUPT_NO(rv_exc_supervisor_software_interrupt) &&

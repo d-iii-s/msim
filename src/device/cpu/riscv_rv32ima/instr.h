@@ -45,7 +45,7 @@ typedef union{
     struct {
         unsigned int opcode : 7;
         unsigned int imm11 : 1;
-        unsigned int imm4_1 : 4; 
+        unsigned int imm4_1 : 4;
         unsigned int funct3 : 3;
         unsigned int rs1 : 5;
         unsigned int rs2 : 5;
@@ -198,14 +198,14 @@ typedef enum {
 
 #define rv_privSFENCEVMA_FUNCT7 0b0001001
 
-/** Funct values for AMO instructions 
+/** Funct values for AMO instructions
  *  This value is the high 5 bits from funct7
  *  funct3 serves as the identifier of width of the instructions and only 32-bit width is supported now in msim
  *  the low 2 bits from funct7 describe the ordering constraints (acquire/release semantics) - we can ignore them in msim, because we do in-order processing
  */
 typedef enum {
     rv_funcLR         = 0b00010,
-    rv_funcSC         = 0b00011, 
+    rv_funcSC         = 0b00011,
     rv_funcAMOSWAP    = 0b00001,
     rv_funcAMOADD     = 0b00000,
     rv_funcAMOXOR     = 0b00100,

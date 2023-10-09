@@ -3,7 +3,7 @@ static r4k_exc_t instr_bc1f(r4k_cpu_t *cpu, r4k_instr_t instr)
 	if (cp0_status_cu1(cpu))
 		/* Ignore (always false) */
 		return r4k_excNone;
-	
+
 	/* Coprocessor unusable */
 	cp0_cause(cpu).val &= ~cp0_cause_ce_mask;
 	cp0_cause(cpu).val |= cp0_cause_ce_cu1;

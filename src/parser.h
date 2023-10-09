@@ -35,7 +35,7 @@ typedef union {
 
 typedef struct {
 	item_t item;
-	
+
 	token_type_t ttype;
 	token_val_t tval;
 } token_t;

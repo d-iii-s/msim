@@ -32,7 +32,7 @@
 typedef struct {
 	ptr36_t addr;        /**< Dorder address */
 	unsigned int intno;  /**< Interrupt number */
-	
+
 	uint64_t cmds;  /**< Total number of commands */
 } dorder_data_s;
 
@@ -46,7 +46,7 @@ static void sync_up_write(dorder_data_s *data, uint32_t val)
 {
 	unsigned int i;
 	data->cmds++;
-	
+
 	for (i = 0; i < 32; i++, val >>= 1) {
 		if (val & 1){
 			cpu_interrupt_up(get_cpu(i), data->intno);
@@ -64,7 +64,7 @@ static void sync_down_write(dorder_data_s *data, uint32_t val)
 {
 	unsigned int i;
 	data->cmds++;
-	
+
 	for (i = 0; i < 32; i++, val >>= 1) {
 		if (val & 1) {
 			cpu_interrupt_down(get_cpu(i), data->intno);
@@ -85,39 +85,39 @@ static bool dorder_init(token_t *parm, device_t *dev)
 	parm_next(&parm);
 	uint64_t _addr = parm_uint_next(&parm);
 	uint64_t _intno = parm_uint_next(&parm);
-	
+
 	if (!phys_range(_addr)) {
 		error("Physical memory address out of range");
 		return false;
 	}
-	
+
 	if (!phys_range(_addr + (uint64_t) REGISTER_LIMIT)) {
 		error("Invalid address, registers would exceed the physical "
 		    "memory range");
 		return false;
 	}
-	
+
 	ptr36_t addr = _addr;
-	
+
 	if (!ptr36_dword_aligned(addr)) {
 		error("Physical memory address must be 8-byte aligned");
 		return false;
 	}
-	
+
 	if (_intno > MAX_INTRS) {
 		error("%s", txt_intnum_range);
 		return false;
 	}
-	
+
 	/* Allocate the dorder structure */
 	dorder_data_s *data = safe_malloc_t(dorder_data_s);
 	dev->data = data;
-	
+
 	/* Initialize */
 	data->addr = addr;
 	data->intno = _intno;
 	data->cmds = 0;
-	
+
 	return true;
 }
 
@@ -131,10 +131,10 @@ static bool dorder_init(token_t *parm, device_t *dev)
 static bool dorder_info(token_t *parm, device_t *dev)
 {
 	dorder_data_s *data = (dorder_data_s *) dev->data;
-	
+
 	printf("[address ] [int]\n");
 	printf("%#11" PRIx64 " %-5u\n", data->addr, data->intno);
-	
+
 	return true;
 }
 
@@ -149,10 +149,10 @@ static bool dorder_info(token_t *parm, device_t *dev)
 static bool dorder_stat(token_t *parm, device_t *dev)
 {
 	dorder_data_s *data = (dorder_data_s *) dev->data;
-	
+
 	printf("[command count]\n");
 	printf("%" PRIu64 "\n", data->cmds);
-	
+
 	return true;
 }
 
@@ -204,7 +204,7 @@ static void dorder_done(device_t *dev)
 static void dorder_read32(unsigned int procno, device_t *dev, ptr36_t addr, uint32_t *val)
 {
 	dorder_data_s *data = (dorder_data_s *) dev->data;
-	
+
 	switch (addr - data->addr) {
 	case REGISTER_INT_PEND:
 		*val = procno;
@@ -225,7 +225,7 @@ static void dorder_read32(unsigned int procno, device_t *dev, ptr36_t addr, uint
 static void dorder_write32(unsigned int procno, device_t *dev, ptr36_t addr, uint32_t val)
 {
 	dorder_data_s *data = (dorder_data_s *) dev->data;
-	
+
 	switch (addr - data->addr) {
 	case REGISTER_INT_UP:
 		sync_up_write(data, val);
@@ -303,7 +303,7 @@ cmd_t dorder_cmds[] = {
 device_type_t dorder = {
 	/* Order device is simulated deterministically */
 	.nondet = false,
-	
+
 	/* Type name and description */
 	.name = "dorder",
 	.brief = "Synchronization device",
@@ -311,12 +311,12 @@ device_type_t dorder = {
 	    "The order device allows to acquire a unique processor number "
 	    "(a serial number) and assert an interrupt to the specified "
 	    "processor in the multiprocessor machine.",
-	
+
 	/* Functions */
 	.done = dorder_done,
 	.read32 = dorder_read32,
 	.write32 = dorder_write32,
-	
+
 	/* Commands */
 	.cmds = dorder_cmds
 };

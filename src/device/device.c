@@ -67,7 +67,7 @@ list_t device_list = LIST_INITIALIZER;
 device_t *alloc_device(const char *type_string, const char *device_name)
 {
 	const device_type_t *device_type = NULL;
-	
+
 	/* Search for device type */
 	unsigned int i;
 	for (i = 0; i < DEVICE_TYPE_COUNT; i++) {
@@ -77,28 +77,28 @@ device_t *alloc_device(const char *type_string, const char *device_name)
 			break;
 		}
 	}
-	
+
 	if (device_type == NULL) {
 		error("Unknown device type");
 		return NULL;
 	}
-	
+
 	if ((!machine_nondet) && (device_type->nondet)) {
 		error("Device \"%s\" results in non-deterministic behaviour.\n"
 		    "This is currently disabled. Use the command-line option\n"
 		    "-n to enable non-determinism.", type_string);
 		return NULL;
 	}
-	
+
 	/* Allocate a new instance */
 	device_t *dev = safe_malloc_t(device_t);
-	
+
 	/* Inicialization */
 	dev->type = device_type;
 	dev->name = safe_strdup(device_name);
 	dev->data = NULL;
 	item_init(&dev->item);
-	
+
 	return dev;
 }
 
@@ -128,7 +128,7 @@ void add_device(device_t *dev)
 static bool dev_match_to_filter(device_t* device, device_filter_t filter)
 {
 	ASSERT(device != NULL);
-	
+
 	switch (filter) {
 	case DEVICE_FILTER_ALL:
 		return true;
@@ -144,7 +144,7 @@ static bool dev_match_to_filter(device_t* device, device_filter_t filter)
 	default:
 		die(ERR_INTERN, "Unexpected device filter");
 	}
-	
+
 	return false;
 }
 
@@ -167,15 +167,15 @@ bool dev_next(device_t **device, device_filter_t filter)
 	} else {
 		*device = (device_t *) (*device)->item.next;
 	}
-	
+
 	/* Find the first device, which matches to the filter */
 	while (*device != NULL) {
 		if (dev_match_to_filter(*device, filter))
 			return true;
-		
+
 		*device = (device_t *) (*device)->item.next;
 	}
-	
+
 	return false;
 }
 
@@ -196,19 +196,19 @@ const char *dev_type_by_partial_name(const char *name_prefix,
     uint32_t* device_order)
 {
 	ASSERT(name_prefix != NULL);
-	
+
 	/* Search from the specified device */
 	unsigned int i;
 	for (i = *device_order; i < DEVICE_TYPE_COUNT; i++) {
 		const char *device_name = device_types[i]->name;
-		
+
 		if (prefix(name_prefix, device_name)) {
 			/* Move the order to the next device */
 			*device_order = i + 1;
 			return device_name;
 		}
 	}
-	
+
 	*device_order = DEVICE_TYPE_COUNT;
 	return NULL;
 }
@@ -232,12 +232,12 @@ const char *dev_by_partial_name(const char *prefix_name, device_t **device)
 {
 	ASSERT(device != NULL);
 	ASSERT(prefix_name != NULL);
-	
+
 	while (dev_next(device, DEVICE_FILTER_ALL)) {
 		if (prefix(prefix_name, (*device)->name))
 			break;
 	}
-	
+
 	char* found_name = *device ? (*device)->name : NULL;
 	return found_name;
 }
@@ -257,20 +257,20 @@ size_t dev_count_by_partial_name(const char *name_prefix,
 {
 	ASSERT(name_prefix != NULL);
 	ASSERT(last_found_device != NULL);
-	
+
 	size_t count = 0;
 	device_t *device = NULL;
-	
+
 	while (dev_next(&device, DEVICE_FILTER_ALL)) {
 		if (prefix(name_prefix, device->name)) {
 			count++;
 			*last_found_device = device;
 		}
 	}
-	
+
 	if (count == 0)
 		*last_found_device = NULL;
-	
+
 	return count;
 }
 
@@ -284,12 +284,12 @@ size_t dev_count_by_partial_name(const char *name_prefix,
 device_t *dev_by_name(const char *searched_name)
 {
 	device_t *device = NULL;
-	
+
 	while (dev_next(&device, DEVICE_FILTER_ALL)) {
 		if (!strcmp(searched_name, device->name))
 			break;
 	}
-	
+
 	return device;
 }
 
@@ -338,13 +338,13 @@ gen_t dev_find_generator(token_t **parm, const device_t *dev,
 	/* Check if the first token is a string */
 	if (parm_type(*parm) != tt_str)
 		return NULL;
-	
+
 	const char* user_text = parm_str(*parm);
-	
+
 	/* Look up for device command */
 	const cmd_t *cmd;
 	cmd_find_res_t res = cmd_find(user_text, dev->type->cmds + 1, &cmd);
-	
+
 	switch (res) {
 	case CMP_NO_HIT:
 		break;
@@ -354,21 +354,21 @@ gen_t dev_find_generator(token_t **parm, const device_t *dev,
 		if (parm_last(*parm)) {
 			/* Ignore the hardwired INIT command */
 			*data = dev->type->cmds + 1;
-			
+
 			/* Set the default command generator */
 			return generator_cmd;
 		}
-		
+
 		if (res == CMP_MULTIPLE_HIT)
 			/* Input error */
 			break;
-		
+
 		/* Continue to the next generator, if possible */
 		if (cmd->find_gen)
 			return cmd->find_gen(parm, cmd, data);
-		
+
 		break;
 	}
-	
+
 	return NULL;
 }

@@ -25,12 +25,12 @@ static void machine_user_break(int signo)
 		input_back();
 		exit(ERR_OK);
 	}
-	
+
 	machine_break = true;
-	
+
 	if (!machine_interactive)
 		machine_newline = true;
-	
+
 	machine_interactive = true;
 }
 
@@ -45,7 +45,7 @@ static void termination_signals_handler(int signo)
 void register_signal_handlers(void)
 {
 	struct sigaction act;
-	
+
 	act.sa_handler = machine_user_break;
 	(void) sigemptyset(&act.sa_mask);
 	act.sa_flags = 0;

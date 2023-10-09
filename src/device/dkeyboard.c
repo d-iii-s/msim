@@ -33,7 +33,7 @@ typedef struct {
 	ptr36_t addr;        /* Register address */
 	unsigned int intno;  /* Interrupt number */
 	char incomming;      /* Character buffer */
-	
+
 	bool ig;             /* Interrupt pending flag */
 	uint64_t intrcount;  /* Number of interrupts asserted */
 	uint64_t keycount;   /* Number of keys acquired */
@@ -48,11 +48,11 @@ typedef struct {
 static void gen_key(device_t *dev, char c)
 {
 	keyboard_data_s *data = (keyboard_data_s *) dev->data;
-	
+
 	//TODO: Generate SC check?
 	data->incomming = c;
 	data->keycount++;
-	
+
 	if (!data->ig) {
 		data->ig = true;
 		data->intrcount++;
@@ -70,34 +70,34 @@ static bool dkeyboard_init(token_t *parm, device_t *dev)
 	parm_next(&parm);
 	uint64_t _addr = parm_uint_next(&parm);
 	uint64_t _intno = parm_uint_next(&parm);
-	
+
 	if (!phys_range(_addr)) {
 		error("Physical memory address out of range");
 		return false;
 	}
-	
+
 	if (!phys_range(_addr + (uint64_t) REGISTER_LIMIT)) {
 		error("Invalid address, registers would exceed the physical "
 		    "memory range");
 		return false;
 	}
-	
+
 	ptr36_t addr = _addr;
-	
+
 	if (!ptr36_dword_aligned(addr)) {
 		error("Physical memory address must be 8-byte aligned");
 		return false;
 	}
-	
+
 	if (_intno > MAX_INTRS) {
 		error("%s", txt_intnum_range);
 		return false;
 	}
-	
+
 	/* Alloc structure */
 	keyboard_data_s *data = safe_malloc_t(keyboard_data_s);
 	dev->data = data;
-	
+
 	/* Initialization */
 	data->addr = addr;
 	data->intno = _intno;
@@ -105,7 +105,7 @@ static bool dkeyboard_init(token_t *parm, device_t *dev)
 	data->intrcount = 0;
 	data->keycount = 0;
 	data->overrun = 0;
-	
+
 	return true;
 }
 
@@ -115,11 +115,11 @@ static bool dkeyboard_init(token_t *parm, device_t *dev)
 static bool dkeyboard_info(token_t *parm, device_t *dev)
 {
 	keyboard_data_s *data = (keyboard_data_s *) dev->data;
-	
+
 	printf("[address ] [int] [key] [ig]\n");
 	printf("%#11" PRIx64 " %-5u %#02x  %u\n",
 	    data->addr, data->intno, data->incomming, data->ig);
-	
+
 	return true;
 }
 
@@ -129,11 +129,11 @@ static bool dkeyboard_info(token_t *parm, device_t *dev)
 static bool dkeyboard_stat(token_t *parm, device_t *dev)
 {
 	keyboard_data_s *data = (keyboard_data_s *) dev->data;
-	
+
 	printf("[interrupt count   ] [key count         ] [overrun           ]\n");
 	printf("%20" PRIu64 " %20" PRIu64 " %20" PRIu64 "\n",
 	    data->intrcount, data->keycount, data->overrun);
-	
+
 	return true;
 }
 
@@ -147,7 +147,7 @@ static bool dkeyboard_gen(token_t *parm, device_t *dev)
 {
 	const char *str;
 	char c = 0;
-	
+
 	switch (parm_type(parm)) {
 	case tt_end:
 		/* default '\0' */
@@ -155,26 +155,26 @@ static bool dkeyboard_gen(token_t *parm, device_t *dev)
 	case tt_str:
 		str = parm_str(parm);
 		c = str[0];
-		
+
 		if ((!c) || (str[1])) {
 			error("Invalid character");
 			return false;
 		}
-		
+
 		break;
 	case tt_uint:
 		if (parm_uint(parm) > 255) {
 			error("Integer out of range 0..255");
 			return false;
 		}
-		
+
 		c = parm_uint(parm);
 		break;
 	default:
 		intr_error("Unexpected parameter type");
 		return false;
 	}
-	
+
 	gen_key(dev, c);
 	return true;
 }
@@ -191,9 +191,9 @@ static void keyboard_read32(unsigned int procno, device_t *dev, ptr36_t addr, ui
 {
 	ASSERT(dev != NULL);
 	ASSERT(val != NULL);
-	
+
 	keyboard_data_s *data = (keyboard_data_s *) dev->data;
-	
+
 	switch (addr - data->addr) {
 	case REGISTER_CHAR:
 		*val = data->incomming;
@@ -212,7 +212,7 @@ static void keyboard_read32(unsigned int procno, device_t *dev, ptr36_t addr, ui
 static void keyboard_step4k(device_t *dev)
 {
 	char c;
-	
+
 	if (stdin_poll(&c))
 		gen_key(dev, c);
 }
@@ -274,19 +274,19 @@ cmd_t keyboard_cmds[] = {
 
 device_type_t dkeyboard = {
 	.nondet = true,
-	
+
 	/* Type name and description */
 	.name = "dkeyboard",
 	.brief = "Keyboard simulation",
 	.full = "Device reads key codes from the specified input and sends them to "
 	    "the system via the interrrupt assert and a memory-mapped "
 	    "register containing a key code.",
-	
+
 	/* Functions */
 	.done = keyboard_done,
 	.step4k = keyboard_step4k,
 	.read32 = keyboard_read32,
-	
+
 	/* Commands */
 	.cmds = keyboard_cmds
 };

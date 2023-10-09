@@ -19,15 +19,15 @@
  * The numerical codes of CSRs
  */
 typedef enum {
-	
+
 	/********************************
 	 * Unprivileged Counters/Timers *
 	 ********************************/
-	
+
 	csr_cycle 		   =	0xC00,    // Cycle counter for RCCYCLE
-	csr_time 		   = 	0xC01,    // Timer (real time) for RDTIME 
-	csr_instret 	   =	0xC02,    // Instruction-retired counter for RDINSTRET	
-	
+	csr_time 		   = 	0xC01,    // Timer (real time) for RDTIME
+	csr_instret 	   =	0xC02,    // Instruction-retired counter for RDINSTRET
+
 	/* Architecture-Defined Performance-Monitoring Counters (lower 32 bits) */
 	csr_hpmcounter3    = 	0xC03,
 	csr_hpmcounter4    = 	0xC04,
@@ -96,7 +96,7 @@ typedef enum {
 	/*************************
 	 * Supervisor level CSRs *
 	 *************************/
-	
+
 	/* Trap Setup */
 	csr_sstatus 	   = 	0x100,    // Supervisor status register
 	csr_sie 		   = 	0x104,    // Sup. interrupt-enable reg.
@@ -162,7 +162,7 @@ typedef enum {
 	/* Memory Protection */
 
 	/* Phys. mem. protection configuration */
-	csr_pmpcfg0        =    0x3A0,    
+	csr_pmpcfg0        =    0x3A0,
 	csr_pmpcfg1        =    0x3A1,
 	csr_pmpcfg2        =    0x3A2,
 	csr_pmpcfg3        =    0x3A3,
@@ -249,7 +249,7 @@ typedef enum {
 
 	csr_mcycle 		   =	0xB00,    // Machine cycle counter
 	csr_minstret 	   =	0xB02,    // Machine intructions retired counter
-	
+
 	/* Machine performance-monitoring counters (lower 32 bits) */
 	csr_mhpmcounter3   = 	0xB03,
 	csr_mhpmcounter4   = 	0xB04,
@@ -316,7 +316,7 @@ typedef enum {
 
 	/* Counter Setup */
 	csr_mcountinhibit  =    0x320,    // Mch. counter-inhibit reg.
-	
+
 	/* Machine performance-monitoring event selectors */
 	csr_mhpmevent3     =	0x323,
 	csr_mhpmevent4     =	0x324,
@@ -354,7 +354,7 @@ typedef enum {
 	csr_tdata2         =    0x7A2,    // Second Debug/Trace trigger data register
 	csr_tdata3         =    0x7A3,    // Third Debug/Trace trigger data register
 	csr_mcontext       =    0x7A8,    // Machine-mode context reg.
-	
+
 	/* Debug Mode */
 	csr_dcsr           =    0x7B0,    // Dbg. control and status reg.
 	csr_dpc            =    0x7B1,    // Dbg. pc
@@ -401,7 +401,7 @@ typedef struct {
     uint32_t mconfigptr;
 
     uint64_t mstatus; // subset shared with supervisor level
-    
+
     /* trap handling */
     uint32_t mtvec;
     uint32_t medeleg;
@@ -427,8 +427,8 @@ typedef struct {
     /* physical memory protection */
     uint8_t pmpcfgs[64];
     uint32_t pmpaddrs[64];
-    
-    /* Supervisor level registers*/   
+
+    /* Supervisor level registers*/
 
     // sstatus shared witm m-mode
     uint32_t stvec;
@@ -444,7 +444,7 @@ typedef struct {
 
     /* config */
     uint32_t senvcfg;
-    
+
     /* Address translation */
     uint32_t satp;
 
@@ -452,7 +452,7 @@ typedef struct {
 	uint32_t scontext;
 
 	/* Extra fields used for implementation purposes */
-	
+
 	// next value for stval/mtval
 	uint32_t tval_next;
 

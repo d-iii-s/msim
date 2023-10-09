@@ -27,17 +27,17 @@ static BOOL machine_user_break(DWORD fdwCtrlType)
 			input_back();
 			return false;
 		}
-		
+
 		machine_break = true;
-		
+
 		if (!machine_interactive)
 			machine_newline = true;
-		
+
 		machine_interactive = true;
-		
+
 		return true;
 	}
-	
+
 	return false;
 }
 

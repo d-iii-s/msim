@@ -45,31 +45,31 @@ static bool dtime_init(token_t *parm, device_t *dev)
 {
 	parm_next(&parm);
 	uint64_t _addr = parm_uint(parm);
-	
+
 	if (!phys_range(_addr)) {
 		error("Physical memory address out of range");
 		return false;
 	}
-	
+
 	if (!phys_range(_addr + (uint64_t) REGISTER_LIMIT)) {
 		error("Invalid address, registers would exceed the physical "
 		    "memory range");
 		return false;
 	}
-	
+
 	ptr36_t addr = _addr;
-	
+
 	if (!ptr36_dword_aligned(addr)) {
 		error("Physical memory address must be 8-byte aligned");
 		return false;
 	}
-	
+
 	/* Initialization */
 	dtime_data_t *data = safe_malloc_t(dtime_data_t);
 	dev->data = data;
-	
+
 	data->addr = addr;
-	
+
 	return true;
 }
 
@@ -84,10 +84,10 @@ static bool dtime_init(token_t *parm, device_t *dev)
 static bool dtime_info(token_t *parm, device_t *dev)
 {
 	dtime_data_t *data = (dtime_data_t *) dev->data;
-	
+
 	printf("[address ]\n");
 	printf("%#11" PRIx64 "\n", data->addr);
-	
+
 	return true;
 }
 
@@ -128,12 +128,12 @@ static void dtime_read32(unsigned int procno, device_t *dev, ptr36_t addr, uint3
 {
 	ASSERT(dev != NULL);
 	ASSERT(val != NULL);
-	
+
 	dtime_data_t *data = (dtime_data_t *) dev->data;
-	
+
 	/* Get actual time */
 	struct timeval timeval;
-	
+
 	switch (addr - data->addr) {
 	case REGISTER_SEC:
 		gettimeofday(&timeval, NULL);
@@ -159,14 +159,14 @@ static void dtime_read64(unsigned int procno, device_t *dev, ptr36_t addr, uint6
 {
 	ASSERT(dev != NULL);
 	ASSERT(val != NULL);
-	
+
 	dtime_data_t *data = (dtime_data_t *) dev->data;
-	
+
 	/* Get actual time */
 	struct timeval timeval;
 	uint32_t sec = (uint32_t) timeval.tv_sec;
 	uint32_t usec = (uint32_t) timeval.tv_usec;
-	
+
 	/* Pack the values in little-endian fashion */
 	switch (addr - data->addr) {
 	case REGISTER_SEC:
@@ -221,7 +221,7 @@ static cmd_t dtime_cmds[] = {
 device_type_t dtime = {
 	/* Real-time device induces non-determinism */
 	.nondet = true,
-	
+
 	/* Type name and description */
 	.name = "dtime",
 	.brief = "Real-time",
@@ -229,12 +229,12 @@ device_type_t dtime = {
 	    "environment. One memory-mapped register allows programs"
 	    "to read hosts time since the Epoch as specified in the"
 	    "POSIX.",
-	
+
 	/* Functions */
 	.done = dtime_done,
 	.read32 = dtime_read32,
 	.read64 = dtime_read64,
-	
+
 	/* Commands */
 	.cmds = dtime_cmds
 };

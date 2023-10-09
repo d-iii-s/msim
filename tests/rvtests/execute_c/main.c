@@ -26,9 +26,9 @@ void puts(char* s){
 }
 
 bool try_int2s(unsigned int num, char* output, int len){
-    
+
     if(len < 2) return false;
-    
+
     if(num == 0){
         output[0] = '0';
         output[1] = 0;
@@ -61,7 +61,7 @@ void print_int(unsigned int num){
     char buffer[print_int_buf_len] = {0};
     if(try_int2s(num, buffer, print_int_buf_len)){
         puts(buffer);
-        
+
     }
 }
 
@@ -111,7 +111,7 @@ void print_mat(matrix *m){
 }
 
 void get_id_mat(matrix *m){
-    
+
     for(int i = 0; i < MAT_DIM; ++i){
         for(int j = 0; j < MAT_DIM; ++j){
             (*m)[i][j] = (i == j ? 1 : 0);
@@ -173,19 +173,19 @@ void demonstration(void){
         .
         .
         0     ...   1
-    
+
     */
     get_id_mat(&m1);
 
     /*
       0 1        ...    MAT_DIM - 1
-      1                    
+      1
       .                    .
-      .                    .          
+      .                    .
       .                    .
 
-      MAT_DIM - 1 ...   2 * MAT_DIM - 2  
-    
+      MAT_DIM - 1 ...   2 * MAT_DIM - 2
+
     */
     get_default_mat(&m2);
 
@@ -201,7 +201,7 @@ void stress_test(void){
     // Times for both fib and matmul measured on AMD Ryzen 5 3600 (4.15 GHz at time of measurement) WIN 11 WSL 2
 
     // Run recursive fib, because it is exponential
-   
+
     // Measured times for different n of fib_rec(n)
     //      n          t (s)    t (min)               cycles     cycles/s
     //     30            8.2                      61 732 461    7 528 348
@@ -235,7 +235,7 @@ void stress_test(void){
 
     for (int i = 0; i < iters; ++i){
         mat_mul(&m1, &m2, &m3);
-    }    
+    }
 
     // Measured times for both (n = 39, iters = 3500)
     // t (s)        t (min)          cycles    machine    measurement

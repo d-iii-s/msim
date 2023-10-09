@@ -93,10 +93,10 @@ static bool gdb_safe_read(char *c)
 		io_error("gdb");
 		return false;
 	}
-	
+
 	/* Normalize */
 	*c &= 0x7f;
-	
+
 	return true;
 }
 
@@ -114,7 +114,7 @@ static bool gdb_safe_write(char c)
 		io_error("gdb");
 		return false;
 	}
-	
+
 	return true;
 }
 
@@ -127,12 +127,12 @@ static char *gdb_get_request(void)
 {
 	string_t req;
 	string_init(&req);
-	
+
 	unsigned int i;
-	
+
 	for (i = 0; i < MAX_BAD_CHECKSUMS; i++) {
 		string_clear(&req);
-		
+
 		/*
 		 * Message starts with a $ character,
 		 * ignore everything before it.
@@ -142,70 +142,70 @@ static char *gdb_get_request(void)
 			if (!gdb_safe_read(&c))
 				return NULL;
 		}
-		
+
 		/*
 		 * Read the message characters until
 		 * a # character is found.
 		 */
 		uint8_t checksum = 0;
-		
+
 		c = 0;
 		while (c != '#') {
 			if (!gdb_safe_read(&c)) {
 				string_done(&req);
 				return NULL;
 			}
-			
+
 			if (c != '#') {
 				string_push(&req, c);
 				checksum += c;
 			}
 		}
-		
+
 		/* Get checksum */
 		string_t checksum_str;
 		string_init(&checksum_str);
-		
+
 		if (!gdb_safe_read(&c)) {
 			string_done(&req);
 			string_done(&checksum_str);
 			return NULL;
 		}
 		string_push(&checksum_str, c);
-		
+
 		if (!gdb_safe_read(&c)) {
 			string_done(&req);
 			string_done(&checksum_str);
 			return NULL;
 		}
 		string_push(&checksum_str, c);
-		
+
 		unsigned int req_checksum = 0;
 		sscanf(checksum_str.str, "%02x", &req_checksum);
 		string_done(&checksum_str);
-		
+
 		if (checksum == req_checksum)
 			break;
-		
+
 		/* Checksum error, ask for re-send */
 		if (!gdb_safe_write('-')) {
 			string_done(&req);
 			return NULL;
 		}
 	}
-	
+
 	if (i >= MAX_BAD_CHECKSUMS) {
 		error("Communication checksum failure %u times (read)",
 		    MAX_BAD_CHECKSUMS);
 		return NULL;
 	}
-	
+
 	/* Send acknowledgement */
 	if (!gdb_safe_write('+')) {
 		string_done(&req);
 		return NULL;
 	}
-	
+
 	gdb_debug("<- %s\n", req.str);
 	return req.str;
 }
@@ -220,52 +220,52 @@ static char *gdb_get_request(void)
 static bool gdb_send_reply(char *reply)
 {
 	gdb_debug("-> %s\n", reply);
-	
+
 	unsigned int i;
-	
+
 	for (i = 0; i < MAX_BAD_CHECKSUMS; i++) {
 		/* Initial character */
 		if (!gdb_safe_write('$'))
 			return false;
-		
+
 		/* Message */
-		
+
 		uint8_t checksum = 0;
 		size_t pos = 0;
-		
+
 		while (reply[pos] != 0) {
 			if (!gdb_safe_write(reply[pos]))
 				return false;
-			
+
 			checksum += reply[pos];
 			pos++;
 		}
-		
+
 		/* Ending character and the checksum */
-		
+
 		if (!gdb_safe_write('#'))
 			return false;
-		
+
 		if (!gdb_safe_write(hexchar[checksum >> 4]))
 			return false;
-		
+
 		if (!gdb_safe_write(hexchar[checksum & 0x0f]))
 			return false;
-		
+
 		char c;
 		if (!gdb_safe_read(&c))
 			return false;
-		
+
 		if (c == '+')
 			break;
 	}
-	
+
 	if (i >= MAX_BAD_CHECKSUMS) {
 		error("Communication checksum failure %u times (write)",
 		    MAX_BAD_CHECKSUMS);
 		return false;
 	}
-	
+
 	return true;
 }
 
@@ -276,7 +276,7 @@ static void gdb_read_physmem(ptr36_t addr, len36_t length)
 {
 	string_t str;
 	string_init(&str);
-	
+
 	/*
 	 * We read the memory byte by byte. This ensures
 	 * that we will send the content of memory with correct
@@ -285,11 +285,11 @@ static void gdb_read_physmem(ptr36_t addr, len36_t length)
 	while (length > 0) {
 		uint8_t value = physmem_read8(-1 /*NULL*/, addr, false);
 		string_printf(&str, "%02" PRIx8, value);
-		
+
 		length--;
 		addr++;
 	}
-	
+
 	gdb_send_reply(str.str);
 	string_done(&str);
 }
@@ -307,18 +307,18 @@ static void gdb_write_physmem(ptr36_t addr, len36_t length, char *data)
 			gdb_send_reply(GDB_REPLY_BAD_MEMORY_COMMAND);
 			return;
 		}
-		
+
 		/* Write it */
 		if (!physmem_write8(-1 /*NULL*/, addr, (uint8_t) value, false)) {
 			gdb_send_reply(GDB_REPLY_MEMORY_WRITE_FAIL);
 			return;
 		}
-		
+
 		data += 2;
 		length--;
 		addr++;
 	}
-	
+
 	gdb_send_reply(GDB_REPLY_OK);
 }
 
@@ -338,10 +338,10 @@ static void gdb_register_dump(string_t *str, uint64_t val)
 	 * program and then we send it byte by byte to the
 	 * debugger.
 	 */
-	
+
 	union64_t value;
 	value.uint64 = convert_uint64_t_endian(val);
-	
+
 	string_printf(str, "%02x%02x%02x%02x%02x%02x%02x%02x",
 	    value.uint8[0], value.uint8[1],
 	    value.uint8[2], value.uint8[3],
@@ -357,7 +357,7 @@ static void gdb_registers_dump(string_t *str, reg64_t *regs,
     unsigned int count)
 {
 	unsigned int i;
-	
+
 	for (i = 0; i < count; i++)
 		gdb_register_dump(str, regs[i].val);
 }
@@ -374,17 +374,17 @@ static void gdb_registers_dump(string_t *str, reg64_t *regs,
 static bool gdb_register_upload(char **data, uint64_t *val)
 {
 	unsigned int values[8];
-	
+
 	/* Read 4 bytes */
 	int matched = sscanf(*data, "%02x%02x%02x%02x%02x%02x%02x%02x",
 	    &values[0], &values[1], &values[2], &values[3],
 	    &values[4], &values[5], &values[6], &values[7]);
-	
+
 	if (matched != 8) {
 		gdb_send_reply(GDB_REPLY_REGISTER_WRITE_FAIL);
 		return false;
 	}
-	
+
 	/* Convert it to uint32_t and handle the endianness */
 	union64_t value;
 	value.uint8[0] = values[0];
@@ -395,7 +395,7 @@ static bool gdb_register_upload(char **data, uint64_t *val)
 	value.uint8[5] = values[5];
 	value.uint8[6] = values[6];
 	value.uint8[7] = values[7];
-	
+
 	*val = convert_uint64_t_endian(value.uint64);
 	*data += 16;
 	return true;
@@ -415,12 +415,12 @@ static bool gdb_registers_upload(char **data, reg64_t *regs,
     unsigned int count)
 {
 	unsigned int i;
-	
+
 	for (i = 0; i < count; i++) {
 		if (!gdb_register_upload(data, &regs[i].val))
 			return false;
 	}
-	
+
 	return true;
 }
 
@@ -436,18 +436,18 @@ void gdb_handle_event(gdb_event_t event)
 {
 	string_t msg;
 	string_init(&msg);
-	
+
 	//TODO: implement for both
 	r4k_cpu_t *cpu = (r4k_cpu_t *)get_cpu(cpuno_global)->data;
-	// TODO: ASSERT that it really us r4k 
+	// TODO: ASSERT that it really us r4k
 
 	string_printf(&msg, "T%02x%02x:", event, GDB_REGISTER_PC);
 	gdb_register_dump(&msg, cpu->pc.ptr);
 	string_push(&msg, ';');
-	
+
 	gdb_send_reply(msg.str);
 	string_done(&msg);
-	
+
 	remote_gdb_listen = true;
 }
 
@@ -461,10 +461,10 @@ static void gdb_read_registers(void)
 {
 	//TODO: implement for both
 	r4k_cpu_t *cpu = (r4k_cpu_t *)get_cpu(cpuno_global)->data;
-	// TODO: ASSERT that it really us r4k 
+	// TODO: ASSERT that it really us r4k
 	string_t str;
 	string_init(&str);
-	
+
 	gdb_registers_dump(&str, cpu->regs, 32);
 	gdb_register_dump(&str, cpu->cp0[cp0_Status].val);
 	gdb_register_dump(&str, cpu->loreg.val);
@@ -472,7 +472,7 @@ static void gdb_read_registers(void)
 	gdb_register_dump(&str, cpu->cp0[cp0_BadVAddr].val);
 	gdb_register_dump(&str, cpu->cp0[cp0_Cause].val);
 	gdb_register_dump(&str, cpu->pc.ptr);
-	
+
 	gdb_send_reply(str.str);
 	string_done(&str);
 }
@@ -490,29 +490,29 @@ static void gdb_write_registers(char *req)
 	char *query = req + 1;
 	//TODO: implement for both
 	r4k_cpu_t *cpu = (r4k_cpu_t *)get_cpu(cpuno_global)->data;
-	// TODO: ASSERT that it really us r4k 
-	
+	// TODO: ASSERT that it really us r4k
+
 	if (!gdb_registers_upload(&query, cpu->regs, 32))
 		return;
-	
+
 	if (!gdb_register_upload(&query, &cpu->cp0[cp0_Status].val))
 		return;
-	
+
 	if (!gdb_register_upload(&query, &cpu->loreg.val))
 		return;
-	
+
 	if (!gdb_register_upload(&query, &cpu->hireg.val))
 		return;
-	
+
 	if (!gdb_register_upload(&query, &cpu->cp0[cp0_BadVAddr].val))
 		return;
-	
+
 	if (!gdb_register_upload(&query, &cpu->cp0[cp0_Cause].val))
 		return;
-	
+
 	if (!gdb_register_upload(&query, &cpu->pc.ptr))
 		return;
-	
+
 	gdb_send_reply(GDB_REPLY_OK);
 }
 
@@ -525,7 +525,7 @@ static void gdb_write_registers(char *req)
 static void gdb_cmd_mem_operation(char *req, bool read)
 {
 	char *query = req + 1;
-	
+
 	/* Parse the query */
 	unsigned int address = 0;
 	unsigned int length = 0;
@@ -534,14 +534,14 @@ static void gdb_cmd_mem_operation(char *req, bool read)
 		gdb_send_reply(GDB_NOT_SUPPORTED);
 		return;
 	}
-	
+
 	/* Addresses are physical */
-	
+
 	ptr64_t virt;
 	virt.ptr = address;
 	len64_t len = length;
 	ptr36_t phys;
-	
+
 	if (cpu_convert_addr(get_cpu(cpuno_global), virt, &phys, !read)) {
 		if (!read) {
 			/* Move the pointer to the data to be written */
@@ -550,7 +550,7 @@ static void gdb_cmd_mem_operation(char *req, bool read)
 				gdb_send_reply(GDB_REPLY_BAD_MEMORY_COMMAND);
 				return;
 			}
-			
+
 			query++;
 			gdb_write_physmem(phys, len, query);
 		} else
@@ -572,7 +572,7 @@ static void gdb_cmd_mem_operation(char *req, bool read)
 static void gdb_cmd_step(char *req, bool step)
 {
 	char *query = req + 1;
-	
+
 	/*
 	 * Decode address at which the processor should
 	 * resume.  If not specified, use the current PC.
@@ -585,10 +585,10 @@ static void gdb_cmd_step(char *req, bool step)
 		addr.ptr = address;
 		//TODO: implement for both
 		r4k_cpu_t *cpu = (r4k_cpu_t *)get_cpu(cpuno_global)->data;
-		// TODO: ASSERT that it really us r4k 
+		// TODO: ASSERT that it really us r4k
 		r4k_set_pc(cpu, addr);
 	}
-	
+
 	remote_gdb_step = step;
 	remote_gdb_listen = step;
 }
@@ -599,24 +599,24 @@ static void gdb_cmd_step(char *req, bool step)
 static void gdb_process_query(char *req)
 {
 	char *query = req + 1;
-	
+
 	if (strncmp(query, "Supported", 9) == 0) {
 		/* No extensions are supported */
 		gdb_send_reply(GDB_NOT_SUPPORTED);
 		return;
 	}
-	
+
 	if (strcmp(query, "C") == 0) {
 		char reply[5];
-		
+
 		ASSERT(cpuno_global < MAX_CPUS);
-		
+
 		/* Represent processors as threads */
 		snprintf(reply, 5, "QC%02x", cpuno_global);
 		gdb_send_reply(reply);
 		return;
 	}
-	
+
 	if (strcmp(query, "Attached") == 0) {
 		/*
 		 * We pretend that we have attached to aprocess,
@@ -625,25 +625,25 @@ static void gdb_process_query(char *req)
 		gdb_send_reply("1");
 		return;
 	}
-	
+
 	if (strcmp(query, "Offsets") == 0) {
 		/* There are no relocations known to the simulator */
 		gdb_send_reply("Text=0;Data=0;Bss=0");
 		return;
 	}
-	
+
 	if (strcmp(query, "Symbol::") == 0) {
 		/* Symbol lookup, we do not need it -> send OK */
 		gdb_send_reply(GDB_REPLY_OK);
 		return;
 	}
-	
+
 	if (strcmp(query, "TStatus") == 0) {
 		/* Tracepoints are not supported */
 		gdb_send_reply("T0");
 		return;
 	}
-	
+
 	/* Unsupported query */
 	gdb_send_reply(GDB_NOT_SUPPORTED);
 }
@@ -655,7 +655,7 @@ static unsigned int gdb_decode_threadid(char *threadid)
 		gdb_send_reply(GDB_REPLY_OK);
 		return 0;
 	}
-	
+
 	// TODO: decode specific threadids
 	gdb_send_reply(GDB_NOT_SUPPORTED);
 	return 0;
@@ -667,7 +667,7 @@ static unsigned int gdb_decode_threadid(char *threadid)
 static void gdb_process_thread(char *req)
 {
 	char *query = req + 1;
-	
+
 	switch (query[0]) {
 	case 'g':
 		cpuno_global = gdb_decode_threadid(query + 1);
@@ -685,10 +685,10 @@ static void gdb_reply_event(gdb_event_t event)
 {
 	string_t reply;
 	string_init(&reply);
-	
+
 	string_printf(&reply, "S%02x", event);
 	gdb_send_reply(reply.str);
-	
+
 	string_done(&reply);
 }
 
@@ -705,14 +705,14 @@ static void gdb_insert_code_breakpoint(r4k_cpu_t *cpu, ptr64_t addr)
 	 */
 	breakpoint_t *breakpoint = breakpoint_find_by_address(cpu->bps,
 	    addr, BREAKPOINT_FILTER_DEBUGGER);
-	
+
 	if (breakpoint != NULL)
 		return;
-	
+
 	/* Breakpoint not found, thus insert it now. */
 	breakpoint_t *inserted_breakpoint =
 	    breakpoint_init(addr, BREAKPOINT_KIND_DEBUGGER);
-	
+
 	list_append(&cpu->bps, &inserted_breakpoint->item);
 }
 
@@ -723,11 +723,11 @@ static void gdb_remove_code_breakpoint(r4k_cpu_t *cpu, ptr64_t addr)
 {
 	breakpoint_t *breakpoint = breakpoint_find_by_address(cpu->bps,
 	    addr, BREAKPOINT_FILTER_DEBUGGER);
-	
+
 	/* Removing non existent breakpoint is not considered as a bug */
 	if (breakpoint == NULL)
 		return;
-	
+
 	list_remove(&cpu->bps, &breakpoint->item);
 	safe_free(breakpoint);
 }
@@ -742,10 +742,10 @@ static void gdb_breakpoint(char *req, bool insert)
 {
 	/* Decode the type of breakpoint (code or memory)
 	   and memory access conditions */
-	
+
 	bool code_breakpoint = false;
 	access_filter_t memory_access = ACCESS_FILTER_ANY;
-	
+
 	switch (req[1]) {
 	case '0':  /* Software breakpoint */
 	case '1':  /* Hardware breakpoint */
@@ -768,38 +768,38 @@ static void gdb_breakpoint(char *req, bool insert)
 		gdb_send_reply(GDB_NOT_SUPPORTED);
 		return;
 	}
-	
+
 	/* Decode the breakpoint address and length */
 	char *arguments = req + 2;
 	unsigned int address;
 	unsigned int length;
 	int matched = sscanf(arguments, ",%x,%x", &address, &length);
-	
+
 	if (matched != 2) {
 		gdb_send_reply(GDB_REPLY_BAD_BREAKPOINT);
 		return;
 	}
-	
+
 	ptr64_t virt;
 	// Extend the address as the GDB sends the address in 32bits.
 	virt.ptr = UINT64_C(0xffffffff00000000) | address;
 	//TODO: implement for both
 	r4k_cpu_t *cpu = (r4k_cpu_t *)get_cpu(cpuno_global)->data;
-	// TODO: ASSERT that it really us r4k 
-	
+	// TODO: ASSERT that it really us r4k
+
 	if (code_breakpoint) {
 		if (length != 4) {
 			gdb_send_reply(GDB_REPLY_BAD_BREAKPOINT);
 			return;
 		}
-		
+
 		if (insert)
 			gdb_insert_code_breakpoint(cpu, virt);
 		else
 			gdb_remove_code_breakpoint(cpu, virt);
 	} else {
 		ptr36_t phys;
-		
+
 		if (cpu_convert_addr(get_cpu(cpuno_global), virt, &phys, false)) {
 			if (insert)
 				physmem_breakpoint_add(phys, length,
@@ -811,7 +811,7 @@ static void gdb_breakpoint(char *req, bool insert)
 			return;
 		}
 	}
-	
+
 	gdb_send_reply(GDB_REPLY_OK);
 }
 
@@ -822,31 +822,31 @@ static void gdb_remote_done(bool fail, bool remote_request)
 {
 	//TODO: implement for both
 	r4k_cpu_t *cpu = (r4k_cpu_t *)get_cpu(cpuno_global)->data;
-	// TODO: ASSERT that it really us r4k 
-	
+	// TODO: ASSERT that it really us r4k
+
 	if (!fail)
 		gdb_send_reply(remote_request ? GDB_REPLY_OK : GDB_REPLY_WARNING);
-	
+
 	if (close(gdb_fd) == -1)
 		io_error("gdb_fd");
-	
+
 	gdb_fd = -1;
 	cpuno_global = 0;
 	cpuno_step = 0;
-	
+
 	remote_gdb = false;
 	remote_gdb_conn = false;
-	
+
 	/* Remove all the debugger breakpoints. */
 	breakpoint_t *breakpoint = (breakpoint_t *) cpu->bps.head;
 	while (breakpoint != NULL) {
 		breakpoint_t *removed = breakpoint;
 		breakpoint = (breakpoint_t *) breakpoint->item.next;
-		
+
 		list_remove(&cpu->bps, &removed->item);
 		safe_free(removed);
 	}
-	
+
 	physmem_breakpoint_remove_filtered(BREAKPOINT_FILTER_DEBUGGER);
 }
 
@@ -864,7 +864,7 @@ void gdb_session(void)
 		remote_gdb_step = false;
 		gdb_handle_event(GDB_EVENT_BREAKPOINT);
 	}
-	
+
 	while (true) {
 		/* Read the command. */
 		char *req = gdb_get_request();
@@ -872,7 +872,7 @@ void gdb_session(void)
 			gdb_remote_done(true, false);
 			return;
 		}
-		
+
 		switch (req[0]) {
 		case 'H':  /* Thread selection */
 			gdb_process_thread(req);
@@ -916,7 +916,7 @@ void gdb_session(void)
 			gdb_send_reply(GDB_NOT_SUPPORTED);
 			break;
 		}
-		
+
 		safe_free(req);
 	}
 }
@@ -935,32 +935,32 @@ bool gdb_remote_init(void)
 		io_error("socket");
 		return false;
 	}
-	
+
 	int yes = 1;
 	if (setsockopt(gdb_fd, SOL_SOCKET, SO_REUSEADDR, (void *) &yes, sizeof(yes))) {
 		io_error("setsockopt");
 		return false;
 	}
-	
+
 	struct sockaddr_in sa_srv;
 	memset(&sa_srv, 0, sizeof(sa_srv));
-	
+
 	sa_srv.sin_family = AF_INET;
 	sa_srv.sin_addr.s_addr = htonl(INADDR_ANY);
 	sa_srv.sin_port = htons(remote_gdb_port);
-	
+
 	if (bind(gdb_fd, (struct sockaddr *) &sa_srv, sizeof(sa_srv)) < 0) {
 		io_error("bind");
 		return false;
 	}
-	
+
 	if (listen(gdb_fd, 1) < 0) {
 		io_error("listen");
 		return false;
 	}
-	
+
 	alert("GDB: Waiting for connection on port %u", remote_gdb_port);
-	
+
 	struct sockaddr_in sa_gdb;
 	socklen_t addrlen = sizeof(sa_gdb);
 	gdb_fd = accept(gdb_fd, (struct sockaddr *) &sa_gdb, &addrlen);
@@ -969,11 +969,11 @@ bool gdb_remote_init(void)
 			alert("GDB: Interrupted");
 		else
 			io_error("accept");
-		
+
 		return false;
 	}
-	
+
 	alert("GDB: Connected");
-	
+
 	return true;
 }

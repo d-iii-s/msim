@@ -508,7 +508,7 @@ PCUT_TEST(csrrsi_read_from_M_enabled_S_disabled_counter_Smode){
 }
 
 PCUT_TEST(csrrw_satp_vm_trapped){
-    
+
     rv_instr_t instr = { .i = {
         .opcode = rv_opcSYSTEM,
         .funct3 = rv_funcCSRRW,

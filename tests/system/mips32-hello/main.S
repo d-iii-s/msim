@@ -31,7 +31,7 @@ __start:
 
 	/*
 	 * Terminate.
-	 */	
+	 */
 	.insn
 	.word 0x28
 	nop

@@ -20,7 +20,7 @@ struct item;
 typedef struct list {
 	/** The first item on the list or NULL if empty. */
 	struct item *head;
-	
+
 	/** The last item on the list or NULL if empty. */
 	struct item *tail;
 } list_t;
@@ -33,10 +33,10 @@ typedef struct list {
 typedef struct item {
 	/** The list that we currently belong to. */
 	struct list *list;
-	
+
 	/** The next item on the list or NULL if first. */
 	struct item *prev;
-	
+
 	/** The previous item on the list or NULL if last. */
 	struct item *next;
 } item_t;

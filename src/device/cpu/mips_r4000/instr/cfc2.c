@@ -4,7 +4,7 @@ static r4k_exc_t instr_cfc2(r4k_cpu_t *cpu, r4k_instr_t instr)
 		/* Ignored */
 		return r4k_excNone;
 	}
-	
+
 	/* Coprocessor unusable */
 	cp0_cause(cpu).val &= ~cp0_cause_ce_mask;
 	cp0_cause(cpu).val |= cp0_cause_ce_cu2;

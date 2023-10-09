@@ -42,32 +42,32 @@ static bool dcycle_init(token_t *parm, device_t *dev)
 {
 	parm_next(&parm);
 	uint64_t _addr = parm_uint(parm);
-	
+
 	if (!phys_range(_addr)) {
 		error("Physical memory address out of range");
 		return false;
 	}
-	
+
 	if (!phys_range(_addr + (uint64_t) REGISTER_LIMIT)) {
 		error("Invalid address, registers would exceed the physical "
 		    "memory range");
 		return false;
 	}
-	
+
 	ptr36_t addr = _addr;
-	
+
 	if (!ptr36_dword_aligned(addr)) {
 		error("Physical memory address must be 8-byte aligned");
 		return false;
 	}
-	
+
 	/* Initialization */
 	dcycle_data_t *data = safe_malloc_t(dcycle_data_t);
 	dev->data = data;
-	
+
 	data->addr = addr;
 	data->cycle = 0;
-	
+
 	return true;
 }
 
@@ -82,10 +82,10 @@ static bool dcycle_init(token_t *parm, device_t *dev)
 static bool dcycle_info(token_t *parm, device_t *dev)
 {
 	dcycle_data_t *data = (dcycle_data_t *) dev->data;
-	
+
 	printf("[address ]\n");
 	printf("%#11" PRIx64 "\n", data->addr);
-	
+
 	return true;
 }
 
@@ -100,10 +100,10 @@ static bool dcycle_info(token_t *parm, device_t *dev)
 static bool dcycle_stat(token_t *parm, device_t *dev)
 {
 	dcycle_data_t *data = (dcycle_data_t *) dev->data;
-	
+
 	printf("[cycle              ]\n");
 	printf("%20" PRIu64 "\n", data->cycle);
-	
+
 	return true;
 }
 
@@ -128,9 +128,9 @@ static void dcycle_read32(unsigned int procno, device_t *dev, ptr36_t addr, uint
 {
 	ASSERT(dev != NULL);
 	ASSERT(val != NULL);
-	
+
 	dcycle_data_t *data = (dcycle_data_t *) dev->data;
-	
+
 	switch (addr - data->addr) {
 	case REGISTER_CYCLE_LO:
 		*val = (uint32_t) data->cycle;
@@ -152,9 +152,9 @@ static void dcycle_read64(unsigned int procno, device_t *dev, ptr36_t addr, uint
 {
 	ASSERT(dev != NULL);
 	ASSERT(val != NULL);
-	
+
 	dcycle_data_t *data = (dcycle_data_t *) dev->data;
-	
+
 	switch (addr - data->addr) {
 	case REGISTER_CYCLE_LO:
 		*val = data->cycle;
@@ -168,7 +168,7 @@ static void dcycle_read64(unsigned int procno, device_t *dev, ptr36_t addr, uint
 static void dcycle_step(device_t *dev)
 {
 	ASSERT(dev != NULL);
-	
+
 	dcycle_data_t *data = (dcycle_data_t *) dev->data;
 	data->cycle++;
 }
@@ -217,18 +217,18 @@ static cmd_t dcycle_cmds[] = {
 /** Dtime object structure */
 device_type_t dcycle = {
 	.nondet = false,
-	
+
 	/* Type name and description */
 	.name = "dcycle",
 	.brief = "Cycle device",
 	.full = "Device for reading a 64-bit CPU cycle counter.",
-	
+
 	/* Functions */
 	.done = dcycle_done,
 	.read32 = dcycle_read32,
 	.read64 = dcycle_read64,
 	.step = dcycle_step,
-	
+
 	/* Commands */
 	.cmds = dcycle_cmds
 };

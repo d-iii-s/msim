@@ -17,7 +17,7 @@ typedef struct rv_tlb_entry {
 extern void rv_tlb_add_mapping(rv_tlb_t* tlb, unsigned asid, uint32_t virt, sv32_pte_t pte, bool megapage, bool global){
 
     rv_tlb_entry_t* entry = NULL;
-    
+
     if(!is_empty(&tlb->free_list)){
         // If there are some unused entries, use them first
 
@@ -53,7 +53,7 @@ static void move_lru_entry_to_front(rv_tlb_t* tlb, rv_tlb_entry_t* entry){
     if(tlb->lru_list.head == &entry->item){
         return;
     }
-    
+
     ASSERT(entry->item.list == &tlb->lru_list);
 
     // Move entry to the front of the list by first removing it and then pushing it to the front
@@ -87,7 +87,7 @@ extern bool rv_tlb_get_mapping(rv_tlb_t* tlb, unsigned asid, uint32_t virt, sv32
 
             *pte = entry->pte;
             *megapage = entry->megapage;
-            
+
             return true;
         }
     }
@@ -99,7 +99,7 @@ extern bool rv_tlb_get_mapping(rv_tlb_t* tlb, unsigned asid, uint32_t virt, sv32
 
 static void invalidate_tlb_entry(rv_tlb_t* tlb, rv_tlb_entry_t* entry){
     ASSERT(entry->item.list == &tlb->lru_list);
-    
+
     list_remove(&tlb->lru_list, &entry->item);
     list_push(&tlb->free_list, &entry->item);
 }
@@ -161,7 +161,7 @@ extern void rv_tlb_flush_by_asid(rv_tlb_t* tlb, unsigned asid){
 extern void rv_tlb_flush_by_addr(rv_tlb_t* tlb, uint32_t virt){
     uint32_t vpn = virt >> RV_PAGESIZE;
     uint32_t mvpn = virt >> RV_MEGAPAGESIZE;
-    
+
     for(size_t i = 0; i < tlb->size; ++i){
 
         if(!is_entry_valid(tlb, &tlb->entries[i])){
@@ -185,16 +185,16 @@ extern void rv_tlb_flush_by_addr(rv_tlb_t* tlb, uint32_t virt){
 extern void rv_tlb_flush_by_asid_and_addr(rv_tlb_t* tlb, unsigned asid, uint32_t virt){
     uint32_t vpn = virt >> RV_PAGESIZE;
     uint32_t mvpn = virt >> RV_MEGAPAGESIZE;
-    
+
     for(size_t i = 0; i < tlb->size; ++i){
-        
+
         if(!is_entry_valid(tlb, &tlb->entries[i])){
             continue;
         }
 
         if(tlb->entries[i].global)
             continue;
-        
+
         if(tlb->entries[i].asid != asid)
             continue;
 
@@ -272,7 +272,7 @@ extern void rv_tlb_dump(rv_tlb_t* tlb){
 
     for_each(tlb->lru_list, entry, rv_tlb_entry_t){
         printed = true;
-        
+
         string_clear(&s_text);
         dump_tlb_entry(*entry, &s_text);
         printf("%8ld: %s\n", i, s_text.str);

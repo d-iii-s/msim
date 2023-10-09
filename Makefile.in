@@ -33,7 +33,7 @@ distclean: clean
 	$(MAKE) -C src distclean
 	$(MAKE) -C tests/rvtests/unit-tests distclean
 	$(RM) -f Makefile config.log config.status config.h stamp-h
-	
+
 test:
 	make -C . rvtest
 	bats tests/system/

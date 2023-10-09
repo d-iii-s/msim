@@ -8,7 +8,7 @@ OBJECTS := $(addsuffix .o,$(basename $(SOURCES)))
 # Remove main so we don't cause a linker conflict
 MSIM_OBJECTS := $(filter-out main.o, $(MSIM_OBJECTS))
 
-# change relativity of paths 
+# change relativity of paths
 MSIM_OBJECTS := $(addprefix ../../../src/, $(MSIM_OBJECTS))
 
 RM = rm

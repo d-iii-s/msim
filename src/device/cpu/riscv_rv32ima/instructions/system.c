@@ -73,7 +73,7 @@ extern rv_exc_t rv_csr_rd_instr(rv_cpu_t *cpu, rv_instr_t instr){
     ASSERT(instr.i.opcode == rv_opcSYSTEM);
     alert("ECSRRD: Dump CSR");
     uint32_t csr = cpu->regs[instr.i.rd] & 0xFFF;
-    
+
     if(csr >= 0x1000){
         alert("Wrong CSR number!");
     }
@@ -125,7 +125,7 @@ rv_exc_t rv_sret_instr(rv_cpu_t *cpu, rv_instr_t instr){
         //SPP = 00 (can be skipped, sice U mode is 0)
     }
     // if SPP != M: MPRV = 0
-    {   
+    {
         // This must always happen, because sret can return only to U or S mode
         cpu->csr.mstatus &= ~rv_csr_mstatus_mprv_mask;
     }
@@ -172,7 +172,7 @@ rv_exc_t rv_mret_instr(rv_cpu_t *cpu, rv_instr_t instr){
 }
 
 rv_exc_t rv_wfi_instr(rv_cpu_t *cpu, rv_instr_t instr){
-    
+
     if(rv_csr_mstatus_tw(cpu) && cpu->priv_mode != rv_mmode){
         return rv_exc_illegal_instruction;
     }
@@ -191,7 +191,7 @@ rv_exc_t rv_wfi_instr(rv_cpu_t *cpu, rv_instr_t instr){
 rv_exc_t rv_csrrw_instr(rv_cpu_t *cpu, rv_instr_t instr){
     int csr = ((uint32_t)instr.i.imm) & 0xFFF;
     uint32_t val = cpu->regs[instr.i.rs1];
-    uint32_t* rd = &cpu->regs[instr.i.rd];  
+    uint32_t* rd = &cpu->regs[instr.i.rd];
     bool read = instr.i.rd != 0;
 
     return rv_csr_rw(cpu, csr, val, rd, read);
@@ -200,7 +200,7 @@ rv_exc_t rv_csrrw_instr(rv_cpu_t *cpu, rv_instr_t instr){
 rv_exc_t rv_csrrs_instr(rv_cpu_t *cpu, rv_instr_t instr){
     int csr = ((uint32_t)instr.i.imm) & 0xFFF;
     uint32_t val = cpu->regs[instr.i.rs1];
-    uint32_t* rd = &cpu->regs[instr.i.rd];  
+    uint32_t* rd = &cpu->regs[instr.i.rd];
     bool write = instr.i.rs1 != 0;
 
     return rv_csr_rs(cpu, csr, val, rd, write);
@@ -209,16 +209,16 @@ rv_exc_t rv_csrrs_instr(rv_cpu_t *cpu, rv_instr_t instr){
 rv_exc_t rv_csrrc_instr(rv_cpu_t *cpu, rv_instr_t instr){
     int csr = ((uint32_t)instr.i.imm) & 0xFFF;
     uint32_t val = cpu->regs[instr.i.rs1];
-    uint32_t* rd = &cpu->regs[instr.i.rd]; 
+    uint32_t* rd = &cpu->regs[instr.i.rd];
     bool write = instr.i.rs1 != 0;
- 
+
     return rv_csr_rc(cpu, csr, val, rd, write);
 }
 
 rv_exc_t rv_csrrwi_instr(rv_cpu_t *cpu, rv_instr_t instr){
     int csr = ((uint32_t)instr.i.imm) & 0xFFF;
     uint32_t val = instr.i.rs1; // Zero extended
-    uint32_t* rd = &cpu->regs[instr.i.rd];  
+    uint32_t* rd = &cpu->regs[instr.i.rd];
     bool read = instr.i.rd != 0;
 
     return rv_csr_rw(cpu, csr, val, rd, read);
@@ -227,7 +227,7 @@ rv_exc_t rv_csrrwi_instr(rv_cpu_t *cpu, rv_instr_t instr){
 rv_exc_t rv_csrrsi_instr(rv_cpu_t *cpu, rv_instr_t instr){
     int csr = ((uint32_t)instr.i.imm) & 0xFFF;
     uint32_t val = instr.i.rs1; // Zero extended
-    uint32_t* rd = &cpu->regs[instr.i.rd];  
+    uint32_t* rd = &cpu->regs[instr.i.rd];
     bool write = instr.i.rs1 != 0;
 
     return rv_csr_rs(cpu, csr, val, rd, write);
@@ -236,7 +236,7 @@ rv_exc_t rv_csrrsi_instr(rv_cpu_t *cpu, rv_instr_t instr){
 rv_exc_t rv_csrrci_instr(rv_cpu_t *cpu, rv_instr_t instr){
     int csr = ((uint32_t)instr.i.imm) & 0xFFF;
     uint32_t val = instr.i.rs1; // Zero extended
-    uint32_t* rd = &cpu->regs[instr.i.rd];  
+    uint32_t* rd = &cpu->regs[instr.i.rd];
     bool write = instr.i.rs1 != 0;
 
     return rv_csr_rc(cpu, csr, val, rd, write);

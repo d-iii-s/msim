@@ -31,7 +31,7 @@ PCUT_TEST(j_imm_positive){
     instr.j.imm19_12 = 1;
     instr.j.imm20 = 0;
 
-    //  e = 2^1 + 2^11 + 2^12 
+    //  e = 2^1 + 2^11 + 2^12
     int expected = 2 + 2048 + 4096;
 
     PCUT_ASSERT_INT_EQUALS(expected, RV_J_IMM(instr));

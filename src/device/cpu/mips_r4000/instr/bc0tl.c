@@ -7,7 +7,7 @@ static r4k_exc_t instr_bc0tl(r4k_cpu_t *cpu, r4k_instr_t instr)
 		cpu->branch = BRANCH_COND;
 		return r4k_excJump;
 	}
-	
+
 	/* Coprocessor unusable */
 	cp0_cause(cpu).val &= ~cp0_cause_ce_mask;
 	return r4k_excCpU;

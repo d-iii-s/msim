@@ -53,38 +53,38 @@ static gen_type_t gen_type = command_name;
 static bool system_add(token_t *parm, void *data)
 {
 	ASSERT(parm != NULL);
-	
+
 	const char *device_type = parm_str(parm);
 	parm_next(&parm);
 	const char *device_name = parm_str(parm);
-	
+
 	/*
 	 * Check for conflicts between
 	 * the device name and a command name
 	 */
-	
+
 	if (cmd_find(device_name, system_cmds, NULL) == CMP_HIT) {
 		error("Device name \"%s\" is in conflict with a command name",
 		    device_name);
 		return false;
 	}
-	
+
 	if (dev_by_name(device_name)) {
 		error("Device name \"%s\" already added", device_name);
 		return false;
 	}
-	
+
 	/* Allocate device */
 	device_t *dev = alloc_device(device_type, device_name);
 	if (!dev)
 		return false;
-	
+
 	/* Call device inicialization */
 	if (!cmd_run_by_name("init", parm, dev->type->cmds, dev)) {
 		free_device(dev);
 		return false;
 	}
-	
+
 	/* Add into the device list */
 	add_device(dev);
 	return true;
@@ -110,7 +110,7 @@ static bool system_continue(token_t *parm, void *data)
 static bool system_step(token_t *parm, void *data)
 {
 	ASSERT(parm != NULL);
-	
+
 	switch (parm_type(parm)) {
 	case tt_end:
 		stepping = 1;
@@ -124,7 +124,7 @@ static bool system_step(token_t *parm, void *data)
 		intr_error("Unexpected parameter type");
 		return false;
 	}
-	
+
 	return true;
 }
 
@@ -158,7 +158,7 @@ static bool system_unset(token_t *parm, void *data)
 static bool system_dumpins(token_t *parm, void *data)
 {
 	ASSERT(parm != NULL);
-	
+
 
 	char*	 _cpu  = parm_str_next(&parm);
 	uint64_t _addr = ALIGN_DOWN(parm_uint_next(&parm), 4);
@@ -170,25 +170,25 @@ static bool system_dumpins(token_t *parm, void *data)
 		error("Unknown CPU type (supported types: r4k, rv)");
 		return false;
 	}
-	
+
 	if (!phys_range(_addr)) {
 		error("Physical address out of range");
 		return false;
 	}
-	
+
 	if (!phys_range(_cnt)) {
 		error("Count out of physical memory range");
 		return false;
 	}
-	
+
 	if (!phys_range(_addr + _cnt * 4)) {
 		error("Count exceeds physical memory range");
 		return false;
 	}
-	
+
 	ptr36_t addr;
 	len36_t cnt;
-	
+
 	for (addr = (ptr36_t) _addr, cnt = (len36_t) _cnt; cnt > 0;
 	    addr += 4, cnt--) {
 
@@ -203,7 +203,7 @@ static bool system_dumpins(token_t *parm, void *data)
 			rv_idump_phys(addr, instr);
 		}
 	}
-	
+
 	return true;
 }
 
@@ -215,7 +215,7 @@ static bool system_dumpins(token_t *parm, void *data)
 static bool system_dumpdev(token_t *parm, void *data)
 {
 	ASSERT(parm != NULL);
-	
+
 	dbg_print_devices(DEVICE_FILTER_ALL);
 	return true;
 }
@@ -228,7 +228,7 @@ static bool system_dumpdev(token_t *parm, void *data)
 static bool system_dumpphys(token_t *parm, void *data)
 {
 	ASSERT(parm != NULL);
-	
+
 	dbg_print_devices(DEVICE_FILTER_MEMORY);
 	return true;
 }
@@ -239,39 +239,39 @@ static bool system_dumpphys(token_t *parm, void *data)
 static bool system_break(token_t *parm, void *data)
 {
 	ASSERT(parm != NULL);
-	
+
 	uint64_t addr = parm_uint_next(&parm);
 	uint64_t size = parm_uint_next(&parm);
 	const char *rw = parm_str(parm);
-	
+
 	if (!phys_range(addr)) {
 		error("Physical address out of range");
 		return false;
 	}
-	
+
 	if (!phys_range(size)) {
 		error("Size out of physical memory range");
 		return false;
 	}
-	
+
 	if (!phys_range(addr + size)) {
 		error("Size exceeds physical memory range");
 		return false;
 	}
-	
+
 	access_filter_t access_flags = ACCESS_FILTER_NONE;
-	
+
 	if (strchr(rw, 'r') != NULL)
 		access_flags |= ACCESS_READ;
-	
+
 	if (strchr(rw, 'w') != NULL)
 		access_flags |= ACCESS_WRITE;
-	
+
 	if (access_flags == ACCESS_FILTER_NONE) {
 		error("Read or write access must be specified");
 		return false;
 	}
-	
+
 	physmem_breakpoint_add((ptr36_t) addr, (len36_t) size,
 	    BREAKPOINT_KIND_SIMULATOR, access_flags);
 
@@ -294,19 +294,19 @@ static bool system_dumpbreak(token_t *parm, void *data)
 static bool system_rembreak(token_t *parm, void *data)
 {
 	ASSERT(parm != NULL);
-	
+
 	uint64_t addr = parm_uint(parm);
-	
+
 	if (!phys_range(addr)) {
 		error("Physical address out of range");
 		return false;
 	}
-	
+
 	if (!physmem_breakpoint_remove(addr)) {
 		error("Unknown breakpoint");
 		return false;
 	}
-	
+
 	return true;
 }
 
@@ -330,44 +330,44 @@ static bool system_stat(token_t *parm, void *data)
 static bool system_dumpmem(token_t *parm, void *data)
 {
 	ASSERT(parm != NULL);
-	
+
 	uint64_t _addr = ALIGN_DOWN(parm_uint_next(&parm), 4);
 	uint64_t _cnt = parm_uint(parm);
-	
+
 	if (!phys_range(_addr)) {
 		error("Physical address out of range");
 		return false;
 	}
-	
+
 	if (!phys_range(_cnt)) {
 		error("Count out of physical memory range");
 		return false;
 	}
-	
+
 	if (!phys_range(_addr + _cnt * 4)) {
 		error("Count exceeds physical memory range");
 		return false;
 	}
-	
+
 	ptr36_t addr;
 	len36_t cnt;
 	len36_t i;
-	
+
 	for (addr = (ptr36_t) _addr, cnt = (len36_t) _cnt, i = 0;
 	    i < cnt; addr += 4, i++) {
 		if ((i & 0x03U) == 0)
 			printf("  %#011" PRIx64 "   ", addr);
-		
+
 		uint32_t val = physmem_read32(-1, addr, false);
 		printf("%08" PRIx32 " ", val);
-		
+
 		if ((i & 0x03U) == 3)
 			printf("\n");
 	}
-	
+
 	if (i != 0)
 		printf("\n");
-	
+
 	return true;
 }
 
@@ -392,7 +392,7 @@ static bool system_quit(token_t *parm, void *data)
 static bool system_echo(token_t *parm, void *data)
 {
 	ASSERT(parm != NULL);
-	
+
 	while (parm_type(parm) != tt_end) {
 		switch (parm_type(parm)) {
 		case tt_str:
@@ -405,12 +405,12 @@ static bool system_echo(token_t *parm, void *data)
 			intr_error("Unexpected parameter type");
 			return false;
 		}
-		
+
 		parm_next(&parm);
 		if (parm_type(parm) != tt_end)
 			printf(" ");
 	}
-	
+
 	printf("\n");
 	return true;
 }
@@ -423,7 +423,7 @@ static bool system_echo(token_t *parm, void *data)
 static bool system_help(token_t *parm, void *data)
 {
 	ASSERT(parm != NULL);
-	
+
 	cmd_print_extended_help(system_cmds, parm);
 	return true;
 }
@@ -436,25 +436,25 @@ static bool system_help(token_t *parm, void *data)
 bool interpret(const char *str)
 {
 	ASSERT(str != NULL);
-	
+
 	/* Parse input */
 	token_t *parm = parm_parse(str);
-	
+
 	if (parm_type(parm) == tt_end){
 		parm_delete(parm);
 		return true;
 	}
-	
+
 	if (parm_type(parm) != tt_str) {
 		error("Command name expected");
 		parm_delete(parm);
 		return true;
 	}
-	
+
 	const char *name = parm_str(parm);
 	bool ret;
 	device_t *dev = dev_by_name(name);
-	
+
 	if (dev) {
 		/* Device command */
 		parm_next(&parm);
@@ -462,7 +462,7 @@ bool interpret(const char *str)
 	} else
 		/* System command */
 		ret = cmd_run_by_parm(parm, system_cmds, NULL);
-	
+
 	parm_delete(parm);
 	return ret;
 }
@@ -473,24 +473,24 @@ bool interpret(const char *str)
 static bool setup_apply(const char *buf)
 {
 	ASSERT(buf != NULL);
-	
+
 	size_t lineno = 1;
-	
+
 	while ((*buf) && (!machine_halt)) {
 		set_lineno(lineno);
 		if (!interpret(buf))
 			return false;
-		
+
 		/* Move to the next line */
 		while ((*buf) && (*buf != '\n'))
 			buf++;
-		
+
 		if (*buf == '\n')
 			buf++;
-		
+
 		lineno++;
 	}
-	
+
 	return true;
 }
 
@@ -505,7 +505,7 @@ void script(void)
 		if (!config_file)
 			config_file = "msim.conf";
 	}
-	
+
 	/* Open configuration file */
 	FILE *file = fopen(config_file, "r");
 	if (file == NULL) {
@@ -514,29 +514,29 @@ void script(void)
 			    config_file);
 		else
 			io_die(ERR_IO, config_file);
-		
+
 		machine_interactive = true;
 		return;
 	}
-	
+
 	if (check_isdir(file)) {
 		alert("Path \"%s\" is a directory, skipping", config_file);
 		safe_fclose(file, config_file);
 		machine_interactive = true;
 		return;
 	}
-	
+
 	set_script(config_file);
-	
+
 	string_t str;
 	string_init(&str);
 	string_fread(&str, file);
-	
+
 	safe_fclose(file, config_file);
-	
+
 	if (!setup_apply(str.str))
 		die(ERR_INIT, "Error in configuration file");
-	
+
 	unset_script();
 	string_done(&str);
 }
@@ -549,18 +549,18 @@ static char *generator_devtype(token_t *parm, const void *data,
 {
 	ASSERT(parm != NULL);
 	ASSERT((parm_type(parm) == tt_str) || (parm_type(parm) == tt_end));
-	
+
 	const char *str;
 	static uint32_t last_device_order = 0;
-	
+
 	if (level == 0)
 		last_device_order = 0;
-	
+
 	if (parm_type(parm) == tt_str)
 		str = dev_type_by_partial_name(parm_str(parm), &last_device_order);
 	else
 		str = dev_type_by_partial_name("", &last_device_order);
-	
+
 	return str ? safe_strdup(str) : NULL;
 }
 
@@ -572,18 +572,18 @@ static char *generator_devname(token_t *parm, const void *data,
 {
 	ASSERT(parm != NULL);
 	ASSERT((parm_type(parm) == tt_str) || (parm_type(parm) == tt_end));
-	
+
 	const char *str;
 	static device_t *dev;
-	
+
 	if (level == 0)
 		dev = NULL;
-	
+
 	if (parm_type(parm) == tt_str)
 		str = dev_by_partial_name(parm_str(parm), &dev);
 	else
 		str = dev_by_partial_name("", &dev);
-	
+
 	return str ? safe_strdup(str) : NULL;
 }
 
@@ -596,12 +596,12 @@ static char *generator_system_cmds_and_device_names(token_t *parm,
     const void *unused_data, unsigned int level)
 {
 	ASSERT(parm != NULL);
-	
+
 	const char *str = NULL;
-	
+
 	if (level == 0)
 		gen_type = command_name;
-	
+
 	if (gen_type == command_name) {
 		str = generator_cmd(parm, system_cmds + 1, level);
 		if (!str) {
@@ -609,10 +609,10 @@ static char *generator_system_cmds_and_device_names(token_t *parm,
 			level = 0;
 		}
 	}
-	
+
 	if (gen_type == device_name)
 		str = generator_devname(parm, NULL, level);
-	
+
 	return str ? safe_strdup(str) : NULL;
 }
 
@@ -627,13 +627,13 @@ static gen_t system_add_find_generator(token_t **parm, const cmd_t *cmd,
 	ASSERT(cmd != NULL);
 	ASSERT(data != NULL);
 	ASSERT(*data == NULL);
-	
+
 	uint32_t first_device_order = 0;
 	if ((parm_type(*parm) == tt_str)
 	    && (dev_type_by_partial_name(parm_str(*parm), &first_device_order))
 	    && (parm_last(*parm)))
 		return generator_devtype;
-	
+
 	return NULL;
 }
 
@@ -648,10 +648,10 @@ static gen_t system_set_find_generator(token_t **parm, const cmd_t *cmd,
 	ASSERT(cmd != NULL);
 	ASSERT(data != NULL);
 	ASSERT(*data == NULL);
-	
+
 	if (parm_type(*parm) == tt_str) {
 		unsigned int res;
-		
+
 		/* Look up for a variable name */
 		if (parm_last(*parm))
 			/* There is a completion possible */
@@ -659,21 +659,21 @@ static gen_t system_set_find_generator(token_t **parm, const cmd_t *cmd,
 		else
 			/* Exactly one match is allowed */
 			res = 1;
-		
+
 		if (res == 1) {
 			/* Variable fit by partial name */
 			if (parm_last(*parm))
 				return generator_env_name;
-			
+
 			var_type_t type;
-			
+
 			if (env_check_varname(parm_str(*parm), &type)) {
 				parm_next(parm);
 				if (parm_type(*parm) == tt_str) {
 					if (!strcmp(parm_str(*parm), "=")) {
 						/* Search for value */
 						parm_next(parm);
-						
+
 						if ((parm_type(*parm) == tt_str) && (type == vt_bool)) {
 							if (parm_last(*parm))
 								return generator_env_booltype;
@@ -688,7 +688,7 @@ static gen_t system_set_find_generator(token_t **parm, const cmd_t *cmd,
 		if (parm_last(*parm))
 			return generator_env_name;
 	}
-	
+
 	return NULL;
 }
 
@@ -703,18 +703,18 @@ static gen_t system_unset_find_generator(token_t **parm, const cmd_t *cmd,
 	ASSERT(cmd != NULL);
 	ASSERT(data != NULL);
 	ASSERT(*data == NULL);
-	
+
 	if (parm_type(*parm) == tt_str) {
 		/* Look up for a variable name */
 		unsigned int res = env_cnt_partial_varname(parm_str(*parm));
-		
+
 		if (res > 0) {
 			/* Partially fit by partial name */
 			if (parm_last(*parm))
 				return generator_bool_envname;
 		}
 	}
-	
+
 	return NULL;
 }
 
@@ -729,20 +729,20 @@ gen_t find_completion_generator(token_t **parm, const void **data)
 	ASSERT(*parm != NULL);
 	ASSERT(data != NULL);
 	ASSERT(*data == NULL);
-	
+
 	if (parm_last(*parm))
 		return generator_system_cmds_and_device_names;
-	
+
 	/* Check if the first token is a string */
 	if (parm_type(*parm) != tt_str)
 		return NULL;
-	
+
 	char* user_text = parm_str(*parm);
-	
+
 	/* Find a command */
 	const cmd_t *cmd;
 	cmd_find_res_t res = cmd_find(user_text, system_cmds + 1, &cmd);
-	
+
 	switch (res) {
 	case CMP_NO_HIT:
 	case CMP_PARTIAL_HIT:
@@ -756,36 +756,36 @@ gen_t find_completion_generator(token_t **parm, const void **data)
 		 */
 		if (parm_last(*parm))
 			return generator_system_cmds_and_device_names;
-		
+
 		device_t *last_device = NULL;
 		size_t devices_count = dev_count_by_partial_name(user_text,
 		    &last_device);
-		
+
 		if (devices_count == 1) {
 			parm_next(parm);
 			return dev_find_generator(parm, last_device, data);
 		}
-		
+
 		break;
 	case CMP_MULTIPLE_HIT:
 	case CMP_HIT:
 		/* Default system generator */
 		if (parm_last(*parm))
 			return generator_system_cmds_and_device_names;
-		
+
 		if (res == CMP_MULTIPLE_HIT)
 			/* Input error */
 			break;
-		
+
 		/* Continue to the next generator if possible */
 		if (cmd->find_gen)
 			return cmd->find_gen(parm, cmd, data);
-		
+
 		break;
 	default:
 		intr_error("Unexpected compare result");
 	}
-	
+
 	return NULL;
 }
 

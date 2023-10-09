@@ -26,7 +26,7 @@ rv_exc_t rv_lb_instr(rv_cpu_t *cpu, rv_instr_t instr){
     uint8_t val;
 
     rv_exc_t ex = rv_read_mem8(cpu, virt, &val, true);
-    
+
     if(ex != rv_exc_none){
         return ex;
     }
@@ -46,7 +46,7 @@ rv_exc_t rv_lh_instr(rv_cpu_t *cpu, rv_instr_t instr){
     uint16_t val;
 
     rv_exc_t ex = rv_read_mem16(cpu, virt, &val, false, true);
-    
+
     if(ex != rv_exc_none){
         return ex;
     }
@@ -71,7 +71,7 @@ rv_exc_t rv_lw_instr(rv_cpu_t *cpu, rv_instr_t instr){
     uint32_t val;
 
     rv_exc_t ex = rv_read_mem32(cpu, virt, &val, false, true);
-    
+
     if(ex != rv_exc_none){
         return ex;
     }
@@ -90,7 +90,7 @@ rv_exc_t rv_lbu_instr(rv_cpu_t *cpu, rv_instr_t instr){
     uint8_t val;
 
     rv_exc_t ex = rv_read_mem8(cpu, virt, &val, true);
-    
+
     if(ex != rv_exc_none){
         return ex;
     }
@@ -114,7 +114,7 @@ rv_exc_t rv_lhu_instr(rv_cpu_t *cpu, rv_instr_t instr){
     uint16_t val;
 
     rv_exc_t ex = rv_read_mem16(cpu, virt, &val, false, true);
-    
+
     if(ex != rv_exc_none){
         return ex;
     }
@@ -154,7 +154,7 @@ rv_exc_t rv_sw_instr(rv_cpu_t *cpu, rv_instr_t instr){
 
 rv_exc_t rv_fence_instr(rv_cpu_t *cpu, rv_instr_t instr){
     // FENCE instruction does nothing in deterministic emulator,
-    // where out-of-order processing is not allowed 
+    // where out-of-order processing is not allowed
     return rv_exc_none;
 }
 

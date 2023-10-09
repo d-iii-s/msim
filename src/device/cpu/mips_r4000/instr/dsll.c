@@ -5,7 +5,7 @@ static r4k_exc_t instr_dsll(r4k_cpu_t *cpu, r4k_instr_t instr)
 		cpu->regs[instr.r.rd].val = rt << instr.r.sa;
 	} else
 		return r4k_excRI;
-	
+
 	return r4k_excNone;
 }
 

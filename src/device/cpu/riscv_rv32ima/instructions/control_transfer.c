@@ -127,7 +127,7 @@ rv_exc_t rv_bltu_instr(rv_cpu_t *cpu, rv_instr_t instr){
     uint32_t rhs = cpu->regs[instr.b.rs2];
 
     if(lhs < rhs) {
-        
+
         if(!IS_ALIGNED(target, 4)){
             cpu->csr.tval_next = target;
             return rv_exc_instruction_address_misaligned;

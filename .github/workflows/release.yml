@@ -54,9 +54,13 @@ jobs:
           version: '${{ env.PACKAGE_VERSION }}'
           arch: 'x86_64'
 
+      - name: Setup release notes
+        run: ./contrib/get-release-notes.sh ${{ env.PACKAGE_VERSION }} >gh-release-body.txt
+
       - name: Release
         uses: softprops/action-gh-release@v1
         with:
+          body_path: gh-release-body.txt
           files: |
             msim*.deb
             msim*.rpm

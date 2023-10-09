@@ -24,7 +24,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 
 * ebuild recipe (thx MFF sysadmins)
-* RISC-V TLB documentation (@vhotspur)
+* RISC-V TLB documentation (@vhotspur, @HanyzPAPU)
 * ReadTheDocs configuration (@vhotspur)
 
 ### Changed

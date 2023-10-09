@@ -42,6 +42,7 @@ fi
 
 echo "Current MSIM version is $msim_version."
 check_version "configure" "$( grep '^PACKAGE_VERSION=' configure | cut -d = -f 2 | tr -d "'" )"
+check_version "CHANGELOG.md" "$( grep -F "## v${msim_version} - " <CHANGELOG.md | sed 's:.*v\([0-9.]*\).*:\1:' )"
 check_version "contrib/msim.spec" "$( grep '^Version:' contrib/msim.spec | cut -d : -f 2 )"
 check_version "contrib/msim-VER.ebuild" "$( ls contrib/msim-*.ebuild | cut -d- -f 2 )"
 check_version "doc/Doxyfile" "$( grep '^PROJECT_NUMBER' doc/Doxyfile | cut -d = -f 2 )"

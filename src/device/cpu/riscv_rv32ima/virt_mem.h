@@ -21,16 +21,16 @@ enum rv_exc;
  * @brief Structure describing the Page Table Entry for SV32 virtual addressing
  */
 typedef struct sv32_pte {
-    unsigned int v: 1;
-    unsigned int r: 1;
-    unsigned int w: 1;
-    unsigned int x: 1;
-    unsigned int u: 1;
-    unsigned int g: 1;
-    unsigned int a: 1;
-    unsigned int d: 1;
-    unsigned int rsw: 2;
-    unsigned int ppn: 22;
+    unsigned int v : 1;
+    unsigned int r : 1;
+    unsigned int w : 1;
+    unsigned int x : 1;
+    unsigned int u : 1;
+    unsigned int g : 1;
+    unsigned int a : 1;
+    unsigned int d : 1;
+    unsigned int rsw : 2;
+    unsigned int ppn : 22;
 } sv32_pte_t;
 
 #define is_pte_leaf(pte) ((pte).r | (pte).w | (pte).x)

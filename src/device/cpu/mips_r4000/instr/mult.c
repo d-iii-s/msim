@@ -10,8 +10,7 @@ static r4k_exc_t instr_mult(r4k_cpu_t *cpu, r4k_instr_t instr)
         return r4k_excNone;
     }
 
-    uint64_t res = ((int64_t) sign_extend_32_64(rs)) *
-        ((int64_t) sign_extend_32_64(rt));
+    uint64_t res = ((int64_t) sign_extend_32_64(rs)) * ((int64_t) sign_extend_32_64(rt));
     cpu->loreg.val = sign_extend_32_64((uint32_t) res);
     cpu->hireg.val = sign_extend_32_64((uint32_t) (res >> 32));
 
@@ -19,7 +18,7 @@ static r4k_exc_t instr_mult(r4k_cpu_t *cpu, r4k_instr_t instr)
 }
 
 static void mnemonics_mult(ptr64_t addr, r4k_instr_t instr,
-    string_t *mnemonics, string_t *comments)
+        string_t *mnemonics, string_t *comments)
 {
     string_printf(mnemonics, "mult");
     disassemble_rs_rt(instr, mnemonics, comments);

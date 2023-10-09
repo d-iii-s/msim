@@ -12,7 +12,7 @@ static r4k_exc_t instr_addi(r4k_cpu_t *cpu, r4k_instr_t instr)
 }
 
 static void mnemonics_addi(ptr64_t addr, r4k_instr_t instr,
-    string_t *mnemonics, string_t *comments)
+        string_t *mnemonics, string_t *comments)
 {
     string_printf(mnemonics, "addi");
     disassemble_rt_rs_imm(instr, mnemonics, comments);

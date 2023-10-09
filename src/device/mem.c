@@ -50,12 +50,12 @@ static void physmem_cleanup(physmem_area_t *area)
     case MEMT_MEM:
         physmem_unwire(area);
         safe_free(area->data);
-        //safe_free(area->trans);
+        // safe_free(area->trans);
         break;
     case MEMT_FMAP:
         physmem_unwire(area);
         try_munmap(area->data, FRAMES2SIZE(area->count));
-        //safe_free(area->trans);
+        // safe_free(area->trans);
         break;
     }
 
@@ -83,7 +83,8 @@ static bool mem_init(token_t *parm, device_t *dev)
 
     if (!ptr36_frame_aligned(start)) {
         error("Physical memory address must be aligned on frame boundary "
-            "(%u bytes)", FRAME_SIZE);
+              "(%u bytes)",
+                FRAME_SIZE);
         return false;
     }
 
@@ -96,7 +97,7 @@ static bool mem_init(token_t *parm, device_t *dev)
     area->start = ADDR2FRAME(start);
     area->count = 0;
     area->data = NULL;
-    //area->trans = NULL;
+    // area->trans = NULL;
 
     dev->data = area;
 
@@ -112,9 +113,9 @@ static bool mem_info(token_t *parm, device_t *dev)
     char *size = uint64_human_readable(FRAMES2SIZE(area->count));
 
     printf("[Start    ] [Size      ] [Type]\n"
-        "%#011" PRIx64 " %12s %s\n",
-        FRAME2ADDR(area->start), size,
-        txt_mem_type[area->type]);
+           "%#011" PRIx64 " %12s %s\n",
+            FRAME2ADDR(area->start), size,
+            txt_mem_type[area->type]);
 
     safe_free(size);
 
@@ -318,7 +319,7 @@ static bool mem_fmap(token_t *parm, device_t *dev)
     area->type = MEMT_FMAP;
     area->count = SIZE2FRAMES(size);
     area->data = (uint8_t *) ptr;
-    //area->trans = safe_malloc(sizeof(r4k_instr_fnc_t) * SIZE2INSTRS(size));
+    // area->trans = safe_malloc(sizeof(r4k_instr_fnc_t) * SIZE2INSTRS(size));
     physmem_wire(area);
 
     return true;
@@ -358,7 +359,8 @@ static bool mem_generic(token_t *parm, device_t *dev)
 
     if (!ptr36_frame_aligned(_size)) {
         error("Physical memory area size must be aligned on frame boundary "
-            "(%u bytes)", FRAME_SIZE);
+              "(%u bytes)",
+                FRAME_SIZE);
         return false;
     }
 
@@ -374,7 +376,7 @@ static bool mem_generic(token_t *parm, device_t *dev)
     area->data = safe_malloc(host_size);
     // Set whole memory to 0
     memset(area->data, 0, host_size);
-    //area->trans = safe_malloc(sizeof(r4k_instr_fnc_t) * SIZE2INSTRS(host_size));
+    // area->trans = safe_malloc(sizeof(r4k_instr_fnc_t) * SIZE2INSTRS(host_size));
     physmem_wire(area);
 
     return true;
@@ -435,79 +437,63 @@ static void mem_done(device_t *dev)
 }
 
 cmd_t dmem_cmds[] = {
-    {
-        "init",
-        (fcmd_t) mem_init,
-        DEFAULT,
-        DEFAULT,
-        "Initialization",
-        "Initialization",
-        REQ STR "memory name" NEXT
-        REQ INT "memory start address" END
-    },
-    {
-        "help",
-        (fcmd_t) dev_generic_help,
-        DEFAULT,
-        DEFAULT,
-        "Usage help",
-        "Usage help",
-        NOCMD
-    },
-    {
-        "info",
-        (fcmd_t) mem_info,
-        DEFAULT,
-        DEFAULT,
-        "Configuration information",
-        "Configuration information",
-        NOCMD
-    },
-    {
-        "generic",
-        (fcmd_t) mem_generic,
-        DEFAULT,
-        DEFAULT,
-        "Generic memory type.",
-        "Generic memory type.",
-        REQ INT "size" END
-    },
-    {
-        "fmap",
-        (fcmd_t) mem_fmap,
-        DEFAULT,
-        DEFAULT,
-        "Map the memory into the file.",
-        "Map the memory into the file.",
-        REQ STR "File name" END
-    },
-    {
-        "fill",
-        (fcmd_t) mem_fill,
-        DEFAULT,
-        DEFAULT,
-        "Fill the memory with specified character",
-        "Fill the memory with specified character",
-        OPT VAR "value" END
-    },
-    {
-        "load",
-        (fcmd_t) mem_load,
-        DEFAULT,
-        DEFAULT,
-        "Load the file into the memory",
-        "Load the file into the memory",
-        REQ STR "File name" END
-    },
-    {
-        "save",
-        (fcmd_t) mem_save,
-        DEFAULT,
-        DEFAULT,
-        "Save the context of the memory into the file specified",
-        "Save the context of the memory into the file specified",
-        REQ STR "File name" END
-    },
+    { "init",
+            (fcmd_t) mem_init,
+            DEFAULT,
+            DEFAULT,
+            "Initialization",
+            "Initialization",
+            REQ STR "memory name" NEXT
+                    REQ INT "memory start address" END },
+    { "help",
+            (fcmd_t) dev_generic_help,
+            DEFAULT,
+            DEFAULT,
+            "Usage help",
+            "Usage help",
+            NOCMD },
+    { "info",
+            (fcmd_t) mem_info,
+            DEFAULT,
+            DEFAULT,
+            "Configuration information",
+            "Configuration information",
+            NOCMD },
+    { "generic",
+            (fcmd_t) mem_generic,
+            DEFAULT,
+            DEFAULT,
+            "Generic memory type.",
+            "Generic memory type.",
+            REQ INT "size" END },
+    { "fmap",
+            (fcmd_t) mem_fmap,
+            DEFAULT,
+            DEFAULT,
+            "Map the memory into the file.",
+            "Map the memory into the file.",
+            REQ STR "File name" END },
+    { "fill",
+            (fcmd_t) mem_fill,
+            DEFAULT,
+            DEFAULT,
+            "Fill the memory with specified character",
+            "Fill the memory with specified character",
+            OPT VAR "value" END },
+    { "load",
+            (fcmd_t) mem_load,
+            DEFAULT,
+            DEFAULT,
+            "Load the file into the memory",
+            "Load the file into the memory",
+            REQ STR "File name" END },
+    { "save",
+            (fcmd_t) mem_save,
+            DEFAULT,
+            DEFAULT,
+            "Save the context of the memory into the file specified",
+            "Save the context of the memory into the file specified",
+            REQ STR "File name" END },
     LAST_CMD
 };
 

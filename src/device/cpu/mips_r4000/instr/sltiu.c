@@ -16,7 +16,7 @@ static r4k_exc_t instr_sltiu(r4k_cpu_t *cpu, r4k_instr_t instr)
 }
 
 static void mnemonics_sltiu(ptr64_t addr, r4k_instr_t instr,
-    string_t *mnemonics, string_t *comments)
+        string_t *mnemonics, string_t *comments)
 {
     string_printf(mnemonics, "sltiu");
     disassemble_rt_rs_imm(instr, mnemonics, comments);

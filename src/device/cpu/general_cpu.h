@@ -17,19 +17,19 @@
 #include "../../debug/breakpoint.h"
 
 /** Function type for raising and canceling interrupts */
-typedef void (*interrupt_func_t)(void*, unsigned int);
+typedef void (*interrupt_func_t)(void *, unsigned int);
 /** Function type for inserting breakpoints */
-typedef void (*insert_breakpoint_func_t)(void*, ptr64_t, breakpoint_t);
+typedef void (*insert_breakpoint_func_t)(void *, ptr64_t, breakpoint_t);
 /** Function type for removing breakpoints */
-typedef void (*remove_breakpoint_func_t)(void*, ptr64_t);
+typedef void (*remove_breakpoint_func_t)(void *, ptr64_t);
 /** Function type for converting addresses */
-typedef bool (*convert_addr_func_t)(void*, ptr64_t, ptr36_t*, bool);
+typedef bool (*convert_addr_func_t)(void *, ptr64_t, ptr36_t *, bool);
 /** Function type for dumping register content */
-typedef void (*reg_dump_func_t)(void*);
+typedef void (*reg_dump_func_t)(void *);
 /** Function type for setting the program counter of a cpu */
-typedef void (*set_pc_func_t)(void*, ptr64_t);
+typedef void (*set_pc_func_t)(void *, ptr64_t);
 /** Function type for notifying the processor about a write to a memory location, used for implementing SC atomic*/
-typedef bool (*sc_access_func_t)(void*, ptr36_t, int);
+typedef bool (*sc_access_func_t)(void *, ptr36_t, int);
 
 /** Cpu method table
  *
@@ -57,7 +57,7 @@ typedef struct {
 /**
  * @brief Retrieves the general_cpu_t structure based on the given cpu id
  */
-extern general_cpu_t* get_cpu(unsigned int no);
+extern general_cpu_t *get_cpu(unsigned int no);
 /**
  * @brief Returns the lowest unused cpu id or MAX_CPUS if none are available
  */

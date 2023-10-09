@@ -37,8 +37,6 @@
 #include "text.h"
 #include "utils.h"
 
-
-
 /** Configuration file name */
 char *config_file = NULL;
 
@@ -98,60 +96,42 @@ static uint64_t steps = 0;
 
 /** Command line options */
 static struct option long_options[] = {
-    {
-        "trace",
-        no_argument,
-        0,
-        't'
-    },
-    {
-        "version",
-        no_argument,
-        0,
-        'V'
-    },
-    {
-        "interactive",
-        no_argument,
-        0,
-        'i'
-    },
-    {
-        "allow-xint-without-tty",
-        no_argument,
-        0,
-        'I'
-    },
-    {
-        "config",
-        required_argument,
-        0,
-        'c'
-    },
-    {
-        "help",
-        no_argument,
-        0,
-        'h'
-    },
-    {
-        "remote-gdb",
-        required_argument,
-        0,
-        'g'
-    },
-    {
-        "non-deterministic",
-        no_argument,
-        0,
-        'n'
-    },
-    {
-        "no-extra-instructions",
-        no_argument,
-        0,
-        'X'
-    },
+    { "trace",
+            no_argument,
+            0,
+            't' },
+    { "version",
+            no_argument,
+            0,
+            'V' },
+    { "interactive",
+            no_argument,
+            0,
+            'i' },
+    { "allow-xint-without-tty",
+            no_argument,
+            0,
+            'I' },
+    { "config",
+            required_argument,
+            0,
+            'c' },
+    { "help",
+            no_argument,
+            0,
+            'h' },
+    { "remote-gdb",
+            required_argument,
+            0,
+            'g' },
+    { "non-deterministic",
+            no_argument,
+            0,
+            'n' },
+    { "no-extra-instructions",
+            no_argument,
+            0,
+            'X' },
     { NULL, 0, NULL, 0 }
 };
 
@@ -181,7 +161,7 @@ static bool parse_cmdline(int argc, char *args[])
         int option_index = 0;
 
         int c = getopt_long(argc, args, "tVic:hg:nXI",
-            long_options, &option_index);
+                long_options, &option_index);
 
         if (c == -1)
             break;
@@ -191,7 +171,7 @@ static bool parse_cmdline(int argc, char *args[])
             machine_trace = true;
             break;
         case 'V':
-            printf("%s",txt_version);
+            printf("%s", txt_version);
             return false;
         case 'i':
             machine_interactive = true;
@@ -205,8 +185,8 @@ static bool parse_cmdline(int argc, char *args[])
             config_file = safe_strdup(optarg);
             break;
         case 'h':
-            printf("%s",txt_version);
-            printf("%s",txt_help);
+            printf("%s", txt_version);
+            printf("%s", txt_help);
             return false;
         case 'g':
             setup_remote_gdb(optarg);
@@ -236,7 +216,8 @@ static bool parse_cmdline(int argc, char *args[])
  * @return True if the connection was opened.
  *
  */
-static bool gdb_startup(void) {
+static bool gdb_startup(void)
+{
     if (get_cpu(0) == NULL) {
         error("Cannot debug without any processor");
         return false;
@@ -332,7 +313,8 @@ static void machine_run(void)
     }
 }
 
-static void cleanup() {
+static void cleanup()
+{
     /* Execute device cycles */
     device_t *dev = NULL;
     device_t *next_dev = NULL;
@@ -340,7 +322,7 @@ static void cleanup() {
     dev_next(&next_dev, DEVICE_FILTER_ALL);
     dev = next_dev;
 
-    while(dev_next(&next_dev, DEVICE_FILTER_ALL)) {
+    while (dev_next(&next_dev, DEVICE_FILTER_ALL)) {
         free_device(dev);
         dev = next_dev;
     };

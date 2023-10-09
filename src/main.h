@@ -14,8 +14,8 @@
 #include "../config.h"
 #include "list.h"
 
-#define MAX_CPUS   32
-#define MAX_INTRS  11
+#define MAX_CPUS 32
+#define MAX_INTRS 11
 
 /** Physical frame number type */
 typedef uint32_t pfn_t;
@@ -54,8 +54,6 @@ typedef union {
     };
 #endif
 } __attribute__((packed, aligned(8))) reg64_t;
-
-
 
 /** Configuration file name */
 extern char *config_file;

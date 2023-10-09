@@ -12,7 +12,7 @@ static r4k_exc_t instr_ctc2(r4k_cpu_t *cpu, r4k_instr_t instr)
 }
 
 static void mnemonics_ctc2(ptr64_t addr, r4k_instr_t instr,
-    string_t *mnemonics, string_t *comments)
+        string_t *mnemonics, string_t *comments)
 {
     string_printf(mnemonics, "ctc2");
     disassemble_rt_rs(instr, mnemonics, comments);

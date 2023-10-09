@@ -29,7 +29,6 @@ bool machine_specific_instructions = true;
 bool machine_allow_interactive_without_tty = false;
 uint64_t stepping = 0;
 
-
 PCUT_INIT
 
 PCUT_IMPORT(instruction_immediates);

@@ -20,9 +20,9 @@
 #include "../utils.h"
 
 /** Registers */
-#define REGISTER_CYCLE_LO  0
-#define REGISTER_CYCLE_HI  4
-#define REGISTER_LIMIT     8
+#define REGISTER_CYCLE_LO 0
+#define REGISTER_CYCLE_HI 4
+#define REGISTER_LIMIT 8
 
 /** Instance data structure */
 typedef struct {
@@ -50,7 +50,7 @@ static bool dcycle_init(token_t *parm, device_t *dev)
 
     if (!phys_range(_addr + (uint64_t) REGISTER_LIMIT)) {
         error("Invalid address, registers would exceed the physical "
-            "memory range");
+              "memory range");
         return false;
     }
 
@@ -174,43 +174,35 @@ static void dcycle_step(device_t *dev)
 }
 
 static cmd_t dcycle_cmds[] = {
-    {
-        "init",
-        (fcmd_t) dcycle_init,
-        DEFAULT,
-        DEFAULT,
-        "Initialization",
-        "Initialization",
-        REQ STR "name/cycle device name" NEXT
-        REQ INT "addr/cycle device register address" END
-    },
-    {
-        "help",
-        (fcmd_t) dev_generic_help,
-        DEFAULT,
-        DEFAULT,
-        "Display help",
-        "Display help",
-        OPT STR "cmd/command name" END
-    },
-    {
-        "info",
-        (fcmd_t) dcycle_info,
-        DEFAULT,
-        DEFAULT,
-        "Display device configuration",
-        "Display device configuration",
-        NOCMD
-    },
-    {
-        "stat",
-        (fcmd_t) dcycle_stat,
-        DEFAULT,
-        DEFAULT,
-        "Display device statictics",
-        "display device statictics",
-        NOCMD
-    },
+    { "init",
+            (fcmd_t) dcycle_init,
+            DEFAULT,
+            DEFAULT,
+            "Initialization",
+            "Initialization",
+            REQ STR "name/cycle device name" NEXT
+                    REQ INT "addr/cycle device register address" END },
+    { "help",
+            (fcmd_t) dev_generic_help,
+            DEFAULT,
+            DEFAULT,
+            "Display help",
+            "Display help",
+            OPT STR "cmd/command name" END },
+    { "info",
+            (fcmd_t) dcycle_info,
+            DEFAULT,
+            DEFAULT,
+            "Display device configuration",
+            "Display device configuration",
+            NOCMD },
+    { "stat",
+            (fcmd_t) dcycle_stat,
+            DEFAULT,
+            DEFAULT,
+            "Display device statictics",
+            "display device statictics",
+            NOCMD },
     LAST_CMD
 };
 

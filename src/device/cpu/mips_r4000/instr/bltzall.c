@@ -10,8 +10,7 @@ static r4k_exc_t instr_bltzall(r4k_cpu_t *cpu, r4k_instr_t instr)
     cpu->regs[31].val = cpu->pc.ptr + 8;
 
     if (cond) {
-        cpu->pc_next.ptr +=
-            (((int64_t) sign_extend_16_64(instr.i.imm)) << TARGET_SHIFT);
+        cpu->pc_next.ptr += (((int64_t) sign_extend_16_64(instr.i.imm)) << TARGET_SHIFT);
         cpu->branch = BRANCH_COND;
         return r4k_excJump;
     }
@@ -21,7 +20,7 @@ static r4k_exc_t instr_bltzall(r4k_cpu_t *cpu, r4k_instr_t instr)
 }
 
 static void mnemonics_bltzall(ptr64_t addr, r4k_instr_t instr,
-    string_t *mnemonics, string_t *comments)
+        string_t *mnemonics, string_t *comments)
 {
     string_printf(mnemonics, "bltzall");
     disassemble_rs_offset(addr, instr, mnemonics, comments);

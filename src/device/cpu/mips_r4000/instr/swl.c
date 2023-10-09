@@ -13,7 +13,7 @@ static r4k_exc_t instr_swl(r4k_cpu_t *cpu, r4k_instr_t instr)
         unsigned int index = base.ptr & 0x03U;
         val &= shift_tab_left_store[index].mask;
         val |= (cpu->regs[instr.i.rt].lo >> shift_tab_left_store[index].shift)
-            & (~shift_tab_left_store[index].mask);
+                & (~shift_tab_left_store[index].mask);
 
         res = cpu_write_mem32(cpu, addr, val, true);
     }
@@ -22,7 +22,7 @@ static r4k_exc_t instr_swl(r4k_cpu_t *cpu, r4k_instr_t instr)
 }
 
 static void mnemonics_swl(ptr64_t addr, r4k_instr_t instr,
-    string_t *mnemonics, string_t *comments)
+        string_t *mnemonics, string_t *comments)
 {
     string_printf(mnemonics, "swl");
     disassemble_rt_offset_base(instr, mnemonics, comments);

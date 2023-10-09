@@ -12,7 +12,7 @@ static r4k_exc_t instr_daddu(r4k_cpu_t *cpu, r4k_instr_t instr)
 }
 
 static void mnemonics_daddu(ptr64_t addr, r4k_instr_t instr,
-    string_t *mnemonics, string_t *comments)
+        string_t *mnemonics, string_t *comments)
 {
     string_printf(mnemonics, "daddu");
     disassemble_rd_rs_rt(instr, mnemonics, comments);

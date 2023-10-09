@@ -24,13 +24,13 @@
 // TODO: Add SC checks on each change of value?
 
 /** Registers */
-#define REGISTER_SEC    0
-#define REGISTER_USEC   4
-#define REGISTER_LIMIT  8
+#define REGISTER_SEC 0
+#define REGISTER_USEC 4
+#define REGISTER_LIMIT 8
 
 /** Dtime instance data structure */
 typedef struct {
-    ptr36_t addr;  /**< Memory location */
+    ptr36_t addr; /**< Memory location */
 } dtime_data_t;
 
 /** Init command implementation
@@ -53,7 +53,7 @@ static bool dtime_init(token_t *parm, device_t *dev)
 
     if (!phys_range(_addr + (uint64_t) REGISTER_LIMIT)) {
         error("Invalid address, registers would exceed the physical "
-            "memory range");
+              "memory range");
         return false;
     }
 
@@ -177,43 +177,35 @@ static void dtime_read64(unsigned int procno, device_t *dev, ptr36_t addr, uint6
 }
 
 static cmd_t dtime_cmds[] = {
-    {
-        "init",
-        (fcmd_t) dtime_init,
-        DEFAULT,
-        DEFAULT,
-        "Initialization",
-        "Initialization",
-        REQ STR "name/timer name" NEXT
-        REQ INT "addr/timer register address" END
-    },
-    {
-        "help",
-        (fcmd_t) dev_generic_help,
-        DEFAULT,
-        DEFAULT,
-        "Display help",
-        "Display help",
-        OPT STR "cmd/command name" END
-    },
-    {
-        "info",
-        (fcmd_t) dtime_info,
-        DEFAULT,
-        DEFAULT,
-        "Display device configuration",
-        "Display device configuration",
-        NOCMD
-    },
-    {
-        "stat",
-        (fcmd_t) dtime_stat,
-        DEFAULT,
-        DEFAULT,
-        "Display device statictics",
-        "display device statictics",
-        NOCMD
-    },
+    { "init",
+            (fcmd_t) dtime_init,
+            DEFAULT,
+            DEFAULT,
+            "Initialization",
+            "Initialization",
+            REQ STR "name/timer name" NEXT
+                    REQ INT "addr/timer register address" END },
+    { "help",
+            (fcmd_t) dev_generic_help,
+            DEFAULT,
+            DEFAULT,
+            "Display help",
+            "Display help",
+            OPT STR "cmd/command name" END },
+    { "info",
+            (fcmd_t) dtime_info,
+            DEFAULT,
+            DEFAULT,
+            "Display device configuration",
+            "Display device configuration",
+            NOCMD },
+    { "stat",
+            (fcmd_t) dtime_stat,
+            DEFAULT,
+            DEFAULT,
+            "Display device statictics",
+            "display device statictics",
+            NOCMD },
     LAST_CMD
 };
 
@@ -226,9 +218,9 @@ device_type_t dtime = {
     .name = "dtime",
     .brief = "Real-time",
     .full = "The time device brings the host real time to the simulated "
-        "environment. One memory-mapped register allows programs"
-        "to read hosts time since the Epoch as specified in the"
-        "POSIX.",
+            "environment. One memory-mapped register allows programs"
+            "to read hosts time since the Epoch as specified in the"
+            "POSIX.",
 
     /* Functions */
     .done = dtime_done,

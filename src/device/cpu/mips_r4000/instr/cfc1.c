@@ -12,7 +12,7 @@ static r4k_exc_t instr_cfc1(r4k_cpu_t *cpu, r4k_instr_t instr)
 }
 
 static void mnemonics_cfc1(ptr64_t addr, r4k_instr_t instr,
-    string_t *mnemonics, string_t *comments)
+        string_t *mnemonics, string_t *comments)
 {
     string_printf(mnemonics, "cfc1");
     disassemble_rt_rs(instr, mnemonics, comments);

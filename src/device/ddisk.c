@@ -27,70 +27,70 @@
 
 /** Actions the disk is performing */
 enum action_e {
-    ACTION_NONE,  /**< Disk is on holidays */
-    ACTION_READ,  /**< Disk is reading */
-    ACTION_WRITE  /**< Disk is writting */
+    ACTION_NONE, /**< Disk is on holidays */
+    ACTION_READ, /**< Disk is reading */
+    ACTION_WRITE /**< Disk is writting */
 };
 
 /** \{ \name Register offsets */
-#define REGISTER_ADDR_LO   0   /**< Address (bits 0 .. 31) */
-#define REGISTER_SECNO     4   /**< Sector number */
-#define REGISTER_STATUS    8   /**< Status/commands */
-#define REGISTER_COMMAND   8   /**< Status */
-#define REGISTER_SIZE_LO   12  /**< Disk size in bytes (bits 0 .. 31) */
-#define REGISTER_ADDR_HI   16  /**< Address (bits 32 .. 35) */
-#define REGISTER_SECNO_HI  20  /**< Reserved for future extension */
-#define REGISTER_SIZE_HI   24  /**< Disk size in bytes (bits 32 .. 63) */
-#define REGISTER_LIMIT     28  /**< Size of register block */
+#define REGISTER_ADDR_LO 0 /**< Address (bits 0 .. 31) */
+#define REGISTER_SECNO 4 /**< Sector number */
+#define REGISTER_STATUS 8 /**< Status/commands */
+#define REGISTER_COMMAND 8 /**< Status */
+#define REGISTER_SIZE_LO 12 /**< Disk size in bytes (bits 0 .. 31) */
+#define REGISTER_ADDR_HI 16 /**< Address (bits 32 .. 35) */
+#define REGISTER_SECNO_HI 20 /**< Reserved for future extension */
+#define REGISTER_SIZE_HI 24 /**< Disk size in bytes (bits 32 .. 63) */
+#define REGISTER_LIMIT 28 /**< Size of register block */
 /* \} */
 
 /** \{ \name Status flags */
-#define STATUS_INT    0x04  /**< Interrupt pending */
-#define STATUS_ERROR  0x08  /**< Command error */
-#define STATUS_MASK   0x0c  /**< Status mask */
+#define STATUS_INT 0x04 /**< Interrupt pending */
+#define STATUS_ERROR 0x08 /**< Command error */
+#define STATUS_MASK 0x0c /**< Status mask */
 /* \} */
 
 /** \{ \name Command flags */
-#define COMMAND_READ     0x01  /**< Read */
-#define COMMAND_WRITE    0x02  /**< Write */
-#define COMMAND_INT_ACK  0x04  /**< Interrupt acknowledge */
-#define COMMAND_MASK     0x07  /**< Command mask */
+#define COMMAND_READ 0x01 /**< Read */
+#define COMMAND_WRITE 0x02 /**< Write */
+#define COMMAND_INT_ACK 0x04 /**< Interrupt acknowledge */
+#define COMMAND_MASK 0x07 /**< Command mask */
 /* \} */
 
 /** Disk types */
 enum disk_type_e {
-    DISKT_NONE,  /**< Uninitialized */
-    DISKT_MEM,   /**< Memory-only disk */
-    DISKT_FMAP   /**< File-mapped */
+    DISKT_NONE, /**< Uninitialized */
+    DISKT_MEM, /**< Memory-only disk */
+    DISKT_FMAP /**< File-mapped */
 };
 
 /** Disk instance data structure */
 typedef struct {
-    uint32_t *img;  /**< Disk image memory */
+    uint32_t *img; /**< Disk image memory */
 
     /* Configuration */
-    unsigned int intno;          /**< Interrupt number */
-    enum disk_type_e disk_type;  /**< Disk type: none, memory, file-mapped */
-    ptr36_t addr;                /**< Disk memory location */
-    uint64_t size;               /**< Disk size */
+    unsigned int intno; /**< Interrupt number */
+    enum disk_type_e disk_type; /**< Disk type: none, memory, file-mapped */
+    ptr36_t addr; /**< Disk memory location */
+    uint64_t size; /**< Disk size */
 
     /* Registers */
-    ptr36_t disk_ptr;       /**< Current DMA pointer */
-    uint32_t disk_secno;    /**< Active sector to read/write */
-    uint32_t disk_status;   /**< Disk status register */
-    uint32_t disk_command;  /**< Disk command register */
+    ptr36_t disk_ptr; /**< Current DMA pointer */
+    uint32_t disk_secno; /**< Active sector to read/write */
+    uint32_t disk_status; /**< Disk status register */
+    uint32_t disk_command; /**< Disk command register */
 
     /* Current action variables */
-    enum action_e action;  /**< Action type */
-    size_t secno;          /**< Sector number */
-    size_t cnt;            /**< Word counter */
-    bool ig;               /**< Interrupt pending flag */
+    enum action_e action; /**< Action type */
+    size_t secno; /**< Sector number */
+    size_t cnt; /**< Word counter */
+    bool ig; /**< Interrupt pending flag */
 
     /* Statistics */
-    uint64_t intrcount;   /**< Number of interrupts */
-    uint64_t cmds_read;   /**< Number of read commands */
-    uint64_t cmds_write;  /**< Number of write commands */
-    uint64_t cmds_error;  /**< Number of illegal commands */
+    uint64_t intrcount; /**< Number of interrupts */
+    uint64_t cmds_read; /**< Number of read commands */
+    uint64_t cmds_write; /**< Number of write commands */
+    uint64_t cmds_error; /**< Number of illegal commands */
 } disk_data_s;
 
 /** Clean up old configuration
@@ -142,7 +142,7 @@ static bool ddisk_init(token_t *parm, device_t *dev)
 
     if (!phys_range(_addr + (uint64_t) REGISTER_LIMIT)) {
         error("Invalid address, registers would exceed the physical "
-            "memory range");
+              "memory range");
         return false;
     }
 
@@ -212,10 +212,10 @@ static bool ddisk_info(token_t *parm, device_t *dev)
     }
 
     printf("[address  ] [int] [size      ] [type] [pointer] [sector] "
-        "[status] [command] [ig]\n"
-        "%#011" PRIx64 " %-5u %12s %7s %#011" PRIx64 " %8u %8u %9u %u\n",
-        data->addr, data->intno, size, stype, data->disk_ptr, data->disk_secno,
-        data->disk_status, data->disk_command, data->ig);
+           "[status] [command] [ig]\n"
+           "%#011" PRIx64 " %-5u %12s %7s %#011" PRIx64 " %8u %8u %9u %u\n",
+            data->addr, data->intno, size, stype, data->disk_ptr, data->disk_secno,
+            data->disk_status, data->disk_command, data->ig);
 
     safe_free(size);
     return true;
@@ -236,9 +236,9 @@ static bool ddisk_stat(token_t *parm, device_t *dev)
     printf("[interrupts        ] [commands          ]\n");
     printf("[reads             ] [writes            ] [errors            ]\n");
     printf(" %20" PRIu64 " %20" PRIu64 "\n",
-        data->intrcount, data->cmds_read + data->cmds_write + data->cmds_error);
+            data->intrcount, data->cmds_read + data->cmds_write + data->cmds_error);
     printf("%20" PRIu64 "%20" PRIu64 " %20" PRIu64 "\n",
-        data->cmds_read, data->cmds_write, data->cmds_error);
+            data->cmds_read, data->cmds_write, data->cmds_error);
 
     return true;
 }
@@ -531,7 +531,8 @@ static bool ddisk_save(token_t *parm, device_t *dev)
  * @param dev Device pointer
  *
  */
-static void ddisk_done(device_t *dev) {
+static void ddisk_done(device_t *dev)
+{
     disk_data_s *data = (disk_data_s *) dev->data;
 
     ddisk_clean_up(data);
@@ -546,7 +547,7 @@ static void ddisk_done(device_t *dev) {
  *
  */
 static void ddisk_read32(unsigned int procno, device_t *dev, ptr36_t addr,
-    uint32_t *val)
+        uint32_t *val)
 {
     disk_data_s *data = (disk_data_s *) dev->data;
 
@@ -588,10 +589,10 @@ static void ddisk_read32(unsigned int procno, device_t *dev, ptr36_t addr,
  *
  */
 static void ddisk_write32(unsigned int procno, device_t *dev, ptr36_t addr,
-    uint32_t val)
+        uint32_t val)
 {
 
-    //TODO: generate SC checks on changed mem registers?
+    // TODO: generate SC checks on changed mem registers?
 
     disk_data_s *data = (disk_data_s *) dev->data;
 
@@ -623,8 +624,7 @@ static void ddisk_write32(unsigned int procno, device_t *dev, ptr36_t addr,
         }
 
         /* Check general errors */
-        if ((data->disk_command & COMMAND_READ) &&
-            (data->disk_command & COMMAND_WRITE)) {
+        if ((data->disk_command & COMMAND_READ) && (data->disk_command & COMMAND_WRITE)) {
             /* Simultaneous read/write command */
             data->disk_status = STATUS_INT | STATUS_ERROR;
             cpu_interrupt_up(NULL, data->intno);
@@ -634,8 +634,7 @@ static void ddisk_write32(unsigned int procno, device_t *dev, ptr36_t addr,
             return;
         }
 
-        if ((data->disk_command & (COMMAND_READ | COMMAND_WRITE)) &&
-            (data->action != ACTION_NONE)) {
+        if ((data->disk_command & (COMMAND_READ | COMMAND_WRITE)) && (data->action != ACTION_NONE)) {
             /* Command in progress */
             data->disk_status = STATUS_INT | STATUS_ERROR;
             cpu_interrupt_up(NULL, data->intno);
@@ -688,7 +687,7 @@ static void ddisk_step(device_t *dev)
     disk_data_s *data = (disk_data_s *) dev->data;
     size_t pos;
 
-    //TODO: generate SC checks on changed mem registers?
+    // TODO: generate SC checks on changed mem registers?
 
     /* Reading */
     switch (data->action) {
@@ -723,89 +722,71 @@ static void ddisk_step(device_t *dev)
 }
 
 cmd_t ddisk_cmds[] = {
-    {
-        "init",
-        (fcmd_t) ddisk_init,
-        DEFAULT,
-        DEFAULT,
-        "Initialization",
-        "Initialization",
-        REQ STR "name/disk name" NEXT
-        REQ INT "addr/register block address" NEXT
-        REQ INT "intno/interrupt number within 0..6" END
-    },
-    {
-        "help",
-        (fcmd_t) dev_generic_help,
-        DEFAULT,
-        DEFAULT,
-        "Display help",
-        "Display help",
-        OPT STR "cmd/command name" END
-    },
-    {
-        "info",
-        (fcmd_t) ddisk_info,
-        DEFAULT,
-        DEFAULT,
-        "Configuration information",
-        "Configuration information",
-        NOCMD
-    },
-    {
-        "stat",
-        (fcmd_t) ddisk_stat,
-        DEFAULT,
-        DEFAULT,
-        "Statistics",
-        "Statistics",
-        NOCMD
-    },
-    {
-        "generic",
-        (fcmd_t) ddisk_generic,
-        DEFAULT,
-        DEFAULT,
-        "Generic memory type",
-        "Generic memory type",
-        REQ INT "size" END
-    },
-    {
-        "fmap",
-        (fcmd_t) ddisk_fmap,
-        DEFAULT,
-        DEFAULT,
-        "Map the memory as the file specified",
-        "Map the memory as the file specified",
-        REQ STR "fname/file name" END
-    },
-    {
-        "fill",
-        (fcmd_t) ddisk_fill,
-        DEFAULT,
-        DEFAULT,
-        "Fill the memory with specified character",
-        "Fill the memory with specified character",
-        OPT INT "value" END
-    },
-    {
-        "load",
-        (fcmd_t) ddisk_load,
-        DEFAULT,
-        DEFAULT,
-        "Load the memory image from the file specified",
-        "Load the memory image from the file specified",
-        REQ STR "fname/file name" END
-    },
-    {
-        "save",
-        (fcmd_t) ddisk_save,
-        DEFAULT,
-        DEFAULT,
-        "Save the memory image into the file specified",
-        "Save the memory image into the file specified",
-        REQ STR "fname/file name" END
-    },
+    { "init",
+            (fcmd_t) ddisk_init,
+            DEFAULT,
+            DEFAULT,
+            "Initialization",
+            "Initialization",
+            REQ STR "name/disk name" NEXT
+                    REQ INT "addr/register block address" NEXT
+                            REQ INT "intno/interrupt number within 0..6" END },
+    { "help",
+            (fcmd_t) dev_generic_help,
+            DEFAULT,
+            DEFAULT,
+            "Display help",
+            "Display help",
+            OPT STR "cmd/command name" END },
+    { "info",
+            (fcmd_t) ddisk_info,
+            DEFAULT,
+            DEFAULT,
+            "Configuration information",
+            "Configuration information",
+            NOCMD },
+    { "stat",
+            (fcmd_t) ddisk_stat,
+            DEFAULT,
+            DEFAULT,
+            "Statistics",
+            "Statistics",
+            NOCMD },
+    { "generic",
+            (fcmd_t) ddisk_generic,
+            DEFAULT,
+            DEFAULT,
+            "Generic memory type",
+            "Generic memory type",
+            REQ INT "size" END },
+    { "fmap",
+            (fcmd_t) ddisk_fmap,
+            DEFAULT,
+            DEFAULT,
+            "Map the memory as the file specified",
+            "Map the memory as the file specified",
+            REQ STR "fname/file name" END },
+    { "fill",
+            (fcmd_t) ddisk_fill,
+            DEFAULT,
+            DEFAULT,
+            "Fill the memory with specified character",
+            "Fill the memory with specified character",
+            OPT INT "value" END },
+    { "load",
+            (fcmd_t) ddisk_load,
+            DEFAULT,
+            DEFAULT,
+            "Load the memory image from the file specified",
+            "Load the memory image from the file specified",
+            REQ STR "fname/file name" END },
+    { "save",
+            (fcmd_t) ddisk_save,
+            DEFAULT,
+            DEFAULT,
+            "Save the memory image into the file specified",
+            "Save the memory image into the file specified",
+            REQ STR "fname/file name" END },
     LAST_CMD
 };
 

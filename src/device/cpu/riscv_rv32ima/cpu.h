@@ -12,7 +12,6 @@
 #ifndef RISCV_RV32IMA_CPU_H_
 #define RISCV_RV32IMA_CPU_H_
 
-
 #include <stdint.h>
 #include <stdbool.h>
 #include "instr.h"
@@ -20,9 +19,9 @@
 #include "tlb.h"
 #include "../../../main.h"
 
-#define RV_REG_COUNT    32
-#define RV_START_ADDRESS    UINT32_C(0xF0000000)
-#define RV_MTIME_ADDRESS    UINT32_C(0xFF000000)
+#define RV_REG_COUNT 32
+#define RV_START_ADDRESS UINT32_C(0xF0000000)
+#define RV_MTIME_ADDRESS UINT32_C(0xFF000000)
 #define RV_MTIMECMP_ADDRESS UINT32_C(0xFF000008)
 
 #define RV_INTERRUPT_EXC_BITS UINT32_C(0x80000000)
@@ -58,35 +57,15 @@ typedef enum rv_exc {
     rv_exc_instruction_page_fault = RV_EXCEPTION_EXC_BITS | 12,
     rv_exc_load_page_fault = RV_EXCEPTION_EXC_BITS | 13,
     rv_exc_store_amo_page_fault = RV_EXCEPTION_EXC_BITS | 15,
-    rv_exc_none = RV_EXCEPTION_EXC_BITS | 24    /** Custom exception code, with the meaning that no exception has been raised */
+    rv_exc_none = RV_EXCEPTION_EXC_BITS | 24 /** Custom exception code, with the meaning that no exception has been raised */
 } rv_exc_t;
 
 /** Bitmask that has a bit set on every position that symbolizes an existing exception */
-#define RV_EXCEPTIONS_MASK (                                    \
-    RV_EXCEPTION_MASK(rv_exc_instruction_address_misaligned) |    \
-    RV_EXCEPTION_MASK(rv_exc_instruction_access_fault)       |  \
-    RV_EXCEPTION_MASK(rv_exc_illegal_instruction)            |  \
-    RV_EXCEPTION_MASK(rv_exc_breakpoint)                     |  \
-    RV_EXCEPTION_MASK(rv_exc_load_address_misaligned)        |  \
-    RV_EXCEPTION_MASK(rv_exc_load_access_fault)              |  \
-    RV_EXCEPTION_MASK(rv_exc_store_amo_address_misaligned)   |  \
-    RV_EXCEPTION_MASK(rv_exc_store_amo_access_fault)         |  \
-    RV_EXCEPTION_MASK(rv_exc_umode_environment_call)         |  \
-    RV_EXCEPTION_MASK(rv_exc_smode_environment_call)         |  \
-    RV_EXCEPTION_MASK(rv_exc_mmode_environment_call)         |  \
-    RV_EXCEPTION_MASK(rv_exc_instruction_page_fault)         |  \
-    RV_EXCEPTION_MASK(rv_exc_load_page_fault)                |  \
-    RV_EXCEPTION_MASK(rv_exc_store_amo_page_fault)                \
-)
+#define RV_EXCEPTIONS_MASK ( \
+        RV_EXCEPTION_MASK(rv_exc_instruction_address_misaligned) | RV_EXCEPTION_MASK(rv_exc_instruction_access_fault) | RV_EXCEPTION_MASK(rv_exc_illegal_instruction) | RV_EXCEPTION_MASK(rv_exc_breakpoint) | RV_EXCEPTION_MASK(rv_exc_load_address_misaligned) | RV_EXCEPTION_MASK(rv_exc_load_access_fault) | RV_EXCEPTION_MASK(rv_exc_store_amo_address_misaligned) | RV_EXCEPTION_MASK(rv_exc_store_amo_access_fault) | RV_EXCEPTION_MASK(rv_exc_umode_environment_call) | RV_EXCEPTION_MASK(rv_exc_smode_environment_call) | RV_EXCEPTION_MASK(rv_exc_mmode_environment_call) | RV_EXCEPTION_MASK(rv_exc_instruction_page_fault) | RV_EXCEPTION_MASK(rv_exc_load_page_fault) | RV_EXCEPTION_MASK(rv_exc_store_amo_page_fault))
 /** Bitmask that has a bit set on every position that symbolizes an existing interrupt */
-#define RV_INTERRUPTS_MASK (\
-    RV_EXCEPTION_MASK(rv_exc_supervisor_software_interrupt) |   \
-    RV_EXCEPTION_MASK(rv_exc_machine_software_interrupt)    |   \
-    RV_EXCEPTION_MASK(rv_exc_supervisor_external_interrupt) |   \
-    RV_EXCEPTION_MASK(rv_exc_machine_external_interrupt)    |   \
-    RV_EXCEPTION_MASK(rv_exc_supervisor_timer_interrupt)    |   \
-    RV_EXCEPTION_MASK(rv_exc_machine_timer_interrupt)           \
-)
+#define RV_INTERRUPTS_MASK ( \
+        RV_EXCEPTION_MASK(rv_exc_supervisor_software_interrupt) | RV_EXCEPTION_MASK(rv_exc_machine_software_interrupt) | RV_EXCEPTION_MASK(rv_exc_supervisor_external_interrupt) | RV_EXCEPTION_MASK(rv_exc_machine_external_interrupt) | RV_EXCEPTION_MASK(rv_exc_supervisor_timer_interrupt) | RV_EXCEPTION_MASK(rv_exc_machine_timer_interrupt))
 
 /** Privilege modes */
 typedef enum rv_priv_mode {
@@ -129,7 +108,6 @@ typedef struct rv_cpu {
 
 } rv_cpu_t;
 
-
 /** Basic CPU routines */
 extern void rv_cpu_init(rv_cpu_t *cpu, unsigned int procno);
 extern void rv_cpu_done(rv_cpu_t *cpu);
@@ -149,4 +127,4 @@ extern rv_exc_t rv_write_mem16(rv_cpu_t *cpu, uint32_t virt, uint16_t value, boo
 extern rv_exc_t rv_write_mem32(rv_cpu_t *cpu, uint32_t virt, uint32_t value, bool noisy);
 extern bool rv_sc_access(rv_cpu_t *cpu, ptr36_t phys, int size);
 
-#endif //RISCV_RV32IMA_CPU_H_
+#endif // RISCV_RV32IMA_CPU_H_

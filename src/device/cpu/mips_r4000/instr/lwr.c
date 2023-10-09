@@ -13,7 +13,7 @@ static r4k_exc_t instr_lwr(r4k_cpu_t *cpu, r4k_instr_t instr)
         unsigned int index = base.ptr & 0x03U;
         uint32_t comb = cpu->regs[instr.i.rt].lo & shift_tab_right[index].mask;
         comb |= (val >> shift_tab_right[index].shift)
-            & (~shift_tab_right[index].mask);
+                & (~shift_tab_right[index].mask);
 
         if (index == 0)
             cpu->regs[instr.i.rt].val = sign_extend_32_64(comb);
@@ -25,7 +25,7 @@ static r4k_exc_t instr_lwr(r4k_cpu_t *cpu, r4k_instr_t instr)
 }
 
 static void mnemonics_lwr(ptr64_t addr, r4k_instr_t instr,
-    string_t *mnemonics, string_t *comments)
+        string_t *mnemonics, string_t *comments)
 {
     string_printf(mnemonics, "lwr");
     disassemble_rt_offset_base(instr, mnemonics, comments);

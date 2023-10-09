@@ -25,17 +25,17 @@
  *
  */
 
-#define FTL2_WIDTH  12
-#define FTL1_WIDTH  12
+#define FTL2_WIDTH 12
+#define FTL1_WIDTH 12
 
-#define FTL2_COUNT  (1 << FTL2_WIDTH)
-#define FTL1_COUNT  (1 << FTL1_WIDTH)
+#define FTL2_COUNT (1 << FTL2_WIDTH)
+#define FTL1_COUNT (1 << FTL1_WIDTH)
 
-#define FTL2_SHIFT  (FRAME_WIDTH)
-#define FTL1_SHIFT  (FRAME_WIDTH + FTL2_WIDTH)
+#define FTL2_SHIFT (FRAME_WIDTH)
+#define FTL1_SHIFT (FRAME_WIDTH + FTL2_WIDTH)
 
-#define FTL2_MASK   (FTL2_COUNT - 1)
-#define FTL1_MASK   (FTL1_COUNT - 1)
+#define FTL2_MASK (FTL2_COUNT - 1)
+#define FTL1_MASK (FTL1_COUNT - 1)
 
 typedef frame_t *ftl1_t[FTL2_COUNT];
 typedef ftl1_t *ftl0_t[FTL1_COUNT];
@@ -299,14 +299,13 @@ static ftl0_t ftl0 = {
     NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL
 };
 
-
 void physmem_wire(physmem_area_t *area)
 {
     ASSERT(area != NULL);
     ASSERT(area->type != MEMT_NONE);
     ASSERT(area->count > 0);
     ASSERT(area->data != NULL);
-    //ASSERT(area->trans != NULL);
+    // ASSERT(area->trans != NULL);
 
     pfn_t pfn;
     for (pfn = 0; pfn < area->count; pfn++) {
@@ -333,7 +332,7 @@ void physmem_wire(physmem_area_t *area)
         /* Frame descriptor */
         frame->area = area;
         frame->data = area->data + FRAMES2SIZE(pfn);
-        //frame->trans = area->trans + SIZE2INSTRS(FRAMES2SIZE(pfn));
+        // frame->trans = area->trans + SIZE2INSTRS(FRAMES2SIZE(pfn));
         frame->valid = false;
     }
 }
@@ -363,20 +362,20 @@ void physmem_unwire(physmem_area_t *area)
         /* Deallocate ftl1 if it contains only NULL entries*/
         bool ftl1_empty = true;
 
-        for(size_t i = 0; i < sizeof(*ftl1) / sizeof(frame_t*); ++i){
-            if((*ftl1)[i] != NULL) {
+        for (size_t i = 0; i < sizeof(*ftl1) / sizeof(frame_t *); ++i) {
+            if ((*ftl1)[i] != NULL) {
                 ftl1_empty = false;
                 break;
             }
         }
 
-        if(ftl1_empty){
+        if (ftl1_empty) {
             safe_free(ftl1);
         }
     }
 }
 
-frame_t* physmem_find_frame(ptr36_t addr)
+frame_t *physmem_find_frame(ptr36_t addr)
 {
     ftl1_t *ftl1 = ftl0[(addr >> FTL1_SHIFT) & FTL1_MASK];
     if (ftl1 != NULL) {
@@ -387,7 +386,6 @@ frame_t* physmem_find_frame(ptr36_t addr)
 
     return NULL;
 }
-
 
 /** Find an activated memory breakpoint
  *
@@ -403,11 +401,12 @@ frame_t* physmem_find_frame(ptr36_t addr)
  *
  */
 static void physmem_breakpoint_find(ptr36_t addr, len36_t size,
-    access_t access_type)
+        access_t access_type)
 {
     physmem_breakpoint_t *breakpoint;
 
-    for_each(physmem_breakpoints, breakpoint, physmem_breakpoint_t) {
+    for_each(physmem_breakpoints, breakpoint, physmem_breakpoint_t)
+    {
         if (breakpoint->addr + breakpoint->size < addr)
             continue;
 
@@ -496,7 +495,7 @@ uint8_t physmem_read8(unsigned int procno, ptr36_t addr, bool protected)
      * No memory frame found, try to read the value
      * from appropriate device or return the default value.
      */
-    if (frame == NULL){
+    if (frame == NULL) {
         return devmem_read8(procno, addr);
     }
 
@@ -533,7 +532,7 @@ uint16_t physmem_read16(unsigned int procno, ptr36_t addr, bool protected)
      * No memory frame found, try to read the value
      * from appropriate device or return the default value.
      */
-    if (frame == NULL){
+    if (frame == NULL) {
         return devmem_read16(procno, addr);
     }
 
@@ -570,7 +569,7 @@ uint32_t physmem_read32(unsigned int procno, ptr36_t addr, bool protected)
      * No memory frame found, try to read the value
      * from appropriate device or return the default value.
      */
-    if (frame == NULL){
+    if (frame == NULL) {
         return devmem_read32(procno, addr);
     }
 
@@ -607,7 +606,7 @@ uint64_t physmem_read64(unsigned int procno, ptr36_t addr, bool protected)
      * No memory frame found, try to read the value
      * from appropriate device or return the default value.
      */
-    if (frame == NULL){
+    if (frame == NULL) {
         return devmem_read64(procno, addr);
     }
 
@@ -620,7 +619,6 @@ uint64_t physmem_read64(unsigned int procno, ptr36_t addr, bool protected)
 
     return convert_uint64_t_endian(*data);
 }
-
 
 static bool devmem_write8(unsigned int procno, ptr36_t addr, uint8_t val)
 {
@@ -686,7 +684,6 @@ static bool devmem_write64(unsigned int procno, ptr36_t addr, uint64_t val)
     return written;
 }
 
-
 /** SC-LL tracking
  *
  */
@@ -706,7 +703,8 @@ void sc_register(unsigned int procno)
     /* Ignore if already registered. */
     sc_item_t *sc_item;
 
-    for_each(sc_list, sc_item, sc_item_t) {
+    for_each(sc_list, sc_item, sc_item_t)
+    {
         if (sc_item->procno == procno)
             return;
     }
@@ -724,7 +722,8 @@ void sc_unregister(unsigned int procno)
 {
     sc_item_t *sc_item;
 
-    for_each(sc_list, sc_item, sc_item_t) {
+    for_each(sc_list, sc_item, sc_item_t)
+    {
         if (sc_item->procno == procno) {
             list_remove(&sc_list, &sc_item->item);
             safe_free(sc_item);
@@ -748,8 +747,7 @@ static void sc_control(ptr36_t addr, int size)
 
             list_remove(&sc_list, &tmp->item);
             safe_free(tmp);
-        }
-        else {
+        } else {
             sc_item = (sc_item_t *) sc_item->item.next;
         }
     }
@@ -777,7 +775,7 @@ bool physmem_write8(unsigned int procno, ptr36_t addr, uint8_t val, bool protect
     frame_t *frame = physmem_find_frame(addr);
 
     /* No frame found, try to write the value to appropriate device */
-    if (frame == NULL){
+    if (frame == NULL) {
         return devmem_write8(procno, addr, val);
     }
 
@@ -825,7 +823,7 @@ bool physmem_write16(unsigned int procno, ptr36_t addr, uint16_t val, bool prote
     frame_t *frame = physmem_find_frame(addr);
 
     /* No frame found, try to write the value to appropriate device */
-    if (frame == NULL){
+    if (frame == NULL) {
         return devmem_write16(procno, addr, val);
     }
 
@@ -873,7 +871,7 @@ bool physmem_write32(unsigned int procno, ptr36_t addr, uint32_t val, bool prote
     frame_t *frame = physmem_find_frame(addr);
 
     /* No frame found, try to write the value to appropriate device */
-    if (frame == NULL){
+    if (frame == NULL) {
         return devmem_write32(procno, addr, val);
     }
 
@@ -946,4 +944,3 @@ bool physmem_write64(unsigned int procno, ptr36_t addr, uint64_t val, bool prote
 
     return true;
 }
-

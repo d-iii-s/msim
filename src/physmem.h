@@ -22,10 +22,9 @@
 #include "list.h"
 #include "utils.h"
 
-#define FRAME_WIDTH   12
-#define FRAME_SIZE    (1 << FRAME_WIDTH)
-#define FRAME_MASK    (FRAME_SIZE - 1)
-
+#define FRAME_WIDTH 12
+#define FRAME_SIZE (1 << FRAME_WIDTH)
+#define FRAME_MASK (FRAME_SIZE - 1)
 
 #define FRAMES2SIZE(frames) \
     (((len36_t) (frames)) << FRAME_WIDTH)
@@ -39,12 +38,12 @@
 #define ADDR2FRAME(addr) \
     ((addr) >> FRAME_WIDTH)
 
-#define DEFAULT_MEMORY_VALUE  UINT64_C(0xffffffffffffffff)
+#define DEFAULT_MEMORY_VALUE UINT64_C(0xffffffffffffffff)
 
 typedef enum {
-    MEMT_NONE = 0,  /**< Uninitialized */
-    MEMT_MEM  = 1,  /**< Generic */
-    MEMT_FMAP = 2   /**< File mapped */
+    MEMT_NONE = 0, /**< Uninitialized */
+    MEMT_MEM = 1, /**< Generic */
+    MEMT_FMAP = 2 /**< File mapped */
 } physmem_type_t;
 
 typedef struct {
@@ -77,7 +76,7 @@ typedef struct frame {
 extern void physmem_wire(physmem_area_t *area);
 extern void physmem_unwire(physmem_area_t *area);
 
-extern frame_t* physmem_find_frame(ptr36_t addr);
+extern frame_t *physmem_find_frame(ptr36_t addr);
 
 /** Physical memory access */
 extern uint8_t physmem_read8(unsigned int cpu, ptr36_t addr, bool protected);
@@ -86,13 +85,13 @@ extern uint32_t physmem_read32(unsigned int cpu, ptr36_t addr, bool protected);
 extern uint64_t physmem_read64(unsigned int cpu, ptr36_t addr, bool protected);
 
 extern bool physmem_write8(unsigned int cpu, ptr36_t addr, uint8_t val,
-    bool protected);
+        bool protected);
 extern bool physmem_write16(unsigned int cpu, ptr36_t addr, uint16_t val,
-    bool protected);
+        bool protected);
 extern bool physmem_write32(unsigned int cpu, ptr36_t addr, uint32_t val,
-    bool protected);
+        bool protected);
 extern bool physmem_write64(unsigned int cpu, ptr36_t addr, uint64_t val,
-    bool protected);
+        bool protected);
 
 /** Store-conditional control */
 extern void sc_register(unsigned int procno);

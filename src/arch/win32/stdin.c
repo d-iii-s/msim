@@ -25,7 +25,7 @@ bool stdin_poll(char *key)
                     return false;
 
                 if ((rd > 0) && (inrec.EventType == KEY_EVENT)
-                    && (inrec.Event.KeyEvent.bKeyDown)) {
+                        && (inrec.Event.KeyEvent.bKeyDown)) {
                     *key = inrec.Event.KeyEvent.uChar.AsciiChar;
                     return true;
                 }

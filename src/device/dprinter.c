@@ -23,16 +23,16 @@
 #include "../utils.h"
 
 /** Registers */
-#define REGISTER_CHAR   0  /**< Output character */
-#define REGISTER_LIMIT  4  /**< Size of the register block */
+#define REGISTER_CHAR 0 /**< Output character */
+#define REGISTER_LIMIT 4 /**< Size of the register block */
 
 typedef struct {
-    ptr36_t addr;    /**< Printer register address */
+    ptr36_t addr; /**< Printer register address */
 
-    FILE *file;      /**< Output file */
-    char *fname;     /**< Output file name */
+    FILE *file; /**< Output file */
+    char *fname; /**< Output file name */
 
-    uint64_t count;  /**< Number of printed characters */
+    uint64_t count; /**< Number of printed characters */
 } printer_data_t;
 
 /** Init command implementation
@@ -50,7 +50,7 @@ static bool dprinter_init(token_t *parm, device_t *dev)
 
     if (!phys_range(_addr + (uint64_t) REGISTER_LIMIT)) {
         error("Invalid address, registers would exceed the physical "
-            "memory range");
+              "memory range");
         return false;
     }
 
@@ -185,61 +185,49 @@ static void printer_write32(unsigned int procno, device_t *dev, ptr36_t addr, ui
  */
 
 static cmd_t printer_cmds[] = {
-    {
-        "init",
-        (fcmd_t) dprinter_init,
-        DEFAULT,
-        DEFAULT,
-        "Initialization",
-        "Initialization",
-        REQ STR "name/printer name" NEXT
-        REQ INT "addr/register address" END
-    },
-    {
-        "help",
-        (fcmd_t) dev_generic_help,
-        DEFAULT,
-        DEFAULT,
-        "Display this help text",
-        "Display this help text",
-        OPT STR "cmd/command name" END
-    },
-    {
-        "info",
-        (fcmd_t) dprinter_info,
-        DEFAULT,
-        DEFAULT,
-        "Display printer state and configuration",
-        "Display printer state and configuration",
-        NOCMD
-    },
-    {
-        "stat",
-        (fcmd_t) dprinter_stat,
-        DEFAULT,
-        DEFAULT,
-        "Display printer statistics",
-        "Display printer statistics",
-        NOCMD
-    },
-    {
-        "redir",
-        (fcmd_t) dprinter_redir,
-        DEFAULT,
-        DEFAULT,
-        "Redirect output to the specified file",
-        "Redirect output to the specified file",
-        REQ STR "filename/output file name" END
-    },
-    {
-        "stdout",
-        (fcmd_t) dprinter_stdout,
-        DEFAULT,
-        DEFAULT,
-        "Redirect output to the standard output",
-        "Redirect output to the standard output",
-        NOCMD
-    },
+    { "init",
+            (fcmd_t) dprinter_init,
+            DEFAULT,
+            DEFAULT,
+            "Initialization",
+            "Initialization",
+            REQ STR "name/printer name" NEXT
+                    REQ INT "addr/register address" END },
+    { "help",
+            (fcmd_t) dev_generic_help,
+            DEFAULT,
+            DEFAULT,
+            "Display this help text",
+            "Display this help text",
+            OPT STR "cmd/command name" END },
+    { "info",
+            (fcmd_t) dprinter_info,
+            DEFAULT,
+            DEFAULT,
+            "Display printer state and configuration",
+            "Display printer state and configuration",
+            NOCMD },
+    { "stat",
+            (fcmd_t) dprinter_stat,
+            DEFAULT,
+            DEFAULT,
+            "Display printer statistics",
+            "Display printer statistics",
+            NOCMD },
+    { "redir",
+            (fcmd_t) dprinter_redir,
+            DEFAULT,
+            DEFAULT,
+            "Redirect output to the specified file",
+            "Redirect output to the specified file",
+            REQ STR "filename/output file name" END },
+    { "stdout",
+            (fcmd_t) dprinter_stdout,
+            DEFAULT,
+            DEFAULT,
+            "Redirect output to the standard output",
+            "Redirect output to the standard output",
+            NOCMD },
     LAST_CMD
 };
 
@@ -251,8 +239,8 @@ device_type_t dprinter = {
     .name = "dprinter",
     .brief = "Printer simulation",
     .full = "Printer device represents a simple character output device. Via "
-        "memory-mapped register system can write character to the "
-        "specified output like screen, file or another terminal.",
+            "memory-mapped register system can write character to the "
+            "specified output like screen, file or another terminal.",
 
     /* Functions */
     .done = printer_done,

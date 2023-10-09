@@ -25,7 +25,7 @@
 #include "parser.h"
 #include "utils.h"
 
-#define PROMPT  ("[" PACKAGE_NAME "] ")
+#define PROMPT ("[" PACKAGE_NAME "] ")
 
 /** Shared variables for tab completion */
 static char *par_text;
@@ -172,10 +172,12 @@ void interactive_control(void)
 /**
  * Tells whether stdin is connected to interactive terminal.
  */
-int input_is_terminal(void) {
+int input_is_terminal(void)
+{
     return input_term;
 }
 
-void input_end(void) {
+void input_end(void)
+{
     clear_history();
 }

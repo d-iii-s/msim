@@ -24,20 +24,20 @@
 #include "../main.h"
 #include "../utils.h"
 
-static bool r4k_cpu_convert_addr(r4k_cpu_t *cpu, ptr64_t virt, ptr36_t *phys, bool write){
+static bool r4k_cpu_convert_addr(r4k_cpu_t *cpu, ptr64_t virt, ptr36_t *phys, bool write)
+{
     return r4k_convert_addr(cpu, virt, phys, write, false) == r4k_excNone;
 }
 
 static const cpu_ops_t r4k_cpu = {
-    .interrupt_up = (interrupt_func_t)r4k_interrupt_up,
-    .interrupt_down = (interrupt_func_t)r4k_interrupt_down,
+    .interrupt_up = (interrupt_func_t) r4k_interrupt_up,
+    .interrupt_down = (interrupt_func_t) r4k_interrupt_down,
 
-    .convert_addr = (convert_addr_func_t)r4k_cpu_convert_addr,
-    .reg_dump = (reg_dump_func_t)r4k_reg_dump,
-    .set_pc = (set_pc_func_t)r4k_set_pc,
-    .sc_access = (sc_access_func_t)r4k_sc_access
+    .convert_addr = (convert_addr_func_t) r4k_cpu_convert_addr,
+    .reg_dump = (reg_dump_func_t) r4k_reg_dump,
+    .set_pc = (set_pc_func_t) r4k_set_pc,
+    .sc_access = (sc_access_func_t) r4k_sc_access
 };
-
 
 /** Initialization
  *
@@ -53,7 +53,7 @@ static bool dr4kcpu_init(token_t *parm, device_t *dev)
 
     r4k_cpu_t *cpu = safe_malloc_t(r4k_cpu_t);
     r4k_init(cpu, id);
-    general_cpu_t* gen_cpu = safe_malloc_t(general_cpu_t);
+    general_cpu_t *gen_cpu = safe_malloc_t(general_cpu_t);
     gen_cpu->cpuno = id;
     gen_cpu->data = cpu;
     gen_cpu->type = &r4k_cpu;
@@ -83,24 +83,24 @@ static bool dr4kcpu_stat(token_t *parm, device_t *dev)
 
     printf("[Total cycles      ] [In kernel space   ] [In user space     ]\n");
     printf("%20" PRIu64 " %20" PRIu64 " %20" PRIu64 "\n\n",
-        (uint64_t) cpu->k_cycles + cpu->u_cycles + cpu->w_cycles,
-        cpu->k_cycles, cpu->u_cycles);
+            (uint64_t) cpu->k_cycles + cpu->u_cycles + cpu->w_cycles,
+            cpu->k_cycles, cpu->u_cycles);
 
     printf("[Wait cycles       ] [TLB Refill exc    ] [TLB Invalid exc   ]\n");
     printf("%20" PRIu64 " %20" PRIu64 " %20" PRIu64 "\n\n",
-        cpu->w_cycles, cpu->tlb_refill, cpu->tlb_invalid);
+            cpu->w_cycles, cpu->tlb_refill, cpu->tlb_invalid);
 
     printf("[TLB Modified exc  ] [Interrupt 0       ] [Interrupt 1       ]\n");
     printf("%20" PRIu64 " %20" PRIu64 " %20" PRIu64 "\n\n",
-        cpu->tlb_modified, cpu->intr[0], cpu->intr[1]);
+            cpu->tlb_modified, cpu->intr[0], cpu->intr[1]);
 
     printf("[Interrupt 2       ] [Interrupt 3       ] [Interrupt 4       ]\n");
     printf("%20" PRIu64 " %20" PRIu64 " %20" PRIu64 "\n\n",
-        cpu->intr[2], cpu->intr[3], cpu->intr[4]);
+            cpu->intr[2], cpu->intr[3], cpu->intr[4]);
 
     printf("[Interrupt 5       ] [Interrupt 6       ] [Interrupt 7       ]\n");
     printf("%20" PRIu64 " %20" PRIu64 " %20" PRIu64 "\n",
-        cpu->intr[5], cpu->intr[6], cpu->intr[7]);
+            cpu->intr[5], cpu->intr[6], cpu->intr[7]);
 
     return true;
 }
@@ -165,7 +165,7 @@ static bool dr4kcpu_md(token_t *parm, device_t *dev)
     len64_t i;
 
     for (addr.ptr = _addr, cnt = _cnt, i = 0;
-        i < cnt; addr.ptr += 4, i++) {
+            i < cnt; addr.ptr += 4, i++) {
         if ((i & 0x03U) == 0)
             printf("  %#018" PRIx64 "    ", addr.ptr);
 
@@ -214,7 +214,7 @@ static bool dr4kcpu_id(token_t *parm, device_t *dev)
     len64_t cnt;
 
     for (addr.ptr = _addr, cnt = _cnt; cnt > 0;
-        addr.ptr += 4, cnt--) {
+            addr.ptr += 4, cnt--) {
         r4k_instr_t instr;
         // FIXME
         r4k_exc_t res = r4k_excNone;
@@ -277,7 +277,7 @@ static bool dr4kcpu_break(token_t *parm, device_t *dev)
     addr.ptr = UINT64_C(0xffffffff00000000) | _addr;
 
     breakpoint_t *bp = breakpoint_init(addr,
-        BREAKPOINT_KIND_SIMULATOR);
+            BREAKPOINT_KIND_SIMULATOR);
     list_append(&cpu->bps, &bp->item);
 
     return true;
@@ -293,12 +293,14 @@ static bool dr4kcpu_bd(token_t *parm, device_t *dev)
 
     printf("[address ] [hits              ] [kind    ]\n");
 
-    for_each(cpu->bps, bp, breakpoint_t) {
+    for_each(cpu->bps, bp, breakpoint_t)
+    {
         const char *kind = (bp->kind == BREAKPOINT_KIND_SIMULATOR)
-            ? "Simulator" : "Debugger";
+                ? "Simulator"
+                : "Debugger";
 
         printf("%#018" PRIx64 " %20" PRIu64 " %s\n",
-            bp->pc.ptr, bp->hits, kind);
+                bp->pc.ptr, bp->hits, kind);
     }
 
     return true;
@@ -319,7 +321,8 @@ static bool dr4kcpu_br(token_t *parm, device_t *dev)
 
     bool fnd = false;
     breakpoint_t *bp;
-    for_each(cpu->bps, bp, breakpoint_t) {
+    for_each(cpu->bps, bp, breakpoint_t)
+    {
         if (bp->pc.ptr == addr) {
             list_remove(&cpu->bps, &bp->item);
             safe_free(bp);
@@ -342,7 +345,7 @@ static bool dr4kcpu_br(token_t *parm, device_t *dev)
 static void dr4kcpu_done(device_t *dev)
 {
     r4k_done(get_r4k(dev));
-    safe_free(((general_cpu_t *)dev->data)->data);
+    safe_free(((general_cpu_t *) dev->data)->data);
     safe_free(dev->data);
 }
 
@@ -355,125 +358,99 @@ static void dr4kcpu_step(device_t *dev)
 }
 
 cmd_t dr4kcpu_cmds[] = {
-    {
-        "init",
-        (fcmd_t) dr4kcpu_init,
-        DEFAULT,
-        DEFAULT,
-        "Initialization",
-        "Initialization",
-        REQ STR "pname/processor name" END
-    },
-    {
-        "help",
-        (fcmd_t) dev_generic_help,
-        DEFAULT,
-        DEFAULT,
-        "Display this help text",
-        "Display this help text",
-        OPT STR "cmd/command name" END
-    },
-    {
-        "info",
-        (fcmd_t) dr4kcpu_info,
-        DEFAULT,
-        DEFAULT,
-        "Display configuration information",
-        "Display configuration information",
-        NOCMD
-    },
-    {
-        "stat",
-        (fcmd_t) dr4kcpu_stat,
-        DEFAULT,
-        DEFAULT,
-        "Display processor statistics",
-        "Display processor statistics",
-        NOCMD
-    },
-    {
-        "cp0d",
-        (fcmd_t) dr4kcpu_cp0d,
-        DEFAULT,
-        DEFAULT,
-        "Dump contents of the coprocessor 0 register(s)",
-        "Dump contents of the coprocessor 0 register(s)",
-        OPT INT "rn/register number" END
-    },
-    {
-        "tlbd",
-        (fcmd_t) dr4kcpu_tlbd,
-        DEFAULT,
-        DEFAULT,
-        "Dump content of TLB",
-        "Dump content of TLB",
-        NOCMD
-    },
-    {
-        "md",
-        (fcmd_t) dr4kcpu_md,
-        DEFAULT,
-        DEFAULT,
-        "Dump specified TLB mapped memory block",
-        "Dump specified TLB mapped memory block",
-        REQ INT "saddr/starting address" NEXT
-        REQ INT "size/size" END
-    },
-    {
-        "id",
-        (fcmd_t) dr4kcpu_id,
-        DEFAULT,
-        DEFAULT,
-        "Dump instructions from specified TLB mapped memory",
-        "Dump instructions from specified TLB mapped memory",
-        REQ INT "saddr/starting address" NEXT
-        REQ INT "cnt/count" END
-    },
-    {
-        "rd",
-        (fcmd_t) dr4kcpu_rd,
-        DEFAULT,
-        DEFAULT,
-        "Dump contents of CPU general registers",
-        "Dump contents of CPU general registers",
-        NOCMD
-    },
-    {
-        "goto",
-        (fcmd_t) dr4kcpu_goto,
-        DEFAULT,
-        DEFAULT,
-        "Go to address",
-        "Go to address",
-        REQ INT "addr/address" END
-    },
-    {
-        "break",
-        (fcmd_t) dr4kcpu_break,
-        DEFAULT,
-        DEFAULT,
-        "Add code breakpoint",
-        "Add code breakpoint",
-        REQ INT "addr/address" END
-    },
-    {
-        "bd",
-        (fcmd_t) dr4kcpu_bd,
-        DEFAULT,
-        DEFAULT,
-        "Dump code breakpoints",
-        "Dump code breakpoints",
-        NOCMD
-    },
-    {
-        "br",
-        (fcmd_t) dr4kcpu_br,
-        DEFAULT,
-        DEFAULT,
-        "Remove code breakpoint",
-        "Remove code breakpoint",
-        REQ INT "addr/address" END
-    },
+    { "init",
+            (fcmd_t) dr4kcpu_init,
+            DEFAULT,
+            DEFAULT,
+            "Initialization",
+            "Initialization",
+            REQ STR "pname/processor name" END },
+    { "help",
+            (fcmd_t) dev_generic_help,
+            DEFAULT,
+            DEFAULT,
+            "Display this help text",
+            "Display this help text",
+            OPT STR "cmd/command name" END },
+    { "info",
+            (fcmd_t) dr4kcpu_info,
+            DEFAULT,
+            DEFAULT,
+            "Display configuration information",
+            "Display configuration information",
+            NOCMD },
+    { "stat",
+            (fcmd_t) dr4kcpu_stat,
+            DEFAULT,
+            DEFAULT,
+            "Display processor statistics",
+            "Display processor statistics",
+            NOCMD },
+    { "cp0d",
+            (fcmd_t) dr4kcpu_cp0d,
+            DEFAULT,
+            DEFAULT,
+            "Dump contents of the coprocessor 0 register(s)",
+            "Dump contents of the coprocessor 0 register(s)",
+            OPT INT "rn/register number" END },
+    { "tlbd",
+            (fcmd_t) dr4kcpu_tlbd,
+            DEFAULT,
+            DEFAULT,
+            "Dump content of TLB",
+            "Dump content of TLB",
+            NOCMD },
+    { "md",
+            (fcmd_t) dr4kcpu_md,
+            DEFAULT,
+            DEFAULT,
+            "Dump specified TLB mapped memory block",
+            "Dump specified TLB mapped memory block",
+            REQ INT "saddr/starting address" NEXT
+                    REQ INT "size/size" END },
+    { "id",
+            (fcmd_t) dr4kcpu_id,
+            DEFAULT,
+            DEFAULT,
+            "Dump instructions from specified TLB mapped memory",
+            "Dump instructions from specified TLB mapped memory",
+            REQ INT "saddr/starting address" NEXT
+                    REQ INT "cnt/count" END },
+    { "rd",
+            (fcmd_t) dr4kcpu_rd,
+            DEFAULT,
+            DEFAULT,
+            "Dump contents of CPU general registers",
+            "Dump contents of CPU general registers",
+            NOCMD },
+    { "goto",
+            (fcmd_t) dr4kcpu_goto,
+            DEFAULT,
+            DEFAULT,
+            "Go to address",
+            "Go to address",
+            REQ INT "addr/address" END },
+    { "break",
+            (fcmd_t) dr4kcpu_break,
+            DEFAULT,
+            DEFAULT,
+            "Add code breakpoint",
+            "Add code breakpoint",
+            REQ INT "addr/address" END },
+    { "bd",
+            (fcmd_t) dr4kcpu_bd,
+            DEFAULT,
+            DEFAULT,
+            "Dump code breakpoints",
+            "Dump code breakpoints",
+            NOCMD },
+    { "br",
+            (fcmd_t) dr4kcpu_br,
+            DEFAULT,
+            DEFAULT,
+            "Remove code breakpoint",
+            "Remove code breakpoint",
+            REQ INT "addr/address" END },
     LAST_CMD
 };
 
@@ -497,5 +474,3 @@ device_type_t dr4kcpu = {
     /* Commands */
     .cmds = dr4kcpu_cmds
 };
-
-

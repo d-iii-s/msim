@@ -14,7 +14,7 @@ static r4k_exc_t instr_tne(r4k_cpu_t *cpu, r4k_instr_t instr)
 }
 
 static void mnemonics_tne(ptr64_t addr, r4k_instr_t instr,
-    string_t *mnemonics, string_t *comments)
+        string_t *mnemonics, string_t *comments)
 {
     string_printf(mnemonics, "tne");
     disassemble_rs_rt(instr, mnemonics, comments);

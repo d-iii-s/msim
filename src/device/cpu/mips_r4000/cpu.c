@@ -33,172 +33,134 @@
  *
  */
 char *r4k_reg_name[R4K_REG_VARIANTS][R4K_REG_COUNT] = {
-    {
-        "r0",  "r1",  "r2",  "r3",  "r4",  "r5",  "r6",  "r7",  "r8",  "r9",
-        "r10", "r11", "r12", "r13", "r14", "r15", "r16", "r17", "r18", "r19",
-        "r20", "r21", "r22", "r23", "r24", "r25", "r26", "r27", "r28", "r29",
-        "r30", "r31"
-    },
-    {
-        "$0",  "$1",  "$2",  "$3",  "$4",  "$5",  "$6",  "$7",  "$8",  "$9",
-        "$10", "$11", "$12", "$13", "$14", "$15", "$16", "$17", "$18", "$19",
-        "$20", "$21", "$22", "$23", "$24", "$25", "$26", "$27", "$28", "$29",
-        "$30", "$31"
-    },
-    {
-        "0",  "at", "v0", "v1", "a0", "a1", "a2", "a3", "t0", "t1",
-        "t2", "t3", "t4", "t5", "t6", "t7", "s0", "s1", "s2", "s3",
-        "s4", "s5", "s6", "s7", "t8", "t9", "k0", "k1", "gp", "sp",
-        "fp", "ra"
-    }
+    { "r0", "r1", "r2", "r3", "r4", "r5", "r6", "r7", "r8", "r9",
+            "r10", "r11", "r12", "r13", "r14", "r15", "r16", "r17", "r18", "r19",
+            "r20", "r21", "r22", "r23", "r24", "r25", "r26", "r27", "r28", "r29",
+            "r30", "r31" },
+    { "$0", "$1", "$2", "$3", "$4", "$5", "$6", "$7", "$8", "$9",
+            "$10", "$11", "$12", "$13", "$14", "$15", "$16", "$17", "$18", "$19",
+            "$20", "$21", "$22", "$23", "$24", "$25", "$26", "$27", "$28", "$29",
+            "$30", "$31" },
+    { "0", "at", "v0", "v1", "a0", "a1", "a2", "a3", "t0", "t1",
+            "t2", "t3", "t4", "t5", "t6", "t7", "s0", "s1", "s2", "s3",
+            "s4", "s5", "s6", "s7", "t8", "t9", "k0", "k1", "gp", "sp",
+            "fp", "ra" }
 };
 
 char *r4k_cp0_name[R4K_REG_VARIANTS][R4K_REG_COUNT] = {
-    {
-        "0",  "1",  "2",  "3",  "4",  "5",  "6",  "7",  "8",  "9",
-        "10", "11", "12", "13", "14", "15", "16", "17", "18", "19",
-        "20", "21", "22", "23", "24", "25", "26", "27", "28", "29",
-        "30", "31"
-    },
-    {
-        "$0",  "$1",  "$2",  "$3",  "$4",  "$5",  "$6",  "$7",  "$8",  "$9",
-        "$10", "$11", "$12", "$13", "$14", "$15", "$16", "$17", "$18", "$19",
-        "$20", "$21", "$22", "$23", "$24", "$25", "$26", "$27", "$28", "$29",
-        "$30", "$31"
-    },
-    {
-        "index",    "random",   "entrylo0", "entrylo1",
-        "context",  "pagemask", "wired",    "res_7",
-        "badvaddr", "count",    "entryhi",  "compare",
-        "status",   "cause",    "epc",      "prid",
-        "config",   "lladdr",   "watchlo",  "watchhi",
-        "xcontext", "res_21",   "res_22",   "res_23",
-        "res_24",   "res_25",   "res_26",   "res_27",
-        "res_28",   "res_29",   "errorepc", "res_31"
-    }
+    { "0", "1", "2", "3", "4", "5", "6", "7", "8", "9",
+            "10", "11", "12", "13", "14", "15", "16", "17", "18", "19",
+            "20", "21", "22", "23", "24", "25", "26", "27", "28", "29",
+            "30", "31" },
+    { "$0", "$1", "$2", "$3", "$4", "$5", "$6", "$7", "$8", "$9",
+            "$10", "$11", "$12", "$13", "$14", "$15", "$16", "$17", "$18", "$19",
+            "$20", "$21", "$22", "$23", "$24", "$25", "$26", "$27", "$28", "$29",
+            "$30", "$31" },
+    { "index", "random", "entrylo0", "entrylo1",
+            "context", "pagemask", "wired", "res_7",
+            "badvaddr", "count", "entryhi", "compare",
+            "status", "cause", "epc", "prid",
+            "config", "lladdr", "watchlo", "watchhi",
+            "xcontext", "res_21", "res_22", "res_23",
+            "res_24", "res_25", "res_26", "res_27",
+            "res_28", "res_29", "errorepc", "res_31" }
 };
 
 char *r4k_cp1_name[R4K_REG_VARIANTS][R4K_REG_COUNT] = {
-    {
-        "0",  "1",  "2",  "3",  "4",  "5",  "6",  "7",  "8",  "9",
-        "10", "11", "12", "13", "14", "15", "16", "17", "18", "19",
-        "20", "21", "22", "23", "24", "25", "26", "27", "28", "29",
-        "30", "31"
-    },
-    {
-        "$0",  "$1",  "$2",  "$3",  "$4",  "$5",  "$6",  "$7",  "$8",  "$9",
-        "$10", "$11", "$12", "$13", "$14", "$15", "$16", "$17", "$18", "$19",
-        "$20", "$21", "$22", "$23", "$24", "$25", "$26", "$27", "$28", "$29",
-        "$30", "$31"
-    },
-    {
-        "cp1_0",  "cp1_1",  "cp1_2",  "cp1_3",  "cp1_4",  "cp1_5",  "cp1_6",
-        "cp1_7",  "cp1_8",  "cp1_9",  "cp1_10", "cp1_11", "cp1_12", "cp1_13",
-        "cp1_14", "cp1_15", "cp1_16", "cp1_17", "cp1_18", "cp1_19", "cp1_20",
-        "cp1_21", "cp1_22", "cp1_23", "cp1_24", "cp1_25", "cp1_26", "cp1_27",
-        "cp1_28", "cp1_29", "cp1_30", "cp1_31"
-    }
+    { "0", "1", "2", "3", "4", "5", "6", "7", "8", "9",
+            "10", "11", "12", "13", "14", "15", "16", "17", "18", "19",
+            "20", "21", "22", "23", "24", "25", "26", "27", "28", "29",
+            "30", "31" },
+    { "$0", "$1", "$2", "$3", "$4", "$5", "$6", "$7", "$8", "$9",
+            "$10", "$11", "$12", "$13", "$14", "$15", "$16", "$17", "$18", "$19",
+            "$20", "$21", "$22", "$23", "$24", "$25", "$26", "$27", "$28", "$29",
+            "$30", "$31" },
+    { "cp1_0", "cp1_1", "cp1_2", "cp1_3", "cp1_4", "cp1_5", "cp1_6",
+            "cp1_7", "cp1_8", "cp1_9", "cp1_10", "cp1_11", "cp1_12", "cp1_13",
+            "cp1_14", "cp1_15", "cp1_16", "cp1_17", "cp1_18", "cp1_19", "cp1_20",
+            "cp1_21", "cp1_22", "cp1_23", "cp1_24", "cp1_25", "cp1_26", "cp1_27",
+            "cp1_28", "cp1_29", "cp1_30", "cp1_31" }
 };
 
 char *r4k_cp2_name[R4K_REG_VARIANTS][R4K_REG_COUNT] = {
-    {
-        "0",  "1",  "2",  "3",  "4",  "5",  "6",  "7",  "8",  "9",
-        "10", "11", "12", "13", "14", "15", "16", "17", "18", "19",
-        "20", "21", "22", "23", "24", "25", "26", "27", "28", "29",
-        "30", "31"
-    },
-    {
-        "$0",  "$1",  "$2",  "$3",  "$4",  "$5",  "$6",  "$7",  "$8",  "$9",
-        "$10", "$11", "$12", "$13", "$14", "$15", "$16", "$17", "$18", "$19",
-        "$20", "$21", "$22", "$23", "$24", "$25", "$26", "$27", "$28", "$29",
-        "$30", "$31"
-    },
-    {
-        "cp2_0",  "cp2_1",  "cp2_2",  "cp2_3",  "cp2_4",  "cp2_5",  "cp2_6",
-        "cp2_7",  "cp2_8",  "cp2_9",  "cp2_10", "cp2_11", "cp2_12", "cp2_13",
-        "cp2_14", "cp2_15", "cp2_16", "cp2_17", "cp2_18", "cp2_19", "cp2_20",
-        "cp2_21", "cp2_22", "cp2_23", "cp2_24", "cp2_25", "cp2_26", "cp2_27",
-        "cp2_28", "cp2_29", "cp2_30", "cp2_31"
-    }
+    { "0", "1", "2", "3", "4", "5", "6", "7", "8", "9",
+            "10", "11", "12", "13", "14", "15", "16", "17", "18", "19",
+            "20", "21", "22", "23", "24", "25", "26", "27", "28", "29",
+            "30", "31" },
+    { "$0", "$1", "$2", "$3", "$4", "$5", "$6", "$7", "$8", "$9",
+            "$10", "$11", "$12", "$13", "$14", "$15", "$16", "$17", "$18", "$19",
+            "$20", "$21", "$22", "$23", "$24", "$25", "$26", "$27", "$28", "$29",
+            "$30", "$31" },
+    { "cp2_0", "cp2_1", "cp2_2", "cp2_3", "cp2_4", "cp2_5", "cp2_6",
+            "cp2_7", "cp2_8", "cp2_9", "cp2_10", "cp2_11", "cp2_12", "cp2_13",
+            "cp2_14", "cp2_15", "cp2_16", "cp2_17", "cp2_18", "cp2_19", "cp2_20",
+            "cp2_21", "cp2_22", "cp2_23", "cp2_24", "cp2_25", "cp2_26", "cp2_27",
+            "cp2_28", "cp2_29", "cp2_30", "cp2_31" }
 };
 
 char *r4k_cp3_name[R4K_REG_VARIANTS][R4K_REG_COUNT] = {
-    {
-        "0",  "1",  "2",  "3",  "4",  "5",  "6",  "7",  "8",  "9",
-        "10", "11", "12", "13", "14", "15", "16", "17", "18", "19",
-        "20", "21", "22", "23", "24", "25", "26", "27", "28", "29",
-        "30", "31"
-    },
-    {
-        "$0",  "$1",  "$2",  "$3",  "$4",  "$5",  "$6",  "$7",  "$8",  "$9",
-        "$10", "$11", "$12", "$13", "$14", "$15", "$16", "$17", "$18", "$19",
-        "$20", "$21", "$22", "$23", "$24", "$25", "$26", "$27", "$28", "$29",
-        "$30", "$31"
-    },
-    {
-        "cp3_0",  "cp3_1",  "cp3_2",  "cp3_3",  "cp3_4",  "cp3_5",  "cp3_6",
-        "cp3_7",  "cp3_8",  "cp3_9",  "cp3_10", "cp3_11", "cp3_12", "cp3_13",
-        "cp3_14", "cp3_15", "cp3_16", "cp3_17", "cp3_18", "cp3_19", "cp3_20",
-        "cp3_21", "cp3_22", "cp3_23", "cp3_24", "cp3_25", "cp3_26", "cp3_27",
-        "cp3_28", "cp3_29", "cp3_30", "cp3_31"
-    }
+    { "0", "1", "2", "3", "4", "5", "6", "7", "8", "9",
+            "10", "11", "12", "13", "14", "15", "16", "17", "18", "19",
+            "20", "21", "22", "23", "24", "25", "26", "27", "28", "29",
+            "30", "31" },
+    { "$0", "$1", "$2", "$3", "$4", "$5", "$6", "$7", "$8", "$9",
+            "$10", "$11", "$12", "$13", "$14", "$15", "$16", "$17", "$18", "$19",
+            "$20", "$21", "$22", "$23", "$24", "$25", "$26", "$27", "$28", "$29",
+            "$30", "$31" },
+    { "cp3_0", "cp3_1", "cp3_2", "cp3_3", "cp3_4", "cp3_5", "cp3_6",
+            "cp3_7", "cp3_8", "cp3_9", "cp3_10", "cp3_11", "cp3_12", "cp3_13",
+            "cp3_14", "cp3_15", "cp3_16", "cp3_17", "cp3_18", "cp3_19", "cp3_20",
+            "cp3_21", "cp3_22", "cp3_23", "cp3_24", "cp3_25", "cp3_26", "cp3_27",
+            "cp3_28", "cp3_29", "cp3_30", "cp3_31" }
 };
 
 /** Sign extensions
  *
  */
 
-#define SBIT8   UINT8_C(0x80)
-#define SBIT16  UINT16_C(0x8000)
-#define SBIT32  UINT32_C(0x80000000)
-#define SBIT64  UINT64_C(0x8000000000000000)
+#define SBIT8 UINT8_C(0x80)
+#define SBIT16 UINT16_C(0x8000)
+#define SBIT32 UINT32_C(0x80000000)
+#define SBIT64 UINT64_C(0x8000000000000000)
 
-#define EXTEND_POSITIVE_16_32  UINT32_C(0x0000ffff)
-#define EXTEND_NEGATIVE_16_32  UINT32_C(0xffff0000)
+#define EXTEND_POSITIVE_16_32 UINT32_C(0x0000ffff)
+#define EXTEND_NEGATIVE_16_32 UINT32_C(0xffff0000)
 
-#define EXTEND_POSITIVE_8_64  UINT64_C(0x00000000000000ff)
-#define EXTEND_NEGATIVE_8_64  UINT64_C(0xffffffffffffff00)
+#define EXTEND_POSITIVE_8_64 UINT64_C(0x00000000000000ff)
+#define EXTEND_NEGATIVE_8_64 UINT64_C(0xffffffffffffff00)
 
-#define EXTEND_POSITIVE_16_64  UINT64_C(0x000000000000ffff)
-#define EXTEND_NEGATIVE_16_64  UINT64_C(0xffffffffffff0000)
+#define EXTEND_POSITIVE_16_64 UINT64_C(0x000000000000ffff)
+#define EXTEND_NEGATIVE_16_64 UINT64_C(0xffffffffffff0000)
 
-#define EXTEND_POSITIVE_32_64  UINT64_C(0x00000000ffffffff)
-#define EXTEND_NEGATIVE_32_64  UINT64_C(0xffffffff00000000)
+#define EXTEND_POSITIVE_32_64 UINT64_C(0x00000000ffffffff)
+#define EXTEND_NEGATIVE_32_64 UINT64_C(0xffffffff00000000)
 
 static uint32_t sign_extend_16_32(uint16_t val)
 {
-    return ((val & SBIT16) ?
-        (((uint32_t) val) | EXTEND_NEGATIVE_16_32) :
-        (((uint32_t) val) & EXTEND_POSITIVE_16_32));
+    return ((val & SBIT16) ? (((uint32_t) val) | EXTEND_NEGATIVE_16_32) : (((uint32_t) val) & EXTEND_POSITIVE_16_32));
 }
 
 static uint64_t sign_extend_8_64(uint8_t val)
 {
-    return ((val & SBIT8) ?
-        (((uint64_t) val) | EXTEND_NEGATIVE_8_64) :
-        (((uint64_t) val) & EXTEND_POSITIVE_8_64));
+    return ((val & SBIT8) ? (((uint64_t) val) | EXTEND_NEGATIVE_8_64) : (((uint64_t) val) & EXTEND_POSITIVE_8_64));
 }
 
 static uint64_t sign_extend_16_64(uint16_t val)
 {
-    return ((val & SBIT16) ?
-        (((uint64_t) val) | EXTEND_NEGATIVE_16_64) :
-        (((uint64_t) val) & EXTEND_POSITIVE_16_64));
+    return ((val & SBIT16) ? (((uint64_t) val) | EXTEND_NEGATIVE_16_64) : (((uint64_t) val) & EXTEND_POSITIVE_16_64));
 }
 
 static uint64_t sign_extend_32_64(uint32_t val)
 {
-    return ((val & SBIT32) ?
-        (((uint64_t) val) | EXTEND_NEGATIVE_32_64) :
-        (((uint64_t) val) & EXTEND_POSITIVE_32_64));
+    return ((val & SBIT32) ? (((uint64_t) val) | EXTEND_NEGATIVE_32_64) : (((uint64_t) val) & EXTEND_POSITIVE_32_64));
 }
 
 /** Bitfield operations
  *
  */
 
-#define TARGET_SHIFT  2
-#define TARGET_COMB   UINT64_C(0xfffffffff0000000)
+#define TARGET_SHIFT 2
+#define TARGET_COMB UINT64_C(0xfffffffff0000000)
 
 /** CPU mode macros
  *
@@ -208,88 +170,81 @@ static uint64_t sign_extend_32_64(uint32_t val)
     (cp0_status_ts(cpu) == 1)
 
 #define CPU_USER_MODE(cpu) \
-    ((cp0_status_ksu(cpu) == 2) && (!cp0_status_exl(cpu)) && \
-        (!cp0_status_erl(cpu)))
+    ((cp0_status_ksu(cpu) == 2) && (!cp0_status_exl(cpu)) && (!cp0_status_erl(cpu)))
 
 #define CPU_SUPERVISOR_MODE(cpu) \
-    ((cp0_status_ksu(cpu) == 1) && (!cp0_status_exl(cpu)) && \
-        (!cp0_status_erl(cpu)))
+    ((cp0_status_ksu(cpu) == 1) && (!cp0_status_exl(cpu)) && (!cp0_status_erl(cpu)))
 
 #define CPU_KERNEL_MODE(cpu) \
-    ((cp0_status_ksu(cpu) == 0) || (cp0_status_exl(cpu)) || \
-        (cp0_status_erl(cpu)))
+    ((cp0_status_ksu(cpu) == 0) || (cp0_status_exl(cpu)) || (cp0_status_erl(cpu)))
 
 #define CP0_USABLE(cpu) \
     ((cp0_status_cu0(cpu)) || (CPU_KERNEL_MODE(cpu)))
 
 #define CPU_64BIT_MODE(cpu) \
-    (((CPU_KERNEL_MODE(cpu)) && (cp0_status_kx(cpu))) || \
-        ((CPU_SUPERVISOR_MODE(cpu)) && (cp0_status_sx(cpu))) || \
-        ((CPU_USER_MODE(cpu)) && (cp0_status_ux(cpu))))
+    (((CPU_KERNEL_MODE(cpu)) && (cp0_status_kx(cpu))) || ((CPU_SUPERVISOR_MODE(cpu)) && (cp0_status_sx(cpu))) || ((CPU_USER_MODE(cpu)) && (cp0_status_ux(cpu))))
 
 #define CPU_64BIT_INSTRUCTION(cpu) \
-    ((CPU_KERNEL_MODE(cpu)) || \
-        ((CPU_SUPERVISOR_MODE(cpu)) && (cp0_status_sx(cpu))) || \
-        ((CPU_USER_MODE(cpu)) && (cp0_status_ux(cpu))))
+    ((CPU_KERNEL_MODE(cpu)) || ((CPU_SUPERVISOR_MODE(cpu)) && (cp0_status_sx(cpu))) || ((CPU_USER_MODE(cpu)) && (cp0_status_ux(cpu))))
 
 /** Virtual memory segments
  *
  */
 
 /** User mode segments */
-#define USEG_MASK   UINT32_C(0x80000000)
-#define USEG_BITS   UINT32_C(0x00000000)
-#define XUSEG_MASK  UINT64_C(0xffffff0000000000)
-#define XUSEG_BITS  UINT64_C(0x0000000000000000)
+#define USEG_MASK UINT32_C(0x80000000)
+#define USEG_BITS UINT32_C(0x00000000)
+#define XUSEG_MASK UINT64_C(0xffffff0000000000)
+#define XUSEG_BITS UINT64_C(0x0000000000000000)
 
 /** Supervisor mode segments */
-#define SUSEG_MASK   USEG_MASK
-#define SUSEG_BITS   USEG_BITS
-#define XSUSEG_MASK  XUSEG_MASK
-#define XSUSEG_BITS  XUSEG_BITS
+#define SUSEG_MASK USEG_MASK
+#define SUSEG_BITS USEG_BITS
+#define XSUSEG_MASK XUSEG_MASK
+#define XSUSEG_BITS XUSEG_BITS
 
-#define SSEG_MASK   UINT32_C(0xe0000000)
-#define SSEG_BITS   UINT32_C(0xc0000000)
-#define XSSEG_MASK  UINT64_C(0xffffff0000000000)
-#define XSSEG_BITS  UINT64_C(0xc000000000000000)
+#define SSEG_MASK UINT32_C(0xe0000000)
+#define SSEG_BITS UINT32_C(0xc0000000)
+#define XSSEG_MASK UINT64_C(0xffffff0000000000)
+#define XSSEG_BITS UINT64_C(0xc000000000000000)
 
-#define CSSEG_MASK  UINT64_C(0xffffffffe0000000)
-#define CSSEG_BITS  UINT64_C(0xffffffffc0000000)
+#define CSSEG_MASK UINT64_C(0xffffffffe0000000)
+#define CSSEG_BITS UINT64_C(0xffffffffc0000000)
 
 /** Kernel mode segments */
-#define KUSEG_MASK    USEG_MASK
-#define KUSEG_BITS    USEG_BITS
-#define XKSUSEG_MASK  XUSEG_MASK
-#define XKSUSEG_BITS  XUSEG_BITS
+#define KUSEG_MASK USEG_MASK
+#define KUSEG_BITS USEG_BITS
+#define XKSUSEG_MASK XUSEG_MASK
+#define XKSUSEG_BITS XUSEG_BITS
 
-#define KSEG0_MASK   UINT32_C(0xe0000000)
-#define KSEG0_BITS   UINT32_C(0x80000000)
-#define CKSEG0_MASK  UINT64_C(0xffffffffe0000000)
-#define CKSEG0_BITS  UINT64_C(0xffffffff80000000)
+#define KSEG0_MASK UINT32_C(0xe0000000)
+#define KSEG0_BITS UINT32_C(0x80000000)
+#define CKSEG0_MASK UINT64_C(0xffffffffe0000000)
+#define CKSEG0_BITS UINT64_C(0xffffffff80000000)
 
-#define KSEG1_MASK   UINT32_C(0xe0000000)
-#define KSEG1_BITS   UINT32_C(0xa0000000)
-#define CKSEG1_MASK  UINT32_C(0xffffffffe0000000)
-#define CKSEG1_BITS  UINT32_C(0xffffffffa0000000)
+#define KSEG1_MASK UINT32_C(0xe0000000)
+#define KSEG1_BITS UINT32_C(0xa0000000)
+#define CKSEG1_MASK UINT32_C(0xffffffffe0000000)
+#define CKSEG1_BITS UINT32_C(0xffffffffa0000000)
 
-#define KSSEG_MASK   SSEG_MASK
-#define KSSEG_BITS   SSEG_BITS
-#define CKSSEG_MASK  CSSEG_MASK
-#define CKSSEG_BITS  CSSEG_BITS
+#define KSSEG_MASK SSEG_MASK
+#define KSSEG_BITS SSEG_BITS
+#define CKSSEG_MASK CSSEG_MASK
+#define CKSSEG_BITS CSSEG_BITS
 
-#define KSEG3_MASK   UINT32_C(0xe0000000)
-#define KSEG3_BITS   UINT32_C(0xe0000000)
-#define CKSEG3_MASK  UINT32_C(0xffffffffe0000000)
-#define CKSEG3_BITS  UINT32_C(0xffffffffe0000000)
+#define KSEG3_MASK UINT32_C(0xe0000000)
+#define KSEG3_BITS UINT32_C(0xe0000000)
+#define CKSEG3_MASK UINT32_C(0xffffffffe0000000)
+#define CKSEG3_BITS UINT32_C(0xffffffffe0000000)
 
-#define XKSSEG_MASK  UINT64_C(0xffffff0000000000)
-#define XKSSEG_BITS  UINT64_C(0x4000000000000000)
+#define XKSSEG_MASK UINT64_C(0xffffff0000000000)
+#define XKSSEG_BITS UINT64_C(0x4000000000000000)
 
-#define XKPHYS_MASK  UINT64_C(0xc000000000000000)
-#define XKPHYS_BITS  UINT64_C(0x8000000000000000)
+#define XKPHYS_MASK UINT64_C(0xc000000000000000)
+#define XKPHYS_BITS UINT64_C(0x8000000000000000)
 
-#define XKSEG_MASK  UINT64_C(0xffffff0080000000)
-#define XKSEG_BITS  UINT64_C(0xc000000000000000)
+#define XKSEG_MASK UINT64_C(0xffffff0080000000)
+#define XKSEG_BITS UINT64_C(0xc000000000000000)
 
 /** TLB lookup result */
 typedef enum {
@@ -372,8 +327,7 @@ static tlb_look_t tlb_look(r4k_cpu_t *cpu, ptr64_t virt, ptr36_t *phys, bool wr)
 
             /* Calculate subpage */
             ptr36_t smask = (ptr36_t) (entry->mask >> 1) | TLB_PHYSMASK;
-            unsigned int subpage =
-                ((virt.lo & entry->mask) < (virt.lo & smask)) ? 1 : 0;
+            unsigned int subpage = ((virt.lo & entry->mask) < (virt.lo & smask)) ? 1 : 0;
 
             /* Test valid & dirty */
             if (!entry->pg[subpage].valid)
@@ -407,11 +361,11 @@ static void fill_tlb_error(r4k_cpu_t *cpu, ptr64_t addr)
 
     cp0_context(cpu).val &= cp0_context_ptebase_mask;
     cp0_context(cpu).val |= (addr.ptr >> cp0_context_addr_shift)
-        & ~cp0_context_res1_mask;
+            & ~cp0_context_res1_mask;
 
     cp0_xcontext(cpu).val &= cp0_xcontext_ptebase_mask;
     cp0_xcontext(cpu).val |= (addr.ptr >> cp0_xcontext_addr_shift)
-        & ~cp0_xcontext_res1_mask;
+            & ~cp0_xcontext_res1_mask;
 
     cp0_entryhi(cpu).val &= cp0_entryhi_asid_mask;
     cp0_entryhi(cpu).val |= addr.ptr & cp0_entryhi_vpn2_mask;
@@ -426,9 +380,9 @@ static void fill_addr_error(r4k_cpu_t *cpu, ptr64_t addr, bool noisy)
 
     if (noisy) {
         cp0_badvaddr(cpu).val = addr.ptr;
-        cp0_context(cpu).val &= ~cp0_context_badvpn2_mask;    /* Undefined */
-        cp0_xcontext(cpu).val &= ~cp0_xcontext_badvpn2_mask;  /* Undefined */
-        cp0_entryhi(cpu).val &= ~cp0_entryhi_vpn2_mask;       /* Undefined */
+        cp0_context(cpu).val &= ~cp0_context_badvpn2_mask; /* Undefined */
+        cp0_xcontext(cpu).val &= ~cp0_xcontext_badvpn2_mask; /* Undefined */
+        cp0_entryhi(cpu).val &= ~cp0_entryhi_vpn2_mask; /* Undefined */
     }
 }
 
@@ -436,7 +390,7 @@ static void fill_addr_error(r4k_cpu_t *cpu, ptr64_t addr, bool noisy)
  *
  */
 static r4k_exc_t tlb_hit32(r4k_cpu_t *cpu, ptr64_t virt, ptr36_t *phys, bool wr,
-    bool noisy)
+        bool noisy)
 {
     ASSERT(cpu != NULL);
     ASSERT(phys != NULL);
@@ -474,7 +428,7 @@ static r4k_exc_t tlb_hit32(r4k_cpu_t *cpu, ptr64_t virt, ptr36_t *phys, bool wr,
  *
  */
 static r4k_exc_t tlb_hit64(r4k_cpu_t *cpu, ptr64_t virt, ptr36_t *phys, bool wr,
-    bool noisy)
+        bool noisy)
 {
     ASSERT(cpu != NULL);
     ASSERT(phys != NULL);
@@ -488,7 +442,7 @@ static r4k_exc_t tlb_hit64(r4k_cpu_t *cpu, ptr64_t virt, ptr36_t *phys, bool wr,
  *
  */
 static r4k_exc_t convert_addr_user32(r4k_cpu_t *cpu, ptr64_t virt, ptr36_t *phys,
-    bool wr, bool noisy)
+        bool wr, bool noisy)
 {
     ASSERT(cpu != NULL);
     ASSERT(phys != NULL);
@@ -505,7 +459,7 @@ static r4k_exc_t convert_addr_user32(r4k_cpu_t *cpu, ptr64_t virt, ptr36_t *phys
  *
  */
 static r4k_exc_t convert_addr_user64(r4k_cpu_t *cpu, ptr64_t virt, ptr36_t *phys,
-    bool wr, bool noisy)
+        bool wr, bool noisy)
 {
     ASSERT(cpu != NULL);
     ASSERT(phys != NULL);
@@ -522,7 +476,7 @@ static r4k_exc_t convert_addr_user64(r4k_cpu_t *cpu, ptr64_t virt, ptr36_t *phys
  *
  */
 static r4k_exc_t convert_addr_supervisor32(r4k_cpu_t *cpu, ptr64_t virt, ptr36_t *phys,
-    bool wr, bool noisy)
+        bool wr, bool noisy)
 {
     ASSERT(cpu != NULL);
     ASSERT(phys != NULL);
@@ -542,7 +496,7 @@ static r4k_exc_t convert_addr_supervisor32(r4k_cpu_t *cpu, ptr64_t virt, ptr36_t
  *
  */
 static r4k_exc_t convert_addr_supervisor64(r4k_cpu_t *cpu, ptr64_t virt, ptr36_t *phys,
-    bool wr, bool noisy)
+        bool wr, bool noisy)
 {
     ASSERT(cpu != NULL);
     ASSERT(phys != NULL);
@@ -565,7 +519,7 @@ static r4k_exc_t convert_addr_supervisor64(r4k_cpu_t *cpu, ptr64_t virt, ptr36_t
  *
  */
 static r4k_exc_t convert_addr_kernel32(r4k_cpu_t *cpu, ptr64_t virt, ptr36_t *phys,
-    bool wr, bool noisy)
+        bool wr, bool noisy)
 {
     ASSERT(cpu != NULL);
     ASSERT(phys != NULL);
@@ -602,7 +556,7 @@ static r4k_exc_t convert_addr_kernel32(r4k_cpu_t *cpu, ptr64_t virt, ptr36_t *ph
  *
  */
 static r4k_exc_t convert_addr_kernel64(r4k_cpu_t *cpu, ptr64_t virt, ptr36_t *phys,
-    bool wr, bool noisy)
+        bool wr, bool noisy)
 {
     ASSERT(cpu != NULL);
     ASSERT(phys != NULL);
@@ -652,7 +606,7 @@ static r4k_exc_t convert_addr_kernel64(r4k_cpu_t *cpu, ptr64_t virt, ptr36_t *ph
  *
  */
 r4k_exc_t r4k_convert_addr(r4k_cpu_t *cpu, ptr64_t virt, ptr36_t *phys, bool write,
-    bool noisy)
+        bool noisy)
 {
     ASSERT(cpu != NULL);
     ASSERT(phys != NULL);
@@ -757,7 +711,7 @@ static r4k_exc_t align_test64(r4k_cpu_t *cpu, ptr64_t addr, bool noisy)
  *
  */
 static r4k_exc_t access_mem(r4k_cpu_t *cpu, acc_mode_t mode, ptr64_t virt,
-    ptr36_t *phys, bool noisy)
+        ptr36_t *phys, bool noisy)
 {
     ASSERT(cpu != NULL);
     ASSERT(phys != NULL);
@@ -766,7 +720,7 @@ static r4k_exc_t access_mem(r4k_cpu_t *cpu, acc_mode_t mode, ptr64_t virt,
 
     /* Check for watched address */
     if (((cp0_watchlo_r(cpu)) && (mode == AM_READ))
-        || ((cp0_watchlo_w(cpu)) && (mode == AM_WRITE))) {
+            || ((cp0_watchlo_w(cpu)) && (mode == AM_WRITE))) {
 
         /* The matching is done on
            8-byte aligned addresses */
@@ -965,7 +919,7 @@ static r4k_exc_t cpu_write_mem8(r4k_cpu_t *cpu, ptr64_t addr, uint8_t value, boo
  *
  */
 static r4k_exc_t cpu_write_mem16(r4k_cpu_t *cpu, ptr64_t addr, uint16_t value,
-    bool noisy)
+        bool noisy)
 {
     ASSERT(cpu != NULL);
 
@@ -1004,7 +958,7 @@ static r4k_exc_t cpu_write_mem16(r4k_cpu_t *cpu, ptr64_t addr, uint16_t value,
  *
  */
 static r4k_exc_t cpu_write_mem32(r4k_cpu_t *cpu, ptr64_t addr, uint32_t value,
-    bool noisy)
+        bool noisy)
 {
     ASSERT(cpu != NULL);
 
@@ -1043,7 +997,7 @@ static r4k_exc_t cpu_write_mem32(r4k_cpu_t *cpu, ptr64_t addr, uint32_t value,
  *
  */
 static r4k_exc_t cpu_write_mem64(r4k_cpu_t *cpu, ptr64_t addr, uint64_t value,
-    bool noisy)
+        bool noisy)
 {
     ASSERT(cpu != NULL);
 
@@ -1101,8 +1055,7 @@ static r4k_exc_t TLBP(r4k_cpu_t *cpu)
              * necessary for proper support for multiple page
              * sizes.
              */
-            if ((cpu->tlb[i].vpn2 == (xvpn2 & cpu->tlb[i].mask)) &&
-                ((cpu->tlb[i].global) || (cpu->tlb[i].asid == xasid))) {
+            if ((cpu->tlb[i].vpn2 == (xvpn2 & cpu->tlb[i].mask)) && ((cpu->tlb[i].global) || (cpu->tlb[i].asid == xasid))) {
                 cp0_index(cpu).val = i;
                 break;
             }
@@ -1136,16 +1089,16 @@ static r4k_exc_t TLBR(r4k_cpu_t *cpu)
             cp0_entryhi(cpu).val = cpu->tlb[i].vpn2 | cpu->tlb[i].asid;
 
             cp0_entrylo0(cpu).val = (cpu->tlb[i].pg[0].pfn >> 6)
-                | (cpu->tlb[i].pg[0].cohh << 3)
-                | ((cpu->tlb[i].pg[0].dirty ? 1 : 0) << 2)
-                | ((cpu->tlb[i].pg[0].valid ? 1 : 0) << 1)
-                | (cpu->tlb[i].global ? 1 : 0);
+                    | (cpu->tlb[i].pg[0].cohh << 3)
+                    | ((cpu->tlb[i].pg[0].dirty ? 1 : 0) << 2)
+                    | ((cpu->tlb[i].pg[0].valid ? 1 : 0) << 1)
+                    | (cpu->tlb[i].global ? 1 : 0);
 
             cp0_entrylo1(cpu).val = (cpu->tlb[i].pg[1].pfn >> 6)
-                | (cpu->tlb[i].pg[1].cohh << 3)
-                | ((cpu->tlb[i].pg[1].dirty ? 1 : 0) << 2)
-                | ((cpu->tlb[i].pg[1].valid ? 1 : 0) << 1)
-                | (cpu->tlb[i].global ? 1 : 0);
+                    | (cpu->tlb[i].pg[1].cohh << 3)
+                    | ((cpu->tlb[i].pg[1].dirty ? 1 : 0) << 2)
+                    | ((cpu->tlb[i].pg[1].valid ? 1 : 0) << 1)
+                    | (cpu->tlb[i].global ? 1 : 0);
         }
 
         return r4k_excNone;
@@ -1167,8 +1120,7 @@ static r4k_exc_t TLBW(r4k_cpu_t *cpu, bool random)
 
     if (CP0_USABLE(cpu)) {
 
-        unsigned int index =
-            random ? cp0_random_random(cpu) : cp0_index_index(cpu);
+        unsigned int index = random ? cp0_random_random(cpu) : cp0_index_index(cpu);
 
         if (index > 47) {
             /*
@@ -1208,10 +1160,9 @@ static r4k_exc_t TLBW(r4k_cpu_t *cpu, bool random)
  */
 
 static void disassemble_offset(ptr64_t addr, r4k_instr_t instr,
-    string_t *mnemonics, string_t *comments)
+        string_t *mnemonics, string_t *comments)
 {
-    int64_t offset =
-        (((int64_t) sign_extend_16_64(instr.i.imm)) << TARGET_SHIFT);
+    int64_t offset = (((int64_t) sign_extend_16_64(instr.i.imm)) << TARGET_SHIFT);
 
     ptr64_t target;
     target.ptr = addr.ptr + offset + 4;
@@ -1227,151 +1178,150 @@ static void disassemble_offset(ptr64_t addr, r4k_instr_t instr,
 }
 
 static void disassemble_rs_offset(ptr64_t addr, r4k_instr_t instr,
-    string_t *mnemonics, string_t *comments)
+        string_t *mnemonics, string_t *comments)
 {
     string_printf(mnemonics, " %s,", r4k_regname[instr.i.rs]);
     disassemble_offset(addr, instr, mnemonics, comments);
 }
 
 static void disassemble_rs_rt_offset(ptr64_t addr, r4k_instr_t instr,
-    string_t *mnemonics, string_t *comments)
+        string_t *mnemonics, string_t *comments)
 {
     string_printf(mnemonics, " %s, %s,",
-        r4k_regname[instr.i.rs], r4k_regname[instr.i.rt]);
+            r4k_regname[instr.i.rs], r4k_regname[instr.i.rt]);
     disassemble_offset(addr, instr, mnemonics, comments);
 }
 
 static void disassemble_target(ptr64_t addr, r4k_instr_t instr,
-    string_t *mnemonics, string_t *comments)
+        string_t *mnemonics, string_t *comments)
 {
     ptr64_t target;
-    target.ptr =
-        ((addr.ptr + 4) & TARGET_COMB) | (instr.j.target << TARGET_SHIFT);
+    target.ptr = ((addr.ptr + 4) & TARGET_COMB) | (instr.j.target << TARGET_SHIFT);
 
     string_printf(mnemonics, " %#" PRIx64, target.ptr);
 }
 
 static void disassemble_rt_offset_base(r4k_instr_t instr, string_t *mnemonics,
-    string_t *comments)
+        string_t *comments)
 {
     int64_t offset = (int64_t) sign_extend_16_64(instr.i.imm);
 
     string_printf(mnemonics, " %s, %" PRId64 "(%s)",
-        r4k_regname[instr.i.rt], offset, r4k_regname[instr.i.rs]);
+            r4k_regname[instr.i.rt], offset, r4k_regname[instr.i.rs]);
 }
 
 static void disassemble_rs_rt(r4k_instr_t instr, string_t *mnemonics,
-    string_t *comments)
+        string_t *comments)
 {
     string_printf(mnemonics, " %s, %s,",
-        r4k_regname[instr.i.rs], r4k_regname[instr.i.rt]);
+            r4k_regname[instr.i.rs], r4k_regname[instr.i.rt]);
 }
 
 static void disassemble_rd_rs_rt(r4k_instr_t instr, string_t *mnemonics,
-    string_t *comments)
+        string_t *comments)
 {
     string_printf(mnemonics, " %s, %s, %s",
-        r4k_regname[instr.r.rd], r4k_regname[instr.r.rs], r4k_regname[instr.r.rt]);
+            r4k_regname[instr.r.rd], r4k_regname[instr.r.rs], r4k_regname[instr.r.rt]);
 }
 
 static void disassemble_rt_rs(r4k_instr_t instr, string_t *mnemonics,
-    string_t *comments)
+        string_t *comments)
 {
     string_printf(mnemonics, " %s, %s",
-        r4k_regname[instr.r.rt], r4k_regname[instr.r.rs]);
+            r4k_regname[instr.r.rt], r4k_regname[instr.r.rs]);
 }
 
 static void disassemble_rt_cp0(r4k_instr_t instr, string_t *mnemonics,
-    string_t *comments)
+        string_t *comments)
 {
     string_printf(mnemonics, " %s, %s",
-        r4k_regname[instr.r.rt], r4k_cp0name[instr.r.rd]);
+            r4k_regname[instr.r.rt], r4k_cp0name[instr.r.rd]);
 }
 
 static void disassemble_rt_fs(r4k_instr_t instr, string_t *mnemonics,
-    string_t *comments)
+        string_t *comments)
 {
     string_printf(mnemonics, " %s, %s",
-        r4k_regname[instr.r.rt], r4k_cp1name[instr.r.rs]);
+            r4k_regname[instr.r.rt], r4k_cp1name[instr.r.rs]);
 }
 
 static void disassemble_rt_cp2(r4k_instr_t instr, string_t *mnemonics,
-    string_t *comments)
+        string_t *comments)
 {
     string_printf(mnemonics, " %s, %s",
-        r4k_regname[instr.r.rt], r4k_cp2name[instr.r.rs]);
+            r4k_regname[instr.r.rt], r4k_cp2name[instr.r.rs]);
 }
 
 static void disassemble_rt_rs_imm(r4k_instr_t instr, string_t *mnemonics,
-    string_t *comments)
+        string_t *comments)
 {
     int32_t imm = (int32_t) sign_extend_16_32(instr.i.imm);
 
     string_printf(mnemonics, " %s, %s, %" PRId32,
-        r4k_regname[instr.i.rt], r4k_regname[instr.i.rs], imm);
+            r4k_regname[instr.i.rt], r4k_regname[instr.i.rs], imm);
 }
 
 static void disassemble_rt_rs_uimm(r4k_instr_t instr, string_t *mnemonics,
-    string_t *comments)
+        string_t *comments)
 {
     string_printf(mnemonics, " %s, %s, %#x",
-        r4k_regname[instr.i.rt], r4k_regname[instr.i.rs], instr.i.imm);
+            r4k_regname[instr.i.rt], r4k_regname[instr.i.rs], instr.i.imm);
 }
 
 static void disassemble_rt_imm(r4k_instr_t instr, string_t *mnemonics,
-    string_t *comments)
+        string_t *comments)
 {
     int32_t imm = (int32_t) sign_extend_16_32(instr.i.imm);
 
     string_printf(mnemonics, " %s, %" PRId32,
-        r4k_regname[instr.i.rt], imm);
+            r4k_regname[instr.i.rt], imm);
 }
 
 static void disassemble_rt_uimm(r4k_instr_t instr, string_t *mnemonics,
-    string_t *comments)
+        string_t *comments)
 {
     string_printf(mnemonics, " %s, %#x",
-        r4k_regname[instr.i.rt], instr.i.imm);
+            r4k_regname[instr.i.rt], instr.i.imm);
 }
 
 static void disassemble_rs_imm(r4k_instr_t instr, string_t *mnemonics,
-    string_t *comments)
+        string_t *comments)
 {
     int32_t imm = (int32_t) sign_extend_16_32(instr.i.imm);
 
     string_printf(mnemonics, " %s, %" PRId32,
-        r4k_regname[instr.i.rs], imm);
+            r4k_regname[instr.i.rs], imm);
 }
 
 static void disassemble_rd_rt_sa(r4k_instr_t instr, string_t *mnemonics,
-    string_t *comments)
+        string_t *comments)
 {
     string_printf(mnemonics, " %s, %s, %u",
-        r4k_regname[instr.r.rd], r4k_regname[instr.r.rt], instr.r.sa);
+            r4k_regname[instr.r.rd], r4k_regname[instr.r.rt], instr.r.sa);
 }
 
 static void disassemble_rd_rt_rs(r4k_instr_t instr, string_t *mnemonics,
-    string_t *comments)
+        string_t *comments)
 {
     string_printf(mnemonics, " %s, %s, %s",
-        r4k_regname[instr.r.rd], r4k_regname[instr.r.rt], r4k_regname[instr.r.rs]);
+            r4k_regname[instr.r.rd], r4k_regname[instr.r.rt], r4k_regname[instr.r.rs]);
 }
 
 static void disassemble_rd_rs(r4k_instr_t instr, string_t *mnemonics,
-    string_t *comments)
+        string_t *comments)
 {
     string_printf(mnemonics, " %s, %s",
-        r4k_regname[instr.r.rd], r4k_regname[instr.r.rs]);
+            r4k_regname[instr.r.rd], r4k_regname[instr.r.rs]);
 }
 
 static void disassemble_rs(r4k_instr_t instr, string_t *mnemonics,
-    string_t *comments)
+        string_t *comments)
 {
     string_printf(mnemonics, " %s", r4k_regname[instr.r.rs]);
 }
 
 static void disassemble_rd(r4k_instr_t instr, string_t *mnemonics,
-    string_t *comments)
+        string_t *comments)
 {
     string_printf(mnemonics, " %s", r4k_regname[instr.r.rd]);
 }
@@ -1547,8 +1497,8 @@ static void disassemble_rd(r4k_instr_t instr, string_t *mnemonics,
 
 static r4k_instr_fnc_t opcode_map[64] = {
     /* 0 */
-    instr__reserved,  /* r4k_opcSPECIAL */
-    instr__reserved,  /* r4k_opcREGIMM */
+    instr__reserved, /* r4k_opcSPECIAL */
+    instr__reserved, /* r4k_opcREGIMM */
     instr_j,
     instr_jal,
     instr_beq,
@@ -1567,10 +1517,10 @@ static r4k_instr_fnc_t opcode_map[64] = {
     instr_lui,
 
     /* 16 */
-    instr__reserved,  /* r4k_opcCOP0 */
-    instr__reserved,  /* r4k_opcCOP1 */
-    instr__reserved,  /* r4k_opcCOP2 */
-    instr__reserved,  /* unused */
+    instr__reserved, /* r4k_opcCOP0 */
+    instr__reserved, /* r4k_opcCOP1 */
+    instr__reserved, /* r4k_opcCOP2 */
+    instr__reserved, /* unused */
     instr_beql,
     instr_bnel,
     instr_blezl,
@@ -1581,10 +1531,10 @@ static r4k_instr_fnc_t opcode_map[64] = {
     instr_daddiu,
     instr_ldl,
     instr_ldr,
-    instr__reserved,  /* unused */
-    instr__reserved,  /* unused */
-    instr__reserved,  /* unused */
-    instr__reserved,  /* unused */
+    instr__reserved, /* unused */
+    instr__reserved, /* unused */
+    instr__reserved, /* unused */
+    instr__reserved, /* unused */
 
     /* 32 */
     instr_lb,
@@ -1610,7 +1560,7 @@ static r4k_instr_fnc_t opcode_map[64] = {
     instr_ll,
     instr_lwc1,
     instr_lwc2,
-    instr__reserved,  /* unused */
+    instr__reserved, /* unused */
     instr_lld,
     instr_ldc1,
     instr_ldc2,
@@ -1619,7 +1569,7 @@ static r4k_instr_fnc_t opcode_map[64] = {
     instr_sc,
     instr_swc1,
     instr_swc2,
-    instr__reserved,  /* unused */
+    instr__reserved, /* unused */
     instr_scd,
     instr_sdc1,
     instr_sdc2,
@@ -1628,21 +1578,21 @@ static r4k_instr_fnc_t opcode_map[64] = {
 
 static r4k_instr_fnc_t func_map[64] = {
     instr_sll,
-    instr__reserved,  /* unused */
+    instr__reserved, /* unused */
     instr_srl,
     instr_sra,
     instr_sllv,
-    instr__reserved,  /* unused */
+    instr__reserved, /* unused */
     instr_srlv,
     instr_srav,
 
     instr_jr,
     instr_jalr,
-    instr__reserved,  /* unused */
-    instr__reserved,  /* unused */
+    instr__reserved, /* unused */
+    instr__reserved, /* unused */
     instr_syscall,
     instr_break,
-    instr__xcrd,  /* unused */
+    instr__xcrd, /* unused */
     instr_sync,
 
     instr_mfhi,
@@ -1650,7 +1600,7 @@ static r4k_instr_fnc_t func_map[64] = {
     instr_mflo,
     instr_mtlo,
     instr_dsllv,
-    instr__reserved,  /* unused */
+    instr__reserved, /* unused */
     instr_dsrlv,
     instr_dsrav,
 
@@ -1705,151 +1655,151 @@ static r4k_instr_fnc_t rt_map[32] = {
     instr_bgez,
     instr_bltzl,
     instr_bgezl,
-    instr__reserved,  /* unused */
-    instr__reserved,  /* unused */
-    instr__reserved,  /* unused */
-    instr__reserved,  /* unused */
+    instr__reserved, /* unused */
+    instr__reserved, /* unused */
+    instr__reserved, /* unused */
+    instr__reserved, /* unused */
 
     instr_tgei,
     instr_tgeiu,
     instr_tlti,
     instr_tltiu,
     instr_teqi,
-    instr__reserved,  /* unused */
+    instr__reserved, /* unused */
     instr_tnei,
-    instr__reserved,  /* unused */
+    instr__reserved, /* unused */
 
     instr_bltzal,
     instr_bgezal,
     instr_bltzall,
     instr_bgezall,
-    instr__reserved,  /* unused */
-    instr__reserved,  /* unused */
-    instr__reserved,  /* unused */
-    instr__reserved,  /* unused */
+    instr__reserved, /* unused */
+    instr__reserved, /* unused */
+    instr__reserved, /* unused */
+    instr__reserved, /* unused */
 
-    instr__reserved,  /* unused */
-    instr__reserved,  /* unused */
-    instr__reserved,  /* unused */
-    instr__reserved,  /* unused */
-    instr__reserved,  /* unused */
-    instr__reserved,  /* unused */
-    instr__reserved,  /* unused */
-    instr__reserved   /* unused */
+    instr__reserved, /* unused */
+    instr__reserved, /* unused */
+    instr__reserved, /* unused */
+    instr__reserved, /* unused */
+    instr__reserved, /* unused */
+    instr__reserved, /* unused */
+    instr__reserved, /* unused */
+    instr__reserved /* unused */
 };
 
 static r4k_instr_fnc_t cop0_rs_map[32] = {
     instr_mfc0,
     instr_dmfc0,
-    instr__reserved,  /* unused */
-    instr__reserved,  /* unused */
+    instr__reserved, /* unused */
+    instr__reserved, /* unused */
     instr_mtc0,
     instr_dmtc0,
-    instr__reserved,  /* unused */
-    instr__reserved,  /* unused */
+    instr__reserved, /* unused */
+    instr__reserved, /* unused */
 
-    instr__reserved,  /* cop0rsBC */
-    instr__reserved,  /* unused */
-    instr__reserved,  /* unused */
-    instr__reserved,  /* unused */
-    instr__reserved,  /* unused */
-    instr__reserved,  /* unused */
-    instr__reserved,  /* unused */
-    instr__reserved,  /* unused */
+    instr__reserved, /* cop0rsBC */
+    instr__reserved, /* unused */
+    instr__reserved, /* unused */
+    instr__reserved, /* unused */
+    instr__reserved, /* unused */
+    instr__reserved, /* unused */
+    instr__reserved, /* unused */
+    instr__reserved, /* unused */
 
-    instr__reserved,  /* cop0rsCO */
-    instr__reserved,  /* unused */
-    instr__reserved,  /* unused */
-    instr__reserved,  /* unused */
-    instr__reserved,  /* unused */
-    instr__reserved,  /* unused */
-    instr__reserved,  /* unused */
-    instr__reserved,  /* unused */
+    instr__reserved, /* cop0rsCO */
+    instr__reserved, /* unused */
+    instr__reserved, /* unused */
+    instr__reserved, /* unused */
+    instr__reserved, /* unused */
+    instr__reserved, /* unused */
+    instr__reserved, /* unused */
+    instr__reserved, /* unused */
 
-    instr__reserved,  /* unused */
-    instr__reserved,  /* unused */
-    instr__reserved,  /* unused */
-    instr__reserved,  /* unused */
-    instr__reserved,  /* unused */
-    instr__reserved,  /* unused */
-    instr__reserved,  /* unused */
-    instr__reserved   /* unused */
+    instr__reserved, /* unused */
+    instr__reserved, /* unused */
+    instr__reserved, /* unused */
+    instr__reserved, /* unused */
+    instr__reserved, /* unused */
+    instr__reserved, /* unused */
+    instr__reserved, /* unused */
+    instr__reserved /* unused */
 };
 
 static r4k_instr_fnc_t cop1_rs_map[32] = {
     instr_mfc1,
     instr_dmfc1,
     instr_cfc1,
-    instr__reserved,  /* unused */
+    instr__reserved, /* unused */
     instr_mtc1,
     instr_dmtc1,
     instr_ctc1,
-    instr__reserved,  /* unused */
+    instr__reserved, /* unused */
 
-    instr__reserved,  /* cop1rsBC */
-    instr__reserved,  /* unused */
-    instr__reserved,  /* unused */
-    instr__reserved,  /* unused */
-    instr__reserved,  /* unused */
-    instr__reserved,  /* unused */
-    instr__reserved,  /* unused */
-    instr__reserved,  /* unused */
+    instr__reserved, /* cop1rsBC */
+    instr__reserved, /* unused */
+    instr__reserved, /* unused */
+    instr__reserved, /* unused */
+    instr__reserved, /* unused */
+    instr__reserved, /* unused */
+    instr__reserved, /* unused */
+    instr__reserved, /* unused */
 
-    instr__reserved,  /* unused */
-    instr__reserved,  /* unused */
-    instr__reserved,  /* unused */
-    instr__reserved,  /* unused */
-    instr__reserved,  /* unused */
-    instr__reserved,  /* unused */
-    instr__reserved,  /* unused */
-    instr__reserved,  /* unused */
+    instr__reserved, /* unused */
+    instr__reserved, /* unused */
+    instr__reserved, /* unused */
+    instr__reserved, /* unused */
+    instr__reserved, /* unused */
+    instr__reserved, /* unused */
+    instr__reserved, /* unused */
+    instr__reserved, /* unused */
 
-    instr__reserved,  /* unused */
-    instr__reserved,  /* unused */
-    instr__reserved,  /* unused */
-    instr__reserved,  /* unused */
-    instr__reserved,  /* unused */
-    instr__reserved,  /* unused */
-    instr__reserved,  /* unused */
-    instr__reserved   /* unused */
+    instr__reserved, /* unused */
+    instr__reserved, /* unused */
+    instr__reserved, /* unused */
+    instr__reserved, /* unused */
+    instr__reserved, /* unused */
+    instr__reserved, /* unused */
+    instr__reserved, /* unused */
+    instr__reserved /* unused */
 };
 
 static r4k_instr_fnc_t cop2_rs_map[32] = {
     instr_mfc2,
-    instr__reserved,  /* unused */
+    instr__reserved, /* unused */
     instr_cfc2,
-    instr__reserved,  /* unused */
-    instr__reserved,  /* unused */
-    instr__reserved,  /* unused */
+    instr__reserved, /* unused */
+    instr__reserved, /* unused */
+    instr__reserved, /* unused */
     instr_ctc2,
-    instr__reserved,  /* unused */
+    instr__reserved, /* unused */
 
-    instr__reserved,  /* cop2rsBC */
-    instr__reserved,  /* unused */
-    instr__reserved,  /* unused */
-    instr__reserved,  /* unused */
-    instr__reserved,  /* unused */
-    instr__reserved,  /* unused */
-    instr__reserved,  /* unused */
-    instr__reserved,  /* unused */
+    instr__reserved, /* cop2rsBC */
+    instr__reserved, /* unused */
+    instr__reserved, /* unused */
+    instr__reserved, /* unused */
+    instr__reserved, /* unused */
+    instr__reserved, /* unused */
+    instr__reserved, /* unused */
+    instr__reserved, /* unused */
 
-    instr__reserved,  /* unused */
-    instr__reserved,  /* unused */
-    instr__reserved,  /* unused */
-    instr__reserved,  /* unused */
-    instr__reserved,  /* unused */
-    instr__reserved,  /* unused */
-    instr__reserved,  /* unused */
-    instr__reserved,  /* unused */
+    instr__reserved, /* unused */
+    instr__reserved, /* unused */
+    instr__reserved, /* unused */
+    instr__reserved, /* unused */
+    instr__reserved, /* unused */
+    instr__reserved, /* unused */
+    instr__reserved, /* unused */
+    instr__reserved, /* unused */
 
-    instr__reserved,  /* unused */
-    instr__reserved,  /* unused */
-    instr__reserved,  /* unused */
-    instr__reserved,  /* unused */
-    instr__reserved,  /* unused */
-    instr__reserved,  /* unused */
-    instr__reserved,  /* unused */
-    instr__reserved   /* unused */
+    instr__reserved, /* unused */
+    instr__reserved, /* unused */
+    instr__reserved, /* unused */
+    instr__reserved, /* unused */
+    instr__reserved, /* unused */
+    instr__reserved, /* unused */
+    instr__reserved, /* unused */
+    instr__reserved /* unused */
 };
 
 static r4k_instr_fnc_t cop0_rt_map[32] = {
@@ -1857,37 +1807,37 @@ static r4k_instr_fnc_t cop0_rt_map[32] = {
     instr_bc0t,
     instr_bc0fl,
     instr_bc0tl,
-    instr__reserved,  /* unused */
-    instr__reserved,  /* unused */
-    instr__reserved,  /* unused */
-    instr__reserved,  /* unused */
+    instr__reserved, /* unused */
+    instr__reserved, /* unused */
+    instr__reserved, /* unused */
+    instr__reserved, /* unused */
 
-    instr__reserved,  /* unused */
-    instr__reserved,  /* unused */
-    instr__reserved,  /* unused */
-    instr__reserved,  /* unused */
-    instr__reserved,  /* unused */
-    instr__reserved,  /* unused */
-    instr__reserved,  /* unused */
-    instr__reserved,  /* unused */
+    instr__reserved, /* unused */
+    instr__reserved, /* unused */
+    instr__reserved, /* unused */
+    instr__reserved, /* unused */
+    instr__reserved, /* unused */
+    instr__reserved, /* unused */
+    instr__reserved, /* unused */
+    instr__reserved, /* unused */
 
-    instr__reserved,  /* unused */
-    instr__reserved,  /* unused */
-    instr__reserved,  /* unused */
-    instr__reserved,  /* unused */
-    instr__reserved,  /* unused */
-    instr__reserved,  /* unused */
-    instr__reserved,  /* unused */
-    instr__reserved,  /* unused */
+    instr__reserved, /* unused */
+    instr__reserved, /* unused */
+    instr__reserved, /* unused */
+    instr__reserved, /* unused */
+    instr__reserved, /* unused */
+    instr__reserved, /* unused */
+    instr__reserved, /* unused */
+    instr__reserved, /* unused */
 
-    instr__reserved,  /* unused */
-    instr__reserved,  /* unused */
-    instr__reserved,  /* unused */
-    instr__reserved,  /* unused */
-    instr__reserved,  /* unused */
-    instr__reserved,  /* unused */
-    instr__reserved,  /* unused */
-    instr__reserved   /* unused */
+    instr__reserved, /* unused */
+    instr__reserved, /* unused */
+    instr__reserved, /* unused */
+    instr__reserved, /* unused */
+    instr__reserved, /* unused */
+    instr__reserved, /* unused */
+    instr__reserved, /* unused */
+    instr__reserved /* unused */
 };
 
 static r4k_instr_fnc_t cop1_rt_map[32] = {
@@ -1895,37 +1845,37 @@ static r4k_instr_fnc_t cop1_rt_map[32] = {
     instr_bc1t,
     instr_bc1fl,
     instr_bc1tl,
-    instr__reserved,  /* unused */
-    instr__reserved,  /* unused */
-    instr__reserved,  /* unused */
-    instr__reserved,  /* unused */
+    instr__reserved, /* unused */
+    instr__reserved, /* unused */
+    instr__reserved, /* unused */
+    instr__reserved, /* unused */
 
-    instr__reserved,  /* unused */
-    instr__reserved,  /* unused */
-    instr__reserved,  /* unused */
-    instr__reserved,  /* unused */
-    instr__reserved,  /* unused */
-    instr__reserved,  /* unused */
-    instr__reserved,  /* unused */
-    instr__reserved,  /* unused */
+    instr__reserved, /* unused */
+    instr__reserved, /* unused */
+    instr__reserved, /* unused */
+    instr__reserved, /* unused */
+    instr__reserved, /* unused */
+    instr__reserved, /* unused */
+    instr__reserved, /* unused */
+    instr__reserved, /* unused */
 
-    instr__reserved,  /* unused */
-    instr__reserved,  /* unused */
-    instr__reserved,  /* unused */
-    instr__reserved,  /* unused */
-    instr__reserved,  /* unused */
-    instr__reserved,  /* unused */
-    instr__reserved,  /* unused */
-    instr__reserved,  /* unused */
+    instr__reserved, /* unused */
+    instr__reserved, /* unused */
+    instr__reserved, /* unused */
+    instr__reserved, /* unused */
+    instr__reserved, /* unused */
+    instr__reserved, /* unused */
+    instr__reserved, /* unused */
+    instr__reserved, /* unused */
 
-    instr__reserved,  /* unused */
-    instr__reserved,  /* unused */
-    instr__reserved,  /* unused */
-    instr__reserved,  /* unused */
-    instr__reserved,  /* unused */
-    instr__reserved,  /* unused */
-    instr__reserved,  /* unused */
-    instr__reserved   /* unused */
+    instr__reserved, /* unused */
+    instr__reserved, /* unused */
+    instr__reserved, /* unused */
+    instr__reserved, /* unused */
+    instr__reserved, /* unused */
+    instr__reserved, /* unused */
+    instr__reserved, /* unused */
+    instr__reserved /* unused */
 };
 
 static r4k_instr_fnc_t cop2_rt_map[32] = {
@@ -1933,117 +1883,117 @@ static r4k_instr_fnc_t cop2_rt_map[32] = {
     instr_bc2t,
     instr_bc2fl,
     instr_bc2tl,
-    instr__reserved,  /* unused */
-    instr__reserved,  /* unused */
-    instr__reserved,  /* unused */
-    instr__reserved,  /* unused */
+    instr__reserved, /* unused */
+    instr__reserved, /* unused */
+    instr__reserved, /* unused */
+    instr__reserved, /* unused */
 
-    instr__reserved,  /* unused */
-    instr__reserved,  /* unused */
-    instr__reserved,  /* unused */
-    instr__reserved,  /* unused */
-    instr__reserved,  /* unused */
-    instr__reserved,  /* unused */
-    instr__reserved,  /* unused */
-    instr__reserved,  /* unused */
+    instr__reserved, /* unused */
+    instr__reserved, /* unused */
+    instr__reserved, /* unused */
+    instr__reserved, /* unused */
+    instr__reserved, /* unused */
+    instr__reserved, /* unused */
+    instr__reserved, /* unused */
+    instr__reserved, /* unused */
 
-    instr__reserved,  /* unused */
-    instr__reserved,  /* unused */
-    instr__reserved,  /* unused */
-    instr__reserved,  /* unused */
-    instr__reserved,  /* unused */
-    instr__reserved,  /* unused */
-    instr__reserved,  /* unused */
-    instr__reserved,  /* unused */
+    instr__reserved, /* unused */
+    instr__reserved, /* unused */
+    instr__reserved, /* unused */
+    instr__reserved, /* unused */
+    instr__reserved, /* unused */
+    instr__reserved, /* unused */
+    instr__reserved, /* unused */
+    instr__reserved, /* unused */
 
-    instr__reserved,  /* unused */
-    instr__reserved,  /* unused */
-    instr__reserved,  /* unused */
-    instr__reserved,  /* unused */
-    instr__reserved,  /* unused */
-    instr__reserved,  /* unused */
-    instr__reserved,  /* unused */
-    instr__reserved   /* unused */
+    instr__reserved, /* unused */
+    instr__reserved, /* unused */
+    instr__reserved, /* unused */
+    instr__reserved, /* unused */
+    instr__reserved, /* unused */
+    instr__reserved, /* unused */
+    instr__reserved, /* unused */
+    instr__reserved /* unused */
 };
 
 static r4k_instr_fnc_t cop0_func_map[64] = {
-    instr__warning,   /* unused */
+    instr__warning, /* unused */
     instr_tlbr,
     instr_tlbwi,
-    instr__warning,   /* unused */
-    instr__warning,   /* unused */
-    instr__warning,   /* unused */
+    instr__warning, /* unused */
+    instr__warning, /* unused */
+    instr__warning, /* unused */
     instr_tlbwr,
-    instr__warning,   /* unused */
+    instr__warning, /* unused */
 
     instr_tlbp,
-    instr__warning,   /* unused */
-    instr__warning,   /* unused */
-    instr__warning,   /* unused */
-    instr__warning,   /* unused */
-    instr__warning,   /* unused */
-    instr__warning,   /* unused */
-    instr__warning,   /* unused */
+    instr__warning, /* unused */
+    instr__warning, /* unused */
+    instr__warning, /* unused */
+    instr__warning, /* unused */
+    instr__warning, /* unused */
+    instr__warning, /* unused */
+    instr__warning, /* unused */
 
-    instr__reserved,  /* unused */
-    instr__warning,   /* unused */
-    instr__warning,   /* unused */
-    instr__warning,   /* unused */
-    instr__warning,   /* unused */
-    instr__warning,   /* unused */
-    instr__warning,   /* unused */
-    instr__warning,   /* unused */
+    instr__reserved, /* unused */
+    instr__warning, /* unused */
+    instr__warning, /* unused */
+    instr__warning, /* unused */
+    instr__warning, /* unused */
+    instr__warning, /* unused */
+    instr__warning, /* unused */
+    instr__warning, /* unused */
 
     instr_eret,
-    instr__warning,   /* unused */
-    instr__warning,   /* unused */
-    instr__warning,   /* unused */
-    instr__warning,   /* unused */
-    instr__warning,   /* unused */
-    instr__warning,   /* unused */
-    instr__warning,   /* unused */
+    instr__warning, /* unused */
+    instr__warning, /* unused */
+    instr__warning, /* unused */
+    instr__warning, /* unused */
+    instr__warning, /* unused */
+    instr__warning, /* unused */
+    instr__warning, /* unused */
 
-    instr__warning,   /* unused */
-    instr__warning,   /* unused */
-    instr__warning,   /* unused */
-    instr__warning,   /* unused */
-    instr__warning,   /* unused */
-    instr__warning,   /* unused */
-    instr__warning,   /* unused */
-    instr__warning,   /* unused */
+    instr__warning, /* unused */
+    instr__warning, /* unused */
+    instr__warning, /* unused */
+    instr__warning, /* unused */
+    instr__warning, /* unused */
+    instr__warning, /* unused */
+    instr__warning, /* unused */
+    instr__warning, /* unused */
 
-    instr__warning,   /* unused */
-    instr__warning,   /* unused */
-    instr__warning,   /* unused */
-    instr__warning,   /* unused */
-    instr__warning,   /* unused */
-    instr__warning,   /* unused */
-    instr__warning,   /* unused */
-    instr__warning,   /* unused */
+    instr__warning, /* unused */
+    instr__warning, /* unused */
+    instr__warning, /* unused */
+    instr__warning, /* unused */
+    instr__warning, /* unused */
+    instr__warning, /* unused */
+    instr__warning, /* unused */
+    instr__warning, /* unused */
 
-    instr__warning,   /* unused */
-    instr__warning,   /* unused */
-    instr__warning,   /* unused */
-    instr__warning,   /* unused */
-    instr__warning,   /* unused */
-    instr__warning,   /* unused */
-    instr__warning,   /* unused */
-    instr__warning,   /* unused */
+    instr__warning, /* unused */
+    instr__warning, /* unused */
+    instr__warning, /* unused */
+    instr__warning, /* unused */
+    instr__warning, /* unused */
+    instr__warning, /* unused */
+    instr__warning, /* unused */
+    instr__warning, /* unused */
 
-    instr__warning,   /* unused */
-    instr__warning,   /* unused */
-    instr__warning,   /* unused */
-    instr__warning,   /* unused */
-    instr__warning,   /* unused */
-    instr__warning,   /* unused */
-    instr__warning,   /* unused */
-    instr__warning    /* unused */
+    instr__warning, /* unused */
+    instr__warning, /* unused */
+    instr__warning, /* unused */
+    instr__warning, /* unused */
+    instr__warning, /* unused */
+    instr__warning, /* unused */
+    instr__warning, /* unused */
+    instr__warning /* unused */
 };
 
 static mnemonics_fnc_t mnemonics_opcode_map[64] = {
     /* 0 */
-    mnemonics__reserved,  /* r4k_opcSPECIAL */
-    mnemonics__reserved,  /* r4k_opcREGIMM */
+    mnemonics__reserved, /* r4k_opcSPECIAL */
+    mnemonics__reserved, /* r4k_opcREGIMM */
     mnemonics_j,
     mnemonics_jal,
     mnemonics_beq,
@@ -2062,10 +2012,10 @@ static mnemonics_fnc_t mnemonics_opcode_map[64] = {
     mnemonics_lui,
 
     /* 16 */
-    mnemonics__reserved,  /* r4k_opcCOP0 */
-    mnemonics__reserved,  /* r4k_opcCOP1 */
-    mnemonics__reserved,  /* r4k_opcCOP2 */
-    mnemonics__reserved,  /* unused */
+    mnemonics__reserved, /* r4k_opcCOP0 */
+    mnemonics__reserved, /* r4k_opcCOP1 */
+    mnemonics__reserved, /* r4k_opcCOP2 */
+    mnemonics__reserved, /* unused */
     mnemonics_beql,
     mnemonics_bnel,
     mnemonics_blezl,
@@ -2076,10 +2026,10 @@ static mnemonics_fnc_t mnemonics_opcode_map[64] = {
     mnemonics_daddiu,
     mnemonics_ldl,
     mnemonics_ldr,
-    mnemonics__reserved,  /* unused */
-    mnemonics__reserved,  /* unused */
-    mnemonics__reserved,  /* unused */
-    mnemonics__reserved,  /* unused */
+    mnemonics__reserved, /* unused */
+    mnemonics__reserved, /* unused */
+    mnemonics__reserved, /* unused */
+    mnemonics__reserved, /* unused */
 
     /* 32 */
     mnemonics_lb,
@@ -2105,7 +2055,7 @@ static mnemonics_fnc_t mnemonics_opcode_map[64] = {
     mnemonics_ll,
     mnemonics_lwc1,
     mnemonics_lwc2,
-    mnemonics__reserved,  /* unused */
+    mnemonics__reserved, /* unused */
     mnemonics_lld,
     mnemonics_ldc1,
     mnemonics_ldc2,
@@ -2114,7 +2064,7 @@ static mnemonics_fnc_t mnemonics_opcode_map[64] = {
     mnemonics_sc,
     mnemonics_swc1,
     mnemonics_swc2,
-    mnemonics__reserved,  /* unused */
+    mnemonics__reserved, /* unused */
     mnemonics_scd,
     mnemonics_sdc1,
     mnemonics_sdc2,
@@ -2123,18 +2073,18 @@ static mnemonics_fnc_t mnemonics_opcode_map[64] = {
 
 static mnemonics_fnc_t mnemonics_func_map[64] = {
     mnemonics_sll,
-    mnemonics__reserved,  /* unused */
+    mnemonics__reserved, /* unused */
     mnemonics_srl,
     mnemonics_sra,
     mnemonics_sllv,
-    mnemonics__reserved,  /* unused */
+    mnemonics__reserved, /* unused */
     mnemonics_srlv,
     mnemonics_srav,
 
     mnemonics_jr,
     mnemonics_jalr,
-    mnemonics__reserved,  /* unused */
-    mnemonics__reserved,  /* unused */
+    mnemonics__reserved, /* unused */
+    mnemonics__reserved, /* unused */
     mnemonics_syscall,
     mnemonics_break,
     mnemonics__xcrd,
@@ -2145,7 +2095,7 @@ static mnemonics_fnc_t mnemonics_func_map[64] = {
     mnemonics_mflo,
     mnemonics_mtlo,
     mnemonics_dsllv,
-    mnemonics__reserved,  /* unused */
+    mnemonics__reserved, /* unused */
     mnemonics_dsrlv,
     mnemonics_dsrav,
 
@@ -2200,151 +2150,151 @@ static mnemonics_fnc_t mnemonics_rt_map[32] = {
     mnemonics_bgez,
     mnemonics_bltzl,
     mnemonics_bgezl,
-    mnemonics__reserved,  /* unused */
-    mnemonics__reserved,  /* unused */
-    mnemonics__reserved,  /* unused */
-    mnemonics__reserved,  /* unused */
+    mnemonics__reserved, /* unused */
+    mnemonics__reserved, /* unused */
+    mnemonics__reserved, /* unused */
+    mnemonics__reserved, /* unused */
 
     mnemonics_tgei,
     mnemonics_tgeiu,
     mnemonics_tlti,
     mnemonics_tltiu,
     mnemonics_teqi,
-    mnemonics__reserved,  /* unused */
+    mnemonics__reserved, /* unused */
     mnemonics_tnei,
-    mnemonics__reserved,  /* unused */
+    mnemonics__reserved, /* unused */
 
     mnemonics_bltzal,
     mnemonics_bgezal,
     mnemonics_bltzall,
     mnemonics_bgezall,
-    mnemonics__reserved,  /* unused */
-    mnemonics__reserved,  /* unused */
-    mnemonics__reserved,  /* unused */
-    mnemonics__reserved,  /* unused */
+    mnemonics__reserved, /* unused */
+    mnemonics__reserved, /* unused */
+    mnemonics__reserved, /* unused */
+    mnemonics__reserved, /* unused */
 
-    mnemonics__reserved,  /* unused */
-    mnemonics__reserved,  /* unused */
-    mnemonics__reserved,  /* unused */
-    mnemonics__reserved,  /* unused */
-    mnemonics__reserved,  /* unused */
-    mnemonics__reserved,  /* unused */
-    mnemonics__reserved,  /* unused */
-    mnemonics__reserved   /* unused */
+    mnemonics__reserved, /* unused */
+    mnemonics__reserved, /* unused */
+    mnemonics__reserved, /* unused */
+    mnemonics__reserved, /* unused */
+    mnemonics__reserved, /* unused */
+    mnemonics__reserved, /* unused */
+    mnemonics__reserved, /* unused */
+    mnemonics__reserved /* unused */
 };
 
 static mnemonics_fnc_t mnemonics_cop0_rs_map[32] = {
     mnemonics_mfc0,
     mnemonics_dmfc0,
-    mnemonics__reserved,  /* unused */
-    mnemonics__reserved,  /* unused */
+    mnemonics__reserved, /* unused */
+    mnemonics__reserved, /* unused */
     mnemonics_mtc0,
     mnemonics_dmtc0,
-    mnemonics__reserved,  /* unused */
-    mnemonics__reserved,  /* unused */
+    mnemonics__reserved, /* unused */
+    mnemonics__reserved, /* unused */
 
-    mnemonics__reserved,  /* cop0rsBC */
-    mnemonics__reserved,  /* unused */
-    mnemonics__reserved,  /* unused */
-    mnemonics__reserved,  /* unused */
-    mnemonics__reserved,  /* unused */
-    mnemonics__reserved,  /* unused */
-    mnemonics__reserved,  /* unused */
-    mnemonics__reserved,  /* unused */
+    mnemonics__reserved, /* cop0rsBC */
+    mnemonics__reserved, /* unused */
+    mnemonics__reserved, /* unused */
+    mnemonics__reserved, /* unused */
+    mnemonics__reserved, /* unused */
+    mnemonics__reserved, /* unused */
+    mnemonics__reserved, /* unused */
+    mnemonics__reserved, /* unused */
 
-    mnemonics__reserved,  /* cop0rsCO */
-    mnemonics__reserved,  /* unused */
-    mnemonics__reserved,  /* unused */
-    mnemonics__reserved,  /* unused */
-    mnemonics__reserved,  /* unused */
-    mnemonics__reserved,  /* unused */
-    mnemonics__reserved,  /* unused */
-    mnemonics__reserved,  /* unused */
+    mnemonics__reserved, /* cop0rsCO */
+    mnemonics__reserved, /* unused */
+    mnemonics__reserved, /* unused */
+    mnemonics__reserved, /* unused */
+    mnemonics__reserved, /* unused */
+    mnemonics__reserved, /* unused */
+    mnemonics__reserved, /* unused */
+    mnemonics__reserved, /* unused */
 
-    mnemonics__reserved,  /* unused */
-    mnemonics__reserved,  /* unused */
-    mnemonics__reserved,  /* unused */
-    mnemonics__reserved,  /* unused */
-    mnemonics__reserved,  /* unused */
-    mnemonics__reserved,  /* unused */
-    mnemonics__reserved,  /* unused */
-    mnemonics__reserved   /* unused */
+    mnemonics__reserved, /* unused */
+    mnemonics__reserved, /* unused */
+    mnemonics__reserved, /* unused */
+    mnemonics__reserved, /* unused */
+    mnemonics__reserved, /* unused */
+    mnemonics__reserved, /* unused */
+    mnemonics__reserved, /* unused */
+    mnemonics__reserved /* unused */
 };
 
 static mnemonics_fnc_t mnemonics_cop1_rs_map[32] = {
     mnemonics_mfc1,
     mnemonics_dmfc1,
     mnemonics_cfc1,
-    mnemonics__reserved,  /* unused */
+    mnemonics__reserved, /* unused */
     mnemonics_mtc1,
     mnemonics_dmtc1,
     mnemonics_ctc1,
-    mnemonics__reserved,  /* unused */
+    mnemonics__reserved, /* unused */
 
-    mnemonics__reserved,  /* cop1rsBC */
-    mnemonics__reserved,  /* unused */
-    mnemonics__reserved,  /* unused */
-    mnemonics__reserved,  /* unused */
-    mnemonics__reserved,  /* unused */
-    mnemonics__reserved,  /* unused */
-    mnemonics__reserved,  /* unused */
-    mnemonics__reserved,  /* unused */
+    mnemonics__reserved, /* cop1rsBC */
+    mnemonics__reserved, /* unused */
+    mnemonics__reserved, /* unused */
+    mnemonics__reserved, /* unused */
+    mnemonics__reserved, /* unused */
+    mnemonics__reserved, /* unused */
+    mnemonics__reserved, /* unused */
+    mnemonics__reserved, /* unused */
 
-    mnemonics__reserved,  /* unused */
-    mnemonics__reserved,  /* unused */
-    mnemonics__reserved,  /* unused */
-    mnemonics__reserved,  /* unused */
-    mnemonics__reserved,  /* unused */
-    mnemonics__reserved,  /* unused */
-    mnemonics__reserved,  /* unused */
-    mnemonics__reserved,  /* unused */
+    mnemonics__reserved, /* unused */
+    mnemonics__reserved, /* unused */
+    mnemonics__reserved, /* unused */
+    mnemonics__reserved, /* unused */
+    mnemonics__reserved, /* unused */
+    mnemonics__reserved, /* unused */
+    mnemonics__reserved, /* unused */
+    mnemonics__reserved, /* unused */
 
-    mnemonics__reserved,  /* unused */
-    mnemonics__reserved,  /* unused */
-    mnemonics__reserved,  /* unused */
-    mnemonics__reserved,  /* unused */
-    mnemonics__reserved,  /* unused */
-    mnemonics__reserved,  /* unused */
-    mnemonics__reserved,  /* unused */
-    mnemonics__reserved   /* unused */
+    mnemonics__reserved, /* unused */
+    mnemonics__reserved, /* unused */
+    mnemonics__reserved, /* unused */
+    mnemonics__reserved, /* unused */
+    mnemonics__reserved, /* unused */
+    mnemonics__reserved, /* unused */
+    mnemonics__reserved, /* unused */
+    mnemonics__reserved /* unused */
 };
 
 static mnemonics_fnc_t mnemonics_cop2_rs_map[32] = {
     mnemonics_mfc2,
-    mnemonics__reserved,  /* unused */
+    mnemonics__reserved, /* unused */
     mnemonics_cfc2,
-    mnemonics__reserved,  /* unused */
-    mnemonics__reserved,  /* unused */
-    mnemonics__reserved,  /* unused */
+    mnemonics__reserved, /* unused */
+    mnemonics__reserved, /* unused */
+    mnemonics__reserved, /* unused */
     mnemonics_ctc2,
-    mnemonics__reserved,  /* unused */
+    mnemonics__reserved, /* unused */
 
-    mnemonics__reserved,  /* cop2rsBC */
-    mnemonics__reserved,  /* unused */
-    mnemonics__reserved,  /* unused */
-    mnemonics__reserved,  /* unused */
-    mnemonics__reserved,  /* unused */
-    mnemonics__reserved,  /* unused */
-    mnemonics__reserved,  /* unused */
-    mnemonics__reserved,  /* unused */
+    mnemonics__reserved, /* cop2rsBC */
+    mnemonics__reserved, /* unused */
+    mnemonics__reserved, /* unused */
+    mnemonics__reserved, /* unused */
+    mnemonics__reserved, /* unused */
+    mnemonics__reserved, /* unused */
+    mnemonics__reserved, /* unused */
+    mnemonics__reserved, /* unused */
 
-    mnemonics__reserved,  /* unused */
-    mnemonics__reserved,  /* unused */
-    mnemonics__reserved,  /* unused */
-    mnemonics__reserved,  /* unused */
-    mnemonics__reserved,  /* unused */
-    mnemonics__reserved,  /* unused */
-    mnemonics__reserved,  /* unused */
-    mnemonics__reserved,  /* unused */
+    mnemonics__reserved, /* unused */
+    mnemonics__reserved, /* unused */
+    mnemonics__reserved, /* unused */
+    mnemonics__reserved, /* unused */
+    mnemonics__reserved, /* unused */
+    mnemonics__reserved, /* unused */
+    mnemonics__reserved, /* unused */
+    mnemonics__reserved, /* unused */
 
-    mnemonics__reserved,  /* unused */
-    mnemonics__reserved,  /* unused */
-    mnemonics__reserved,  /* unused */
-    mnemonics__reserved,  /* unused */
-    mnemonics__reserved,  /* unused */
-    mnemonics__reserved,  /* unused */
-    mnemonics__reserved,  /* unused */
-    mnemonics__reserved   /* unused */
+    mnemonics__reserved, /* unused */
+    mnemonics__reserved, /* unused */
+    mnemonics__reserved, /* unused */
+    mnemonics__reserved, /* unused */
+    mnemonics__reserved, /* unused */
+    mnemonics__reserved, /* unused */
+    mnemonics__reserved, /* unused */
+    mnemonics__reserved /* unused */
 };
 
 static mnemonics_fnc_t mnemonics_cop0_rt_map[32] = {
@@ -2352,37 +2302,37 @@ static mnemonics_fnc_t mnemonics_cop0_rt_map[32] = {
     mnemonics_bc0t,
     mnemonics_bc0fl,
     mnemonics_bc0tl,
-    mnemonics__reserved,  /* unused */
-    mnemonics__reserved,  /* unused */
-    mnemonics__reserved,  /* unused */
-    mnemonics__reserved,  /* unused */
+    mnemonics__reserved, /* unused */
+    mnemonics__reserved, /* unused */
+    mnemonics__reserved, /* unused */
+    mnemonics__reserved, /* unused */
 
-    mnemonics__reserved,  /* unused */
-    mnemonics__reserved,  /* unused */
-    mnemonics__reserved,  /* unused */
-    mnemonics__reserved,  /* unused */
-    mnemonics__reserved,  /* unused */
-    mnemonics__reserved,  /* unused */
-    mnemonics__reserved,  /* unused */
-    mnemonics__reserved,  /* unused */
+    mnemonics__reserved, /* unused */
+    mnemonics__reserved, /* unused */
+    mnemonics__reserved, /* unused */
+    mnemonics__reserved, /* unused */
+    mnemonics__reserved, /* unused */
+    mnemonics__reserved, /* unused */
+    mnemonics__reserved, /* unused */
+    mnemonics__reserved, /* unused */
 
-    mnemonics__reserved,  /* unused */
-    mnemonics__reserved,  /* unused */
-    mnemonics__reserved,  /* unused */
-    mnemonics__reserved,  /* unused */
-    mnemonics__reserved,  /* unused */
-    mnemonics__reserved,  /* unused */
-    mnemonics__reserved,  /* unused */
-    mnemonics__reserved,  /* unused */
+    mnemonics__reserved, /* unused */
+    mnemonics__reserved, /* unused */
+    mnemonics__reserved, /* unused */
+    mnemonics__reserved, /* unused */
+    mnemonics__reserved, /* unused */
+    mnemonics__reserved, /* unused */
+    mnemonics__reserved, /* unused */
+    mnemonics__reserved, /* unused */
 
-    mnemonics__reserved,  /* unused */
-    mnemonics__reserved,  /* unused */
-    mnemonics__reserved,  /* unused */
-    mnemonics__reserved,  /* unused */
-    mnemonics__reserved,  /* unused */
-    mnemonics__reserved,  /* unused */
-    mnemonics__reserved,  /* unused */
-    mnemonics__reserved   /* unused */
+    mnemonics__reserved, /* unused */
+    mnemonics__reserved, /* unused */
+    mnemonics__reserved, /* unused */
+    mnemonics__reserved, /* unused */
+    mnemonics__reserved, /* unused */
+    mnemonics__reserved, /* unused */
+    mnemonics__reserved, /* unused */
+    mnemonics__reserved /* unused */
 };
 
 static mnemonics_fnc_t mnemonics_cop1_rt_map[32] = {
@@ -2390,37 +2340,37 @@ static mnemonics_fnc_t mnemonics_cop1_rt_map[32] = {
     mnemonics_bc1t,
     mnemonics_bc1fl,
     mnemonics_bc1tl,
-    mnemonics__reserved,  /* unused */
-    mnemonics__reserved,  /* unused */
-    mnemonics__reserved,  /* unused */
-    mnemonics__reserved,  /* unused */
+    mnemonics__reserved, /* unused */
+    mnemonics__reserved, /* unused */
+    mnemonics__reserved, /* unused */
+    mnemonics__reserved, /* unused */
 
-    mnemonics__reserved,  /* unused */
-    mnemonics__reserved,  /* unused */
-    mnemonics__reserved,  /* unused */
-    mnemonics__reserved,  /* unused */
-    mnemonics__reserved,  /* unused */
-    mnemonics__reserved,  /* unused */
-    mnemonics__reserved,  /* unused */
-    mnemonics__reserved,  /* unused */
+    mnemonics__reserved, /* unused */
+    mnemonics__reserved, /* unused */
+    mnemonics__reserved, /* unused */
+    mnemonics__reserved, /* unused */
+    mnemonics__reserved, /* unused */
+    mnemonics__reserved, /* unused */
+    mnemonics__reserved, /* unused */
+    mnemonics__reserved, /* unused */
 
-    mnemonics__reserved,  /* unused */
-    mnemonics__reserved,  /* unused */
-    mnemonics__reserved,  /* unused */
-    mnemonics__reserved,  /* unused */
-    mnemonics__reserved,  /* unused */
-    mnemonics__reserved,  /* unused */
-    mnemonics__reserved,  /* unused */
-    mnemonics__reserved,  /* unused */
+    mnemonics__reserved, /* unused */
+    mnemonics__reserved, /* unused */
+    mnemonics__reserved, /* unused */
+    mnemonics__reserved, /* unused */
+    mnemonics__reserved, /* unused */
+    mnemonics__reserved, /* unused */
+    mnemonics__reserved, /* unused */
+    mnemonics__reserved, /* unused */
 
-    mnemonics__reserved,  /* unused */
-    mnemonics__reserved,  /* unused */
-    mnemonics__reserved,  /* unused */
-    mnemonics__reserved,  /* unused */
-    mnemonics__reserved,  /* unused */
-    mnemonics__reserved,  /* unused */
-    mnemonics__reserved,  /* unused */
-    mnemonics__reserved   /* unused */
+    mnemonics__reserved, /* unused */
+    mnemonics__reserved, /* unused */
+    mnemonics__reserved, /* unused */
+    mnemonics__reserved, /* unused */
+    mnemonics__reserved, /* unused */
+    mnemonics__reserved, /* unused */
+    mnemonics__reserved, /* unused */
+    mnemonics__reserved /* unused */
 };
 
 static mnemonics_fnc_t mnemonics_cop2_rt_map[32] = {
@@ -2428,111 +2378,111 @@ static mnemonics_fnc_t mnemonics_cop2_rt_map[32] = {
     mnemonics_bc2t,
     mnemonics_bc2fl,
     mnemonics_bc2tl,
-    mnemonics__reserved,  /* unused */
-    mnemonics__reserved,  /* unused */
-    mnemonics__reserved,  /* unused */
-    mnemonics__reserved,  /* unused */
+    mnemonics__reserved, /* unused */
+    mnemonics__reserved, /* unused */
+    mnemonics__reserved, /* unused */
+    mnemonics__reserved, /* unused */
 
-    mnemonics__reserved,  /* unused */
-    mnemonics__reserved,  /* unused */
-    mnemonics__reserved,  /* unused */
-    mnemonics__reserved,  /* unused */
-    mnemonics__reserved,  /* unused */
-    mnemonics__reserved,  /* unused */
-    mnemonics__reserved,  /* unused */
-    mnemonics__reserved,  /* unused */
+    mnemonics__reserved, /* unused */
+    mnemonics__reserved, /* unused */
+    mnemonics__reserved, /* unused */
+    mnemonics__reserved, /* unused */
+    mnemonics__reserved, /* unused */
+    mnemonics__reserved, /* unused */
+    mnemonics__reserved, /* unused */
+    mnemonics__reserved, /* unused */
 
-    mnemonics__reserved,  /* unused */
-    mnemonics__reserved,  /* unused */
-    mnemonics__reserved,  /* unused */
-    mnemonics__reserved,  /* unused */
-    mnemonics__reserved,  /* unused */
-    mnemonics__reserved,  /* unused */
-    mnemonics__reserved,  /* unused */
-    mnemonics__reserved,  /* unused */
+    mnemonics__reserved, /* unused */
+    mnemonics__reserved, /* unused */
+    mnemonics__reserved, /* unused */
+    mnemonics__reserved, /* unused */
+    mnemonics__reserved, /* unused */
+    mnemonics__reserved, /* unused */
+    mnemonics__reserved, /* unused */
+    mnemonics__reserved, /* unused */
 
-    mnemonics__reserved,  /* unused */
-    mnemonics__reserved,  /* unused */
-    mnemonics__reserved,  /* unused */
-    mnemonics__reserved,  /* unused */
-    mnemonics__reserved,  /* unused */
-    mnemonics__reserved,  /* unused */
-    mnemonics__reserved,  /* unused */
-    mnemonics__reserved   /* unused */
+    mnemonics__reserved, /* unused */
+    mnemonics__reserved, /* unused */
+    mnemonics__reserved, /* unused */
+    mnemonics__reserved, /* unused */
+    mnemonics__reserved, /* unused */
+    mnemonics__reserved, /* unused */
+    mnemonics__reserved, /* unused */
+    mnemonics__reserved /* unused */
 };
 
 static mnemonics_fnc_t mnemonics_cop0_func_map[64] = {
-    mnemonics__reserved,  /* unused */
+    mnemonics__reserved, /* unused */
     mnemonics_tlbr,
     mnemonics_tlbwi,
-    mnemonics__reserved,  /* unused */
-    mnemonics__reserved,  /* unused */
-    mnemonics__reserved,  /* unused */
+    mnemonics__reserved, /* unused */
+    mnemonics__reserved, /* unused */
+    mnemonics__reserved, /* unused */
     mnemonics_tlbwr,
-    mnemonics__reserved,  /* unused */
+    mnemonics__reserved, /* unused */
 
     mnemonics_tlbp,
-    mnemonics__reserved,  /* unused */
-    mnemonics__reserved,  /* unused */
-    mnemonics__reserved,  /* unused */
-    mnemonics__reserved,  /* unused */
-    mnemonics__reserved,  /* unused */
-    mnemonics__reserved,  /* unused */
-    mnemonics__reserved,  /* unused */
+    mnemonics__reserved, /* unused */
+    mnemonics__reserved, /* unused */
+    mnemonics__reserved, /* unused */
+    mnemonics__reserved, /* unused */
+    mnemonics__reserved, /* unused */
+    mnemonics__reserved, /* unused */
+    mnemonics__reserved, /* unused */
 
-    mnemonics__reserved,  /* unused */
-    mnemonics__reserved,  /* unused */
-    mnemonics__reserved,  /* unused */
-    mnemonics__reserved,  /* unused */
-    mnemonics__reserved,  /* unused */
-    mnemonics__reserved,  /* unused */
-    mnemonics__reserved,  /* unused */
-    mnemonics__reserved,  /* unused */
+    mnemonics__reserved, /* unused */
+    mnemonics__reserved, /* unused */
+    mnemonics__reserved, /* unused */
+    mnemonics__reserved, /* unused */
+    mnemonics__reserved, /* unused */
+    mnemonics__reserved, /* unused */
+    mnemonics__reserved, /* unused */
+    mnemonics__reserved, /* unused */
 
     mnemonics_eret,
-    mnemonics__reserved,  /* unused */
-    mnemonics__reserved,  /* unused */
-    mnemonics__reserved,  /* unused */
-    mnemonics__reserved,  /* unused */
-    mnemonics__reserved,  /* unused */
-    mnemonics__reserved,  /* unused */
-    mnemonics__reserved,  /* unused */
+    mnemonics__reserved, /* unused */
+    mnemonics__reserved, /* unused */
+    mnemonics__reserved, /* unused */
+    mnemonics__reserved, /* unused */
+    mnemonics__reserved, /* unused */
+    mnemonics__reserved, /* unused */
+    mnemonics__reserved, /* unused */
 
-    mnemonics__reserved,  /* unused */
-    mnemonics__reserved,  /* unused */
-    mnemonics__reserved,  /* unused */
-    mnemonics__reserved,  /* unused */
-    mnemonics__reserved,  /* unused */
-    mnemonics__reserved,  /* unused */
-    mnemonics__reserved,  /* unused */
-    mnemonics__reserved,  /* unused */
+    mnemonics__reserved, /* unused */
+    mnemonics__reserved, /* unused */
+    mnemonics__reserved, /* unused */
+    mnemonics__reserved, /* unused */
+    mnemonics__reserved, /* unused */
+    mnemonics__reserved, /* unused */
+    mnemonics__reserved, /* unused */
+    mnemonics__reserved, /* unused */
 
-    mnemonics__reserved,  /* unused */
-    mnemonics__reserved,  /* unused */
-    mnemonics__reserved,  /* unused */
-    mnemonics__reserved,  /* unused */
-    mnemonics__reserved,  /* unused */
-    mnemonics__reserved,  /* unused */
-    mnemonics__reserved,  /* unused */
-    mnemonics__reserved,  /* unused */
+    mnemonics__reserved, /* unused */
+    mnemonics__reserved, /* unused */
+    mnemonics__reserved, /* unused */
+    mnemonics__reserved, /* unused */
+    mnemonics__reserved, /* unused */
+    mnemonics__reserved, /* unused */
+    mnemonics__reserved, /* unused */
+    mnemonics__reserved, /* unused */
 
-    mnemonics__reserved,  /* unused */
-    mnemonics__reserved,  /* unused */
-    mnemonics__reserved,  /* unused */
-    mnemonics__reserved,  /* unused */
-    mnemonics__reserved,  /* unused */
-    mnemonics__reserved,  /* unused */
-    mnemonics__reserved,  /* unused */
-    mnemonics__reserved,  /* unused */
+    mnemonics__reserved, /* unused */
+    mnemonics__reserved, /* unused */
+    mnemonics__reserved, /* unused */
+    mnemonics__reserved, /* unused */
+    mnemonics__reserved, /* unused */
+    mnemonics__reserved, /* unused */
+    mnemonics__reserved, /* unused */
+    mnemonics__reserved, /* unused */
 
-    mnemonics__reserved,  /* unused */
-    mnemonics__reserved,  /* unused */
-    mnemonics__reserved,  /* unused */
-    mnemonics__reserved,  /* unused */
-    mnemonics__reserved,  /* unused */
-    mnemonics__reserved,  /* unused */
-    mnemonics__reserved,  /* unused */
-    mnemonics__reserved   /* unused */
+    mnemonics__reserved, /* unused */
+    mnemonics__reserved, /* unused */
+    mnemonics__reserved, /* unused */
+    mnemonics__reserved, /* unused */
+    mnemonics__reserved, /* unused */
+    mnemonics__reserved, /* unused */
+    mnemonics__reserved, /* unused */
+    mnemonics__reserved /* unused */
 };
 
 /** Decode MIPS R4000 instruction mnemonics
@@ -2629,22 +2579,22 @@ mnemonics_fnc_t decode_mnemonics(r4k_instr_t instr)
 }
 
 /** Initial state */
-#define HARD_RESET_STATUS         (cp0_status_erl_mask | cp0_status_bev_mask)
-#define HARD_RESET_START_ADDRESS  UINT64_C(0xffffffffbfc00000)
-#define HARD_RESET_PROC_ID        UINT64_C(0x0000000000000400)
-#define HARD_RESET_CAUSE          0
-#define HARD_RESET_WATCHLO        0
-#define HARD_RESET_WATCHHI        0
-#define HARD_RESET_CONFIG         0
-#define HARD_RESET_RANDOM         47
-#define HARD_RESET_WIRED          0
+#define HARD_RESET_STATUS (cp0_status_erl_mask | cp0_status_bev_mask)
+#define HARD_RESET_START_ADDRESS UINT64_C(0xffffffffbfc00000)
+#define HARD_RESET_PROC_ID UINT64_C(0x0000000000000400)
+#define HARD_RESET_CAUSE 0
+#define HARD_RESET_WATCHLO 0
+#define HARD_RESET_WATCHHI 0
+#define HARD_RESET_CONFIG 0
+#define HARD_RESET_RANDOM 47
+#define HARD_RESET_WIRED 0
 
 /** Exception handling */
-#define EXCEPTION_BOOT_BASE_ADDRESS     UINT64_C(0xffffffffbfc00200)
-#define EXCEPTION_BOOT_RESET_ADDRESS    HARD_RESET_START_ADDRESS
-#define EXCEPTION_NORMAL_BASE_ADDRESS   UINT64_C(0xffffffff80000000)
-#define EXCEPTION_NORMAL_RESET_ADDRESS  HARD_RESET_START_ADDRESS
-#define EXCEPTION_OFFSET                UINT64_C(0x0180)
+#define EXCEPTION_BOOT_BASE_ADDRESS UINT64_C(0xffffffffbfc00200)
+#define EXCEPTION_BOOT_RESET_ADDRESS HARD_RESET_START_ADDRESS
+#define EXCEPTION_NORMAL_BASE_ADDRESS UINT64_C(0xffffffff80000000)
+#define EXCEPTION_NORMAL_RESET_ADDRESS HARD_RESET_START_ADDRESS
+#define EXCEPTION_OFFSET UINT64_C(0x0180)
 
 /** Initialize simulation environment
  *
@@ -2697,45 +2647,45 @@ void r4k_set_pc(r4k_cpu_t *cpu, ptr64_t value)
  * the WATCH exception.
  *
  */
-//exc_t cpu_read_ins(r4k_cpu_t *cpu, ptr64_t addr, uint32_t *icode, bool noisy)
+// exc_t cpu_read_ins(r4k_cpu_t *cpu, ptr64_t addr, uint32_t *icode, bool noisy)
 //{
-//    ASSERT(cpu != NULL);
-//    ASSERT(icode != NULL);
+//     ASSERT(cpu != NULL);
+//     ASSERT(icode != NULL);
 //
-//    exc_t res = align_test32(cpu, addr, noisy);
-//    switch (res) {
-//    case r4k_excNone:
-//        break;
-//    case r4k_excAddrError:
-//        return r4k_excAdES;
-//    default:
-//        ASSERT(false);
-//    }
+//     exc_t res = align_test32(cpu, addr, noisy);
+//     switch (res) {
+//     case r4k_excNone:
+//         break;
+//     case r4k_excAddrError:
+//         return r4k_excAdES;
+//     default:
+//         ASSERT(false);
+//     }
 //
-//    ptr36_t phys;
-//    res = access_mem(cpu, AM_FETCH, addr, &phys, noisy);
-//    switch (res) {
-//    case r4k_excNone:
-//        *icode = physmem_read32(cpu, phys, true);
-//        break;
-//    case r4k_excAddrError:
-//        res = r4k_excAdEL;
-//        break;
-//    case r4k_excTLB:
-//        res = r4k_excTLBL;
-//        break;
-//    case r4k_excTLBR:
-//        res = r4k_excTLBLR;
-//        break;
-//    default:
-//        ASSERT(false);
-//    }
+//     ptr36_t phys;
+//     res = access_mem(cpu, AM_FETCH, addr, &phys, noisy);
+//     switch (res) {
+//     case r4k_excNone:
+//         *icode = physmem_read32(cpu, phys, true);
+//         break;
+//     case r4k_excAddrError:
+//         res = r4k_excAdEL;
+//         break;
+//     case r4k_excTLB:
+//         res = r4k_excTLBL;
+//         break;
+//     case r4k_excTLBR:
+//         res = r4k_excTLBLR;
+//         break;
+//     default:
+//         ASSERT(false);
+//     }
 //
-//    if ((noisy) && (res != r4k_excNone) && (cpu->branch == BRANCH_NONE))
-//        cpu->excaddr = cpu->pc;
+//     if ((noisy) && (res != r4k_excNone) && (cpu->branch == BRANCH_NONE))
+//         cpu->excaddr = cpu->pc;
 //
-//    return res;
-//}
+//     return res;
+// }
 
 /** Assert the specified interrupt
  *
@@ -2780,7 +2730,7 @@ static r4k_instr_fnc_t decode(r4k_instr_t instr)
          * on the func field.
          */
         fnc = func_map[instr.r.func];
-        if(instr.r.func == 0x21){
+        if (instr.r.func == 0x21) {
             ASSERT(fnc == instr_addu);
         }
         break;
@@ -2857,16 +2807,16 @@ static r4k_instr_fnc_t decode(r4k_instr_t instr)
     return fnc;
 }
 
-
 typedef struct {
     item_t item;
     ptr36_t addr;
     r4k_instr_fnc_t instrs[FRAME_SIZE / sizeof(r4k_instr_t)];
 } cache_item_t;
 
-#define PHYS2CACHEINSTR(phys) (((phys) & FRAME_MASK)/sizeof(rv_instr_t))
+#define PHYS2CACHEINSTR(phys) (((phys) &FRAME_MASK) / sizeof(rv_instr_t))
 
-static void cache_item_init(cache_item_t* cache_item){
+static void cache_item_init(cache_item_t *cache_item)
+{
     item_init(&cache_item->item);
     cache_item->addr = 0;
     // Skip instrs init
@@ -2874,11 +2824,13 @@ static void cache_item_init(cache_item_t* cache_item){
 
 list_t r4k_instruction_cache = LIST_INITIALIZER;
 
-static bool cache_hit(ptr36_t phys, cache_item_t** cache_item){
+static bool cache_hit(ptr36_t phys, cache_item_t **cache_item)
+{
     ptr36_t target_page = ALIGN_DOWN(phys, FRAME_SIZE);
-    cache_item_t* c;
-    for_each(r4k_instruction_cache, c, cache_item_t){
-        if(c->addr == target_page){
+    cache_item_t *c;
+    for_each(r4k_instruction_cache, c, cache_item_t)
+    {
+        if (c->addr == target_page) {
             *cache_item = c;
             return true;
         }
@@ -2886,19 +2838,22 @@ static bool cache_hit(ptr36_t phys, cache_item_t** cache_item){
     return false;
 }
 
-static void cache_item_page_decode(r4k_cpu_t* cpu, cache_item_t* cache_item) {
-    for(size_t i = 0; i < FRAME_SIZE / sizeof(r4k_instr_t); ++i){
+static void cache_item_page_decode(r4k_cpu_t *cpu, cache_item_t *cache_item)
+{
+    for (size_t i = 0; i < FRAME_SIZE / sizeof(r4k_instr_t); ++i) {
         ptr36_t addr = cache_item->addr + (i * sizeof(r4k_instr_t));
-        r4k_instr_t instr_data = (r4k_instr_t)physmem_read32(cpu->procno, addr, false);
+        r4k_instr_t instr_data = (r4k_instr_t) physmem_read32(cpu->procno, addr, false);
         cache_item->instrs[i] = decode(instr_data);
     }
 }
 
-static void update_cache_item(r4k_cpu_t* cpu, cache_item_t* cache_item) {
-    frame_t* frame = physmem_find_frame(cache_item->addr);
+static void update_cache_item(r4k_cpu_t *cpu, cache_item_t *cache_item)
+{
+    frame_t *frame = physmem_find_frame(cache_item->addr);
     ASSERT(frame != NULL);
 
-    if(frame->valid) return;
+    if (frame->valid)
+        return;
 
     cache_item_page_decode(cpu, cache_item);
 
@@ -2906,11 +2861,13 @@ static void update_cache_item(r4k_cpu_t* cpu, cache_item_t* cache_item) {
     return;
 }
 
-static cache_item_t* cache_try_add(r4k_cpu_t* cpu, ptr36_t phys) {
-    frame_t* frame = physmem_find_frame(phys);
-    if(frame == NULL) return NULL;
+static cache_item_t *cache_try_add(r4k_cpu_t *cpu, ptr36_t phys)
+{
+    frame_t *frame = physmem_find_frame(phys);
+    if (frame == NULL)
+        return NULL;
 
-    cache_item_t* cache_item = safe_malloc(sizeof(cache_item_t));
+    cache_item_t *cache_item = safe_malloc(sizeof(cache_item_t));
 
     cache_item_init(cache_item);
     cache_item->addr = ALIGN_DOWN(phys, FRAME_SIZE);
@@ -2923,15 +2880,16 @@ static cache_item_t* cache_try_add(r4k_cpu_t* cpu, ptr36_t phys) {
     return cache_item;
 }
 
-static r4k_instr_fnc_t fetch_instr(r4k_cpu_t* cpu, ptr36_t phys){
-    cache_item_t* cache_item = NULL;
+static r4k_instr_fnc_t fetch_instr(r4k_cpu_t *cpu, ptr36_t phys)
+{
+    cache_item_t *cache_item = NULL;
 
-    if(cache_hit(phys, &cache_item)){
+    if (cache_hit(phys, &cache_item)) {
         ASSERT(cache_item != NULL);
         update_cache_item(cpu, cache_item);
 
         // Move item to front of list on hit
-        if(r4k_instruction_cache.head != &cache_item->item){
+        if (r4k_instruction_cache.head != &cache_item->item) {
             list_remove(&r4k_instruction_cache, &cache_item->item);
             list_push(&r4k_instruction_cache, &cache_item->item);
         }
@@ -2941,7 +2899,7 @@ static r4k_instr_fnc_t fetch_instr(r4k_cpu_t* cpu, ptr36_t phys){
 
     cache_item = cache_try_add(cpu, phys);
 
-    if(cache_item != NULL) {
+    if (cache_item != NULL) {
         return cache_item->instrs[PHYS2CACHEINSTR(phys)];
     }
 
@@ -2979,10 +2937,10 @@ static void handle_exception(r4k_cpu_t *cpu, r4k_exc_t res)
     if (machine_trace) {
         if (tlb_refill)
             alert("cpu%u raised TLB refill exception %u: %s", cpu->procno,
-                res, txt_exc[res]);
+                    res, txt_exc[res]);
         else
             alert("cpu%u raised exception %u: %s", cpu->procno,
-                res, txt_exc[res]);
+                    res, txt_exc[res]);
     }
 
     cp0_cause(cpu).val &= ~cp0_cause_exccode_mask;
@@ -3058,11 +3016,11 @@ static r4k_exc_t execute(r4k_cpu_t *cpu)
 
     r4k_instr_fnc_t fnc = fetch_instr(cpu, phys);
 
-    if(fnc == NULL){
+    if (fnc == NULL) {
         return r4k_excAdEL;
     }
 
-    r4k_instr_t instr = (r4k_instr_t)physmem_read32(cpu->procno, phys, false);
+    r4k_instr_t instr = (r4k_instr_t) physmem_read32(cpu->procno, phys, false);
 
     /* Execute instruction */
     r4k_exc_t exc = fnc(cpu, instr);
@@ -3106,11 +3064,7 @@ static void manage(r4k_cpu_t *cpu, r4k_exc_t exc, ptr64_t old_pc)
     ASSERT(cpu != NULL);
 
     /* Test for interrupt request */
-    if ((exc == r4k_excNone) &&
-        (!cp0_status_exl(cpu)) &&
-        (!cp0_status_erl(cpu)) &&
-        (cp0_status_ie(cpu)) &&
-        ((cp0_cause(cpu).val & cp0_status(cpu).val) & cp0_cause_ip_mask) != 0)
+    if ((exc == r4k_excNone) && (!cp0_status_exl(cpu)) && (!cp0_status_erl(cpu)) && (cp0_status_ie(cpu)) && ((cp0_cause(cpu).val & cp0_status(cpu).val) & cp0_cause_ip_mask) != 0)
         exc = r4k_excInt;
 
     /* Exception control */
@@ -3140,7 +3094,6 @@ static void manage(r4k_cpu_t *cpu, r4k_exc_t exc, ptr64_t old_pc)
     /* Branch delay slot control */
     if (cpu->branch > BRANCH_NONE)
         cpu->branch--;
-
 }
 
 /** CPU cycle accounting after one instruction execution
@@ -3181,20 +3134,22 @@ void r4k_step(r4k_cpu_t *cpu)
     account(cpu);
 }
 
-bool r4k_sc_access(r4k_cpu_t *cpu, ptr36_t addr, int size) {
+bool r4k_sc_access(r4k_cpu_t *cpu, ptr36_t addr, int size)
+{
     // MIPS R4K SC fails on write to whole cache line
     // We allow only aligned accesses so this works
     bool hit = cpu->lladdr == ALIGN_DOWN(addr, 64);
-    if(hit){
+    if (hit) {
         cpu->llbit = false;
     }
     return hit;
 }
 
-void r4k_done(r4k_cpu_t *cpu) {
+void r4k_done(r4k_cpu_t *cpu)
+{
     // Clean whole cache
-    while(!is_empty(&r4k_instruction_cache)){
-        cache_item_t* cache_item = (cache_item_t*)(r4k_instruction_cache.head);
+    while (!is_empty(&r4k_instruction_cache)) {
+        cache_item_t *cache_item = (cache_item_t *) (r4k_instruction_cache.head);
         list_remove(&r4k_instruction_cache, &cache_item->item);
         safe_free(cache_item);
     }

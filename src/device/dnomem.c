@@ -90,7 +90,7 @@ static bool dnomem_init(token_t *parm, device_t *dev)
 
     if (!phys_range(start_addr + size)) {
         error("Invalid address, size would exceed the physical "
-            "memory range");
+              "memory range");
         return false;
     }
 
@@ -175,19 +175,19 @@ static bool dnomem_info(token_t *parm, device_t *dev)
     dnomem_data_s *data = (dnomem_data_s *) dev->data;
 
     printf("[address  ] [size     ] [mode  ] [regdump]\n"
-        "%#011" PRIx64 " %#011" PRIx64 " %-8s %s\n",
-        data->addr, data->size, data->mode->name, data->register_dump ? "yes" : "no");
+           "%#011" PRIx64 " %#011" PRIx64 " %-8s %s\n",
+            data->addr, data->size, data->mode->name, data->register_dump ? "yes" : "no");
 
     return true;
 }
-
 
 /** Dispose disk
  *
  * @param dev Device pointer
  *
  */
-static void dnomem_done(device_t *dev) {
+static void dnomem_done(device_t *dev)
+{
     safe_free(dev->data);
 }
 
@@ -200,7 +200,7 @@ static void dnomem_access32(const char *operation_name, unsigned int procno, dev
     }
 
     if (data->register_dump) {
-        general_cpu_t* causing_cpu = get_cpu(procno);
+        general_cpu_t *causing_cpu = get_cpu(procno);
         ASSERT((causing_cpu != NULL) && "CPU that causes illegal access to dnomem not found");
         cpu_reg_dump(causing_cpu);
     }
@@ -215,7 +215,7 @@ static void dnomem_access32(const char *operation_name, unsigned int procno, dev
  *
  */
 static void dnomem_read32(unsigned int procno, device_t *dev, ptr36_t addr,
-    uint32_t *val)
+        uint32_t *val)
 {
     dnomem_access32("READ", procno, dev, addr);
 }
@@ -228,60 +228,49 @@ static void dnomem_read32(unsigned int procno, device_t *dev, ptr36_t addr,
  *
  */
 static void dnomem_write32(unsigned int procno, device_t *dev, ptr36_t addr,
-    uint32_t val)
+        uint32_t val)
 {
     dnomem_access32("WRITE", procno, dev, addr);
 }
 
-
 cmd_t dnomem_cmds[] = {
-    {
-        "init",
-        (fcmd_t) dnomem_init,
-        DEFAULT,
-        DEFAULT,
-        "Initialization",
-        "Initialization",
-        REQ STR "name/nomem name" NEXT
-        REQ INT "addr/start address" NEXT
-        REQ INT "size/size of the memory" END
-    },
-    {
-        "mode",
-        (fcmd_t) dnomem_setmode,
-        DEFAULT,
-        DEFAULT,
-        "Set mode",
-        "Set mode",
-        REQ STR "mode/Mode name (warn, break, halt)" END
-    },
-    {
-        "rd",
-        (fcmd_t) dnomem_setrd,
-        DEFAULT,
-        DEFAULT,
-        "Whether to dump registers on access",
-        "Whether to dump registers on access",
-        REQ STR "rd/Dump registers on access (yes, no)" END
-    },
-    {
-        "help",
-        (fcmd_t) dev_generic_help,
-        DEFAULT,
-        DEFAULT,
-        "Display help",
-        "Display help",
-        OPT STR "cmd/command name" END
-    },
-    {
-        "info",
-        (fcmd_t) dnomem_info,
-        DEFAULT,
-        DEFAULT,
-        "Configuration information",
-        "Configuration information",
-        NOCMD
-    },
+    { "init",
+            (fcmd_t) dnomem_init,
+            DEFAULT,
+            DEFAULT,
+            "Initialization",
+            "Initialization",
+            REQ STR "name/nomem name" NEXT
+                    REQ INT "addr/start address" NEXT
+                            REQ INT "size/size of the memory" END },
+    { "mode",
+            (fcmd_t) dnomem_setmode,
+            DEFAULT,
+            DEFAULT,
+            "Set mode",
+            "Set mode",
+            REQ STR "mode/Mode name (warn, break, halt)" END },
+    { "rd",
+            (fcmd_t) dnomem_setrd,
+            DEFAULT,
+            DEFAULT,
+            "Whether to dump registers on access",
+            "Whether to dump registers on access",
+            REQ STR "rd/Dump registers on access (yes, no)" END },
+    { "help",
+            (fcmd_t) dev_generic_help,
+            DEFAULT,
+            DEFAULT,
+            "Display help",
+            "Display help",
+            OPT STR "cmd/command name" END },
+    { "info",
+            (fcmd_t) dnomem_info,
+            DEFAULT,
+            DEFAULT,
+            "Configuration information",
+            "Configuration information",
+            NOCMD },
     LAST_CMD
 };
 

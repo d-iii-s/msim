@@ -17,8 +17,8 @@
 #include <inttypes.h>
 #include <unistd.h>
 #include <sys/time.h>
-//#include "device/cpu/mips_r4000/cpu.h"
-//#include "device/cpu/riscv_rv32ima/cpu.h"
+// #include "device/cpu/mips_r4000/cpu.h"
+// #include "device/cpu/riscv_rv32ima/cpu.h"
 #include "physmem.h"
 #include "arch/mmap.h"
 #include "text.h"
@@ -27,11 +27,11 @@
 #include "assert.h"
 #include "main.h"
 
-#define STRING_GRANULARITY  128
-#define STRING_BUFFER       4096
+#define STRING_GRANULARITY 128
+#define STRING_BUFFER 4096
 
 static void safe_realloc(char **ptr, size_t *size, size_t pos,
-    size_t granularity)
+        size_t granularity)
 {
     ASSERT(ptr != NULL);
     ASSERT(*ptr != NULL);
@@ -67,7 +67,7 @@ void string_clear(string_t *str)
     str->size = 0;
     str->pos = 0;
     safe_realloc(&str->str, &str->size, str->pos + 1,
-        STRING_GRANULARITY);
+            STRING_GRANULARITY);
 
     str->str[str->pos] = 0;
 }
@@ -85,7 +85,7 @@ void string_push(string_t *str, char c)
     ASSERT(str->str != NULL);
 
     safe_realloc(&str->str, &str->size, str->pos + 1,
-        STRING_GRANULARITY);
+            STRING_GRANULARITY);
 
     str->str[str->pos] = c;
     str->pos++;
@@ -101,7 +101,7 @@ void string_append(string_t *str, const char *val)
     size_t len = strlen(val);
 
     safe_realloc(&str->str, &str->size, str->pos + len,
-        STRING_GRANULARITY);
+            STRING_GRANULARITY);
 
     memcpy(str->str + str->pos, val, len);
     str->pos += len;
@@ -122,7 +122,7 @@ void string_vprintf(string_t *str, const char *fmt, va_list va)
         die(ERR_INTERN, "Error formatting string");
 
     safe_realloc(&str->str, &str->size, str->pos + size,
-        STRING_GRANULARITY);
+            STRING_GRANULARITY);
 
     size = vsnprintf(str->str + str->pos, size + 1, fmt, va);
 
@@ -412,13 +412,15 @@ bool virt_range(uint64_t addr)
     return true;
 }
 
-bool phys_range(uint64_t addr) {
+bool phys_range(uint64_t addr)
+{
     return (addr <= UINT64_C(0xfffffffff));
 }
 
-uint64_t current_timestamp(void) {
+uint64_t current_timestamp(void)
+{
     struct timeval te;
     gettimeofday(&te, NULL); // get current time
-    uint64_t milliseconds = te.tv_sec*1000LL + te.tv_usec/1000; // calculate milliseconds
+    uint64_t milliseconds = te.tv_sec * 1000LL + te.tv_usec / 1000; // calculate milliseconds
     return milliseconds;
 }

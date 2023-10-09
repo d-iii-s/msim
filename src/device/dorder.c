@@ -22,18 +22,18 @@
 #include "../utils.h"
 
 /** \{ \name Registers */
-#define REGISTER_INT_UP    0  /**< Assert interrupts */
-#define REGISTER_INT_PEND  0  /**< Interrupts pending */
-#define REGISTER_INT_DOWN  4  /**< Deassert interrupts */
-#define REGISTER_LIMIT     8  /**< Register block size */
+#define REGISTER_INT_UP 0 /**< Assert interrupts */
+#define REGISTER_INT_PEND 0 /**< Interrupts pending */
+#define REGISTER_INT_DOWN 4 /**< Deassert interrupts */
+#define REGISTER_LIMIT 8 /**< Register block size */
 /* \} */
 
 /** Dorder instance data structure */
 typedef struct {
-    ptr36_t addr;        /**< Dorder address */
-    unsigned int intno;  /**< Interrupt number */
+    ptr36_t addr; /**< Dorder address */
+    unsigned int intno; /**< Interrupt number */
 
-    uint64_t cmds;  /**< Total number of commands */
+    uint64_t cmds; /**< Total number of commands */
 } dorder_data_s;
 
 /** Write to the synchronisation register - generate interrupts.
@@ -48,7 +48,7 @@ static void sync_up_write(dorder_data_s *data, uint32_t val)
     data->cmds++;
 
     for (i = 0; i < 32; i++, val >>= 1) {
-        if (val & 1){
+        if (val & 1) {
             cpu_interrupt_up(get_cpu(i), data->intno);
         }
     }
@@ -93,7 +93,7 @@ static bool dorder_init(token_t *parm, device_t *dev)
 
     if (!phys_range(_addr + (uint64_t) REGISTER_LIMIT)) {
         error("Invalid address, registers would exceed the physical "
-            "memory range");
+              "memory range");
         return false;
     }
 
@@ -238,64 +238,52 @@ static void dorder_write32(unsigned int procno, device_t *dev, ptr36_t addr, uin
 
 /** Dorder command-line commands and parameters */
 cmd_t dorder_cmds[] = {
-    {
-        "init",
-        (fcmd_t) dorder_init,
-        DEFAULT,
-        DEFAULT,
-        "Initialization",
-        "Initialization",
-        REQ STR "name/order name" NEXT
-        REQ INT "addr/order register address" NEXT
-        REQ INT "int_no/interrupt number within 0..6" END
-    },
-    {
-        "help",
-        (fcmd_t) dev_generic_help,
-        DEFAULT,
-        DEFAULT,
-        "Display help",
-        "Display help",
-        OPT STR "cmd/command name" END
-    },
-    {
-        "info",
-        (fcmd_t) dorder_info,
-        DEFAULT,
-        DEFAULT,
-        "Display device state",
-        "Display device state",
-        NOCMD
-    },
-    {
-        "stat",
-        (fcmd_t) dorder_stat,
-        DEFAULT,
-        DEFAULT,
-        "Display device statistics",
-        "Display device statistics",
-        NOCMD
-    },
-    {
-        "synchup",
-        (fcmd_t) dorder_synchup,
-        DEFAULT,
-        DEFAULT,
-        "Write to the synchronization register",
-        "Write the synchronization register - enables interrupt pending "
+    { "init",
+            (fcmd_t) dorder_init,
+            DEFAULT,
+            DEFAULT,
+            "Initialization",
+            "Initialization",
+            REQ STR "name/order name" NEXT
+                    REQ INT "addr/order register address" NEXT
+                            REQ INT "int_no/interrupt number within 0..6" END },
+    { "help",
+            (fcmd_t) dev_generic_help,
+            DEFAULT,
+            DEFAULT,
+            "Display help",
+            "Display help",
+            OPT STR "cmd/command name" END },
+    { "info",
+            (fcmd_t) dorder_info,
+            DEFAULT,
+            DEFAULT,
+            "Display device state",
+            "Display device state",
+            NOCMD },
+    { "stat",
+            (fcmd_t) dorder_stat,
+            DEFAULT,
+            DEFAULT,
+            "Display device statistics",
+            "Display device statistics",
+            NOCMD },
+    { "synchup",
+            (fcmd_t) dorder_synchup,
+            DEFAULT,
+            DEFAULT,
+            "Write to the synchronization register",
+            "Write the synchronization register - enables interrupt pending "
             "on processors with nonzero bits in the mask",
-        REQ INT "mask" END
-    },
-    {
-        "synchdown",
-        (fcmd_t) dorder_synchdown,
-        DEFAULT,
-        DEFAULT,
-        "Write to the synchronization register",
-        "Write the synchronization register - disables interrupt pending "
+            REQ INT "mask" END },
+    { "synchdown",
+            (fcmd_t) dorder_synchdown,
+            DEFAULT,
+            DEFAULT,
+            "Write to the synchronization register",
+            "Write the synchronization register - disables interrupt pending "
             "on processors with nonzero bits in the mask",
-        REQ INT "mask" END
-    },
+            REQ INT "mask" END },
     LAST_CMD
 };
 
@@ -307,10 +295,9 @@ device_type_t dorder = {
     /* Type name and description */
     .name = "dorder",
     .brief = "Synchronization device",
-    .full =
-        "The order device allows to acquire a unique processor number "
-        "(a serial number) and assert an interrupt to the specified "
-        "processor in the multiprocessor machine.",
+    .full = "The order device allows to acquire a unique processor number "
+            "(a serial number) and assert an interrupt to the specified "
+            "processor in the multiprocessor machine.",
 
     /* Functions */
     .done = dorder_done,

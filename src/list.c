@@ -65,17 +65,17 @@ void list_append(list_t *list, item_t *item)
  * @param list The list to push to.
  * @param item The item to push.
  */
-void list_push(list_t *list, item_t *item){
+void list_push(list_t *list, item_t *item)
+{
     /* Make sure the item is not a member
        of a list, then add it. */
     ASSERT(item->list == NULL);
     item->list = list;
 
-    if(is_empty(list)){
+    if (is_empty(list)) {
         // List is empty, set item as last
         list->tail = item;
-    }
-    else {
+    } else {
         // list is not empty, set the prev of head to item
         list->head->prev = item;
     }

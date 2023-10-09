@@ -41,12 +41,12 @@ extern bool env_check_type(const char *name, var_type_t type);
 
 /** TAB completion */
 extern char *generator_env_name(token_t *parm, const void *data,
-    unsigned int level);
+        unsigned int level);
 extern char *generator_env_booltype(token_t *parm, const void *data,
-    unsigned int level);
+        unsigned int level);
 extern char *generator_bool_envname(token_t *parm, const void *data,
-    unsigned int level);
+        unsigned int level);
 extern char *generator_equal_char(token_t *parm, const void *data,
-    unsigned int level);
+        unsigned int level);
 
 #endif

@@ -65,7 +65,7 @@ static bool system_add(token_t *parm, void *data)
 
     if (cmd_find(device_name, system_cmds, NULL) == CMP_HIT) {
         error("Device name \"%s\" is in conflict with a command name",
-            device_name);
+                device_name);
         return false;
     }
 
@@ -159,14 +159,13 @@ static bool system_dumpins(token_t *parm, void *data)
 {
     ASSERT(parm != NULL);
 
-
-    char*     _cpu  = parm_str_next(&parm);
+    char *_cpu = parm_str_next(&parm);
     uint64_t _addr = ALIGN_DOWN(parm_uint_next(&parm), 4);
     uint64_t _cnt = parm_uint(parm);
 
     bool is_rv = strcmp(_cpu, "rv") == 0;
     bool is_r4k = strcmp(_cpu, "r4k") == 0;
-    if(!is_rv && !is_r4k) {
+    if (!is_rv && !is_r4k) {
         error("Unknown CPU type (supported types: r4k, rv)");
         return false;
     }
@@ -190,14 +189,13 @@ static bool system_dumpins(token_t *parm, void *data)
     len36_t cnt;
 
     for (addr = (ptr36_t) _addr, cnt = (len36_t) _cnt; cnt > 0;
-        addr += 4, cnt--) {
+            addr += 4, cnt--) {
 
-        if(is_r4k){
+        if (is_r4k) {
             r4k_instr_t instr;
             instr.val = physmem_read32(-1, addr, false);
             r4k_idump_phys(addr, instr);
-        }
-        else if (is_rv) {
+        } else if (is_rv) {
             rv_instr_t instr;
             instr.val = physmem_read32(-1, addr, false);
             rv_idump_phys(addr, instr);
@@ -273,7 +271,7 @@ static bool system_break(token_t *parm, void *data)
     }
 
     physmem_breakpoint_add((ptr36_t) addr, (len36_t) size,
-        BREAKPOINT_KIND_SIMULATOR, access_flags);
+            BREAKPOINT_KIND_SIMULATOR, access_flags);
 
     return true;
 }
@@ -354,7 +352,7 @@ static bool system_dumpmem(token_t *parm, void *data)
     len36_t i;
 
     for (addr = (ptr36_t) _addr, cnt = (len36_t) _cnt, i = 0;
-        i < cnt; addr += 4, i++) {
+            i < cnt; addr += 4, i++) {
         if ((i & 0x03U) == 0)
             printf("  %#011" PRIx64 "   ", addr);
 
@@ -440,7 +438,7 @@ bool interpret(const char *str)
     /* Parse input */
     token_t *parm = parm_parse(str);
 
-    if (parm_type(parm) == tt_end){
+    if (parm_type(parm) == tt_end) {
         parm_delete(parm);
         return true;
     }
@@ -511,7 +509,7 @@ void script(void)
     if (file == NULL) {
         if (errno == ENOENT)
             alert("Configuration file \"%s\" not found, skipping",
-                config_file);
+                    config_file);
         else
             io_die(ERR_IO, config_file);
 
@@ -545,7 +543,7 @@ void script(void)
  *
  */
 static char *generator_devtype(token_t *parm, const void *data,
-    unsigned int level)
+        unsigned int level)
 {
     ASSERT(parm != NULL);
     ASSERT((parm_type(parm) == tt_str) || (parm_type(parm) == tt_end));
@@ -568,7 +566,7 @@ static char *generator_devtype(token_t *parm, const void *data,
  *
  */
 static char *generator_devname(token_t *parm, const void *data,
-    unsigned int level)
+        unsigned int level)
 {
     ASSERT(parm != NULL);
     ASSERT((parm_type(parm) == tt_str) || (parm_type(parm) == tt_end));
@@ -593,7 +591,7 @@ static char *generator_devname(token_t *parm, const void *data,
  *
  */
 static char *generator_system_cmds_and_device_names(token_t *parm,
-    const void *unused_data, unsigned int level)
+        const void *unused_data, unsigned int level)
 {
     ASSERT(parm != NULL);
 
@@ -620,7 +618,7 @@ static char *generator_system_cmds_and_device_names(token_t *parm,
  *
  */
 static gen_t system_add_find_generator(token_t **parm, const cmd_t *cmd,
-    const void **data)
+        const void **data)
 {
     ASSERT(parm != NULL);
     ASSERT(*parm != NULL);
@@ -630,8 +628,8 @@ static gen_t system_add_find_generator(token_t **parm, const cmd_t *cmd,
 
     uint32_t first_device_order = 0;
     if ((parm_type(*parm) == tt_str)
-        && (dev_type_by_partial_name(parm_str(*parm), &first_device_order))
-        && (parm_last(*parm)))
+            && (dev_type_by_partial_name(parm_str(*parm), &first_device_order))
+            && (parm_last(*parm)))
         return generator_devtype;
 
     return NULL;
@@ -641,7 +639,7 @@ static gen_t system_add_find_generator(token_t **parm, const cmd_t *cmd,
  *
  */
 static gen_t system_set_find_generator(token_t **parm, const cmd_t *cmd,
-    const void **data)
+        const void **data)
 {
     ASSERT(parm != NULL);
     ASSERT(*parm != NULL);
@@ -683,7 +681,7 @@ static gen_t system_set_find_generator(token_t **parm, const cmd_t *cmd,
                 }
             }
         }
-    } else  {
+    } else {
         /* Multiple hit */
         if (parm_last(*parm))
             return generator_env_name;
@@ -696,7 +694,7 @@ static gen_t system_set_find_generator(token_t **parm, const cmd_t *cmd,
  *
  */
 static gen_t system_unset_find_generator(token_t **parm, const cmd_t *cmd,
-    const void **data)
+        const void **data)
 {
     ASSERT(parm != NULL);
     ASSERT(*parm != NULL);
@@ -737,7 +735,7 @@ gen_t find_completion_generator(token_t **parm, const void **data)
     if (parm_type(*parm) != tt_str)
         return NULL;
 
-    char* user_text = parm_str(*parm);
+    char *user_text = parm_str(*parm);
 
     /* Find a command */
     const cmd_t *cmd;
@@ -759,7 +757,7 @@ gen_t find_completion_generator(token_t **parm, const void **data)
 
         device_t *last_device = NULL;
         size_t devices_count = dev_count_by_partial_name(user_text,
-            &last_device);
+                &last_device);
 
         if (devices_count == 1) {
             parm_next(parm);
@@ -795,167 +793,133 @@ gen_t find_completion_generator(token_t **parm, const void **data)
  *
  */
 static cmd_t system_cmds_array[] = {
-    {
-        "init",
-        NULL,    /* hardwired */
-        DEFAULT,
-        DEFAULT,
-        "",
-        "",
-        NOCMD
-    },
-    {
-        "add",
-        system_add,
-        system_add_find_generator,
-        DEFAULT,
-        "Add a new device into the system",
-        "Add a new device into the system",
-        REQ STR "type/Device type" NEXT
-        REQ STR "name/Device name" CONT
-    },
-    {
-        "dumpmem",
-        system_dumpmem,
-        DEFAULT,
-        DEFAULT,
-        "Dump words from physical memory",
-        "Dump words from physical memory",
-        REQ INT "addr/memory address" NEXT
-        REQ INT "cnt/count" END
-    },
-    {
-        "dumpins",
-        system_dumpins,
-        DEFAULT,
-        DEFAULT,
-        "Dump instructions from physical memory",
-        "Dump instructions from physical memory",
-        REQ STR "cpu" NEXT
-        REQ INT "addr/memory address" NEXT
-        REQ INT "cnt/count" END
-    },
-    {
-        "dumpdev",
-        system_dumpdev,
-        DEFAULT,
-        DEFAULT,
-        "Dump installed devices",
-        "Dump installed devices",
-        NOCMD
-    },
-    {
-        "dumpphys",
-        system_dumpphys,
-        DEFAULT,
-        DEFAULT,
-        "Dump installed physical memory blocks",
-        "Dump installed physical memory blocks",
-        NOCMD
-    },
-    {
-        "break",
-        system_break,
-        DEFAULT,
-        DEFAULT,
-        "Add a new physical memory breakpoint",
-        "Add a new physical memory breakpoint",
-        REQ INT "addr/memory address" NEXT
-        REQ INT "cnt/count" NEXT
-        REQ STR "type/Read or write breakpoint" END
-    },
-    {
-        "dumpbreak",
-        system_dumpbreak,
-        DEFAULT,
-        DEFAULT,
-        "Dump physical memory breakpoints",
-        "Dump physical memory breakpoints",
-        NOCMD
-    },
-    {
-        "rembreak",
-        system_rembreak,
-        DEFAULT,
-        DEFAULT,
-        "Remove a physical memory breakpoint",
-        "Remove a physical memory breakpoint",
-        REQ INT "addr/memory address" END
-    },
-    {
-        "stat",
-        system_stat,
-        DEFAULT,
-        DEFAULT,
-        "Print system statistics",
-        "Print system statistics",
-        NOCMD
-    },
-    {
-        "echo",
-        system_echo,
-        DEFAULT,
-        DEFAULT,
-        "Print user message",
-        "Print user message",
-        OPT VAR "text" CONT
-    },
-    {
-        "continue",
-        system_continue,
-        DEFAULT,
-        DEFAULT,
-        "Continue simulation",
-        "Continue simulation",
-        NOCMD
-    },
-    {
-        "step",
-        system_step,
-        DEFAULT,
-        DEFAULT,
-        "Simulate one or a specified number of instructions",
-        "Simulate one or a specified number of instructions",
-        OPT INT "cnt/intruction count" END
-    },
-    {
-        "set",
-        system_set,
-        system_set_find_generator,
-        DEFAULT,
-        "Set enviroment variable",
-        "Set enviroment variable",
-        OPT STR "name/variable name" NEXT
-        OPT CON "=" NEXT
-        REQ VAR "val/value" END
-    },
-    {
-        "unset",
-        system_unset,
-        system_unset_find_generator,
-        DEFAULT,
-        "Unset environment variable",
-        "Unset environment variable",
-        REQ STR "name/variable name" END
-    },
-    {
-        "help",
-        system_help,
-        DEFAULT,
-        DEFAULT,
-        "Display help",
-        "Display help",
-        OPT STR "cmd/command name" END
-    },
-    {
-        "quit",
-        system_quit,
-        DEFAULT,
-        DEFAULT,
-        "Exit MSIM",
-        "Exit MSIM",
-        NOCMD
-    },
+    { "init",
+            NULL, /* hardwired */
+            DEFAULT,
+            DEFAULT,
+            "",
+            "",
+            NOCMD },
+    { "add",
+            system_add,
+            system_add_find_generator,
+            DEFAULT,
+            "Add a new device into the system",
+            "Add a new device into the system",
+            REQ STR "type/Device type" NEXT
+                    REQ STR "name/Device name" CONT },
+    { "dumpmem",
+            system_dumpmem,
+            DEFAULT,
+            DEFAULT,
+            "Dump words from physical memory",
+            "Dump words from physical memory",
+            REQ INT "addr/memory address" NEXT
+                    REQ INT "cnt/count" END },
+    { "dumpins",
+            system_dumpins,
+            DEFAULT,
+            DEFAULT,
+            "Dump instructions from physical memory",
+            "Dump instructions from physical memory",
+            REQ STR "cpu" NEXT
+                    REQ INT "addr/memory address" NEXT
+                            REQ INT "cnt/count" END },
+    { "dumpdev",
+            system_dumpdev,
+            DEFAULT,
+            DEFAULT,
+            "Dump installed devices",
+            "Dump installed devices",
+            NOCMD },
+    { "dumpphys",
+            system_dumpphys,
+            DEFAULT,
+            DEFAULT,
+            "Dump installed physical memory blocks",
+            "Dump installed physical memory blocks",
+            NOCMD },
+    { "break",
+            system_break,
+            DEFAULT,
+            DEFAULT,
+            "Add a new physical memory breakpoint",
+            "Add a new physical memory breakpoint",
+            REQ INT "addr/memory address" NEXT
+                    REQ INT "cnt/count" NEXT
+                            REQ STR "type/Read or write breakpoint" END },
+    { "dumpbreak",
+            system_dumpbreak,
+            DEFAULT,
+            DEFAULT,
+            "Dump physical memory breakpoints",
+            "Dump physical memory breakpoints",
+            NOCMD },
+    { "rembreak",
+            system_rembreak,
+            DEFAULT,
+            DEFAULT,
+            "Remove a physical memory breakpoint",
+            "Remove a physical memory breakpoint",
+            REQ INT "addr/memory address" END },
+    { "stat",
+            system_stat,
+            DEFAULT,
+            DEFAULT,
+            "Print system statistics",
+            "Print system statistics",
+            NOCMD },
+    { "echo",
+            system_echo,
+            DEFAULT,
+            DEFAULT,
+            "Print user message",
+            "Print user message",
+            OPT VAR "text" CONT },
+    { "continue",
+            system_continue,
+            DEFAULT,
+            DEFAULT,
+            "Continue simulation",
+            "Continue simulation",
+            NOCMD },
+    { "step",
+            system_step,
+            DEFAULT,
+            DEFAULT,
+            "Simulate one or a specified number of instructions",
+            "Simulate one or a specified number of instructions",
+            OPT INT "cnt/intruction count" END },
+    { "set",
+            system_set,
+            system_set_find_generator,
+            DEFAULT,
+            "Set enviroment variable",
+            "Set enviroment variable",
+            OPT STR "name/variable name" NEXT
+                    OPT CON "=" NEXT
+                            REQ VAR "val/value" END },
+    { "unset",
+            system_unset,
+            system_unset_find_generator,
+            DEFAULT,
+            "Unset environment variable",
+            "Unset environment variable",
+            REQ STR "name/variable name" END },
+    { "help",
+            system_help,
+            DEFAULT,
+            DEFAULT,
+            "Display help",
+            "Display help",
+            OPT STR "cmd/command name" END },
+    { "quit",
+            system_quit,
+            DEFAULT,
+            DEFAULT,
+            "Exit MSIM",
+            "Exit MSIM",
+            NOCMD },
     LAST_CMD
 };
 static cmd_t *system_cmds = system_cmds_array;

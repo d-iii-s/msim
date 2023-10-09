@@ -26,12 +26,12 @@ static r4k_exc_t instr_dmtc0(r4k_cpu_t *cpu, r4k_instr_t instr)
             case cp0_PageMask:
                 cp0_pagemask(cpu).val = 0;
                 if (((reg.val & cp0_pagemask_mask_mask) == UINT32_C(0x0))
-                    || ((reg.val & cp0_pagemask_mask_mask) == UINT32_C(0x6000))
-                    || ((reg.val & cp0_pagemask_mask_mask) == UINT32_C(0x1e000))
-                    || ((reg.val & cp0_pagemask_mask_mask) == UINT32_C(0x7e000))
-                    || ((reg.val & cp0_pagemask_mask_mask) == UINT32_C(0x1fe000))
-                    || ((reg.val & cp0_pagemask_mask_mask) == UINT32_C(0x7fe000))
-                    || ((reg.val & cp0_pagemask_mask_mask) == UINT32_C(0x1ffe000)))
+                        || ((reg.val & cp0_pagemask_mask_mask) == UINT32_C(0x6000))
+                        || ((reg.val & cp0_pagemask_mask_mask) == UINT32_C(0x1e000))
+                        || ((reg.val & cp0_pagemask_mask_mask) == UINT32_C(0x7e000))
+                        || ((reg.val & cp0_pagemask_mask_mask) == UINT32_C(0x1fe000))
+                        || ((reg.val & cp0_pagemask_mask_mask) == UINT32_C(0x7fe000))
+                        || ((reg.val & cp0_pagemask_mask_mask) == UINT32_C(0x1ffe000)))
                     cp0_pagemask(cpu).val = reg.val & cp0_pagemask_mask_mask;
                 else
                     alert("R4000: Invalid value for PageMask (MTC0)");
@@ -150,7 +150,7 @@ static r4k_exc_t instr_dmtc0(r4k_cpu_t *cpu, r4k_instr_t instr)
 }
 
 static void mnemonics_dmtc0(ptr64_t addr, r4k_instr_t instr,
-    string_t *mnemonics, string_t *comments)
+        string_t *mnemonics, string_t *comments)
 {
     string_printf(mnemonics, "dmtc0");
     disassemble_rt_cp0(instr, mnemonics, comments);

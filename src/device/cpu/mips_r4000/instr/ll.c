@@ -8,7 +8,7 @@ static r4k_exc_t instr_ll(r4k_cpu_t *cpu, r4k_instr_t instr)
     uint32_t val;
     r4k_exc_t res = r4k_read_mem32(cpu, addr, &val, true);
 
-    if (res == r4k_excNone) {  /* If the read operation has been successful */
+    if (res == r4k_excNone) { /* If the read operation has been successful */
         /* Store the value */
         cpu->regs[instr.i.rt].val = sign_extend_32_64(val);
 
@@ -31,7 +31,7 @@ static r4k_exc_t instr_ll(r4k_cpu_t *cpu, r4k_instr_t instr)
 }
 
 static void mnemonics_ll(ptr64_t addr, r4k_instr_t instr,
-    string_t *mnemonics, string_t *comments)
+        string_t *mnemonics, string_t *comments)
 {
     string_printf(mnemonics, "ll");
     disassemble_rt_offset_base(instr, mnemonics, comments);

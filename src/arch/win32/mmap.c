@@ -16,7 +16,7 @@
 #include <errno.h>
 
 void *mmap(void *addr, size_t length, int prot, int flags, int fd,
-    off_t offset)
+        off_t offset)
 {
     HANDLE fh = (HANDLE) _get_osfhandle(fd);
     if (fh == INVALID_HANDLE_VALUE) {
@@ -55,14 +55,14 @@ void *mmap(void *addr, size_t length, int prot, int flags, int fd,
     }
 
     HANDLE handle = CreateFileMapping(fh, NULL, protect,
-        ((uint64_t) length) >> 32, length & UINT32_C(0xffffffff), NULL);
+            ((uint64_t) length) >> 32, length & UINT32_C(0xffffffff), NULL);
     if (handle == NULL) {
         errno = EPERM;
         return MAP_FAILED;
     }
 
     void *map = MapViewOfFile(handle, access, ((uint64_t) offset) >> 32,
-        offset & UINT32_C(0xffffffff), length & UINT32_C(0xffffffff));
+            offset & UINT32_C(0xffffffff), length & UINT32_C(0xffffffff));
     if (map == NULL) {
         errno = ENOMEM;
         return MAP_FAILED;

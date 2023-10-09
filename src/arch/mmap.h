@@ -14,18 +14,18 @@
 #include <stddef.h>
 #include <unistd.h>
 
-#define MAP_FAILED   ((void *) -1)
+#define MAP_FAILED ((void *) -1)
 
-#define PROT_READ    0x01
-#define PROT_WRITE   0x02
-#define PROT_EXEC    0x04
-#define PROT_NONE    0x00
+#define PROT_READ 0x01
+#define PROT_WRITE 0x02
+#define PROT_EXEC 0x04
+#define PROT_NONE 0x00
 
-#define MAP_SHARED   0x01
-#define MAP_PRIVATE  0x02
+#define MAP_SHARED 0x01
+#define MAP_PRIVATE 0x02
 
 extern void *mmap(void *addr, size_t length, int prot, int flags, int fd,
-    off_t offset);
+        off_t offset);
 extern int munmap(void *addr, size_t length);
 
 #else

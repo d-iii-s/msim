@@ -95,7 +95,6 @@ extern void rv_csrrsi_mnemonics(uint32_t addr, rv_instr_t instr, string_t *s_mne
 extern void rv_csrrci_mnemonics(uint32_t addr, rv_instr_t instr, string_t *s_mnemonics, string_t *s_comments);
 extern void rv_sfence_mnemonics(uint32_t addr, rv_instr_t instr, string_t *s_mnemonics, string_t *s_comments);
 
-
 // CSR
 extern void rv_csrrw_mnemonics(uint32_t addr, rv_instr_t instr, string_t *s_mnemonics, string_t *s_comments);
 extern void rv_csrrs_mnemonics(uint32_t addr, rv_instr_t instr, string_t *s_mnemonics, string_t *s_comments);

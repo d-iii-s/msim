@@ -25,4 +25,4 @@ extern rv_exc_t rv_bltu_instr(rv_cpu_t *cpu, rv_instr_t instr);
 extern rv_exc_t rv_bge_instr(rv_cpu_t *cpu, rv_instr_t instr);
 extern rv_exc_t rv_bgeu_instr(rv_cpu_t *cpu, rv_instr_t instr);
 
-#endif //RISCV_RV32IMA_INSTR_CONTROL_TRANSFER_H_
+#endif // RISCV_RV32IMA_INSTR_CONTROL_TRANSFER_H_

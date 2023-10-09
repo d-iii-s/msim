@@ -98,7 +98,6 @@ static bool decimal(char c)
     return ((c >= '0') && (c <= '9'));
 }
 
-
 /** Test whether the character is a hex digit
  *
  *
@@ -106,8 +105,8 @@ static bool decimal(char c)
 static bool hexadecimal(char c)
 {
     return (((c >= '0') && (c <= '9'))
-        || ((c >= 'a') && (c <= 'f'))
-        || ((c >= 'A') && (c <= 'F')));
+            || ((c >= 'a') && (c <= 'f'))
+            || ((c >= 'A') && (c <= 'F')));
 }
 
 /** Test whether the character is a digit or alphabetic
@@ -118,9 +117,9 @@ static bool hexadecimal(char c)
 static bool alphanum(char c)
 {
     return (((c >= '0') && (c <= '9'))
-        || ((c >= 'a') && (c <= 'z'))
-        || ((c >= 'A') && (c <= 'Z'))
-        || (c == '_') || (c == '='));
+            || ((c >= 'a') && (c <= 'z'))
+            || ((c >= 'A') && (c <= 'Z'))
+            || (c == '_') || (c == '='));
 }
 
 /* Move the pointer to the next relevant character
@@ -591,7 +590,8 @@ static void find_next_parm(const char **str)
     ASSERT(str != NULL);
     ASSERT(*str != NULL);
 
-    while (*(*str)++);
+    while (*(*str)++)
+        ;
 }
 
 /** Compare the command with a name definition.
@@ -614,7 +614,8 @@ static cmd_find_res_t cmd_compare(const char *str, const char *cmd)
 
     /* Compare strings */
     const char *tmp;
-    for (tmp = str; (*cmd) && (*tmp == *cmd); tmp++, cmd++);
+    for (tmp = str; (*cmd) && (*tmp == *cmd); tmp++, cmd++)
+        ;
 
     /* Check for full match */
     if (*tmp == 0) {
@@ -648,7 +649,7 @@ static const char *parm_skipq(const char *str)
  *
  */
 cmd_find_res_t cmd_find(const char *cmd_name, const cmd_t *cmds,
-    const cmd_t **cmd)
+        const cmd_t **cmd)
 {
     ASSERT(cmd_name != NULL);
     ASSERT(cmds != NULL);
@@ -698,7 +699,8 @@ static const char *find_name(const char *str)
 
     /* Search for a separator */
     const char *tmp;
-    for (tmp = str + 2; (*tmp != 0) && (*tmp != '/'); tmp++);
+    for (tmp = str + 2; (*tmp != 0) && (*tmp != '/'); tmp++)
+        ;
 
     if (*tmp != 0)
         return (tmp + 1);
@@ -713,7 +715,8 @@ static size_t sname_len(const char *str)
     /* Search for a separator */
     const char *tmp;
     size_t len;
-    for (tmp = str, len = 0; (*tmp != 0) && (*tmp != '/'); tmp++, len++);
+    for (tmp = str, len = 0; (*tmp != 0) && (*tmp != '/'); tmp++, len++)
+        ;
 
     return len;
 }
@@ -753,29 +756,29 @@ bool cmd_run_by_spec(const cmd_t *cmd, token_t *parm, void *data)
         case INTC:
             if (parm->ttype != tt_uint) {
                 error("Invalid argument (integer <%s> required)",
-                    find_name(pars));
+                        find_name(pars));
                 return false;
             }
             break;
         case STRC:
             if (parm->ttype != tt_str) {
                 error("Invalid argument (string <%s> required)",
-                    find_name(pars));
+                        find_name(pars));
                 return false;
             }
             break;
         case VARC:
             if ((parm->ttype != tt_uint) && (parm->ttype != tt_str)) {
                 error("Invalid argument (string or integer \"%s\" required)",
-                    find_name(pars));
+                        find_name(pars));
                 return false;
             }
             break;
         case CONC:
             if ((parm->ttype != tt_str)
-                || (strcmp(parm_skipq(pars), parm->tval.str))) {
+                    || (strcmp(parm_skipq(pars), parm->tval.str))) {
                 error("Invalid argument (literal \"%s\" required)",
-                    find_name(pars));
+                        find_name(pars));
                 return false;
             }
             break;
@@ -814,7 +817,7 @@ bool cmd_run_by_spec(const cmd_t *cmd, token_t *parm, void *data)
  *
  */
 bool cmd_run_by_name(const char *cmd_name, token_t *parm, const cmd_t *cmds,
-    void *data)
+        void *data)
 {
     ASSERT(cmd_name != NULL);
     ASSERT(parm != NULL);
@@ -876,8 +879,7 @@ char *generator_cmd(token_t *parm, const void *data, unsigned int level)
         last_cmd = (cmd_t *) data;
 
     /* Find command */
-    const char *cmd_prefix = (parm_type(parm) == tt_str) ?
-        parm_str(parm) : "";
+    const char *cmd_prefix = (parm_type(parm) == tt_str) ? parm_str(parm) : "";
 
     /* Device command list is ended by LAST_CMD */
     while (last_cmd->name) {

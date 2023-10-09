@@ -18,7 +18,7 @@
 
 #define MAX_CP0_REGISTERS 32
 
-#define get_r4k(dev) (r4k_cpu_t *)(((general_cpu_t *)(dev)->data)->data)
+#define get_r4k(dev) (r4k_cpu_t *) (((general_cpu_t *) (dev)->data)->data)
 
 extern device_type_t dr4kcpu;
 

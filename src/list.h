@@ -45,12 +45,14 @@ typedef struct item {
  *
  */
 #define LIST_INITIALIZER \
-    { .head = NULL, .tail = NULL }
+    { \
+        .head = NULL, .tail = NULL \
+    }
 
 #define for_each(list, member, type) \
     for ((member) = (type *) (list).head; \
-        (member) != NULL; \
-        (member) = (type *) (member)->item.next)
+            (member) != NULL; \
+            (member) = (type *) (member)->item.next)
 
 #define is_empty(list) ((list)->head == NULL && (list)->tail == NULL)
 

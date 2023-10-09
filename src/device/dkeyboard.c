@@ -26,18 +26,18 @@
 #include "../utils.h"
 
 /* Register offsets */
-#define REGISTER_CHAR   0
-#define REGISTER_LIMIT  4
+#define REGISTER_CHAR 0
+#define REGISTER_LIMIT 4
 
 typedef struct {
-    ptr36_t addr;        /* Register address */
-    unsigned int intno;  /* Interrupt number */
-    char incomming;      /* Character buffer */
+    ptr36_t addr; /* Register address */
+    unsigned int intno; /* Interrupt number */
+    char incomming; /* Character buffer */
 
-    bool ig;             /* Interrupt pending flag */
-    uint64_t intrcount;  /* Number of interrupts asserted */
-    uint64_t keycount;   /* Number of keys acquired */
-    uint64_t overrun;    /* Number of overwritten characters in the buffer. */
+    bool ig; /* Interrupt pending flag */
+    uint64_t intrcount; /* Number of interrupts asserted */
+    uint64_t keycount; /* Number of keys acquired */
+    uint64_t overrun; /* Number of overwritten characters in the buffer. */
 } keyboard_data_s;
 
 /** Generate a key press
@@ -49,7 +49,7 @@ static void gen_key(device_t *dev, char c)
 {
     keyboard_data_s *data = (keyboard_data_s *) dev->data;
 
-    //TODO: Generate SC check?
+    // TODO: Generate SC check?
     data->incomming = c;
     data->keycount++;
 
@@ -78,7 +78,7 @@ static bool dkeyboard_init(token_t *parm, device_t *dev)
 
     if (!phys_range(_addr + (uint64_t) REGISTER_LIMIT)) {
         error("Invalid address, registers would exceed the physical "
-            "memory range");
+              "memory range");
         return false;
     }
 
@@ -118,7 +118,7 @@ static bool dkeyboard_info(token_t *parm, device_t *dev)
 
     printf("[address ] [int] [key] [ig]\n");
     printf("%#11" PRIx64 " %-5u %#02x  %u\n",
-        data->addr, data->intno, data->incomming, data->ig);
+            data->addr, data->intno, data->incomming, data->ig);
 
     return true;
 }
@@ -132,7 +132,7 @@ static bool dkeyboard_stat(token_t *parm, device_t *dev)
 
     printf("[interrupt count   ] [key count         ] [overrun           ]\n");
     printf("%20" PRIu64 " %20" PRIu64 " %20" PRIu64 "\n",
-        data->intrcount, data->keycount, data->overrun);
+            data->intrcount, data->keycount, data->overrun);
 
     return true;
 }
@@ -222,53 +222,43 @@ static void keyboard_step4k(device_t *dev)
  */
 
 cmd_t keyboard_cmds[] = {
-    {
-        "init",
-        (fcmd_t) dkeyboard_init,
-        DEFAULT,
-        DEFAULT,
-        "Initialization",
-        "Initialization",
-        REQ STR "keyboard name" NEXT
-        REQ INT "register address" NEXT
-        REQ INT "interrupt number" END
-    },
-    {
-        "help",
-        (fcmd_t) dev_generic_help,
-        DEFAULT,
-        DEFAULT,
-        "Display this help text",
-        "Display this help text",
-        OPT STR "cmd/command name" END
-    },
-    {
-        "info",
-        (fcmd_t) dkeyboard_info,
-        DEFAULT,
-        DEFAULT,
-        "Display keyboard state and configuration",
-        "Display keyboard state and configuration",
-        NOCMD
-    },
-    {
-        "stat",
-        (fcmd_t) dkeyboard_stat,
-        DEFAULT,
-        DEFAULT,
-        "Display keyboard statistics",
-        "Display keyboard statistics",
-        NOCMD
-    },
-    {
-        "gen",
-        (fcmd_t) dkeyboard_gen,
-        DEFAULT,
-        DEFAULT,
-        "Generate a key press with specified code",
-        "Generate a key press with specified code",
-        REQ VAR "key code" END
-    },
+    { "init",
+            (fcmd_t) dkeyboard_init,
+            DEFAULT,
+            DEFAULT,
+            "Initialization",
+            "Initialization",
+            REQ STR "keyboard name" NEXT
+                    REQ INT "register address" NEXT
+                            REQ INT "interrupt number" END },
+    { "help",
+            (fcmd_t) dev_generic_help,
+            DEFAULT,
+            DEFAULT,
+            "Display this help text",
+            "Display this help text",
+            OPT STR "cmd/command name" END },
+    { "info",
+            (fcmd_t) dkeyboard_info,
+            DEFAULT,
+            DEFAULT,
+            "Display keyboard state and configuration",
+            "Display keyboard state and configuration",
+            NOCMD },
+    { "stat",
+            (fcmd_t) dkeyboard_stat,
+            DEFAULT,
+            DEFAULT,
+            "Display keyboard statistics",
+            "Display keyboard statistics",
+            NOCMD },
+    { "gen",
+            (fcmd_t) dkeyboard_gen,
+            DEFAULT,
+            DEFAULT,
+            "Generate a key press with specified code",
+            "Generate a key press with specified code",
+            REQ VAR "key code" END },
     LAST_CMD
 };
 
@@ -279,8 +269,8 @@ device_type_t dkeyboard = {
     .name = "dkeyboard",
     .brief = "Keyboard simulation",
     .full = "Device reads key codes from the specified input and sends them to "
-        "the system via the interrrupt assert and a memory-mapped "
-        "register containing a key code.",
+            "the system via the interrrupt assert and a memory-mapped "
+            "register containing a key code.",
 
     /* Functions */
     .done = keyboard_done,

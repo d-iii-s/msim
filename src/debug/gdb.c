@@ -48,25 +48,24 @@
 
 #endif /* GDB_DEBUG */
 
+#define MAX_BAD_CHECKSUMS 10
+#define GRANULARITY 1024
 
-#define MAX_BAD_CHECKSUMS  10
-#define GRANULARITY        1024
-
-#define GDB_NOT_SUPPORTED             ""
-#define GDB_REPLY_OK                  "OK"
-#define GDB_REPLY_WARNING             "W00"
-#define GDB_REPLY_BAD_MEMORY_COMMAND  "E00"
-#define GDB_REPLY_MEMORY_WRITE_FAIL   "E01"
-#define GDB_REPLY_MEMORY_READ_FAIL    "E02"
-#define GDB_REPLY_BAD_BREAKPOINT      "E04"
+#define GDB_NOT_SUPPORTED ""
+#define GDB_REPLY_OK "OK"
+#define GDB_REPLY_WARNING "W00"
+#define GDB_REPLY_BAD_MEMORY_COMMAND "E00"
+#define GDB_REPLY_MEMORY_WRITE_FAIL "E01"
+#define GDB_REPLY_MEMORY_READ_FAIL "E02"
+#define GDB_REPLY_BAD_BREAKPOINT "E04"
 #define GDB_REPLY_REGISTER_WRITE_FAIL "E05"
 
-#define GDB_REGISTER_STATUS         32
-#define GDB_REGISTER_MULTIPLY_LOW   33
-#define GDB_REGISTER_MULTIPLY_HIGH  34
-#define GDB_REGISTER_BAD            35
-#define GDB_REGISTER_CAUSE          36
-#define GDB_REGISTER_PC             37
+#define GDB_REGISTER_STATUS 32
+#define GDB_REGISTER_MULTIPLY_LOW 33
+#define GDB_REGISTER_MULTIPLY_HIGH 34
+#define GDB_REGISTER_BAD 35
+#define GDB_REGISTER_CAUSE 36
+#define GDB_REGISTER_PC 37
 
 typedef union {
     uint8_t uint8[8];
@@ -196,7 +195,7 @@ static char *gdb_get_request(void)
 
     if (i >= MAX_BAD_CHECKSUMS) {
         error("Communication checksum failure %u times (read)",
-            MAX_BAD_CHECKSUMS);
+                MAX_BAD_CHECKSUMS);
         return NULL;
     }
 
@@ -262,7 +261,7 @@ static bool gdb_send_reply(char *reply)
 
     if (i >= MAX_BAD_CHECKSUMS) {
         error("Communication checksum failure %u times (write)",
-            MAX_BAD_CHECKSUMS);
+                MAX_BAD_CHECKSUMS);
         return false;
     }
 
@@ -343,10 +342,10 @@ static void gdb_register_dump(string_t *str, uint64_t val)
     value.uint64 = convert_uint64_t_endian(val);
 
     string_printf(str, "%02x%02x%02x%02x%02x%02x%02x%02x",
-        value.uint8[0], value.uint8[1],
-        value.uint8[2], value.uint8[3],
-        value.uint8[4], value.uint8[5],
-        value.uint8[6], value.uint8[7]);
+            value.uint8[0], value.uint8[1],
+            value.uint8[2], value.uint8[3],
+            value.uint8[4], value.uint8[5],
+            value.uint8[6], value.uint8[7]);
 }
 
 /** Dump given count of registers into given buffer in hex
@@ -354,7 +353,7 @@ static void gdb_register_dump(string_t *str, uint64_t val)
  *
  */
 static void gdb_registers_dump(string_t *str, reg64_t *regs,
-    unsigned int count)
+        unsigned int count)
 {
     unsigned int i;
 
@@ -377,8 +376,8 @@ static bool gdb_register_upload(char **data, uint64_t *val)
 
     /* Read 4 bytes */
     int matched = sscanf(*data, "%02x%02x%02x%02x%02x%02x%02x%02x",
-        &values[0], &values[1], &values[2], &values[3],
-        &values[4], &values[5], &values[6], &values[7]);
+            &values[0], &values[1], &values[2], &values[3],
+            &values[4], &values[5], &values[6], &values[7]);
 
     if (matched != 8) {
         gdb_send_reply(GDB_REPLY_REGISTER_WRITE_FAIL);
@@ -412,7 +411,7 @@ static bool gdb_register_upload(char **data, uint64_t *val)
  *
  */
 static bool gdb_registers_upload(char **data, reg64_t *regs,
-    unsigned int count)
+        unsigned int count)
 {
     unsigned int i;
 
@@ -437,8 +436,8 @@ void gdb_handle_event(gdb_event_t event)
     string_t msg;
     string_init(&msg);
 
-    //TODO: implement for both
-    r4k_cpu_t *cpu = (r4k_cpu_t *)get_cpu(cpuno_global)->data;
+    // TODO: implement for both
+    r4k_cpu_t *cpu = (r4k_cpu_t *) get_cpu(cpuno_global)->data;
     // TODO: ASSERT that it really us r4k
 
     string_printf(&msg, "T%02x%02x:", event, GDB_REGISTER_PC);
@@ -459,8 +458,8 @@ void gdb_handle_event(gdb_event_t event)
  */
 static void gdb_read_registers(void)
 {
-    //TODO: implement for both
-    r4k_cpu_t *cpu = (r4k_cpu_t *)get_cpu(cpuno_global)->data;
+    // TODO: implement for both
+    r4k_cpu_t *cpu = (r4k_cpu_t *) get_cpu(cpuno_global)->data;
     // TODO: ASSERT that it really us r4k
     string_t str;
     string_init(&str);
@@ -488,8 +487,8 @@ static void gdb_read_registers(void)
 static void gdb_write_registers(char *req)
 {
     char *query = req + 1;
-    //TODO: implement for both
-    r4k_cpu_t *cpu = (r4k_cpu_t *)get_cpu(cpuno_global)->data;
+    // TODO: implement for both
+    r4k_cpu_t *cpu = (r4k_cpu_t *) get_cpu(cpuno_global)->data;
     // TODO: ASSERT that it really us r4k
 
     if (!gdb_registers_upload(&query, cpu->regs, 32))
@@ -583,8 +582,8 @@ static void gdb_cmd_step(char *req, bool step)
     if (matched == 1) {
         ptr64_t addr;
         addr.ptr = address;
-        //TODO: implement for both
-        r4k_cpu_t *cpu = (r4k_cpu_t *)get_cpu(cpuno_global)->data;
+        // TODO: implement for both
+        r4k_cpu_t *cpu = (r4k_cpu_t *) get_cpu(cpuno_global)->data;
         // TODO: ASSERT that it really us r4k
         r4k_set_pc(cpu, addr);
     }
@@ -651,7 +650,7 @@ static void gdb_process_query(char *req)
 static unsigned int gdb_decode_threadid(char *threadid)
 {
     if ((strcmp(threadid, "-1") == 0)
-        || (strcmp(threadid, "0") == 0)) {
+            || (strcmp(threadid, "0") == 0)) {
         gdb_send_reply(GDB_REPLY_OK);
         return 0;
     }
@@ -704,14 +703,13 @@ static void gdb_insert_code_breakpoint(r4k_cpu_t *cpu, ptr64_t addr)
      * this as faulty behavior.
      */
     breakpoint_t *breakpoint = breakpoint_find_by_address(cpu->bps,
-        addr, BREAKPOINT_FILTER_DEBUGGER);
+            addr, BREAKPOINT_FILTER_DEBUGGER);
 
     if (breakpoint != NULL)
         return;
 
     /* Breakpoint not found, thus insert it now. */
-    breakpoint_t *inserted_breakpoint =
-        breakpoint_init(addr, BREAKPOINT_KIND_DEBUGGER);
+    breakpoint_t *inserted_breakpoint = breakpoint_init(addr, BREAKPOINT_KIND_DEBUGGER);
 
     list_append(&cpu->bps, &inserted_breakpoint->item);
 }
@@ -722,7 +720,7 @@ static void gdb_insert_code_breakpoint(r4k_cpu_t *cpu, ptr64_t addr)
 static void gdb_remove_code_breakpoint(r4k_cpu_t *cpu, ptr64_t addr)
 {
     breakpoint_t *breakpoint = breakpoint_find_by_address(cpu->bps,
-        addr, BREAKPOINT_FILTER_DEBUGGER);
+            addr, BREAKPOINT_FILTER_DEBUGGER);
 
     /* Removing non existent breakpoint is not considered as a bug */
     if (breakpoint == NULL)
@@ -747,19 +745,19 @@ static void gdb_breakpoint(char *req, bool insert)
     access_filter_t memory_access = ACCESS_FILTER_ANY;
 
     switch (req[1]) {
-    case '0':  /* Software breakpoint */
-    case '1':  /* Hardware breakpoint */
+    case '0': /* Software breakpoint */
+    case '1': /* Hardware breakpoint */
         code_breakpoint = true;
         break;
-    case '2':  /* Memory breakpoint (write) */
+    case '2': /* Memory breakpoint (write) */
         code_breakpoint = false;
         memory_access = ACCESS_FILTER_WRITE;
         break;
-    case '3':  /* Memory breakpoint (read) */
+    case '3': /* Memory breakpoint (read) */
         code_breakpoint = false;
         memory_access = ACCESS_FILTER_READ;
         break;
-    case '4':  /* Memory breakpoint (any) */
+    case '4': /* Memory breakpoint (any) */
         code_breakpoint = false;
         memory_access = ACCESS_FILTER_ANY;
         break;
@@ -783,8 +781,8 @@ static void gdb_breakpoint(char *req, bool insert)
     ptr64_t virt;
     // Extend the address as the GDB sends the address in 32bits.
     virt.ptr = UINT64_C(0xffffffff00000000) | address;
-    //TODO: implement for both
-    r4k_cpu_t *cpu = (r4k_cpu_t *)get_cpu(cpuno_global)->data;
+    // TODO: implement for both
+    r4k_cpu_t *cpu = (r4k_cpu_t *) get_cpu(cpuno_global)->data;
     // TODO: ASSERT that it really us r4k
 
     if (code_breakpoint) {
@@ -803,7 +801,7 @@ static void gdb_breakpoint(char *req, bool insert)
         if (cpu_convert_addr(get_cpu(cpuno_global), virt, &phys, false)) {
             if (insert)
                 physmem_breakpoint_add(phys, length,
-                    BREAKPOINT_KIND_DEBUGGER, memory_access);
+                        BREAKPOINT_KIND_DEBUGGER, memory_access);
             else
                 physmem_breakpoint_remove(phys);
         } else {
@@ -820,8 +818,8 @@ static void gdb_breakpoint(char *req, bool insert)
  */
 static void gdb_remote_done(bool fail, bool remote_request)
 {
-    //TODO: implement for both
-    r4k_cpu_t *cpu = (r4k_cpu_t *)get_cpu(cpuno_global)->data;
+    // TODO: implement for both
+    r4k_cpu_t *cpu = (r4k_cpu_t *) get_cpu(cpuno_global)->data;
     // TODO: ASSERT that it really us r4k
 
     if (!fail)
@@ -874,41 +872,41 @@ void gdb_session(void)
         }
 
         switch (req[0]) {
-        case 'H':  /* Thread selection */
+        case 'H': /* Thread selection */
             gdb_process_thread(req);
             break;
-        case '?':  /* Get current status */
+        case '?': /* Get current status */
             gdb_reply_event(GDB_EVENT_NO_EXCEPTION);
             break;
-        case 'g':  /* Read registers */
+        case 'g': /* Read registers */
             gdb_read_registers();
             break;
-        case 'G':  /* Write registers */
+        case 'G': /* Write registers */
             gdb_write_registers(req);
             break;
-        case 'm':  /* Memory read */
+        case 'm': /* Memory read */
             gdb_cmd_mem_operation(req, true);
             break;
-        case 'M':  /* Memory write */
+        case 'M': /* Memory write */
             gdb_cmd_mem_operation(req, false);
             break;
-        case 'c':  /* Continue */
+        case 'c': /* Continue */
             gdb_cmd_step(req, false);
             return;
-        case 's':  /* Step */
+        case 's': /* Step */
             gdb_cmd_step(req, true);
             return;
-        case 'D':  /* Detach */
+        case 'D': /* Detach */
             alert("GDB: Detached");
             gdb_remote_done(false, true);
             return;
-        case 'q':  /* Query */
+        case 'q': /* Query */
             gdb_process_query(req);
             break;
-        case 'Z':  /* Add breakpoint */
+        case 'Z': /* Add breakpoint */
             gdb_breakpoint(req, true);
             break;
-        case 'z':  /* Remove breakpoint */
+        case 'z': /* Remove breakpoint */
             gdb_breakpoint(req, false);
             break;
         default:

@@ -19,15 +19,15 @@
 
 /** gdb signal numbers */
 typedef enum {
-    GDB_EVENT_NO_EXCEPTION       = 0,
-    GDB_EVENT_SYSCALL            = 7,
-    GDB_EVENT_PAGE_FAULT         = 11,
-    GDB_EVENT_READ_ONLY_EXC      = 7,
-    GDB_EVENT_BUS_ERROR          = 7,
-    GDB_EVENT_ADDRESS_ERROR      = 11,
-    GDB_EVENT_OVERFLOW           = 16,
-    GDB_EVENT_ILLEGAL_INSTR      = 4,
-    GDB_EVENT_BREAKPOINT         = 5,
+    GDB_EVENT_NO_EXCEPTION = 0,
+    GDB_EVENT_SYSCALL = 7,
+    GDB_EVENT_PAGE_FAULT = 11,
+    GDB_EVENT_READ_ONLY_EXC = 7,
+    GDB_EVENT_BUS_ERROR = 7,
+    GDB_EVENT_ADDRESS_ERROR = 11,
+    GDB_EVENT_OVERFLOW = 16,
+    GDB_EVENT_ILLEGAL_INSTR = 4,
+    GDB_EVENT_BREAKPOINT = 5,
     GDB_EVENT_SOFTWARE_GENERATED = 7
 } gdb_event_t;
 

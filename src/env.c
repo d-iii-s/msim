@@ -89,22 +89,22 @@ static const char *t_false_all[] = {
  *              write to the variable
  */
 typedef struct {
-    const char *const name;  /**< Name of the variable */
-    const char *const desc;  /**< Brief textual description */
+    const char *const name; /**< Name of the variable */
+    const char *const desc; /**< Brief textual description */
     const char *const descf; /**< Full textual description */
-    var_type_t type;         /**< Variable type */
-    void *val;               /**< Where to store a value */
-    void *const func;        /**< Function to be called */
+    var_type_t type; /**< Variable type */
+    void *val; /**< Where to store a value */
+    void *const func; /**< Function to be called */
 } env_t;
 
 #define LAST_ENV \
     { \
         NULL, \
-        NULL, \
-        NULL, \
-        vt_uint, \
-        NULL, \
-        NULL \
+                NULL, \
+                NULL, \
+                vt_uint, \
+                NULL, \
+                NULL \
     }
 
 static const env_t *last_env;
@@ -137,98 +137,78 @@ static bool change_ireg(unsigned int i)
  * Description of variables
  */
 const env_t global_env[] = {
-    {
-        "runtime",
-        "Run-time features",
-        NULL,
-        vt_uint,
-        NULL,
-        NULL
-    },
-    {
-        "disassembling",
-        "Disassembling features",
-        NULL,
-        vt_uint,
-        NULL,
-        NULL
-    },
-    {
-        "iaddr",
-        "Display instruction addresses",
-        "Display address of each disassembled "
+    { "runtime",
+            "Run-time features",
+            NULL,
+            vt_uint,
+            NULL,
+            NULL },
+    { "disassembling",
+            "Disassembling features",
+            NULL,
+            vt_uint,
+            NULL,
+            NULL },
+    { "iaddr",
+            "Display instruction addresses",
+            "Display address of each disassembled "
             "instruction. This feature is useful "
             "especially in conjuction with the trace "
             "variable.",
-        vt_bool,
-        &iaddr,
-        NULL
-    },
-    {
-        "iopc",
-        "Display instruction opcodes",
-        "Display instruction opcodes in hexa. Althrow an instruction "
+            vt_bool,
+            &iaddr,
+            NULL },
+    { "iopc",
+            "Display instruction opcodes",
+            "Display instruction opcodes in hexa. Althrow an instruction "
             "opcode is not a human friendly representation, there are "
             "cases when the opcode can help, for example with debugging "
             "random writes.",
-        vt_bool,
-        &iopc,
-        NULL
-    },
-    {
-        "icmt",
-        "Display instruction comments",
-        "Display additional information about the disassembled "
+            vt_bool,
+            &iopc,
+            NULL },
+    { "icmt",
+            "Display instruction comments",
+            "Display additional information about the disassembled "
             "instructions, e.g. hexa to decimal parameter conversion.",
-        vt_bool,
-        &icmt,
-        NULL
-    },
-    {
-        "iregch",
-        "Display register changes",
-        "Show registers which has been modified during instruction "
+            vt_bool,
+            &icmt,
+            NULL },
+    { "iregch",
+            "Display register changes",
+            "Show registers which has been modified during instruction "
             "execution together with the previous and the new "
             "value.",
-        vt_bool,
-        &iregch,
-        NULL
-    },
-    {
-        "r4k_ireg",
-        "MIPS Register name mode",
-        "Mode 0 (technical): r0, r12, r22, etc.\n"
-           "Mode 1 (at&t): $0, $12, $22, etc.\n"
-           "Mode 2 (textual): at, t4, s2, etc.",
-        vt_uint,
-        &r4k_ireg,
-        change_ireg
-    },
-    {
-        "rv_ireg",
-        "RISC-V Register name mode",
-        "Mode 0 (numerical): x0, x12, x22, etc.\n"
+            vt_bool,
+            &iregch,
+            NULL },
+    { "r4k_ireg",
+            "MIPS Register name mode",
+            "Mode 0 (technical): r0, r12, r22, etc.\n"
+            "Mode 1 (at&t): $0, $12, $22, etc.\n"
+            "Mode 2 (textual): at, t4, s2, etc.",
+            vt_uint,
+            &r4k_ireg,
+            change_ireg },
+    { "rv_ireg",
+            "RISC-V Register name mode",
+            "Mode 0 (numerical): x0, x12, x22, etc.\n"
             "Mode 1 (ABI): zero, sp, a0, s5, etc.\n",
-        vt_uint,
-        &__rv_ireg_mock, // unused
-        rv_debug_change_regnames
-    },
-    {
-        "debugging",
-        "Debugging features",
-        NULL,
-        vt_uint,
-        NULL,
-        NULL
-    },
-    {
-        "trace",
-        "Disassemble instructions as they are executed",
-        "Disassemble and display instructions as they are executed.",
-        vt_bool,
-        &machine_trace,
-        NULL
-    },
+            vt_uint,
+            &__rv_ireg_mock, // unused
+            rv_debug_change_regnames },
+    { "debugging",
+            "Debugging features",
+            NULL,
+            vt_uint,
+            NULL,
+            NULL },
+    { "trace",
+            "Disassemble instructions as they are executed",
+            "Disassemble and display instructions as they are executed.",
+            vt_bool,
+            &machine_trace,
+            NULL },
     LAST_ENV
 };
 
@@ -392,7 +372,7 @@ static void show_help(token_t *parm)
             if (env->val)
                 /* Variable */
                 printf("                       %-10s %s", env->name,
-                    env->desc);
+                        env->desc);
             else
                 /* Label */
                 printf("%s", env->desc);
@@ -417,7 +397,7 @@ static bool set_uint(const env_t *env, token_t *parm)
     ASSERT(env != NULL);
     ASSERT(parm != NULL);
 
-    if(parm_type(parm) != tt_uint) {
+    if (parm_type(parm) != tt_uint) {
         error("Integer parameter expected");
         return false;
     }
@@ -610,8 +590,7 @@ char *generator_env_name(token_t *parm, const void *data, unsigned int level)
     if (level == 0)
         last_env = NULL;
 
-    const char *name =
-        (parm_type(parm) == tt_str) ? parm_str(parm) : "";
+    const char *name = (parm_type(parm) == tt_str) ? parm_str(parm) : "";
 
     /* Find next suitable entry */
     bool fnd = env_by_partial_varname(name, &last_env);
@@ -628,7 +607,7 @@ char *generator_env_name(token_t *parm, const void *data, unsigned int level)
  *
  */
 char *generator_env_booltype(token_t *parm, const void *data,
-    unsigned int level)
+        unsigned int level)
 {
     ASSERT(parm != NULL);
     ASSERT((parm_type(parm) == tt_str) || (parm_type(parm) == tt_end));
@@ -658,7 +637,7 @@ char *generator_env_booltype(token_t *parm, const void *data,
  *
  */
 char *generator_bool_envname(token_t *parm, const void *data,
-    unsigned int level)
+        unsigned int level)
 {
     ASSERT(parm != NULL);
     ASSERT((parm_type(parm) == tt_str) || parm_type(parm) == tt_end);
@@ -670,8 +649,7 @@ char *generator_bool_envname(token_t *parm, const void *data,
     /* Find next suitable entry */
     bool fnd;
     do {
-        const char *name =
-            (parm_type(parm) == tt_str) ? parm_str(parm) : "";
+        const char *name = (parm_type(parm) == tt_str) ? parm_str(parm) : "";
 
         fnd = env_by_partial_varname(name, &last_benv);
     } while ((fnd) && (last_benv->type != vt_bool));
@@ -686,7 +664,7 @@ char *generator_bool_envname(token_t *parm, const void *data,
  *
  */
 char *generator_equal_char(token_t *token, const void *data,
-    unsigned int level)
+        unsigned int level)
 {
     ASSERT(token != NULL);
     ASSERT((parm_type(token) == tt_str) || (parm_type(token) == tt_end));

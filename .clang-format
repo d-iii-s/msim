@@ -1,0 +1,13 @@
+---
+Language: Cpp
+BasedOnStyle: WebKit
+BreakBeforeBraces: Custom
+BraceWrapping:
+  AfterFunction: true
+AlignEscapedNewlines: DontAlign
+ContinuationIndentWidth: 8
+MaxEmptyLinesToKeep: 1
+SpaceAfterCStyleCast: true
+PointerAlignment: Right
+SortIncludes: Never
+...

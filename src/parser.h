@@ -58,37 +58,37 @@ typedef struct {
  * be included at the end of a parameter list.
  */
 
-#define REQ   "r"  /**< Parameter is required */
-#define REQC  'r'
-#define OPT   "o"  /**< Parameter is optional */
-#define OPTC  'o'
+#define REQ "r" /**< Parameter is required */
+#define REQC 'r'
+#define OPT "o" /**< Parameter is optional */
+#define OPTC 'o'
 
-#define INT   "i"  /**< Integer */
-#define INTC  'i'
-#define STR   "s"  /**< String */
-#define STRC  's'
-#define VAR   "v"  /**< Any */
-#define VARC  'v'
-#define CON   "c"  /**< Constant required */
-#define CONC  'c'
+#define INT "i" /**< Integer */
+#define INTC 'i'
+#define STR "s" /**< String */
+#define STRC 's'
+#define VAR "v" /**< Any */
+#define VARC 'v'
+#define CON "c" /**< Constant required */
+#define CONC 'c'
 
-#define NEXT  "\0"  /**< Mark the next parameter */
+#define NEXT "\0" /**< Mark the next parameter */
 
-#define NOCMD   "e"    /**< No command */
-#define NOCMDC  'e'
-#define CONT    "\0n"  /**< Do not check other params */
-#define CONTC   'n'
-#define END     "\0e"  /**< Mo more parameter */
-#define ENDC    'e'
+#define NOCMD "e" /**< No command */
+#define NOCMDC 'e'
+#define CONT "\0n" /**< Do not check other params */
+#define CONTC 'n'
+#define END "\0e" /**< Mo more parameter */
+#define ENDC 'e'
 
-#define DEFAULT  NULL
+#define DEFAULT NULL
 
 /** cmd_find return values */
 typedef enum {
-    CMP_NO_HIT = 0,        /**< No hit */
-    CMP_HIT = 1,           /**< Exact match */
-    CMP_PARTIAL_HIT = 2,   /**< Partial match */
-    CMP_MULTIPLE_HIT = 3   /**< Multiple match */
+    CMP_NO_HIT = 0, /**< No hit */
+    CMP_HIT = 1, /**< Exact match */
+    CMP_PARTIAL_HIT = 2, /**< Partial match */
+    CMP_MULTIPLE_HIT = 3 /**< Multiple match */
 } cmd_find_res_t;
 
 extern const char *token_overview[];
@@ -98,17 +98,17 @@ struct cmd;
 typedef bool (*fcmd_t)(token_t *parm, void *data);
 typedef char *(*gen_t)(token_t *parm, const void *data, unsigned int level);
 typedef gen_t (*fgen_t)(token_t **parm, const struct cmd *cmd,
-    const void **data);
+        const void **data);
 
 /** Device command list */
 typedef struct cmd {
-    const char *name;   /* Command name */
-    fcmd_t func;        /* Function which implements command */
-    fgen_t find_gen;    /* Function for finding the completion function */
-    fcmd_t help;        /* Help function */
-    const char *desc;   /* Short description */
-    const char *descf;  /* Full description */
-    const char *pars;   /* Parameters and description */
+    const char *name; /* Command name */
+    fcmd_t func; /* Function which implements command */
+    fgen_t find_gen; /* Function for finding the completion function */
+    fcmd_t help; /* Help function */
+    const char *desc; /* Short description */
+    const char *descf; /* Full description */
+    const char *pars; /* Parameters and description */
 } cmd_t;
 
 extern token_t *parm_parse(const char *str);
@@ -131,15 +131,15 @@ extern uint64_t parm_uint_next(token_t **parm);
 extern char *parm_str_next(token_t **parm);
 
 extern cmd_find_res_t cmd_find(const char *cmd_name, const cmd_t *cmds,
-   const cmd_t **cmd);
+        const cmd_t **cmd);
 
 extern bool cmd_run_by_spec(const cmd_t *cmd, token_t *parm, void *data);
 extern bool cmd_run_by_name(const char *cmd, token_t *parm,
-   const cmd_t *cmds, void *data);
+        const cmd_t *cmds, void *data);
 extern bool cmd_run_by_parm(token_t *parm, const cmd_t *cmds, void *data);
 
 extern char *generator_cmd(token_t *parm, const void *data,
-    unsigned int level);
+        unsigned int level);
 
 extern void cmd_print_help(const cmd_t *cmds);
 extern void cmd_print_extended_help(const cmd_t *cmds, token_t *parm);

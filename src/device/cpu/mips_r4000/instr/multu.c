@@ -18,7 +18,7 @@ static r4k_exc_t instr_multu(r4k_cpu_t *cpu, r4k_instr_t instr)
 }
 
 static void mnemonics_multu(ptr64_t addr, r4k_instr_t instr,
-    string_t *mnemonics, string_t *comments)
+        string_t *mnemonics, string_t *comments)
 {
     string_printf(mnemonics, "multu");
     disassemble_rs_rt(instr, mnemonics, comments);

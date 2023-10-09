@@ -35,7 +35,7 @@
 #include "../fault.h"
 
 /** Count of device types */
-#define DEVICE_TYPE_COUNT  11
+#define DEVICE_TYPE_COUNT 11
 
 /* Implemented peripheral list */
 const device_type_t *device_types[DEVICE_TYPE_COUNT] = {
@@ -85,8 +85,9 @@ device_t *alloc_device(const char *type_string, const char *device_name)
 
     if ((!machine_nondet) && (device_type->nondet)) {
         error("Device \"%s\" results in non-deterministic behaviour.\n"
-            "This is currently disabled. Use the command-line option\n"
-            "-n to enable non-determinism.", type_string);
+              "This is currently disabled. Use the command-line option\n"
+              "-n to enable non-determinism.",
+                type_string);
         return NULL;
     }
 
@@ -125,7 +126,7 @@ void add_device(device_t *dev)
  * @return True if the given device matches to the filter.
  *
  */
-static bool dev_match_to_filter(device_t* device, device_filter_t filter)
+static bool dev_match_to_filter(device_t *device, device_filter_t filter)
 {
     ASSERT(device != NULL);
 
@@ -137,8 +138,7 @@ static bool dev_match_to_filter(device_t* device, device_filter_t filter)
     case DEVICE_FILTER_STEP4K:
         return device->type->step4k != NULL;
     case DEVICE_FILTER_MEMORY:
-        return (strcmp(device->type->name, "rom") == 0) ||
-            (strcmp(device->type->name, "rwm") == 0);
+        return (strcmp(device->type->name, "rom") == 0) || (strcmp(device->type->name, "rwm") == 0);
     case DEVICE_FILTER_R4K_PROCESSOR:
         return (strcmp(device->type->name, "dr4kcpu") == 0);
     default:
@@ -193,7 +193,7 @@ bool dev_next(device_t **device, device_filter_t filter)
  *
  */
 const char *dev_type_by_partial_name(const char *name_prefix,
-    uint32_t* device_order)
+        uint32_t *device_order)
 {
     ASSERT(name_prefix != NULL);
 
@@ -238,7 +238,7 @@ const char *dev_by_partial_name(const char *prefix_name, device_t **device)
             break;
     }
 
-    char* found_name = *device ? (*device)->name : NULL;
+    char *found_name = *device ? (*device)->name : NULL;
     return found_name;
 }
 
@@ -253,7 +253,7 @@ const char *dev_by_partial_name(const char *prefix_name, device_t **device)
  *
  */
 size_t dev_count_by_partial_name(const char *name_prefix,
-    device_t **last_found_device)
+        device_t **last_found_device)
 {
     ASSERT(name_prefix != NULL);
     ASSERT(last_found_device != NULL);
@@ -333,13 +333,13 @@ bool dev_generic_help(token_t *parm, device_t *dev)
  *
  */
 gen_t dev_find_generator(token_t **parm, const device_t *dev,
-    const void **data)
+        const void **data)
 {
     /* Check if the first token is a string */
     if (parm_type(*parm) != tt_str)
         return NULL;
 
-    const char* user_text = parm_str(*parm);
+    const char *user_text = parm_str(*parm);
 
     /* Look up for device command */
     const cmd_t *cmd;

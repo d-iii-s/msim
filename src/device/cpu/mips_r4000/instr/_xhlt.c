@@ -9,7 +9,7 @@ static r4k_exc_t instr__xhlt(r4k_cpu_t *cpu, r4k_instr_t instr)
 }
 
 static void mnemonics__xhlt(ptr64_t addr, r4k_instr_t instr,
-    string_t *mnemonics, string_t *comments)
+        string_t *mnemonics, string_t *comments)
 {
     if (!machine_specific_instructions) {
         return mnemonics__reserved(addr, instr, mnemonics, comments);

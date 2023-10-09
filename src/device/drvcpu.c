@@ -36,14 +36,14 @@ static void rv_set_pc_wrapper(void* cpu, ptr64_t addr){
 }
 
 static const cpu_ops_t rv_cpu = {
-	.interrupt_up = (interrupt_func_t)rv_interrupt_up,
-	.interrupt_down = (interrupt_func_t)rv_interrupt_down,
-	
-	.convert_addr = (convert_addr_func_t)rv_convert_add_wrapper,
+    .interrupt_up = (interrupt_func_t)rv_interrupt_up,
+    .interrupt_down = (interrupt_func_t)rv_interrupt_down,
+    
+    .convert_addr = (convert_addr_func_t)rv_convert_add_wrapper,
     .reg_dump = (reg_dump_func_t)rv_reg_dump,
     
-	.set_pc = (set_pc_func_t)rv_set_pc_wrapper,
-	.sc_access = (sc_access_func_t)rv_sc_access
+    .set_pc = (set_pc_func_t)rv_set_pc_wrapper,
+    .sc_access = (sc_access_func_t)rv_sc_access
 };
 
 /**
@@ -55,7 +55,7 @@ static bool drvcpu_init(token_t *parm, device_t *dev){
 
     if(id == MAX_CPUS) {
         error("Maximum CPU count exceeded (%u)", MAX_CPUS);
-		return false;
+        return false;
     }
 
     rv_cpu_t *cpu = safe_malloc_t(rv_cpu_t);

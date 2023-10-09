@@ -28,49 +28,49 @@
 
 
 #define FRAMES2SIZE(frames) \
-	(((len36_t) (frames)) << FRAME_WIDTH)
+    (((len36_t) (frames)) << FRAME_WIDTH)
 
 #define SIZE2FRAMES(size) \
-	((size) >> FRAME_WIDTH)
+    ((size) >> FRAME_WIDTH)
 
 #define FRAME2ADDR(frame) \
-	(((ptr36_t) (frame)) << FRAME_WIDTH)
+    (((ptr36_t) (frame)) << FRAME_WIDTH)
 
 #define ADDR2FRAME(addr) \
-	((addr) >> FRAME_WIDTH)
+    ((addr) >> FRAME_WIDTH)
 
 #define DEFAULT_MEMORY_VALUE  UINT64_C(0xffffffffffffffff)
 
 typedef enum {
-	MEMT_NONE = 0,  /**< Uninitialized */
-	MEMT_MEM  = 1,  /**< Generic */
-	MEMT_FMAP = 2   /**< File mapped */
+    MEMT_NONE = 0,  /**< Uninitialized */
+    MEMT_MEM  = 1,  /**< Generic */
+    MEMT_FMAP = 2   /**< File mapped */
 } physmem_type_t;
 
 typedef struct {
-	/* Memory area type */
-	physmem_type_t type;
-	bool writable;
+    /* Memory area type */
+    physmem_type_t type;
+    bool writable;
 
-	/* Starting physical frame */
-	pfn_t start;
+    /* Starting physical frame */
+    pfn_t start;
 
-	/* Number of physical frames */
-	pfn_t count;
+    /* Number of physical frames */
+    pfn_t count;
 
-	/* Memory content */
-	uint8_t *data;
+    /* Memory content */
+    uint8_t *data;
 } physmem_area_t;
 
 typedef struct frame {
-	/* Physical memory area containing the frame */
-	physmem_area_t *area;
+    /* Physical memory area containing the frame */
+    physmem_area_t *area;
 
-	/* Frame data (with displacement) */
-	uint8_t *data;
+    /* Frame data (with displacement) */
+    uint8_t *data;
 
-	/* Binary translation valid flag */
-	bool valid;
+    /* Binary translation valid flag */
+    bool valid;
 } frame_t;
 
 /** Physical memory management */

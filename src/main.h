@@ -26,32 +26,32 @@ typedef uint64_t len64_t;
 typedef uint64_t ptr36_t;
 
 typedef union {
-	uint64_t ptr;
+    uint64_t ptr;
 #ifdef WORDS_BIGENDIAN
-	struct {
-		uint32_t hi;
-		uint32_t lo;
-	};
+    struct {
+        uint32_t hi;
+        uint32_t lo;
+    };
 #else
-	struct {
-		uint32_t lo;
-		uint32_t hi;
-	};
+    struct {
+        uint32_t lo;
+        uint32_t hi;
+    };
 #endif
 } __attribute__((packed, aligned(8))) ptr64_t;
 
 typedef union {
-	uint64_t val;
+    uint64_t val;
 #ifdef WORDS_BIGENDIAN
-	struct {
-		uint32_t hi;
-		uint32_t lo;
-	};
+    struct {
+        uint32_t hi;
+        uint32_t lo;
+    };
 #else
-	struct {
-		uint32_t lo;
-		uint32_t hi;
-	};
+    struct {
+        uint32_t lo;
+        uint32_t hi;
+    };
 #endif
 } __attribute__((packed, aligned(8))) reg64_t;
 

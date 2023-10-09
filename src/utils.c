@@ -33,142 +33,142 @@
 static void safe_realloc(char **ptr, size_t *size, size_t pos,
     size_t granularity)
 {
-	ASSERT(ptr != NULL);
-	ASSERT(*ptr != NULL);
-	ASSERT(size != NULL);
+    ASSERT(ptr != NULL);
+    ASSERT(*ptr != NULL);
+    ASSERT(size != NULL);
 
-	size_t sz = ALIGN_UP(MAX(*size, pos + 1), granularity);
+    size_t sz = ALIGN_UP(MAX(*size, pos + 1), granularity);
 
-	if (sz != *size) {
-		*size = sz;
-		*ptr = (char *) realloc(*ptr, sz);
+    if (sz != *size) {
+        *size = sz;
+        *ptr = (char *) realloc(*ptr, sz);
 
-		if (*ptr == NULL)
-			die(ERR_MEM, "Not enough memory");
-	}
+        if (*ptr == NULL)
+            die(ERR_MEM, "Not enough memory");
+    }
 }
 
 void string_init(string_t *str)
 {
-	ASSERT(str != NULL);
+    ASSERT(str != NULL);
 
-	str->str = safe_malloc(STRING_GRANULARITY);
-	str->size = STRING_GRANULARITY;
-	str->pos = 0;
+    str->str = safe_malloc(STRING_GRANULARITY);
+    str->size = STRING_GRANULARITY;
+    str->pos = 0;
 
-	str->str[str->pos] = 0;
+    str->str[str->pos] = 0;
 }
 
 void string_clear(string_t *str)
 {
-	ASSERT(str != NULL);
-	ASSERT(str->str != NULL);
+    ASSERT(str != NULL);
+    ASSERT(str->str != NULL);
 
-	str->size = 0;
-	str->pos = 0;
-	safe_realloc(&str->str, &str->size, str->pos + 1,
-	    STRING_GRANULARITY);
+    str->size = 0;
+    str->pos = 0;
+    safe_realloc(&str->str, &str->size, str->pos + 1,
+        STRING_GRANULARITY);
 
-	str->str[str->pos] = 0;
+    str->str[str->pos] = 0;
 }
 
 bool string_is_empty(string_t *str)
 {
-	ASSERT(str != NULL);
+    ASSERT(str != NULL);
 
-	return str->pos == 0;
+    return str->pos == 0;
 }
 
 void string_push(string_t *str, char c)
 {
-	ASSERT(str != NULL);
-	ASSERT(str->str != NULL);
+    ASSERT(str != NULL);
+    ASSERT(str->str != NULL);
 
-	safe_realloc(&str->str, &str->size, str->pos + 1,
-	    STRING_GRANULARITY);
+    safe_realloc(&str->str, &str->size, str->pos + 1,
+        STRING_GRANULARITY);
 
-	str->str[str->pos] = c;
-	str->pos++;
-	str->str[str->pos] = 0;
+    str->str[str->pos] = c;
+    str->pos++;
+    str->str[str->pos] = 0;
 }
 
 void string_append(string_t *str, const char *val)
 {
-	ASSERT(str != NULL);
-	ASSERT(str->str != NULL);
-	ASSERT(val != NULL);
+    ASSERT(str != NULL);
+    ASSERT(str->str != NULL);
+    ASSERT(val != NULL);
 
-	size_t len = strlen(val);
+    size_t len = strlen(val);
 
-	safe_realloc(&str->str, &str->size, str->pos + len,
-	    STRING_GRANULARITY);
+    safe_realloc(&str->str, &str->size, str->pos + len,
+        STRING_GRANULARITY);
 
-	memcpy(str->str + str->pos, val, len);
-	str->pos += len;
-	str->str[str->pos] = 0;
+    memcpy(str->str + str->pos, val, len);
+    str->pos += len;
+    str->str[str->pos] = 0;
 }
 
 void string_vprintf(string_t *str, const char *fmt, va_list va)
 {
-	ASSERT(str != NULL);
-	ASSERT(fmt != NULL);
+    ASSERT(str != NULL);
+    ASSERT(fmt != NULL);
 
-	va_list va2;
-	va_copy(va2, va);
-	int size = vsnprintf(NULL, 0, fmt, va2);
-	va_end(va2);
+    va_list va2;
+    va_copy(va2, va);
+    int size = vsnprintf(NULL, 0, fmt, va2);
+    va_end(va2);
 
-	if (size < 0)
-		die(ERR_INTERN, "Error formatting string");
+    if (size < 0)
+        die(ERR_INTERN, "Error formatting string");
 
-	safe_realloc(&str->str, &str->size, str->pos + size,
-	    STRING_GRANULARITY);
+    safe_realloc(&str->str, &str->size, str->pos + size,
+        STRING_GRANULARITY);
 
-	size = vsnprintf(str->str + str->pos, size + 1, fmt, va);
+    size = vsnprintf(str->str + str->pos, size + 1, fmt, va);
 
-	if (size < 0)
-		die(ERR_INTERN, "Error formatting string");
+    if (size < 0)
+        die(ERR_INTERN, "Error formatting string");
 
-	str->pos += size;
-	str->str[str->pos] = 0;
+    str->pos += size;
+    str->str[str->pos] = 0;
 }
 
 void string_printf(string_t *str, const char *fmt, ...)
 {
-	ASSERT(str != NULL);
-	ASSERT(fmt != NULL);
+    ASSERT(str != NULL);
+    ASSERT(fmt != NULL);
 
-	va_list va;
+    va_list va;
 
-	va_start(va, fmt);
-	string_vprintf(str, fmt, va);
-	va_end(va);
+    va_start(va, fmt);
+    string_vprintf(str, fmt, va);
+    va_end(va);
 }
 
 void string_fread(string_t *str, FILE *file)
 {
-	ASSERT(str != NULL);
-	ASSERT(file != NULL);
+    ASSERT(str != NULL);
+    ASSERT(file != NULL);
 
-	char buf[STRING_BUFFER];
+    char buf[STRING_BUFFER];
 
-	while (true) {
-		if (fgets(buf, STRING_BUFFER, file) == NULL)
-			break;
+    while (true) {
+        if (fgets(buf, STRING_BUFFER, file) == NULL)
+            break;
 
-		buf[STRING_BUFFER - 1] = 0;
-		string_append(str, buf);
-	}
+        buf[STRING_BUFFER - 1] = 0;
+        string_append(str, buf);
+    }
 }
 
 void string_done(string_t *str)
 {
-	ASSERT(str != NULL);
-	ASSERT(str->str != NULL);
+    ASSERT(str != NULL);
+    ASSERT(str->str != NULL);
 
-	safe_free(str->str);
-	str->size = 0;
-	str->pos = 0;
+    safe_free(str->str);
+    str->size = 0;
+    str->pos = 0;
 }
 
 /** Safe memory allocation
@@ -176,13 +176,13 @@ void string_done(string_t *str)
  */
 void *safe_malloc(const size_t size)
 {
-	ASSERT(size > 0);
+    ASSERT(size > 0);
 
-	void *ptr = malloc(size);
-	if (ptr == NULL)
-		die(ERR_MEM, "Not enough memory");
+    void *ptr = malloc(size);
+    if (ptr == NULL)
+        die(ERR_MEM, "Not enough memory");
 
-	return ptr;
+    return ptr;
 }
 
 /** Make a copy of a string
@@ -190,13 +190,13 @@ void *safe_malloc(const size_t size)
  */
 char *safe_strdup(const char *str)
 {
-	ASSERT(str != NULL);
+    ASSERT(str != NULL);
 
-	char *duplicate = strdup(str);
-	if (duplicate == NULL)
-		die(ERR_MEM, "Not enough memory");
+    char *duplicate = strdup(str);
+    if (duplicate == NULL)
+        die(ERR_MEM, "Not enough memory");
 
-	return duplicate;
+    return duplicate;
 }
 
 /** Test the correctness of the prefix
@@ -204,18 +204,18 @@ char *safe_strdup(const char *str)
  */
 bool prefix(const char *prefix, const char *string)
 {
-	ASSERT(prefix != NULL);
-	ASSERT(string != NULL);
+    ASSERT(prefix != NULL);
+    ASSERT(string != NULL);
 
-	while (*prefix != 0) {
-		if (*prefix != *string)
-			return false;
+    while (*prefix != 0) {
+        if (*prefix != *string)
+            return false;
 
-		prefix++;
-		string++;
-	}
+        prefix++;
+        string++;
+    }
 
-	return true;
+    return true;
 }
 
 /** Safely open a file
@@ -231,40 +231,40 @@ bool prefix(const char *prefix, const char *string)
  */
 FILE *try_fopen(const char *path, const char *mode)
 {
-	ASSERT(path != NULL);
-	ASSERT(mode != NULL);
+    ASSERT(path != NULL);
+    ASSERT(mode != NULL);
 
-	FILE *file = fopen(path, mode);
+    FILE *file = fopen(path, mode);
 
-	if (file != NULL) {
-		/* We do not want to open directories */
-		if (check_isdir(file)) {
-			safe_fclose(file, path);
-			file = NULL;
-		}
-	} else
-		io_error(path);
+    if (file != NULL) {
+        /* We do not want to open directories */
+        if (check_isdir(file)) {
+            safe_fclose(file, path);
+            file = NULL;
+        }
+    } else
+        io_error(path);
 
-	return file;
+    return file;
 }
 
 bool check_isdir(FILE *file)
 {
-	ASSERT(file != NULL);
+    ASSERT(file != NULL);
 
-	int fd = fileno(file);
-	if (fd == -1) {
-		io_error(NULL);
-		return false;
-	}
+    int fd = fileno(file);
+    if (fd == -1) {
+        io_error(NULL);
+        return false;
+    }
 
-	struct stat stat;
-	if (fstat(fd, &stat) != 0) {
-		io_error(NULL);
-		return false;
-	}
+    struct stat stat;
+    if (fstat(fd, &stat) != 0) {
+        io_error(NULL);
+        return false;
+    }
 
-	return S_ISDIR(stat.st_mode);
+    return S_ISDIR(stat.st_mode);
 }
 
 /** Safe file close
@@ -278,11 +278,11 @@ bool check_isdir(FILE *file)
  */
 void safe_fclose(FILE *file, const char *path)
 {
-	ASSERT(file != NULL);
-	ASSERT(path != NULL);
+    ASSERT(file != NULL);
+    ASSERT(path != NULL);
 
-	if (fclose(file) != 0)
-		io_die(ERR_IO, path);
+    if (fclose(file) != 0)
+        io_die(ERR_IO, path);
 }
 
 /** Safe fseek
@@ -300,16 +300,16 @@ void safe_fclose(FILE *file, const char *path)
  */
 bool try_fseek(FILE *file, size_t offset, int whence, const char *path)
 {
-	ASSERT(file != NULL);
-	ASSERT(path != NULL);
+    ASSERT(file != NULL);
+    ASSERT(path != NULL);
 
-	if (fseek(file, (long) offset, whence) != 0) {
-		io_error(path);
-		safe_fclose(file, path);
-		return false;
-	}
+    if (fseek(file, (long) offset, whence) != 0) {
+        io_error(path);
+        safe_fclose(file, path);
+        return false;
+    }
 
-	return true;
+    return true;
 }
 
 /** Safe ftell
@@ -328,28 +328,28 @@ bool try_fseek(FILE *file, size_t offset, int whence, const char *path)
  */
 bool try_ftell(FILE *file, const char *path, size_t *pos)
 {
-	ASSERT(file != NULL);
-	ASSERT(path != NULL);
-	ASSERT(pos != NULL);
+    ASSERT(file != NULL);
+    ASSERT(path != NULL);
+    ASSERT(pos != NULL);
 
-	long lpos = ftell(file);
-	*pos = (size_t) lpos;
+    long lpos = ftell(file);
+    *pos = (size_t) lpos;
 
-	if ((lpos < 0) || ((long) *pos != lpos)) {
-		io_error(path);
-		safe_fclose(file, path);
-		return false;
-	}
+    if ((lpos < 0) || ((long) *pos != lpos)) {
+        io_error(path);
+        safe_fclose(file, path);
+        return false;
+    }
 
-	return true;
+    return true;
 }
 
 void try_munmap(void *ptr, size_t size)
 {
-	ASSERT(ptr != NULL);
+    ASSERT(ptr != NULL);
 
-	if (munmap(ptr, size) == -1)
-		io_error(NULL);
+    if (munmap(ptr, size) == -1)
+        io_error(NULL);
 }
 
 /** Convert 32 bit unsigned number to string with k, K, M or no suffix.
@@ -371,23 +371,23 @@ void try_munmap(void *ptr, size_t size)
  */
 char *uint64_human_readable(uint64_t i)
 {
-	string_t str;
-	string_init(&str);
+    string_t str;
+    string_init(&str);
 
-	if (i == 0)
-		string_push(&str, '0');
-	else if ((i & 0x3fffffffU) == 0)
-		string_printf(&str, "%" PRIu64 "G", i >> 30);
-	else if ((i & 0xfffffU) == 0)
-		string_printf(&str, "%" PRIu64 "M", i >> 20);
-	else if ((i & 0x3ffU) == 0)
-		string_printf(&str, "%" PRIu64 "K", i >> 10);
-	else if ((i % 1000) == 0)
-		string_printf(&str, "%" PRIu64 "k", i / 1000);
-	else
-		string_printf(&str, "%" PRIu64, i);
+    if (i == 0)
+        string_push(&str, '0');
+    else if ((i & 0x3fffffffU) == 0)
+        string_printf(&str, "%" PRIu64 "G", i >> 30);
+    else if ((i & 0xfffffU) == 0)
+        string_printf(&str, "%" PRIu64 "M", i >> 20);
+    else if ((i & 0x3ffU) == 0)
+        string_printf(&str, "%" PRIu64 "K", i >> 10);
+    else if ((i % 1000) == 0)
+        string_printf(&str, "%" PRIu64 "k", i / 1000);
+    else
+        string_printf(&str, "%" PRIu64, i);
 
-	return str.str;
+    return str.str;
 }
 
 /** Test whether the address is double word-aligned
@@ -399,21 +399,21 @@ char *uint64_human_readable(uint64_t i)
  */
 bool ptr36_dword_aligned(ptr36_t addr)
 {
-	return (addr & 0x07U) == 0;
+    return (addr & 0x07U) == 0;
 }
 
 bool ptr36_frame_aligned(ptr36_t addr)
 {
-	return (addr & FRAME_MASK) == 0;
+    return (addr & FRAME_MASK) == 0;
 }
 
 bool virt_range(uint64_t addr)
 {
-	return true;
+    return true;
 }
 
 bool phys_range(uint64_t addr) {
-	return (addr <= UINT64_C(0xfffffffff));
+    return (addr <= UINT64_C(0xfffffffff));
 }
 
 uint64_t current_timestamp(void) {

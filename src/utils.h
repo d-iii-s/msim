@@ -24,44 +24,44 @@
 #define MIN(a, b)  (((a) < (b)) ? (a) : (b))
 
 #define ALIGN_DOWN(addr, align) \
-	((addr) & ~((align) - 1))
+    ((addr) & ~((align) - 1))
 
 #define ALIGN_UP(addr, align) \
-	(((addr) + ((align) - 1)) & ~((align) - 1))
+    (((addr) + ((align) - 1)) & ~((align) - 1))
 
 #define IS_ALIGNED(addr, align) \
-	((addr & (align - 1)) == 0)
+    ((addr & (align - 1)) == 0)
 
 #define IS_POWER_OF_2(num) \
-	(((num) == 0) || (((num) & ((num)-1)) == 0))
+    (((num) == 0) || (((num) & ((num)-1)) == 0))
 
 #define BIT_MASK(start, end) \
-	(((UINT64_C(1) << (end - start)) - 1) << start)
+    (((UINT64_C(1) << (end - start)) - 1) << start)
 
 #define EXTRACT_BITS(val, start, end) \
-	((val >> start) & ( (UINT64_C(1) << (end - start)) - 1))
+    ((val >> start) & ( (UINT64_C(1) << (end - start)) - 1))
 
 #define WRITE_BITS(target, val, start, end) \
-	((target & ~BIT_MASK(start, end)) | ((val << start) & BIT_MASK(start, end)))
+    ((target & ~BIT_MASK(start, end)) | ((val << start) & BIT_MASK(start, end)))
 
 #define AREAS_OVERLAP(base1, size1, base2, size2) \
-	(((base1) >= (base2) && (base1) < (base2) + (size2)) || ((base2) >= (base1) && (base2) < (base1) + (size1)))
+    (((base1) >= (base2) && (base1) < (base2) + (size2)) || ((base2) >= (base1) && (base2) < (base1) + (size1)))
 
 #define safe_free(ptr) \
-	{ \
-		if (ptr != NULL) { \
-			free(ptr); \
-			ptr = NULL; \
-		} \
-	}
+    { \
+        if (ptr != NULL) { \
+            free(ptr); \
+            ptr = NULL; \
+        } \
+    }
 
 #define safe_malloc_t(type) \
-	((type *) safe_malloc(sizeof(type)))
+    ((type *) safe_malloc(sizeof(type)))
 
 typedef struct {
-	char *str;
-	size_t size;
-	size_t pos;
+    char *str;
+    size_t size;
+    size_t pos;
 } string_t;
 
 extern void *safe_malloc(const size_t size);

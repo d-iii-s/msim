@@ -45,24 +45,24 @@ static struct termios tio_old;
  */
 static char *hint_generator(const char *input, int level)
 {
-	ASSERT(level >= 0);
+    ASSERT(level >= 0);
 
-	if (level == 0) {
-		if (last_pars != NULL)
-			parm_delete(last_pars);
+    if (level == 0) {
+        if (last_pars != NULL)
+            parm_delete(last_pars);
 
-		/* Find completion generator at first. */
-		last_pars = parm_parse(par_text);
-		parm_check_end(last_pars, par_text);
+        /* Find completion generator at first. */
+        last_pars = parm_parse(par_text);
+        parm_check_end(last_pars, par_text);
 
-		data = NULL;
-		gen = find_completion_generator(&last_pars, &data);
-		if (gen == NULL)
-			return NULL;
-	}
+        data = NULL;
+        gen = find_completion_generator(&last_pars, &data);
+        if (gen == NULL)
+            return NULL;
+    }
 
-	ASSERT(gen != NULL);
-	return gen(last_pars, data, level);
+    ASSERT(gen != NULL);
+    return gen(last_pars, data, level);
 }
 
 /** Try to complete the user input
@@ -70,20 +70,20 @@ static char *hint_generator(const char *input, int level)
  */
 static char **msim_completion(const char *text, int start, int end)
 {
-	ASSERT(end >= 0);
+    ASSERT(end >= 0);
 
-	char **result;
+    char **result;
 
-	par_text = (char *) safe_malloc(end + 1);
-	strncpy(par_text, rl_line_buffer, end);
-	par_text[end] = 0;
+    par_text = (char *) safe_malloc(end + 1);
+    strncpy(par_text, rl_line_buffer, end);
+    par_text[end] = 0;
 
-	rl_attempted_completion_over = 1;
+    rl_attempted_completion_over = 1;
 
-	result = rl_completion_matches("", hint_generator);
-	safe_free(par_text);
+    result = rl_completion_matches("", hint_generator);
+    safe_free(par_text);
 
-	return result;
+    return result;
 }
 
 /** Terminal and readline initialization
@@ -91,43 +91,43 @@ static char **msim_completion(const char *text, int start, int end)
  */
 void input_init(void)
 {
-	input_term = !!isatty(0);
+    input_term = !!isatty(0);
 
-	if (!input_term)
-		return;
+    if (!input_term)
+        return;
 
-	(void) tcgetattr(0, &tio_shadow);
+    (void) tcgetattr(0, &tio_shadow);
 
-	tio_old = tio_shadow;
-	tio_inter = tio_shadow;
-	tio_shadow.c_lflag &= ~(ECHO | INLCR | ICANON | ECHOE | ONLCR);
+    tio_old = tio_shadow;
+    tio_inter = tio_shadow;
+    tio_shadow.c_lflag &= ~(ECHO | INLCR | ICANON | ECHOE | ONLCR);
 #ifdef IUCLC
-	tio_shadow.c_lflag &= ~(IUCLC);
+    tio_shadow.c_lflag &= ~(IUCLC);
 #endif
-	tio_shadow.c_cc[VMIN] = 1;
-	tio_shadow.c_cc[VTIME] = 0;
+    tio_shadow.c_cc[VMIN] = 1;
+    tio_shadow.c_cc[VTIME] = 0;
 
-	tio_inter.c_lflag &= ~(ECHO | INLCR | ICANON | ECHOE | ONLCR);
+    tio_inter.c_lflag &= ~(ECHO | INLCR | ICANON | ECHOE | ONLCR);
 #ifdef IUCLC
-	tio_inter.c_lflag &= ~(IUCLC);
+    tio_inter.c_lflag &= ~(IUCLC);
 #endif
-	tio_inter.c_cc[VMIN] = 1;
-	tio_inter.c_cc[VTIME] = 0;
+    tio_inter.c_cc[VMIN] = 1;
+    tio_inter.c_cc[VTIME] = 0;
 
-	rl_readline_name = "msim";
-	rl_attempted_completion_function = msim_completion;
+    rl_readline_name = "msim";
+    rl_attempted_completion_function = msim_completion;
 }
 
 void input_shadow(void)
 {
-	if (input_term)
-		(void) tcsetattr(0, TCSANOW, &tio_shadow);
+    if (input_term)
+        (void) tcsetattr(0, TCSANOW, &tio_shadow);
 }
 
 void input_back(void)
 {
-	if (input_term)
-		(void) tcsetattr(0, TCSANOW, &tio_old);
+    if (input_term)
+        (void) tcsetattr(0, TCSANOW, &tio_old);
 }
 
 /** Interactive mode control
@@ -135,47 +135,47 @@ void input_back(void)
  */
 void interactive_control(void)
 {
-	machine_break = false;
+    machine_break = false;
 
-	if (machine_newline) {
-		printf("\n");
-		machine_newline = false;
-	}
+    if (machine_newline) {
+        printf("\n");
+        machine_newline = false;
+    }
 
-	stepping = 0;
+    stepping = 0;
 
-	while (machine_interactive) {
-		input_back();
-		char *cmdline = readline(PROMPT);
-		input_shadow();
+    while (machine_interactive) {
+        input_back();
+        char *cmdline = readline(PROMPT);
+        input_shadow();
 
-		if (!cmdline) {
-			/* User break in readline */
-			printf("\n");
-			alert("Quit");
-			input_back();
-			free(cmdline);
-			exit(ERR_OK);
-		}
+        if (!cmdline) {
+            /* User break in readline */
+            printf("\n");
+            alert("Quit");
+            input_back();
+            free(cmdline);
+            exit(ERR_OK);
+        }
 
-		if (*cmdline) {
-			add_history(cmdline);
-			interpret(cmdline);
-		} else {
-			interpret("step");
-		}
+        if (*cmdline) {
+            add_history(cmdline);
+            interpret(cmdline);
+        } else {
+            interpret("step");
+        }
 
-		free(cmdline);
-	}
+        free(cmdline);
+    }
 }
 
 /**
  * Tells whether stdin is connected to interactive terminal.
  */
 int input_is_terminal(void) {
-	return input_term;
+    return input_term;
 }
 
 void input_end(void) {
-	clear_history();
+    clear_history();
 }

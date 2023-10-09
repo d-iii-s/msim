@@ -34,7 +34,7 @@ general_cpu_t* get_cpu(unsigned int no){
 
 unsigned int get_free_cpuno(void){
     unsigned int c;
-	unsigned int id_mask = 0;
+    unsigned int id_mask = 0;
     general_cpu_t* cpu;
 
     for_each(cpu_list, cpu, general_cpu_t) {
@@ -42,8 +42,8 @@ unsigned int get_free_cpuno(void){
     }
 
     for (c = 0; c < MAX_CPUS; c++, id_mask >>= 1){
-		if (!(id_mask & 1)) {
-			return c;
+        if (!(id_mask & 1)) {
+            return c;
         }
     }
 

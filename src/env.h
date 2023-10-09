@@ -25,9 +25,9 @@ extern unsigned int r4k_ireg;
 
 /**< Variable types */
 typedef enum {
-	vt_uint,
-	vt_str,
-	vt_bool
+    vt_uint,
+    vt_str,
+    vt_bool
 } var_type_t;
 
 /** System command implementation */

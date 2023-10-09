@@ -1461,21 +1461,21 @@ static csr_ops_t get_csr_ops(csr_num_t csr){
         }
 
         case(csr_pmpcfg0):
-	    case(csr_pmpcfg1):
-	    case(csr_pmpcfg2):
-	    case(csr_pmpcfg3):
-	    case(csr_pmpcfg4):
-	    case(csr_pmpcfg5):
-	    case(csr_pmpcfg6):
-	    case(csr_pmpcfg7):
-	    case(csr_pmpcfg8):
-	    case(csr_pmpcfg9):
-	    case(csr_pmpcfg10):
-	    case(csr_pmpcfg11):
-	    case(csr_pmpcfg12):
-	    case(csr_pmpcfg13):
-	    case(csr_pmpcfg14):
-	    case(csr_pmpcfg15): {
+        case(csr_pmpcfg1):
+        case(csr_pmpcfg2):
+        case(csr_pmpcfg3):
+        case(csr_pmpcfg4):
+        case(csr_pmpcfg5):
+        case(csr_pmpcfg6):
+        case(csr_pmpcfg7):
+        case(csr_pmpcfg8):
+        case(csr_pmpcfg9):
+        case(csr_pmpcfg10):
+        case(csr_pmpcfg11):
+        case(csr_pmpcfg12):
+        case(csr_pmpcfg13):
+        case(csr_pmpcfg14):
+        case(csr_pmpcfg15): {
             ops.read = pmpcfg_read;
             ops.write = pmpcfg_write;
             ops.set = pmpcfg_set;

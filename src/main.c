@@ -98,137 +98,137 @@ static uint64_t steps = 0;
 
 /** Command line options */
 static struct option long_options[] = {
-	{
-		"trace",
-		no_argument,
-		0,
-		't'
-	},
-	{
-		"version",
-		no_argument,
-		0,
-		'V'
-	},
-	{
-		"interactive",
-		no_argument,
-		0,
-		'i'
-	},
-	{
-		"allow-xint-without-tty",
-		no_argument,
-		0,
-		'I'
-	},
-	{
-		"config",
-		required_argument,
-		0,
-		'c'
-	},
-	{
-		"help",
-		no_argument,
-		0,
-		'h'
-	},
-	{
-		"remote-gdb",
-		required_argument,
-		0,
-		'g'
-	},
-	{
-		"non-deterministic",
-		no_argument,
-		0,
-		'n'
-	},
-	{
-		"no-extra-instructions",
-		no_argument,
-		0,
-		'X'
-	},
-	{ NULL, 0, NULL, 0 }
+    {
+        "trace",
+        no_argument,
+        0,
+        't'
+    },
+    {
+        "version",
+        no_argument,
+        0,
+        'V'
+    },
+    {
+        "interactive",
+        no_argument,
+        0,
+        'i'
+    },
+    {
+        "allow-xint-without-tty",
+        no_argument,
+        0,
+        'I'
+    },
+    {
+        "config",
+        required_argument,
+        0,
+        'c'
+    },
+    {
+        "help",
+        no_argument,
+        0,
+        'h'
+    },
+    {
+        "remote-gdb",
+        required_argument,
+        0,
+        'g'
+    },
+    {
+        "non-deterministic",
+        no_argument,
+        0,
+        'n'
+    },
+    {
+        "no-extra-instructions",
+        no_argument,
+        0,
+        'X'
+    },
+    { NULL, 0, NULL, 0 }
 };
 
 static void setup_remote_gdb(const char *opt)
 {
-	ASSERT(opt != NULL);
+    ASSERT(opt != NULL);
 
-	char *endp;
-	long int port_no;
+    char *endp;
+    long int port_no;
 
-	port_no = strtol(opt, &endp, 0);
-	if (!endp)
-		die(ERR_PARM, "Port number expected");
+    port_no = strtol(opt, &endp, 0);
+    if (!endp)
+        die(ERR_PARM, "Port number expected");
 
-	if ((port_no < 0) || (port_no > 65534))
-		die(ERR_PARM, "Invalid port number");
+    if ((port_no < 0) || (port_no > 65534))
+        die(ERR_PARM, "Invalid port number");
 
-	remote_gdb = true;
-	remote_gdb_port = port_no;
+    remote_gdb = true;
+    remote_gdb_port = port_no;
 }
 
 static bool parse_cmdline(int argc, char *args[])
 {
-	opterr = 0;
+    opterr = 0;
 
-	while (true) {
-		int option_index = 0;
+    while (true) {
+        int option_index = 0;
 
-		int c = getopt_long(argc, args, "tVic:hg:nXI",
-		    long_options, &option_index);
+        int c = getopt_long(argc, args, "tVic:hg:nXI",
+            long_options, &option_index);
 
-		if (c == -1)
-			break;
+        if (c == -1)
+            break;
 
-		switch (c) {
-		case 't':
-			machine_trace = true;
-			break;
-		case 'V':
-			printf("%s",txt_version);
-			return false;
-		case 'i':
-			machine_interactive = true;
-			break;
-		case 'I':
-			machine_allow_interactive_without_tty = true;
-			break;
-		case 'c':
-			if (config_file)
-				safe_free(config_file);
-			config_file = safe_strdup(optarg);
-			break;
-		case 'h':
-			printf("%s",txt_version);
-			printf("%s",txt_help);
-			return false;
-		case 'g':
-			setup_remote_gdb(optarg);
-			break;
-		case 'n':
-			machine_nondet = true;
-			break;
-		case 'X':
-			machine_specific_instructions = false;
-			break;
-		case '?':
-			die(ERR_PARM, "Unknown parameter or argument required");
-			break;
-		default:
-			die(ERR_PARM, "Unknown parameter \"%c\"", optopt);
-		}
-	}
+        switch (c) {
+        case 't':
+            machine_trace = true;
+            break;
+        case 'V':
+            printf("%s",txt_version);
+            return false;
+        case 'i':
+            machine_interactive = true;
+            break;
+        case 'I':
+            machine_allow_interactive_without_tty = true;
+            break;
+        case 'c':
+            if (config_file)
+                safe_free(config_file);
+            config_file = safe_strdup(optarg);
+            break;
+        case 'h':
+            printf("%s",txt_version);
+            printf("%s",txt_help);
+            return false;
+        case 'g':
+            setup_remote_gdb(optarg);
+            break;
+        case 'n':
+            machine_nondet = true;
+            break;
+        case 'X':
+            machine_specific_instructions = false;
+            break;
+        case '?':
+            die(ERR_PARM, "Unknown parameter or argument required");
+            break;
+        default:
+            die(ERR_PARM, "Unknown parameter \"%c\"", optopt);
+        }
+    }
 
-	if (optind < argc)
-		die(ERR_PARM, "Unexpected arguments");
+    if (optind < argc)
+        die(ERR_PARM, "Unexpected arguments");
 
-	return true;
+    return true;
 }
 
 /** Try to startup remote GDB communication.
@@ -237,25 +237,25 @@ static bool parse_cmdline(int argc, char *args[])
  *
  */
 static bool gdb_startup(void) {
-	if (get_cpu(0) == NULL) {
-		error("Cannot debug without any processor");
-		return false;
-	}
+    if (get_cpu(0) == NULL) {
+        error("Cannot debug without any processor");
+        return false;
+    }
 
-	remote_gdb_conn = gdb_remote_init();
+    remote_gdb_conn = gdb_remote_init();
 
-	if (!remote_gdb_conn)
-		return false;
+    if (!remote_gdb_conn)
+        return false;
 
-	/*
-	 * In case of succesfull opening the debugging session will start
-	 * in stopped state and in case of unsuccesfull opening the
-	 * connection will not be initialized again.
-	 */
-	remote_gdb_listen = remote_gdb_conn;
-	remote_gdb = remote_gdb_conn;
+    /*
+     * In case of succesfull opening the debugging session will start
+     * in stopped state and in case of unsuccesfull opening the
+     * connection will not be initialized again.
+     */
+    remote_gdb_listen = remote_gdb_conn;
+    remote_gdb = remote_gdb_conn;
 
-	return true;
+    return true;
 }
 
 /** Run 4096 machine cycles
@@ -263,21 +263,21 @@ static bool gdb_startup(void) {
  */
 static void machine_step(void)
 {
-	/* Execute device cycles */
-	device_t *dev = NULL;
-	while (dev_next(&dev, DEVICE_FILTER_STEP))
-		dev->type->step(dev);
+    /* Execute device cycles */
+    device_t *dev = NULL;
+    while (dev_next(&dev, DEVICE_FILTER_STEP))
+        dev->type->step(dev);
 
-	/* Increase machine cycle counter */
-	steps++;
+    /* Increase machine cycle counter */
+    steps++;
 
-	/* Every 4096th cycle execute
-	   the step4k device functions */
-	if ((steps % 4096) == 0) {
-		dev = NULL;
-		while (dev_next(&dev, DEVICE_FILTER_STEP4K))
-			dev->type->step4k(dev);
-	}
+    /* Every 4096th cycle execute
+       the step4k device functions */
+    if ((steps % 4096) == 0) {
+        dev = NULL;
+        while (dev_next(&dev, DEVICE_FILTER_STEP4K))
+            dev->type->step4k(dev);
+    }
 }
 
 /** Main simulator loop
@@ -285,113 +285,113 @@ static void machine_step(void)
  */
 static void machine_run(void)
 {
-	while (!machine_halt) {
-		/*
-		 * Check for code breakpoints. Interactive
-		 * or gdb flags will be set if a breakpoint
-		 * is hit.
-		 */
-		breakpoint_check_for_code_breakpoints();
+    while (!machine_halt) {
+        /*
+         * Check for code breakpoints. Interactive
+         * or gdb flags will be set if a breakpoint
+         * is hit.
+         */
+        breakpoint_check_for_code_breakpoints();
 
-		/*
-		 * If the remote GDB debugging is allowed and the
-		 * connection has not been opened yet, then wait
-		 * for the connection from the remote GDB.
-		 */
+        /*
+         * If the remote GDB debugging is allowed and the
+         * connection has not been opened yet, then wait
+         * for the connection from the remote GDB.
+         */
 
-		if ((remote_gdb) && (!remote_gdb_conn))
-			machine_interactive = !gdb_startup();
+        if ((remote_gdb) && (!remote_gdb_conn))
+            machine_interactive = !gdb_startup();
 
-		/*
-		 * If the simulation was stopped due to the remote
-		 * GDB debugging session, then read a command from
-		 * the remote GDB. The read is blocking.
-		 */
-		if ((remote_gdb) && (remote_gdb_conn) && (remote_gdb_listen)) {
-			remote_gdb_listen = false;
-			gdb_session();
-		}
+        /*
+         * If the simulation was stopped due to the remote
+         * GDB debugging session, then read a command from
+         * the remote GDB. The read is blocking.
+         */
+        if ((remote_gdb) && (remote_gdb_conn) && (remote_gdb_listen)) {
+            remote_gdb_listen = false;
+            gdb_session();
+        }
 
-		/* Stepping check */
-		if (stepping > 0) {
-			stepping--;
+        /* Stepping check */
+        if (stepping > 0) {
+            stepping--;
 
-			if (stepping == 0)
-				machine_interactive = true;
-		}
+            if (stepping == 0)
+                machine_interactive = true;
+        }
 
-		/* Interactive mode control */
-		if (machine_interactive)
-			interactive_control();
+        /* Interactive mode control */
+        if (machine_interactive)
+            interactive_control();
 
-		/*
-		 * Continue with the simulation
-		 */
-		if (!machine_halt)
-			machine_step();
-	}
+        /*
+         * Continue with the simulation
+         */
+        if (!machine_halt)
+            machine_step();
+    }
 }
 
 static void cleanup() {
-	/* Execute device cycles */
-	device_t *dev = NULL;
-	device_t *next_dev = NULL;
+    /* Execute device cycles */
+    device_t *dev = NULL;
+    device_t *next_dev = NULL;
 
-	dev_next(&next_dev, DEVICE_FILTER_ALL);
-	dev = next_dev;
+    dev_next(&next_dev, DEVICE_FILTER_ALL);
+    dev = next_dev;
 
-	while(dev_next(&next_dev, DEVICE_FILTER_ALL)) {
-		free_device(dev);
-		dev = next_dev;
-	};
+    while(dev_next(&next_dev, DEVICE_FILTER_ALL)) {
+        free_device(dev);
+        dev = next_dev;
+    };
 
-	if (dev != NULL) {
-		free_device(dev);
-	}
-	input_end();
+    if (dev != NULL) {
+        free_device(dev);
+    }
+    input_end();
 }
 
 int main(int argc, char *args[])
 {
-	/*
-	 * Initialization
-	 */
+    /*
+     * Initialization
+     */
 
-	r4k_debug_init();
-	rv_debug_init();
+    r4k_debug_init();
+    rv_debug_init();
 
-	input_init();
-	input_shadow();
-	register_signal_handlers();
+    input_init();
+    input_shadow();
+    register_signal_handlers();
 
-	/*
-	 * Run-time configuration
-	 */
-	if (!parse_cmdline(argc, args)) {
-		input_back();
-		return 0;
-	}
+    /*
+     * Run-time configuration
+     */
+    if (!parse_cmdline(argc, args)) {
+        input_back();
+        return 0;
+    }
 
-	script();
+    script();
 
-	if (machine_interactive) {
-		alert("MSIM %s", PACKAGE_VERSION);
-		alert("Entering interactive mode, type `help' for help.");
-	}
+    if (machine_interactive) {
+        alert("MSIM %s", PACKAGE_VERSION);
+        alert("Entering interactive mode, type `help' for help.");
+    }
 
-	/*
-	 * Main simulation loop
-	 */
-	machine_run();
+    /*
+     * Main simulation loop
+     */
+    machine_run();
 
-	/*
-	 * Finalization
-	 */
-	input_back();
-	if (steps > 0)
-		printf("\nCycles: %" PRIu64 "\n", steps);
+    /*
+     * Finalization
+     */
+    input_back();
+    if (steps > 0)
+        printf("\nCycles: %" PRIu64 "\n", steps);
 
-	cleanup();
+    cleanup();
 
-	return 0;
+    return 0;
 }

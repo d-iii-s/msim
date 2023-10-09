@@ -25,8 +25,8 @@
 
 void dbg_print_device_info(device_t *dev)
 {
-	printf("%-10s %-10s ", dev->name, dev->type->name);
-	// FIXME cmd_run_by_name("info", &pars_end, dev->type->cmds, dev);
+    printf("%-10s %-10s ", dev->name, dev->type->name);
+    // FIXME cmd_run_by_name("info", &pars_end, dev->type->cmds, dev);
 }
 
 /** Show statistics for specified device
@@ -34,32 +34,32 @@ void dbg_print_device_info(device_t *dev)
  */
 void dbg_print_device_stat(device_t *dev)
 {
-	printf("%-10s %-10s ", dev->name, dev->type->name);
-	// FIXME cmd_run_by_name("stat", &pars_end, dev->type->cmds, dev);
+    printf("%-10s %-10s ", dev->name, dev->type->name);
+    // FIXME cmd_run_by_name("stat", &pars_end, dev->type->cmds, dev);
 }
 
 void dbg_print_devices(device_filter_t filter)
 {
-	printf("[  name  ] [  type  ] [ parameters...\n");
+    printf("[  name  ] [  type  ] [ parameters...\n");
 
-	device_t *device = NULL;
-	bool device_found = false;
-	token_t token_end[] = {
-		{ .ttype = tt_end }
-	};
+    device_t *device = NULL;
+    bool device_found = false;
+    token_t token_end[] = {
+        { .ttype = tt_end }
+    };
 
-	while (dev_next(&device, filter)) {
-		device_found = true;
-		printf("%-10s %-10s ", device->name, device->type->name);
-		cmd_run_by_name("info", token_end, device->type->cmds, device);
-	}
+    while (dev_next(&device, filter)) {
+        device_found = true;
+        printf("%-10s %-10s ", device->name, device->type->name);
+        cmd_run_by_name("info", token_end, device->type->cmds, device);
+    }
 
-	if (!device_found) {
-		printf("No matching devices found.\n");
-	}
+    if (!device_found) {
+        printf("No matching devices found.\n");
+    }
 }
 
 void dbg_print_devices_stat(device_filter_t filter)
 {
-	// FIXME
+    // FIXME
 }

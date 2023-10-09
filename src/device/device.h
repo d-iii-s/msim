@@ -24,60 +24,60 @@ struct device;
  *
  */
 typedef struct {
-	bool nondet;              /**< Device is non-deterministic. */
-	const char *const name;   /**< Device type name (i82xx etc.). */
-	const char *const brief;  /**< Brief decription of the device type. */
-	const char *const full;   /**< Full device type description. */
+    bool nondet;              /**< Device is non-deterministic. */
+    const char *const name;   /**< Device type name (i82xx etc.). */
+    const char *const brief;  /**< Brief decription of the device type. */
+    const char *const full;   /**< Full device type description. */
 
-	/** Dispose internal data. */
-	void (*done)(struct device *dev);
+    /** Dispose internal data. */
+    void (*done)(struct device *dev);
 
-	/** Called every machine cycle. */
-	void (*step)(struct device *dev);
+    /** Called every machine cycle. */
+    void (*step)(struct device *dev);
 
-	/** Called every 4096th machine cycle. */
-	void (*step4k)(struct device *dev);
+    /** Called every 4096th machine cycle. */
+    void (*step4k)(struct device *dev);
 
-	/** Device memory read */
-	void (*read32)(unsigned int procno, struct device *dev, ptr36_t addr,
-	    uint32_t *val);
-	void (*read64)(unsigned int procno, struct device *dev, ptr36_t addr,
-	    uint64_t *val);
+    /** Device memory read */
+    void (*read32)(unsigned int procno, struct device *dev, ptr36_t addr,
+        uint32_t *val);
+    void (*read64)(unsigned int procno, struct device *dev, ptr36_t addr,
+        uint64_t *val);
 
-	/** Device memory write */
-	void (*write32)(unsigned int procno, struct device *dev, ptr36_t addr,
-	    uint32_t val);
-	void (*write64)(unsigned int procno, struct device *dev, ptr36_t addr,
-	    uint64_t val);
+    /** Device memory write */
+    void (*write32)(unsigned int procno, struct device *dev, ptr36_t addr,
+        uint32_t val);
+    void (*write64)(unsigned int procno, struct device *dev, ptr36_t addr,
+        uint64_t val);
 
-	/**
-	 * An array of commands supported by the device.
-	 * The last command should be the LAST_CMS macro.
-	 *
-	 * @see device_cmd_struct
-	 */
-	const cmd_t *const cmds;
+    /**
+     * An array of commands supported by the device.
+     * The last command should be the LAST_CMS macro.
+     *
+     * @see device_cmd_struct
+     */
+    const cmd_t *const cmds;
 } device_type_t;
 
 /** Structure describing a device instance.
  *
  */
 typedef struct device {
-	item_t item;
+    item_t item;
 
-	const device_type_t *type;  /**< Pointer to the device type description. */
-	char *name;                 /**< Device name given by the user.
-	                                 Must be unique. */
-	void *data;                 /**< Device specific pointer where
-	                                 internal data are stored. */
+    const device_type_t *type;  /**< Pointer to the device type description. */
+    char *name;                 /**< Device name given by the user.
+                                     Must be unique. */
+    void *data;                 /**< Device specific pointer where
+                                     internal data are stored. */
 } device_t;
 
 typedef enum {
-	DEVICE_FILTER_ALL,
-	DEVICE_FILTER_STEP,
-	DEVICE_FILTER_STEP4K,
-	DEVICE_FILTER_MEMORY,
-	DEVICE_FILTER_R4K_PROCESSOR,
+    DEVICE_FILTER_ALL,
+    DEVICE_FILTER_STEP,
+    DEVICE_FILTER_STEP4K,
+    DEVICE_FILTER_MEMORY,
+    DEVICE_FILTER_R4K_PROCESSOR,
 } device_filter_t;
 
 /**
@@ -85,7 +85,7 @@ typedef enum {
  * only a null-command with all parameters NULL.
  */
 #define LAST_CMD \
-	{ NULL, NULL, NULL, 0, NULL, NULL, NULL }
+    { NULL, NULL, NULL, 0, NULL, NULL, NULL }
 
 /*
  * Functions on device structures

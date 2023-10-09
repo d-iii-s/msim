@@ -29,58 +29,58 @@
 #define TLB_PHYSMASK  UINT64_C(0x780000000)
 
 #define INSTR2ADDR(instr) \
-	((instr) << 2)
+    ((instr) << 2)
 
 #define ADDR2INSTR(addr) \
-	((addr) >> 2)
+    ((addr) >> 2)
 
 #define INSTRS2SIZE(instrs) \
-	((instrs) << 2)
+    ((instrs) << 2)
 
 #define SIZE2INSTRS(size) \
-	((size) >> 2)
+    ((size) >> 2)
 
 /* cp0 registers */
 typedef enum {
-	/* 0 */
-	cp0_Index,
-	cp0_Random,
-	cp0_EntryLo0,
-	cp0_EntryLo1,
-	cp0_Context,
-	cp0_PageMask,
-	cp0_Wired,
-	cp0_Res1,
+    /* 0 */
+    cp0_Index,
+    cp0_Random,
+    cp0_EntryLo0,
+    cp0_EntryLo1,
+    cp0_Context,
+    cp0_PageMask,
+    cp0_Wired,
+    cp0_Res1,
 
-	/* 8 */
-	cp0_BadVAddr,
-	cp0_Count,
-	cp0_EntryHi,
-	cp0_Compare,
-	cp0_Status,
-	cp0_Cause,
-	cp0_EPC,
-	cp0_PRId,
+    /* 8 */
+    cp0_BadVAddr,
+    cp0_Count,
+    cp0_EntryHi,
+    cp0_Compare,
+    cp0_Status,
+    cp0_Cause,
+    cp0_EPC,
+    cp0_PRId,
 
-	/* 16 */
-	cp0_Config,
-	cp0_LLAddr,
-	cp0_WatchLo,
-	cp0_WatchHi,
-	cp0_XContext,
-	cp0_Res2,
-	cp0_Res3,
-	cp0_Res4,
+    /* 16 */
+    cp0_Config,
+    cp0_LLAddr,
+    cp0_WatchLo,
+    cp0_WatchHi,
+    cp0_XContext,
+    cp0_Res2,
+    cp0_Res3,
+    cp0_Res4,
 
-	/* 24 */
-	cp0_Res5,
-	cp0_Res6,
-	cp0_ECC,
-	cp0_CacheErr,
-	cp0_TagLo,
-	cp0_TagHi,
-	cp0_ErrorEPC,
-	cp0_Res7
+    /* 24 */
+    cp0_Res5,
+    cp0_Res6,
+    cp0_ECC,
+    cp0_CacheErr,
+    cp0_TagLo,
+    cp0_TagHi,
+    cp0_ErrorEPC,
+    cp0_Res7
 } cp0_regs_t;
 
 #define cp0_index_index_mask UINT32_C(0x0000003f)
@@ -446,126 +446,126 @@ typedef enum {
 
 /** Exception types */
 typedef enum {
-	r4k_excInt   = 0,
-	r4k_excMod   = 1,
-	r4k_excTLBL  = 2,
-	r4k_excTLBS  = 3,
-	r4k_excAdEL  = 4,
-	r4k_excAdES  = 5,
-	r4k_excIBE   = 6,
-	r4k_excDBE   = 7,
-	r4k_excSys   = 8,
-	r4k_excBp    = 9,
-	r4k_excRI    = 10,
-	r4k_excCpU   = 11,
-	r4k_excOv    = 12,
-	r4k_excTr    = 13,
-	r4k_excVCEI  = 14,
-	r4k_excFPE   = 15,
-	r4k_excWATCH = 23,
-	r4k_excVCED  = 31,
+    r4k_excInt   = 0,
+    r4k_excMod   = 1,
+    r4k_excTLBL  = 2,
+    r4k_excTLBS  = 3,
+    r4k_excAdEL  = 4,
+    r4k_excAdES  = 5,
+    r4k_excIBE   = 6,
+    r4k_excDBE   = 7,
+    r4k_excSys   = 8,
+    r4k_excBp    = 9,
+    r4k_excRI    = 10,
+    r4k_excCpU   = 11,
+    r4k_excOv    = 12,
+    r4k_excTr    = 13,
+    r4k_excVCEI  = 14,
+    r4k_excFPE   = 15,
+    r4k_excWATCH = 23,
+    r4k_excVCED  = 31,
 
-	/* Special exception types */
-	r4k_excTLBR  = 64,
-	r4k_excTLBLR = 65,
-	r4k_excTLBSR = 66,
+    /* Special exception types */
+    r4k_excTLBR  = 64,
+    r4k_excTLBLR = 65,
+    r4k_excTLBSR = 66,
 
-	/* For internal use */
-	r4k_excNone = 128,
-	r4k_excJump = 129,
-	r4k_excAddrError = 130,
-	r4k_excTLB = 131,
-	r4k_excReset = 132
+    /* For internal use */
+    r4k_excNone = 128,
+    r4k_excJump = 129,
+    r4k_excAddrError = 130,
+    r4k_excTLB = 131,
+    r4k_excReset = 132
 } r4k_exc_t;
 
 /** TLB entity definition */
 typedef struct {
-	ptr36_t pfn;   /**< Physical page number (shifted << 12) */
-	uint8_t cohh;  /**< Coherency number */
-	bool dirty;    /**< Dirty bit */
-	bool valid;    /**< Valid bit */
+    ptr36_t pfn;   /**< Physical page number (shifted << 12) */
+    uint8_t cohh;  /**< Coherency number */
+    bool dirty;    /**< Dirty bit */
+    bool valid;    /**< Valid bit */
 } tlb_rec_t;
 
 typedef struct {
-	uint32_t mask;    /**< Enhanced mask */
-	uint32_t vpn2;    /**< Virtual page no (shifted << 7) */
-	bool global;      /**< Global bit */
-	uint8_t asid;     /**< Address Space ID */
-	tlb_rec_t pg[2];  /**< Subpages */
+    uint32_t mask;    /**< Enhanced mask */
+    uint32_t vpn2;    /**< Virtual page no (shifted << 7) */
+    bool global;      /**< Global bit */
+    uint8_t asid;     /**< Address Space ID */
+    tlb_rec_t pg[2];  /**< Subpages */
 } tlb_entry_t;
 
 typedef enum {
-	BRANCH_NONE = 0,
-	BRANCH_PASSED = 1,
-	BRANCH_COND = 2
+    BRANCH_NONE = 0,
+    BRANCH_PASSED = 1,
+    BRANCH_COND = 2
 } branch_state_t;
 
 
 /** Instruction decoding structure */
 typedef union r4k_instr {
-	uint32_t val;
+    uint32_t val;
 #ifdef WORDS_BIGENDIAN
-	struct {
-		unsigned int opcode : 6;
-		unsigned int rs : 5;
-		unsigned int rt : 5;
-		unsigned int imm : 16;
-	} i;
-	struct {
-		unsigned int opcode : 6;
-		unsigned int target : 26;
-	} j;
-	struct {
-		unsigned int opcode : 6;
-		unsigned int rs : 5;
-		unsigned int rt : 5;
-		unsigned int rd : 5;
-		unsigned int sa : 5;
-		unsigned int func : 6;
-	} r;
-	struct {
-		unsigned int opcode : 6;
-		unsigned int rs : 5;
-		unsigned int rt : 5;
-		unsigned int data : 8;
-		unsigned int func : 8;
-	} cop;
-	struct {
-		unsigned int opcode : 6;
-		unsigned int code : 20;
-		unsigned int func : 6;
-	} sys;
+    struct {
+        unsigned int opcode : 6;
+        unsigned int rs : 5;
+        unsigned int rt : 5;
+        unsigned int imm : 16;
+    } i;
+    struct {
+        unsigned int opcode : 6;
+        unsigned int target : 26;
+    } j;
+    struct {
+        unsigned int opcode : 6;
+        unsigned int rs : 5;
+        unsigned int rt : 5;
+        unsigned int rd : 5;
+        unsigned int sa : 5;
+        unsigned int func : 6;
+    } r;
+    struct {
+        unsigned int opcode : 6;
+        unsigned int rs : 5;
+        unsigned int rt : 5;
+        unsigned int data : 8;
+        unsigned int func : 8;
+    } cop;
+    struct {
+        unsigned int opcode : 6;
+        unsigned int code : 20;
+        unsigned int func : 6;
+    } sys;
 #else
-	struct {
-		unsigned int imm : 16;
-		unsigned int rt : 5;
-		unsigned int rs : 5;
-		unsigned int opcode : 6;
-	} i;
-	struct {
-		unsigned int target : 26;
-		unsigned int opcode : 6;
-	} j;
-	struct {
-		unsigned int func : 6;
-		unsigned int sa : 5;
-		unsigned int rd : 5;
-		unsigned int rt : 5;
-		unsigned int rs : 5;
-		unsigned int opcode : 6;
-	} r;
-	struct {
-		unsigned int func : 8;
-		unsigned int data : 8;
-		unsigned int rt : 5;
-		unsigned int rs : 5;
-		unsigned int opcode : 6;
-	} cop;
-	struct {
-		unsigned int func : 6;
-		unsigned int code : 20;
-		unsigned int opcode : 6;
-	} sys;
+    struct {
+        unsigned int imm : 16;
+        unsigned int rt : 5;
+        unsigned int rs : 5;
+        unsigned int opcode : 6;
+    } i;
+    struct {
+        unsigned int target : 26;
+        unsigned int opcode : 6;
+    } j;
+    struct {
+        unsigned int func : 6;
+        unsigned int sa : 5;
+        unsigned int rd : 5;
+        unsigned int rt : 5;
+        unsigned int rs : 5;
+        unsigned int opcode : 6;
+    } r;
+    struct {
+        unsigned int func : 8;
+        unsigned int data : 8;
+        unsigned int rt : 5;
+        unsigned int rs : 5;
+        unsigned int opcode : 6;
+    } cop;
+    struct {
+        unsigned int func : 6;
+        unsigned int code : 20;
+        unsigned int opcode : 6;
+    } sys;
 #endif
 } r4k_instr_t;
 
@@ -579,55 +579,55 @@ typedef r4k_exc_t (*r4k_instr_fnc_t)(struct r4k_cpu *, r4k_instr_t);
 
 /** Main processor structure */
 typedef struct r4k_cpu {
-	/* Basic run-time support */
-	unsigned int procno;
-	bool stdby;
+    /* Basic run-time support */
+    unsigned int procno;
+    bool stdby;
 
-	/* Standard registers */
-	reg64_t regs[R4K_REG_COUNT];
-	reg64_t cp0[R4K_REG_COUNT];
-	uint64_t fpregs[R4K_REG_COUNT];
-	reg64_t loreg;
-	reg64_t hireg;
+    /* Standard registers */
+    reg64_t regs[R4K_REG_COUNT];
+    reg64_t cp0[R4K_REG_COUNT];
+    uint64_t fpregs[R4K_REG_COUNT];
+    reg64_t loreg;
+    reg64_t hireg;
 
-	/* Program counter */
-	ptr64_t pc;
-	ptr64_t pc_next;
+    /* Program counter */
+    ptr64_t pc;
+    ptr64_t pc_next;
 
-	/* TLB structures */
-	tlb_entry_t tlb[TLB_ENTRIES];
-	unsigned int tlb_hint;
+    /* TLB structures */
+    tlb_entry_t tlb[TLB_ENTRIES];
+    unsigned int tlb_hint;
 
-	/* Old registers (for debug info) */
-	reg64_t old_regs[R4K_REG_COUNT];
-	reg64_t old_cp0[R4K_REG_COUNT];
-	reg64_t old_loreg;
-	reg64_t old_hireg;
+    /* Old registers (for debug info) */
+    reg64_t old_regs[R4K_REG_COUNT];
+    reg64_t old_cp0[R4K_REG_COUNT];
+    reg64_t old_loreg;
+    reg64_t old_hireg;
 
-	ptr64_t excaddr;
-	branch_state_t branch;
+    ptr64_t excaddr;
+    branch_state_t branch;
 
-	/* LL and SC track support */
-	bool llbit;      /**< Track the address flag */
-	ptr36_t lladdr;  /**< Physical tracked address */
+    /* LL and SC track support */
+    bool llbit;      /**< Track the address flag */
+    ptr36_t lladdr;  /**< Physical tracked address */
 
-	/* Watch support */
-	ptr36_t waddr;
-	ptr64_t wexcaddr;
-	bool wpending;
+    /* Watch support */
+    ptr36_t waddr;
+    ptr64_t wexcaddr;
+    bool wpending;
 
-	/* Statistics */
-	uint64_t k_cycles;
-	uint64_t u_cycles;
-	uint64_t w_cycles;
+    /* Statistics */
+    uint64_t k_cycles;
+    uint64_t u_cycles;
+    uint64_t w_cycles;
 
-	uint64_t tlb_refill;
-	uint64_t tlb_invalid;
-	uint64_t tlb_modified;
-	uint64_t intr[INTR_COUNT];
+    uint64_t tlb_refill;
+    uint64_t tlb_invalid;
+    uint64_t tlb_modified;
+    uint64_t intr[INTR_COUNT];
 
-	/* breakpoints */
-	list_t bps;
+    /* breakpoints */
+    list_t bps;
 } r4k_cpu_t;
 
 
@@ -636,85 +636,85 @@ typedef struct r4k_cpu {
  *
  */
 typedef enum {
-	/* 0 */
-	r4k_opcSPECIAL = 0,
-	r4k_opcREGIMM = 1,
-	r4k_opcJ = 2,
-	r4k_opcJAL = 3,
-	r4k_opcBEQ = 4,
-	r4k_opcBNE = 5,
-	r4k_opcBLEZ = 6,
-	r4k_opcBGTZ = 7,
+    /* 0 */
+    r4k_opcSPECIAL = 0,
+    r4k_opcREGIMM = 1,
+    r4k_opcJ = 2,
+    r4k_opcJAL = 3,
+    r4k_opcBEQ = 4,
+    r4k_opcBNE = 5,
+    r4k_opcBLEZ = 6,
+    r4k_opcBGTZ = 7,
 
-	/* 8 */
-	r4k_opcADDI = 8,
-	r4k_opcADDIU = 9,
-	r4k_opcSLTI = 10,
-	r4k_opcSLTIU = 11,
-	r4k_opcANDI = 12,
-	r4k_opcORI = 13,
-	r4k_opcXORi = 14,
-	opcLUI = 15,
+    /* 8 */
+    r4k_opcADDI = 8,
+    r4k_opcADDIU = 9,
+    r4k_opcSLTI = 10,
+    r4k_opcSLTIU = 11,
+    r4k_opcANDI = 12,
+    r4k_opcORI = 13,
+    r4k_opcXORi = 14,
+    opcLUI = 15,
 
-	/* 16 */
-	r4k_opcCOP0 = 16,
-	r4k_opcCOP1 = 17,
-	r4k_opcCOP2 = 18,
-	/* opcode 19 unused */
-	r4k_opcBEQL = 20,
-	r4k_opcBNEL = 21,
-	r4k_opcBLEZL = 22,
-	r4k_opcBGTZL = 23,
+    /* 16 */
+    r4k_opcCOP0 = 16,
+    r4k_opcCOP1 = 17,
+    r4k_opcCOP2 = 18,
+    /* opcode 19 unused */
+    r4k_opcBEQL = 20,
+    r4k_opcBNEL = 21,
+    r4k_opcBLEZL = 22,
+    r4k_opcBGTZL = 23,
 
-	/* 24 */
-	r4k_opcDADDI = 24,
-	r4k_opcDADDIU = 25,
-	r4k_opcLDL = 26,
-	r4k_opcLDR = 27,
-	/* opcode 28 unused */
-	/* opcode 29 unused */
-	/* opcode 30 unused */
-	/* opcode 31 unused */
+    /* 24 */
+    r4k_opcDADDI = 24,
+    r4k_opcDADDIU = 25,
+    r4k_opcLDL = 26,
+    r4k_opcLDR = 27,
+    /* opcode 28 unused */
+    /* opcode 29 unused */
+    /* opcode 30 unused */
+    /* opcode 31 unused */
 
-	/* 32 */
-	r4k_opcLB = 32,
-	r4k_opcLH = 33,
-	r4k_opcLWL = 34,
-	r4k_opcLW = 35,
-	r4k_opcLBU = 36,
-	r4k_opcLHU = 37,
-	r4k_opcLWR = 38,
-	r4k_opcLWU = 39,
+    /* 32 */
+    r4k_opcLB = 32,
+    r4k_opcLH = 33,
+    r4k_opcLWL = 34,
+    r4k_opcLW = 35,
+    r4k_opcLBU = 36,
+    r4k_opcLHU = 37,
+    r4k_opcLWR = 38,
+    r4k_opcLWU = 39,
 
-	/* 40 */
-	r4k_opcSB = 40,
-	r4k_opcSH = 41,
-	r4k_opcSWL = 42,
-	r4k_opcSW = 43,
-	r4k_opcSDL = 44,
-	r4k_opcSDR = 45,
-	r4k_opcSWR = 46,
-	r4k_opcCACHE = 47,
+    /* 40 */
+    r4k_opcSB = 40,
+    r4k_opcSH = 41,
+    r4k_opcSWL = 42,
+    r4k_opcSW = 43,
+    r4k_opcSDL = 44,
+    r4k_opcSDR = 45,
+    r4k_opcSWR = 46,
+    r4k_opcCACHE = 47,
 
-	/* 48 */
-	r4k_opcLL = 48,
-	r4k_opcLWC1 = 49,
-	r4k_opcLWC2 = 50,
-	/* opcode 51 unused */
-	r4k_opcLDD = 52,
-	r4k_opcLDC1 = 53,
-	r4k_opcLDC2 = 54,
-	r4k_opcLD = 55,
+    /* 48 */
+    r4k_opcLL = 48,
+    r4k_opcLWC1 = 49,
+    r4k_opcLWC2 = 50,
+    /* opcode 51 unused */
+    r4k_opcLDD = 52,
+    r4k_opcLDC1 = 53,
+    r4k_opcLDC2 = 54,
+    r4k_opcLD = 55,
 
-	/* 56 */
-	r4k_opcSC = 56,
-	r4k_opcSWC1 = 57,
-	r4k_opcSWC2 = 58,
-	/* opcode 59 unused */
-	r4k_opcSCD = 60,
-	r4k_opcSDC1 = 61,
-	r4k_opcSDC2 = 62,
-	r4k_opcSD = 63
+    /* 56 */
+    r4k_opcSC = 56,
+    r4k_opcSWC1 = 57,
+    r4k_opcSWC2 = 58,
+    /* opcode 59 unused */
+    r4k_opcSCD = 60,
+    r4k_opcSDC1 = 61,
+    r4k_opcSDC2 = 62,
+    r4k_opcSD = 63
 } r4k_instr_opcode_t;
 
 /** Function numbers
@@ -723,85 +723,85 @@ typedef enum {
  *
  */
 typedef enum {
-	/* 0 */
-	funcSLL = 0,
-	/* function 1 unused */
-	funcSRL = 2,
-	funcSRA = 3,
-	funcSLLV = 4,
-	/* function 5 unused */
-	funcSRLV = 6,
-	funcSRAV = 7,
+    /* 0 */
+    funcSLL = 0,
+    /* function 1 unused */
+    funcSRL = 2,
+    funcSRA = 3,
+    funcSLLV = 4,
+    /* function 5 unused */
+    funcSRLV = 6,
+    funcSRAV = 7,
 
-	/* 8 */
-	funcJR = 8,
-	funcJALR = 9,
-	/* function 10 unused */
-	/* function 11 unused */
-	funcSYSCALL = 12,
-	funcBREAK = 13,
-	/* function 14 unused */
-	funcSYNC = 15,
+    /* 8 */
+    funcJR = 8,
+    funcJALR = 9,
+    /* function 10 unused */
+    /* function 11 unused */
+    funcSYSCALL = 12,
+    funcBREAK = 13,
+    /* function 14 unused */
+    funcSYNC = 15,
 
-	/* 16 */
-	funcMFHI = 16,
-	funcMTHI = 17,
-	funcMFLO = 18,
-	funcMTLO = 19,
-	funcDSLLV = 20,
-	/* function 21 unused */
-	funcDSRLV = 22,
-	funcDSRAV = 23,
+    /* 16 */
+    funcMFHI = 16,
+    funcMTHI = 17,
+    funcMFLO = 18,
+    funcMTLO = 19,
+    funcDSLLV = 20,
+    /* function 21 unused */
+    funcDSRLV = 22,
+    funcDSRAV = 23,
 
-	/* 24 */
-	funcMULT = 24,
-	funcMULTU = 25,
-	funcDIV = 26,
-	funcDIVU = 27,
-	funcDMULT = 28,
-	funcDMULTU = 29,
-	funcDDIV = 30,
-	funcDDIVU = 31,
+    /* 24 */
+    funcMULT = 24,
+    funcMULTU = 25,
+    funcDIV = 26,
+    funcDIVU = 27,
+    funcDMULT = 28,
+    funcDMULTU = 29,
+    funcDDIV = 30,
+    funcDDIVU = 31,
 
-	/* 32 */
-	funcADD = 32,
-	funcADDU = 33,
-	funcSUB = 34,
-	funcSUBU = 35,
-	funcAND = 36,
-	funcOR = 37,
-	funcXOR = 38,
-	funcNOR = 39,
+    /* 32 */
+    funcADD = 32,
+    funcADDU = 33,
+    funcSUB = 34,
+    funcSUBU = 35,
+    funcAND = 36,
+    funcOR = 37,
+    funcXOR = 38,
+    funcNOR = 39,
 
-	/* 40 */
-	/* function 40 unused */
-	func_XINT = 41,
-	funcSLT = 42,
-	funcSLTU = 43,
-	funcDADD = 44,
-	funcDADDU = 45,
-	funcDSUB = 46,
-	funcDSUBu = 47,
+    /* 40 */
+    /* function 40 unused */
+    func_XINT = 41,
+    funcSLT = 42,
+    funcSLTU = 43,
+    funcDADD = 44,
+    funcDADDU = 45,
+    funcDSUB = 46,
+    funcDSUBu = 47,
 
-	/* 48 */
-	funcTGE = 48,
-	funcTGEU = 49,
-	funcTLT = 50,
-	funcTLTU = 51,
-	funcTEQ = 52,
-	/* function 53 unused */
-	funcTNE = 54,
-	/* function 55 unused */
+    /* 48 */
+    funcTGE = 48,
+    funcTGEU = 49,
+    funcTLT = 50,
+    funcTLTU = 51,
+    funcTEQ = 52,
+    /* function 53 unused */
+    funcTNE = 54,
+    /* function 55 unused */
 
-	/* 56 */
-	funcDSLL = 56,
-	/* function 57 unused */
-	funcDSRL = 58,
-	funcDSRA = 59,
-	funcSLL32 = 60,
-	/* function 61 unused */
-	funcDSRL32 = 62,
-	funcDSRA32 = 63
+    /* 56 */
+    funcDSLL = 56,
+    /* function 57 unused */
+    funcDSRL = 58,
+    funcDSRA = 59,
+    funcSLL32 = 60,
+    /* function 61 unused */
+    funcDSRL32 = 62,
+    funcDSRA32 = 63
 } instr_func_t;
 
 /** Register rt numbers
@@ -810,135 +810,135 @@ typedef enum {
  *
  */
 typedef enum {
-	/* 0 */
-	rtBLTZ = 0,
-	rtBGEZ = 1,
-	rtBLTZL = 2,
-	rtBGEZL = 3,
-	/* rt 4 unused */
-	/* rt 5 unused */
-	/* rt 6 unused */
-	/* rt 7 unused */
+    /* 0 */
+    rtBLTZ = 0,
+    rtBGEZ = 1,
+    rtBLTZL = 2,
+    rtBGEZL = 3,
+    /* rt 4 unused */
+    /* rt 5 unused */
+    /* rt 6 unused */
+    /* rt 7 unused */
 
-	/* 8 */
-	rtTGEI = 8,
-	rtTGEIU = 9,
-	rtTLTI = 10,
-	rtTLTIU = 11,
-	rtTEQI = 12,
-	/* rt 13 unused */
-	rtTNEI = 14,
-	/* rt 15 unused */
+    /* 8 */
+    rtTGEI = 8,
+    rtTGEIU = 9,
+    rtTLTI = 10,
+    rtTLTIU = 11,
+    rtTEQI = 12,
+    /* rt 13 unused */
+    rtTNEI = 14,
+    /* rt 15 unused */
 
-	/* 16 */
-	rtBLTZAL = 16,
-	rtBGEZAL = 17,
-	rtBLTZALL = 18,
-	rtBGEZALL = 19
+    /* 16 */
+    rtBLTZAL = 16,
+    rtBGEZAL = 17,
+    rtBLTZALL = 18,
+    rtBGEZALL = 19
 } instr_rt_t;
 
 typedef enum {
-	/* 0 */
-	cop0rsMFC0 = 0,
-	cop0rsDMFC0 = 1,
-	/* rs 2 unused */
-	/* rs 3 unused */
-	cop0rsMTC0 = 4,
-	cop0rsDMTC0 = 5,
-	/* rs 6 unused */
-	/* rs 7 unused */
+    /* 0 */
+    cop0rsMFC0 = 0,
+    cop0rsDMFC0 = 1,
+    /* rs 2 unused */
+    /* rs 3 unused */
+    cop0rsMTC0 = 4,
+    cop0rsDMTC0 = 5,
+    /* rs 6 unused */
+    /* rs 7 unused */
 
-	/* 8 */
-	cop0rsBC = 8,
-	/* rs 9 unused */
-	/* rs 10 unused */
-	/* rs 11 unused */
-	/* rs 12 unused */
-	/* rs 13 unused */
-	/* rs 14 unused */
-	/* rs 15 unused */
+    /* 8 */
+    cop0rsBC = 8,
+    /* rs 9 unused */
+    /* rs 10 unused */
+    /* rs 11 unused */
+    /* rs 12 unused */
+    /* rs 13 unused */
+    /* rs 14 unused */
+    /* rs 15 unused */
 
-	/* 16 */
-	cop0rsCO = 16
+    /* 16 */
+    cop0rsCO = 16
 } instr_cop0rs_t;
 
 typedef enum {
-	/* 0 */
-	cop1rsMFC1 = 0,
-	cop1rsDMFC1 = 1,
-	cop1rsCFC1 = 2,
-	/* rs 3 unused */
-	cop1rsMTC1 = 4,
-	cop1rsDMTC1 = 5,
-	cop1rsCTC1 = 6,
-	/* rs 7 unused */
+    /* 0 */
+    cop1rsMFC1 = 0,
+    cop1rsDMFC1 = 1,
+    cop1rsCFC1 = 2,
+    /* rs 3 unused */
+    cop1rsMTC1 = 4,
+    cop1rsDMTC1 = 5,
+    cop1rsCTC1 = 6,
+    /* rs 7 unused */
 
-	/* 8 */
-	cop1rsBC = 8
+    /* 8 */
+    cop1rsBC = 8
 } instr_cop1rs_t;
 
 typedef enum {
-	/* 0 */
-	cop2rsMFC2 = 0,
-	/* rs 1 unused */
-	cop2rsCFC2 = 2,
-	/* rs 3 unused */
-	/* rs 4 unused */
-	/* rs 5 unused */
-	cop2rsCTC2 = 6,
-	/* rs 7 unused */
+    /* 0 */
+    cop2rsMFC2 = 0,
+    /* rs 1 unused */
+    cop2rsCFC2 = 2,
+    /* rs 3 unused */
+    /* rs 4 unused */
+    /* rs 5 unused */
+    cop2rsCTC2 = 6,
+    /* rs 7 unused */
 
-	/* 8 */
-	cop2rsBC = 8
+    /* 8 */
+    cop2rsBC = 8
 } instr_cop2rs_t;
 
 typedef enum {
-	/* 0 */
-	cop0rtBC0F = 0,
-	cop0rtBC0T = 1,
-	cop0rtBC0FL = 2,
-	cop0rtBC0TL = 3
+    /* 0 */
+    cop0rtBC0F = 0,
+    cop0rtBC0T = 1,
+    cop0rtBC0FL = 2,
+    cop0rtBC0TL = 3
 } instr_cop0rt_t;
 
 typedef enum {
-	/* 0 */
-	cop1rtBC1F = 0,
-	cop1rtBC1T = 1,
-	cop1rtBC1FL = 2,
-	cop1rtBC1TL = 3
+    /* 0 */
+    cop1rtBC1F = 0,
+    cop1rtBC1T = 1,
+    cop1rtBC1FL = 2,
+    cop1rtBC1TL = 3
 } instr_cop1rt_t;
 
 typedef enum {
-	/* 0 */
-	cop2rtBC2F = 0,
-	cop2rtBC2T = 1,
-	cop2rtBC2FL = 2,
-	cop2rtBC2TL = 3
+    /* 0 */
+    cop2rtBC2F = 0,
+    cop2rtBC2T = 1,
+    cop2rtBC2FL = 2,
+    cop2rtBC2TL = 3
 } instr_cop2rt_t;
 
 typedef enum {
-	/* 0 */
-	/* function 0 unused */
-	cop0funcTLBR = 1,
-	cop0funcTLBWI = 2,
-	/* function 3 unused */
-	/* function 4 unused */
-	/* function 5 unused */
-	cop0funcTLBWR = 6,
-	/* function 7 unused */
+    /* 0 */
+    /* function 0 unused */
+    cop0funcTLBR = 1,
+    cop0funcTLBWI = 2,
+    /* function 3 unused */
+    /* function 4 unused */
+    /* function 5 unused */
+    cop0funcTLBWR = 6,
+    /* function 7 unused */
 
-	/* 8 */
-	cop0funcTLBP = 8,
-	/* function 9 unused */
-	/* function 10 unused */
-	/* function 11 unused */
-	/* function 12 unused */
-	/* function 13 unused */
-	/* function 14 unused */
-	/* function 15 unused */
+    /* 8 */
+    cop0funcTLBP = 8,
+    /* function 9 unused */
+    /* function 10 unused */
+    /* function 11 unused */
+    /* function 12 unused */
+    /* function 13 unused */
+    /* function 14 unused */
+    /* function 15 unused */
 
-	/* 16 */
-	cop0funcERET = 16
+    /* 16 */
+    cop0funcERET = 16
 } instr_cop0func_t;
 
 /** Instruction decoding tables and mnemonics

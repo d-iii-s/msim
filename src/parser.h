@@ -18,26 +18,26 @@
 #include "list.h"
 
 typedef enum {
-	tt_end,
-	tt_uint,
-	tt_str,
-	tt_err,
-	tt_err_string_noend,
-	tt_err_invalid_num,
-	tt_err_invalid_hex_num,
-	tt_err_overflow
+    tt_end,
+    tt_uint,
+    tt_str,
+    tt_err,
+    tt_err_string_noend,
+    tt_err_invalid_num,
+    tt_err_invalid_hex_num,
+    tt_err_overflow
 } token_type_t;
 
 typedef union {
-	uint64_t i;
-	char *str;
+    uint64_t i;
+    char *str;
 } token_val_t;
 
 typedef struct {
-	item_t item;
+    item_t item;
 
-	token_type_t ttype;
-	token_val_t tval;
+    token_type_t ttype;
+    token_val_t tval;
 } token_t;
 
 /** Command parameter types
@@ -85,10 +85,10 @@ typedef struct {
 
 /** cmd_find return values */
 typedef enum {
-	CMP_NO_HIT = 0,        /**< No hit */
-	CMP_HIT = 1,           /**< Exact match */
-	CMP_PARTIAL_HIT = 2,   /**< Partial match */
-	CMP_MULTIPLE_HIT = 3   /**< Multiple match */
+    CMP_NO_HIT = 0,        /**< No hit */
+    CMP_HIT = 1,           /**< Exact match */
+    CMP_PARTIAL_HIT = 2,   /**< Partial match */
+    CMP_MULTIPLE_HIT = 3   /**< Multiple match */
 } cmd_find_res_t;
 
 extern const char *token_overview[];
@@ -102,13 +102,13 @@ typedef gen_t (*fgen_t)(token_t **parm, const struct cmd *cmd,
 
 /** Device command list */
 typedef struct cmd {
-	const char *name;   /* Command name */
-	fcmd_t func;        /* Function which implements command */
-	fgen_t find_gen;    /* Function for finding the completion function */
-	fcmd_t help;        /* Help function */
-	const char *desc;   /* Short description */
-	const char *descf;  /* Full description */
-	const char *pars;   /* Parameters and description */
+    const char *name;   /* Command name */
+    fcmd_t func;        /* Function which implements command */
+    fgen_t find_gen;    /* Function for finding the completion function */
+    fcmd_t help;        /* Help function */
+    const char *desc;   /* Short description */
+    const char *descf;  /* Full description */
+    const char *pars;   /* Parameters and description */
 } cmd_t;
 
 extern token_t *parm_parse(const char *str);

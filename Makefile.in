@@ -13,7 +13,7 @@ bindir = @bindir@
 
 BINARY = msim
 
-.PHONY: all install uninstall clean distclean rvtest
+.PHONY: all install uninstall clean distclean rvtest cstyle
 
 all:
 	$(MAKE) -C src
@@ -44,3 +44,6 @@ rvtest:
 	@echo "\nSystem tests:"
 	cd tests/rvtests ; python3 run_tests.py
 	@echo "\n All Tests Passed!"
+
+cstyle:
+	find src/ tests/ -name '*.[ch]' -exec clang-format -style=file -i {} \;

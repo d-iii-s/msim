@@ -43,5 +43,4 @@ Waiting cycles
 Default TLB size
 ----------------
 
-Kilo-TLB - 256 entries
-Mega-TLB - 32 entries
+Default TLB size is 48 entries.

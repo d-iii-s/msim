@@ -40,3 +40,4 @@ make install DESTDIR=$RPM_BUILD_ROOT
 %{_bindir}/msim
 
 %changelog
+See the CHANGELOG.md file in the Git repository at https://github.com/d-iii-s/msim

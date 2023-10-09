@@ -19,5 +19,5 @@ src_compile() {
 
 src_install() {
 	dobin msim
-	dodoc README.md AUTHORS ChangeLog
+	dodoc README.md AUTHORS CHANGELOG.md
 }

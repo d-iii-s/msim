@@ -300,6 +300,7 @@ uint16_t physmem_read16(unsigned int procno, ptr36_t addr, bool protected)
     ASSERT(frame->data);
     uint16_t *data = (uint16_t *) (frame->data + (addr & FRAME_MASK));
 
+    // TODO Fix conversion to take into account simulated CPU.
     return convert_uint16_t_endian(*data);
 }
 
@@ -338,6 +339,7 @@ uint32_t physmem_read32(unsigned int procno, ptr36_t addr, bool protected)
     ASSERT(frame->data);
     uint32_t *data = (uint32_t *) (frame->data + (addr & FRAME_MASK));
 
+    // TODO Fix conversion to take into account simulated CPU.
     return convert_uint32_t_endian(*data);
 }
 

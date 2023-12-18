@@ -32,6 +32,11 @@ SOURCES = \
 	debug/debug.c \
 	debug/gdb.c \
 	debug/breakpoint.c \
+	device/cpu/superh_sh2e/cpu.c \
+	device/cpu/superh_sh2e/exec.c \
+	device/cpu/superh_sh2e/disasm.c \
+	device/cpu/superh_sh2e/decode.c \
+	device/cpu/superh_sh2e/debug.c \
 	device/cpu/mips_r4000/cpu.c \
 	device/cpu/mips_r4000/debug.c \
 	device/cpu/riscv_rv32ima/cpu.c \
@@ -49,6 +54,7 @@ SOURCES = \
 	device/ddisk.c \
 	device/dr4kcpu.c \
 	device/drvcpu.c  \
+	device/dsh2ecpu.c  \
 	device/dcycle.c \
 	device/dkeyboard.c \
 	device/dnomem.c \

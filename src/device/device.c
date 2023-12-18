@@ -32,6 +32,7 @@
 #include "dprinter.h"
 #include "dr4kcpu.h"
 #include "drvcpu.h"
+#include "dsh2ecpu.h"
 #include "dtime.h"
 #include "mem.h"
 
@@ -40,6 +41,7 @@
 static device_type_t const * const device_types[] = {
     &dr4kcpu,
     &drvcpu,
+    &dsh2ecpu,
     &dcycle,
     &drwm,
     &drom,
@@ -140,6 +142,9 @@ void add_device(device_t *dev)
  */
 static bool dev_match_to_filter(device_t *device, device_filter_t filter)
 {
+    // TODO: Add RV support
+    // TODO: Add SH2E support
+
     ASSERT(device != NULL);
 
     switch (filter) {

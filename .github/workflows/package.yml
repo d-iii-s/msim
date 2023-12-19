@@ -42,7 +42,7 @@ jobs:
           version: '${{ env.PACKAGE_VERSION }}'
           arch: 'amd64'
 
-      - uses: actions/upload-artifact@v3
+      - uses: actions/upload-artifact@v4
         with:
           name: deb-package
           path: |
@@ -57,7 +57,7 @@ jobs:
           version: '${{ env.PACKAGE_VERSION }}'
           arch: 'x86_64'
 
-      - uses: actions/upload-artifact@v3
+      - uses: actions/upload-artifact@v4
         with:
           name: rpm-package
           path: |

@@ -9,8 +9,9 @@
 #ifndef MAIN_H_
 #define MAIN_H_
 
-#include <stdint.h>
 #include <stdbool.h>
+#include <stdint.h>
+
 #include "../config.h"
 #include "list.h"
 

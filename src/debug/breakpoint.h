@@ -10,6 +10,7 @@
 #define BREAKPOINT_H_
 
 #include <stdbool.h>
+
 #include "../list.h"
 #include "../main.h"
 

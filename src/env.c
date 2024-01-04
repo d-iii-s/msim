@@ -9,17 +9,18 @@
  *
  */
 
+#include <stdbool.h>
 #include <stdlib.h>
 #include <string.h>
-#include <stdbool.h>
+
+#include "assert.h"
 #include "device/cpu/mips_r4000/cpu.h"
 #include "device/cpu/mips_r4000/debug.h"
 #include "device/cpu/riscv_rv32ima/debug.h"
+#include "env.h"
 #include "fault.h"
 #include "parser.h"
-#include "assert.h"
 #include "utils.h"
-#include "env.h"
 
 /*
  * Instruction disassembling

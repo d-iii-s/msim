@@ -10,10 +10,10 @@
 
 #ifdef __WIN32__
 
+#include <errno.h>
 #include <inttypes.h>
 #include <io.h>
 #include <windows.h>
-#include <errno.h>
 
 void *mmap(void *addr, size_t length, int prot, int flags, int fd,
         off_t offset)

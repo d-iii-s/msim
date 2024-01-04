@@ -12,8 +12,8 @@
 #ifndef RISCV_CSR_H_
 #define RISCV_CSR_H_
 
-#include <stdint.h>
 #include <stdbool.h>
+#include <stdint.h>
 
 /**
  * The numerical codes of CSRs

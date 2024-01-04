@@ -10,14 +10,15 @@
  *
  */
 
+#include <inttypes.h>
 #include <stdlib.h>
 #include <string.h>
-#include <inttypes.h>
-#include "dnomem.h"
+
 #include "../assert.h"
 #include "../fault.h"
 #include "../utils.h"
 #include "cpu/general_cpu.h"
+#include "dnomem.h"
 
 /** Access handling. */
 typedef struct {

@@ -12,9 +12,9 @@
 #ifndef DR4KCPU_H_
 #define DR4KCPU_H_
 
-#include "device.h"
 #include "cpu/general_cpu.h"
 #include "cpu/mips_r4000/cpu.h"
+#include "device.h"
 
 #define MAX_CP0_REGISTERS 32
 

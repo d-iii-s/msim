@@ -9,9 +9,9 @@
  *
  */
 
-#include "general_cpu.h"
-#include "../../main.h"
 #include "../../assert.h"
+#include "../../main.h"
+#include "general_cpu.h"
 
 // list of all cpus
 list_t cpu_list = LIST_INITIALIZER;

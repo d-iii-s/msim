@@ -10,11 +10,12 @@
  */
 
 #include <stdint.h>
-#include "csr.h"
-#include "cpu.h"
-#include "tlb.h"
+
 #include "../../../assert.h"
 #include "../../../utils.h"
+#include "cpu.h"
+#include "csr.h"
+#include "tlb.h"
 
 /**
  * Initialize CSRs

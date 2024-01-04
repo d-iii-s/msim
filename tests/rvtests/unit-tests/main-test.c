@@ -1,4 +1,5 @@
 #include <pcut/pcut.h>
+
 #include "../../../src/main.h"
 
 /*

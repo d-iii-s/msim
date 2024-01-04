@@ -10,13 +10,14 @@
  */
 
 #include <string.h>
-#include "debug.h"
-#include "cpu.h"
-#include "csr.h"
+
 #include "../../../assert.h"
+#include "../../../env.h"
 #include "../../../fault.h"
 #include "../../../utils.h"
-#include "../../../env.h"
+#include "cpu.h"
+#include "csr.h"
+#include "debug.h"
 #include "mnemonics.h"
 
 char *rv_reg_name_table[__rv_regname_type_count][RV_REG_COUNT] = {

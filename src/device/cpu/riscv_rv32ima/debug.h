@@ -12,11 +12,12 @@
 #ifndef RISCV_RV32IMA_DEBUG_H_
 #define RISCV_RV32IMA_DEBUG_H_
 
-#include <stdint.h>
 #include <stdbool.h>
-#include "instr.h"
-#include "csr.h"
+#include <stdint.h>
+
 #include "cpu.h"
+#include "csr.h"
+#include "instr.h"
 
 /** The types of the general register names*/
 typedef enum {

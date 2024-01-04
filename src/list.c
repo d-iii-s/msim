@@ -7,8 +7,9 @@
  */
 
 #include <stddef.h>
-#include "list.h"
+
 #include "assert.h"
+#include "list.h"
 
 /** Initialize a list
  *

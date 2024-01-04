@@ -9,5 +9,23 @@ ContinuationIndentWidth: 8
 MaxEmptyLinesToKeep: 1
 SpaceAfterCStyleCast: true
 PointerAlignment: Right
-SortIncludes: Never
+
+# Include files ordering:
+# - first put standard includes, place non-nested first (this should
+#   move library stuff at the end of < > includes)
+# - then place local includes
+IncludeBlocks: Regroup
+IncludeCategories:
+  - Regex:           '^<.*/'
+    Priority:        -1
+    SortPriority:    -1
+    CaseSensitive:   true
+  - Regex:           '^<'
+    Priority:        -1
+    SortPriority:    -2
+    CaseSensitive:   true
+  - Regex:           '^"'
+    Priority:        0
+    CaseSensitive:   true
+
 ...

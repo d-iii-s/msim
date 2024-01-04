@@ -1,8 +1,8 @@
 #include <string.h>
 
-#include "tlb.h"
-#include "../../../utils.h"
 #include "../../../assert.h"
+#include "../../../utils.h"
+#include "tlb.h"
 
 typedef struct rv_tlb_entry {
     item_t item; // Item to be used in LRU or free-list

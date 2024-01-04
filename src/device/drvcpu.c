@@ -11,19 +11,20 @@
  *
  */
 
+#include <inttypes.h>
+#include <stdbool.h>
 #include <stdlib.h>
 #include <string.h>
-#include <stdbool.h>
-#include <inttypes.h>
-#include "drvcpu.h"
+
+#include "../assert.h"
+#include "../fault.h"
+#include "../main.h"
+#include "../utils.h"
 #include "cpu/general_cpu.h"
 #include "cpu/riscv_rv32ima/cpu.h"
 #include "cpu/riscv_rv32ima/csr.h"
 #include "cpu/riscv_rv32ima/debug.h"
-#include "../main.h"
-#include "../assert.h"
-#include "../utils.h"
-#include "../fault.h"
+#include "drvcpu.h"
 
 static bool rv_convert_add_wrapper(void *cpu, ptr64_t virt, ptr36_t *phys, bool write)
 {

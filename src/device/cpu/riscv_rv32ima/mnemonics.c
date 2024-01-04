@@ -12,16 +12,16 @@
 #include <stdint.h>
 #include <sys/time.h>
 
-#include "mnemonics.h"
+#include "../../../assert.h"
+#include "../../../env.h"
+#include "../../../utils.h"
 #include "debug.h"
 #include "instr.h"
 #include "instructions/computations.h"
 #include "instructions/control_transfer.h"
-#include "instructions/system.h"
 #include "instructions/mem_ops.h"
-#include "../../../env.h"
-#include "../../../assert.h"
-#include "../../../utils.h"
+#include "instructions/system.h"
+#include "mnemonics.h"
 
 extern rv_mnemonics_func_t rv_decode_mnemonics(rv_instr_t instr)
 {

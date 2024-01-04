@@ -1,5 +1,6 @@
 #include <stdint.h>
 #include <pcut/pcut.h>
+
 #include "../../../src/device/cpu/riscv_rv32ima/cpu.h"
 #include "../../../src/device/cpu/riscv_rv32ima/csr.h"
 #include "../../../src/device/cpu/riscv_rv32ima/instructions/system.h"

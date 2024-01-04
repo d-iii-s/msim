@@ -10,13 +10,14 @@
  */
 
 #include <stdint.h>
-#include "system.h"
+
+#include "../../../../assert.h"
 #include "../../../../input.h"
 #include "../../../../main.h"
-#include "../../../../assert.h"
 #include "../csr.h"
-#include "../tlb.h"
 #include "../debug.h"
+#include "../tlb.h"
+#include "system.h"
 
 rv_exc_t rv_break_instr(rv_cpu_t *cpu, rv_instr_t instr)
 {

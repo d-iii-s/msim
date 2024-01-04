@@ -9,21 +9,22 @@
  *
  */
 
-#include <stdlib.h>
-#include <unistd.h>
-#include <string.h>
-#include <sys/time.h>
-#include <stdbool.h>
 #include <inttypes.h>
-#include "dkeyboard.h"
-#include "device.h"
-#include "cpu/general_cpu.h"
+#include <stdbool.h>
+#include <stdlib.h>
+#include <string.h>
+#include <unistd.h>
+#include <sys/time.h>
+
 #include "../arch/stdin.h"
 #include "../assert.h"
 #include "../env.h"
 #include "../fault.h"
 #include "../text.h"
 #include "../utils.h"
+#include "cpu/general_cpu.h"
+#include "device.h"
+#include "dkeyboard.h"
 
 /* Register offsets */
 #define REGISTER_CHAR 0

@@ -11,9 +11,10 @@
 
 #include <errno.h>
 #include <string.h>
+
 #include "../config.h"
-#include "text.h"
 #include "main.h"
+#include "text.h"
 
 /*
  * The most frequently messages for user.

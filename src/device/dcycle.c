@@ -9,15 +9,16 @@
  *
  */
 
-#include <time.h>
+#include <inttypes.h>
 #include <stdlib.h>
 #include <string.h>
-#include <inttypes.h>
-#include "dcycle.h"
-#include "device.h"
+#include <time.h>
+
 #include "../assert.h"
 #include "../fault.h"
 #include "../utils.h"
+#include "dcycle.h"
+#include "device.h"
 
 /** Registers */
 #define REGISTER_CYCLE_LO 0

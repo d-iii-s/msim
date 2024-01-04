@@ -14,10 +14,11 @@
 #define UTILS_H_
 
 #include <stdarg.h>
-#include <stdlib.h>
 #include <stdbool.h>
 #include <stdint.h>
 #include <stdio.h>
+#include <stdlib.h>
+
 #include "main.h"
 
 #define MAX(a, b) (((a) < (b)) ? (b) : (a))

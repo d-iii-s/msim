@@ -10,14 +10,14 @@
  */
 
 #include <stdio.h>
-#include "instr.h"
-#include "cpu.h"
+
 #include "../../../assert.h"
 #include "../../../main.h"
-
+#include "cpu.h"
+#include "instr.h"
 #include "instructions/computations.h"
-#include "instructions/mem_ops.h"
 #include "instructions/control_transfer.h"
+#include "instructions/mem_ops.h"
 #include "instructions/system.h"
 
 rv_exc_t rv_illegal_instr(rv_cpu_t *cpu, rv_instr_t instr)

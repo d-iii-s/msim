@@ -8,18 +8,19 @@
  *  Physical memory space implementation
  *
  */
-#include <stdlib.h>
-#include <stdio.h>
-#include <string.h>
 #include <inttypes.h>
-#include "physmem.h"
-#include "debug/breakpoint.h"
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+
 #include "assert.h"
-#include "utils.h"
-#include "endian.h"
-#include "device/device.h"
-#include "list.h"
+#include "debug/breakpoint.h"
 #include "device/cpu/general_cpu.h"
+#include "device/device.h"
+#include "endian.h"
+#include "list.h"
+#include "physmem.h"
+#include "utils.h"
 
 /** Physical memory management
  *

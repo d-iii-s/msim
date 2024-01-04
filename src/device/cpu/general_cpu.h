@@ -13,8 +13,9 @@
 #define GENERAL_CPU_H_
 
 #include <stdbool.h>
-#include "../../main.h"
+
 #include "../../debug/breakpoint.h"
+#include "../../main.h"
 
 /** Function type for raising and canceling interrupts */
 typedef void (*interrupt_func_t)(void *, unsigned int);

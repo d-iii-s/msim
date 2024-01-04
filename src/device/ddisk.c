@@ -9,21 +9,22 @@
  *
  */
 
-#include <stdlib.h>
 #include <fcntl.h>
-#include <unistd.h>
-#include <string.h>
-#include <sys/types.h>
-#include <sys/stat.h>
 #include <inttypes.h>
-#include "cpu/general_cpu.h"
-#include "../physmem.h"
-#include "ddisk.h"
+#include <stdlib.h>
+#include <string.h>
+#include <unistd.h>
+#include <sys/stat.h>
+#include <sys/types.h>
+
 #include "../arch/mmap.h"
-#include "../text.h"
 #include "../fault.h"
 #include "../main.h"
+#include "../physmem.h"
+#include "../text.h"
 #include "../utils.h"
+#include "cpu/general_cpu.h"
+#include "ddisk.h"
 
 /** Actions the disk is performing */
 enum action_e {

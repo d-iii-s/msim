@@ -9,17 +9,18 @@
  *
  */
 
-#include <time.h>
+#include <inttypes.h>
+#include <stdbool.h>
 #include <stdlib.h>
 #include <string.h>
-#include <stdbool.h>
+#include <time.h>
 #include <sys/time.h>
-#include <inttypes.h>
-#include "dtime.h"
-#include "device.h"
+
 #include "../assert.h"
 #include "../fault.h"
 #include "../utils.h"
+#include "device.h"
+#include "dtime.h"
 
 // TODO: Add SC checks on each change of value?
 

@@ -9,9 +9,9 @@
  *
  */
 
-#include "control_transfer.h"
 #include "../../../../assert.h"
 #include "../../../../utils.h"
+#include "control_transfer.h"
 
 rv_exc_t rv_jal_instr(rv_cpu_t *cpu, rv_instr_t instr)
 {

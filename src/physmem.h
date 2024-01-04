@@ -14,12 +14,13 @@
 #ifndef PHYSMEM_H_
 #define PHYSMEM_H_
 
-#include <stdint.h>
-#include <stdbool.h>
 #include <inttypes.h>
+#include <stdbool.h>
+#include <stdint.h>
 #include <unistd.h>
-#include "main.h"
+
 #include "list.h"
+#include "main.h"
 #include "utils.h"
 
 #define FRAME_WIDTH 12

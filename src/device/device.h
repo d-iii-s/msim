@@ -12,8 +12,9 @@
 #ifndef DEVICE_H_
 #define DEVICE_H_
 
-#include <stdint.h>
 #include <stddef.h>
+#include <stdint.h>
+
 #include "../parser.h"
 
 struct device;

@@ -1,13 +1,14 @@
+#include <inttypes.h>
+#include <stdbool.h>
 #include <stdio.h>
 #include <string.h>
-#include <stdbool.h>
-#include <inttypes.h>
-#include "debug.h"
-#include "cpu.h"
+
 #include "../../../assert.h"
 #include "../../../env.h"
 #include "../../../main.h"
 #include "../../../utils.h"
+#include "cpu.h"
+#include "debug.h"
 
 /** Debugging register names */
 char **r4k_regname;

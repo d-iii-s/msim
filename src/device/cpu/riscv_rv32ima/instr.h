@@ -12,8 +12,8 @@
 #ifndef RISCV_RV32IMA_INSTR_H_
 #define RISCV_RV32IMA_INSTR_H_
 
-#include <stdint.h>
 #include <assert.h>
+#include <stdint.h>
 
 #include "../../../utils.h"
 

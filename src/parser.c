@@ -9,16 +9,16 @@
  *
  */
 
-#include <string.h>
-#include <stdlib.h>
-#include <stdio.h>
-#include <string.h>
 #include <inttypes.h>
-#include "device/device.h"
-#include "parser.h"
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+
 #include "assert.h"
-#include "utils.h"
+#include "device/device.h"
 #include "fault.h"
+#include "parser.h"
+#include "utils.h"
 
 static const cmd_t *last_cmd;
 

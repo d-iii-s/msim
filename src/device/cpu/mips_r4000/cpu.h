@@ -12,14 +12,15 @@
 #ifndef MIPS_R4000_CPU_H_
 #define MIPS_R4000_CPU_H_
 
-#include <stdint.h>
-#include <stdbool.h>
-#include <inttypes.h>
-#include <unistd.h>
 #include <assert.h>
+#include <inttypes.h>
+#include <stdbool.h>
+#include <stdint.h>
+#include <unistd.h>
+
 #include "../../../list.h"
-#include "../../../utils.h"
 #include "../../../physmem.h"
+#include "../../../utils.h"
 
 #define R4K_REG_COUNT 32
 #define R4K_REG_VARIANTS 3

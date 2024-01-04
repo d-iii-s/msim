@@ -9,17 +9,18 @@
  *
  */
 
+#include <inttypes.h>
+#include <stdbool.h>
 #include <stdlib.h>
 #include <string.h>
-#include <stdbool.h>
-#include <inttypes.h>
-#include "dorder.h"
-#include "device.h"
-#include "cpu/general_cpu.h"
+
 #include "../fault.h"
 #include "../parser.h"
 #include "../text.h"
 #include "../utils.h"
+#include "cpu/general_cpu.h"
+#include "device.h"
+#include "dorder.h"
 
 /** \{ \name Registers */
 #define REGISTER_INT_UP 0 /**< Assert interrupts */

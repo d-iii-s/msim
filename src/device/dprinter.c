@@ -9,18 +9,19 @@
  *
  */
 
+#include <inttypes.h>
+#include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <stdbool.h>
-#include <inttypes.h>
-#include "dprinter.h"
-#include "device.h"
+
 #include "../assert.h"
 #include "../fault.h"
 #include "../parser.h"
 #include "../text.h"
 #include "../utils.h"
+#include "device.h"
+#include "dprinter.h"
 
 /** Registers */
 #define REGISTER_CHAR 0 /**< Output character */

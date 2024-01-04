@@ -1,11 +1,12 @@
 #ifndef MIPS_R4000_DEBUG_H_
 #define MIPS_R4000_DEBUG_H_
 
-#include <stdlib.h>
 #include <stdbool.h>
 #include <stdint.h>
-#include "cpu.h"
+#include <stdlib.h>
+
 #include "../../../utils.h"
+#include "cpu.h"
 
 /** Debugging register names */
 extern char **r4k_regname;

@@ -13,6 +13,7 @@
 #define ENDIAN_H_
 
 #include <inttypes.h>
+
 #include "../config.h"
 
 #ifdef WORDS_BIGENDIAN

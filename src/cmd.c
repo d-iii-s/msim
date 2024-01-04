@@ -9,24 +9,25 @@
  *
  */
 
-#include <sys/types.h>
-#include <sys/stat.h>
+#include <errno.h>
 #include <fcntl.h>
-#include <stdlib.h>
+#include <inttypes.h>
 #include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
-#include <errno.h>
-#include <inttypes.h>
+#include <sys/stat.h>
+#include <sys/types.h>
+
+#include "assert.h"
+#include "cmd.h"
+#include "debug/breakpoint.h"
+#include "debug/debug.h"
 #include "device/cpu/mips_r4000/cpu.h"
 #include "device/cpu/mips_r4000/debug.h"
 #include "device/cpu/riscv_rv32ima/cpu.h"
 #include "device/cpu/riscv_rv32ima/debug.h"
-#include "debug/debug.h"
-#include "debug/breakpoint.h"
 #include "device/device.h"
-#include "assert.h"
-#include "cmd.h"
 #include "env.h"
 #include "fault.h"
 #include "main.h"

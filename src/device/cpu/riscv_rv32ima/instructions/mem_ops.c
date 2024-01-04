@@ -11,11 +11,11 @@
 
 #include <stdint.h>
 
-#include "mem_ops.h"
 #include "../../../../assert.h"
-#include "../../../../physmem.h"
 #include "../../../../fault.h"
+#include "../../../../physmem.h"
 #include "../../../../utils.h"
+#include "mem_ops.h"
 
 rv_exc_t rv_lb_instr(rv_cpu_t *cpu, rv_instr_t instr)
 {

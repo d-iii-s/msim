@@ -9,30 +9,31 @@
  *
  */
 
-#include <stdio.h>
-#include <unistd.h>
-#include <sys/time.h>
-#include <stdlib.h>
-#include <string.h>
+#include <inttypes.h>
 #include <stdarg.h>
 #include <stdbool.h>
-#include <inttypes.h>
-#include "mem.h"
-#include "dr4kcpu.h"
-#include "drvcpu.h"
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <unistd.h>
+#include <sys/time.h>
+
+#include "../assert.h"
+#include "../env.h"
+#include "../fault.h"
+#include "../main.h"
+#include "../utils.h"
 #include "dcycle.h"
+#include "ddisk.h"
+#include "device.h"
 #include "dkeyboard.h"
 #include "dnomem.h"
 #include "dorder.h"
-#include "ddisk.h"
 #include "dprinter.h"
+#include "dr4kcpu.h"
+#include "drvcpu.h"
 #include "dtime.h"
-#include "device.h"
-#include "../main.h"
-#include "../env.h"
-#include "../assert.h"
-#include "../utils.h"
-#include "../fault.h"
+#include "mem.h"
 
 /** Count of device types */
 #define DEVICE_TYPE_COUNT 11

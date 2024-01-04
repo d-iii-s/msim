@@ -9,20 +9,21 @@
  *
  */
 
+#include <inttypes.h>
+#include <stdbool.h>
 #include <stdlib.h>
 #include <string.h>
-#include <stdbool.h>
-#include <inttypes.h>
-#include "dr4kcpu.h"
-#include "device.h"
-#include "cpu/general_cpu.h"
-#include "cpu/mips_r4000/cpu.h"
-#include "cpu/mips_r4000/debug.h"
-#include "../debug/debug.h"
+
 #include "../debug/breakpoint.h"
+#include "../debug/debug.h"
 #include "../fault.h"
 #include "../main.h"
 #include "../utils.h"
+#include "cpu/general_cpu.h"
+#include "cpu/mips_r4000/cpu.h"
+#include "cpu/mips_r4000/debug.h"
+#include "device.h"
+#include "dr4kcpu.h"
 
 static bool r4k_cpu_convert_addr(r4k_cpu_t *cpu, ptr64_t virt, ptr36_t *phys, bool write)
 {

@@ -10,25 +10,26 @@
  *
  */
 
-#include <stdlib.h>
-#include <stdio.h>
 #include <fcntl.h>
-#include <unistd.h>
 #include <getopt.h>
-#include <string.h>
 #include <stdbool.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <unistd.h>
+
 #include "arch/signal.h"
+#include "assert.h"
+#include "cmd.h"
+#include "debug/breakpoint.h"
+#include "debug/gdb.h"
 #include "device/cpu/general_cpu.h"
 #include "device/cpu/mips_r4000/cpu.h"
 #include "device/cpu/mips_r4000/debug.h"
 #include "device/cpu/riscv_rv32ima/cpu.h"
 #include "device/cpu/riscv_rv32ima/debug.h"
-#include "debug/gdb.h"
-#include "debug/breakpoint.h"
-#include "device/dr4kcpu.h"
 #include "device/device.h"
-#include "assert.h"
-#include "cmd.h"
+#include "device/dr4kcpu.h"
 #include "endian.h"
 #include "env.h"
 #include "fault.h"

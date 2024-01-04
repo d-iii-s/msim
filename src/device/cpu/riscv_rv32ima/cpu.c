@@ -9,19 +9,20 @@
  *
  */
 
-#include <stdlib.h>
-#include <stdio.h>
-#include <string.h>
 #include <stdint.h>
-#include "cpu.h"
-#include "debug.h"
-#include "csr.h"
-#include "tlb.h"
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+
 #include "../../../assert.h"
-#include "../../../utils.h"
-#include "../../../physmem.h"
-#include "../../../main.h"
 #include "../../../list.h"
+#include "../../../main.h"
+#include "../../../physmem.h"
+#include "../../../utils.h"
+#include "cpu.h"
+#include "csr.h"
+#include "debug.h"
+#include "tlb.h"
 #include "virt_mem.h"
 
 /// Caching of decoded instructions

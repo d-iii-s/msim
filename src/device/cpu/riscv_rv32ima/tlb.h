@@ -11,10 +11,11 @@
 #ifndef RISCV_RV32IMA_TLB_H_
 #define RISCV_RV32IMA_TLB_H_
 
-#include <stdint.h>
 #include <stdbool.h>
-#include "../../../main.h"
+#include <stdint.h>
+
 #include "../../../list.h"
+#include "../../../main.h"
 #include "virt_mem.h"
 
 struct rv_tlb_entry;

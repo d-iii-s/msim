@@ -10,9 +10,10 @@
 
 #ifndef __WIN32__
 
-#include <stdio.h>
 #include <signal.h>
+#include <stdio.h>
 #include <stdlib.h>
+
 #include "../../fault.h"
 #include "../../input.h"
 #include "../../main.h"

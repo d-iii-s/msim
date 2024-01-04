@@ -9,19 +9,20 @@
  *
  */
 
+#include <inttypes.h>
+#include <stdbool.h>
 #include <stdio.h>
 #include <string.h>
-#include <stdbool.h>
-#include <inttypes.h>
-#include "debug.h"
+
+#include "../assert.h"
 #include "../device/cpu/mips_r4000/cpu.h"
 #include "../device/cpu/riscv_rv32ima/cpu.h"
 #include "../device/dr4kcpu.h"
 #include "../device/mem.h"
-#include "../assert.h"
 #include "../env.h"
 #include "../main.h"
 #include "../utils.h"
+#include "debug.h"
 
 void dbg_print_device_info(device_t *dev)
 {

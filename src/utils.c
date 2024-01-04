@@ -9,23 +9,23 @@
  *
  */
 
-#include <sys/stat.h>
-#include <stdio.h>
+#include <inttypes.h>
 #include <stdarg.h>
+#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <inttypes.h>
 #include <unistd.h>
+#include <sys/stat.h>
 #include <sys/time.h>
 // #include "device/cpu/mips_r4000/cpu.h"
 // #include "device/cpu/riscv_rv32ima/cpu.h"
-#include "physmem.h"
 #include "arch/mmap.h"
+#include "assert.h"
+#include "fault.h"
+#include "main.h"
+#include "physmem.h"
 #include "text.h"
 #include "utils.h"
-#include "fault.h"
-#include "assert.h"
-#include "main.h"
 
 #define STRING_GRANULARITY 128
 #define STRING_BUFFER 4096

@@ -12,12 +12,13 @@
 #ifndef RISCV_RV32IMA_CPU_H_
 #define RISCV_RV32IMA_CPU_H_
 
-#include <stdint.h>
 #include <stdbool.h>
-#include "instr.h"
-#include "csr.h"
-#include "tlb.h"
+#include <stdint.h>
+
 #include "../../../main.h"
+#include "csr.h"
+#include "instr.h"
+#include "tlb.h"
 
 #define RV_REG_COUNT 32
 #define RV_START_ADDRESS UINT32_C(0xF0000000)

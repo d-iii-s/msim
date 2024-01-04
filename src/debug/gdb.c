@@ -14,28 +14,29 @@
  *
  */
 
-#include <stdio.h>
 #include <errno.h>
-#include <string.h>
-#include <stdarg.h>
-#include <unistd.h>
-#include <stdbool.h>
 #include <inttypes.h>
+#include <stdarg.h>
+#include <stdbool.h>
+#include <stdio.h>
+#include <string.h>
+#include <unistd.h>
 #include <sys/types.h>
-#include "breakpoint.h"
-#include "gdb.h"
+
 #include "../arch/network.h"
+#include "../assert.h"
+#include "../device/cpu/general_cpu.h"
 #include "../device/cpu/mips_r4000/cpu.h"
 #include "../device/cpu/riscv_rv32ima/cpu.h"
-#include "../device/cpu/general_cpu.h"
 #include "../device/dr4kcpu.h"
-#include "../assert.h"
 #include "../endian.h"
 #include "../fault.h"
 #include "../main.h"
 #include "../parser.h"
 #include "../text.h"
 #include "../utils.h"
+#include "breakpoint.h"
+#include "gdb.h"
 
 #ifdef GDB_DEBUG
 

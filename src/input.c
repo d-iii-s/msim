@@ -9,14 +9,15 @@
  *
  */
 
-#include <unistd.h>
 #include <stdbool.h>
 #include <stdio.h>
 #include <string.h>
-#include <readline/readline.h>
+#include <unistd.h>
 #include <readline/history.h>
-#include "arch/console.h"
+#include <readline/readline.h>
+
 #include "../config.h"
+#include "arch/console.h"
 #include "assert.h"
 #include "cmd.h"
 #include "fault.h"

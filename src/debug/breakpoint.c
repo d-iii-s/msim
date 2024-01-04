@@ -30,18 +30,17 @@
  * from him. They work with virtual address.
  */
 
-#include "breakpoint.h"
-
 #include <inttypes.h>
-#include "../device/device.h"
+
 #include "../assert.h"
+#include "../device/cpu/general_cpu.h"
+#include "../device/cpu/mips_r4000/cpu.h"
+#include "../device/device.h"
+#include "../device/dr4kcpu.h"
 #include "../fault.h"
 #include "../main.h"
 #include "../utils.h"
 #include "breakpoint.h"
-#include "../device/cpu/general_cpu.h"
-#include "../device/dr4kcpu.h"
-#include "../device/cpu/mips_r4000/cpu.h"
 #include "gdb.h"
 
 list_t physmem_breakpoints = LIST_INITIALIZER;

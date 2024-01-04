@@ -14,8 +14,9 @@
 
 #include <stdbool.h>
 #include <stdint.h>
-#include "main.h"
+
 #include "list.h"
+#include "main.h"
 
 typedef enum {
     tt_end,

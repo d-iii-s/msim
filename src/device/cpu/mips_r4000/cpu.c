@@ -9,25 +9,26 @@
  *
  */
 
-#include <stdlib.h>
-#include <stdio.h>
-#include <string.h>
 #include <inttypes.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+
+#include "../../../assert.h"
 #include "../../../debug/breakpoint.h"
 #include "../../../debug/debug.h"
 #include "../../../debug/gdb.h"
-#include "../../device.h"
-#include "../../../assert.h"
 #include "../../../endian.h"
 #include "../../../env.h"
 #include "../../../fault.h"
 #include "../../../input.h"
 #include "../../../main.h"
+#include "../../../physmem.h"
 #include "../../../text.h"
 #include "../../../utils.h"
+#include "../../device.h"
 #include "cpu.h"
 #include "debug.h"
-#include "../../../physmem.h"
 
 /** Register and coprocessor names
  *
@@ -1337,9 +1338,10 @@ static void disassemble_rd(r4k_instr_t instr, string_t *mnemonics,
 #include "instr/_warning.c"
 #include "instr/_xcrd.c"
 #include "instr/_xhlt.c"
+#include "instr/_xint.c"
 #include "instr/_xrd.c"
-#include "instr/_xtrc.c"
 #include "instr/_xtr0.c"
+#include "instr/_xtrc.c"
 #include "instr/_xval.c"
 #include "instr/add.c"
 #include "instr/addi.c"
@@ -1389,23 +1391,23 @@ static void disassemble_rd(r4k_instr_t instr, string_t *mnemonics,
 #include "instr/ddivu.c"
 #include "instr/div.c"
 #include "instr/divu.c"
-#include "instr/dsll.c"
-#include "instr/dsllv.c"
-#include "instr/dsll32.c"
-#include "instr/dsra.c"
-#include "instr/dsrav.c"
-#include "instr/dsra32.c"
-#include "instr/dsrl.c"
-#include "instr/dsrlv.c"
-#include "instr/dsrl32.c"
-#include "instr/dsub.c"
-#include "instr/dsubu.c"
 #include "instr/dmfc0.c"
 #include "instr/dmfc1.c"
 #include "instr/dmtc0.c"
 #include "instr/dmtc1.c"
 #include "instr/dmult.c"
 #include "instr/dmultu.c"
+#include "instr/dsll.c"
+#include "instr/dsll32.c"
+#include "instr/dsllv.c"
+#include "instr/dsra.c"
+#include "instr/dsra32.c"
+#include "instr/dsrav.c"
+#include "instr/dsrl.c"
+#include "instr/dsrl32.c"
+#include "instr/dsrlv.c"
+#include "instr/dsub.c"
+#include "instr/dsubu.c"
 #include "instr/eret.c"
 #include "instr/j.c"
 #include "instr/jal.c"
@@ -1441,7 +1443,6 @@ static void disassemble_rd(r4k_instr_t instr, string_t *mnemonics,
 #include "instr/mult.c"
 #include "instr/multu.c"
 #include "instr/nor.c"
-#include "instr/_xint.c"
 #include "instr/or.c"
 #include "instr/ori.c"
 #include "instr/sb.c"

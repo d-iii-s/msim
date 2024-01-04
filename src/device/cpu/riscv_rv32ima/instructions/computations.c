@@ -10,9 +10,10 @@
  */
 
 #include <stdint.h>
-#include "computations.h"
+
 #include "../../../../assert.h"
 #include "../../../../utils.h"
+#include "computations.h"
 
 /******
  * OP *

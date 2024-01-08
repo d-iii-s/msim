@@ -1,0 +1,13 @@
+name: File style
+on:
+  push: {}
+  pull_request: {}
+
+jobs:
+  check-encoding:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Check correct encoding etc.
+      run: ./contrib/check-encoding.sh

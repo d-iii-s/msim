@@ -3,8 +3,9 @@ static r4k_exc_t instr_dsll(r4k_cpu_t *cpu, r4k_instr_t instr)
     if (CPU_64BIT_INSTRUCTION(cpu)) {
         uint64_t rt = cpu->regs[instr.r.rt].val;
         cpu->regs[instr.r.rd].val = rt << instr.r.sa;
-    } else
+    } else {
         return r4k_excRI;
+    }
 
     return r4k_excNone;
 }

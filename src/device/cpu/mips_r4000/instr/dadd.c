@@ -5,12 +5,14 @@ static r4k_exc_t instr_dadd(r4k_cpu_t *cpu, r4k_instr_t instr)
         uint64_t rt = cpu->regs[instr.r.rt].val;
         uint64_t sum = rs + rt;
 
-        if (!((rs ^ rt) & SBIT64) && ((rs ^ sum) & SBIT64))
+        if (!((rs ^ rt) & SBIT64) && ((rs ^ sum) & SBIT64)) {
             return r4k_excOv;
+        }
 
         cpu->regs[instr.r.rd].val = sum;
-    } else
+    } else {
         return r4k_excRI;
+    }
 
     return r4k_excNone;
 }

@@ -133,8 +133,9 @@ void physmem_breakpoint_remove_filtered(breakpoint_filter_t filter)
         breakpoint = (physmem_breakpoint_t *) breakpoint->item.next;
 
         /* Ignore breakpoints which are not filtered */
-        if ((removed->kind & filter) == 0)
+        if ((removed->kind & filter) == 0) {
             continue;
+        }
 
         list_remove(&physmem_breakpoints, &removed->item);
         safe_free(removed);
@@ -175,12 +176,13 @@ void physmem_breakpoint_hit(physmem_breakpoint_t *breakpoint,
 
     switch (breakpoint->kind) {
     case BREAKPOINT_KIND_SIMULATOR:
-        if (access_type == ACCESS_READ)
+        if (access_type == ACCESS_READ) {
             alert("Debug: Read from address %#0" PRIx64,
                     breakpoint->addr);
-        else
+        } else {
             alert("Debug: Written to address %#0" PRIx64,
                     breakpoint->addr);
+        }
 
         breakpoint->hits++;
         machine_interactive = true;
@@ -286,8 +288,9 @@ breakpoint_t *breakpoint_find_by_address(list_t breakpoints,
 
     for_each(breakpoints, breakpoint, breakpoint_t)
     {
-        if ((breakpoint->pc.ptr == address.ptr) && ((breakpoint->kind & filter) != 0))
+        if ((breakpoint->pc.ptr == address.ptr) && ((breakpoint->kind & filter) != 0)) {
             return breakpoint;
+        }
     }
 
     return NULL;
@@ -311,8 +314,9 @@ bool breakpoint_check_for_code_breakpoints(void)
     while (dev_next(&dev, DEVICE_FILTER_R4K_PROCESSOR)) {
         r4k_cpu_t *cpu = get_r4k(dev);
 
-        if (breakpoint_hit_by_address(cpu->bps, cpu->pc))
+        if (breakpoint_hit_by_address(cpu->bps, cpu->pc)) {
             hit = true;
+        }
     }
 
     return hit;

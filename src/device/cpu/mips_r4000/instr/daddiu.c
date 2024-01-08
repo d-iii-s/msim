@@ -5,8 +5,9 @@ static r4k_exc_t instr_daddiu(r4k_cpu_t *cpu, r4k_instr_t instr)
         uint64_t imm = sign_extend_16_64(instr.i.imm);
 
         cpu->regs[instr.i.rt].val = rs + imm;
-    } else
+    } else {
         return r4k_excRI;
+    }
 
     return r4k_excNone;
 }

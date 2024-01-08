@@ -104,10 +104,12 @@ rv_exc_t rv_call_instr(rv_cpu_t *cpu, rv_instr_t instr)
 
 rv_exc_t rv_sret_instr(rv_cpu_t *cpu, rv_instr_t instr)
 {
-    if (rv_csr_mstatus_tsr(cpu))
+    if (rv_csr_mstatus_tsr(cpu)) {
         return rv_exc_illegal_instruction;
-    if (cpu->priv_mode < rv_smode)
+    }
+    if (cpu->priv_mode < rv_smode) {
         return rv_exc_illegal_instruction;
+    }
 
     rv_priv_mode_t spp_priv = rv_csr_sstatus_spp(cpu);
 
@@ -144,8 +146,9 @@ rv_exc_t rv_sret_instr(rv_cpu_t *cpu, rv_instr_t instr)
 
 rv_exc_t rv_mret_instr(rv_cpu_t *cpu, rv_instr_t instr)
 {
-    if (cpu->priv_mode < rv_mmode)
+    if (cpu->priv_mode < rv_mmode) {
         return rv_exc_illegal_instruction;
+    }
 
     rv_priv_mode_t mpp_priv = rv_csr_mstatus_mpp(cpu);
 

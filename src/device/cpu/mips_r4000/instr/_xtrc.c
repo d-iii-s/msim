@@ -6,8 +6,9 @@ static r4k_exc_t instr__xtrc(r4k_cpu_t *cpu, r4k_instr_t instr)
 
     alert("XTRC: Trace mode");
 
-    if (!machine_trace)
+    if (!machine_trace) {
         r4k_reg_dump(cpu);
+    }
 
     /* Update debugging information */
     memcpy(cpu->old_regs, cpu->regs, sizeof(cpu->regs));

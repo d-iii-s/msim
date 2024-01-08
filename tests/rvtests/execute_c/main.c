@@ -30,8 +30,9 @@ void puts(char *s)
 bool try_int2s(unsigned int num, char *output, int len)
 {
 
-    if (len < 2)
+    if (len < 2) {
         return false;
+    }
 
     if (num == 0) {
         output[0] = '0';
@@ -44,13 +45,15 @@ bool try_int2s(unsigned int num, char *output, int len)
     for (i = 0; i < len; i++) {
         buffer[i] = '0' + num % 10;
         num /= 10;
-        if (num == 0)
+        if (num == 0) {
             break;
+        }
     }
     // The last written index is i
     // We need to write i chars + 1 '\0', so we need i+1 bytes total
-    if (i >= len - 1)
+    if (i >= len - 1) {
         return false;
+    }
 
     for (int j = 0; j <= i; ++j) {
         output[j] = buffer[i - j];
@@ -77,22 +80,25 @@ void print_int_ln(unsigned int num)
 
 unsigned int factorial_rec(unsigned int n)
 {
-    if (n == 0)
+    if (n == 0) {
         return 1;
+    }
     return n * factorial_rec(n - 1);
 }
 
 unsigned int fib_rec(unsigned int n)
 {
-    if (n == 0 || n == 1)
+    if (n == 0 || n == 1) {
         return n;
+    }
     return fib_rec(n - 1) + fib_rec(n - 2);
 }
 
 unsigned int fib_loop(unsigned int n)
 {
-    if (n == 0 || n == 1)
+    if (n == 0 || n == 1) {
         return n;
+    }
     unsigned int prev = 0;
     unsigned int next = 1;
     for (int i = 2; i <= n; ++i) {

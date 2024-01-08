@@ -31,16 +31,18 @@ static r4k_exc_t instr_dmtc0(r4k_cpu_t *cpu, r4k_instr_t instr)
                         || ((reg.val & cp0_pagemask_mask_mask) == UINT32_C(0x7e000))
                         || ((reg.val & cp0_pagemask_mask_mask) == UINT32_C(0x1fe000))
                         || ((reg.val & cp0_pagemask_mask_mask) == UINT32_C(0x7fe000))
-                        || ((reg.val & cp0_pagemask_mask_mask) == UINT32_C(0x1ffe000)))
+                        || ((reg.val & cp0_pagemask_mask_mask) == UINT32_C(0x1ffe000))) {
                     cp0_pagemask(cpu).val = reg.val & cp0_pagemask_mask_mask;
-                else
+                } else {
                     alert("R4000: Invalid value for PageMask (MTC0)");
+                }
                 break;
             case cp0_Wired:
                 cp0_random(cpu).val = 47;
                 cp0_wired(cpu).val = reg.val & UINT32_C(0x003f);
-                if (cp0_wired(cpu).val > 47)
+                if (cp0_wired(cpu).val > 47) {
                     alert("R4000: Invalid value for Wired (MTC0)");
+                }
                 break;
             case cp0_Res1:
                 /* Ignored, reserved */

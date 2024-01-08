@@ -144,16 +144,19 @@ static bool mem_load(token_t *parm, device_t *dev)
     }
 
     FILE *file = try_fopen(path, "rb");
-    if (file == NULL)
+    if (file == NULL) {
         return false;
+    }
 
     /* File size test */
-    if (!try_fseek(file, 0, SEEK_END, path))
+    if (!try_fseek(file, 0, SEEK_END, path)) {
         return false;
+    }
 
     size_t fsize;
-    if (!try_ftell(file, path, &fsize))
+    if (!try_ftell(file, path, &fsize)) {
         return false;
+    }
 
     if (fsize == 0) {
         error("Empty file");
@@ -167,8 +170,9 @@ static bool mem_load(token_t *parm, device_t *dev)
         return false;
     }
 
-    if (!try_fseek(file, 0, SEEK_SET, path))
+    if (!try_fseek(file, 0, SEEK_SET, path)) {
         return false;
+    }
 
     // FIXME: invalidate binary translation
     size_t rd = fread(area->data, 1, fsize, file);
@@ -243,21 +247,25 @@ static bool mem_fmap(token_t *parm, device_t *dev)
     }
 
     /* Open the file */
-    if (area->writable)
+    if (area->writable) {
         file = try_fopen(path, "rb+");
-    else
+    } else {
         file = try_fopen(path, "rb");
+    }
 
-    if (file == NULL)
+    if (file == NULL) {
         return false;
+    }
 
     /* File size test */
-    if (!try_fseek(file, 0, SEEK_END, path))
+    if (!try_fseek(file, 0, SEEK_END, path)) {
         return false;
+    }
 
     size_t fsize;
-    if (!try_ftell(file, path, &fsize))
+    if (!try_ftell(file, path, &fsize)) {
         return false;
+    }
 
     /* Align the size to frame boundary */
     fsize = ALIGN_UP(fsize, FRAME_SIZE);
@@ -288,8 +296,9 @@ static bool mem_fmap(token_t *parm, device_t *dev)
         return false;
     }
 
-    if (!try_fseek(file, 0, SEEK_SET, path))
+    if (!try_fseek(file, 0, SEEK_SET, path)) {
         return false;
+    }
 
     int fd = fileno(file);
     if (fd == -1) {
@@ -301,10 +310,11 @@ static bool mem_fmap(token_t *parm, device_t *dev)
     void *ptr;
 
     /* File mapping */
-    if (area->writable)
+    if (area->writable) {
         ptr = mmap(0, fsize, PROT_READ | PROT_WRITE, MAP_SHARED, fd, 0);
-    else
+    } else {
         ptr = mmap(0, fsize, PROT_READ, MAP_SHARED, fd, 0);
+    }
 
     if (ptr == MAP_FAILED) {
         io_error(path);

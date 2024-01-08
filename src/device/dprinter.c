@@ -85,8 +85,9 @@ static bool dprinter_redir(token_t *parm, device_t *dev)
 
     /* Open the file */
     FILE *file = try_fopen(fname, "w");
-    if (!file)
+    if (!file) {
         return false;
+    }
 
     /* Close old output file */
     if (data->file != stdout) {

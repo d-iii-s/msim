@@ -5,12 +5,14 @@ static r4k_exc_t instr_daddi(r4k_cpu_t *cpu, r4k_instr_t instr)
         uint64_t imm = sign_extend_16_64(instr.i.imm);
         uint64_t sum = rs + imm;
 
-        if (!((rs ^ imm) & SBIT64) && ((rs ^ sum) & SBIT64))
+        if (!((rs ^ imm) & SBIT64) && ((rs ^ sum) & SBIT64)) {
             return r4k_excOv;
+        }
 
         cpu->regs[instr.i.rt].val = sum;
-    } else
+    } else {
         return r4k_excRI;
+    }
 
     return r4k_excNone;
 }

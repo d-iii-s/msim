@@ -58,9 +58,10 @@ static void gen_key(device_t *dev, char c)
         data->ig = true;
         data->intrcount++;
         cpu_interrupt_up(NULL, data->intno);
-    } else
+    } else {
         /* Increase the number of overrun characters */
         data->overrun++;
+    }
 }
 
 /** Init command implementation
@@ -214,8 +215,9 @@ static void keyboard_step4k(device_t *dev)
 {
     char c;
 
-    if (stdin_poll(&c))
+    if (stdin_poll(&c)) {
         gen_key(dev, c);
+    }
 }
 
 /*

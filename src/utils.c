@@ -43,8 +43,9 @@ static void safe_realloc(char **ptr, size_t *size, size_t pos,
         *size = sz;
         *ptr = (char *) realloc(*ptr, sz);
 
-        if (*ptr == NULL)
+        if (*ptr == NULL) {
             die(ERR_MEM, "Not enough memory");
+        }
     }
 }
 
@@ -118,16 +119,18 @@ void string_vprintf(string_t *str, const char *fmt, va_list va)
     int size = vsnprintf(NULL, 0, fmt, va2);
     va_end(va2);
 
-    if (size < 0)
+    if (size < 0) {
         die(ERR_INTERN, "Error formatting string");
+    }
 
     safe_realloc(&str->str, &str->size, str->pos + size,
             STRING_GRANULARITY);
 
     size = vsnprintf(str->str + str->pos, size + 1, fmt, va);
 
-    if (size < 0)
+    if (size < 0) {
         die(ERR_INTERN, "Error formatting string");
+    }
 
     str->pos += size;
     str->str[str->pos] = 0;
@@ -153,8 +156,9 @@ void string_fread(string_t *str, FILE *file)
     char buf[STRING_BUFFER];
 
     while (true) {
-        if (fgets(buf, STRING_BUFFER, file) == NULL)
+        if (fgets(buf, STRING_BUFFER, file) == NULL) {
             break;
+        }
 
         buf[STRING_BUFFER - 1] = 0;
         string_append(str, buf);
@@ -179,8 +183,9 @@ void *safe_malloc(const size_t size)
     ASSERT(size > 0);
 
     void *ptr = malloc(size);
-    if (ptr == NULL)
+    if (ptr == NULL) {
         die(ERR_MEM, "Not enough memory");
+    }
 
     return ptr;
 }
@@ -193,8 +198,9 @@ char *safe_strdup(const char *str)
     ASSERT(str != NULL);
 
     char *duplicate = strdup(str);
-    if (duplicate == NULL)
+    if (duplicate == NULL) {
         die(ERR_MEM, "Not enough memory");
+    }
 
     return duplicate;
 }
@@ -208,8 +214,9 @@ bool prefix(const char *prefix, const char *string)
     ASSERT(string != NULL);
 
     while (*prefix != 0) {
-        if (*prefix != *string)
+        if (*prefix != *string) {
             return false;
+        }
 
         prefix++;
         string++;
@@ -242,8 +249,9 @@ FILE *try_fopen(const char *path, const char *mode)
             safe_fclose(file, path);
             file = NULL;
         }
-    } else
+    } else {
         io_error(path);
+    }
 
     return file;
 }
@@ -281,8 +289,9 @@ void safe_fclose(FILE *file, const char *path)
     ASSERT(file != NULL);
     ASSERT(path != NULL);
 
-    if (fclose(file) != 0)
+    if (fclose(file) != 0) {
         io_die(ERR_IO, path);
+    }
 }
 
 /** Safe fseek
@@ -348,8 +357,9 @@ void try_munmap(void *ptr, size_t size)
 {
     ASSERT(ptr != NULL);
 
-    if (munmap(ptr, size) == -1)
+    if (munmap(ptr, size) == -1) {
         io_error(NULL);
+    }
 }
 
 /** Convert 32 bit unsigned number to string with k, K, M or no suffix.
@@ -374,18 +384,19 @@ char *uint64_human_readable(uint64_t i)
     string_t str;
     string_init(&str);
 
-    if (i == 0)
+    if (i == 0) {
         string_push(&str, '0');
-    else if ((i & 0x3fffffffU) == 0)
+    } else if ((i & 0x3fffffffU) == 0) {
         string_printf(&str, "%" PRIu64 "G", i >> 30);
-    else if ((i & 0xfffffU) == 0)
+    } else if ((i & 0xfffffU) == 0) {
         string_printf(&str, "%" PRIu64 "M", i >> 20);
-    else if ((i & 0x3ffU) == 0)
+    } else if ((i & 0x3ffU) == 0) {
         string_printf(&str, "%" PRIu64 "K", i >> 10);
-    else if ((i % 1000) == 0)
+    } else if ((i % 1000) == 0) {
         string_printf(&str, "%" PRIu64 "k", i / 1000);
-    else
+    } else {
         string_printf(&str, "%" PRIu64, i);
+    }
 
     return str.str;
 }

@@ -116,11 +116,13 @@ static rv_exc_t counter_read(rv_cpu_t *cpu, csr_num_t csr, uint32_t *target)
 
     if (rv_csr_min_priv_mode(csr) != rv_mmode) {
 
-        if (cpu->priv_mode == rv_smode && !is_counter_enabled_m(cpu, counter))
+        if (cpu->priv_mode == rv_smode && !is_counter_enabled_m(cpu, counter)) {
             return rv_exc_illegal_instruction;
+        }
 
-        if (cpu->priv_mode == rv_umode && !(is_counter_enabled_m(cpu, counter) && is_counter_enabled_s(cpu, counter)))
+        if (cpu->priv_mode == rv_umode && !(is_counter_enabled_m(cpu, counter) && is_counter_enabled_s(cpu, counter))) {
             return rv_exc_illegal_instruction;
+        }
 
     } else if (cpu->priv_mode != rv_mmode) {
         return rv_exc_illegal_instruction;
@@ -141,14 +143,16 @@ static rv_exc_t counter_write(rv_cpu_t *cpu, csr_num_t csr, uint32_t value)
     minimal_privilege(rv_mmode, cpu);
 
     // global counters are r/o
-    if (rv_csr_min_priv_mode(csr) != rv_mmode)
+    if (rv_csr_min_priv_mode(csr) != rv_mmode) {
         return rv_exc_illegal_instruction;
+    }
 
     int counter = csr & 0x1F;
 
     // mtime is not a csr
-    if (counter == (csr_time & 0x1F))
+    if (counter == (csr_time & 0x1F)) {
         return rv_exc_illegal_instruction;
+    }
 
     uint64_t val = 0;
     uint64_t mask = 0;
@@ -188,14 +192,16 @@ static rv_exc_t counter_set(rv_cpu_t *cpu, csr_num_t csr, uint32_t value)
     minimal_privilege(rv_mmode, cpu);
 
     // global counters are r/o
-    if (rv_csr_min_priv_mode(csr) != rv_mmode)
+    if (rv_csr_min_priv_mode(csr) != rv_mmode) {
         return rv_exc_illegal_instruction;
+    }
 
     int counter = csr & 0x1F;
 
     // mtime is not a csr
-    if (counter == (csr_time & 0x1F))
+    if (counter == (csr_time & 0x1F)) {
         return rv_exc_illegal_instruction;
+    }
 
     uint64_t val = is_high_counter(csr) ? ((uint64_t) value) << 32 : value;
 
@@ -224,14 +230,16 @@ static rv_exc_t counter_clear(rv_cpu_t *cpu, csr_num_t csr, uint32_t value)
     minimal_privilege(rv_mmode, cpu);
 
     // global counters are r/o
-    if (rv_csr_min_priv_mode(csr) != rv_mmode)
+    if (rv_csr_min_priv_mode(csr) != rv_mmode) {
         return rv_exc_illegal_instruction;
+    }
 
     int counter = csr & 0x1F;
 
     // mtime is not a csr
-    if (counter == (csr_time & 0x1F))
+    if (counter == (csr_time & 0x1F)) {
         return rv_exc_illegal_instruction;
+    }
 
     uint64_t val = is_high_counter(csr) ? ((uint64_t) value) << 32 : value;
 
@@ -624,8 +632,9 @@ default_csr_functions(stval, rv_smode)
         static rv_exc_t satp_read(rv_cpu_t *cpu, csr_num_t csr, uint32_t *target)
 {
     minimal_privilege(rv_smode, cpu);
-    if (rv_csr_mstatus_tvm(cpu))
+    if (rv_csr_mstatus_tvm(cpu)) {
         return rv_exc_illegal_instruction;
+    }
 
     *target = cpu->csr.satp;
     return rv_exc_none;
@@ -634,8 +643,9 @@ default_csr_functions(stval, rv_smode)
 static rv_exc_t satp_write(rv_cpu_t *cpu, csr_num_t csr, uint32_t value)
 {
     minimal_privilege(rv_smode, cpu);
-    if (rv_csr_mstatus_tvm(cpu))
+    if (rv_csr_mstatus_tvm(cpu)) {
         return rv_exc_illegal_instruction;
+    }
 
     // Construct a mask that will zero-out non-active asid bits
     uint32_t active_asid_mask = ((1 << cpu->csr.asid_len) - 1) << rv_csr_satp_asid_offset;
@@ -655,8 +665,9 @@ static rv_exc_t satp_write(rv_cpu_t *cpu, csr_num_t csr, uint32_t value)
 static rv_exc_t satp_set(rv_cpu_t *cpu, csr_num_t csr, uint32_t value)
 {
     minimal_privilege(rv_smode, cpu);
-    if (rv_csr_mstatus_tvm(cpu))
+    if (rv_csr_mstatus_tvm(cpu)) {
         return rv_exc_illegal_instruction;
+    }
 
     // Construct a mask that will zero-out non-active asid bits
     uint32_t active_asid_mask = ((1 << cpu->csr.asid_len) - 1) << rv_csr_satp_asid_offset;
@@ -676,8 +687,9 @@ static rv_exc_t satp_set(rv_cpu_t *cpu, csr_num_t csr, uint32_t value)
 static rv_exc_t satp_clear(rv_cpu_t *cpu, csr_num_t csr, uint32_t value)
 {
     minimal_privilege(rv_smode, cpu);
-    if (rv_csr_mstatus_tvm(cpu))
+    if (rv_csr_mstatus_tvm(cpu)) {
         return rv_exc_illegal_instruction;
+    }
 
     // Construct a mask that will zero-out non-active asid bits
     uint32_t active_asid_mask = ((1 << cpu->csr.asid_len) - 1) << rv_csr_satp_asid_offset;

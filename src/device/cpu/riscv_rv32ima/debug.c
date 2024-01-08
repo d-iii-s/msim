@@ -459,12 +459,15 @@ void rv_idump(rv_cpu_t *cpu, uint32_t addr, rv_instr_t instr)
 
     idump_common(addr, instr, &s_opc, &s_mnemonics, &s_comments);
 
-    if (cpu != NULL)
+    if (cpu != NULL) {
         printf("%-5s ", s_cpu.str);
-    if (iaddr)
+    }
+    if (iaddr) {
         printf("%-10s ", s_addr.str);
-    if (iopc)
+    }
+    if (iopc) {
         printf("%-8s ", s_opc.str);
+    }
 
     printf("%-24s", s_mnemonics.str);
 
@@ -594,8 +597,9 @@ bool rv_csr_dump(rv_cpu_t *cpu, csr_num_t csr)
 bool rv_csr_dump_by_name(rv_cpu_t *cpu, const char *name)
 {
     for (int i = 0; i < 0x1000; ++i) {
-        if (rv_csr_name_table[i] == NULL)
+        if (rv_csr_name_table[i] == NULL) {
             continue;
+        }
 
         if (strcmp(name, rv_csr_name_table[i]) == 0) {
             return rv_csr_dump(cpu, i);

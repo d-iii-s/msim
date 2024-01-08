@@ -49,8 +49,9 @@ static char *hint_generator(const char *input, int level)
     ASSERT(level >= 0);
 
     if (level == 0) {
-        if (last_pars != NULL)
+        if (last_pars != NULL) {
             parm_delete(last_pars);
+        }
 
         /* Find completion generator at first. */
         last_pars = parm_parse(par_text);
@@ -58,8 +59,9 @@ static char *hint_generator(const char *input, int level)
 
         data = NULL;
         gen = find_completion_generator(&last_pars, &data);
-        if (gen == NULL)
+        if (gen == NULL) {
             return NULL;
+        }
     }
 
     ASSERT(gen != NULL);
@@ -94,8 +96,9 @@ void input_init(void)
 {
     input_term = !!isatty(0);
 
-    if (!input_term)
+    if (!input_term) {
         return;
+    }
 
     (void) tcgetattr(0, &tio_shadow);
 
@@ -121,14 +124,16 @@ void input_init(void)
 
 void input_shadow(void)
 {
-    if (input_term)
+    if (input_term) {
         (void) tcsetattr(0, TCSANOW, &tio_shadow);
+    }
 }
 
 void input_back(void)
 {
-    if (input_term)
+    if (input_term) {
         (void) tcsetattr(0, TCSANOW, &tio_old);
+    }
 }
 
 /** Interactive mode control

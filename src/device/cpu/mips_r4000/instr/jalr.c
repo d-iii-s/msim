@@ -10,8 +10,9 @@ static void mnemonics_jalr(ptr64_t addr, r4k_instr_t instr,
         string_t *mnemonics, string_t *comments)
 {
     string_printf(mnemonics, "jalr");
-    if (instr.r.rd == 31)
+    if (instr.r.rd == 31) {
         disassemble_rs(instr, mnemonics, comments);
-    else
+    } else {
         disassemble_rd_rs(instr, mnemonics, comments);
+    }
 }

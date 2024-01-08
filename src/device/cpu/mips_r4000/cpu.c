@@ -310,8 +310,9 @@ static tlb_look_t tlb_look(r4k_cpu_t *cpu, ptr64_t virt, ptr36_t *phys, bool wr)
     ASSERT(phys != NULL);
 
     /* Ignore TLB on shutdown */
-    if (CPU_TLB_SHUTDOWN(cpu))
+    if (CPU_TLB_SHUTDOWN(cpu)) {
         return TLBL_OK;
+    }
 
     unsigned int hint = cpu->tlb_hint;
     unsigned int i;
@@ -323,19 +324,22 @@ static tlb_look_t tlb_look(r4k_cpu_t *cpu, ptr64_t virt, ptr36_t *phys, bool wr)
         /* TLB hit? */
         if ((virt.lo & entry->mask) == entry->vpn2) {
             /* Test ASID */
-            if ((!entry->global) && (entry->asid != cp0_entryhi_asid(cpu)))
+            if ((!entry->global) && (entry->asid != cp0_entryhi_asid(cpu))) {
                 continue;
+            }
 
             /* Calculate subpage */
             ptr36_t smask = (ptr36_t) (entry->mask >> 1) | TLB_PHYSMASK;
             unsigned int subpage = ((virt.lo & entry->mask) < (virt.lo & smask)) ? 1 : 0;
 
             /* Test valid & dirty */
-            if (!entry->pg[subpage].valid)
+            if (!entry->pg[subpage].valid) {
                 return TLBL_INVALID;
+            }
 
-            if ((wr) && (!entry->pg[subpage].dirty))
+            if ((wr) && (!entry->pg[subpage].dirty)) {
                 return TLBL_MODIFIED;
+            }
 
             /* Make address */
             ptr36_t amask = virt.lo & (~smask);
@@ -449,8 +453,9 @@ static r4k_exc_t convert_addr_user32(r4k_cpu_t *cpu, ptr64_t virt, ptr36_t *phys
     ASSERT(phys != NULL);
     ASSERT(CPU_USER_MODE(cpu));
 
-    if ((virt.lo & USEG_MASK) == USEG_BITS)
+    if ((virt.lo & USEG_MASK) == USEG_BITS) {
         return tlb_hit32(cpu, virt, phys, wr, noisy);
+    }
 
     fill_addr_error(cpu, virt, noisy);
     return r4k_excAddrError;
@@ -466,8 +471,9 @@ static r4k_exc_t convert_addr_user64(r4k_cpu_t *cpu, ptr64_t virt, ptr36_t *phys
     ASSERT(phys != NULL);
     ASSERT(CPU_USER_MODE(cpu));
 
-    if ((virt.ptr & XUSEG_MASK) == XUSEG_BITS)
+    if ((virt.ptr & XUSEG_MASK) == XUSEG_BITS) {
         return tlb_hit64(cpu, virt, phys, wr, noisy);
+    }
 
     fill_addr_error(cpu, virt, noisy);
     return r4k_excAddrError;
@@ -483,11 +489,13 @@ static r4k_exc_t convert_addr_supervisor32(r4k_cpu_t *cpu, ptr64_t virt, ptr36_t
     ASSERT(phys != NULL);
     ASSERT(CPU_SUPERVISOR_MODE(cpu));
 
-    if ((virt.lo & SUSEG_MASK) == SUSEG_BITS)
+    if ((virt.lo & SUSEG_MASK) == SUSEG_BITS) {
         return tlb_hit32(cpu, virt, phys, wr, noisy);
+    }
 
-    if ((virt.lo & SSEG_MASK) == SSEG_BITS)
+    if ((virt.lo & SSEG_MASK) == SSEG_BITS) {
         return tlb_hit32(cpu, virt, phys, wr, noisy);
+    }
 
     fill_addr_error(cpu, virt, noisy);
     return r4k_excAddrError;
@@ -503,14 +511,17 @@ static r4k_exc_t convert_addr_supervisor64(r4k_cpu_t *cpu, ptr64_t virt, ptr36_t
     ASSERT(phys != NULL);
     ASSERT(CPU_SUPERVISOR_MODE(cpu));
 
-    if ((virt.ptr & XSUSEG_MASK) == XSUSEG_BITS)
+    if ((virt.ptr & XSUSEG_MASK) == XSUSEG_BITS) {
         return tlb_hit64(cpu, virt, phys, wr, noisy);
+    }
 
-    if ((virt.ptr & XSSEG_MASK) == XSSEG_BITS)
+    if ((virt.ptr & XSSEG_MASK) == XSSEG_BITS) {
         return tlb_hit64(cpu, virt, phys, wr, noisy);
+    }
 
-    if ((virt.ptr & CSSEG_MASK) == CSSEG_BITS)
+    if ((virt.ptr & CSSEG_MASK) == CSSEG_BITS) {
         return tlb_hit64(cpu, virt, phys, wr, noisy);
+    }
 
     fill_addr_error(cpu, virt, noisy);
     return r4k_excAddrError;
@@ -527,8 +538,9 @@ static r4k_exc_t convert_addr_kernel32(r4k_cpu_t *cpu, ptr64_t virt, ptr36_t *ph
     ASSERT(CPU_KERNEL_MODE(cpu));
 
     if ((virt.lo & KUSEG_MASK) == KUSEG_BITS) {
-        if (!cp0_status_erl(cpu))
+        if (!cp0_status_erl(cpu)) {
             return tlb_hit32(cpu, virt, phys, wr, noisy);
+        }
 
         return r4k_excNone;
     }
@@ -543,11 +555,13 @@ static r4k_exc_t convert_addr_kernel32(r4k_cpu_t *cpu, ptr64_t virt, ptr36_t *ph
         return r4k_excNone;
     }
 
-    if ((virt.lo & KSSEG_MASK) == KSSEG_BITS)
+    if ((virt.lo & KSSEG_MASK) == KSSEG_BITS) {
         return tlb_hit32(cpu, virt, phys, wr, noisy);
+    }
 
-    if ((virt.lo & KSEG3_MASK) == KSEG3_BITS)
+    if ((virt.lo & KSEG3_MASK) == KSEG3_BITS) {
         return tlb_hit32(cpu, virt, phys, wr, noisy);
+    }
 
     fill_addr_error(cpu, virt, noisy);
     return r4k_excAddrError;
@@ -564,20 +578,24 @@ static r4k_exc_t convert_addr_kernel64(r4k_cpu_t *cpu, ptr64_t virt, ptr36_t *ph
     ASSERT(CPU_KERNEL_MODE(cpu));
 
     if ((virt.ptr & XKSUSEG_MASK) == XKSUSEG_BITS) {
-        if (!cp0_status_erl(cpu))
+        if (!cp0_status_erl(cpu)) {
             return tlb_hit64(cpu, virt, phys, wr, noisy);
+        }
 
         return r4k_excNone;
     }
 
-    if ((virt.ptr & XKSSEG_MASK) == XKSSEG_BITS)
+    if ((virt.ptr & XKSSEG_MASK) == XKSSEG_BITS) {
         return tlb_hit64(cpu, virt, phys, wr, noisy);
+    }
 
-    if ((virt.ptr & XKPHYS_MASK) == XKPHYS_BITS)
+    if ((virt.ptr & XKPHYS_MASK) == XKPHYS_BITS) {
         ASSERT(false);
+    }
 
-    if ((virt.ptr & XKSEG_MASK) == XKSEG_BITS)
+    if ((virt.ptr & XKSEG_MASK) == XKSEG_BITS) {
         return tlb_hit64(cpu, virt, phys, wr, noisy);
+    }
 
     if ((virt.ptr & CKSEG0_MASK) == CKSEG0_BITS) {
         *phys = virt.ptr - UINT64_C(0x80000000);
@@ -589,11 +607,13 @@ static r4k_exc_t convert_addr_kernel64(r4k_cpu_t *cpu, ptr64_t virt, ptr36_t *ph
         return r4k_excNone;
     }
 
-    if ((virt.lo & CKSSEG_MASK) == CKSSEG_BITS)
+    if ((virt.lo & CKSSEG_MASK) == CKSSEG_BITS) {
         return tlb_hit64(cpu, virt, phys, wr, noisy);
+    }
 
-    if ((virt.lo & CKSEG3_MASK) == CKSEG3_BITS)
+    if ((virt.lo & CKSEG3_MASK) == CKSEG3_BITS) {
         return tlb_hit64(cpu, virt, phys, wr, noisy);
+    }
 
     fill_addr_error(cpu, virt, noisy);
     return r4k_excAddrError;
@@ -621,26 +641,32 @@ r4k_exc_t r4k_convert_addr(r4k_cpu_t *cpu, ptr64_t virt, ptr36_t *phys, bool wri
      */
 
     if (CPU_64BIT_MODE(cpu)) {
-        if (CPU_USER_MODE(cpu))
+        if (CPU_USER_MODE(cpu)) {
             return convert_addr_user64(cpu, virt, phys, write, noisy);
+        }
 
-        if (CPU_SUPERVISOR_MODE(cpu))
+        if (CPU_SUPERVISOR_MODE(cpu)) {
             return convert_addr_supervisor64(cpu, virt, phys, write, noisy);
+        }
 
-        if (CPU_KERNEL_MODE(cpu))
+        if (CPU_KERNEL_MODE(cpu)) {
             convert_addr_kernel64(cpu, virt, phys, write, noisy);
+        }
 
         fill_addr_error(cpu, virt, noisy);
         return r4k_excAddrError;
     } else {
-        if (CPU_USER_MODE(cpu))
+        if (CPU_USER_MODE(cpu)) {
             return convert_addr_user32(cpu, virt, phys, write, noisy);
+        }
 
-        if (CPU_SUPERVISOR_MODE(cpu))
+        if (CPU_SUPERVISOR_MODE(cpu)) {
             return convert_addr_supervisor32(cpu, virt, phys, write, noisy);
+        }
 
-        if (CPU_KERNEL_MODE(cpu))
+        if (CPU_KERNEL_MODE(cpu)) {
             return convert_addr_kernel32(cpu, virt, phys, write, noisy);
+        }
 
         fill_addr_error(cpu, virt, noisy);
         return r4k_excAddrError;
@@ -734,8 +760,9 @@ static r4k_exc_t access_mem(r4k_cpu_t *cpu, acc_mode_t mode, ptr64_t virt,
             if (cp0_status_exl(cpu) == 1) {
                 cpu->wpending = true;
                 cpu->wexcaddr = cpu->pc;
-            } else
+            } else {
                 return r4k_excWATCH;
+            }
         }
     }
 
@@ -1170,12 +1197,13 @@ static void disassemble_offset(ptr64_t addr, r4k_instr_t instr,
 
     string_printf(mnemonics, " %#" PRIx64, target.ptr);
 
-    if (offset + 4 > 0)
+    if (offset + 4 > 0) {
         string_printf(comments, "forward");
-    else if (offset + 4 < 0)
+    } else if (offset + 4 < 0) {
         string_printf(comments, "backward");
-    else
+    } else {
         string_printf(comments, "here");
+    }
 }
 
 static void disassemble_rs_offset(ptr64_t addr, r4k_instr_t instr,
@@ -2853,8 +2881,9 @@ static void update_cache_item(r4k_cpu_t *cpu, cache_item_t *cache_item)
     frame_t *frame = physmem_find_frame(cache_item->addr);
     ASSERT(frame != NULL);
 
-    if (frame->valid)
+    if (frame->valid) {
         return;
+    }
 
     cache_item_page_decode(cpu, cache_item);
 
@@ -2865,8 +2894,9 @@ static void update_cache_item(r4k_cpu_t *cpu, cache_item_t *cache_item)
 static cache_item_t *cache_try_add(r4k_cpu_t *cpu, ptr36_t phys)
 {
     frame_t *frame = physmem_find_frame(phys);
-    if (frame == NULL)
+    if (frame == NULL) {
         return NULL;
+    }
 
     cache_item_t *cache_item = safe_malloc(sizeof(cache_item_t));
 
@@ -2920,28 +2950,31 @@ static void handle_exception(r4k_cpu_t *cpu, r4k_exc_t res)
     /* Convert TLB Refill exceptions */
     if ((res == r4k_excTLBLR) || (res == r4k_excTLBSR)) {
         tlb_refill = true;
-        if (res == r4k_excTLBLR)
+        if (res == r4k_excTLBLR) {
             res = r4k_excTLBL;
-        else
+        } else {
             res = r4k_excTLBS;
+        }
     }
 
     ASSERT(res <= r4k_excVCED);
 
     /* The standby mode is cancelled by the exception */
-    if (cpu->stdby)
+    if (cpu->stdby) {
         r4k_set_pc(cpu, cpu->pc_next);
+    }
 
     cpu->stdby = false;
 
     /* User info and register fill */
     if (machine_trace) {
-        if (tlb_refill)
+        if (tlb_refill) {
             alert("cpu%u raised TLB refill exception %u: %s", cpu->procno,
                     res, txt_exc[res]);
-        else
+        } else {
             alert("cpu%u raised exception %u: %s", cpu->procno,
                     res, txt_exc[res]);
+        }
     }
 
     cp0_cause(cpu).val &= ~cp0_cause_exccode_mask;
@@ -2949,34 +2982,39 @@ static void handle_exception(r4k_cpu_t *cpu, r4k_exc_t res)
 
     /* Exception branch control */
     cp0_cause(cpu).val &= ~cp0_cause_bd_mask;
-    if (cpu->branch == BRANCH_PASSED)
+    if (cpu->branch == BRANCH_PASSED) {
         cp0_cause(cpu).val |= cp0_cause_bd_mask;
+    }
 
     if (!cp0_status_exl(cpu)) {
         cp0_epc(cpu).val = cpu->excaddr.ptr;
-        if ((res == r4k_excInt) && (cpu->branch != BRANCH_COND))
+        if ((res == r4k_excInt) && (cpu->branch != BRANCH_COND)) {
             cp0_epc(cpu).val = cpu->pc.ptr;
+        }
     }
 
     ptr64_t exc_pc;
     /* Exception vector base address */
     if (cp0_status_bev(cpu)) {
         /* Boot time */
-        if (res != r4k_excReset)
+        if (res != r4k_excReset) {
             exc_pc.ptr = EXCEPTION_BOOT_BASE_ADDRESS;
-        else
+        } else {
             exc_pc.ptr = EXCEPTION_BOOT_RESET_ADDRESS;
+        }
     } else {
         /* Normal time */
-        if (res != r4k_excReset)
+        if (res != r4k_excReset) {
             exc_pc.ptr = EXCEPTION_NORMAL_BASE_ADDRESS;
-        else
+        } else {
             exc_pc.ptr = EXCEPTION_NORMAL_RESET_ADDRESS;
+        }
     }
 
     /* Exception vector offsets */
-    if ((cp0_status_exl(cpu)) || (!tlb_refill))
+    if ((cp0_status_exl(cpu)) || (!tlb_refill)) {
         exc_pc.ptr += EXCEPTION_OFFSET;
+    }
 
     r4k_set_pc(cpu, exc_pc);
 
@@ -3000,16 +3038,19 @@ static r4k_exc_t execute(r4k_cpu_t *cpu)
     case r4k_excNone:
         break;
     case r4k_excAddrError:
-        if (cpu->branch == BRANCH_NONE)
+        if (cpu->branch == BRANCH_NONE) {
             cpu->excaddr = cpu->pc;
+        }
         return r4k_excAdEL;
     case r4k_excTLB:
-        if (cpu->branch == BRANCH_NONE)
+        if (cpu->branch == BRANCH_NONE) {
             cpu->excaddr = cpu->pc;
+        }
         return r4k_excTLBL;
     case r4k_excTLBR:
-        if (cpu->branch == BRANCH_NONE)
+        if (cpu->branch == BRANCH_NONE) {
             cpu->excaddr = cpu->pc;
+        }
         return r4k_excTLBLR;
     default:
         ASSERT(false);
@@ -3026,12 +3067,14 @@ static r4k_exc_t execute(r4k_cpu_t *cpu)
     /* Execute instruction */
     r4k_exc_t exc = fnc(cpu, instr);
 
-    if (machine_trace)
+    if (machine_trace) {
         r4k_idump(cpu, cpu->pc, instr, true);
+    }
 
     /* Branch test */
-    if ((cpu->branch == BRANCH_COND) || (cpu->branch == BRANCH_NONE))
+    if ((cpu->branch == BRANCH_COND) || (cpu->branch == BRANCH_NONE)) {
         cpu->excaddr.ptr = cpu->pc.ptr;
+    }
 
     /* Register 0 contains a hardwired zero value */
     cpu->regs[0].val = 0;
@@ -3065,22 +3108,26 @@ static void manage(r4k_cpu_t *cpu, r4k_exc_t exc, ptr64_t old_pc)
     ASSERT(cpu != NULL);
 
     /* Test for interrupt request */
-    if ((exc == r4k_excNone) && (!cp0_status_exl(cpu)) && (!cp0_status_erl(cpu)) && (cp0_status_ie(cpu)) && ((cp0_cause(cpu).val & cp0_status(cpu).val) & cp0_cause_ip_mask) != 0)
+    if ((exc == r4k_excNone) && (!cp0_status_exl(cpu)) && (!cp0_status_erl(cpu)) && (cp0_status_ie(cpu)) && ((cp0_cause(cpu).val & cp0_status(cpu).val) & cp0_cause_ip_mask) != 0) {
         exc = r4k_excInt;
+    }
 
     /* Exception control */
-    if (exc != r4k_excNone)
+    if (exc != r4k_excNone) {
         handle_exception(cpu, exc);
+    }
 
     /* Increase counter */
     cp0_count(cpu).val++;
 
     /* Decrease random register */
-    if (cp0_random(cpu).val-- == 0)
+    if (cp0_random(cpu).val-- == 0) {
         cp0_random(cpu).val = 47;
+    }
 
-    if (cp0_random(cpu).val < cp0_wired(cpu).val)
+    if (cp0_random(cpu).val < cp0_wired(cpu).val) {
         cp0_random(cpu).val = 47;
+    }
 
     /*
      * Timer control.
@@ -3088,13 +3135,15 @@ static void manage(r4k_cpu_t *cpu, r4k_exc_t exc, ptr64_t old_pc)
      * N.B.: Count and Compare are truly 32 bit CP0
      *       registers even in 64-bit mode.
      */
-    if (cp0_count(cpu).lo == cp0_compare(cpu).lo)
+    if (cp0_count(cpu).lo == cp0_compare(cpu).lo) {
         /* Generate interrupt request */
         cp0_cause(cpu).val |= 1 << cp0_cause_ip7_shift;
+    }
 
     /* Branch delay slot control */
-    if (cpu->branch > BRANCH_NONE)
+    if (cpu->branch > BRANCH_NONE) {
         cpu->branch--;
+    }
 }
 
 /** CPU cycle accounting after one instruction execution
@@ -3107,10 +3156,11 @@ static void account(r4k_cpu_t *cpu)
     if (cpu->stdby) {
         cpu->w_cycles++;
     } else {
-        if (CPU_KERNEL_MODE(cpu))
+        if (CPU_KERNEL_MODE(cpu)) {
             cpu->k_cycles++;
-        else
+        } else {
             cpu->u_cycles++;
+        }
     }
 }
 
@@ -3125,8 +3175,9 @@ void r4k_step(r4k_cpu_t *cpu)
     r4k_exc_t exc = r4k_excNone;
     ptr64_t old_pc = cpu->pc;
 
-    if (!cpu->stdby)
+    if (!cpu->stdby) {
         exc = execute(cpu);
+    }
 
     /* Processor management */
     manage(cpu, exc, old_pc);

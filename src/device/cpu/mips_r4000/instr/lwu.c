@@ -6,8 +6,9 @@ static r4k_exc_t instr_lwu(r4k_cpu_t *cpu, r4k_instr_t instr)
 
         uint32_t val;
         r4k_exc_t res = r4k_read_mem32(cpu, addr, &val, true);
-        if (res == r4k_excNone)
+        if (res == r4k_excNone) {
             cpu->regs[instr.i.rt].val = val;
+        }
 
         return res;
     }

@@ -156,10 +156,12 @@ extern void rv_tlb_flush_by_asid(rv_tlb_t *tlb, unsigned asid)
             continue;
         }
 
-        if (tlb->entries[i].global)
+        if (tlb->entries[i].global) {
             continue;
-        if (tlb->entries[i].asid == asid)
+        }
+        if (tlb->entries[i].asid == asid) {
             invalidate_tlb_entry(tlb, &tlb->entries[i]);
+        }
     }
 }
 
@@ -199,11 +201,13 @@ extern void rv_tlb_flush_by_asid_and_addr(rv_tlb_t *tlb, unsigned asid, uint32_t
             continue;
         }
 
-        if (tlb->entries[i].global)
+        if (tlb->entries[i].global) {
             continue;
+        }
 
-        if (tlb->entries[i].asid != asid)
+        if (tlb->entries[i].asid != asid) {
             continue;
+        }
 
         if (tlb->entries[i].megapage) {
             if (tlb->entries[i].vpn == mvpn) {

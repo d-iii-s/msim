@@ -15,10 +15,11 @@ static r4k_exc_t instr_lwr(r4k_cpu_t *cpu, r4k_instr_t instr)
         comb |= (val >> shift_tab_right[index].shift)
                 & (~shift_tab_right[index].mask);
 
-        if (index == 0)
+        if (index == 0) {
             cpu->regs[instr.i.rt].val = sign_extend_32_64(comb);
-        else
+        } else {
             cpu->regs[instr.i.rt].val = comb;
+        }
     }
 
     return res;

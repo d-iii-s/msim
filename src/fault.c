@@ -87,14 +87,16 @@ void error(const char *fmt, ...)
     va_end(va);
 
     if (lineno_ptr != NULL) {
-        if (script_name)
+        if (script_name) {
             mferror(COLOR_YELLOW, "Error in %s on line %zu:\n%s",
                     script_name, *lineno_ptr, out.str);
-        else
+        } else {
             mferror(COLOR_YELLOW, "Error on line %zu:\n%s",
                     *lineno_ptr, out.str);
-    } else
+        }
+    } else {
         mferror(COLOR_YELLOW, "Error: %s", out.str);
+    }
 
     string_done(&out);
 }
@@ -110,14 +112,16 @@ void intr_error(const char *fmt, ...)
     va_end(va);
 
     if (lineno_ptr != NULL) {
-        if (script_name)
+        if (script_name) {
             mferror(COLOR_WHITE, "Internal error in %s on line %zu:\n%s",
                     script_name, *lineno_ptr, out.str);
-        else
+        } else {
             mferror(COLOR_WHITE, "Internal error on line %zu:\n%s",
                     *lineno_ptr, out.str);
-    } else
+        }
+    } else {
         mferror(COLOR_WHITE, "Internal error: %s", out.str);
+    }
 
     string_done(&out);
 }
@@ -133,14 +137,16 @@ void alert(const char *fmt, ...)
     va_end(va);
 
     if (lineno_ptr != NULL) {
-        if (script_name)
+        if (script_name) {
             mferror(COLOR_CYAN, "Alert in %s on line %zu:\n%s",
                     script_name, *lineno_ptr, out.str);
-        else
+        } else {
             mferror(COLOR_CYAN, "Alert on line %zu:\n%s",
                     *lineno_ptr, out.str);
-    } else
+        }
+    } else {
         mferror(COLOR_CYAN, "Alert: %s", out.str);
+    }
 
     string_done(&out);
 }
@@ -156,38 +162,43 @@ void die(int status, const char *fmt, ...)
     va_end(va);
 
     if (lineno_ptr != NULL) {
-        if (script_name)
+        if (script_name) {
             mferror(COLOR_RED, "Fault in %s on line %zu:\n%s",
                     script_name, *lineno_ptr, out.str);
-        else
+        } else {
             mferror(COLOR_RED, "Fault on line %zu:\n%s",
                     *lineno_ptr, out.str);
-    } else
+        }
+    } else {
         mferror(COLOR_RED, "Fault: %s", out.str);
+    }
 
     string_done(&out);
 
     input_back();
-    if (status == ERR_INTERN)
+    if (status == ERR_INTERN) {
         abort();
-    else
+    } else {
         exit(status);
+    }
 }
 
 void io_error(const char *fname)
 {
-    if (fname)
+    if (fname) {
         error("%s (%s)", strerror(errno), fname);
-    else
+    } else {
         error("%s", strerror(errno));
+    }
 }
 
 void io_die(int status, const char *fname)
 {
-    if (fname)
+    if (fname) {
         die(status, "%s (%s)", strerror(errno), fname);
-    else
+    } else {
         die(status, "%s", strerror(errno));
+    }
 }
 
 /** Enter the script stage
@@ -198,8 +209,9 @@ void io_die(int status, const char *fname)
 void set_script(const char *sname)
 {
     lineno_ptr = NULL;
-    if (sname)
+    if (sname) {
         script_name = safe_strdup(sname);
+    }
 }
 
 void set_lineno(size_t no)

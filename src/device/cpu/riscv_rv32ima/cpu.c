@@ -87,8 +87,9 @@ static void update_cache_item(rv_cpu_t *cpu, cache_item_t *cache_item)
     frame_t *frame = physmem_find_frame(cache_item->addr);
     ASSERT(frame != NULL);
 
-    if (frame->valid)
+    if (frame->valid) {
         return;
+    }
 
     cache_item_page_decode(cpu, cache_item);
 
@@ -104,8 +105,9 @@ static void update_cache_item(rv_cpu_t *cpu, cache_item_t *cache_item)
 static cache_item_t *cache_try_add(rv_cpu_t *cpu, ptr36_t phys)
 {
     frame_t *frame = physmem_find_frame(phys);
-    if (frame == NULL)
+    if (frame == NULL) {
         return NULL;
+    }
 
     cache_item_t *cache_item = safe_malloc(sizeof(cache_item_t));
 
@@ -218,28 +220,34 @@ typedef union {
  */
 static bool is_access_allowed(rv_cpu_t *cpu, sv32_pte_t pte, bool wr, bool fetch)
 {
-    if (wr && !pte.w)
+    if (wr && !pte.w) {
         return false;
+    }
 
-    if (fetch && !pte.x)
+    if (fetch && !pte.x) {
         return false;
+    }
 
     // Page is executable and I can read from executable pages
     bool rx = rv_csr_sstatus_mxr(cpu) && pte.x;
 
-    if (!wr && !fetch && !pte.r && !rx)
+    if (!wr && !fetch && !pte.r && !rx) {
         return false;
+    }
 
     if (sv32_effective_priv(cpu) == rv_smode) {
-        if (!rv_csr_sstatus_sum(cpu) && pte.u)
+        if (!rv_csr_sstatus_sum(cpu) && pte.u) {
             return false;
-        if (fetch && pte.u)
+        }
+        if (fetch && pte.u) {
             return false;
+        }
     }
 
     if (sv32_effective_priv(cpu) == rv_umode) {
-        if (!pte.u)
+        if (!pte.u) {
             return false;
+        }
     }
 
     return true;
@@ -284,8 +292,9 @@ static rv_exc_t rv_pagewalk(rv_cpu_t *cpu, uint32_t virt, ptr36_t *phys, bool wr
 
     sv32_pte_t pte = pte_from_uint(pte_val);
 
-    if (!is_pte_valid(pte))
+    if (!is_pte_valid(pte)) {
         return page_fault_exception;
+    }
 
     bool is_megapage = false;
     bool is_global = false;
@@ -293,8 +302,9 @@ static rv_exc_t rv_pagewalk(rv_cpu_t *cpu, uint32_t virt, ptr36_t *phys, bool wr
     if (is_pte_leaf(pte)) {
         // MEGAPAGE
         // Missaligned megapage
-        if (pte_ppn0(pte) != 0)
+        if (pte_ppn0(pte) != 0) {
             return page_fault_exception;
+        }
         is_megapage = true;
         is_global = pte.g;
     } else {
@@ -310,19 +320,22 @@ static rv_exc_t rv_pagewalk(rv_cpu_t *cpu, uint32_t virt, ptr36_t *phys, bool wr
         pte_val = physmem_read32(cpu->csr.mhartid, pte_addr, noisy);
         pte = pte_from_uint(pte_val);
 
-        if (!is_pte_valid(pte))
+        if (!is_pte_valid(pte)) {
             return page_fault_exception;
+        }
 
         // Non-leaf on last level
-        if (!is_pte_leaf(pte))
+        if (!is_pte_leaf(pte)) {
             return page_fault_exception;
+        }
 
         // The translation is global if the non-leaf PTE is global or if the leaf PTE is global
         is_global |= pte.g;
     }
 
-    if (!is_access_allowed(cpu, pte, wr, fetch))
+    if (!is_access_allowed(cpu, pte, wr, fetch)) {
         return page_fault_exception;
+    }
 
     if (pte_access_dirty_update_needed(pte, wr)) {
 
@@ -380,16 +393,19 @@ rv_exc_t rv_convert_addr(rv_cpu_t *cpu, uint32_t virt, ptr36_t *phys, bool wr, b
     // First try the TLB
     if (rv_tlb_get_mapping(&cpu->tlb, asid, virt, &pte, &megapage)) {
 
-        if (!is_pte_valid(pte))
+        if (!is_pte_valid(pte)) {
             return page_fault_exception;
+        }
 
         // Check access rights of the cached pte
-        if (!is_access_allowed(cpu, pte, wr, fetch))
+        if (!is_access_allowed(cpu, pte, wr, fetch)) {
             return page_fault_exception;
+        }
 
         // Missaligned magapage
-        if (megapage && pte_ppn0(pte) != 0)
+        if (megapage && pte_ppn0(pte) != 0) {
             return page_fault_exception;
+        }
 
         // If the A and D bits of the PTE do not need to be updated, we can use the cached result
         if (!pte_access_dirty_update_needed(pte, wr)) {
@@ -458,11 +474,13 @@ static void handle_mtip(rv_cpu_t *cpu)
 /** @brief Writes to memory mapped registers if there are any located on the given address */
 static bool try_write_memory_mapped_regs(rv_cpu_t *cpu, uint32_t virt, uint32_t value, int width)
 {
-    if (!IS_ALIGNED(virt, width / 8))
+    if (!IS_ALIGNED(virt, width / 8)) {
         return false;
+    }
 
-    if (effective_priv(cpu) != rv_mmode)
+    if (effective_priv(cpu) != rv_mmode) {
         return false;
+    }
     int offset = (virt & 0x7) * 8;
     if (ALIGN_DOWN(virt, 8) == RV_MTIME_ADDRESS) {
         cpu->csr.mtime = WRITE_BITS(cpu->csr.mtime, value, offset, offset + width);
@@ -500,8 +518,9 @@ rv_exc_t rv_read_mem32(rv_cpu_t *cpu, uint32_t virt, uint32_t *value, bool fetch
     ASSERT(cpu != NULL);
     ASSERT(value != NULL);
 
-    if (try_read_memory_mapped_regs_32(cpu, virt, value))
+    if (try_read_memory_mapped_regs_32(cpu, virt, value)) {
         return rv_exc_none;
+    }
 
     ptr36_t phys;
     rv_exc_t ex = rv_convert_addr(cpu, virt, &phys, false, fetch, noisy);
@@ -535,8 +554,9 @@ rv_exc_t rv_read_mem16(rv_cpu_t *cpu, uint32_t virt, uint16_t *value, bool fetch
     ASSERT(cpu != NULL);
     ASSERT(value != NULL);
 
-    if (try_read_memory_mapped_regs_16(cpu, virt, value))
+    if (try_read_memory_mapped_regs_16(cpu, virt, value)) {
         return rv_exc_none;
+    }
 
     ptr36_t phys;
     rv_exc_t ex = rv_convert_addr(cpu, virt, &phys, false, fetch, noisy);
@@ -568,8 +588,9 @@ rv_exc_t rv_read_mem8(rv_cpu_t *cpu, uint32_t virt, uint8_t *value, bool noisy)
     ASSERT(cpu != NULL);
     ASSERT(value != NULL);
 
-    if (try_read_memory_mapped_regs_8(cpu, virt, value))
+    if (try_read_memory_mapped_regs_8(cpu, virt, value)) {
         return rv_exc_none;
+    }
 
     ptr36_t phys;
     rv_exc_t ex = rv_convert_addr(cpu, virt, &phys, false, false, noisy);
@@ -595,8 +616,9 @@ rv_exc_t rv_write_mem8(rv_cpu_t *cpu, uint32_t virt, uint8_t value, bool noisy)
 {
     ASSERT(cpu != NULL);
 
-    if (try_write_memory_mapped_regs(cpu, virt, value, 8))
+    if (try_write_memory_mapped_regs(cpu, virt, value, 8)) {
         return rv_exc_none;
+    }
 
     ptr36_t phys;
     rv_exc_t ex = rv_convert_addr(cpu, virt, &phys, true, false, noisy);
@@ -627,8 +649,9 @@ rv_exc_t rv_write_mem16(rv_cpu_t *cpu, uint32_t virt, uint16_t value, bool noisy
 {
     ASSERT(cpu != NULL);
 
-    if (try_write_memory_mapped_regs(cpu, virt, value, 16))
+    if (try_write_memory_mapped_regs(cpu, virt, value, 16)) {
         return rv_exc_none;
+    }
 
     ptr36_t phys;
     rv_exc_t ex = rv_convert_addr(cpu, virt, &phys, true, false, noisy);
@@ -664,8 +687,9 @@ rv_exc_t rv_write_mem32(rv_cpu_t *cpu, uint32_t virt, uint32_t value, bool noisy
 {
     ASSERT(cpu != NULL);
 
-    if (try_write_memory_mapped_regs(cpu, virt, value, 32))
+    if (try_write_memory_mapped_regs(cpu, virt, value, 32)) {
         return rv_exc_none;
+    }
 
     ptr36_t phys;
     rv_exc_t ex = rv_convert_addr(cpu, virt, &phys, true, false, noisy);
@@ -696,8 +720,9 @@ rv_exc_t rv_write_mem32(rv_cpu_t *cpu, uint32_t virt, uint32_t value, bool noisy
 void rv_cpu_set_pc(rv_cpu_t *cpu, uint32_t value)
 {
     ASSERT(cpu != NULL);
-    if (!IS_ALIGNED(value, 4))
+    if (!IS_ALIGNED(value, 4)) {
         return;
+    }
     /* Set both pc and pc_next
      * This should be called from the debugger to jump somewhere
      * and in case the new instruction does not modify pc_next,
@@ -848,8 +873,9 @@ static void try_handle_interrupt(rv_cpu_t *cpu)
             | (cpu->csr.external_STIP ? rv_csr_sti_mask : 0);
 
     // no interrupt pending
-    if (mip == 0)
+    if (mip == 0) {
         return;
+    }
 
 // PRIORITY: MEI, MSI, MTI, SEI, SSI, STI
 #define trap_if_set(cpu, mask, interrupt, trap_func) \
@@ -904,8 +930,9 @@ static void account_hmp(rv_cpu_t *cpu, int i)
     uint32_t mask = (1 << (i + 3));
     bool inhibited = cpu->csr.mcountinhibit & mask;
 
-    if (inhibited)
+    if (inhibited) {
         return;
+    }
 
     csr_hpm_event_t event = cpu->csr.hpmevents[i];
 
@@ -957,16 +984,18 @@ static void manage_timer_interrupts(rv_cpu_t *cpu)
  */
 static void account(rv_cpu_t *cpu, bool instruction_retired)
 {
-    if (!(cpu->csr.mcountinhibit & 0b001))
+    if (!(cpu->csr.mcountinhibit & 0b001)) {
         cpu->csr.cycle++;
+    }
 
     // mtime cannot be inhibited
     uint64_t current_tick_time = current_timestamp();
     cpu->csr.mtime += (current_tick_time - cpu->csr.last_tick_time);
     cpu->csr.last_tick_time = current_tick_time;
 
-    if (!(cpu->csr.mcountinhibit & 0b100) && instruction_retired)
+    if (!(cpu->csr.mcountinhibit & 0b100) && instruction_retired) {
         cpu->csr.instret++;
+    }
 
     for (int i = 0; i < 29; ++i) {
         account_hmp(cpu, i);

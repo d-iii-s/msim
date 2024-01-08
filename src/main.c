@@ -144,11 +144,13 @@ static void setup_remote_gdb(const char *opt)
     long int port_no;
 
     port_no = strtol(opt, &endp, 0);
-    if (!endp)
+    if (!endp) {
         die(ERR_PARM, "Port number expected");
+    }
 
-    if ((port_no < 0) || (port_no > 65534))
+    if ((port_no < 0) || (port_no > 65534)) {
         die(ERR_PARM, "Invalid port number");
+    }
 
     remote_gdb = true;
     remote_gdb_port = port_no;
@@ -164,8 +166,9 @@ static bool parse_cmdline(int argc, char *args[])
         int c = getopt_long(argc, args, "tVic:hg:nXI",
                 long_options, &option_index);
 
-        if (c == -1)
+        if (c == -1) {
             break;
+        }
 
         switch (c) {
         case 't':
@@ -181,8 +184,9 @@ static bool parse_cmdline(int argc, char *args[])
             machine_allow_interactive_without_tty = true;
             break;
         case 'c':
-            if (config_file)
+            if (config_file) {
                 safe_free(config_file);
+            }
             config_file = safe_strdup(optarg);
             break;
         case 'h':
@@ -206,8 +210,9 @@ static bool parse_cmdline(int argc, char *args[])
         }
     }
 
-    if (optind < argc)
+    if (optind < argc) {
         die(ERR_PARM, "Unexpected arguments");
+    }
 
     return true;
 }
@@ -226,8 +231,9 @@ static bool gdb_startup(void)
 
     remote_gdb_conn = gdb_remote_init();
 
-    if (!remote_gdb_conn)
+    if (!remote_gdb_conn) {
         return false;
+    }
 
     /*
      * In case of succesfull opening the debugging session will start
@@ -247,8 +253,9 @@ static void machine_step(void)
 {
     /* Execute device cycles */
     device_t *dev = NULL;
-    while (dev_next(&dev, DEVICE_FILTER_STEP))
+    while (dev_next(&dev, DEVICE_FILTER_STEP)) {
         dev->type->step(dev);
+    }
 
     /* Increase machine cycle counter */
     steps++;
@@ -257,8 +264,9 @@ static void machine_step(void)
        the step4k device functions */
     if ((steps % 4096) == 0) {
         dev = NULL;
-        while (dev_next(&dev, DEVICE_FILTER_STEP4K))
+        while (dev_next(&dev, DEVICE_FILTER_STEP4K)) {
             dev->type->step4k(dev);
+        }
     }
 }
 
@@ -281,8 +289,9 @@ static void machine_run(void)
          * for the connection from the remote GDB.
          */
 
-        if ((remote_gdb) && (!remote_gdb_conn))
+        if ((remote_gdb) && (!remote_gdb_conn)) {
             machine_interactive = !gdb_startup();
+        }
 
         /*
          * If the simulation was stopped due to the remote
@@ -298,19 +307,22 @@ static void machine_run(void)
         if (stepping > 0) {
             stepping--;
 
-            if (stepping == 0)
+            if (stepping == 0) {
                 machine_interactive = true;
+            }
         }
 
         /* Interactive mode control */
-        if (machine_interactive)
+        if (machine_interactive) {
             interactive_control();
+        }
 
         /*
          * Continue with the simulation
          */
-        if (!machine_halt)
+        if (!machine_halt) {
             machine_step();
+        }
     }
 }
 
@@ -371,8 +383,9 @@ int main(int argc, char *args[])
      * Finalization
      */
     input_back();
-    if (steps > 0)
+    if (steps > 0) {
         printf("\nCycles: %" PRIu64 "\n", steps);
+    }
 
     cleanup();
 

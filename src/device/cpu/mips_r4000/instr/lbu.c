@@ -5,8 +5,9 @@ static r4k_exc_t instr_lbu(r4k_cpu_t *cpu, r4k_instr_t instr)
 
     uint8_t val;
     r4k_exc_t res = cpu_read_mem8(cpu, addr, &val, true);
-    if (res == r4k_excNone)
+    if (res == r4k_excNone) {
         cpu->regs[instr.i.rt].val = val;
+    }
 
     return res;
 }

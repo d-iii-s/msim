@@ -139,8 +139,9 @@ static char *gdb_get_request(void)
          */
         char c = 0;
         while (c != '$') {
-            if (!gdb_safe_read(&c))
+            if (!gdb_safe_read(&c)) {
                 return NULL;
+            }
         }
 
         /*
@@ -184,8 +185,9 @@ static char *gdb_get_request(void)
         sscanf(checksum_str.str, "%02x", &req_checksum);
         string_done(&checksum_str);
 
-        if (checksum == req_checksum)
+        if (checksum == req_checksum) {
             break;
+        }
 
         /* Checksum error, ask for re-send */
         if (!gdb_safe_write('-')) {
@@ -225,8 +227,9 @@ static bool gdb_send_reply(char *reply)
 
     for (i = 0; i < MAX_BAD_CHECKSUMS; i++) {
         /* Initial character */
-        if (!gdb_safe_write('$'))
+        if (!gdb_safe_write('$')) {
             return false;
+        }
 
         /* Message */
 
@@ -234,8 +237,9 @@ static bool gdb_send_reply(char *reply)
         size_t pos = 0;
 
         while (reply[pos] != 0) {
-            if (!gdb_safe_write(reply[pos]))
+            if (!gdb_safe_write(reply[pos])) {
                 return false;
+            }
 
             checksum += reply[pos];
             pos++;
@@ -243,21 +247,26 @@ static bool gdb_send_reply(char *reply)
 
         /* Ending character and the checksum */
 
-        if (!gdb_safe_write('#'))
+        if (!gdb_safe_write('#')) {
             return false;
+        }
 
-        if (!gdb_safe_write(hexchar[checksum >> 4]))
+        if (!gdb_safe_write(hexchar[checksum >> 4])) {
             return false;
+        }
 
-        if (!gdb_safe_write(hexchar[checksum & 0x0f]))
+        if (!gdb_safe_write(hexchar[checksum & 0x0f])) {
             return false;
+        }
 
         char c;
-        if (!gdb_safe_read(&c))
+        if (!gdb_safe_read(&c)) {
             return false;
+        }
 
-        if (c == '+')
+        if (c == '+') {
             break;
+        }
     }
 
     if (i >= MAX_BAD_CHECKSUMS) {
@@ -358,8 +367,9 @@ static void gdb_registers_dump(string_t *str, reg64_t *regs,
 {
     unsigned int i;
 
-    for (i = 0; i < count; i++)
+    for (i = 0; i < count; i++) {
         gdb_register_dump(str, regs[i].val);
+    }
 }
 
 /** Write new value of one register from given hex string
@@ -417,8 +427,9 @@ static bool gdb_registers_upload(char **data, reg64_t *regs,
     unsigned int i;
 
     for (i = 0; i < count; i++) {
-        if (!gdb_register_upload(data, &regs[i].val))
+        if (!gdb_register_upload(data, &regs[i].val)) {
             return false;
+        }
     }
 
     return true;
@@ -492,26 +503,33 @@ static void gdb_write_registers(char *req)
     r4k_cpu_t *cpu = (r4k_cpu_t *) get_cpu(cpuno_global)->data;
     // TODO: ASSERT that it really us r4k
 
-    if (!gdb_registers_upload(&query, cpu->regs, 32))
+    if (!gdb_registers_upload(&query, cpu->regs, 32)) {
         return;
+    }
 
-    if (!gdb_register_upload(&query, &cpu->cp0[cp0_Status].val))
+    if (!gdb_register_upload(&query, &cpu->cp0[cp0_Status].val)) {
         return;
+    }
 
-    if (!gdb_register_upload(&query, &cpu->loreg.val))
+    if (!gdb_register_upload(&query, &cpu->loreg.val)) {
         return;
+    }
 
-    if (!gdb_register_upload(&query, &cpu->hireg.val))
+    if (!gdb_register_upload(&query, &cpu->hireg.val)) {
         return;
+    }
 
-    if (!gdb_register_upload(&query, &cpu->cp0[cp0_BadVAddr].val))
+    if (!gdb_register_upload(&query, &cpu->cp0[cp0_BadVAddr].val)) {
         return;
+    }
 
-    if (!gdb_register_upload(&query, &cpu->cp0[cp0_Cause].val))
+    if (!gdb_register_upload(&query, &cpu->cp0[cp0_Cause].val)) {
         return;
+    }
 
-    if (!gdb_register_upload(&query, &cpu->pc.ptr))
+    if (!gdb_register_upload(&query, &cpu->pc.ptr)) {
         return;
+    }
 
     gdb_send_reply(GDB_REPLY_OK);
 }
@@ -553,13 +571,15 @@ static void gdb_cmd_mem_operation(char *req, bool read)
 
             query++;
             gdb_write_physmem(phys, len, query);
-        } else
+        } else {
             gdb_read_physmem(phys, len);
+        }
     } else {
-        if (!read)
+        if (!read) {
             gdb_send_reply(GDB_REPLY_MEMORY_WRITE_FAIL);
-        else
+        } else {
             gdb_send_reply(GDB_REPLY_MEMORY_READ_FAIL);
+        }
     }
 }
 
@@ -706,8 +726,9 @@ static void gdb_insert_code_breakpoint(r4k_cpu_t *cpu, ptr64_t addr)
     breakpoint_t *breakpoint = breakpoint_find_by_address(cpu->bps,
             addr, BREAKPOINT_FILTER_DEBUGGER);
 
-    if (breakpoint != NULL)
+    if (breakpoint != NULL) {
         return;
+    }
 
     /* Breakpoint not found, thus insert it now. */
     breakpoint_t *inserted_breakpoint = breakpoint_init(addr, BREAKPOINT_KIND_DEBUGGER);
@@ -724,8 +745,9 @@ static void gdb_remove_code_breakpoint(r4k_cpu_t *cpu, ptr64_t addr)
             addr, BREAKPOINT_FILTER_DEBUGGER);
 
     /* Removing non existent breakpoint is not considered as a bug */
-    if (breakpoint == NULL)
+    if (breakpoint == NULL) {
         return;
+    }
 
     list_remove(&cpu->bps, &breakpoint->item);
     safe_free(breakpoint);
@@ -792,19 +814,21 @@ static void gdb_breakpoint(char *req, bool insert)
             return;
         }
 
-        if (insert)
+        if (insert) {
             gdb_insert_code_breakpoint(cpu, virt);
-        else
+        } else {
             gdb_remove_code_breakpoint(cpu, virt);
+        }
     } else {
         ptr36_t phys;
 
         if (cpu_convert_addr(get_cpu(cpuno_global), virt, &phys, false)) {
-            if (insert)
+            if (insert) {
                 physmem_breakpoint_add(phys, length,
                         BREAKPOINT_KIND_DEBUGGER, memory_access);
-            else
+            } else {
                 physmem_breakpoint_remove(phys);
+            }
         } else {
             gdb_send_reply(GDB_REPLY_BAD_BREAKPOINT);
             return;
@@ -823,11 +847,13 @@ static void gdb_remote_done(bool fail, bool remote_request)
     r4k_cpu_t *cpu = (r4k_cpu_t *) get_cpu(cpuno_global)->data;
     // TODO: ASSERT that it really us r4k
 
-    if (!fail)
+    if (!fail) {
         gdb_send_reply(remote_request ? GDB_REPLY_OK : GDB_REPLY_WARNING);
+    }
 
-    if (close(gdb_fd) == -1)
+    if (close(gdb_fd) == -1) {
         io_error("gdb_fd");
+    }
 
     gdb_fd = -1;
     cpuno_global = 0;
@@ -964,10 +990,11 @@ bool gdb_remote_init(void)
     socklen_t addrlen = sizeof(sa_gdb);
     gdb_fd = accept(gdb_fd, (struct sockaddr *) &sa_gdb, &addrlen);
     if (gdb_fd < 0) {
-        if (errno == EINTR)
+        if (errno == EINTR) {
             alert("GDB: Interrupted");
-        else
+        } else {
             io_error("accept");
+        }
 
         return false;
     }

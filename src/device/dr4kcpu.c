@@ -167,23 +167,27 @@ static bool dr4kcpu_md(token_t *parm, device_t *dev)
 
     for (addr.ptr = _addr, cnt = _cnt, i = 0;
             i < cnt; addr.ptr += 4, i++) {
-        if ((i & 0x03U) == 0)
+        if ((i & 0x03U) == 0) {
             printf("  %#018" PRIx64 "    ", addr.ptr);
+        }
 
         uint32_t val;
         r4k_exc_t res = r4k_read_mem32(get_r4k(dev), addr, &val, false);
 
-        if (res == r4k_excNone)
+        if (res == r4k_excNone) {
             printf("%08" PRIx32 " ", val);
-        else
+        } else {
             printf("xxxxxxxx ");
+        }
 
-        if ((i & 0x03U) == 3)
+        if ((i & 0x03U) == 3) {
             printf("\n");
+        }
     }
 
-    if (i != 0)
+    if (i != 0) {
         printf("\n");
+    }
 
     return true;
 }
@@ -221,8 +225,9 @@ static bool dr4kcpu_id(token_t *parm, device_t *dev)
         r4k_exc_t res = r4k_excNone;
         // exc_t res = cpu_read_ins((r4k_cpu_t *) dev->data->data, addr, &instr.val, false);
 
-        if (res != r4k_excNone)
+        if (res != r4k_excNone) {
             instr.val = 0;
+        }
 
         r4k_idump(get_r4k(dev), addr, instr, false);
     }

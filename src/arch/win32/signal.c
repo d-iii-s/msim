@@ -31,8 +31,9 @@ static BOOL machine_user_break(DWORD fdwCtrlType)
 
         machine_break = true;
 
-        if (!machine_interactive)
+        if (!machine_interactive) {
             machine_newline = true;
+        }
 
         machine_interactive = true;
 

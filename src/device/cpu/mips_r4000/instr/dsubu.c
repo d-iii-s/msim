@@ -5,8 +5,9 @@ static r4k_exc_t instr_dsubu(r4k_cpu_t *cpu, r4k_instr_t instr)
         uint64_t rt = cpu->regs[instr.r.rt].val;
 
         cpu->regs[instr.r.rd].val = rs - rt;
-    } else
+    } else {
         return r4k_excRI;
+    }
 
     return r4k_excNone;
 }

@@ -81,26 +81,33 @@ extern rv_mnemonics_func_t rv_decode_mnemonics(rv_instr_t instr)
 
     // SYSTEM
 
-    if (instr_func == rv_break_instr)
+    if (instr_func == rv_break_instr) {
         return rv_ebreak_mnemonics;
+    }
 
-    if (instr_func == rv_halt_instr)
+    if (instr_func == rv_halt_instr) {
         return rv_ehalt_mnemonics;
+    }
 
-    if (instr_func == rv_dump_instr)
+    if (instr_func == rv_dump_instr) {
         return rv_edump_mnemonics;
+    }
 
-    if (instr_func == rv_trace_set_instr)
+    if (instr_func == rv_trace_set_instr) {
         return rv_trace_set_mnemonics;
+    }
 
-    if (instr_func == rv_trace_reset_instr)
+    if (instr_func == rv_trace_reset_instr) {
         return rv_trace_reset_mnemonics;
+    }
 
-    if (instr_func == rv_csr_rd_instr)
+    if (instr_func == rv_csr_rd_instr) {
         return rv_csr_rd_mnemonics;
+    }
 
-    if (instr_func == rv_call_instr)
+    if (instr_func == rv_call_instr) {
         return rv_ecall_mnemonics;
+    }
 
     IF_SAME_DECODE(sret);
     IF_SAME_DECODE(mret);
@@ -938,28 +945,39 @@ static void print_misa(rv_cpu_t *cpu, string_t *mnemonics, string_t *comments)
     int mxl = 16 << (misa >> 30);
 
     string_printf(comments, "Machine XLEN: %i Extensions: ", mxl);
-    if (misa & RV_A_EXTENSION_BITS)
+    if (misa & RV_A_EXTENSION_BITS) {
         string_printf(comments, "A");
-    if (misa & RV_C_EXTENSION_BITS)
+    }
+    if (misa & RV_C_EXTENSION_BITS) {
         string_printf(comments, "C");
-    if (misa & RV_D_EXTENSION_BITS)
+    }
+    if (misa & RV_D_EXTENSION_BITS) {
         string_printf(comments, "D");
-    if (misa & RV_E_EXTENSION_BITS)
+    }
+    if (misa & RV_E_EXTENSION_BITS) {
         string_printf(comments, "E");
-    if (misa & RV_F_EXTENSION_BITS)
+    }
+    if (misa & RV_F_EXTENSION_BITS) {
         string_printf(comments, "F");
-    if (misa & RV_H_EXTENSION_BITS)
+    }
+    if (misa & RV_H_EXTENSION_BITS) {
         string_printf(comments, "H");
-    if (misa & RV_I_EXTENSION_BITS)
+    }
+    if (misa & RV_I_EXTENSION_BITS) {
         string_printf(comments, "I");
-    if (misa & RV_M_EXTENSION_BITS)
+    }
+    if (misa & RV_M_EXTENSION_BITS) {
         string_printf(comments, "M");
-    if (misa & RV_Q_EXTENSION_BITS)
+    }
+    if (misa & RV_Q_EXTENSION_BITS) {
         string_printf(comments, "Q");
-    if (misa & RV_S_IMPLEMENTED_BITS)
+    }
+    if (misa & RV_S_IMPLEMENTED_BITS) {
         string_printf(comments, "S");
-    if (misa & RV_U_IMPLEMENTED_BITS)
+    }
+    if (misa & RV_U_IMPLEMENTED_BITS) {
         string_printf(comments, "U");
+    }
 }
 
 static void print_mtvec(rv_cpu_t *cpu, string_t *mnemonics, string_t *comments)
@@ -974,8 +992,9 @@ static void print_mtvec(rv_cpu_t *cpu, string_t *mnemonics, string_t *comments)
 static void print_medeleg(rv_cpu_t *cpu, string_t *mnemonics, string_t *comments)
 {
     string_printf(mnemonics, "%s 0x%08x", "medeleg", cpu->csr.medeleg);
-    if (cpu->csr.medeleg == 0)
+    if (cpu->csr.medeleg == 0) {
         return;
+    }
     string_printf(comments, "Delegated:");
 
     // TODO: remove trailing comma
@@ -1003,8 +1022,9 @@ static void print_medeleg(rv_cpu_t *cpu, string_t *mnemonics, string_t *comments
 static void print_mideleg(rv_cpu_t *cpu, string_t *mnemonics, string_t *comments)
 {
     string_printf(mnemonics, "%s 0x%08x", "mideleg", cpu->csr.mideleg);
-    if (cpu->csr.mideleg == 0)
+    if (cpu->csr.mideleg == 0) {
         return;
+    }
     string_printf(comments, "Delegated:");
 
 // TODO: remove trailing comma

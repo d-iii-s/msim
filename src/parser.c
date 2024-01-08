@@ -134,13 +134,15 @@ static void skip_whitespace_chars(const char **str)
 
     do {
         /* Skip whitespace chars */
-        while ((*tmp) && (whitespace(*tmp)))
+        while ((*tmp) && (whitespace(*tmp))) {
             tmp++;
+        }
 
         /* Skip comments */
         if (*tmp == '#') {
-            while ((*tmp) && (*tmp != '\n'))
+            while ((*tmp) && (*tmp != '\n')) {
                 tmp++;
+            }
             continue;
         }
     } while (false);
@@ -155,14 +157,17 @@ static void skip_whitespace_chars(const char **str)
  */
 static unsigned int char2uint(char c)
 {
-    if ((c >= '0') && (c <= '9'))
+    if ((c >= '0') && (c <= '9')) {
         return (c - '0');
+    }
 
-    if ((c >= 'a') && (c <= 'z'))
+    if ((c >= 'a') && (c <= 'z')) {
         return (c - 'a' + 10);
+    }
 
-    if ((c >= 'A') && (c <= 'Z'))
+    if ((c >= 'A') && (c <= 'Z')) {
         return (c - 'A' + 10);
+    }
 
     die(ERR_INTERN, "Character error");
     return 0;
@@ -197,10 +202,11 @@ static void read_number(const char **str, int_token_t *token)
             }
         }
 
-        if (tmp > *str)
+        if (tmp > *str) {
             token->ttype = tt_uint;
-        else
+        } else {
             token->ttype = tt_err_invalid_hex_num;
+        }
     } else {
         /* Decimal number */
         while (decimal(*tmp)) {
@@ -227,8 +233,9 @@ static void read_number(const char **str, int_token_t *token)
                 token->ttype = tt_err_overflow;
                 return;
             }
-        } else
+        } else {
             token->ttype = tt_err_invalid_num;
+        }
     }
 
     /* Error test */
@@ -303,10 +310,11 @@ static void read_token(const char **str, int_token_t *token)
         token->ttype = tt_end;
         (*str)++;
     } else {
-        if (decimal(**str))
+        if (decimal(**str)) {
             read_number(str, token);
-        else
+        } else {
             read_string(str, token);
+        }
     }
 }
 
@@ -378,8 +386,9 @@ void parm_delete(token_t *parm)
     token_t *token = (token_t *) list->head;
 
     while (token != NULL) {
-        if (token->ttype == tt_str)
+        if (token->ttype == tt_str) {
             safe_free(token->tval.str);
+        }
 
         token_t *removed = token;
         token = (token_t *) token->item.next;
@@ -402,8 +411,9 @@ void parm_check_end(token_t *parm, const char *str)
     ASSERT(parm != NULL);
     ASSERT(str != NULL);
 
-    if (parm_type(parm) == tt_end)
+    if (parm_type(parm) == tt_end) {
         return;
+    }
 
     size_t len = strlen(str);
 
@@ -411,8 +421,9 @@ void parm_check_end(token_t *parm, const char *str)
         /* Find the end of the parameter list */
 
         token_t *pre = parm;
-        while (parm_type(parm_next(&parm)) != tt_end)
+        while (parm_type(parm_next(&parm)) != tt_end) {
             pre = parm;
+        }
 
         parm_insert_str(pre, safe_strdup(""));
     }
@@ -448,8 +459,9 @@ bool parm_last(token_t *parm)
 {
     ASSERT(parm != NULL);
 
-    if (parm->item.next == NULL)
+    if (parm->item.next == NULL) {
         return false;
+    }
 
     token_t *next = (token_t *) (parm->item.next);
     return (next->ttype == tt_end);
@@ -557,8 +569,9 @@ void parm_set_uint(token_t *parm, uint64_t val)
 {
     ASSERT(parm != NULL);
 
-    if (parm->ttype == tt_str)
+    if (parm->ttype == tt_str) {
         safe_free(parm->tval.str);
+    }
 
     parm->ttype = tt_uint;
     parm->tval.i = val;
@@ -572,8 +585,9 @@ void parm_set_str(token_t *parm, char *str)
     ASSERT(parm != NULL);
     ASSERT(str != NULL);
 
-    if (parm->ttype == tt_str)
+    if (parm->ttype == tt_str) {
         safe_free(parm->tval.str);
+    }
 
     parm->ttype = tt_str;
     parm->tval.str = str;
@@ -619,8 +633,9 @@ static cmd_find_res_t cmd_compare(const char *str, const char *cmd)
 
     /* Check for full match */
     if (*tmp == 0) {
-        if (*cmd == 0)
+        if (*cmd == 0) {
             return CMP_HIT;
+        }
 
         return CMP_PARTIAL_HIT;
     }
@@ -664,15 +679,18 @@ cmd_find_res_t cmd_find(const char *cmd_name, const cmd_t *cmds,
         case CMP_PARTIAL_HIT:
             if (res == CMP_NO_HIT) {
                 res = CMP_PARTIAL_HIT;
-                if (cmd)
+                if (cmd) {
                     *cmd = cmds;
-            } else
+                }
+            } else {
                 res = CMP_MULTIPLE_HIT;
+            }
             break;
         case CMP_HIT:
             res = CMP_HIT;
-            if (cmd)
+            if (cmd) {
                 *cmd = cmds;
+            }
             break;
         default:
             die(ERR_INTERN, "Command identification error");
@@ -694,16 +712,18 @@ static const char *find_name(const char *str)
 {
     ASSERT(str != NULL);
 
-    if ((str[0] == 0) || (str[1] == 0))
+    if ((str[0] == 0) || (str[1] == 0)) {
         return str;
+    }
 
     /* Search for a separator */
     const char *tmp;
     for (tmp = str + 2; (*tmp != 0) && (*tmp != '/'); tmp++)
         ;
 
-    if (*tmp != 0)
+    if (*tmp != 0) {
         return (tmp + 1);
+    }
 
     return str + 2;
 }
@@ -742,9 +762,9 @@ bool cmd_run_by_spec(const cmd_t *cmd, token_t *parm, void *data)
             return false;
         }
 
-        if ((*pars == OPTC) && (parm->ttype == tt_end))
+        if ((*pars == OPTC) && (parm->ttype == tt_end)) {
             break;
-        else {
+        } else {
             if ((*pars == REQC) && (parm->ttype == tt_end)) {
                 error("Missing parameter \"%s\"", find_name(pars));
                 return false;
@@ -875,22 +895,25 @@ char *generator_cmd(token_t *parm, const void *data, unsigned int level)
     ASSERT(data != NULL);
     ASSERT((parm_type(parm) == tt_str) || (parm_type(parm) == tt_end));
 
-    if (level == 0)
+    if (level == 0) {
         last_cmd = (cmd_t *) data;
+    }
 
     /* Find command */
     const char *cmd_prefix = (parm_type(parm) == tt_str) ? parm_str(parm) : "";
 
     /* Device command list is ended by LAST_CMD */
     while (last_cmd->name) {
-        if (prefix(cmd_prefix, last_cmd->name))
+        if (prefix(cmd_prefix, last_cmd->name)) {
             break;
+        }
 
         last_cmd++;
     }
 
-    if (last_cmd->name == NULL)
+    if (last_cmd->name == NULL) {
         return NULL;
+    }
 
     char *name = safe_strdup(last_cmd->name);
     last_cmd++;
@@ -927,15 +950,17 @@ static char *cmd_get_syntax(const cmd_t *cmd)
 
             string_printf(&msg, "<%s>", name);
             safe_free(name);
-        } else
+        } else {
             string_append(&msg, parm_skipq(pars));
+        }
 
         find_next_parm(&pars);
     }
 
     /* Close brackets */
-    for (; opt; opt--)
+    for (; opt; opt--) {
         string_push(&msg, ']');
+    }
 
     return msg.str;
 }

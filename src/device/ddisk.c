@@ -302,16 +302,19 @@ static bool ddisk_fmap(token_t *parm, device_t *dev)
     const char *const path = parm_str(parm);
 
     FILE *file = try_fopen(path, "rb+");
-    if (file == NULL)
+    if (file == NULL) {
         return false;
+    }
 
     /* File size test */
-    if (!try_fseek(file, 0, SEEK_END, path))
+    if (!try_fseek(file, 0, SEEK_END, path)) {
         return false;
+    }
 
     size_t fsize;
-    if (!try_ftell(file, path, &fsize))
+    if (!try_ftell(file, path, &fsize)) {
         return false;
+    }
 
     if (fsize == 0) {
         error("Empty file");
@@ -338,8 +341,9 @@ static bool ddisk_fmap(token_t *parm, device_t *dev)
         return false;
     }
 
-    if (!try_fseek(file, 0, SEEK_SET, path))
+    if (!try_fseek(file, 0, SEEK_SET, path)) {
         return false;
+    }
 
     int fd = fileno(file);
     if (fd == -1) {
@@ -438,16 +442,19 @@ static bool ddisk_load(token_t *parm, device_t *dev)
 
     /* Open file */
     FILE *file = try_fopen(path, "rb");
-    if (file == NULL)
+    if (file == NULL) {
         return false;
+    }
 
     /* File size test */
-    if (!try_fseek(file, 0, SEEK_END, path))
+    if (!try_fseek(file, 0, SEEK_END, path)) {
         return false;
+    }
 
     size_t fsize;
-    if (!try_ftell(file, path, &fsize))
+    if (!try_ftell(file, path, &fsize)) {
         return false;
+    }
 
     if (fsize == 0) {
         error("Empty file");
@@ -461,8 +468,9 @@ static bool ddisk_load(token_t *parm, device_t *dev)
         return false;
     }
 
-    if (!try_fseek(file, 0, SEEK_SET, path))
+    if (!try_fseek(file, 0, SEEK_SET, path)) {
         return false;
+    }
 
     /* Read the file directly */
     size_t rd = fread(data->img, 1, fsize, file);
@@ -553,8 +561,9 @@ static void ddisk_read32(unsigned int procno, device_t *dev, ptr36_t addr,
     disk_data_s *data = (disk_data_s *) dev->data;
 
     /* Do nothing if the disk is not initialized */
-    if (data->disk_type == DISKT_NONE)
+    if (data->disk_type == DISKT_NONE) {
         return;
+    }
 
     /* Read internal registers */
     switch (addr - data->addr) {
@@ -598,8 +607,9 @@ static void ddisk_write32(unsigned int procno, device_t *dev, ptr36_t addr,
     disk_data_s *data = (disk_data_s *) dev->data;
 
     /* Ignore if the disk is not initialized */
-    if (data->disk_type == DISKT_NONE)
+    if (data->disk_type == DISKT_NONE) {
         return;
+    }
 
     switch (addr - data->addr) {
     case REGISTER_ADDR_LO:

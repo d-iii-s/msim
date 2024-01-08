@@ -171,8 +171,9 @@ bool dev_next(device_t **device, device_filter_t filter)
 
     /* Find the first device, which matches to the filter */
     while (*device != NULL) {
-        if (dev_match_to_filter(*device, filter))
+        if (dev_match_to_filter(*device, filter)) {
             return true;
+        }
 
         *device = (device_t *) (*device)->item.next;
     }
@@ -235,8 +236,9 @@ const char *dev_by_partial_name(const char *prefix_name, device_t **device)
     ASSERT(prefix_name != NULL);
 
     while (dev_next(device, DEVICE_FILTER_ALL)) {
-        if (prefix(prefix_name, (*device)->name))
+        if (prefix(prefix_name, (*device)->name)) {
             break;
+        }
     }
 
     char *found_name = *device ? (*device)->name : NULL;
@@ -269,8 +271,9 @@ size_t dev_count_by_partial_name(const char *name_prefix,
         }
     }
 
-    if (count == 0)
+    if (count == 0) {
         *last_found_device = NULL;
+    }
 
     return count;
 }
@@ -287,8 +290,9 @@ device_t *dev_by_name(const char *searched_name)
     device_t *device = NULL;
 
     while (dev_next(&device, DEVICE_FILTER_ALL)) {
-        if (!strcmp(searched_name, device->name))
+        if (!strcmp(searched_name, device->name)) {
             break;
+        }
     }
 
     return device;
@@ -337,8 +341,9 @@ gen_t dev_find_generator(token_t **parm, const device_t *dev,
         const void **data)
 {
     /* Check if the first token is a string */
-    if (parm_type(*parm) != tt_str)
+    if (parm_type(*parm) != tt_str) {
         return NULL;
+    }
 
     const char *user_text = parm_str(*parm);
 
@@ -360,13 +365,15 @@ gen_t dev_find_generator(token_t **parm, const device_t *dev,
             return generator_cmd;
         }
 
-        if (res == CMP_MULTIPLE_HIT)
+        if (res == CMP_MULTIPLE_HIT) {
             /* Input error */
             break;
+        }
 
         /* Continue to the next generator, if possible */
-        if (cmd->find_gen)
+        if (cmd->find_gen) {
             return cmd->find_gen(parm, cmd, data);
+        }
 
         break;
     }

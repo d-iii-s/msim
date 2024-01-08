@@ -36,8 +36,9 @@ void *mmap(void *addr, size_t length, int prot, int flags, int fd,
                 access = FILE_MAP_READ;
             }
         } else {
-            if ((prot & PROT_WRITE) == PROT_WRITE)
+            if ((prot & PROT_WRITE) == PROT_WRITE) {
                 access = FILE_MAP_WRITE;
+            }
         }
     } else {
         if ((prot & PROT_READ) == PROT_READ) {
@@ -49,8 +50,9 @@ void *mmap(void *addr, size_t length, int prot, int flags, int fd,
                 access = FILE_MAP_READ;
             }
         } else {
-            if ((prot & PROT_WRITE) == PROT_WRITE)
+            if ((prot & PROT_WRITE) == PROT_WRITE) {
                 access = FILE_MAP_WRITE;
+            }
         }
     }
 
@@ -74,8 +76,9 @@ void *mmap(void *addr, size_t length, int prot, int flags, int fd,
 
 int munmap(void *addr, size_t length)
 {
-    if (!UnmapViewOfFile(addr))
+    if (!UnmapViewOfFile(addr)) {
         return -1;
+    }
 
     return 0;
 }

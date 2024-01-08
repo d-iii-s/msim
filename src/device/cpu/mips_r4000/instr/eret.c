@@ -6,8 +6,9 @@ static r4k_exc_t instr_eret(r4k_cpu_t *cpu, r4k_instr_t instr)
         sc_unregister(cpu->procno);
 
         /* Delay slot test */
-        if (cpu->branch != BRANCH_NONE)
+        if (cpu->branch != BRANCH_NONE) {
             alert("R4000: ERET in a branch delay slot");
+        }
 
         if (cp0_status_erl(cpu)) {
             /* Error level */

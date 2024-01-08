@@ -118,9 +118,11 @@ void r4k_reg_dump(r4k_cpu_t *cpu)
 static const char *get_pagemask_name(unsigned int pm)
 {
     unsigned int i;
-    for (i = 0; i < CP0_PM_ITEMS; i++)
-        if (pm == pagemask_name[i].no)
+    for (i = 0; i < CP0_PM_ITEMS; i++) {
+        if (pm == pagemask_name[i].no) {
             return pagemask_name[i].s;
+        }
+    }
 
     /* Error */
     return pagemask_name[CP0_PM_ITEMS].s;
@@ -330,20 +332,24 @@ void r4k_idump(r4k_cpu_t *cpu, ptr64_t addr, r4k_instr_t instr, bool modregs)
     string_init(&s_mnemonics);
     string_init(&s_comments);
 
-    if (cpu != NULL)
+    if (cpu != NULL) {
         string_printf(&s_cpu, "cpu%u", cpu->procno);
+    }
 
     string_printf(&s_addr, "%#018" PRIx64, addr.ptr);
     idump_common(addr, instr, &s_opc, &s_mnemonics, &s_comments);
 
-    if (cpu != NULL)
+    if (cpu != NULL) {
         printf("%-5s ", s_cpu.str);
+    }
 
-    if (iaddr)
+    if (iaddr) {
         printf("%-18s ", s_addr.str);
+    }
 
-    if (iopc)
+    if (iopc) {
         printf("%-8s ", s_opc.str);
+    }
 
     printf("%s\n", s_mnemonics.str);
 
@@ -374,16 +380,18 @@ void r4k_idump_phys(ptr36_t addr, r4k_instr_t instr)
     string_init(&s_mnemonics);
     string_init(&s_comments);
 
-    if (iaddr)
+    if (iaddr) {
         string_printf(&s_addr, "%#011" PRIx64 "  ", addr);
+    }
 
     ptr64_t vaddr;
     vaddr.ptr = addr;
 
     idump_common(vaddr, instr, &s_iopc, &s_mnemonics, &s_comments);
 
-    if (!iopc)
+    if (!iopc) {
         string_clear(&s_iopc);
+    }
 
     const char *comment_sep = string_is_empty(&s_comments) ? "" : " # ";
     const char *iopc_sep_after = iopc ? "  " : "";
@@ -432,7 +440,7 @@ char *r4k_modified_regs_dump(r4k_cpu_t *cpu)
     s2 = sc2;
 
     /* Test for general registers */
-    for (i = 0; i < 32; i++)
+    for (i = 0; i < 32; i++) {
         if (cpu->regs[i].val != cpu->old_regs[i].val) {
             snprintf(s1, size, "%s, %s: %#" PRIx64 "->%#" PRIx64,
                     s2, r4k_regname[i], cpu->old_regs[i].val, cpu->regs[i].val);
@@ -442,22 +450,25 @@ char *r4k_modified_regs_dump(r4k_cpu_t *cpu)
             s2 = s3;
             cpu->old_regs[i] = cpu->regs[i];
         }
+    }
 
     /* Test for cp0 */
-    for (i = 0; i < 32; i++)
+    for (i = 0; i < 32; i++) {
         if ((cpu->cp0[i].val != cpu->old_cp0[i].val) && (i != cp0_Random) && (i != cp0_Count)) {
-            if (r4k_cp0name == r4k_cp0_name[2])
+            if (r4k_cp0name == r4k_cp0_name[2]) {
                 snprintf(s1, size, "%s, cp0_%s: %#" PRIx64 "->%#" PRIx64,
                         s2, r4k_cp0name[i], cpu->old_cp0[i].val, cpu->cp0[i].val);
-            else
+            } else {
                 snprintf(s1, size, "%s, cp0[%u]: %#" PRIx64 "->%#" PRIx64,
                         s2, i, cpu->old_cp0[i].val, cpu->cp0[i].val);
+            }
 
             s3 = s1;
             s1 = s2;
             s2 = s3;
             cpu->old_cp0[i] = cpu->cp0[i];
         }
+    }
 
     /* Test for loreg */
     if (cpu->loreg.val != cpu->old_loreg.val) {
@@ -481,10 +492,11 @@ char *r4k_modified_regs_dump(r4k_cpu_t *cpu)
         cpu->old_hireg = cpu->hireg;
     }
 
-    if (*s2 == 0)
+    if (*s2 == 0) {
         *sx = 0;
-    else
+    } else {
         strcpy(sx, s2 + 2);
+    }
 
     return sx;
 

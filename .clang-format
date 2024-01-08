@@ -29,4 +29,5 @@ IncludeCategories:
     CaseSensitive:   true
 
 InsertNewlineAtEOF: true
+InsertBraces: true
 ...

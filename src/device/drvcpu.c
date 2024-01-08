@@ -115,8 +115,9 @@ static bool drvcpu_csr_rd(token_t *parm, device_t *dev)
         return rv_csr_dump_by_name(get_rv(dev), name);
     } else if (token_type == tt_uint) {
         uint64_t num = parm_uint_next(&parm);
-        if (num > 0xFFF)
+        if (num > 0xFFF) {
             return false;
+        }
         return rv_csr_dump(get_rv(dev), num);
     }
 

@@ -2,10 +2,11 @@ static r4k_exc_t instr_bgezall(r4k_cpu_t *cpu, r4k_instr_t instr)
 {
     bool cond;
 
-    if (CPU_64BIT_MODE(cpu))
+    if (CPU_64BIT_MODE(cpu)) {
         cond = ((cpu->regs[instr.i.rs].val & SBIT64) == 0);
-    else
+    } else {
         cond = ((cpu->regs[instr.i.rs].lo & SBIT32) == 0);
+    }
 
     cpu->regs[31].val = cpu->pc.ptr + 8;
 

@@ -28,4 +28,5 @@ IncludeCategories:
     Priority:        0
     CaseSensitive:   true
 
+InsertNewlineAtEOF: true
 ...

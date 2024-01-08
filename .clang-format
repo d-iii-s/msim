@@ -28,6 +28,7 @@ IncludeCategories:
     Priority:        0
     CaseSensitive:   true
 
+LineEnding: LF
 InsertNewlineAtEOF: true
 InsertBraces: true
 ...

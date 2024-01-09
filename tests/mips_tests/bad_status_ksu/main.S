@@ -41,7 +41,7 @@ __start:
 
 	/*
 	 * If all is okay, terminate.
-	 */	
+	 */
 	.insn
 	.word 0x28
 	nop

@@ -12,9 +12,10 @@
 #ifndef DEBUG_H_
 #define DEBUG_H_
 
-#include <stdlib.h>
 #include <stdbool.h>
 #include <stdint.h>
+#include <stdlib.h>
+
 #include "../device/cpu/mips_r4000/cpu.h"
 #include "../device/cpu/riscv_rv32ima/cpu.h"
 #include "../device/device.h"

@@ -1,0 +1,15 @@
+name: Clang format linter
+on:
+  push: {}
+  pull_request: {}
+
+jobs:
+  clang-format:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Check C source formatting with clang-format
+      uses: DoozyX/clang-format-lint-action@v0.16.2
+      with:
+        clangFormatVersion: 16

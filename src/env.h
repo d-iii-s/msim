@@ -13,6 +13,7 @@
 #define ENV_H_
 
 #include <stdbool.h>
+
 #include "main.h"
 #include "parser.h"
 
@@ -25,9 +26,9 @@ extern unsigned int r4k_ireg;
 
 /**< Variable types */
 typedef enum {
-	vt_uint,
-	vt_str,
-	vt_bool
+    vt_uint,
+    vt_str,
+    vt_bool
 } var_type_t;
 
 /** System command implementation */
@@ -41,12 +42,12 @@ extern bool env_check_type(const char *name, var_type_t type);
 
 /** TAB completion */
 extern char *generator_env_name(token_t *parm, const void *data,
-    unsigned int level);
+        unsigned int level);
 extern char *generator_env_booltype(token_t *parm, const void *data,
-    unsigned int level);
+        unsigned int level);
 extern char *generator_bool_envname(token_t *parm, const void *data,
-    unsigned int level);
+        unsigned int level);
 extern char *generator_equal_char(token_t *parm, const void *data,
-    unsigned int level);
+        unsigned int level);
 
 #endif

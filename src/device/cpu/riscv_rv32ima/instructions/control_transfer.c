@@ -9,18 +9,19 @@
  *
  */
 
-#include "control_transfer.h"
 #include "../../../../assert.h"
 #include "../../../../utils.h"
+#include "control_transfer.h"
 
-rv_exc_t rv_jal_instr(rv_cpu_t *cpu, rv_instr_t instr){
+rv_exc_t rv_jal_instr(rv_cpu_t *cpu, rv_instr_t instr)
+{
     ASSERT(cpu != NULL);
     ASSERT(instr.j.opcode == rv_opcJAL);
 
     // jump target is relative to the address of the instruction eg. pc
     uint32_t target = cpu->pc + RV_J_IMM(instr);
 
-    if(!IS_ALIGNED(target, 4)){
+    if (!IS_ALIGNED(target, 4)) {
         cpu->csr.tval_next = target;
         return rv_exc_instruction_address_misaligned;
     }
@@ -31,7 +32,8 @@ rv_exc_t rv_jal_instr(rv_cpu_t *cpu, rv_instr_t instr){
     return rv_exc_none;
 }
 
-rv_exc_t rv_jalr_instr(rv_cpu_t *cpu, rv_instr_t instr) {
+rv_exc_t rv_jalr_instr(rv_cpu_t *cpu, rv_instr_t instr)
+{
     ASSERT(cpu != NULL);
     ASSERT(instr.i.opcode == rv_opcJALR);
     ASSERT(instr.i.funct3 == 0);
@@ -40,7 +42,7 @@ rv_exc_t rv_jalr_instr(rv_cpu_t *cpu, rv_instr_t instr) {
     // lowest bit set to 0, as described in the specification
     target &= ~1;
 
-    if(!IS_ALIGNED(target, 4)){
+    if (!IS_ALIGNED(target, 4)) {
         cpu->csr.tval_next = target;
         return rv_exc_instruction_address_misaligned;
     }
@@ -51,7 +53,8 @@ rv_exc_t rv_jalr_instr(rv_cpu_t *cpu, rv_instr_t instr) {
     return rv_exc_none;
 }
 
-rv_exc_t rv_beq_instr(rv_cpu_t *cpu, rv_instr_t instr){
+rv_exc_t rv_beq_instr(rv_cpu_t *cpu, rv_instr_t instr)
+{
     ASSERT(cpu != NULL);
     ASSERT(instr.b.opcode == rv_opcBRANCH);
 
@@ -61,8 +64,8 @@ rv_exc_t rv_beq_instr(rv_cpu_t *cpu, rv_instr_t instr){
     uint32_t lhs = cpu->regs[instr.b.rs1];
     uint32_t rhs = cpu->regs[instr.b.rs2];
 
-    if(lhs == rhs) {
-        if(!IS_ALIGNED(target, 4)){
+    if (lhs == rhs) {
+        if (!IS_ALIGNED(target, 4)) {
             cpu->csr.tval_next = target;
             return rv_exc_instruction_address_misaligned;
         }
@@ -73,7 +76,8 @@ rv_exc_t rv_beq_instr(rv_cpu_t *cpu, rv_instr_t instr){
     return rv_exc_none;
 }
 
-rv_exc_t rv_bne_instr(rv_cpu_t *cpu, rv_instr_t instr){
+rv_exc_t rv_bne_instr(rv_cpu_t *cpu, rv_instr_t instr)
+{
     ASSERT(cpu != NULL);
     ASSERT(instr.b.opcode == rv_opcBRANCH);
 
@@ -83,8 +87,8 @@ rv_exc_t rv_bne_instr(rv_cpu_t *cpu, rv_instr_t instr){
     uint32_t lhs = cpu->regs[instr.b.rs1];
     uint32_t rhs = cpu->regs[instr.b.rs2];
 
-    if(lhs != rhs) {
-        if(!IS_ALIGNED(target, 4)){
+    if (lhs != rhs) {
+        if (!IS_ALIGNED(target, 4)) {
             cpu->csr.tval_next = target;
             return rv_exc_instruction_address_misaligned;
         }
@@ -95,18 +99,19 @@ rv_exc_t rv_bne_instr(rv_cpu_t *cpu, rv_instr_t instr){
     return rv_exc_none;
 }
 
-rv_exc_t rv_blt_instr(rv_cpu_t *cpu, rv_instr_t instr){
+rv_exc_t rv_blt_instr(rv_cpu_t *cpu, rv_instr_t instr)
+{
     ASSERT(cpu != NULL);
     ASSERT(instr.b.opcode == rv_opcBRANCH);
 
     // target is relative to address of the instruction
     uint32_t target = cpu->pc + RV_B_IMM(instr);
 
-    int32_t lhs = (int32_t)cpu->regs[instr.b.rs1];
-    int32_t rhs = (int32_t)cpu->regs[instr.b.rs2];
+    int32_t lhs = (int32_t) cpu->regs[instr.b.rs1];
+    int32_t rhs = (int32_t) cpu->regs[instr.b.rs2];
 
-    if(lhs < rhs) {
-        if(!IS_ALIGNED(target, 4)){
+    if (lhs < rhs) {
+        if (!IS_ALIGNED(target, 4)) {
             cpu->csr.tval_next = target;
             return rv_exc_instruction_address_misaligned;
         }
@@ -116,50 +121,8 @@ rv_exc_t rv_blt_instr(rv_cpu_t *cpu, rv_instr_t instr){
     return rv_exc_none;
 }
 
-rv_exc_t rv_bltu_instr(rv_cpu_t *cpu, rv_instr_t instr){
-    ASSERT(cpu != NULL);
-    ASSERT(instr.b.opcode == rv_opcBRANCH);
-
-    // target is relative to address of the instruction
-    uint32_t target = cpu->pc + RV_B_IMM(instr);
-
-    uint32_t lhs = cpu->regs[instr.b.rs1];
-    uint32_t rhs = cpu->regs[instr.b.rs2];
-
-    if(lhs < rhs) {
-        
-        if(!IS_ALIGNED(target, 4)){
-            cpu->csr.tval_next = target;
-            return rv_exc_instruction_address_misaligned;
-        }
-        cpu->pc_next = target;
-    }
-
-    return rv_exc_none;
-}
-
-rv_exc_t rv_bge_instr(rv_cpu_t *cpu, rv_instr_t instr){
-    ASSERT(cpu != NULL);
-    ASSERT(instr.b.opcode == rv_opcBRANCH);
-
-    // target is relative to address of the instruction
-    uint32_t target = cpu->pc + RV_B_IMM(instr);
-
-    int32_t lhs = (int32_t)cpu->regs[instr.b.rs1];
-    int32_t rhs = (int32_t)cpu->regs[instr.b.rs2];
-
-    if(lhs >= rhs) {
-        if(!IS_ALIGNED(target, 4)){
-            cpu->csr.tval_next = target;
-            return rv_exc_instruction_address_misaligned;
-        }
-        cpu->pc_next = target;
-    }
-
-    return rv_exc_none;
-}
-
-rv_exc_t rv_bgeu_instr(rv_cpu_t *cpu, rv_instr_t instr){
+rv_exc_t rv_bltu_instr(rv_cpu_t *cpu, rv_instr_t instr)
+{
     ASSERT(cpu != NULL);
     ASSERT(instr.b.opcode == rv_opcBRANCH);
 
@@ -169,8 +132,53 @@ rv_exc_t rv_bgeu_instr(rv_cpu_t *cpu, rv_instr_t instr){
     uint32_t lhs = cpu->regs[instr.b.rs1];
     uint32_t rhs = cpu->regs[instr.b.rs2];
 
-    if(lhs >= rhs) {
-        if(!IS_ALIGNED(target, 4)){
+    if (lhs < rhs) {
+
+        if (!IS_ALIGNED(target, 4)) {
+            cpu->csr.tval_next = target;
+            return rv_exc_instruction_address_misaligned;
+        }
+        cpu->pc_next = target;
+    }
+
+    return rv_exc_none;
+}
+
+rv_exc_t rv_bge_instr(rv_cpu_t *cpu, rv_instr_t instr)
+{
+    ASSERT(cpu != NULL);
+    ASSERT(instr.b.opcode == rv_opcBRANCH);
+
+    // target is relative to address of the instruction
+    uint32_t target = cpu->pc + RV_B_IMM(instr);
+
+    int32_t lhs = (int32_t) cpu->regs[instr.b.rs1];
+    int32_t rhs = (int32_t) cpu->regs[instr.b.rs2];
+
+    if (lhs >= rhs) {
+        if (!IS_ALIGNED(target, 4)) {
+            cpu->csr.tval_next = target;
+            return rv_exc_instruction_address_misaligned;
+        }
+        cpu->pc_next = target;
+    }
+
+    return rv_exc_none;
+}
+
+rv_exc_t rv_bgeu_instr(rv_cpu_t *cpu, rv_instr_t instr)
+{
+    ASSERT(cpu != NULL);
+    ASSERT(instr.b.opcode == rv_opcBRANCH);
+
+    // target is relative to address of the instruction
+    uint32_t target = cpu->pc + RV_B_IMM(instr);
+
+    uint32_t lhs = cpu->regs[instr.b.rs1];
+    uint32_t rhs = cpu->regs[instr.b.rs2];
+
+    if (lhs >= rhs) {
+        if (!IS_ALIGNED(target, 4)) {
             cpu->csr.tval_next = target;
             return rv_exc_instruction_address_misaligned;
         }

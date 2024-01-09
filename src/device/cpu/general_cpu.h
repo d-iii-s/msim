@@ -13,27 +13,28 @@
 #define GENERAL_CPU_H_
 
 #include <stdbool.h>
-#include "../../main.h"
+
 #include "../../debug/breakpoint.h"
+#include "../../main.h"
 
 /** Function type for raising and canceling interrupts */
-typedef void (*interrupt_func_t)(void*, unsigned int);
+typedef void (*interrupt_func_t)(void *, unsigned int);
 /** Function type for inserting breakpoints */
-typedef void (*insert_breakpoint_func_t)(void*, ptr64_t, breakpoint_t);
+typedef void (*insert_breakpoint_func_t)(void *, ptr64_t, breakpoint_t);
 /** Function type for removing breakpoints */
-typedef void (*remove_breakpoint_func_t)(void*, ptr64_t);
+typedef void (*remove_breakpoint_func_t)(void *, ptr64_t);
 /** Function type for converting addresses */
-typedef bool (*convert_addr_func_t)(void*, ptr64_t, ptr36_t*, bool);
+typedef bool (*convert_addr_func_t)(void *, ptr64_t, ptr36_t *, bool);
 /** Function type for dumping register content */
-typedef void (*reg_dump_func_t)(void*);
+typedef void (*reg_dump_func_t)(void *);
 /** Function type for setting the program counter of a cpu */
-typedef void (*set_pc_func_t)(void*, ptr64_t);
+typedef void (*set_pc_func_t)(void *, ptr64_t);
 /** Function type for notifying the processor about a write to a memory location, used for implementing SC atomic*/
-typedef bool (*sc_access_func_t)(void*, ptr36_t, int);
+typedef bool (*sc_access_func_t)(void *, ptr36_t, int);
 
 /** Cpu method table
- * 
- * NULL value means "not implemented" 
+ *
+ * NULL value means "not implemented"
  */
 typedef struct {
     interrupt_func_t interrupt_up; /** Rainse an interrupt */
@@ -57,7 +58,7 @@ typedef struct {
 /**
  * @brief Retrieves the general_cpu_t structure based on the given cpu id
  */
-extern general_cpu_t* get_cpu(unsigned int no);
+extern general_cpu_t *get_cpu(unsigned int no);
 /**
  * @brief Returns the lowest unused cpu id or MAX_CPUS if none are available
  */
@@ -73,16 +74,16 @@ extern void add_cpu(general_cpu_t *cpu);
  */
 extern void remove_cpu(general_cpu_t *cpu);
 
-/** 
+/**
  * @brief Raises an interrupt
- * 
+ *
  * @param cpu The cpu on which the interrupt will be raised
  * @param no The interrupt number that will be raised
  */
 extern void cpu_interrupt_up(general_cpu_t *cpu, unsigned int no);
 /**
  * @brief Cancels an interrupt
- * 
+ *
  * @param cpu The cpu in which the interrupt will be canceled
  * @param no The interrupt number, that will be canceled
  */
@@ -93,7 +94,7 @@ extern void cpu_remove_breakpoint(general_cpu_t *cpu, ptr64_t addr);
 
 /**
  * @brief converts an address from virtual to physical memory, not modifying cpu state
- * 
+ *
  * @param cpu the processor pointer
  * @param virt virtual address
  * @param phys physical return address
@@ -112,7 +113,7 @@ extern void cpu_set_pc(general_cpu_t *cpu, ptr64_t pc);
 
 /**
  * @brief signals to the cpu, that an address has been written to, for sc control
- * 
+ *
  * @param cpu the processor pointer
  * @param addr the address that is written to
  * @param size the width of the access

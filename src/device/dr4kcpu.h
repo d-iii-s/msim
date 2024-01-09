@@ -12,13 +12,13 @@
 #ifndef DR4KCPU_H_
 #define DR4KCPU_H_
 
-#include "device.h"
 #include "cpu/general_cpu.h"
 #include "cpu/mips_r4000/cpu.h"
+#include "device.h"
 
 #define MAX_CP0_REGISTERS 32
 
-#define get_r4k(dev) (r4k_cpu_t *)(((general_cpu_t *)(dev)->data)->data)
+#define get_r4k(dev) (r4k_cpu_t *) (((general_cpu_t *) (dev)->data)->data)
 
 extern device_type_t dr4kcpu;
 

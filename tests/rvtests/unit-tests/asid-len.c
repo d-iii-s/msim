@@ -1,5 +1,6 @@
 #include <stdint.h>
 #include <pcut/pcut.h>
+
 #include "../../../src/device/cpu/riscv_rv32ima/cpu.h"
 #include "../../../src/device/cpu/riscv_rv32ima/csr.h"
 #include "../../../src/device/cpu/riscv_rv32ima/instructions/system.h"
@@ -10,25 +11,28 @@ PCUT_TEST_SUITE(asid_len);
 
 rv_cpu_t cpu0;
 
-PCUT_TEST_BEFORE {
+PCUT_TEST_BEFORE
+{
     rv_cpu_init(&cpu0, 0);
 }
 
-PCUT_TEST(default_value){
+PCUT_TEST(default_value)
+{
     PCUT_ASSERT_INT_EQUALS(rv_asid_len, cpu0.csr.asid_len);
 }
 
-PCUT_TEST(shorter_asid_zeroes_out){
+PCUT_TEST(shorter_asid_zeroes_out)
+{
 
     uint32_t ppn = 0x12345;
 
-    // set asid to max value of 511 
+    // set asid to max value of 511
     cpu0.csr.satp = rv_csr_satp_mode_mask | rv_csr_asid_mask | ppn;
 
     rv_csr_set_asid_len(&cpu0, 7);
 
     unsigned expected_asid = 0x7F;
-    
+
     uint32_t mode_after = cpu0.csr.satp & rv_csr_satp_mode_mask;
     unsigned asid_after = (cpu0.csr.satp & rv_csr_asid_mask) >> rv_csr_satp_asid_offset;
     uint32_t ppn_after = cpu0.csr.satp & rv_csr_satp_ppn_mask;
@@ -38,14 +42,15 @@ PCUT_TEST(shorter_asid_zeroes_out){
     PCUT_ASSERT_INT_EQUALS(ppn, ppn_after);
 }
 
-PCUT_TEST(longer_asid_perserves){
+PCUT_TEST(longer_asid_perserves)
+{
 
     rv_csr_set_asid_len(&cpu0, 7);
 
     uint32_t ppn = 0x12345;
     unsigned asid = 0x7F;
 
-    // set asid to max value of 511 
+    // set asid to max value of 511
     cpu0.csr.satp = rv_csr_satp_mode_mask | (asid << rv_csr_satp_asid_offset) | ppn;
 
     rv_csr_set_asid_len(&cpu0, 9);
@@ -59,16 +64,16 @@ PCUT_TEST(longer_asid_perserves){
     PCUT_ASSERT_INT_EQUALS(ppn, ppn_after);
 }
 
-PCUT_TEST(csr_write_masks){
+PCUT_TEST(csr_write_masks)
+{
     rv_csr_set_asid_len(&cpu0, 7);
 
     rv_instr_t instr = { .i = {
-        .opcode = rv_opcSYSTEM,
-        .funct3 = rv_funcCSRRW,
-        .imm = csr_satp,
-        .rs1 = 1,
-        .rd  = 2
-    }};
+                                 .opcode = rv_opcSYSTEM,
+                                 .funct3 = rv_funcCSRRW,
+                                 .imm = csr_satp,
+                                 .rs1 = 1,
+                                 .rd = 2 } };
     cpu0.priv_mode = rv_mmode;
 
     // Write max asid (0x1FF)
@@ -88,16 +93,16 @@ PCUT_TEST(csr_write_masks){
     PCUT_ASSERT_INT_EQUALS(expected_asid, asid_after);
 }
 
-PCUT_TEST(csr_set_masks){
+PCUT_TEST(csr_set_masks)
+{
     rv_csr_set_asid_len(&cpu0, 7);
 
     rv_instr_t instr = { .i = {
-        .opcode = rv_opcSYSTEM,
-        .funct3 = rv_funcCSRRS,
-        .imm = csr_satp,
-        .rs1 = 1,
-        .rd  = 2
-    }};
+                                 .opcode = rv_opcSYSTEM,
+                                 .funct3 = rv_funcCSRRS,
+                                 .imm = csr_satp,
+                                 .rs1 = 1,
+                                 .rd = 2 } };
     cpu0.priv_mode = rv_mmode;
 
     // Write max asid (0x1FF)
@@ -117,17 +122,17 @@ PCUT_TEST(csr_set_masks){
     PCUT_ASSERT_INT_EQUALS(expected_asid, asid_after);
 }
 
-static unsigned probe_asid_len(){
+static unsigned probe_asid_len()
+{
 
     // Write All ones to SATP
 
     rv_instr_t instr = { .i = {
-        .opcode = rv_opcSYSTEM,
-        .funct3 = rv_funcCSRRS,
-        .imm = csr_satp,
-        .rs1 = 1,
-        .rd  = 2
-    }};
+                                 .opcode = rv_opcSYSTEM,
+                                 .funct3 = rv_funcCSRRS,
+                                 .imm = csr_satp,
+                                 .rs1 = 1,
+                                 .rd = 2 } };
 
     cpu0.regs[instr.i.rs1] = 0xFFFFFFFF;
     cpu0.regs[instr.i.rd] = 0;
@@ -149,7 +154,7 @@ static unsigned probe_asid_len(){
 
     unsigned asid_len = 0;
 
-    while(asid_mask != 0){
+    while (asid_mask != 0) {
         asid_mask >>= 1;
         asid_len += 1;
     }
@@ -157,7 +162,8 @@ static unsigned probe_asid_len(){
     return asid_len;
 }
 
-static void test_asid_len_probe(unsigned asid_len){
+static void test_asid_len_probe(unsigned asid_len)
+{
     cpu0.priv_mode = rv_mmode;
     cpu0.csr.satp = 0;
 
@@ -168,7 +174,8 @@ static void test_asid_len_probe(unsigned asid_len){
     PCUT_ASSERT_INT_EQUALS(asid_len, probed_asid_len);
 }
 
-PCUT_TEST(asid_len_probes){
+PCUT_TEST(asid_len_probes)
+{
     test_asid_len_probe(9);
     test_asid_len_probe(8);
     test_asid_len_probe(7);

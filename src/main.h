@@ -9,13 +9,14 @@
 #ifndef MAIN_H_
 #define MAIN_H_
 
-#include <stdint.h>
 #include <stdbool.h>
+#include <stdint.h>
+
 #include "../config.h"
 #include "list.h"
 
-#define MAX_CPUS   32
-#define MAX_INTRS  11
+#define MAX_CPUS 32
+#define MAX_INTRS 11
 
 /** Physical frame number type */
 typedef uint32_t pfn_t;
@@ -26,36 +27,34 @@ typedef uint64_t len64_t;
 typedef uint64_t ptr36_t;
 
 typedef union {
-	uint64_t ptr;
+    uint64_t ptr;
 #ifdef WORDS_BIGENDIAN
-	struct {
-		uint32_t hi;
-		uint32_t lo;
-	};
+    struct {
+        uint32_t hi;
+        uint32_t lo;
+    };
 #else
-	struct {
-		uint32_t lo;
-		uint32_t hi;
-	};
+    struct {
+        uint32_t lo;
+        uint32_t hi;
+    };
 #endif
 } __attribute__((packed, aligned(8))) ptr64_t;
 
 typedef union {
-	uint64_t val;
+    uint64_t val;
 #ifdef WORDS_BIGENDIAN
-	struct {
-		uint32_t hi;
-		uint32_t lo;
-	};
+    struct {
+        uint32_t hi;
+        uint32_t lo;
+    };
 #else
-	struct {
-		uint32_t lo;
-		uint32_t hi;
-	};
+    struct {
+        uint32_t lo;
+        uint32_t hi;
+    };
 #endif
 } __attribute__((packed, aligned(8))) reg64_t;
-
-
 
 /** Configuration file name */
 extern char *config_file;

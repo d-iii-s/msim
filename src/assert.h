@@ -14,12 +14,13 @@
 #include "fault.h"
 
 #define ASSERT(expr) \
-	do { \
-		if (!(expr)) { \
-			die(ERR_INTERN, "Assertion failed (%s) in file '%s' " \
-				    "line %u", #expr, __FILE__, __LINE__); \
-		} \
-	} while (0)
+    do { \
+        if (!(expr)) { \
+            die(ERR_INTERN, "Assertion failed (%s) in file '%s' " \
+                            "line %u", \
+                    #expr, __FILE__, __LINE__); \
+        } \
+    } while (0)
 
 #else /* !NDEBUG */
 

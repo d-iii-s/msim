@@ -16,8 +16,8 @@
 
 #else
 
-#include <sys/socket.h>
 #include <netinet/in.h>
+#include <sys/socket.h>
 
 #endif /* __WIN32__ */
 

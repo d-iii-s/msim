@@ -12,8 +12,8 @@
 #ifndef RISCV_RV32IMA_INSTR_SYSTEM_H_
 #define RISCV_RV32IMA_INSTR_SYSYEM_H_
 
-#include "../instr.h"
 #include "../cpu.h"
+#include "../instr.h"
 
 extern rv_exc_t rv_break_instr(rv_cpu_t *cpu, rv_instr_t instr);
 extern rv_exc_t rv_halt_instr(rv_cpu_t *cpu, rv_instr_t instr);

@@ -18,11 +18,11 @@ struct item;
  *
  */
 typedef struct list {
-	/** The first item on the list or NULL if empty. */
-	struct item *head;
-	
-	/** The last item on the list or NULL if empty. */
-	struct item *tail;
+    /** The first item on the list or NULL if empty. */
+    struct item *head;
+
+    /** The last item on the list or NULL if empty. */
+    struct item *tail;
 } list_t;
 
 /** An item of a doubly linked list
@@ -31,26 +31,28 @@ typedef struct list {
  *
  */
 typedef struct item {
-	/** The list that we currently belong to. */
-	struct list *list;
-	
-	/** The next item on the list or NULL if first. */
-	struct item *prev;
-	
-	/** The previous item on the list or NULL if last. */
-	struct item *next;
+    /** The list that we currently belong to. */
+    struct list *list;
+
+    /** The next item on the list or NULL if first. */
+    struct item *prev;
+
+    /** The previous item on the list or NULL if last. */
+    struct item *next;
 } item_t;
 
 /** Statically initialize a list.
  *
  */
 #define LIST_INITIALIZER \
-	{ .head = NULL, .tail = NULL }
+    { \
+        .head = NULL, .tail = NULL \
+    }
 
 #define for_each(list, member, type) \
-	for ((member) = (type *) (list).head; \
-		(member) != NULL; \
-		(member) = (type *) (member)->item.next)
+    for ((member) = (type *) (list).head; \
+            (member) != NULL; \
+            (member) = (type *) (member)->item.next)
 
 #define is_empty(list) ((list)->head == NULL && (list)->tail == NULL)
 

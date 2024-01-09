@@ -43,7 +43,7 @@ def run_test(test_folder):
     try:
         os.chdir(test_folder)
         res = subprocess.run(relative_path, capture_output=True, timeout=10, check=True, text=True)
-        
+
         # Test didn't use printer, probably because it uses register dumps instead
         # Then use stdout as reference
         if not os.path.exists(OUTPUT_FILENAME):

@@ -13,7 +13,7 @@ bindir = @bindir@
 
 BINARY = msim
 
-.PHONY: all install uninstall clean distclean rvtest
+.PHONY: all install uninstall clean distclean rvtest cstyle
 
 all:
 	$(MAKE) -C src
@@ -33,7 +33,7 @@ distclean: clean
 	$(MAKE) -C src distclean
 	$(MAKE) -C tests/rvtests/unit-tests distclean
 	$(RM) -f Makefile config.log config.status config.h stamp-h
-	
+
 test:
 	make -C . rvtest
 	bats tests/system/
@@ -44,3 +44,6 @@ rvtest:
 	@echo "\nSystem tests:"
 	cd tests/rvtests ; python3 run_tests.py
 	@echo "\n All Tests Passed!"
+
+cstyle:
+	find src/ tests/ -name '*.[ch]' -exec clang-format -style=file -i {} \;

@@ -10,6 +10,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+* wrong `break` documentation (see #55 and #56, @KronwarsCZ, @vhotspur)
+
 ### Added
 
 * setup C style (via `.clang-format`) (@vhotspur)

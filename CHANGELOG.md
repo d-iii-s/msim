@@ -14,8 +14,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
-* setup C style (via `.clang-format`) (@vhotspur)
-* CI checks C style as well as file encoding and line-endings (@vhotspur)
+* setup C style (via `.clang-format`) (see #51, @vhotspur)
+* CI checks C style as well as file encoding and line-endings (see #51, @vhotspur)
 
 ### Changed
 

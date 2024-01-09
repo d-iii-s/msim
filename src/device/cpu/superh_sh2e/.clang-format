@@ -1,0 +1,53 @@
+---
+Language: Cpp
+BasedOnStyle: WebKit
+BreakBeforeBraces: Attach
+#Custom
+#BraceWrapping:
+#  AfterFunction: true
+BinPackArguments: true
+BinPackParameters: true
+AlignEscapedNewlines: DontAlign
+AlignAfterOpenBracket: BlockIndent
+ContinuationIndentWidth: 4
+#MaxEmptyLinesToKeep: 1
+SpaceAfterCStyleCast: true
+SeparateDefinitionBlocks: Leave
+PointerAlignment: Middle
+SpaceAroundPointerQualifiers: Both
+SpacesInContainerLiterals: true
+ExperimentalAutoDetectBinPacking: true
+MaxEmptyLinesToKeep: 2
+QualifierAlignment: Custom
+QualifierOrder: ['static', 'inline', 'type', 'const', 'restrict' ]
+AttributeMacros: ['ALWAYS_INLINE' ]
+AlwaysBreakAfterReturnType: TopLevelDefinitions
+TypenameMacros: ['uint_fast64_t', 'uint32_t', 'uint16_t']
+
+# Include files ordering:
+# - first put standard includes, place non-nested first (this should
+#   move library stuff at the end of < > includes)
+# - then place local includes
+IncludeBlocks: Regroup
+IncludeCategories:
+  - Regex:           '^<.*/'
+    Priority:        2
+    SortPriority:    1
+    CaseSensitive:   true
+  - Regex:           '^<'
+    Priority:        2
+    SortPriority:    0
+    CaseSensitive:   true
+  - Regex:           '^"[.][.]'
+    Priority:        1
+    SortPriority:    1
+    CaseSensitive:   true
+  - Regex:           '^"'
+    Priority:        0
+    SortPriority:    0
+    CaseSensitive:   true
+
+LineEnding: LF
+InsertNewlineAtEOF: true
+InsertBraces: true
+...

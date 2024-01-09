@@ -192,11 +192,13 @@ switched to interactive mode.
 
 .. code-block:: msim
 
-    break address type
+    break address count type
 
 ``address``
    Address of the breakpoint.
 ``count``
+   Size of the breakpoint (amount of bytes watched for the access).
+``type``
    Consider read accesses (``r``), write accesses (``w``) or both (``rw``).
 
 

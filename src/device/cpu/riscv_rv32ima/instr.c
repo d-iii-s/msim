@@ -260,7 +260,7 @@ static rv_instr_func_t decode_PRIV(rv_instr_t instr)
         return machine_specific_instructions ? rv_trace_set_instr : rv_illegal_instr;
     case rv_privETRACER:
         return machine_specific_instructions ? rv_trace_reset_instr : rv_illegal_instr;
-    case rv_privECSRRD:
+    case rv_privECSRD:
         return machine_specific_instructions ? rv_csr_rd_instr : rv_illegal_instr;
     case rv_privECALL:
         return rv_call_instr;

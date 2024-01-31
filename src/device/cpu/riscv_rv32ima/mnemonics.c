@@ -585,7 +585,7 @@ void rv_trace_reset_mnemonics(uint32_t addr, rv_instr_t instr, string_t *s_mnemo
 }
 void rv_csr_rd_mnemonics(uint32_t addr, rv_instr_t instr, string_t *s_mnemonics, string_t *s_comments)
 {
-    string_printf(s_mnemonics, "ecsrrd %s", rv_regnames[instr.i.rd]);
+    string_printf(s_mnemonics, "ecsrd %s", rv_regnames[instr.i.rd]);
 }
 
 extern void rv_sret_mnemonics(uint32_t addr, rv_instr_t instr, string_t *s_mnemonics, string_t *s_comments)

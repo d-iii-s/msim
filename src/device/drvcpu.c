@@ -97,7 +97,7 @@ static bool drvcpu_rd(token_t *parm, device_t *dev)
 }
 
 /**
- * CSRRD command implementation
+ * CSRD command implementation
  */
 static bool drvcpu_csr_dump(token_t *parm, device_t *dev)
 {
@@ -126,7 +126,7 @@ static bool drvcpu_csr_dump(token_t *parm, device_t *dev)
 }
 
 /**
- * TLBRD command implementation
+ * TLBD command implementation
  */
 static bool drvcpu_tlb_dump(token_t *parm, device_t *dev)
 {

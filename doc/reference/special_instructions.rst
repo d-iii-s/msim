@@ -121,7 +121,7 @@ The instructions turn on/off instruction tracing.
 **Opcode**: ``0x8C200073``/``0x8C300073``
 
 
-Environment CSR Dump ``ECSRRD``
+Environment CSR Dump ``ECSRD``
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 The instruction prints a specified CSR.

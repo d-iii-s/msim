@@ -170,9 +170,18 @@ Commands
    Display the processor configuration
 ``rd``
    Dump contents of CPU general registers
-``csrrd [name/number]``
-   Dump the contents of the specified CSR or all CSRs.
-``tlbrd``
+``csrd [name|number|subcommand]``
+   Dump the contents of the specified CSR or some CSRs.
+      Dumps contents of predefined CSRs without a parameter.
+      Specifying a CSR number or name dump the selected CSR.
+      Selecting a subcommand prints one of the following subsets of CSRs:
+
+      - ``mmode`` - dumps all M-mode CSRs
+      - ``smode`` - dumps all S-mode CSRs
+      - ``counters`` - dumps all counter and counter setup CSRs
+      - ``all`` - dumps all CSRs
+
+``tlbd``
    Dump the contents of the TLB, split by page size.
 ``tlbresize size``
    Resize the TLB by specifying its new size.
@@ -199,21 +208,21 @@ Example of the ``rd`` command:
        pc: f0000000
    [msim]
 
-Example of the ``csrrd`` command:
+Example of the ``csrd`` command:
 
 .. code:: msim
 
-   [msim] risc1 csrrd sstatus
+   [msim] risc1 csrd sstatus
    sstatus (0x100):
    sstatus 0x00000000 [ SD 0, MXR 0, SUM 0, XS 00, FS 00, VS 00, SPP U, UBE 0, SPIE 0, SIE 0 ]
    [msim]
 
 
-Example of the ``tlbrd`` command:
+Example of the ``tlbd`` command:
 
 .. code:: msim
 
-   [msim] risc1 tlbrd
+   [msim] risc1 tlbd
    TLB    size: 48 entries    Entries shown in LRU order.
       index:       virt => phys        [ info ]
           0: 0x00400000 => 0x000000000 [ ASID: 0, GLOBAL: F, MEGAPAGE: T ]

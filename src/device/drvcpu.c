@@ -97,22 +97,31 @@ static bool drvcpu_rd(token_t *parm, device_t *dev)
 }
 
 /**
- * CSRRD command implementation
+ * CSRD command implementation
  */
-static bool drvcpu_csr_rd(token_t *parm, device_t *dev)
+static bool drvcpu_csr_dump(token_t *parm, device_t *dev)
 {
     ASSERT(dev != NULL);
 
     if (parm->ttype == tt_end) {
-        rv_csr_dump_all(get_rv(dev));
+        rv_csr_dump_reduced(get_rv(dev));
         return true;
     }
 
     token_type_t token_type = parm_type(parm);
 
     if (token_type == tt_str) {
-        const char *name = parm_str_next(&parm);
-        return rv_csr_dump_by_name(get_rv(dev), name);
+        const char *param = parm_str_next(&parm);
+
+        if (rv_csr_dump_command(get_rv(dev), param)) {
+            return true;
+        }
+
+        if (rv_csr_dump_by_name(get_rv(dev), param)) {
+            return true;
+        }
+
+        return false;
     } else if (token_type == tt_uint) {
         uint64_t num = parm_uint_next(&parm);
         if (num > 0xFFF) {
@@ -126,9 +135,9 @@ static bool drvcpu_csr_rd(token_t *parm, device_t *dev)
 }
 
 /**
- * TLBRD command implementation
+ * TLBD command implementation
  */
-static bool drvcpu_tlb_rd(token_t *parm, device_t *dev)
+static bool drvcpu_tlb_dump(token_t *parm, device_t *dev)
 {
     ASSERT(dev != NULL);
     rv_tlb_dump(&get_rv(dev)->tlb);
@@ -223,15 +232,15 @@ cmd_t drvcpu_cmds[] = {
             "Dump content of CPU general registers",
             "Dump content of CPU general registers",
             NOCMD },
-    { "csrrd",
-            (fcmd_t) drvcpu_csr_rd,
+    { "csrd",
+            (fcmd_t) drvcpu_csr_dump,
             DEFAULT,
             DEFAULT,
             "Dump content of CSR registers",
-            "Dump content of all CSRs if no argument is given, or dump the content of the specified register (numerically or by name)",
+            "Dump content of some CSRs if no argument is given, dump the content of the specified register (numerically or by name), or dump a predefined set of CSRs (mmode, smode, counters or all)",
             OPT VAR "csr" END },
-    { "tlbrd",
-            (fcmd_t) drvcpu_tlb_rd,
+    { "tlbd",
+            (fcmd_t) drvcpu_tlb_dump,
             DEFAULT,
             DEFAULT,
             "Dump valid content of the TLB",

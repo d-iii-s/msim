@@ -190,7 +190,7 @@ typedef enum {
     rv_privEDUMP = 0b100011000001,
     rv_privETRACES = 0b100011000010,
     rv_privETRACER = 0b100011000011,
-    rv_privECSRRD = 0b100011000100,
+    rv_privECSRD = 0b100011000100,
     rv_privSRET = 0b000100000010,
     rv_privMRET = 0b001100000010,
     rv_privWFI = 0b000100000101

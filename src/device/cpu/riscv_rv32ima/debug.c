@@ -614,7 +614,7 @@ extern void rv_csr_dump_reduced(rv_cpu_t *cpu)
     printf("\n");
     printf("Trap Setup\n");
     rv_csr_dump_common(cpu, csr_mstatus);
-    rv_csr_dump_common(cpu, csr_misa);
+    
     rv_csr_dump_common(cpu, csr_medeleg);
     rv_csr_dump_common(cpu, csr_mideleg);
     rv_csr_dump_common(cpu, csr_mie);

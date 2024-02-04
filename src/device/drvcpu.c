@@ -237,7 +237,7 @@ cmd_t drvcpu_cmds[] = {
             DEFAULT,
             DEFAULT,
             "Dump content of CSR registers",
-            "Dump content of all CSRs if no argument is given, or dump the content of the specified register (numerically or by name)",
+            "Dump content of some CSRs if no argument is given, dump the content of the specified register (numerically or by name), or dump a predefined set of CSRs (mmode, smode, counters or all)",
             OPT VAR "csr" END },
     { "tlbd",
             (fcmd_t) drvcpu_tlb_dump,

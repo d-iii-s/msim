@@ -113,14 +113,14 @@ static bool drvcpu_csr_dump(token_t *parm, device_t *dev)
     if (token_type == tt_str) {
         const char *param = parm_str_next(&parm);
 
-        if ( rv_csr_dump_command(get_rv(dev), param)){
+        if (rv_csr_dump_command(get_rv(dev), param)) {
             return true;
         }
 
-        if (rv_csr_dump_by_name(get_rv(dev), param)){
+        if (rv_csr_dump_by_name(get_rv(dev), param)) {
             return true;
         }
-        
+
         return false;
     } else if (token_type == tt_uint) {
         uint64_t num = parm_uint_next(&parm);

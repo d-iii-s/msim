@@ -363,10 +363,10 @@ char *interrupt_name_table[32] = {
     [11] = "Machine external interrupt",
 };
 
-static const char* mmode_command = "mmode";
-static const char* smode_command = "smode";
-static const char* counters_command = "counters";
-static const char* all_command = "all";
+static const char *mmode_command = "mmode";
+static const char *smode_command = "smode";
+static const char *counters_command = "counters";
+static const char *all_command = "all";
 
 char **rv_regnames;
 char **rv_csrnames;
@@ -512,7 +512,8 @@ void rv_csr_dump_all(rv_cpu_t *cpu)
 /**
  * @brief Dump the content of all M-Mode CSRs
  */
-extern void rv_csr_dump_mmode(rv_cpu_t *cpu){
+extern void rv_csr_dump_mmode(rv_cpu_t *cpu)
+{
     printf("\n");
     printf("Machine level CSRs\n");
     printf("\n");
@@ -550,7 +551,8 @@ extern void rv_csr_dump_mmode(rv_cpu_t *cpu){
 /**
  * @brief Dump the content of all S-Mode CSRs
  */
-extern void rv_csr_dump_smode(rv_cpu_t *cpu){
+extern void rv_csr_dump_smode(rv_cpu_t *cpu)
+{
     printf("\n");
     printf("Supervisor level CSRs\n");
     printf("\n");
@@ -583,7 +585,8 @@ extern void rv_csr_dump_smode(rv_cpu_t *cpu){
 /**
  * @brief Dump the content of all counter related CSRs
  */
-extern void rv_csr_dump_counters(rv_cpu_t *cpu){
+extern void rv_csr_dump_counters(rv_cpu_t *cpu)
+{
     printf("\n");
     printf("Unprivileged Counters/Timers\n");
     rv_csr_dump_common(cpu, csr_cycle);
@@ -604,7 +607,8 @@ extern void rv_csr_dump_counters(rv_cpu_t *cpu){
 /**
  * @brief Dump the content of selected CSRs
  */
-extern void rv_csr_dump_reduced(rv_cpu_t *cpu){
+extern void rv_csr_dump_reduced(rv_cpu_t *cpu)
+{
     printf("\n");
     printf("Machine level CSRs\n");
     printf("\n");
@@ -685,21 +689,19 @@ bool rv_csr_dump_by_name(rv_cpu_t *cpu, const char *name)
     return false;
 }
 
-extern bool rv_csr_dump_command(rv_cpu_t *cpu, const char *command) {
+extern bool rv_csr_dump_command(rv_cpu_t *cpu, const char *command)
+{
     ASSERT(cpu != NULL);
-    if(strcmp(command, mmode_command) == 0){
+    if (strcmp(command, mmode_command) == 0) {
         rv_csr_dump_mmode(cpu);
         return true;
-    }
-    else if (strcmp(command, smode_command) == 0){
+    } else if (strcmp(command, smode_command) == 0) {
         rv_csr_dump_smode(cpu);
         return true;
-    }
-    else if (strcmp(command, counters_command) == 0){
+    } else if (strcmp(command, counters_command) == 0) {
         rv_csr_dump_counters(cpu);
         return true;
-    }
-    else if (strcmp(command, all_command) == 0){
+    } else if (strcmp(command, all_command) == 0) {
         rv_csr_dump_all(cpu);
         return true;
     }

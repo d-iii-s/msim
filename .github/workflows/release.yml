@@ -58,7 +58,7 @@ jobs:
         run: ./contrib/get-release-notes.sh ${{ env.PACKAGE_VERSION }} >gh-release-body.txt
 
       - name: Release
-        uses: softprops/action-gh-release@v1
+        uses: softprops/action-gh-release@v2
         with:
           body_path: gh-release-body.txt
           files: |

@@ -518,6 +518,7 @@ PCUT_TEST(srli_decode)
 PCUT_TEST(srai_decode)
 {
     rv_instr_t instr;
+    instr.val = 0;
     instr.i.opcode = rv_opcOP_IMM;
     instr.i.funct3 = rv_func_SRI;
     // set bit 30, as in spec

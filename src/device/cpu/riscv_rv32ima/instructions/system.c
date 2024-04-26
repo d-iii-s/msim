@@ -77,7 +77,7 @@ extern rv_exc_t rv_csr_rd_instr(rv_cpu_t *cpu, rv_instr_t instr)
 {
     ASSERT(cpu != NULL);
     ASSERT(instr.i.opcode == rv_opcSYSTEM);
-    alert("ECSRRD: Dump CSR");
+    alert("ECSRD: Dump CSR");
     uint32_t csr = cpu->regs[instr.i.rd] & 0xFFF;
 
     if (csr >= 0x1000) {

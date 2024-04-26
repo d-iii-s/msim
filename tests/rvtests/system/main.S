@@ -2,7 +2,7 @@
 #define edump .word 0x8C100073
 #define etraces .word 0x8C200073
 #define etracer .word 0x8C300073
-#define ecsrrd_t0 .word 0x8C4002F3
+#define ecsrd_t0 .word 0x8C4002F3
 #define mie 0x304
 .text
 //ecall
@@ -20,7 +20,7 @@ rdtime t0
 ebreak
 etraces
 li t0, mie
-ecsrrd_t0
+ecsrd_t0
 etracer
 addi zero, zero, 0
 edump

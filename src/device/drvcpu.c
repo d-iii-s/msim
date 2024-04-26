@@ -97,9 +97,9 @@ static bool drvcpu_rd(token_t *parm, device_t *dev)
 }
 
 /**
- * CSRRD command implementation
+ * CSRD command implementation
  */
-static bool drvcpu_csr_rd(token_t *parm, device_t *dev)
+static bool drvcpu_csr_dump(token_t *parm, device_t *dev)
 {
     ASSERT(dev != NULL);
 
@@ -126,9 +126,9 @@ static bool drvcpu_csr_rd(token_t *parm, device_t *dev)
 }
 
 /**
- * TLBRD command implementation
+ * TLBD command implementation
  */
-static bool drvcpu_tlb_rd(token_t *parm, device_t *dev)
+static bool drvcpu_tlb_dump(token_t *parm, device_t *dev)
 {
     ASSERT(dev != NULL);
     rv_tlb_dump(&get_rv(dev)->tlb);
@@ -223,15 +223,15 @@ cmd_t drvcpu_cmds[] = {
             "Dump content of CPU general registers",
             "Dump content of CPU general registers",
             NOCMD },
-    { "csrrd",
-            (fcmd_t) drvcpu_csr_rd,
+    { "csrd",
+            (fcmd_t) drvcpu_csr_dump,
             DEFAULT,
             DEFAULT,
             "Dump content of CSR registers",
             "Dump content of all CSRs if no argument is given, or dump the content of the specified register (numerically or by name)",
             OPT VAR "csr" END },
-    { "tlbrd",
-            (fcmd_t) drvcpu_tlb_rd,
+    { "tlbd",
+            (fcmd_t) drvcpu_tlb_dump,
             DEFAULT,
             DEFAULT,
             "Dump valid content of the TLB",

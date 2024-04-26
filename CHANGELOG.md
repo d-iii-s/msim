@@ -22,6 +22,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 * renamed RISC-V CPU commands (see #60, @HanyzPAPU)
    * `csrrd` is `csrd`, `tlbrd` is `tlbd`
+* `csrd` dumps selected registers only (see #61, @HanyzPAPU)
 
 ### Deprecated
 

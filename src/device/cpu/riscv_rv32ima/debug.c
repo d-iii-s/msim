@@ -363,6 +363,11 @@ char *interrupt_name_table[32] = {
     [11] = "Machine external interrupt",
 };
 
+static const char *mmode_command = "mmode";
+static const char *smode_command = "smode";
+static const char *counters_command = "counters";
+static const char *all_command = "all";
+
 char **rv_regnames;
 char **rv_csrnames;
 char **rv_excnames;
@@ -497,42 +502,19 @@ void rv_idump_phys(uint32_t addr, rv_instr_t instr)
  */
 void rv_csr_dump_all(rv_cpu_t *cpu)
 {
-    printf("Unprivileged Counters/Timers\n");
-    rv_csr_dump_common(cpu, csr_cycle);
-    rv_csr_dump_common(cpu, csr_time);
-    rv_csr_dump_common(cpu, csr_instret);
+    rv_csr_dump_mmode(cpu);
     printf("\n");
-    for (int i = 0; i < 29; ++i) {
-        rv_csr_dump_common(cpu, csr_hpmcounter3 + i);
-    }
-    printf("\n\n");
-    printf("Supervisor level CSRs\n");
+    rv_csr_dump_smode(cpu);
     printf("\n");
-    printf("Trap Setup\n");
-    rv_csr_dump_common(cpu, csr_sstatus);
-    rv_csr_dump_common(cpu, csr_sie);
-    rv_csr_dump_common(cpu, csr_stvec);
-    rv_csr_dump_common(cpu, csr_scounteren);
+    rv_csr_dump_counters(cpu);
+}
+
+/**
+ * @brief Dump the content of all M-Mode CSRs
+ */
+extern void rv_csr_dump_mmode(rv_cpu_t *cpu)
+{
     printf("\n");
-    printf("Configuration\n");
-    rv_csr_dump_common(cpu, csr_senvcfg);
-    printf("\n");
-    printf("Trap Handling\n");
-    rv_csr_dump_common(cpu, csr_sscratch);
-    rv_csr_dump_common(cpu, csr_sepc);
-    rv_csr_dump_common(cpu, csr_scause);
-    rv_csr_dump_common(cpu, csr_stval);
-    rv_csr_dump_common(cpu, csr_sip);
-    printf("\n");
-    printf("Protection and Translation\n");
-    rv_csr_dump_common(cpu, csr_satp);
-    printf("\n");
-    printf("Debug/Trace\n");
-    rv_csr_dump_common(cpu, csr_scontext);
-    printf("\n");
-    printf("Custom\n");
-    rv_csr_dump_common(cpu, csr_scyclecmp);
-    printf("\n\n");
     printf("Machine level CSRs\n");
     printf("\n");
     printf("Machine Information\n");
@@ -562,14 +544,109 @@ void rv_csr_dump_all(rv_cpu_t *cpu)
     rv_csr_dump_common(cpu, csr_menvcfg);
     rv_csr_dump_common(cpu, csr_mseccfg);
     printf("\n");
+    printf("Debug/Trace\n");
+    rv_csr_dump_common(cpu, csr_mcontext);
+}
+
+/**
+ * @brief Dump the content of all S-Mode CSRs
+ */
+extern void rv_csr_dump_smode(rv_cpu_t *cpu)
+{
+    printf("\n");
+    printf("Supervisor level CSRs\n");
+    printf("\n");
+    printf("Trap Setup\n");
+    rv_csr_dump_common(cpu, csr_sstatus);
+    rv_csr_dump_common(cpu, csr_sie);
+    rv_csr_dump_common(cpu, csr_stvec);
+    rv_csr_dump_common(cpu, csr_scounteren);
+    printf("\n");
+    printf("Configuration\n");
+    rv_csr_dump_common(cpu, csr_senvcfg);
+    printf("\n");
+    printf("Trap Handling\n");
+    rv_csr_dump_common(cpu, csr_sscratch);
+    rv_csr_dump_common(cpu, csr_sepc);
+    rv_csr_dump_common(cpu, csr_scause);
+    rv_csr_dump_common(cpu, csr_stval);
+    rv_csr_dump_common(cpu, csr_sip);
+    printf("\n");
+    printf("Protection and Translation\n");
+    rv_csr_dump_common(cpu, csr_satp);
+    printf("\n");
+    printf("Debug/Trace\n");
+    rv_csr_dump_common(cpu, csr_scontext);
+    printf("\n");
+    printf("Custom\n");
+    rv_csr_dump_common(cpu, csr_scyclecmp);
+}
+
+/**
+ * @brief Dump the content of all counter related CSRs
+ */
+extern void rv_csr_dump_counters(rv_cpu_t *cpu)
+{
+    printf("\n");
+    printf("Unprivileged Counters/Timers\n");
+    rv_csr_dump_common(cpu, csr_cycle);
+    rv_csr_dump_common(cpu, csr_time);
+    rv_csr_dump_common(cpu, csr_instret);
+    printf("\n");
+    for (int i = 0; i < 29; ++i) {
+        rv_csr_dump_common(cpu, csr_hpmcounter3 + i);
+    }
+    printf("\n");
     printf("Counter Setup\n");
     rv_csr_dump_common(cpu, csr_mcountinhibit);
     for (int i = 0; i < 29; ++i) {
         rv_csr_dump_common(cpu, csr_mhpmevent3 + i);
     }
+}
+
+/**
+ * @brief Dump the content of selected CSRs
+ */
+extern void rv_csr_dump_reduced(rv_cpu_t *cpu)
+{
     printf("\n");
-    printf("Debug/Trace\n");
-    rv_csr_dump_common(cpu, csr_mcontext);
+    printf("Machine level CSRs\n");
+    printf("\n");
+    printf("Trap Setup\n");
+    rv_csr_dump_common(cpu, csr_mstatus);
+    rv_csr_dump_common(cpu, csr_medeleg);
+    rv_csr_dump_common(cpu, csr_mideleg);
+    rv_csr_dump_common(cpu, csr_mie);
+    rv_csr_dump_common(cpu, csr_mtvec);
+    rv_csr_dump_common(cpu, csr_mcounteren);
+    printf("\n");
+    printf("Trap Handling\n");
+    rv_csr_dump_common(cpu, csr_mscratch);
+    rv_csr_dump_common(cpu, csr_mepc);
+    rv_csr_dump_common(cpu, csr_mcause);
+    rv_csr_dump_common(cpu, csr_mtval);
+    rv_csr_dump_common(cpu, csr_mip);
+    printf("\n\n");
+    printf("Supervisor level CSRs\n");
+    printf("\n");
+    printf("Trap Setup\n");
+    rv_csr_dump_common(cpu, csr_sstatus);
+    rv_csr_dump_common(cpu, csr_sie);
+    rv_csr_dump_common(cpu, csr_stvec);
+    rv_csr_dump_common(cpu, csr_scounteren);
+    printf("\n");
+    printf("Trap Handling\n");
+    rv_csr_dump_common(cpu, csr_sscratch);
+    rv_csr_dump_common(cpu, csr_sepc);
+    rv_csr_dump_common(cpu, csr_scause);
+    rv_csr_dump_common(cpu, csr_stval);
+    rv_csr_dump_common(cpu, csr_sip);
+    printf("\n");
+    printf("Protection and Translation\n");
+    rv_csr_dump_common(cpu, csr_satp);
+    printf("\n");
+    printf("Custom\n");
+    rv_csr_dump_common(cpu, csr_scyclecmp);
 }
 
 /**
@@ -596,7 +673,9 @@ bool rv_csr_dump(rv_cpu_t *cpu, csr_num_t csr)
  */
 bool rv_csr_dump_by_name(rv_cpu_t *cpu, const char *name)
 {
+    ASSERT(cpu != NULL);
     for (int i = 0; i < 0x1000; ++i) {
+
         if (rv_csr_name_table[i] == NULL) {
             continue;
         }
@@ -606,5 +685,24 @@ bool rv_csr_dump_by_name(rv_cpu_t *cpu, const char *name)
         }
     }
     printf("Specified name is not a valid CSR!\n");
+    return false;
+}
+
+extern bool rv_csr_dump_command(rv_cpu_t *cpu, const char *command)
+{
+    ASSERT(cpu != NULL);
+    if (strcmp(command, mmode_command) == 0) {
+        rv_csr_dump_mmode(cpu);
+        return true;
+    } else if (strcmp(command, smode_command) == 0) {
+        rv_csr_dump_smode(cpu);
+        return true;
+    } else if (strcmp(command, counters_command) == 0) {
+        rv_csr_dump_counters(cpu);
+        return true;
+    } else if (strcmp(command, all_command) == 0) {
+        rv_csr_dump_all(cpu);
+        return true;
+    }
     return false;
 }

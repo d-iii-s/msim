@@ -38,7 +38,12 @@ extern void rv_reg_dump(rv_cpu_t *cpu);
 extern void rv_idump(rv_cpu_t *cpu, uint32_t addr, rv_instr_t instr);
 extern void rv_idump_phys(uint32_t addr, rv_instr_t instr);
 extern void rv_csr_dump_all(rv_cpu_t *cpu);
+extern void rv_csr_dump_mmode(rv_cpu_t *cpu);
+extern void rv_csr_dump_smode(rv_cpu_t *cpu);
+extern void rv_csr_dump_counters(rv_cpu_t *cpu);
+extern void rv_csr_dump_reduced(rv_cpu_t *cpu);
 extern bool rv_csr_dump(rv_cpu_t *cpu, csr_num_t csr);
 extern bool rv_csr_dump_by_name(rv_cpu_t *cpu, const char *name);
+extern bool rv_csr_dump_command(rv_cpu_t *cpu, const char *command);
 
 #endif // RISCV_RV32IMA_DEBUG_H_

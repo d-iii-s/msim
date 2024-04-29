@@ -706,3 +706,11 @@ extern bool rv_csr_dump_command(rv_cpu_t *cpu, const char *command)
     }
     return false;
 }
+
+
+
+extern bool rv_translate(rv_cpu_t *cpu, uint32_t addr)
+{
+    printf("UNIMPLEMENTED!\n");
+    return false;
+}

@@ -17,6 +17,10 @@
 struct rv_cpu;
 enum rv_exc;
 
+#define RV_PAGESIZE 12
+#define RV_PTESIZE 4
+#define RV_MEGAPAGESIZE 22
+
 /**
  * @brief Structure describing the Page Table Entry for SV32 virtual addressing
  */
@@ -37,10 +41,7 @@ typedef struct sv32_pte {
 #define is_pte_valid(pte) ((pte).v && (!(pte).w || (pte).r))
 #define pte_ppn0(pte) ((pte).ppn & 0x0003FF)
 #define pte_ppn1(pte) ((pte).ppn & 0x3FFC00)
-
-#define RV_PAGESIZE 12
-#define RV_PTESIZE 4
-#define RV_MEGAPAGESIZE 22
+#define pte_ppn_phys(pte)(((ptr36_t)(pte).ppn) << RV_PAGESIZE)
 
 /**
  * @brief Converts the address from virtual memory space to physical memory space
@@ -54,5 +55,10 @@ typedef struct sv32_pte {
  * @return rv_exc_t The exception code of this operation
  */
 enum rv_exc rv_convert_addr(struct rv_cpu *cpu, uint32_t virt, ptr36_t *phys, bool wr, bool fetch, bool noisy);
+
+/**
+ * @brief Constructs the resulting physical address based on the given virtual address and pte (and whether it is a megapage)
+ */
+ptr36_t make_phys_from_ppn(uint32_t virt, sv32_pte_t pte, bool megapage);
 
 #endif // RISCV_RV32IMA_VIRT_MEM_H_

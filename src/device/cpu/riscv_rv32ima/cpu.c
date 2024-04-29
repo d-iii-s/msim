@@ -256,7 +256,7 @@ static bool is_access_allowed(rv_cpu_t *cpu, sv32_pte_t pte, bool wr, bool fetch
 /**
  * @brief Constructs the resulting physical address based on the given virtual address and pte (and whether it is a megapage)
  */
-static ptr36_t make_phys_from_ppn(uint32_t virt, sv32_pte_t pte, bool megapage)
+ptr36_t make_phys_from_ppn(uint32_t virt, sv32_pte_t pte, bool megapage)
 {
     ptr36_t page_offset = virt & 0x00000FFF;
     ptr36_t virt_vpn0 = virt & 0x003FF000;
@@ -311,7 +311,7 @@ static rv_exc_t rv_pagewalk(rv_cpu_t *cpu, uint32_t virt, ptr36_t *phys, bool wr
         // Non leaf PTE, make second translation step
 
         // PMP or PMA check goes here if implemented
-        a = ((ptr36_t) pte.ppn) << RV_PAGESIZE;
+        a = pte_ppn_phys(pte);
         pte_addr = a + vpn0 * RV_PTESIZE;
 
         // Global non-leaf PTE implies that the translation is global

@@ -180,7 +180,8 @@ Commands
       - ``smode`` - dumps all S-mode CSRs
       - ``counters`` - dumps all counter and counter setup CSRs
       - ``all`` - dumps all CSRs
-
+``tr <addr>``
+   Translates the specified virtual address based on the current CPU state and describes the translation process.
 ``tlbd``
    Dump the contents of the TLB, split by page size.
 ``tlbresize size``

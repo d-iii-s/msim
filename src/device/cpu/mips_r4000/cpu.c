@@ -2842,7 +2842,7 @@ typedef struct {
     r4k_instr_fnc_t instrs[FRAME_SIZE / sizeof(r4k_instr_t)];
 } cache_item_t;
 
-#define PHYS2CACHEINSTR(phys) (((phys) &FRAME_MASK) / sizeof(rv_instr_t))
+#define PHYS2CACHEINSTR(phys) (((phys) & FRAME_MASK) / sizeof(rv_instr_t))
 
 static void cache_item_init(cache_item_t *cache_item)
 {

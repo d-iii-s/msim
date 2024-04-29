@@ -36,7 +36,7 @@ typedef struct {
     rv_instr_func_t instrs[FRAME_SIZE / sizeof(rv_instr_t)]; // Decoded instructions (represented as function pointers)
 } cache_item_t;
 
-#define PHYS2CACHEINSTR(phys) (((phys) &FRAME_MASK) / sizeof(rv_instr_t))
+#define PHYS2CACHEINSTR(phys) (((phys) & FRAME_MASK) / sizeof(rv_instr_t))
 
 static void cache_item_init(cache_item_t *cache_item)
 {
@@ -199,17 +199,6 @@ void rv_cpu_done(rv_cpu_t *cpu)
 }
 
 static_assert((sizeof(sv32_pte_t) == 4), "wrong size of sv32_pte_t");
-
-// Dirty hack
-typedef union {
-    sv32_pte_t pte;
-    uint32_t val;
-} sv32_pte_helper_t;
-
-#define pte_from_uint(val) (((sv32_pte_helper_t) (val)).pte)
-#define uint_from_pte(pte) (((sv32_pte_helper_t) (pte)).val)
-
-
 
 /**
  * @brief Tests, whether a given memory access is allowed on the page specified by the pte

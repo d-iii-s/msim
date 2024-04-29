@@ -143,12 +143,12 @@ static bool drvcpu_tr(token_t *parm, device_t *dev)
 
     uint64_t addr = parm_uint_next(&parm);
 
-    if (addr > (uint64_t)UINT32_MAX) {
+    if (addr > (uint64_t) UINT32_MAX) {
         error("Virtual memory address too large");
         return false;
     }
 
-    return rv_translate_dump(get_rv(dev), (uint32_t)addr);
+    return rv_translate_dump(get_rv(dev), (uint32_t) addr);
 }
 
 /**
@@ -257,7 +257,7 @@ cmd_t drvcpu_cmds[] = {
             "Dump content of some CSRs if no argument is given, dump the content of the specified register (numerically or by name), or dump a predefined set of CSRs (mmode, smode, counters or all)",
             OPT VAR "csr" END },
     { "tr",
-            (fcmd_t)drvcpu_tr,
+            (fcmd_t) drvcpu_tr,
             DEFAULT,
             DEFAULT,
             "Translates the specified address",

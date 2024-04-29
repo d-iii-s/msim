@@ -14,6 +14,7 @@
 #include "../../../assert.h"
 #include "../../../env.h"
 #include "../../../fault.h"
+#include "../../../physmem.h"
 #include "../../../utils.h"
 #include "cpu.h"
 #include "csr.h"
@@ -707,14 +708,104 @@ extern bool rv_csr_dump_command(rv_cpu_t *cpu, const char *command)
     return false;
 }
 
+static char *rv_pte_rsw_string(unsigned rsw)
+{
+    switch (rsw) {
+    case 0b00:
+        return "00";
+    case 0b01:
+        return "01";
+    case 0b10:
+        return "10";
+    case 0b11:
+        return "11";
+    }
+    assert(false && "Unreachable code, RSW has only 2 bits");
+}
+
+static void rv_pte_dump(sv32_pte_t pte, ptr36_t pte_addr, ptr36_t pt_base_addr, uint32_t vpn_i, char *name)
+{
+    printf("%s: [ PPN: 0x%06x RSW: %s %s%s%s%s %s%s%s%s ]\n",
+            name,
+            pte.ppn,
+            rv_pte_rsw_string(pte.rsw),
+            pte.d ? "D" : "-",
+            pte.a ? "A" : "-",
+            pte.g ? "G" : "-",
+            pte.u ? "U" : "-",
+            pte.x ? "X" : "-",
+            pte.w ? "W" : "-",
+            pte.r ? "R" : "-",
+            pte.v ? "V" : "-");
+    printf("  addr: 0x%09lx = 0x%09lx + 0x%03x * %d\n", pte_addr, pt_base_addr, vpn_i, RV_PTESIZE);
+}
+
 extern bool rv_translate_dump(rv_cpu_t *cpu, uint32_t addr)
 {
     if (sv32_effective_priv(cpu) > rv_smode) {
-        printf("No translation for M-mode\n");
-        printf("%#09lx\n", (ptr36_t)addr);
+        printf("M-mode Bare translation\n");
+        printf("0x%09lx\n", (ptr36_t) addr);
         return true;
     }
 
-    printf("UNIMPLEMENTED!\n");
-    return false;
+    bool csr_dump_res = rv_csr_dump(cpu, csr_satp);
+    assert(csr_dump_res == true);
+
+    if (rv_csr_satp_is_bare(cpu)) {
+        printf("0x%09lx\n", (ptr36_t) addr);
+        return true;
+    }
+
+    uint32_t vpn0 = (addr & 0x003FF000) >> 12;
+    uint32_t vpn1 = (addr & 0xFFC00000) >> 22;
+    uint32_t ppn = rv_csr_satp_ppn(cpu);
+
+    printf("VPN[1]: 0x%03x VPN[1]: 0x%03x page offset: 0x%03x\n", vpn1, vpn0, addr & 0xFFF);
+
+    ptr36_t a = ((ptr36_t) ppn) << RV_PAGESIZE;
+
+    ptr36_t pte_addr = a + vpn1 * RV_PTESIZE;
+    uint32_t pte_val = physmem_read32(cpu->csr.mhartid, pte_addr, false);
+    sv32_pte_t pte = pte_from_uint(pte_val);
+
+    rv_pte_dump(pte, pte_addr, a, vpn1, "PTE1");
+
+    if (!is_pte_valid(pte)) {
+        printf("ERROR - Invalid PTE\n");
+        return false;
+    }
+
+    if (is_pte_leaf(pte)) {
+
+        if (pte_ppn0(pte) != 0) {
+            printf("ERROR - Misaligned Megapage\n");
+            return false;
+        }
+
+        ptr36_t phys = make_phys_from_ppn(addr, pte, true);
+        printf("0x%09lx\n", phys);
+    } else {
+        a = pte_ppn_phys(pte);
+
+        pte_addr = a + vpn0 * RV_PTESIZE;
+        pte_val = physmem_read32(cpu->csr.mhartid, pte_addr, false);
+        pte = pte_from_uint(pte_val);
+
+        rv_pte_dump(pte, pte_addr, a, vpn0, "PTE2");
+
+        if (!is_pte_valid(pte)) {
+            printf("ERROR - Invalid PTE\n");
+            return false;
+        }
+
+        if (!is_pte_leaf(pte)) {
+            printf("ERROR - Leaf PTE is a pointer to next level of page table\n");
+            return false;
+        }
+
+        ptr36_t phys = make_phys_from_ppn(addr, pte, false);
+        printf("0x%09lx\n", phys);
+    }
+
+    return true;
 }

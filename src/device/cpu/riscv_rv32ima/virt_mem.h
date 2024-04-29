@@ -41,9 +41,16 @@ typedef struct sv32_pte {
 #define is_pte_valid(pte) ((pte).v && (!(pte).w || (pte).r))
 #define pte_ppn0(pte) ((pte).ppn & 0x0003FF)
 #define pte_ppn1(pte) ((pte).ppn & 0x3FFC00)
-#define pte_ppn_phys(pte)(((ptr36_t)(pte).ppn) << RV_PAGESIZE)
+#define pte_ppn_phys(pte) (((ptr36_t) (pte).ppn) << RV_PAGESIZE)
 
+// Dirty hack
+typedef union {
+    sv32_pte_t pte;
+    uint32_t val;
+} sv32_pte_helper_t;
 
+#define pte_from_uint(val) (((sv32_pte_helper_t) (val)).pte)
+#define uint_from_pte(pte) (((sv32_pte_helper_t) (pte)).val)
 
 /**
  * @brief Converts the address from virtual memory space to physical memory space

@@ -13,9 +13,10 @@ Disassembly of section .text:
   14:	00000317          	auipc	t1,0x0
   18:	01030313          	addi	t1,t1,16 # 24 <.text+0x24>
   1c:	34131073          	csrw	mepc,t1
-  20:	30200073          	mret
-  24:	b00310f3          	csrrw	ra,mcycle,t1
-  28:	900002b7          	lui	t0,0x90000
-  2c:	04600313          	li	t1,70
-  30:	0062a023          	sw	t1,0(t0) # 90000000 <.text+0x90000000>
-  34:	8c000073          	.word	0x8c000073
+  20:	00100073          	ebreak
+  24:	30200073          	mret
+  28:	b00310f3          	csrrw	ra,mcycle,t1
+  2c:	900002b7          	lui	t0,0x90000
+  30:	04600313          	li	t1,70
+  34:	0062a023          	sw	t1,0(t0) # 90000000 <.text+0x90000000>
+  38:	8c000073          	.word	0x8c000073

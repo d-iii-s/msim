@@ -379,9 +379,9 @@ rv_exc_t rv_convert_addr(rv_cpu_t *cpu, uint32_t virt, ptr36_t *phys, bool wr, b
     ASSERT(phys != NULL);
     ASSERT(!(wr && fetch));
 
-    bool satp_active = (!rv_csr_satp_is_bare(cpu)) && (sv32_effective_priv(cpu) <= rv_smode);
+    bool use_sv32 = (sv32_effective_priv(cpu) <= rv_smode) && (!rv_csr_satp_is_bare(cpu));
 
-    if (!satp_active) {
+    if (!use_sv32) {
         *phys = virt;
         return rv_exc_none;
     }

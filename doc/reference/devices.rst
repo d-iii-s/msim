@@ -182,6 +182,9 @@ Commands
       - ``all`` - dumps all CSRs
 ``tr <addr>``
    Translates the specified virtual address based on the current CPU state and describes the translation process.
+      PTEs are dumped in the following format: ``PTE: [ PPN: <ppn> RSW: <rsw> DAGU XWRV]``,
+      where ``DAGU`` and ``XWRV`` are either these letters when the corresponding bits are set (i.e. equal to 1),
+      or ``-`` when the corresponding bits are clear (i.e. equal to 0).
 ``tlbd``
    Dump the contents of the TLB, split by page size.
 ``tlbresize size``

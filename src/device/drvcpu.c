@@ -104,15 +104,24 @@ static bool drvcpu_csr_dump(token_t *parm, device_t *dev)
     ASSERT(dev != NULL);
 
     if (parm->ttype == tt_end) {
-        rv_csr_dump_all(get_rv(dev));
+        rv_csr_dump_reduced(get_rv(dev));
         return true;
     }
 
     token_type_t token_type = parm_type(parm);
 
     if (token_type == tt_str) {
-        const char *name = parm_str_next(&parm);
-        return rv_csr_dump_by_name(get_rv(dev), name);
+        const char *param = parm_str_next(&parm);
+
+        if (rv_csr_dump_command(get_rv(dev), param)) {
+            return true;
+        }
+
+        if (rv_csr_dump_by_name(get_rv(dev), param)) {
+            return true;
+        }
+
+        return false;
     } else if (token_type == tt_uint) {
         uint64_t num = parm_uint_next(&parm);
         if (num > 0xFFF) {
@@ -228,7 +237,7 @@ cmd_t drvcpu_cmds[] = {
             DEFAULT,
             DEFAULT,
             "Dump content of CSR registers",
-            "Dump content of all CSRs if no argument is given, or dump the content of the specified register (numerically or by name)",
+            "Dump content of some CSRs if no argument is given, dump the content of the specified register (numerically or by name), or dump a predefined set of CSRs (mmode, smode, counters or all)",
             OPT VAR "csr" END },
     { "tlbd",
             (fcmd_t) drvcpu_tlb_dump,

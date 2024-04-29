@@ -16,7 +16,7 @@ csrw satp, t0
 li t0, mstatus_mpp_s | mstatus_mprv
 csrs mstatus, t0
 
-// Perform an instruction, should pagefault
+// Perform an instruction, should not pagefault
 addi t0, t1, 0
 
 // set mstatus back to no translation

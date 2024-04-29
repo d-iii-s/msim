@@ -43,6 +43,8 @@ typedef struct sv32_pte {
 #define pte_ppn1(pte) ((pte).ppn & 0x3FFC00)
 #define pte_ppn_phys(pte)(((ptr36_t)(pte).ppn) << RV_PAGESIZE)
 
+
+
 /**
  * @brief Converts the address from virtual memory space to physical memory space
  *

@@ -209,8 +209,7 @@ typedef union {
 #define pte_from_uint(val) (((sv32_pte_helper_t) (val)).pte)
 #define uint_from_pte(pte) (((sv32_pte_helper_t) (pte)).val)
 
-#define sv32_effective_priv(cpu) (rv_csr_mstatus_mprv(cpu) ? rv_csr_mstatus_mpp(cpu) : cpu->priv_mode)
-#define effective_priv(cpu) (rv_csr_satp_is_bare(cpu) ? cpu->priv_mode : sv32_effective_priv(cpu))
+
 
 /**
  * @brief Tests, whether a given memory access is allowed on the page specified by the pte
@@ -379,7 +378,7 @@ rv_exc_t rv_convert_addr(rv_cpu_t *cpu, uint32_t virt, ptr36_t *phys, bool wr, b
     ASSERT(phys != NULL);
     ASSERT(!(wr && fetch));
 
-    bool use_sv32 = (sv32_effective_priv(cpu) <= rv_smode) && (!rv_csr_satp_is_bare(cpu));
+    bool use_sv32 = (sv32_effective_priv(cpu) <= rv_smode) && (!rv_csr_satp_is_bare(cpu)) && !(cpu->priv_mode == rv_mmode && fetch);
 
     if (!use_sv32) {
         *phys = virt;
@@ -427,7 +426,7 @@ rv_exc_t rv_convert_addr(rv_cpu_t *cpu, uint32_t virt, ptr36_t *phys, bool wr, b
 #define try_read_memory_mapped_regs_body(cpu, virt, value, width, type) \
     if (!IS_ALIGNED(virt, width / 8)) \
         return false; \
-    if (effective_priv(cpu) != rv_mmode) \
+    if (((cpu)->priv_mode < rv_mmode) || rv_csr_mstatus_mprv(cpu)) \
         return false; \
     int offset = (virt & 0x7) * 8; \
     if (ALIGN_DOWN(virt, 8) == RV_MTIME_ADDRESS) { \
@@ -478,7 +477,7 @@ static bool try_write_memory_mapped_regs(rv_cpu_t *cpu, uint32_t virt, uint32_t 
         return false;
     }
 
-    if (effective_priv(cpu) != rv_mmode) {
+    if ((cpu->priv_mode < rv_mmode) || rv_csr_mstatus_mprv(cpu)) {
         return false;
     }
     int offset = (virt & 0x7) * 8;

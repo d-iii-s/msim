@@ -707,10 +707,14 @@ extern bool rv_csr_dump_command(rv_cpu_t *cpu, const char *command)
     return false;
 }
 
-
-
-extern bool rv_translate(rv_cpu_t *cpu, uint32_t addr)
+extern bool rv_translate_dump(rv_cpu_t *cpu, uint32_t addr)
 {
+    if (sv32_effective_priv(cpu) > rv_smode) {
+        printf("No translation for M-mode\n");
+        printf("%#09lx\n", (ptr36_t)addr);
+        return true;
+    }
+
     printf("UNIMPLEMENTED!\n");
     return false;
 }

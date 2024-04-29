@@ -148,7 +148,7 @@ static bool drvcpu_tr(token_t *parm, device_t *dev)
         return false;
     }
 
-    return rv_translate(get_rv(dev), (uint32_t)addr);
+    return rv_translate_dump(get_rv(dev), (uint32_t)addr);
 }
 
 /**

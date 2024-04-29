@@ -27,6 +27,7 @@ TESTS = [
     "virtual-addressing",
     "external-SEIP",
     "m-mode-STIP",
+    "mprv-fetch",
     "tlb"
 ]
 

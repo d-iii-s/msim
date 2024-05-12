@@ -738,7 +738,6 @@ static void rv_pte_dump(sv32_pte_t pte)
             pte.w ? "W" : "-",
             pte.r ? "R" : "-",
             pte.v ? "V" : "-");
-    
 }
 
 static void rv_pte_addr_dump(ptr36_t pte_addr, ptr36_t pt_base_addr, uint32_t vpn_i)
@@ -776,6 +775,7 @@ extern bool rv_translate_dump(rv_cpu_t *cpu, uint32_t addr)
 
     printf("PTE1: ");
     rv_pte_dump(pte);
+
     rv_pte_addr_dump(pte_addr, a, vpn1);
 
     if (!is_pte_valid(pte)) {
@@ -820,32 +820,37 @@ extern bool rv_translate_dump(rv_cpu_t *cpu, uint32_t addr)
     return true;
 }
 
-static bool rv_is_zero_pte(sv32_pte_t pte) {
+static bool rv_is_zero_pte(sv32_pte_t pte)
+{
     return uint_from_pte(pte) == 0;
 }
 
-static bool rv_should_dump_pte(sv32_pte_t pte, bool verbose) {
+static bool rv_should_dump_pte(sv32_pte_t pte, bool verbose)
+{
     return !rv_is_zero_pte(pte) && (pte.v || verbose);
 }
 
-static void rv_pagetable_dump_second_level_pte(rv_cpu_t *cpu, bool verbose, sv32_pte_t pte, size_t pte_id) {
+static void rv_pagetable_dump_second_level_pte(rv_cpu_t *cpu, bool verbose, sv32_pte_t pte, size_t pte_offset)
+{
     if (!rv_should_dump_pte(pte, verbose)) {
         return;
     }
 
-    printf(RV_DEBUG_INDENT "0x%03lx: ", pte_id);
+    printf(RV_DEBUG_INDENT "0x%03lx: ", pte_offset);
     rv_pte_dump(pte);
-    // TODO: error check
 }
 
-static void rv_pagetable_dump_first_level_pte(rv_cpu_t *cpu, bool verbose, sv32_pte_t pte, size_t pte_id) {
-    
+static void rv_pagetable_dump_first_level_pte(rv_cpu_t *cpu, bool verbose, sv32_pte_t pte, size_t pte_offset)
+{
+
     if (!rv_should_dump_pte(pte, verbose)) {
         return;
     }
 
+    printf("0x%03lx: ", pte_offset);
+    rv_pte_dump(pte);
+
     if (is_pte_leaf(pte)) {
-        // TODO: error when misaligned?
         printf(RV_DEBUG_INDENT "[ Megapage ]\n");
         return;
     }
@@ -853,16 +858,17 @@ static void rv_pagetable_dump_first_level_pte(rv_cpu_t *cpu, bool verbose, sv32_
     ptr36_t second_level_pagetable_addr = pte_ppn_phys(pte);
 
     for (ptr36_t offset = 0; offset < RV_PAGEBYTES; offset += RV_PTESIZE) {
-        
+
         ptr36_t pte_addr = second_level_pagetable_addr + offset;
         uint32_t pte_val = physmem_read32(cpu->csr.mhartid, pte_addr, false);
         sv32_pte_t pte = pte_from_uint(pte_val);
 
-        rv_pagetable_dump_second_level_pte(cpu, verbose, pte, offset/RV_PTESIZE);
+        rv_pagetable_dump_second_level_pte(cpu, verbose, pte, offset);
     }
 }
 
-static void rv_pagetable_dump_root(rv_cpu_t *cpu, bool verbose) {
+static void rv_pagetable_dump_root(rv_cpu_t *cpu, bool verbose)
+{
     uint32_t ppn = rv_csr_satp_ppn(cpu);
 
     ptr36_t root_pagetable_addr = ((ptr36_t) ppn) << RV_PAGESIZE;
@@ -871,12 +877,13 @@ static void rv_pagetable_dump_root(rv_cpu_t *cpu, bool verbose) {
         ptr36_t pte_addr = root_pagetable_addr + offset;
         uint32_t pte_val = physmem_read32(cpu->csr.mhartid, pte_addr, false);
         sv32_pte_t pte = pte_from_uint(pte_val);
-        rv_pagetable_dump_first_level_pte(cpu, verbose, pte, offset / RV_PTESIZE);
+        rv_pagetable_dump_first_level_pte(cpu, verbose, pte, offset);
     }
 }
 
-bool rv_pagetable_dump(rv_cpu_t *cpu, bool verbose) {
-    
+bool rv_pagetable_dump(rv_cpu_t *cpu, bool verbose)
+{
+
     if (sv32_effective_priv(cpu) > rv_smode) {
         error("Pagetable not active - M-mode Bare translation mode\n");
         return false;
@@ -886,6 +893,10 @@ bool rv_pagetable_dump(rv_cpu_t *cpu, bool verbose) {
         error("Pagetable not active - Bare translation mode\n");
         return false;
     }
+
+    bool csr_dump_res = rv_csr_dump(cpu, csr_satp);
+    assert(csr_dump_res == true);
+    printf("\n");
 
     rv_pagetable_dump_root(cpu, verbose);
     return true;

@@ -19,7 +19,6 @@ auipc t0, 0
 addi t0, t0, 16
 csrw mepc, t0
 mret
-ebreak
 
 // Run S-mode tests
 // Each test outputs the progression to the printer as a single line (ended by '\n')

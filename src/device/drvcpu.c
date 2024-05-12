@@ -151,8 +151,9 @@ static bool drvcpu_tr(token_t *parm, device_t *dev)
     return rv_translate_dump(get_rv(dev), (uint32_t) addr);
 }
 
-static bool drvcpu_specifies_verbose(const char* param) {
-    return strcmp(param, "v") == 0 || strcmp(param, "verbose") == 0; 
+static bool drvcpu_specifies_verbose(const char *param)
+{
+    return strcmp(param, "v") == 0 || strcmp(param, "verbose") == 0;
 }
 
 /**

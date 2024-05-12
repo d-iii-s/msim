@@ -20,6 +20,8 @@ enum rv_exc;
 #define RV_PAGESIZE 12
 #define RV_PTESIZE 4
 #define RV_MEGAPAGESIZE 22
+#define RV_PAGEBYTES (1 << RV_PAGESIZE)
+#define RV_MEGAPAGEBYTES (1 << RV_MEGAPAGESIZE)
 
 /**
  * @brief Structure describing the Page Table Entry for SV32 virtual addressing

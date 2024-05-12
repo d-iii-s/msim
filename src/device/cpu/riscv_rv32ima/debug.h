@@ -46,5 +46,6 @@ extern bool rv_csr_dump(rv_cpu_t *cpu, csr_num_t csr);
 extern bool rv_csr_dump_by_name(rv_cpu_t *cpu, const char *name);
 extern bool rv_csr_dump_command(rv_cpu_t *cpu, const char *command);
 extern bool rv_translate_dump(rv_cpu_t *cpu, uint32_t addr);
+extern bool rv_pagetable_dump(rv_cpu_t *cpu, bool verbose);
 
 #endif // RISCV_RV32IMA_DEBUG_H_

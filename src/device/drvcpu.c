@@ -151,6 +151,31 @@ static bool drvcpu_tr(token_t *parm, device_t *dev)
     return rv_translate_dump(get_rv(dev), (uint32_t) addr);
 }
 
+static bool drvcpu_specifies_verbose(const char* param) {
+    return strcmp(param, "v") == 0 || strcmp(param, "verbose") == 0; 
+}
+
+/**
+ * PTD command implementation
+ */
+static bool drvcpu_ptd(token_t *parm, device_t *dev)
+{
+    ASSERT(dev != NULL);
+
+    if (parm->ttype == tt_end) {
+        return rv_pagetable_dump(get_rv(dev), false);
+    }
+
+    const char *param = parm_str_next(&parm);
+
+    if (!drvcpu_specifies_verbose(param)) {
+        error("Invalid parameter");
+        return false;
+    }
+
+    return rv_pagetable_dump(get_rv(dev), true);
+}
+
 /**
  * TLBD command implementation
  */
@@ -263,6 +288,13 @@ cmd_t drvcpu_cmds[] = {
             "Translates the specified address",
             "Translates the specified virtual address based on the current CPU state and describes the translation steps.",
             REQ INT "addr/virtual address" END },
+    { "ptd",
+            (fcmd_t) drvcpu_ptd,
+            DEFAULT,
+            DEFAULT,
+            "Dumps the current of the current pagetable",
+            "Prints out all valid PTEs in the pagetable currently pointed to by the satp CSR. Adding the `verbose` parameter prints out all nonzero PTEs.",
+            OPT STR "verbose" END },
     { "tlbd",
             (fcmd_t) drvcpu_tlb_dump,
             DEFAULT,

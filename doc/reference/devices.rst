@@ -185,6 +185,9 @@ Commands
       PTEs are dumped in the following format: ``PTE: [ PPN: <ppn> RSW: <rsw> DAGU XWRV]``,
       where ``DAGU`` and ``XWRV`` are either these letters when the corresponding bits are set (i.e. equal to 1),
       or ``-`` when the corresponding bits are clear (i.e. equal to 0).
+``ptd [verbose|v]``
+   Prints out all valid PTEs in the pagetable currently pointed to by the satp CSR.
+   Adding the ``verbose`` parameter (or simply ``v``) prints out all nonzero PTEs.
 ``tlbd``
    Dump the contents of the TLB, split by page size.
 ``tlbresize size``

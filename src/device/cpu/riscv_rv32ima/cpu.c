@@ -379,7 +379,7 @@ rv_exc_t rv_convert_addr(rv_cpu_t *cpu, uint32_t virt, ptr36_t *phys, bool wr, b
     bool megapage;
 
     // First try the TLB
-    if (rv_tlb_get_mapping(&cpu->tlb, asid, virt, &pte, &megapage)) {
+    if (rv_tlb_get_mapping(&cpu->tlb, asid, virt, &pte, &megapage, true)) {
 
         if (!is_pte_valid(pte)) {
             return page_fault_exception;

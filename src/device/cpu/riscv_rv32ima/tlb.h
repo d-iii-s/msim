@@ -33,7 +33,7 @@ typedef struct rv_tlb {
 extern void rv_tlb_add_mapping(rv_tlb_t *tlb, unsigned asid, uint32_t virt, sv32_pte_t pte, bool megapage, bool global);
 
 /** Retrieves a cached mapping, giving priority to megapage mappings */
-extern bool rv_tlb_get_mapping(rv_tlb_t *tlb, unsigned asid, uint32_t virt, sv32_pte_t *pte, bool *megapage);
+extern bool rv_tlb_get_mapping(rv_tlb_t *tlb, unsigned asid, uint32_t virt, sv32_pte_t *pte, bool *megapage, bool noisy);
 
 /** Removes the first mapping that matches the given address and is global or has the right ASID */
 extern void rv_tlb_remove_mapping(rv_tlb_t *tlb, unsigned asid, uint32_t virt);

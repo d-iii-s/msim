@@ -206,6 +206,17 @@ static bool drvcpu_tlb_resize(token_t *parm, device_t *dev)
     return rv_tlb_resize(tlb, new_tlb_size);
 }
 
+static bool drvcpu_tlb_flush(token_t *parm, device_t *dev)
+{
+    ASSERT(dev != NULL);
+    
+    rv_tlb_t *tlb = &get_rv(dev)->tlb;
+
+    rv_tlb_flush(tlb);
+
+    return true;
+}
+
 /**
  * SETASIDLEN command implementation
  */
@@ -310,6 +321,13 @@ cmd_t drvcpu_cmds[] = {
             "Resize the TLB",
             "Resizes the TLB, flushing it completely in the process.",
             REQ INT "TLB size" END },
+    { "tlbflush",
+            (fcmd_t) drvcpu_tlb_flush,
+            DEFAULT,
+            DEFAULT,
+            "Flushes the TLB",
+            "Removes all entries from the TLB.",
+            NOCMD },
     { "asidlen",
             (fcmd_t) drvcpu_set_asid_len,
             DEFAULT,

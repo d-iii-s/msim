@@ -761,17 +761,39 @@ extern bool rv_translate_dump(rv_cpu_t *cpu, uint32_t addr)
         return true;
     }
 
+    unsigned asid = rv_csr_satp_asid(cpu);
+    sv32_pte_t pte;
+    bool megapage;
+
+    if (rv_tlb_get_mapping(&cpu->tlb, asid, addr, &pte, &megapage, false)){
+        printf("TLB Hit!\n");
+
+        if (!is_pte_valid(pte)) {
+            printf("ERROR - Invalid TLB Entry PTE!\n");
+            return false;
+        }
+
+        if (megapage && pte_ppn0(pte) != 0) {
+            printf("ERROR - Misaligned Megapage TLB Entry!\n");
+            return false;
+        }
+
+        ptr36_t phys = make_phys_from_ppn(addr, pte, megapage);
+        printf("0x%09lx\n", phys);
+        return true;
+    }
+
     uint32_t vpn0 = (addr & 0x003FF000) >> 12;
     uint32_t vpn1 = (addr & 0xFFC00000) >> 22;
     uint32_t ppn = rv_csr_satp_ppn(cpu);
 
-    printf("VPN[1]: 0x%03x VPN[1]: 0x%03x page offset: 0x%03x\n", vpn1, vpn0, addr & 0xFFF);
+    printf("VPN[1]: 0x%03x VPN[0]: 0x%03x page offset: 0x%03x\n", vpn1, vpn0, addr & 0xFFF);
 
     ptr36_t a = ((ptr36_t) ppn) << RV_PAGESIZE;
 
     ptr36_t pte_addr = a + vpn1 * RV_PTESIZE;
     uint32_t pte_val = physmem_read32(cpu->csr.mhartid, pte_addr, false);
-    sv32_pte_t pte = pte_from_uint(pte_val);
+    pte = pte_from_uint(pte_val);
 
     printf("PTE1: ");
     rv_pte_dump(pte);

@@ -62,14 +62,18 @@ static void move_lru_entry_to_front(rv_tlb_t *tlb, rv_tlb_entry_t *entry)
     list_push(&tlb->lru_list, &entry->item);
 }
 
+/** Returns whether the given TLB entry holds a mapping of the specified virtual address */
+static bool entry_maps_virt(rv_tlb_entry_t* entry, uint32_t virt) {
+    uint32_t vpn = virt >> RV_PAGESIZE;
+    uint32_t mvpn = virt >> RV_MEGAPAGESIZE;
+    return entry->vpn == (entry->megapage ? mvpn : vpn);
+}
+
 /** Retrieves a cached mapping
  * gives priority to megapage mappings
  */
-extern bool rv_tlb_get_mapping(rv_tlb_t *tlb, unsigned asid, uint32_t virt, sv32_pte_t *pte, bool *megapage)
+extern bool rv_tlb_get_mapping(rv_tlb_t *tlb, unsigned asid, uint32_t virt, sv32_pte_t *pte, bool *megapage, bool noisy)
 {
-
-    uint32_t vpn = virt >> RV_PAGESIZE;
-    uint32_t mvpn = virt >> RV_MEGAPAGESIZE;
 
     rv_tlb_entry_t *entry;
 
@@ -81,12 +85,13 @@ extern bool rv_tlb_get_mapping(rv_tlb_t *tlb, unsigned asid, uint32_t virt, sv32
             continue;
         }
 
-        bool correct_address = entry->vpn == (entry->megapage ? mvpn : vpn);
+        if (entry_maps_virt(entry, virt)) {
 
-        if (correct_address) {
-
-            // Ensure LRU behavior, by moving the entry to the front of the LRU list on access
-            move_lru_entry_to_front(tlb, entry);
+            
+            if (noisy) {
+                // Ensure LRU behavior, by moving the entry to the front of the LRU list on access
+                move_lru_entry_to_front(tlb, entry);
+            }
 
             *pte = entry->pte;
             *megapage = entry->megapage;
@@ -113,8 +118,6 @@ static bool is_entry_valid(rv_tlb_t *tlb, rv_tlb_entry_t *entry)
 
 extern void rv_tlb_remove_mapping(rv_tlb_t *tlb, unsigned asid, uint32_t virt)
 {
-    uint32_t vpn = virt >> RV_PAGESIZE;
-    uint32_t mvpn = virt >> RV_MEGAPAGESIZE;
 
     rv_tlb_entry_t *entry;
 
@@ -126,9 +129,7 @@ extern void rv_tlb_remove_mapping(rv_tlb_t *tlb, unsigned asid, uint32_t virt)
             continue;
         }
 
-        bool correct_address = entry->vpn == (entry->megapage ? mvpn : vpn);
-
-        if (correct_address) {
+        if (entry_maps_virt(entry, virt)) {
             invalidate_tlb_entry(tlb, entry);
             return;
         }

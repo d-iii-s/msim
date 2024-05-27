@@ -209,7 +209,7 @@ static bool drvcpu_tlb_resize(token_t *parm, device_t *dev)
 static bool drvcpu_tlb_flush(token_t *parm, device_t *dev)
 {
     ASSERT(dev != NULL);
-    
+
     rv_tlb_t *tlb = &get_rv(dev)->tlb;
 
     rv_tlb_flush(tlb);

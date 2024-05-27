@@ -63,7 +63,8 @@ static void move_lru_entry_to_front(rv_tlb_t *tlb, rv_tlb_entry_t *entry)
 }
 
 /** Returns whether the given TLB entry holds a mapping of the specified virtual address */
-static bool entry_maps_virt(rv_tlb_entry_t* entry, uint32_t virt) {
+static bool entry_maps_virt(rv_tlb_entry_t *entry, uint32_t virt)
+{
     uint32_t vpn = virt >> RV_PAGESIZE;
     uint32_t mvpn = virt >> RV_MEGAPAGESIZE;
     return entry->vpn == (entry->megapage ? mvpn : vpn);
@@ -87,7 +88,6 @@ extern bool rv_tlb_get_mapping(rv_tlb_t *tlb, unsigned asid, uint32_t virt, sv32
 
         if (entry_maps_virt(entry, virt)) {
 
-            
             if (noisy) {
                 // Ensure LRU behavior, by moving the entry to the front of the LRU list on access
                 move_lru_entry_to_front(tlb, entry);

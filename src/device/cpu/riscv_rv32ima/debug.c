@@ -765,7 +765,7 @@ extern bool rv_translate_dump(rv_cpu_t *cpu, uint32_t addr)
     sv32_pte_t pte;
     bool megapage;
 
-    if (rv_tlb_get_mapping(&cpu->tlb, asid, addr, &pte, &megapage, false)){
+    if (rv_tlb_get_mapping(&cpu->tlb, asid, addr, &pte, &megapage, false)) {
         printf("TLB Hit!\n");
 
         if (!is_pte_valid(pte)) {

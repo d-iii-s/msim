@@ -8,6 +8,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## Unreleased
 
+* added RISC-V `tr` and `ptd` commands
+* fixed RISC-V executing from paged memory in M-mode (see #66)
+
 ### Fixed
 
 * wrong `break` documentation (see #55 and #56, @KronwarsCZ, @vhotspur)

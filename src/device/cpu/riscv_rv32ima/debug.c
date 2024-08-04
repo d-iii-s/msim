@@ -753,19 +753,23 @@ static void rv_pte_translation_step_dump(const char* header, sv32_pte_t pte, ptr
     rv_pte_addr_dump(pte_addr, pt_base_addr, vpn_i);
 }
 
+static bool rv_translation_dump_success(uint32_t virt, ptr36_t phys)
+{
+    printf("\nOK: 0x08%x => 0x%09lx\n", virt, phys);
+    return true;
+}
+
 extern bool rv_translate_dump(rv_cpu_t *cpu, uint32_t addr)
 {
     if (sv32_effective_priv(cpu) > rv_smode) {
         printf("M-mode Bare translation\n");
-        printf("0x%09lx\n", (ptr36_t) addr);
-        return true;
+        return rv_translation_dump_success(addr, addr);
     }
 
     rv_csr_dump_common(cpu, csr_satp);
 
     if (rv_csr_satp_is_bare(cpu)) {
-        printf("0x%09lx\n", (ptr36_t) addr);
-        return true;
+        return rv_translation_dump_success(addr, addr);
     }
 
     unsigned asid = rv_csr_satp_asid(cpu);
@@ -776,18 +780,17 @@ extern bool rv_translate_dump(rv_cpu_t *cpu, uint32_t addr)
         printf("TLB Hit!\n");
 
         if (!is_pte_valid(pte)) {
-            printf("ERROR - Invalid TLB Entry PTE!\n");
+            printf("\nFATAL - Invalid TLB Entry PTE!\n");
             return false;
         }
 
         if (megapage && pte_ppn0(pte) != 0) {
-            printf("ERROR - Misaligned Megapage TLB Entry!\n");
+            printf("\nFATAL - Misaligned Megapage TLB Entry!\n");
             return false;
         }
 
         ptr36_t phys = make_phys_from_ppn(addr, pte, megapage);
-        printf("0x%09lx\n", phys);
-        return true;
+        return rv_translation_dump_success(addr, phys);
     }
 
     uint32_t vpn0 = (addr & 0x003FF000) >> 12;
@@ -805,19 +808,19 @@ extern bool rv_translate_dump(rv_cpu_t *cpu, uint32_t addr)
     rv_pte_translation_step_dump("PTE1:", pte, pte_addr, a, vpn1);
 
     if (!is_pte_valid(pte)) {
-        printf("ERROR - Invalid PTE\n");
+        printf("\nPAGE FAULT - Invalid PTE on 1st level\n");
         return false;
     }
 
     if (is_pte_leaf(pte)) {
 
         if (pte_ppn0(pte) != 0) {
-            printf("ERROR - Misaligned Megapage\n");
+            printf("\nFATAL - Misaligned Megapage (PPN[0] should be 0 but is 0x%03x)\n", pte_ppn0(pte));
             return false;
         }
 
         ptr36_t phys = make_phys_from_ppn(addr, pte, true);
-        printf("0x%09lx\n", phys);
+        return rv_translation_dump_success(addr, phys);
     } else {
         a = pte_ppn_phys(pte);
 
@@ -828,20 +831,18 @@ extern bool rv_translate_dump(rv_cpu_t *cpu, uint32_t addr)
         rv_pte_translation_step_dump("PTE2:", pte, pte_addr, a, vpn0);
 
         if (!is_pte_valid(pte)) {
-            printf("ERROR - Invalid PTE\n");
+            printf("\nPAGE FAULT - Invalid PTE in 2nd level\n");
             return false;
         }
 
         if (!is_pte_leaf(pte)) {
-            printf("ERROR - Leaf PTE is a pointer to next level of page table\n");
+            printf("\nFATAL - 2nd level PTE is non leaf (no XWR bit set)\n");
             return false;
         }
 
         ptr36_t phys = make_phys_from_ppn(addr, pte, false);
-        printf("0x%09lx\n", phys);
+        return rv_translation_dump_success(addr, phys);
     }
-
-    return true;
 }
 
 static bool rv_is_zero_pte(sv32_pte_t pte)

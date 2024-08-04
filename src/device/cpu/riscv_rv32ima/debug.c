@@ -742,7 +742,7 @@ static void rv_pte_dump(sv32_pte_t pte)
 
 static void rv_pte_addr_dump(ptr36_t pte_addr, ptr36_t pt_base_addr, uint32_t vpn_i)
 {
-    printf(RV_DEBUG_INDENT "addr: 0x%09lx = 0x%09lx + 0x%03x * %d\n", pte_addr, pt_base_addr, vpn_i, RV_PTESIZE);
+    printf(RV_DEBUG_INDENT "This entry ^ physical address: 0x%09lx = 0x%09lx + 0x%03x * %d\n", pte_addr, pt_base_addr, vpn_i, RV_PTESIZE);
 }
 
 static void rv_pte_translation_step_dump(const char* header, sv32_pte_t pte, ptr36_t pte_addr, ptr36_t pt_base_addr, uint32_t vpn_i)

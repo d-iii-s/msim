@@ -753,8 +753,7 @@ extern bool rv_translate_dump(rv_cpu_t *cpu, uint32_t addr)
         return true;
     }
 
-    bool csr_dump_res = rv_csr_dump(cpu, csr_satp);
-    assert(csr_dump_res == true);
+    rv_csr_dump_common(cpu, csr_satp);
 
     if (rv_csr_satp_is_bare(cpu)) {
         printf("0x%09lx\n", (ptr36_t) addr);
@@ -916,9 +915,7 @@ bool rv_pagetable_dump(rv_cpu_t *cpu, bool verbose)
         return false;
     }
 
-    bool csr_dump_res = rv_csr_dump(cpu, csr_satp);
-    assert(csr_dump_res == true);
-    printf("\n");
+    rv_csr_dump_common(cpu, csr_satp);
 
     rv_pagetable_dump_root(cpu, verbose);
     return true;

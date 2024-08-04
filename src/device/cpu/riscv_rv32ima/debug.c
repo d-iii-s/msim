@@ -727,7 +727,7 @@ static char *rv_pte_rsw_string(unsigned rsw)
 
 static void rv_pte_dump(sv32_pte_t pte)
 {
-    printf("[ PPN: 0x%06x RSW: %s %s%s%s%s %s%s%s%s ]\n",
+    printf("[ PPN: 0x%06x RSW: %s %s%s%s%s %s%s%s%s ]",
             pte.ppn,
             rv_pte_rsw_string(pte.rsw),
             pte.d ? "D" : "-",
@@ -743,6 +743,14 @@ static void rv_pte_dump(sv32_pte_t pte)
 static void rv_pte_addr_dump(ptr36_t pte_addr, ptr36_t pt_base_addr, uint32_t vpn_i)
 {
     printf(RV_DEBUG_INDENT "addr: 0x%09lx = 0x%09lx + 0x%03x * %d\n", pte_addr, pt_base_addr, vpn_i, RV_PTESIZE);
+}
+
+static void rv_pte_translation_step_dump(const char* header, sv32_pte_t pte, ptr36_t pte_addr, ptr36_t pt_base_addr, uint32_t vpn_i)
+{
+    printf("%s, ", header);
+    rv_pte_dump(pte);
+    printf("\n");
+    rv_pte_addr_dump(pte_addr, pt_base_addr, vpn_i);
 }
 
 extern bool rv_translate_dump(rv_cpu_t *cpu, uint32_t addr)
@@ -794,10 +802,7 @@ extern bool rv_translate_dump(rv_cpu_t *cpu, uint32_t addr)
     uint32_t pte_val = physmem_read32(cpu->csr.mhartid, pte_addr, false);
     pte = pte_from_uint(pte_val);
 
-    printf("PTE1: ");
-    rv_pte_dump(pte);
-
-    rv_pte_addr_dump(pte_addr, a, vpn1);
+    rv_pte_translation_step_dump("PTE1:", pte, pte_addr, a, vpn1);
 
     if (!is_pte_valid(pte)) {
         printf("ERROR - Invalid PTE\n");
@@ -820,9 +825,7 @@ extern bool rv_translate_dump(rv_cpu_t *cpu, uint32_t addr)
         pte_val = physmem_read32(cpu->csr.mhartid, pte_addr, false);
         pte = pte_from_uint(pte_val);
 
-        printf("PTE2: ");
-        rv_pte_dump(pte);
-        rv_pte_addr_dump(pte_addr, a, vpn0);
+        rv_pte_translation_step_dump("PTE2:", pte, pte_addr, a, vpn0);
 
         if (!is_pte_valid(pte)) {
             printf("ERROR - Invalid PTE\n");
@@ -859,6 +862,7 @@ static void rv_pagetable_dump_second_level_pte(rv_cpu_t *cpu, bool verbose, sv32
 
     printf(RV_DEBUG_INDENT "0x%03lx: ", pte_offset);
     rv_pte_dump(pte);
+    printf("\n");
 }
 
 static void rv_pagetable_dump_first_level_pte(rv_cpu_t *cpu, bool verbose, sv32_pte_t pte, size_t pte_offset)
@@ -872,9 +876,10 @@ static void rv_pagetable_dump_first_level_pte(rv_cpu_t *cpu, bool verbose, sv32_
     rv_pte_dump(pte);
 
     if (is_pte_leaf(pte)) {
-        printf(RV_DEBUG_INDENT "[ Megapage ]\n");
+        printf(" [ Megapage ]\n");
         return;
     }
+    printf("\n");
 
     ptr36_t second_level_pagetable_addr = pte_ppn_phys(pte);
 

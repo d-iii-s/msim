@@ -151,6 +151,30 @@ static bool drvcpu_tr(token_t *parm, device_t *dev)
     return rv_translate_dump(get_rv(dev), (uint32_t) addr);
 }
 
+/**
+ * STR command implementation
+ */
+static bool drvcpu_str(token_t *parm, device_t *dev)
+{
+    ASSERT(dev != NULL);
+
+    ptr36_t root_phys = parm_uint_next(&parm);
+
+    if (!IS_ALIGNED(root_phys, RV_PAGEBYTES)) {
+        error("Root pagetable physical address 0x%09lx is not aligned to pagesize!", root_phys);
+        return false;
+    }
+
+    uint64_t addr = parm_uint_next(&parm);
+
+    if (addr > (uint64_t) UINT32_MAX) {
+        error("Virtual memory address too large");
+        return false;
+    }
+
+    return rv_translate_sv32_dump(get_rv(dev), root_phys, (uint32_t) addr);
+}
+
 static bool drvcpu_specifies_verbose(const char *param)
 {
     return strcmp(param, "v") == 0 || strcmp(param, "verbose") == 0;
@@ -328,6 +352,14 @@ cmd_t drvcpu_cmds[] = {
             "Translates the specified address",
             "Translates the specified virtual address based on the current CPU state and describes the translation steps.",
             REQ INT "addr/virtual address" END },
+    { "str",
+            (fcmd_t) drvcpu_str,
+            DEFAULT,
+            DEFAULT,
+            "Translates the specified address using the given pagetable",
+            "Translates the specified virtual address using the pagetable specified by the physical address of its root pagetable and describes the translation steps.",
+            REQ INT "phys/root pagetable physical address" NEXT
+                    REQ INT "addr/virtual address" END },
     { "ptd",
             (fcmd_t) drvcpu_ptd,
             DEFAULT,

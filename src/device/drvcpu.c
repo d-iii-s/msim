@@ -170,11 +170,39 @@ static bool drvcpu_ptd(token_t *parm, device_t *dev)
     const char *param = parm_str_next(&parm);
 
     if (!drvcpu_specifies_verbose(param)) {
-        error("Invalid parameter");
+        error("Invalid parameter <%s>", param);
         return false;
     }
 
     return rv_pagetable_dump(get_rv(dev), true);
+}
+
+/**
+ * SPTD command implementation
+ */
+static bool drvcpu_sptd(token_t *parm, device_t *dev)
+{
+    ASSERT(dev != NULL);
+
+    ptr36_t root_phys = parm_uint_next(&parm);
+
+    if (!IS_ALIGNED(root_phys, RV_PAGEBYTES)) {
+        error("Root pagetable physical address 0x%09lx is not aligned to pagesize!", root_phys);
+        return false;
+    }
+
+    if (parm->ttype == tt_end) {
+        return rv_pagetable_dump_from_phys(get_rv(dev), root_phys, false);
+    }
+
+    const char *param = parm_str_next(&parm);
+
+    if (!drvcpu_specifies_verbose(param)) {
+        error("Invalid parameter <%s>", param);
+        return false;
+    }
+
+    return rv_pagetable_dump_from_phys(get_rv(dev), root_phys, true);
 }
 
 /**
@@ -304,9 +332,17 @@ cmd_t drvcpu_cmds[] = {
             (fcmd_t) drvcpu_ptd,
             DEFAULT,
             DEFAULT,
-            "Dumps the current of the current pagetable",
+            "Dumps the current pagetable",
             "Prints out all valid PTEs in the pagetable currently pointed to by the satp CSR. Adding the `verbose` parameter prints out all nonzero PTEs.",
             OPT STR "verbose" END },
+    { "sptd",
+            (fcmd_t) drvcpu_sptd,
+            DEFAULT,
+            DEFAULT,
+            "Dumps the specified pagetable",
+            "Prints out all valid PTEs in the pagetable with its root on the specified physical address. Adding the `verbose` parameter prints out all nonzero PTEs.",
+            REQ INT "phys/physical address of the root pagetable" NEXT
+                    OPT STR "verbose" END },
     { "tlbd",
             (fcmd_t) drvcpu_tlb_dump,
             DEFAULT,

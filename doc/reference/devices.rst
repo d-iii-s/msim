@@ -189,6 +189,10 @@ Commands
 ``ptd [verbose|v]``
    Prints out all valid PTEs in the pagetable currently pointed to by the satp CSR.
    Adding the ``verbose`` parameter (or simply ``v``) prints out all nonzero PTEs.
+``sptd phys [verbose|v]``
+   Prints out all valid PTEs in the pagetable with its root pagetable located at ``phys`` (physical address).
+   Note that this address has to be aligned to the size of a page (``4096``).
+   Adding the ``verbose`` parameter (or simply ``v``) prints out all nonzero PTEs.
 ``tlbd``
    Dump the contents of the TLB, split by page size.
 ``tlbresize size``

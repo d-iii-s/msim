@@ -894,12 +894,8 @@ static void rv_pagetable_dump_first_level_pte(rv_cpu_t *cpu, bool verbose, sv32_
     }
 }
 
-static void rv_pagetable_dump_root(rv_cpu_t *cpu, bool verbose)
+static void rv_pagetable_dump_root(rv_cpu_t *cpu, ptr36_t root_pagetable_addr, bool verbose)
 {
-    uint32_t ppn = rv_csr_satp_ppn(cpu);
-
-    ptr36_t root_pagetable_addr = ((ptr36_t) ppn) << RV_PAGESIZE;
-
     for (ptr36_t offset = 0; offset < RV_PAGEBYTES; offset += RV_PTESIZE) {
         ptr36_t pte_addr = root_pagetable_addr + offset;
         uint32_t pte_val = physmem_read32(cpu->csr.mhartid, pte_addr, false);
@@ -910,7 +906,7 @@ static void rv_pagetable_dump_root(rv_cpu_t *cpu, bool verbose)
 
 bool rv_pagetable_dump(rv_cpu_t *cpu, bool verbose)
 {
-
+    ASSERT(cpu != NULL);
     if (sv32_effective_priv(cpu) > rv_smode) {
         error("Pagetable not active - M-mode Bare translation mode\n");
         return false;
@@ -922,7 +918,18 @@ bool rv_pagetable_dump(rv_cpu_t *cpu, bool verbose)
     }
 
     rv_csr_dump_common(cpu, csr_satp);
+    uint32_t ppn = rv_csr_satp_ppn(cpu);
 
-    rv_pagetable_dump_root(cpu, verbose);
+    ptr36_t root_pagetable_addr = ((ptr36_t) ppn) << RV_PAGESIZE;
+    rv_pagetable_dump_root(cpu, root_pagetable_addr, verbose);
+    return true;
+}
+
+bool rv_pagetable_dump_from_phys(rv_cpu_t *cpu, ptr36_t root_pagetable_addr, bool verbose)
+{
+    ASSERT(cpu != NULL);
+    ASSERT(IS_ALIGNED(root_pagetable_addr, RV_PAGEBYTES));
+
+    rv_pagetable_dump_root(cpu, root_pagetable_addr, verbose);
     return true;
 }

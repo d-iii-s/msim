@@ -5,13 +5,13 @@
  *
  * @param c The character to display.
  */
-static inline void print_char(const char c) {
+static inline void print_char(const char c)
+{
     // Note that this is a virtual address
     // (compare with settings in msim.conf).
-    volatile char *printer = (volatile char*)(0x90000000);
+    volatile char *printer = (volatile char *) (0x90000000);
     *printer = c;
 }
-
 
 /** This is kernel C-entry point.
  *
@@ -25,7 +25,8 @@ static inline void print_char(const char c) {
  */
 void kernel_main(void);
 
-void kernel_main(void) {
+void kernel_main(void)
+{
     print_char('H');
     print_char('e');
     print_char('l');

@@ -7,16 +7,18 @@ static const char *greeting = "Hello, World!\n";
  *
  * @param c The character to display.
  */
-static inline void print_char(const char c) {
+static inline void print_char(const char c)
+{
     // Note that this is a virtual address
     // (compare with settings in msim.conf).
-    volatile char *printer = (volatile char*)(0x90000000);
+    volatile char *printer = (volatile char *) (0x90000000);
     *printer = c;
 }
 
 /** Halt the execution of the simulator */
-static inline void halt(void) {
-    __asm__ volatile (".word 0x8C000073");
+static inline void halt(void)
+{
+    __asm__ volatile(".word 0x8C000073");
 }
 
 /** This is kernel C-entry point.
@@ -31,7 +33,8 @@ static inline void halt(void) {
  */
 void kernel_main(void);
 
-void kernel_main(void) {
+void kernel_main(void)
+{
     const char *it = greeting;
     while (*it) {
         print_char(*it);

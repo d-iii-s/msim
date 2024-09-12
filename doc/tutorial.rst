@@ -218,4 +218,17 @@ block is "main". And the classic command help may look like:
     <device> <cmd>                 Commands of each added device
 
 
+Kernel
+------
+
+MSIM is mainly designed to help in running and debugging small kernels.
+We have prepared several small excercises to prepare you for these activities.
+The tutorial is split based on the CPU architecture of your choosing.
+
+.. toctree::
+    :maxdepth: 1
+
+    tutorial/tutorial-mips
+    tutorial/tutorial-riscv
+
 TO BE CONTINUED

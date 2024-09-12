@@ -6,12 +6,15 @@ your first steps within RISC-V kernel running in MSIM.
 
 Here is an overview of the exercises.
 
+.. toctree::
+   :maxdepth: 2
+
 -  `First compilation <#first-compilation>`__
 -  `Configuring the virtual
    machine <#configuring-the-virtual-machine>`__
 -  `Disassembling the kernel <#disassembling-the-kernel>`__
 -  `From boot to C code <#from-boot-to-c-code>`__
--  ```kernel_main`` is where the fun
+-  ``kernel_main`` `is where the fun
    starts <#kernel_main-is-where-the-fun-starts>`__
 -  `The first modification of the
    kernel <#the-first-modification-of-the-kernel>`__
@@ -23,7 +26,7 @@ Here is an overview of the exercises.
    code <#matching-instructions-back-to-source-code>`__
 -  `Instruction and memory dumps <#instruction-and-memory-dumps>`__
 -  `Exception handling <#exception-handling>`__
--  `The` ``volatile`` `modifier <#the-volatile-modifier>`__
+-  `The <#the-volatile-modifier>`__ ``volatile`` `modifier <#the-volatile-modifier>`__
 -  `Surviving without sources <#surviving-without-sources>`__
 -  `The complex one <#the-complex-one>`__
 
@@ -36,12 +39,9 @@ If you have never compiled an operating system kernel (or if you are new
 to C, GCC, or make), you may wish to start with compiling a smaller
 kernel first.
 
-**<TODO: reword>**
-
-Please, clone the `examples repository </examples>`__ and go into the
-``first`` subdirectory. This contents of this directory are similar to
-what you can find in Milestone 01, except the tests and some other files
-are omitted.
+Please, clone the `MSIM repository <https://github.com/d-iii-s/msim>`__
+and navigate to the `examples directory <https://github.com/d-iii-s/msim/tree/master/examples/riscv>`__,
+then go into the ``first`` subdirectory. 
 
 Before we discuss the contents of the directory, run ``make``. This
 command launches the make tool, which reads dependency rules from a file
@@ -54,12 +54,10 @@ In this case, make should run a sequence of commands to build the
 
 In Rotunda, ``make`` will produce the following output:
 
-**TODO**: rename dir
-
 ::
 
    make -C kernel
-   make[1]: Entering directory '/afs/ms.mff.cuni.cz/u/p/papeschj/nswi200/examples/first/kernel'
+   make[1]: Entering directory './kernel'
    /usr/bin/riscv32-unknown-elf-gcc -msmall-data-limit=0 -mstrict-align -fno-pic -fno-builtin -ffreestanding -nostdlib -nostdinc -mno-riscv-attribute -pipe -Wall -Wextra -Werror -Wno-unused-parameter -Wmissing-prototypes -g3 -std=c11 -I. -D__ASM__ -march=rv32g -c -o boot/loader.o boot/loader.S
    /usr/bin/riscv32-unknown-elf-ld -G 0 -static -g -T loader.lds -Map loader.map -o loader.raw boot/loader.o
    /usr/bin/riscv32-unknown-elf-ld: warning: loader.raw has a LOAD segment with RWX permissions
@@ -71,7 +69,7 @@ In Rotunda, ``make`` will produce the following output:
    /usr/bin/riscv32-unknown-elf-ld: warning: kernel.raw has a LOAD segment with RWX permissions
    /usr/bin/riscv32-unknown-elf-objcopy -O binary kernel.raw kernel.bin
    /usr/bin/riscv32-unknown-elf-objdump -d kernel.raw > kernel.disasm
-   make[1]: Leaving directory '/afs/ms.mff.cuni.cz/u/p/papeschj/nswi200/examples/first/kernel'
+   make[1]: Leaving directory './kernel'
 
 The advantage of using make as opposed to a shell script is in that make
 will only rebuild files (along dependency chains) that have changed
@@ -85,7 +83,7 @@ later on.
 
 One other file you should note is ``msim.conf``. It contains directives
 for the MSIM simulator, configuring it so as to provide a simple
-computer equipped with one MIPS R4000 processor, two blocks of memory,
+computer equipped with one RISC-V RV32IMA processor, two blocks of memory,
 and a console-like device for textual output (we will dissect the
 configuration in the next exercise).
 
@@ -228,8 +226,8 @@ Since ``loader.bin`` and ``loader.disasm`` are produced from
 original ``loader.S``. Do take a look.
 
 A question for you: why are the instructions in ``loader.disasm``
-different from ``loader.S``? :hoverxref:`Hint.<riscv-hint-1>`
-:hoverxref:`Solution.<riscv-solution-1>`
+different from ``loader.S``? :hoverxreftooltip:`Hint.<riscv-hint-1>`
+:hoverxreftooltip:`Solution.<riscv-solution-1>`
 
 From boot to C code
 -------------------
@@ -290,7 +288,7 @@ mark instead of a plain period. After all, we can be proud of it ;-).
 Before running ``msim`` again do not forget to recompile with ``make``.
 
 What commands were actually executed by make?
-:hoverxref:`Solution.<riscv-solution-3>`
+:hoverxreftooltip:`Solution.<riscv-solution-3>`
 
 Tracing the execution
 ---------------------
@@ -303,7 +301,7 @@ instruction as it is executed. (Unfortunately, there is just one
 console, so the MSIM ouput is interleaved with your OS output.)
 
 Compare the trace with your ``*.disasm`` files. What is the difference?
-:hoverxref:`Solution<riscv-solution-4>`
+:hoverxreftooltip:`Solution<riscv-solution-4>`
 
 Stepping through the execution
 ------------------------------
@@ -362,7 +360,7 @@ This is an extremely useful command as it allows you to inspect what is
 the current state of the processor and what code it executes.
 
 Which register would tell you what code is executed?
-:hoverxref:`Solution.<riscv-solution-5>`
+:hoverxreftooltip:`Solution.<riscv-solution-5>`
 
 Matching instructions back to source code
 -----------------------------------------
@@ -512,7 +510,7 @@ again.
 Nothing (except the newline) was printed!
 
 Look at the disassembly again - the code is much shorter! Why?
-:hoverxref:`Hint.<riscv-hint-3>` :hoverxref:`Solution.<riscv-solution-6>`
+:hoverxreftooltip:`Hint.<riscv-hint-3>` :hoverxreftooltip:`Solution.<riscv-solution-6>`
 
 Surviving without sources
 -------------------------
@@ -526,7 +524,7 @@ the execution with ``Ctrl-C`` to get into the interactive mode.
 Inspect the state of the machine and decide in which function the
 endless loop is (function names are in the ``kernel.disasm`` file).
 
-:hoverxref:`Hint.<riscv-hint-4>` :hoverxref:`Solution.<riscv-solution-7>`
+:hoverxreftooltip:`Hint.<riscv-hint-4>` :hoverxreftooltip:`Solution.<riscv-solution-7>`
 
 The complex one
 ---------------
@@ -545,4 +543,4 @@ the simulator.
 
 To find the right answer, inspect the code loaded into MSIM and check
 the contents of the registers. To make the task easier, the kernel
-prints dots in an infinite loop. :hoverxref:`Solution.<riscv-solution-8>`
+prints dots in an infinite loop. :hoverxreftooltip:`Solution.<riscv-solution-8>`

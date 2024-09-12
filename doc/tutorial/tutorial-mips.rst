@@ -30,7 +30,7 @@ Here is an overview of the exercises.
 -  `Instruction and memory
    dumps <#instruction-and-memory-dumps>`__
 -  `Exception handling <#exception-handling>`__
--  `The<#the-volatile-modifier>`__ ``volatile`` `modifier <#the-volatile-modifier>`__
+-  `The <#the-volatile-modifier>`__ ``volatile`` `modifier <#the-volatile-modifier>`__
 -  `Surviving without sources <#surviving-without-sources>`__
 -  `The complex one <#the-complex-one>`__
 

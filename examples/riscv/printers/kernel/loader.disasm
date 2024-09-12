@@ -1,0 +1,10 @@
+
+loader.raw:     file format elf32-littleriscv
+
+
+Disassembly of section .boot:
+
+f0000000 <__start>:
+f0000000:	800012b7          	lui	t0,0x80001
+f0000004:	00028067          	jr	t0 # 80001000 <__start+0x90001000>
+	...

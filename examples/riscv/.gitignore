@@ -1,0 +1,6 @@
+*.bin
+*.dep
+*.disasm
+*.map
+*.o
+*.raw

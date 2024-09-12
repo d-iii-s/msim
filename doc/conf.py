@@ -33,7 +33,9 @@ class MsimLexer(RegexLexer):
 
 lexers['msim'] = MsimLexer(startinline=True)
 
-extensions = []
+extensions = [
+    'hoverxref.extension',
+]
 source_suffix = ['.rst', '.md']
 source_parsers = {
     '.md': CommonMarkParser,

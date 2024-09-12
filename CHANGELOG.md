@@ -8,20 +8,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## Unreleased
 
-* added RIS-V `str` command
-* added RISC-V `sptd` command
-* added RISC-V `tr` and `ptd` commands
-* fixed RISC-V executing from paged memory in M-mode (see #66)
-
 ### Fixed
 
 * wrong `break` documentation (see #55 and #56, @KronwarsCZ, @vhotspur)
+* RISC-V executing from paged memory in M-mode (see #66, @HanyzPAPU)
 
 ### Added
 
 * setup C style (via `.clang-format`) (see #51, @vhotspur)
 * CI checks C style as well as file encoding and line-endings (see #51, @vhotspur)
 * completion for `add` prints available devices (see #31, @vhotspur)
+* page table dumping commands `ptd` and `sptd` (see #67, @HanyzPAPU)
+* virtual address translation commands `tr` and `str` (see #67, @HanyzPAPU)
 
 ### Changed
 

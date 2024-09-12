@@ -10,6 +10,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+### Added
+
+### Changed
+
+### Deprecated
+
+### Removed
+
+
+## v2.3.0 - 2024-09-12
+
+### Fixed
+
 * wrong `break` documentation (see #55 and #56, @KronwarsCZ, @vhotspur)
 * RISC-V executing from paged memory in M-mode (see #66, @HanyzPAPU)
 
@@ -26,10 +39,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 * renamed RISC-V CPU commands (see #60, @HanyzPAPU)
    * `csrrd` is `csrd`, `tlbrd` is `tlbd`
 * `csrd` dumps selected registers only (see #61, @HanyzPAPU)
-
-### Deprecated
-
-### Removed
 
 
 ## v2.2.1 - 2023-10-09

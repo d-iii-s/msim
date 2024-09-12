@@ -564,6 +564,9 @@ enum rv_priv_mode;
 #define rv_csr_satp_asid(cpu) (((cpu)->csr.satp & rv_csr_asid_mask) >> 22)
 #define rv_csr_satp_ppn(cpu) ((cpu)->csr.satp & rv_csr_satp_ppn_mask)
 
+#define sv32_effective_priv(cpu) (rv_csr_mstatus_mprv(cpu) ? rv_csr_mstatus_mpp(cpu) : cpu->priv_mode)
+#define effective_priv(cpu) (rv_csr_satp_is_bare(cpu) ? cpu->priv_mode : sv32_effective_priv(cpu))
+
 #define rv_csr_satp_asid_offset 22
 
 #define rv_asid_len 9

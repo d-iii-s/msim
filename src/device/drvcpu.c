@@ -135,6 +135,101 @@ static bool drvcpu_csr_dump(token_t *parm, device_t *dev)
 }
 
 /**
+ * TR command implementation
+ */
+static bool drvcpu_tr(token_t *parm, device_t *dev)
+{
+    ASSERT(dev != NULL);
+
+    uint64_t addr = parm_uint_next(&parm);
+
+    if (addr > (uint64_t) UINT32_MAX) {
+        error("Virtual memory address too large");
+        return false;
+    }
+
+    return rv_translate_dump(get_rv(dev), (uint32_t) addr);
+}
+
+/**
+ * STR command implementation
+ */
+static bool drvcpu_str(token_t *parm, device_t *dev)
+{
+    ASSERT(dev != NULL);
+
+    ptr36_t root_phys = parm_uint_next(&parm);
+
+    if (!IS_ALIGNED(root_phys, RV_PAGEBYTES)) {
+        error("Root pagetable physical address 0x%09lx is not aligned to pagesize!", root_phys);
+        return false;
+    }
+
+    uint64_t addr = parm_uint_next(&parm);
+
+    if (addr > (uint64_t) UINT32_MAX) {
+        error("Virtual memory address too large");
+        return false;
+    }
+
+    return rv_translate_sv32_dump(get_rv(dev), root_phys, (uint32_t) addr);
+}
+
+static bool drvcpu_specifies_verbose(const char *param)
+{
+    return strcmp(param, "v") == 0 || strcmp(param, "verbose") == 0;
+}
+
+/**
+ * PTD command implementation
+ */
+static bool drvcpu_ptd(token_t *parm, device_t *dev)
+{
+    ASSERT(dev != NULL);
+
+    if (parm->ttype == tt_end) {
+        return rv_pagetable_dump(get_rv(dev), false);
+    }
+
+    const char *param = parm_str_next(&parm);
+
+    if (!drvcpu_specifies_verbose(param)) {
+        error("Invalid parameter <%s>", param);
+        return false;
+    }
+
+    return rv_pagetable_dump(get_rv(dev), true);
+}
+
+/**
+ * SPTD command implementation
+ */
+static bool drvcpu_sptd(token_t *parm, device_t *dev)
+{
+    ASSERT(dev != NULL);
+
+    ptr36_t root_phys = parm_uint_next(&parm);
+
+    if (!IS_ALIGNED(root_phys, RV_PAGEBYTES)) {
+        error("Root pagetable physical address 0x%09lx is not aligned to pagesize!", root_phys);
+        return false;
+    }
+
+    if (parm->ttype == tt_end) {
+        return rv_pagetable_dump_from_phys(get_rv(dev), root_phys, false);
+    }
+
+    const char *param = parm_str_next(&parm);
+
+    if (!drvcpu_specifies_verbose(param)) {
+        error("Invalid parameter <%s>", param);
+        return false;
+    }
+
+    return rv_pagetable_dump_from_phys(get_rv(dev), root_phys, true);
+}
+
+/**
  * TLBD command implementation
  */
 static bool drvcpu_tlb_dump(token_t *parm, device_t *dev)
@@ -161,6 +256,17 @@ static bool drvcpu_tlb_resize(token_t *parm, device_t *dev)
     rv_tlb_t *tlb = &get_rv(dev)->tlb;
 
     return rv_tlb_resize(tlb, new_tlb_size);
+}
+
+static bool drvcpu_tlb_flush(token_t *parm, device_t *dev)
+{
+    ASSERT(dev != NULL);
+
+    rv_tlb_t *tlb = &get_rv(dev)->tlb;
+
+    rv_tlb_flush(tlb);
+
+    return true;
 }
 
 /**
@@ -239,6 +345,36 @@ cmd_t drvcpu_cmds[] = {
             "Dump content of CSR registers",
             "Dump content of some CSRs if no argument is given, dump the content of the specified register (numerically or by name), or dump a predefined set of CSRs (mmode, smode, counters or all)",
             OPT VAR "csr" END },
+    { "tr",
+            (fcmd_t) drvcpu_tr,
+            DEFAULT,
+            DEFAULT,
+            "Translates the specified address",
+            "Translates the specified virtual address based on the current CPU state and describes the translation steps.",
+            REQ INT "addr/virtual address" END },
+    { "str",
+            (fcmd_t) drvcpu_str,
+            DEFAULT,
+            DEFAULT,
+            "Translates the specified address using the given pagetable",
+            "Translates the specified virtual address using the pagetable specified by the physical address of its root pagetable and describes the translation steps.",
+            REQ INT "phys/root pagetable physical address" NEXT
+                    REQ INT "addr/virtual address" END },
+    { "ptd",
+            (fcmd_t) drvcpu_ptd,
+            DEFAULT,
+            DEFAULT,
+            "Dumps the current pagetable",
+            "Prints out all valid PTEs in the pagetable currently pointed to by the satp CSR. Adding the `verbose` parameter prints out all nonzero PTEs.",
+            OPT STR "verbose" END },
+    { "sptd",
+            (fcmd_t) drvcpu_sptd,
+            DEFAULT,
+            DEFAULT,
+            "Dumps the specified pagetable",
+            "Prints out all valid PTEs in the pagetable with its root on the specified physical address. Adding the `verbose` parameter prints out all nonzero PTEs.",
+            REQ INT "phys/physical address of the root pagetable" NEXT
+                    OPT STR "verbose" END },
     { "tlbd",
             (fcmd_t) drvcpu_tlb_dump,
             DEFAULT,
@@ -253,6 +389,13 @@ cmd_t drvcpu_cmds[] = {
             "Resize the TLB",
             "Resizes the TLB, flushing it completely in the process.",
             REQ INT "TLB size" END },
+    { "tlbflush",
+            (fcmd_t) drvcpu_tlb_flush,
+            DEFAULT,
+            DEFAULT,
+            "Flushes the TLB",
+            "Removes all entries from the TLB.",
+            NOCMD },
     { "asidlen",
             (fcmd_t) drvcpu_set_asid_len,
             DEFAULT,

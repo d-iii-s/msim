@@ -14,11 +14,14 @@
 #include "../../../assert.h"
 #include "../../../env.h"
 #include "../../../fault.h"
+#include "../../../physmem.h"
 #include "../../../utils.h"
 #include "cpu.h"
 #include "csr.h"
 #include "debug.h"
 #include "mnemonics.h"
+
+#define RV_DEBUG_INDENT "  "
 
 char *rv_reg_name_table[__rv_regname_type_count][RV_REG_COUNT] = {
     { "x0", "x1", "x2", "x2", "x4", "x5", "x6", "x7",
@@ -705,4 +708,234 @@ extern bool rv_csr_dump_command(rv_cpu_t *cpu, const char *command)
         return true;
     }
     return false;
+}
+
+static char *rv_pte_rsw_string(unsigned rsw)
+{
+    switch (rsw) {
+    case 0b00:
+        return "00";
+    case 0b01:
+        return "01";
+    case 0b10:
+        return "10";
+    case 0b11:
+        return "11";
+    }
+    assert(false && "Unreachable code, RSW has only 2 bits");
+}
+
+static void rv_pte_dump(sv32_pte_t pte)
+{
+    printf("[ PPN: 0x%06x RSW: %s %s%s%s%s %s%s%s%s ]",
+            pte.ppn,
+            rv_pte_rsw_string(pte.rsw),
+            pte.d ? "D" : "-",
+            pte.a ? "A" : "-",
+            pte.g ? "G" : "-",
+            pte.u ? "U" : "-",
+            pte.x ? "X" : "-",
+            pte.w ? "W" : "-",
+            pte.r ? "R" : "-",
+            pte.v ? "V" : "-");
+}
+
+static void rv_pte_addr_dump(ptr36_t pte_addr, ptr36_t pt_base_addr, uint32_t vpn_i)
+{
+    printf(RV_DEBUG_INDENT "This entry ^ physical address: 0x%09lx = 0x%09lx + 0x%03x * %d\n", pte_addr, pt_base_addr, vpn_i, RV_PTESIZE);
+}
+
+static void rv_pte_translation_step_dump(const char *header, sv32_pte_t pte, ptr36_t pte_addr, ptr36_t pt_base_addr, uint32_t vpn_i)
+{
+    printf("%s ", header);
+    rv_pte_dump(pte);
+    printf("\n");
+    rv_pte_addr_dump(pte_addr, pt_base_addr, vpn_i);
+}
+
+static bool rv_translation_dump_success(uint32_t virt, ptr36_t phys)
+{
+    printf("\nOK: 0x08%x => 0x%09lx\n", virt, phys);
+    return true;
+}
+
+extern bool rv_translate_sv32_dump(rv_cpu_t *cpu, ptr36_t root_pagetable_phys, uint32_t virt)
+{
+    ASSERT(cpu != NULL);
+    ASSERT(IS_ALIGNED(root_pagetable_phys, RV_PAGEBYTES));
+
+    uint32_t vpn0 = (virt & 0x003FF000) >> 12;
+    uint32_t vpn1 = (virt & 0xFFC00000) >> 22;
+
+    printf("VPN[1]: 0x%03x VPN[0]: 0x%03x page offset: 0x%03x\n", vpn1, vpn0, virt & 0xFFF);
+
+    ptr36_t a = root_pagetable_phys;
+    ptr36_t pte_addr = a + vpn1 * RV_PTESIZE;
+    uint32_t pte_val = physmem_read32(cpu->csr.mhartid, pte_addr, false);
+    sv32_pte_t pte = pte_from_uint(pte_val);
+
+    rv_pte_translation_step_dump("PTE1:", pte, pte_addr, a, vpn1);
+
+    if (!is_pte_valid(pte)) {
+        printf("\nPAGE FAULT - Invalid PTE on 1st level\n");
+        return false;
+    }
+
+    if (is_pte_leaf(pte)) {
+
+        if (pte_ppn0(pte) != 0) {
+            printf("\nFATAL - Misaligned Megapage (PPN[0] should be 0 but is 0x%03x)\n", pte_ppn0(pte));
+            return false;
+        }
+
+        ptr36_t phys = make_phys_from_ppn(virt, pte, true);
+        return rv_translation_dump_success(virt, phys);
+    } else {
+        a = pte_ppn_phys(pte);
+
+        pte_addr = a + vpn0 * RV_PTESIZE;
+        pte_val = physmem_read32(cpu->csr.mhartid, pte_addr, false);
+        pte = pte_from_uint(pte_val);
+
+        rv_pte_translation_step_dump("PTE2:", pte, pte_addr, a, vpn0);
+
+        if (!is_pte_valid(pte)) {
+            printf("\nPAGE FAULT - Invalid PTE in 2nd level\n");
+            return false;
+        }
+
+        if (!is_pte_leaf(pte)) {
+            printf("\nFATAL - 2nd level PTE is non leaf (no XWR bit set)\n");
+            return false;
+        }
+
+        ptr36_t phys = make_phys_from_ppn(virt, pte, false);
+        return rv_translation_dump_success(virt, phys);
+    }
+}
+
+extern bool rv_translate_dump(rv_cpu_t *cpu, uint32_t addr)
+{
+    ASSERT(cpu != NULL);
+
+    if (sv32_effective_priv(cpu) > rv_smode) {
+        printf("M-mode Bare translation\n");
+        return rv_translation_dump_success(addr, addr);
+    }
+
+    rv_csr_dump_common(cpu, csr_satp);
+
+    if (rv_csr_satp_is_bare(cpu)) {
+        return rv_translation_dump_success(addr, addr);
+    }
+
+    unsigned asid = rv_csr_satp_asid(cpu);
+    sv32_pte_t pte;
+    bool megapage;
+
+    if (rv_tlb_get_mapping(&cpu->tlb, asid, addr, &pte, &megapage, false)) {
+        printf("TLB Hit!\n");
+
+        if (!is_pte_valid(pte)) {
+            printf("\nFATAL - Invalid TLB Entry PTE!\n");
+            return false;
+        }
+
+        if (megapage && pte_ppn0(pte) != 0) {
+            printf("\nFATAL - Misaligned Megapage TLB Entry!\n");
+            return false;
+        }
+
+        ptr36_t phys = make_phys_from_ppn(addr, pte, megapage);
+        return rv_translation_dump_success(addr, phys);
+    }
+
+    uint32_t ppn = rv_csr_satp_ppn(cpu);
+    ptr36_t root_pagetable_phys = ((ptr36_t) ppn) << RV_PAGESIZE;
+    return rv_translate_sv32_dump(cpu, root_pagetable_phys, addr);
+}
+
+static bool rv_is_zero_pte(sv32_pte_t pte)
+{
+    return uint_from_pte(pte) == 0;
+}
+
+static bool rv_should_dump_pte(sv32_pte_t pte, bool verbose)
+{
+    return !rv_is_zero_pte(pte) && (pte.v || verbose);
+}
+
+static void rv_pagetable_dump_second_level_pte(rv_cpu_t *cpu, bool verbose, sv32_pte_t pte, size_t pte_offset)
+{
+    if (!rv_should_dump_pte(pte, verbose)) {
+        return;
+    }
+
+    printf(RV_DEBUG_INDENT "0x%03lx: ", pte_offset);
+    rv_pte_dump(pte);
+    printf("\n");
+}
+
+static void rv_pagetable_dump_first_level_pte(rv_cpu_t *cpu, bool verbose, sv32_pte_t pte, size_t pte_offset)
+{
+
+    if (!rv_should_dump_pte(pte, verbose)) {
+        return;
+    }
+
+    printf("0x%03lx: ", pte_offset);
+    rv_pte_dump(pte);
+
+    if (is_pte_leaf(pte)) {
+        printf(" [ Megapage ]\n");
+        return;
+    }
+    printf("\n");
+
+    ptr36_t second_level_pagetable_addr = pte_ppn_phys(pte);
+
+    for (ptr36_t offset = 0; offset < RV_PAGEBYTES; offset += RV_PTESIZE) {
+
+        ptr36_t pte_addr = second_level_pagetable_addr + offset;
+        uint32_t pte_val = physmem_read32(cpu->csr.mhartid, pte_addr, false);
+        sv32_pte_t pte = pte_from_uint(pte_val);
+
+        rv_pagetable_dump_second_level_pte(cpu, verbose, pte, offset);
+    }
+}
+
+extern bool rv_pagetable_dump_from_phys(rv_cpu_t *cpu, ptr36_t root_pagetable_phys, bool verbose)
+{
+    ASSERT(cpu != NULL);
+    ASSERT(IS_ALIGNED(root_pagetable_phys, RV_PAGEBYTES));
+
+    for (ptr36_t offset = 0; offset < RV_PAGEBYTES; offset += RV_PTESIZE) {
+        ptr36_t pte_addr = root_pagetable_phys + offset;
+        uint32_t pte_val = physmem_read32(cpu->csr.mhartid, pte_addr, false);
+        sv32_pte_t pte = pte_from_uint(pte_val);
+        rv_pagetable_dump_first_level_pte(cpu, verbose, pte, offset);
+    }
+
+    return true;
+}
+
+bool rv_pagetable_dump(rv_cpu_t *cpu, bool verbose)
+{
+    ASSERT(cpu != NULL);
+    if (sv32_effective_priv(cpu) > rv_smode) {
+        error("Pagetable not active - M-mode Bare translation mode\n");
+        return false;
+    }
+
+    if (rv_csr_satp_is_bare(cpu)) {
+        error("Pagetable not active - Bare translation mode\n");
+        return false;
+    }
+
+    rv_csr_dump_common(cpu, csr_satp);
+    uint32_t ppn = rv_csr_satp_ppn(cpu);
+
+    ptr36_t root_pagetable_addr = ((ptr36_t) ppn) << RV_PAGESIZE;
+    rv_pagetable_dump_from_phys(cpu, root_pagetable_addr, verbose);
+    return true;
 }

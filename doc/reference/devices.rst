@@ -180,12 +180,31 @@ Commands
       - ``smode`` - dumps all S-mode CSRs
       - ``counters`` - dumps all counter and counter setup CSRs
       - ``all`` - dumps all CSRs
-
+``tr <addr>``
+   Translates the specified virtual address based on the current CPU state and describes the translation process.
+      PTEs are dumped in the following format: ``PTE: [ PPN: <ppn> RSW: <rsw> DAGU XWRV]``,
+      where ``DAGU`` and ``XWRV`` are either these letters when the corresponding bits are set (i.e. equal to 1),
+      or ``-`` when the corresponding bits are clear (i.e. equal to 0).
+   Execute ``tlbflush`` before this command when using the TLB for the translation is not desired (but note that flushing the TLB can change the behavior of the simulated program.)
+``str <root phys> <addr>``
+   Translates the specified virtual address using the pagetable specified by the physical address of its root and describes the translation process.
+      Output format is the same as for ``tr``.
+      The translation does not use the TLB and ignores the CPU state.
+      Note that the root physical address has to be aligned to the size of a page (``4096``).
+``ptd [verbose|v]``
+   Prints out all valid PTEs in the pagetable currently pointed to by the satp CSR.
+   Adding the ``verbose`` parameter (or simply ``v``) prints out all nonzero PTEs.
+``sptd <root phys> [verbose|v]``
+   Prints out all valid PTEs in the pagetable with its root pagetable located at ``phys`` (physical address).
+   Note that this address has to be aligned to the size of a page (``4096``).
+   Adding the ``verbose`` parameter (or simply ``v``) prints out all nonzero PTEs.
 ``tlbd``
    Dump the contents of the TLB, split by page size.
-``tlbresize size``
+``tlbresize <size>``
    Resize the TLB by specifying its new size.
-``asidlen length``
+``tlbflush``
+   Removes all entries from the TLB.
+``asidlen <length>``
    Changes the bit-length of ASIDs.
 
 Examples

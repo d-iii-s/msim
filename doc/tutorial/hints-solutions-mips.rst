@@ -94,49 +94,12 @@ The ``pc`` register is the program counter telling the
 (virtual) address where the CPU decodes the next
 instruction.
 
-.. _mips-hint-20:
-
-Hint
-~~~~
-
-Imagine what the code looks like when ``print_char``
-is actually inlined into ``kernel_main``.
-
-.. _mips-solution-21:
-
-Solution
-~~~~~~~~
-
-Without ``volatile``, the source is actually this:
-
-::
-
-    char *printer = (char*)(0x90000000);
-    *printer = 'H';
-    *printer = 'e';
-    ...
-    *printer = '.';
-
-Any decent compiler will recognize that we are
-overwriting the same variable without reading the
-values. When optimizing code, the compiler is only
-required to preserve an externally visible behavior,
-and a write that nobody reads is not externally
-visible - hence all writes but the last are removed by
-the compiler. This means only ``*printer = '\n'``
-remains.
-
-Using ``volatile`` informs the compiler that someone
-else (here it is the console device of the simulator,
-but it can also be another thread) can read or write
-the variable and therefore accesses to it must not be
-optimized away.
 
 .. _mips-hint-22:
 
 Hint
 ~~~~
-      
+
 Dump the registers.
 
 .. _mips-solution-23:

@@ -228,6 +228,7 @@ The tutorial is split based on the CPU architecture of your choosing.
 .. toctree::
     :maxdepth: 1
 
+    tutorial/mini-kernel
     tutorial/tutorial-mips
     tutorial/tutorial-riscv
 

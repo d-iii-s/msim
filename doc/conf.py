@@ -10,6 +10,32 @@ from pygments.lexer import RegexLexer
 from pygments import token
 from recommonmark.parser import CommonMarkParser
 from sphinx.highlighting import lexers
+from sphinx.util.docutils import SphinxDirective
+from docutils.parsers.rst.directives import admonitions
+
+
+class ArchBoxDirective(admonitions.Admonition, SphinxDirective):
+    required_arguments = 1
+    has_content = True
+
+    def run(self) -> list[nodes.Node]:
+        self.assert_has_content()
+
+        self.arguments = ["{} specific notes".format(self.arguments[0])]
+
+        ret = super().run()
+        return ret
+
+
+def setup(app: Sphinx) -> ExtensionMetadata:
+    app.add_directive('archbox', ArchBoxDirective)
+
+    return {
+        'version': '0.1',
+        'parallel_read_safe': True,
+        'parallel_write_safe': True,
+    }
+
 
 class MsimLexer(RegexLexer):
     name = 'msim'

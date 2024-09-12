@@ -40,7 +40,7 @@ to C, GCC, or make), you may wish to start with compiling a smaller
 kernel first.
 
 Please, clone the `MSIM repository <https://github.com/d-iii-s/msim>`__
-and navigate to the `examples directory <https://github.com/d-iii-s/msim/tree/master/examples/riscv>`__,
+and navigate to the `RISC-V examples directory <https://github.com/d-iii-s/msim/tree/master/examples/riscv>`__,
 then go into the ``first`` subdirectory. 
 
 Before we discuss the contents of the directory, run ``make``. This
@@ -52,7 +52,7 @@ In this case, make should run a sequence of commands to build the
 ``loader.bin`` executable from the ``loader.S`` source, and the
 ``kernel.bin`` executable from the ``head.S`` and ``main.c`` sources.
 
-In Rotunda, ``make`` will produce the following output:
+In Rotunda, ``make`` will produce the following output (except for the directory):
 
 ::
 

@@ -16,7 +16,7 @@ Here is an overview of the exercises.
    machine <#configuring-the-virtual-machine>`__
 -  `Disassembling the kernel <#disassembling-the-kernel>`__
 -  `From boot to C code <#from-boot-to-c-code>`__
--  ```kernel_main`` is where the fun
+-  ``kernel_main`` `is where the fun
    starts <#kernel-main-is-where-the-fun-starts>`__
 -  `The first modification of the
    kernel <#the-first-modification-of-the-kernel>`__
@@ -30,7 +30,7 @@ Here is an overview of the exercises.
 -  `Instruction and memory
    dumps <#instruction-and-memory-dumps>`__
 -  `Exception handling <#exception-handling>`__
--  `The ``volatile`` modifier <#the-volatile-modifier>`__
+-  `The<#the-volatile-modifier>`__ ``volatile`` `modifier <#the-volatile-modifier>`__
 -  `Surviving without sources <#surviving-without-sources>`__
 -  `The complex one <#the-complex-one>`__
 

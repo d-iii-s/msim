@@ -233,8 +233,23 @@ Since ``loader.bin`` and ``loader.disasm`` are produced from
 original ``loader.S``. Do take a look.
 
 A question for you: why are the instructions in ``loader.disasm``
-different from ``loader.S``? :hoverxreftooltip:`Hint.<mips-hint-13>`
-:hoverxreftooltip:`Solution.<mips-solution-14>`
+different from ``loader.S``?
+
+.. collapse:: Hint
+
+   Think about the limited instruction repertoire of the CPU.
+
+.. collapse:: Solution
+
+   The difference in code concerns the loading of the
+   32-bit constant (jump target address). The CPU does
+   not have an instruction that can load an entire 32-bit
+   constant in one go (because the instruction itself
+   must fit into 32 bits), hence two instructions are
+   used. The assembly code uses a shorthand notation so
+   that the programmer does not have to perform this
+   trivial conversion.
+
 
 From boot to C code
 -------------------
@@ -280,8 +295,33 @@ the written character to appear at the console.
 
 A question for you: if you look up the console printer device
 address in the source code, you will see it is 0x90000000, but
-``msim.conf`` says 0x10000000. Why? :hoverxreftooltip:`Hint.<mips-hint-15>`
-:hoverxreftooltip:`Solution.<mips-solution-16>`
+``msim.conf`` says 0x10000000. Why?
+
+.. collapse:: Hint
+
+   Think about virtual and physical addresses.
+
+.. collapse:: Solution
+      
+   The code uses virtual addresses, but the simulator
+   configuration uses physical addresses (exactly what a
+   real hardware would see). In the kernel segment,
+   virtual addresses are mapped to physical addresses
+   simply by masking the highest bit - virtual address
+   0x80000000 therefore corresponds to physical address
+   0, and so on. The mapping is intentionally simple
+   because the kernel must run even before more complex
+   mapping structures, such as page tables, can be set
+   up.
+
+   An important note: you probably noticed that we print
+   the characters one by one instead of using ``printf``
+   or ``puts``. That is because we are in our own kernel
+   and we do not have any of these functions (yet). As a
+   matter of fact, **you will always have only functions
+   that you implement yourself**. So no ``printf``, no
+   ``fopen``, no ``malloc`` and so on unless you write
+   your own.
 
 The first modification of the kernel
 ------------------------------------
@@ -294,7 +334,14 @@ Before running ``msim`` again do not forget to recompile with
 ``make``.
 
 What commands were actually executed by make?
-:hoverxreftooltip:`Solution.<mips-solution-17>`
+
+.. collapse:: Solution
+
+   Just replace ``'.'`` with ``'!'`` in ``main.c`` :-).
+
+   Make should recompile only ``main.c`` into ``main.o``
+   and re-link the ``kernel.*`` files. Files related to
+   the bootloader should remain without change.
 
 Tracing the execution
 ---------------------
@@ -308,7 +355,14 @@ one console, so the MSIM ouput is interleaved with your OS
 output.)
 
 Compare the trace with your ``*.disasm`` files. What is the
-difference? :hoverxreftooltip:`Solution.<mips-solution-18>`
+difference?
+
+.. collapse:: Solution
+        
+   The answer is obvious: ``*.disasm`` contains the code
+   in its static form while the trace represents the true
+   execution - jumps are taken, loop bodies are executed
+   repeatedly etc.
 
 Stepping through the execution
 ------------------------------
@@ -370,7 +424,13 @@ what is the current state of the processor and what code it
 executes.
 
 Which register would tell you what code is executed?
-:hoverxreftooltip:`Solution.<mips-solution-19>`
+
+.. collapse:: Solution
+
+   The ``pc`` register is the program counter telling the
+   (virtual) address where the CPU decodes the next
+   instruction.
+
 
 Matching instructions back to source code
 -----------------------------------------
@@ -543,12 +603,12 @@ Nothing (except the newline) was printed!
 
 Look at the disassembly again - the code is much shorter! Why?
 
-.. collapse:: Hint.
+.. collapse:: Hint
 
     Imagine what the code looks like when ``print_char``
     is actually inlined into ``kernel_main``.
 
-.. collapse:: Solution.
+.. collapse:: Solution
 
     Without ``volatile``, the source is actually this:
 
@@ -590,7 +650,15 @@ Inspect the state of the machine and decide in which function the
 endless loop is (function names are in the ``kernel.disasm``
 file).
 
-:hoverxreftooltip:`Hint.<mips-hint-22>` :hoverxreftooltip:`Solution.<mips-solution-23>`
+
+.. collapse:: Hint
+
+   Dump the registers.
+
+.. collapse:: Solution
+
+   The ``PC`` register will contain values around
+   ``0x80000460``, hence it is function ``endless_two``.
 
 The complex one
 ---------------
@@ -610,5 +678,20 @@ non-determinism to the simulator.
 To find the right answer, inspect the code loaded into MSIM and
 check the contents of the registers. To make the task easier, the
 kernel prints dots in an infinite loop.
-:hoverxreftooltip:`Solution.<mips-solution-24>`
+
+.. collapse:: Solution
+      
+   The printer number is the last but one digit in the
+   *Run id*.
+
+   Tracing the instructions would be enough, somewhere in
+   the registers we would see the address of the printer.
+
+   Other option is to look into the disassembly and we
+   would see that ``print_char`` was not inlined. Hence
+   we can watch until program counter becomes
+   ``0x80000430`` and then inspect the ``v0`` register
+   (it is the only register used with ``SB`` for
+   addressing).
+
 

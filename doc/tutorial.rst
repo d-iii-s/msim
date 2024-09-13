@@ -229,7 +229,6 @@ The tutorial is split based on the CPU architecture of your choosing.
     :maxdepth: 1
 
     tutorial/mini-kernel
-    tutorial/tutorial-mips
     tutorial/tutorial-riscv
 
 TO BE CONTINUED

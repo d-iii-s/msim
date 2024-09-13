@@ -62,6 +62,7 @@ lexers['msim'] = MsimLexer(startinline=True)
 extensions = [
     'hoverxref.extension',
     'sphinx_toolbox.collapse',
+    'sphinx_code_tabs',
 ]
 source_suffix = ['.rst', '.md']
 source_parsers = {

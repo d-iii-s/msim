@@ -35,7 +35,7 @@ to match your distribution.
 
 
 Manual installation
-------------------
+-------------------
 
 If you cannot use prepackaged version (or you wish to modify MSIM) then the
 following will guide you through the manual installation process.

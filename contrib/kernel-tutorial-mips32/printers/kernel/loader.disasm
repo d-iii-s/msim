@@ -1,0 +1,11 @@
+
+loader.raw:     file format elf32-tradlittlemips
+
+
+Disassembly of section .kernel:
+
+80000000 <__start>:
+80000000:	3c1f8000 	lui	ra,0x8000
+80000004:	37ff0400 	ori	ra,ra,0x400
+80000008:	03e00008 	jr	ra
+8000000c:	00000000 	nop

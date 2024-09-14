@@ -227,7 +227,7 @@ The tutorial is split based on the CPU architecture of your choosing.
 
 .. toctree::
     :maxdepth: 1
-    
-    tutorial/mini-kernel
+
+    mini-kernel
 
 TO BE CONTINUED

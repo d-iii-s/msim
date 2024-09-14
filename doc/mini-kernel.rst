@@ -51,7 +51,8 @@ In Rotunda, ``make`` will produce the following output (except for the directory
 
 .. tabs:: arch
 
-   .. code-tab:: MIPS
+   .. code-tab:: bash
+      :caption: MIPS
 
       make -C kernel
       make[1]: Entering directory './kernel'
@@ -66,7 +67,8 @@ In Rotunda, ``make`` will produce the following output (except for the directory
       /usr/bin/mipsel-unknown-linux-gnu-objdump -d kernel.raw > kernel.disasm
       make[1]: Leaving directory './kernel'
    
-   .. code-tab:: RISC-V
+   .. code-tab:: bash
+      :caption: RISC-V
 
       make -C kernel
       make[1]: Entering directory './kernel'
@@ -108,14 +110,16 @@ You should see the following output:
 
 .. tabs:: arch
 
-   .. code-tab:: MIPS
+   .. code-tab:: msim
+      :caption: MIPS
 
       Hello, World.
       <msim> Alert: XHLT: Machine halt
 
       Cycles: 41
    
-   .. code-tab:: RISC-V
+   .. code-tab:: msim
+      :caption: RISC-V
 
       Hello, World.
       <msim> Alert: EHALT: Machine halt
@@ -161,11 +165,13 @@ line tells MSIM to add one processor and name it ``cpu0``
 
 .. tabs:: arch
 
-   .. code-tab:: MIPS
+   .. code-tab:: msim
+      :caption: MIPS
 
       add dr4kcpu cpu0
 
-   .. code-tab:: RISC-V
+   .. code-tab:: msim
+      :caption: RISC-V
 
       add drvcpu cpu0
 
@@ -188,13 +194,15 @@ computer starts running:
 
 .. tabs:: arch
 
-   .. code-tab:: MIPS
+   .. code-tab:: msim
+      :caption: MIPS
 
       add rwm mainmem 0
       mainmem generic 1M
       mainmem load "kernel/kernel.bin"
 
-   .. code-tab:: RISC-V
+   .. code-tab:: msim
+      :caption: RISC-V
 
       add rwm mainmem 0x80000000
       mainmem generic 1M
@@ -213,13 +221,15 @@ memory initialized with the contents of the ``kernel/loader.bin`` file:
 
 .. tabs:: arch
 
-   .. code-tab:: MIPS
+   .. code-tab:: msim
+      :caption: MIPS
 
       add rom loadermem 0x1FC00000
       loadermem generic 4K
       loadermem load "kernel/loader.bin"
 
-   .. code-tab:: RISC-V
+   .. code-tab:: msim
+      :caption: RISC-V
 
       add rom loadermem 0xF0000000
       loadermem generic 8K
@@ -241,11 +251,13 @@ hardware, except the printer device is much simpler:
 
 .. tabs:: arch
 
-   .. code-tab:: MIPS
+   .. code-tab:: msim
+      :caption: MIPS
 
       add dprinter printer 0x10000000
 
-   .. code-tab:: RISC-V
+   .. code-tab:: msim
+      :caption: RISC-V
 
       add dprinter printer 0x90000000
 
@@ -522,11 +534,13 @@ you want to interrupt the execution.
 
 .. tabs:: arch
 
-   .. code-tab:: MIPS
+   .. code-tab:: c
+      :caption: MIPS
 
       __asm__ volatile(".word 0x29\n");
 
-   .. code-tab:: RISC-V
+   .. code-tab:: c
+      :caption: RISC-V
 
       __asm__ volatile("ebreak\n");
 
@@ -572,17 +586,19 @@ You will see something like this (note that we have dropped the
 
 .. tabs:: arch
 
-   .. code-tab:: MIPS
+   .. code-tab:: msim
+      :caption: MIPS
 
-      0 00000000   at 00000000   v0 90000000   v1 00000000   a0 00000000
-     a1 00000048   a2 00000000   a3 00000000   t0 00000000   t1 00000000
-     t2 00000000   t3 00000000   t4 00000000   t5 00000000   t6 00000000
-     t7 00000000   s0 00000000   s1 00000000   s2 00000000   s3 00000000
-     s4 00000000   s5 00000000   s6 00000000   s7 00000000   t8 00000000
-     t9 00000000   k0 0000FF01   k1 00000000   gp 80000000   sp 80000400
-     fp 00000000   ra 80000420   pc 8000043C   lo 00000000   hi 00000000
+       0 00000000   at 00000000   v0 90000000   v1 00000000   a0 00000000
+      a1 00000048   a2 00000000   a3 00000000   t0 00000000   t1 00000000
+      t2 00000000   t3 00000000   t4 00000000   t5 00000000   t6 00000000
+      t7 00000000   s0 00000000   s1 00000000   s2 00000000   s3 00000000
+      s4 00000000   s5 00000000   s6 00000000   s7 00000000   t8 00000000
+      t9 00000000   k0 0000FF01   k1 00000000   gp 80000000   sp 80000400
+      fp 00000000   ra 80000420   pc 8000043C   lo 00000000   hi 00000000
 
-   .. code-tab:: RISC-V
+   .. code-tab:: msim
+      :caption: RISC-V
 
          zero:      0    ra: 80001060    sp: 80001000    gp:        0
          tp:        0    t0:      800    t1:        0    t2:        0
@@ -663,11 +679,13 @@ To disassemble instructions in MSIM:
 
 .. tabs:: arch
 
-   .. code-tab:: MIPS
+   .. code-tab:: msim
+      :caption: MIPS
 
       [msim] dumpins r4k 0x42c 10
 
-   .. code-tab:: RISC-V
+   .. code-tab:: msim
+      :caption: RISC-V
 
       [msim] dumpins rv 0x80001060 10
 
@@ -717,12 +735,14 @@ hence:
 
 .. tabs:: arch
 
-   .. code-tab:: MIPS
+   .. code-tab:: msim
+      :caption: MIPS
 
       [msim] dumpmem 0x460 4
         0x00000460    6c6c6548 57202c6f 646c726f 00000a21
 
-   .. code-tab:: RISC-V
+   .. code-tab:: msim
+      :caption: RISC-V
 
       [msim] dumpmem 0x8000108a 4
         0x080001088   6c6c6548 57202c6f 646c726f 00000a21
@@ -775,13 +795,15 @@ what addresses caused the problem and what is the interrupt code
 
 .. tabs:: arch
 
-   .. code-tab:: MIPS
+   .. code-tab:: msim
+      :caption: MIPS
 
       cpu0 cp0d 0x0d
       cpu0 cp0d 0x08
       cpu0 cp0d 0x0e
 
-   .. code-tab:: RISC-V
+   .. code-tab:: msim
+      :caption: RISC-V
 
       cpu0 csrd mepc
       cpu0 csrd mcause

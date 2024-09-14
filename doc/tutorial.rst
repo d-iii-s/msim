@@ -223,7 +223,6 @@ Kernel
 
 MSIM is mainly designed to help in running and debugging small kernels.
 We have prepared several small excercises to prepare you for these activities.
-The tutorial is split based on the CPU architecture of your choosing.
 
 .. toctree::
     :maxdepth: 1

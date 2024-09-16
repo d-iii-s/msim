@@ -47,6 +47,7 @@ class MsimLexer(RegexLexer):
             (r'[a-zA-Z][a-zA-Z_0-9]*', token.Name),
             (r'0x[0-9a-fA-F]*', token.Literal.Number),
             (r'\b[0-9][0-9]*[kM]\b', token.Literal.Number),
+            (r'\b[0-9a-fA-F][0-9a-fA-F]*\b', token.Literal.Number),
             (r'[0-9][0-9]*', token.Literal.Number),
             (r'"[^"]*"', token.Literal.String),
             (r'\s', token.Text),

@@ -69,7 +69,7 @@ In Rotunda, ``make`` will produce the following output (except for the directory
       /usr/bin/mipsel-unknown-linux-gnu-objcopy -O binary kernel.raw kernel.bin
       /usr/bin/mipsel-unknown-linux-gnu-objdump -d kernel.raw > kernel.disasm
       make[1]: Leaving directory './kernel'
-   
+
    .. code-tab:: bash
       :caption: RISC-V
 
@@ -120,7 +120,7 @@ You should see the following output:
       <msim> Alert: XHLT: Machine halt
 
       Cycles: 41
-   
+
    .. code-tab:: msim
       :caption: RISC-V
 
@@ -303,7 +303,7 @@ executing instructions from after a power up/reset. Other than
 that, the loader code does not really do anything – it just jumps
 to another fixed address, where our main code will reside.
 
-.. archbox:: MIPS 
+.. archbox:: MIPS
 
    The loader jumps to address ``0x80000400``.
 
@@ -440,7 +440,7 @@ character to appear at the console.
       Think about virtual and physical addresses.
 
    .. collapse:: Solution
-         
+
       The code uses virtual addresses, but the simulator
       configuration uses physical addresses (exactly what a
       real hardware would see). In the kernel segment,
@@ -496,7 +496,7 @@ Compare the trace with your ``*.disasm`` files. What is the
 difference?
 
 .. collapse:: Solution
-        
+
    The answer is obvious: ``*.disasm`` contains the code
    in its static form while the trace represents the true
    execution - jumps are taken, loop bodies are executed
@@ -676,7 +676,7 @@ Let’s inspect the code of the loop. We can look at
 
    We can use the address ``0x8000106c`` directly, as are using the
    BARE virtual address translation mode, which keeps the addresses
-   unchanged. 
+   unchanged.
 
 To disassemble instructions in MSIM:
 
@@ -706,7 +706,7 @@ This will dump 10 instructions starting at the specified address.
 
       v0 80000460   v1 00000048   a0 90000000
 
-   
+
    ``v0`` looks like a virtual address of our kernel, ``v1`` looks
    like an ASCII value (actually, it is the capital ``H``) and ``a0``
    is the address of our console (recall code in ``src/main.c``).
@@ -919,7 +919,7 @@ check the contents of the registers. To make the task easier, the
 kernel prints dots in an infinite loop.
 
 .. collapse:: Solution
-      
+
    The printer number is the last but one digit in the
    *Run id*.
 
@@ -939,5 +939,5 @@ kernel prints dots in an infinite loop.
    .. archbox:: RISC-V
 
       Watch until the program counter reaches address ``0x80001068``
-      and look into the content of the ``a5`` register.   
+      and look into the content of the ``a5`` register.
 

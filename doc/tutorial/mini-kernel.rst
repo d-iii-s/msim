@@ -139,7 +139,7 @@ in the paths but otherwise the output should look the same on your machine).
       /usr/bin/riscv32-unknown-elf-objdump -d kernel.raw > kernel.disasm
       make[1]: Leaving directory './kernel'
 
-.. extras::
+.. extras:: using ``make``
 
     The advantage of using make as opposed to a shell script is in
     that make will only rebuild files (along dependency chains) that
@@ -203,6 +203,7 @@ We can safely ignore those lines for now.
 
    If you are a NSWI200 student, please, prefer the standard means of
    communicating with your teachers instead of the GitHub issues. Thank you.
+
 
 Configuring the virtual machine
 -------------------------------
@@ -271,10 +272,15 @@ computer starts running:
 .. archbox:: MIPS
 
    The ``mainmem`` memory segment starts at physical address ``0``.
+   The processor then maps it to a virtual address ``0x80000000``
+   (so printing a pointer address in your code will print addresses with
+   the highest bit set).
 
 .. archbox:: RISC-V
 
    The ``mainmem`` memory segment starts at physical address ``0x80000000``.
+   The processor uses identity mapping when booting, hence we do not need to
+   explicitly distinguish virtual and physical addresses (at least, for now¨).
 
 The bootloader memory block (called ``loadermem``) is a read-only
 memory initialized with the contents of the ``kernel/loader.bin`` file:
@@ -332,6 +338,7 @@ hardware, except the printer device is much simpler:
 This is actually enough for a simple machine and more than enough
 for our purposes :-).
 
+
 Disassembling the kernel
 ------------------------
 
@@ -341,9 +348,14 @@ computer, it is now time to look at the files in the
 controls the compilation, and a linker script which controls the
 layout of the binary image produced by the linker.
 
-We will not dissect the linker script further, because explaining
-it in detail would require additional background. Because you will
-not need to modify it in this tutorial.
+.. extras:: linker scripts
+
+   We will not dissect the linker script further, because we will
+   not need to modify it in this tutorial.
+
+   As a matter of fact, linker scripts are rarely modified and in normal
+   circumstances come with your linker. For our purposes, where we have
+   a non-standard kernel and a simplified emulator, we have our own ones.
 
 The ``boot`` subdirectory contains ``loader.S``, an assembly
 source file which contains the computer bootloader code. On a real
@@ -392,38 +404,42 @@ Since ``loader.bin`` and ``loader.disasm`` are produced from
 ``loader.S``, they should contain the same instructions as in the
 original ``loader.S``. Do take a look.
 
-A question for you: why are the instructions in ``loader.disasm``
-different from ``loader.S``?
+.. quiz::
 
-.. collapse:: Hint
+   A question for you: why are the instructions in ``loader.disasm``
+   different from ``loader.S``?
 
-   Think about the limited instruction repertoire of the CPU.
 
-.. collapse:: Solution MIPS
+   .. collapse:: Hint
 
-   The difference in code concerns the loading of the
-   32-bit constant (jump target address). The CPU does
-   not have an instruction that can load an entire 32-bit
-   constant in one go (because the instruction itself
-   must fit into 32 bits), hence two instructions are
-   used. The assembly code uses a shorthand notation so
-   that the programmer does not have to perform this
-   trivial conversion.
+      Think about the limited instruction repertoire of the CPU.
 
-.. collapse:: Solution RISC-V
+   .. collapse:: Solution MIPS
 
-   The difference in code concerns the loading of the 32-bit constant (jump
-   target address). The CPU does not have an instruction that can load an
-   entire 32-bit constant in one go (because the instruction itself must
-   fit into 32 bits), hence two instructions would need to be used
-   generally. (For example ``li t0, 0x0x80000001`` would be transformed
-   into ``lui t0, 0x80000`` and ``addi t0, t0, 1`` - try it yourself!) Our
-   code manages with only one, because the lowest 12 bits (3 hex digits) of
-   our target address are all 0. The ``lui t0, 0x80001`` instruction loads
-   the constant ``0x80001`` to the highest 20 bits of ``t0``, meaning it
-   sets it to ``0x80001000``, which is exactly our desired address. The
-   assembly code uses a shorthand notation so that the programmer does not
-   have to perform this trivial conversion.
+      The difference in code concerns the loading of the
+      32-bit constant (jump target address). The CPU does
+      not have an instruction that can load an entire 32-bit
+      constant in one go (because the instruction itself
+      must fit into 32 bits), hence two instructions are
+      used. The assembly code uses a shorthand notation so
+      that the programmer does not have to perform this
+      trivial conversion.
+
+   .. collapse:: Solution RISC-V
+
+      The difference in code concerns the loading of the 32-bit constant (jump
+      target address). The CPU does not have an instruction that can load an
+      entire 32-bit constant in one go (because the instruction itself must
+      fit into 32 bits), hence two instructions would need to be used
+      generally. (For example ``li t0, 0x0x80000001`` would be transformed
+      into ``lui t0, 0x80000`` and ``addi t0, t0, 1`` - try it yourself!) Our
+      code manages with only one, because the lowest 12 bits (3 hex digits) of
+      our target address are all 0. The ``lui t0, 0x80001`` instruction loads
+      the constant ``0x80001`` to the highest 20 bits of ``t0``, meaning it
+      sets it to ``0x80001000``, which is exactly our desired address. The
+      assembly code uses a shorthand notation so that the programmer does not
+      have to perform this trivial conversion.
+
 
 From boot to C code
 -------------------
@@ -440,7 +456,7 @@ afraid ;-).
    we can see a special directive ``.org 0x400`` that says that the
    following code will be placed at address 0x400 bytes away from the
    start of the code segment. The linker specifies that the code
-   segment starts at 0x80000000, together this yields 0x80000400 -
+   segment starts at ``0x80000000``, together this yields ``0x80000400`` -
    exactly the address our boot loader jumps to! Hence, after the
    boot loader is done, the execution will continue here.
 
@@ -455,7 +471,7 @@ afraid ;-).
    see a special directive ``.org 0x1000`` that says that the following
    code will be placed at address 0x1000 bytes away from the start of the
    code segment. The linker specifies that the code segment starts at
-   0x80000000, together this yields 0x80001000 - exactly the address our
+   0x80000000, together this yields ``0x80001000`` - exactly the address our
    boot loader jumps to! Hence, after the boot loader is done, the
    execution will continue here.
 
@@ -468,6 +484,17 @@ afraid ;-).
 These few lines of assembler (``loader.S`` and ``head.S``)
 constitute the only assembly code needed to boot the processor and
 get into C.
+
+.. extras:: assembler and booting
+
+   One cannot boot a CPU without at least a bit of assembler that jumps
+   into a C code. But the assembly code is usually straightforward and
+   only sets-up basic registers and stack.
+
+   Feel free to return to this code later, understanding it completely is
+   not required to continue with the tutorial. As long as you understand
+   that we need special instructions to jump to a C code, you will be fine.
+
 
 ``kernel_main`` is where the fun starts
 ---------------------------------------
@@ -489,8 +516,8 @@ character to appear at the console.
 .. archbox:: MIPS
 
    A question for you: if you look up the console printer device
-   address in the source code, you will see it is 0x90000000, but
-   ``msim.conf`` says 0x10000000. Why?
+   address in the source code, you will see it is ``0x90000000``, but
+   ``msim.conf`` says ``0x10000000``. Why?
 
    .. collapse:: Hint
 
@@ -503,7 +530,7 @@ character to appear at the console.
       real hardware would see). In the kernel segment,
       virtual addresses are mapped to physical addresses
       simply by masking the highest bit - virtual address
-      0x80000000 therefore corresponds to physical address
+      ``0x80000000`` therefore corresponds to physical address
       0, and so on. The mapping is intentionally simple
       because the kernel must run even before more complex
       mapping structures, such as page tables, can be set
@@ -512,11 +539,13 @@ character to appear at the console.
 An important note: you probably noticed that we print
 the characters one by one instead of using ``printf``
 or ``puts``. That is because we are in our own kernel
-and we do not have any of these functionsW. As a
-matter of fact, **you will have only functions
-that you implement yourself**. So no ``printf``, no
-``fopen``, no ``malloc`` and so on unless you write
-your own.
+and we do not have any of these functions. As a
+matter of fact, **we will have only functions
+that we implement ourselfs**.
+
+Thus, there is no ``printf``, no ``malloc`` and definitely no
+``fopen`` (unless you implement them yourself).
+
 
 The first modification of the kernel
 ------------------------------------
@@ -528,15 +557,14 @@ proud of it ;-).
 Before running ``msim`` again do not forget to recompile with
 ``make``.
 
-What commands were actually executed by make?
-
 .. collapse:: Solution
 
    Just replace ``'.'`` with ``'!'`` in ``main.c`` :-).
 
-   Make should recompile only ``main.c`` into ``main.o``
+   Note that ``make`` should recompile only ``main.c`` into ``main.o``
    and re-link the ``kernel.*`` files. Files related to
    the bootloader should remain without change.
+
 
 Tracing the execution
 ---------------------
@@ -544,20 +572,23 @@ Tracing the execution
 Let’s see which instructions were actually executed by MSIM. This
 may come in handy in later debugging tasks.
 
-Run ``msim -t``. This turns on a trace mode where MSIM prints
+We will run ``msim -t``. This turns on a trace mode where MSIM prints
 every instruction as it is executed. (Unfortunately, there is just
-one console, so the MSIM ouput is interleaved with your OS
+one console, so the MSIM output is interleaved with your OS
 output.)
 
-Compare the trace with your ``*.disasm`` files. What is the
-difference?
+.. quiz::
 
-.. collapse:: Solution
+   Compare the trace with your ``*.disasm`` files. What is the
+   difference?
 
-   The answer is obvious: ``*.disasm`` contains the code
-   in its static form while the trace represents the true
-   execution - jumps are taken, loop bodies are executed
-   repeatedly etc.
+   .. collapse:: Solution
+
+      The answer is obvious: ``*.disasm`` contains the code
+      in its static form while the trace represents the true
+      execution - jumps are taken, loop bodies are executed
+      repeatedly etc.
+
 
 Stepping through the execution
 ------------------------------

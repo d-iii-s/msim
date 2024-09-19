@@ -26,9 +26,35 @@ class ArchBoxDirective(admonitions.Admonition, SphinxDirective):
         ret = super().run()
         return ret
 
+class ExtrasBoxDirective(admonitions.Admonition, SphinxDirective):
+    required_arguments = 1
+    has_content = True
+
+    def run(self) -> list[nodes.Node]:
+        self.assert_has_content()
+
+        self.arguments = ["Extra information ({})".format(self.arguments[0])]
+
+        ret = super().run()
+        return ret
+
+class QuizBoxDirective(admonitions.Admonition, SphinxDirective):
+    required_arguments = 0
+    has_content = True
+
+    def run(self) -> list[nodes.Node]:
+        self.assert_has_content()
+
+        self.arguments = ["Self-test quiz"]
+
+        ret = super().run()
+        return ret
+
 
 def setup(app: Sphinx) -> ExtensionMetadata:
     app.add_directive('archbox', ArchBoxDirective)
+    app.add_directive('extras', ExtrasBoxDirective)
+    app.add_directive('quiz', QuizBoxDirective)
 
     return {
         'version': '0.1',

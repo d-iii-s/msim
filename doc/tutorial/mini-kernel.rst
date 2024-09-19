@@ -600,28 +600,34 @@ commands, as indicated by the ``[msim]`` prompt.
 Simply typing ``continue`` will resume standard execution, which
 will run our OS and eventually terminate MSIM.
 
-Run MSIM again but instead of typing ``continue``, just hit Enter.
+Run MSIM again but instead of typing ``continue``, we will just hit Enter.
+
 An empty command in MSIM is equivalent to typing ``step`` and
-executes a single instruction. You should see how the greeting
-starts to appear next to the prompt as you continue pressing
+executes a single instruction. We should see how the greeting
+starts to appear next to the prompt as we continue pressing
 Enter.
 
-You can also do ``step 10`` to execute ten instructions.
+We can also do ``step 10`` to execute ten instructions at once.
 
-Try it.
 
 Entering the debugger
 ---------------------
 
-Stepping through your kernel from the very first instruction is
-not so useful for debugging when the code you are interested in is
-executed long after boot. In that case, you can also enter the
+Stepping through our kernel from the very first instruction is
+not so useful for debugging when the code we are interested in is
+executed long after boot. In that case, we can also enter the
 interactive mode programmatically, by asking for it from inside
-your (kernel) code. To do that, use a special assembly language
+our (kernel) code.
+
+That is something that is super-easy when running in a simulator such
+as MSIM but somewhat more difficult on real hardware.
+That is why simulators are so useful :-).
+
+To enter the interactive mode, we will use a special assembly language
 instruction, which the real CPU does not recognize but MSIM does.
 
-Insert the following fragment at a location (in the C code) where
-you want to interrupt the execution.
+We will insert the following fragment at a location (in the C code) where
+we want to interrupt the execution.
 
 .. tabs:: arch
 
@@ -635,35 +641,39 @@ you want to interrupt the execution.
 
       __asm__ volatile("ebreak\n");
 
-Try it: insert the break after printing ``Hello``. If you execute
-``msim``, it will print ``Hello`` and enter interactive mode. You
-can again step throught the execution or ``continue``.
+
+Let us try it: insert the break after printing ``Hello``. If we execute
+``msim``, it will print ``Hello`` and enter interactive mode. We
+can again step through the execution or ``continue``.
+
 
 Inspecting the registers
 ------------------------
 
-Start MSIM in interactive mode again and type ``set trace`` as the
+Let us start MSIM in interactive mode again and type ``set trace`` as the
 first command.
 
-Then hit Enter several times. You executed several instructions
+Then we will hit Enter several times. We executed several instructions
 and MSIM is printing what instructions are executed.
 
-We can also inspect all registers at once. Use the ``cpu0 rd``
-command for a **r**\ egister **d**\ ump of ``cpu0`` processor
+We can also inspect all registers at once. We will use the ``cpu0 rd``
+command for a **r**\ egister **d**\ ump of the `cpu0`` processor
 (that is the only processor that we added to our computer in
 MSIM).
 
-This is an extremely useful command as it allows you to inspect
+This is an extremely useful command as it allows us to inspect
 what is the current state of the processor and what code it
 executes.
 
-Which register would tell you what code is executed?
+.. quiz::
 
-.. collapse:: Solution
+   Which register would tell you what code is executed?
 
-   The ``pc`` register is the program counter telling the
-   (virtual) address where the CPU decodes the next
-   instruction.
+   .. collapse:: Solution
+
+      The ``pc`` register is the program counter telling the
+      (virtual) address where the CPU decodes the next
+      instruction.
 
 
 Matching instructions back to source code
@@ -704,38 +714,41 @@ You will see something like this (note that we have dropped the
 .. archbox:: MIPS
 
    In our dump, ``pc`` contains the ``8000043C``.
-   Open ``kernel.disasm`` and find this address there. It is few
-   lines below ``80000430 <kernel_main>`` which indicates that it is
-   an instruction inside ``kernel_main()``.
+   If we open ``kernel.disasm`` and find this address there, we will see
+   it is few lines below ``80000430 <kernel_main>`` which indicates that
+   it is an instruction inside ``kernel_main()``.
 
 .. archbox:: RISC-V
 
    In our dump, ``pc`` contains ``8000106c``.
-   Open ``kernel.disasm`` and find this address there. It is few lines
-   below ``80001060 <kernel_main>`` which indicates that it is an
-   instruction inside ``kernel_main()``.
+   If we open ``kernel.disasm``  and find this address there, we will see
+   it is few lines below ``80001060 <kernel_main>`` which indicates that
+   it is an instruction inside ``kernel_main()``.
 
-This is extremely important information because it allows you to
-decide in which function your OS will be when it is interrupted
+This is extremely important information because it allows us to
+decide in which function our OS will be when it is interrupted
 etc.
 
-You can interrupt code in MSIM by hitting ``Ctrl-C``. That is
-useful if your code enters an unexpected loop and you want to
+We can interrupt code in MSIM by hitting ``Ctrl-C``. That is
+useful if our code enters an unexpected loop and we want to
 investigate in which function it got stuck.
+
 
 Instruction and memory dumps
 ----------------------------
 
-MSIM allows you to inspect not only registers but also memory.
+MSIM allows us to inspect not only registers but also memory.
 
-Go to the ``string`` directory. It contains almost the same code
+Let us see the ``string`` directory. It contains almost the same code
 as the previous example, but uses iteration over a string
 (``const char *``) to print the greeting.
 
-Compile the code, run MSIM interactively and step until it starts
-printing characters.
+.. quiz::
 
-What is the value of the program counter?
+   Compile the code, run MSIM interactively and step until it starts
+   printing characters.
+
+   What is the value of the program counter?
 
 Let’s inspect the code of the loop. We can look at
 ``kernel.disasm`` or inspect it directly from MSIM.
@@ -749,12 +762,12 @@ Let’s inspect the code of the loop. We can look at
    as a simple shift by 2GB. For example, virtual address ``0x8000042C``
    maps to physical address ``0x42C``.
 
-   It is quite important to remember that if you see an address above
+   It is quite important to remember that if we see an address above
    ``0x80000000`` in MSIM, it points into the kernel segment, but if
-   you see a numerically lower address, it is either an untranslated
+   we see a numerically lower address, it is either an untranslated
    physical address (such as those in ``msim.conf``), an address in
    the user segment, which at this time most likely indicates a bug
-   in your code.
+   in our code.
 
    Now, we will take the virtual address ``0x80000042C``, translate
    it to a physical address (simply by removing the leading ``8``),
@@ -762,7 +775,7 @@ Let’s inspect the code of the loop. We can look at
 
 .. archbox:: RISC-V
 
-   We can use the address ``0x8000106c`` directly, as are using the
+   We can use the address ``0x8000106c`` directly, as we are using the
    BARE virtual address translation mode, which keeps the addresses
    unchanged.
 
@@ -784,7 +797,7 @@ This will dump 10 instructions starting at the specified address.
 
 .. archbox:: MIPS
 
-   You should notice that we are (in overly simplified terms) reading
+   We should notice that we are (in overly simplified terms) reading
    the string via registers ``v0`` and ``v1`` and writing it to the
    console via ``a0``.
 
@@ -804,7 +817,7 @@ This will dump 10 instructions starting at the specified address.
 
 .. archbox:: RISC-V
 
-   You should notice that we are (in overly simplified terms) reading
+   We should notice that we are (in overly simplified terms) reading
    the string via registers ``a4`` and ``a5`` and writing it to the
    console via ``a3``.
 
@@ -838,21 +851,24 @@ hence:
       [msim] dumpmem 0x8000108a 4
         0x080001088   6c6c6548 57202c6f 646c726f 00000a21
 
-``6c6c`` is actually ``ll`` from our ``Hello`` greeting and if you
+``6c6c`` is actually ``ll`` from our ``Hello`` greeting and if we
 translate the rest of the numbers, it is really our greeting.
 
-Why is the string ordered backwards?
+.. quiz::
 
-If you run ``hexdump -C kernel.bin`` you will see these characters
-there as well.
+   Why is the string ordered backwards?
 
-.. collapse:: Solution
+   If we run ``hexdump -C kernel.bin`` you will see these characters
+   there as well.
 
-   While we read strings character by character,
-   MSIM dumps memory by 4 byte words. Both MIPS and RISC-V
-   are little endian, so the bytes on lower addresses take place
-   in less significant bits of the word, making them appear more
-   towards the right when written down.
+   .. collapse:: Solution
+
+     While we read strings character by character,
+     MSIM dumps memory by 4 byte words. Both MIPS and RISC-V
+     are little endian, so the bytes on lower addresses take place
+     in less significant bits of the word, making them appear more
+     towards the right when written down.
+
 
 Exception handling
 ------------------
@@ -860,26 +876,27 @@ Exception handling
 Let’s now see how MSIM (and our kernel) behaves when things go
 wrong.
 
-Go to the ``unaligned`` directory, compile it and open ``main.c``.
+We will use the ``unaligned`` directory. We will compile it and let us
+open ``main.c``.
 
-It contains simple code: we build an array of individual bytes and
-later typecast it to a 32-bit integer. This is something your
+It contains a simple code: we build an array of individual bytes and
+later typecast it to a 32-bit integer. This is something our
 program might do for example to inspect memory, however, it is
-also an operation that may be illegal on your CPU, as we will
-shortly see.
+also an operation that may be illegal on some CPUs.
+Including ours as we will shortly see.
 
 (The code uses ``volatile`` variables to prevent the compiler from
-optimizing too much.)
+optimizing the code too much.)
 
-If you run the code, MSIM will switch to the interactive mode and
+If we run the code, MSIM will switch to the interactive mode and
 show a dump of registers. This is because the access to a 32-bit
 integer that is not aligned (the address we access is not a
 multiple of the size of an integer) is illegal. The CPU reacts by
-generating an exception. Your kernel is currently written so that
+generating an exception. Our kernel is currently written so that
 it reacts to an exception by switching MSIM to the interactive
 mode (which is a sane default for debugging).
 
-You can return to this example and run (once MSIM
+We can return to this example and run (once MSIM
 switches to the interactive mode) the following commands to find
 what addresses caused the problem and what is the interrupt code
 (type).
@@ -900,6 +917,7 @@ what addresses caused the problem and what is the interrupt code
       cpu0 csrd mcause
       cpu0 csrd mtval
 
+
 The ``volatile`` modifier
 -------------------------
 
@@ -911,51 +929,53 @@ for example `this
 article <https://barrgroup.com/Embedded-Systems/How-To/C-Volatile-Keyword>`__
 about ``volatile`` first.
 
-Compile the code and open ``kernel.disasm`` again. You will see
-that most code of ``kernel_main()`` is a mix of constant loads
-(``li``) and stores to memory (``sb``). These instructions
-represent the call to ``print_char`` that writes the character to
-a special part of memory that represents the console (recall that
-MSIM is printing any value written here on your console).
+.. quiz::
 
-Now remove the ``volatile`` modifier and recompile the code. Run
-MSIM again.
+   Let's compile the code and open ``kernel.disasm`` again. We will see
+   that most code of ``kernel_main()`` is a mix of constant loads
+   (``li``) and stores to memory (``sb``). These instructions
+   represent the call to ``print_char`` that writes the character to
+   a special part of memory that represents the console (recall that
+   MSIM is printing any value written here on your console).
 
-Nothing (except the newline) was printed!
+   Now let us remove the ``volatile`` modifier and recompile the code.
+   Let us run MSIM again.
 
-Look at the disassembly again - the code is much shorter! Why?
+   Nothing (except the newline) was printed!
 
-.. collapse:: Hint
+   We will look at the disassembly again: the code is much shorter! Why?
 
-    Imagine what the code looks like when ``print_char``
-    is actually inlined into ``kernel_main``.
+   .. collapse:: Hint
 
-.. collapse:: Solution
+      Imagine what the code looks like when ``print_char``
+      is actually inlined into ``kernel_main``.
 
-    Without ``volatile``, the source is actually this:
+   .. collapse:: Solution
 
-    .. code-block:: c
+      Without ``volatile``, the source is actually this:
 
-        char *printer = (char*)(0x90000000);
-        *printer = 'H';
-        *printer = 'e';
-        ...
-        *printer = '.';
+      .. code-block:: c
 
-    Any decent compiler will recognize that we are
-    overwriting the same variable without reading the
-    values. When optimizing code, the compiler is only
-    required to preserve an externally visible behavior,
-    and a write that nobody reads is not externally
-    visible - hence all writes but the last are removed by
-    the compiler. This means only ``*printer = '\n'``
-    remains.
+         char *printer = (char*)(0x90000000);
+         *printer = 'H';
+         *printer = 'e';
+         ...
+         *printer = '.';
 
-    Using ``volatile`` informs the compiler that someone
-    else (here it is the console device of the simulator,
-    but it can also be another thread) can read or write
-    the variable and therefore accesses to it must not be
-    optimized away.
+      Any decent compiler will recognize that we are
+      overwriting the same variable without reading the
+      values. When optimizing code, the compiler is only
+      required to preserve an externally visible behavior,
+      and a write that nobody reads is not externally
+      visible - hence all writes but the last are removed by
+      the compiler. This means only ``*printer = '\n'``
+      remains.
+
+      Using ``volatile`` informs the compiler that someone
+      else (here it is the console device of the simulator,
+      but it can also be another thread) can read or write
+      the variable and therefore accesses to it must not be
+      optimized away.
 
 
 Surviving without sources

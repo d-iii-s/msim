@@ -5,7 +5,7 @@
 set -ueo pipefail
 
 find_sources_0() {
-    find -type f -and '-(' -name '*.[ch]' -or -name '*.in' -or -name '*.sh' '-)' -print0
+    git ls-tree -r --name-only -z HEAD | grep -zZ -e '[.][ch]$' -e '[.]in$' -e '[.]sh$'
 }
 
 find_crlf_files() {

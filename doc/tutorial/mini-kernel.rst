@@ -1,8 +1,11 @@
-Mini-kernel Tutorial
+Mini-kernel tutorial
 ====================
 
 This page contains several small exercises that should help you
 with your first steps within MIPS or RISC-V kernel running in MSIM.
+
+We will provide you with both instructions how to run MSIM as well as
+a source code of small kernel that you can play with.
 
 .. contents:: Here is an overview of the exercises.
    :local:

@@ -1,24 +1,5 @@
-Tutorial
-========
-
-.. warning::
-   This tutorial is still work-in-progress and covers only few topics.
-
-
-With a small piece of practice, you fill find MSIM easy and comfortable.
-Follow this tutorial to overcome the difficult beginner's live.
-Status of the document
-
-
-Installing
-----------
-
-Please, refer to our detailed
-:doc:`installation instructions <reference/deployment>` page.
-
-
-Devices
--------
+Interactive-mode tutorial
+=========================
 
 Let's assume that the installation has been completed. After starting
 ``msim`` (from your terminal), you will see this:
@@ -217,16 +198,3 @@ block is "main". And the classic command help may look like:
     save <File name>               Save the context of the memory into the file specified
     <device> <cmd>                 Commands of each added device
 
-
-Kernel
-------
-
-MSIM is mainly designed to help in running and debugging small kernels.
-We have prepared several small excercises to prepare you for these activities.
-
-.. toctree::
-    :maxdepth: 1
-
-    mini-kernel
-
-TO BE CONTINUED

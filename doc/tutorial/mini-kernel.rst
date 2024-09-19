@@ -87,8 +87,11 @@ or RISC-V architecture for this exercise
 (of course, intrepid developers can choose to inspect and experiment with
 both at the same time).
 
-Before we discuss the contents of the directory, run ``make``.
-This command launches the make tool, which reads dependency rules
+Before we discuss the contents of the directory, we will build the kernel.
+All the examples use `make <https://www.gnu.org/software/make/>`__
+as the build tool so simply type ``make`` to build it.
+
+The ``make`` command launches the make tool, which reads dependency rules
 from a file named ``Makefile`` and uses them to figure out how to
 compile C sources into a binary executable.
 
@@ -97,7 +100,8 @@ In this case, make should run a sequence of commands to build the
 ``kernel.bin`` executable from the ``head.S`` and ``main.c``
 sources.
 
-In Rotunda, ``make`` will produce the following output (except for the directory):
+``make`` will produce the following output (there might be some differences
+in the paths but otherwise the output should look the same on your machine).
 
 .. tabs:: arch
 
@@ -135,18 +139,20 @@ In Rotunda, ``make`` will produce the following output (except for the directory
       /usr/bin/riscv32-unknown-elf-objdump -d kernel.raw > kernel.disasm
       make[1]: Leaving directory './kernel'
 
-The advantage of using make as opposed to a shell script is in
-that make will only rebuild files (along dependency chains) that
-have changed since the last compilation, which saves build time,
-especially on larger projects (you can try that by running
-``make`` again now).
+.. extras::
 
-In this example, the rules in the top-level ``Makefile`` just tell
-make to run ``make`` again, but this time using the ``Makefile``
-in the ``kernel`` subdirectory, but more details of the
-compilation will come later on.
+    The advantage of using make as opposed to a shell script is in
+    that make will only rebuild files (along dependency chains) that
+    have changed since the last compilation, which saves build time,
+    especially on larger projects (you can try that by running
+    ``make`` again now).
 
-One other file you should note is ``msim.conf``. It contains
+    In this example, the rules in the top-level ``Makefile`` just tell
+    make to run ``make`` again, but this time using the ``Makefile``
+    in the ``kernel`` subdirectory; more details of the
+    compilation will come later on.
+
+Note that there is ``msim.conf`` in our directory. It contains
 directives for the MSIM simulator, configuring it so as to provide
 a simple computer equipped with one processor, two
 blocks of memory, and a console-like device for textual output (we
@@ -187,12 +193,16 @@ the output of the simulator, telling us how many virtual cycles
 has the CPU executed. This is the exact amount of executed instructions.
 We can safely ignore those lines for now.
 
-**If the compilation failed for you, or if the execution printed
-something else**, please, **contact us as soon as possible**: open
-an Issue
-`here <https://github.com/d-iii-s/msim/issues>`__
-and describe what have you tried, what failed and please do not
-forget to describe your environment.
+.. important::
+
+   If the compilation failed for you, or if the execution printed
+   something completely different, please, feel free to contact us:
+   please, `open an issue here <https://github.com/d-iii-s/msim/issues>`__
+   and describe what have you tried, what failed and please do not
+   forget to describe your environment.
+
+   If you are a NSWI200 student, please, prefer the standard means of
+   communicating with your teachers instead of the GitHub issues. Thank you.
 
 Configuring the virtual machine
 -------------------------------

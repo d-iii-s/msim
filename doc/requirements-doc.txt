@@ -2,4 +2,4 @@ sphinx==6.2.1
 recommonmark==0.7.1
 sphinx-rtd-theme==1.2.1
 sphinx-toolbox==3.8.0
-sphinx_code_tabs-0.5.5==0.5.5
+sphinx_code_tabs==0.5.5

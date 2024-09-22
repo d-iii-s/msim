@@ -194,7 +194,7 @@ A byte from another address is read into ``value2``, both of these values get pr
 
     Where did the ``A`` loaded into ``value2`` come from?
 
-    .. collpse:: Hint
+    .. collapse:: Hint
 
         Inspect the second level pagetable.
 
@@ -239,6 +239,7 @@ and let's see how the different memory accesses in ``play_with_memory()`` are tr
     OK: 0x08b0000000 => 0x0c0000000
 
 .. code:: msim
+
     [msim] cpu0 tr 0xB0001000
     satp 0x800a0000 [ Mode: Sv32 ASID: 0 PPN: 0x0a0000 (Physical address: 0x0a0000000) ]
     VPN[1]: 0x2c0 VPN[0]: 0x001 page offset: 0x000
@@ -250,6 +251,7 @@ and let's see how the different memory accesses in ``play_with_memory()`` are tr
     PAGE FAULT - Invalid PTE in 2nd level
 
 .. code:: msim
+    
     [msim] cpu0 tr 0xB0002000
     satp 0x800a0000 [ Mode: Sv32 ASID: 0 PPN: 0x0a0000 (Physical address: 0x0a0000000) ]
     VPN[1]: 0x2c0 VPN[0]: 0x002 page offset: 0x000

@@ -70,12 +70,13 @@ void kernel_main(void);
 
 void kernel_main(void)
 {
+    ebreak();
+
     set_pagetable(PAGETABLE_PHYS);
     ebreak();
 
     greet();
     ebreak();
-
     
     write_to_address(0xB0000000, 'A');
     char value0 = read_from_address(0xB0000000);

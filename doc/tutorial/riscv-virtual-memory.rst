@@ -49,7 +49,19 @@ Compile the project and run ``msim``, you should hit the first breakpoint labele
 BARE mode
 ---------
 
+Here we are still in ``BARE`` translation mode.
+Make sure of this by displaying the content of the ``satp`` CSR.
 
+.. code:: msim
+
+    [msim] cpu0 csrd satp
+    satp (0x180):
+    satp 0x00000000 [ Mode: Bare ]
+
+In this mode, no translation is made between virtual and physical addresses.
+The same address you use in your code is the one which will be accessed in memory.
+There's not much interesting happening with translation now, but you can return here
+after you learn about the different commands of MSIM and test how they behave when running in ``BARE`` mode.
 
 Switching to Sv32
 -----------------

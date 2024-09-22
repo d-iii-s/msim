@@ -220,11 +220,85 @@ A byte from another address is read into ``value2``, both of these values get pr
 When that one translation does not work
 ---------------------------------------
 
-``tr``
-^^^^^^
+While using virtual memory translation, you might encounter a situation, when some address you thought will get translated correctly doesn't or vice versa.
+For these cases, MSIM offers the ``tr`` command, which perform the virtual address translation and describes the individual steps it took.
 
-``str``
-^^^^^^^
+Let's say we have run our example program up to the ``After printing to console`` labeled breakpoint,
+and let's see how the different memory accesses in ``play_with_memory()`` are translated.
+
+.. code:: msim
+
+    [msim] cpu0 tr 0xB0000000
+    satp 0x800a0000 [ Mode: Sv32 ASID: 0 PPN: 0x0a0000 (Physical address: 0x0a0000000) ]
+    VPN[1]: 0x2c0 VPN[0]: 0x000 page offset: 0x000
+    PTE1: [ PPN: 0x0a0001 RSW: 00 ---- ---V ]
+      This entry ^ physical address: 0x0a0000b00 = 0x0a0000000 + 0x2c0 * 4
+    PTE2: [ PPN: 0x0c0000 RSW: 00 ---- XWRV ]
+      This entry ^ physical address: 0x0a0001000 = 0x0a0001000 + 0x000 * 4
+
+    OK: 0x08b0000000 => 0x0c0000000
+
+.. code:: msim
+    [msim] cpu0 tr 0xB0001000
+    satp 0x800a0000 [ Mode: Sv32 ASID: 0 PPN: 0x0a0000 (Physical address: 0x0a0000000) ]
+    VPN[1]: 0x2c0 VPN[0]: 0x001 page offset: 0x000
+    PTE1: [ PPN: 0x0a0001 RSW: 00 ---- ---V ]
+      This entry ^ physical address: 0x0a0000b00 = 0x0a0000000 + 0x2c0 * 4
+    PTE2: [ PPN: 0x0c0000 RSW: 00 ---- XWR- ]
+      This entry ^ physical address: 0x0a0001004 = 0x0a0001000 + 0x001 * 4
+
+    PAGE FAULT - Invalid PTE in 2nd level
+
+.. code:: msim
+    [msim] cpu0 tr 0xB0002000
+    satp 0x800a0000 [ Mode: Sv32 ASID: 0 PPN: 0x0a0000 (Physical address: 0x0a0000000) ]
+    VPN[1]: 0x2c0 VPN[0]: 0x002 page offset: 0x000
+    PTE1: [ PPN: 0x0a0001 RSW: 00 ---- ---V ]
+      This entry ^ physical address: 0x0a0000b00 = 0x0a0000000 + 0x2c0 * 4
+    PTE2: [ PPN: 0x0c0000 RSW: 00 ---- --RV ]
+      This entry ^ physical address: 0x0a0001008 = 0x0a0001000 + 0x002 * 4
+
+    OK: 0x08b0002000 => 0x0c0000000
+
+The first line again shows us the content of ``satp`` which is the start point of memory translation.
+It then shows how the virtual address gets split into the three parts ``VPN[1]``, ``VPN[0]`` and ``offset``.
+The PTEs used for the translation are showed next, together with their (physical) address.
+The last line either describes the successful translation or displays the reason why the translation failed.
+Note that access rights are not taken into account here, but you can deduce them from the last displayed PTE.
+
+.. quiz::
+
+    Try to dump the translation of an address of some instruction.
+    How does this translation differ from the previous ones?
+
+    .. collapse:: Hint
+
+        Look into ``kernel/kernel.disasm`` and pick any address you see.
+
+    .. collapse:: Solution
+
+        The translation is found in the TLB.
+        Flush the TLB using the ``cpu0 tlbflush`` command and try again.
+        How does the translation differ now?
+
+        .. collapse:: Solution
+
+            Only one level of the pagetable is used.
+            This is because the code is mapped using a megapage.
+
+In addition to ``tr`` MSIM also supports the ``str`` command, where similarly to ``sptd`` you specify the used pagetable by its physical address.
+``str`` completely ignores the TLB.
+
+.. code:: msim
+
+    [msim] cpu0 str 0xA0000000 0xB0000000
+    VPN[1]: 0x2c0 VPN[0]: 0x000 page offset: 0x000
+    PTE1: [ PPN: 0x0a0001 RSW: 00 ---- ---V ]
+      This entry ^ physical address: 0x0a0000b00 = 0x0a0000000 + 0x2c0 * 4
+    PTE2: [ PPN: 0x0c0000 RSW: 00 ---- XWRV ]
+      This entry ^ physical address: 0x0a0001000 = 0x0a0001000 + 0x000 * 4
+
+    OK: 0x08b0000000 => 0x0c0000000
 
 What even is the TLB?
 ---------------------

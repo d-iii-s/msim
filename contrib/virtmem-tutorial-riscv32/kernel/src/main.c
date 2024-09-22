@@ -65,9 +65,9 @@ static void play_with_memory(void) {
     char value0 = read_from_address(0xB0000000);
     print_char(value0);
 
-    // char value1 = read_from_address(0xC0001000); // Invalid translation
+    // char value1 = read_from_address(0xB0001000); // Invalid translation
 
-    // write_to_address(0xC0002000, 'B'); // Read-only page
+    // write_to_address(0xB0002000, 'B'); // Read-only page
 
     char value2 = read_from_address(0xB0002000);
     print_char(value2);

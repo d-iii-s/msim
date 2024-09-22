@@ -66,14 +66,156 @@ after you learn about the different commands of MSIM and test how they behave wh
 Switching to Sv32
 -----------------
 
+The next line after the break is where all of the magic happens.
+We setup the CPU to use the pagetable by writing the correct value to the ``satp`` CSR.
+Continue the execution of MSIM (type ``continue`` and press Enter),
+you'll hit the next breakpoint labeled ``Switched to Sv32``.
+
+Let's try displaying the content of ``satp`` again.
+
+.. code:: msim
+
+    [msim] cpu0 csrd satp
+    satp (0x180):
+    satp 0x800a0000 [ Mode: Sv32 ASID: 0 PPN: 0x0a0000 (Physical address: 0x0a0000000) ]
+
+A lot more is happening here now, we are now using the ``Sv32`` translation scheme, with an ASID of 0
+and the current pagetable sits at physical address ``0xA0000000``.
+
+.. quiz::
+
+    Why is there an extra ninth ``0`` in front of the PPN and physical address?
+
+    .. collapse:: Solution
+
+        The ``Sv32`` translation scheme actually allows for 34 bit physical addresses, which results in 9 hex digits.
+
 What's inside the pagetable
 ---------------------------
 
-``ptd``
-^^^^^^^
+Let's look inside the pagetable now.
+If you have tried to decode the pagetable manually, now's the time to check your results.
+For this, we will use the ``ptd`` command
 
-``sptd``
-^^^^^^^^
+.. code:: msim
+
+    [msim] cpu0 ptd
+    satp 0x800a0000 [ Mode: Sv32 ASID: 0 PPN: 0x0a0000 (Physical address: 0x0a0000000) ]
+    0x800: [ PPN: 0x080000 RSW: 00 -AG- XWRV ] [ Megapage ]
+    0x900: [ PPN: 0x090000 RSW: 00 --G- -WRV ] [ Megapage ]
+    0xa00: [ PPN: 0x0a0000 RSW: 00 --G- -WRV ] [ Megapage ]
+    0xb00: [ PPN: 0x0a0001 RSW: 00 ---- ---V ]
+      0x000: [ PPN: 0x0c0000 RSW: 00 ---- XWRV ]
+      0x008: [ PPN: 0x0c0000 RSW: 00 ---- --RV ]
+      0x00c: [ PPN: 0x0c0000 RSW: 00 --G- XWRV ]
+      0x010: [ PPN: 0x0c0000 RSW: 00 ---U XWRV ]
+
+This command first displays the content of ``satp`` so we can check with pagetable we are working with.
+Then it traverses the pagetable, displaying all valid PTEs and for each non-leaf PTE it descends
+and traverses the second-level pagetable.
+
+Each line thus corresponds to one PTE.
+It starts with the address offset of this particular PTE in its page, then it displays the stored PPN and RSW bits.
+It ends with the individual bitfields ``DAGU XWRV``. A corresponding letter is displayed if this bit is ``1``,
+a dash is present instead if this bit is ``0``.
+PTEs representing a megapage are denoted as such, second level PTEs are indented with two spaces.
+
+.. quiz::
+
+    What do the individual letters in ``DAGU XWRV`` stand for?
+
+    .. collapse:: Hint
+
+        Look at the `RISC-V Privileged Specification <https://github.com/riscv/riscv-isa-manual/releases/download/20240411/priv-isa-asciidoc.pdf>`__
+        Chaper 10.3. Sv32: Page-Based 32-bit Virtual-Memory Systems.
+
+    .. collapse:: Solution
+
+        - **D**\ irty
+        - **A**\ ccessed
+        - **G**\ lobal
+        - **U**\ ser
+        - e\ **X**\ ecute
+        - **W**\ rite
+        - **R**\ ead
+        - **V**\ alid
+
+The ``ptd`` displays only valid PTEs. If you also want to display invalid ones,
+you can use the verbose flag:
+
+.. code:: msim
+
+    [msim] cpu0 ptd v
+    satp 0x800a0000 [ Mode: Sv32 ASID: 0 PPN: 0x0a0000 (Physical address: 0x0a0000000) ]
+    0x800: [ PPN: 0x080000 RSW: 00 -AG- XWRV ] [ Megapage ]
+    0x900: [ PPN: 0x090000 RSW: 00 --G- -WRV ] [ Megapage ]
+    0xa00: [ PPN: 0x0a0000 RSW: 00 --G- -WRV ] [ Megapage ]
+    0xb00: [ PPN: 0x0a0001 RSW: 00 ---- ---V ]
+      0x000: [ PPN: 0x0c0000 RSW: 00 ---- XWRV ]
+      0x004: [ PPN: 0x0c0000 RSW: 00 ---- XWR- ]
+      0x008: [ PPN: 0x0c0000 RSW: 00 ---- --RV ]
+      0x00c: [ PPN: 0x0c0000 RSW: 00 --G- XWRV ]
+      0x010: [ PPN: 0x0c0000 RSW: 00 ---U XWRV ]
+
+This way, all non-zero PTEs are displayed (and indeed, there are 9 of them ;-) ).
+
+If you don't want to dump the content of the currently active pagetable, but would rather
+specify it by address, you can use the ``sptd`` command, which also supports the verbose flag.
+
+.. code:: msim
+
+    [msim] cpu0 sptd 0xA0000000
+    0x800: [ PPN: 0x080000 RSW: 00 -AG- XWRV ] [ Megapage ]
+    0x900: [ PPN: 0x090000 RSW: 00 --G- -WRV ] [ Megapage ]
+    0xa00: [ PPN: 0x0a0000 RSW: 00 --G- -WRV ] [ Megapage ]
+    0xb00: [ PPN: 0x0a0001 RSW: 00 ---- ---V ]
+      0x000: [ PPN: 0x0c0000 RSW: 00 ---- XWRV ]
+      0x008: [ PPN: 0x0c0000 RSW: 00 ---- --RV ]
+      0x00c: [ PPN: 0x0c0000 RSW: 00 --G- XWRV ]
+      0x010: [ PPN: 0x0c0000 RSW: 00 ---U XWRV ]
+
+You can now again continue the execution of MSIM, some text will get printed to the console,
+after which another breakpoint will be hit.
+
+.. quiz::
+
+    Dump the pagetable again, how has it changed?
+
+    .. collapse:: Solution
+
+        The PTE corresponding to the printer device has the ``DA`` bits set now.
+        This signifies that this (mega-)page has been written to.
+
+After this breakpoint the ``play_with_memory()`` function gets called.
+Here the byte corresponding to the letter ``A`` is written to some address, from where it's read back into ``value0``.
+A byte from another address is read into ``value2``, both of these values get printed, which results in the letter ``A`` being printed twice.
+
+.. quiz::
+
+    Where did the ``A`` loaded into ``value2`` come from?
+
+    .. collpse:: Hint
+
+        Inspect the second level pagetable.
+
+    .. collapse:: Solution
+
+        The virtual pages ``0xB0000`` and ``0xB0002`` are both mapped to the same physical page ``0xC0000``, so the ``A`` written to one can be read from the second.
+
+.. quiz::
+
+    Some code is commented out in this function, try to uncomment it and see what happens.
+    Try to experiment in this function with writing to and reading from different addresses. 
+    How do the ``RWXV`` bits change the behavior?
+    You can also observe how do the ``DA`` bits change, do you notice anything interesting?
+
+    .. collapse:: Solution
+
+        As is required by the specification, accessing a page with the ``V`` bit equal to ``0`` will raise a pagefault.
+        So will reading a page without ``R`` permission and writing to a page without a ``W`` permission.
+
+        When you read from a page the ``A`` bit gets set only for the PTE through which this memory has been accessed, this works the same for the ``D`` bit and writing.
+        These bits do not change for the other pages which map to the same memory, even if the backing memory behind them has been read/written to.
 
 When that one translation does not work
 ---------------------------------------

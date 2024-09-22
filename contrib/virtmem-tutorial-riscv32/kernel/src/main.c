@@ -31,7 +31,7 @@ static inline void set_pagetable(unsigned pagetable_physical_address) {
     unsigned sv32mode = 0x80000000;
     unsigned asid = 0;
     unsigned satp_value = sv32mode | asid | ppn;
-    
+
     __asm__ volatile("csrw satp, %0\n"::"r"(satp_value));
 }
 

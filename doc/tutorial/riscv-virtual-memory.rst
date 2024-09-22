@@ -21,8 +21,35 @@ for this tutorial.
 Setting up
 ----------
 
+We have prepared a small example project in ``contrib/virtmem-tutorial-riscv32``.
+You will find it is setup in the same way as the excercises in the :doc:`Mini-kernel tutorial <mini-kernel>`.
+But there's a crucial difference, we have also prepared a pagetable in ``kernel/pagetable.bin``,
+that gets loaded by MSIM and which is ready to be used.
+
+.. quiz::
+
+    How many non-empty **P**\ age **T**\ able **E**\ ntries can be found in this pagetable?
+
+    .. collapse:: Hint
+
+        Use ``hexdump`` to display the contents.
+        (Note that ``hexdump`` omits long zero-only segments of the file)
+
+    .. collapse:: Solution
+
+        There are 9 in total. One for each 4 B non-zero word in the file.
+
+Brave developers can try to decode this pagetable by hand, if you intend to do so,
+consult ``msim.conf`` first and look at which physical address this pagetable gets loaded.
+
+If/After you've finished, let's try to run the example program.
+There are several breakpoints breakpoints set in the ``kernel_main()`` function.
+Compile the project and run ``msim``, you should hit the first breakpoint labeled ``Still in BARE mode``.
+
 BARE mode
 ---------
+
+
 
 Switching to Sv32
 -----------------
@@ -50,7 +77,7 @@ What even is the TLB?
 
 .. quiz:: 
 
-    That is a good question, what even is the TLB?
+    That is a good question; what even is the TLB?
 
     .. collapse:: Hint
 

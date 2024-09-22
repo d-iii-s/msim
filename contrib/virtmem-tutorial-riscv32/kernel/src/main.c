@@ -56,6 +56,21 @@ static void greet(void) {
     print_char('\n');
 }
 
+static void play_with_memory(void) {
+    write_to_address(0xB0000000, 'A');
+    char value0 = read_from_address(0xB0000000);
+    print_char(value0);
+
+    // char value1 = read_from_address(0xC0001000); // Invalid translation
+
+    // write_to_address(0xC0002000, 'B'); // Read-only page
+
+    char value2 = read_from_address(0xB0002000);
+    print_char(value2);
+
+    print_char('\n');
+}
+
 /** This is kernel C-entry point.
  *
  * Kernel jumps here from assembly bootstrap code. Note that
@@ -70,26 +85,20 @@ void kernel_main(void);
 
 void kernel_main(void)
 {
+    // Still in BARE mode
     ebreak();
 
     set_pagetable(PAGETABLE_PHYS);
+
+    // Switched to Sv32
     ebreak();
 
     greet();
+
+    // After printing to console
     ebreak();
-    
-    write_to_address(0xB0000000, 'A');
-    char value0 = read_from_address(0xB0000000);
-    print_char(value0);
 
-    // char value1 = read_from_address(0xC0001000); // Invalid translation
-
-    // write_to_address(0xC0002000, 'B'); // Read-only page
-
-    char value2 = read_from_address(0xB0002000);
-    print_char(value2);
-
-    print_char('\n');
+    play_with_memory();
 
     halt();
 }

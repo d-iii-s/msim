@@ -251,7 +251,7 @@ and let's see how the different memory accesses in ``play_with_memory()`` are tr
     PAGE FAULT - Invalid PTE in 2nd level
 
 .. code:: msim
-    
+
     [msim] cpu0 tr 0xB0002000
     satp 0x800a0000 [ Mode: Sv32 ASID: 0 PPN: 0x0a0000 (Physical address: 0x0a0000000) ]
     VPN[1]: 0x2c0 VPN[0]: 0x002 page offset: 0x000
@@ -330,8 +330,30 @@ What even is the TLB?
         of all etries with a given ASID, all entries which map a given virtual address
         or based on both ASID and address.
 
-``tlbd``
-^^^^^^^^
+MSIM simulates the TLB for the RISC-V architecture. Its size is configurable (using the ``tlbresize`` command),
+but using the default count of 48 entries should be reasonable for most applications.
 
-``tlbflush``
-^^^^^^^^^^^^
+When translating an address the TLB is first searched for a TLB entry which maps the given virtual address
+and is either global or has the same ASID as is currently in ``satp``.
+Thus if you intend to use the same ASID for different address spaces, you have to carefully flush the TLB.
+It's always safe to flush the cache, but in the real world, you would try to flush out only the problematic entries.
+
+You can view the content of the TLB with the command ``tlbd``:
+
+.. code:: msim
+
+    [msim] cpu0 tlbd
+    TLB    size: 48 entries
+       index:       virt => phys        [ info ]
+           0: 0x90000000 => 0x090000000 [ ASID: 0, GLOBAL: T, MEGAPAGE: T ]
+           1: 0x80000000 => 0x080000000 [ ASID: 0, GLOBAL: T, MEGAPAGE: T ]
+           2: 0xb0002000 => 0x0c0000000 [ ASID: 0, GLOBAL: F, MEGAPAGE: F ]
+           3: 0xb0000000 => 0x0c0000000 [ ASID: 0, GLOBAL: F, MEGAPAGE: F ]
+
+The entries are dumped in the order of the time they were last used, the more recent ones being higher up.
+(I.e. entry on index 47 will always get evicted when making space for a new entry using the LRU strategy.)
+The mapping from virtual to physical address is shown as well as additional information containing the ASID, whether the page is global (meaning it belongs to all ASIDs),
+and the size of the page (4 KiB for regular pages, 4 MiB for megapages).
+
+The TLB can be flushed manually using the ``tlbflush`` command. This removes all of the entries.
+As we have seen, this command is rather useful for the ``tr`` command, if we want to inspect how an address already present in the TLB has been translated.

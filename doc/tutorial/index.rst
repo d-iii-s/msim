@@ -17,3 +17,4 @@ not yet installed MSIM.
 
     interactive-mode
     mini-kernel
+    riscv-virtual-memory

@@ -10,7 +10,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
- - Wrong formatting of virtual address in the result of tr and str (#71)
+ - Wrong formatting of virtual address in the result of `tr` and `str` (see #71, @HanyzPAPU)
 
 ### Added
 

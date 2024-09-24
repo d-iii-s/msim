@@ -1,5 +1,5 @@
-RISC-V virtual memory tutorial
-==============================
+RISC-V memory commands tutorial
+===============================
 
 This page will introduce you to several ways in which MSIM can help you
 work with RISC-V virtual memory translation, be it with setting up pagetables,

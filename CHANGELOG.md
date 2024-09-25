@@ -6,6 +6,7 @@ All notable changes to MSIM will be documented in this file
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+
 ## Unreleased
 
 ### Fixed
@@ -20,6 +21,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Deprecated
 
 ### Removed
+
+
+## v2.3.1 - 2024-09-25
+
+### Fixed
+
+ - Wrong formatting of virtual address in the result of `tr` and `str` (see #71, @HanyzPAPU)
+ - Propagate error when ddisk cannot write to a file (see #63, @PeterHero)
 
 
 ## v2.3.0 - 2024-09-12

@@ -518,7 +518,7 @@ static bool ddisk_save(token_t *parm, device_t *dev)
     if (file == NULL) {
         io_error(path);
         error("%s", txt_file_create_err);
-        return true;
+        return false;
     }
 
     /* Write data */

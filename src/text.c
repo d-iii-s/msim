@@ -75,7 +75,7 @@ const char *txt_exc[] = {
     "Virtual Coherency data"
 };
 
-const char txt_version[] = "MSIM version " PACKAGE_VERSION "\nCopyright (c) 2000-2022 Viliam Holub, Martin Decky, Jan Papesch\n";
+const char txt_version[] = "MSIM version " PACKAGE_VERSION "\nCopyright (c) 2000-2024 MSIM authors (see Git repo for list of authors)\nLicenced under GPLv2.\n";
 
 const char txt_help[] = "  -V, --version               display version info\n"
                         "  -c, --config=file_name      configuration file name\n"

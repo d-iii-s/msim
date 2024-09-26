@@ -1,18 +1,18 @@
 RISC-V memory commands tutorial
 ===============================
 
-This page will introduce you to several ways in which MSIM can help you
-work with RISC-V virtual memory translation, be it with setting up pagetables,
+This page introduces several ways how MSIM can help
+with RISC-V virtual memory translation, be it with setting up pagetables,
 checking that the translation works as expected
 or figuring out issues caused by the TLB.
 
-We expect you are already already familiar know how the Sv32
-adressing mode works. If you are not, please consider reading the
+We expect the reader is already familiar know how the Sv32
+addressing mode works, otherwise please consider reading the
 appropriate chapter of the
 `RISC-V Privileged Specification <https://github.com/riscv/riscv-isa-manual/releases/download/20240411/priv-isa-asciidoc.pdf>`__.
 
-We also highly encourage you complete the :doc:`Mini-kernel tutorial <mini-kernel>`
-first, as the same build process and project structure is used
+We also highly encourage completing the :doc:`Mini-kernel tutorial <mini-kernel>`
+before this one, as the same build process and project structure is used
 for this tutorial.
 
 .. contents:: Here is an overview of this tutorial
@@ -22,8 +22,8 @@ Setting up
 ----------
 
 We have prepared a small example project in ``contrib/virtmem-tutorial-riscv32``.
-You will find it is setup in the same way as the excercises in the :doc:`Mini-kernel tutorial <mini-kernel>`,
-but here's a crucial difference. You can find a pagetable in ``kernel/pagetable.bin``,
+It is setup in the same way as the excercises in the :doc:`Mini-kernel tutorial <mini-kernel>`,
+but here's a crucial difference. We can find a pagetable in ``kernel/pagetable.bin``,
 which gets loaded by MSIM to address ``0xA0000000`` and is ready to be used out-of-the-box.
 
 .. quiz::
@@ -45,7 +45,7 @@ After/If you've finished, let's run the example program.
 There are several breakpoints in the ``kernel_main()`` function,
 each of them labeled by a comment.
 Compile the project and run MSIM (``make && msim``).
-You should hit the first breakpoint labeled ``Still in BARE mode``.
+We should hit the first breakpoint labeled ``Still in BARE mode``.
 
 BARE mode
 ---------
@@ -60,10 +60,10 @@ Let's make sure of this by displaying the content of the ``satp`` CSR.
     satp 0x00000000 [ Mode: Bare ]
 
 In this mode, no translation is made between virtual and physical addresses.
-The same address you use in your code is the one which will be accessed in memory.
+The same address we use in our program is the one which will be accessed in memory.
 There aren't many interesting things happening regarding translation for now,
-but you can return here after you learn about the different commands of MSIM
-and compare how they behave when using ``BARE`` mode.
+but we encourage the reader to return here after learning about
+the different commands of MSIM and compare how they behave in ``BARE`` mode.
 
 Switching to Sv32
 -----------------
@@ -74,7 +74,7 @@ the CPU is set up to use our pagetable.
 We start by composing the new ``satp`` value to be of the required format,
 then we write the value with the ``csrw`` instruction.
 Continue the execution of MSIM (type ``continue`` and press Enter),
-you'll hit the next breakpoint labeled ``Switched to Sv32``.
+we'll hit the next breakpoint labeled ``Switched to Sv32``.
 
 Let's try displaying the content of ``satp`` again.
 
@@ -85,7 +85,7 @@ Let's try displaying the content of ``satp`` again.
     satp 0x800a0000 [ Mode: Sv32 ASID: 0 PPN: 0x0a0000 (Physical address: 0x0a0000000) ]
 
 A lot more is happening here now.
-You can see that we are now using the ``Sv32`` translation scheme,
+We can see that we are now using the ``Sv32`` translation scheme,
 the current ASID is set to 0,
 and the active pagetable sits at physical address ``0xA0000000``.
 
@@ -155,8 +155,8 @@ second level PTEs are indented with two spaces.
         - **R**\ ead
         - **V**\ alid
 
-If you want to display invalid PTEs in addition to the valid ones,
-you can use the verbose flag:
+If we want to display invalid PTEs in addition to the valid ones,
+we can use the verbose flag:
 
 .. code:: msim
 
@@ -174,9 +174,9 @@ you can use the verbose flag:
 
 This way, all non-zero PTEs are displayed (and indeed, there are 9 of them ;-) ).
 
-If you don't want to dump the content of the currently active pagetable,
+If we don't want to dump the content of the currently active pagetable,
 but would rather specify it by its (physical) address,
-you can use the ``sptd`` command.
+we can use the ``sptd`` command, where the ``s`` stands for simulated.
 
 .. code:: msim
 
@@ -249,9 +249,8 @@ Both ``value0`` and ``value2`` get printed, which prints ``'A'`` twice.
 When that one translation does not work
 ---------------------------------------
 
-While using virtual memory translation,
-you might encounter a situation,
-when some address you thought will get translated correctly doesn't
+While using virtual memory translation, we might encounter a situation,
+when some address we thought will get translated correctly doesn't
 or vice versa. For these cases, MSIM offers the ``tr`` command,
 which perform the virtual address translation using the active pagetable
 and describes the individual steps it took.
@@ -306,7 +305,7 @@ together with their (physical) address.
 The last line either describes the successful translation
 or displays the reason why the translation failed.
 Note that access rights are not taken into account here,
-but you can deduce them from the last displayed PTE.
+but we can deduce them from the last displayed PTE.
 
 .. quiz::
 
@@ -329,8 +328,9 @@ but you can deduce them from the last displayed PTE.
             Only one level of the pagetable is used.
             This is because the code is mapped using a megapage.
 
-In addition to ``tr`` MSIM also supports the ``str`` command.
-Similarly to ``sptd``, you specify the used pagetable by its physical address.
+In addition to ``tr`` MSIM also supports the ``str`` command
+(``s`` again standing for simulated).
+Similarly to ``sptd``, we specify the used pagetable by its physical address.
 Also, ``str`` completely ignores the TLB.
 
 .. code:: msim
@@ -377,14 +377,14 @@ but using the default count of 48 entries should be reasonable for most applicat
 
 When translating an address the TLB is first searched for an entry
 which maps the given virtual address and which is either global
-or has the currently active ASID. Thus if you intend to use the same ASID
-for different address spaces, you have to carefully flush the TLB.
-It's always safe to flush the cache, but in the real world,
-you would try to flush out only the problematic entries, so that the TLB
-is used as much as possible and the CPU does not have to wait for slow
-memory reads.
+or has the currently active ASID.
+Thus if we intend to use the same ASID for two different address spaces,
+we would need to flush the TLB.
+Flushing TLB is always safe (TLB is a performance optimization, after all)
+but in the real world we should always try
+to flush only the conflicting entries, keeping the rest of TLB intact.
 
-You can view the content of the TLB with the command ``tlbd``:
+We can view the content of the TLB with the command ``tlbd``:
 
 .. code:: msim
 

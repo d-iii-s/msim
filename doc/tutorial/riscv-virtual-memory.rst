@@ -24,7 +24,9 @@ Setting up
 We have prepared a small example project in ``contrib/virtmem-tutorial-riscv32``.
 It is setup in the same way as the excercises in the :doc:`Mini-kernel tutorial <mini-kernel>`,
 but here's a crucial difference. We can find a pagetable in ``kernel/pagetable.bin``,
-which gets loaded by MSIM to address ``0xA0000000`` and is ready to be used out-of-the-box.
+which gets loaded by MSIM to address ``0xA0000000`` and is ready to be used out-of-the-box
+(i.e., it is already the binary structure where the CPU can perform the hardware
+page walk when determining a mapping between a physical and a virtual address).
 
 .. quiz::
 

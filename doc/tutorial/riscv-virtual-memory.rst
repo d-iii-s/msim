@@ -69,7 +69,7 @@ Switching to Sv32
 -----------------
 
 The line after the first break is where all of the magic happens.
-We call the ``set_pagetable(unsigned)`` function where 
+We call the ``set_pagetable(unsigned)`` function where
 the CPU is set up to use our pagetable.
 We start by composing the new ``satp`` value to be of the required format,
 then we write the value with the ``csrw`` instruction.
@@ -320,7 +320,7 @@ but we can deduce them from the last displayed PTE.
 
         The translation is found in the TLB.
         Clear the TLB by executing ``cpu0 tlbflush`` (more on this later) and try again.
-        
+
         How does the translation differ now?
 
         .. collapse:: Solution 2
@@ -347,7 +347,7 @@ Also, ``str`` completely ignores the TLB.
 What even is the TLB?
 ---------------------
 
-.. quiz:: 
+.. quiz::
 
     You know, that is a good question. What even is the TLB?
 
@@ -359,12 +359,12 @@ What even is the TLB?
 
         TLB is a cache used to store virtual translation results.
         It works on the level of pages (either 4 KiB or 4 MiB megapages).
-        
+
         If we were to translate ``0x12345000 => 0x6789A000`` using a pagetable
         (and thus reading twice from memory), we cache that the ``0x12345`` VPN is mapped
         to the ``0x6789A`` PPN. Let's say we want to translate the address ``0x123450F0`` next.
         We start by looking into the TLB and notice, that we have an entry for its VPN.
-        We can translate this address without looking inside of the pagetable. 
+        We can translate this address without looking inside of the pagetable.
         We do so and translate it to ``0x6789A0F0``.
 
         The TLB entries are added automatically to a finite TLB, if there is not a free space for the new

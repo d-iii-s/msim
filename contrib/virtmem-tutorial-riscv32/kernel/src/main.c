@@ -26,26 +26,30 @@ static inline void halt(void)
     __asm__ volatile(".word 0x8C000073");
 }
 
-static inline void set_pagetable(unsigned pagetable_physical_address) {
+static inline void set_pagetable(unsigned pagetable_physical_address)
+{
     unsigned ppn = (pagetable_physical_address >> 12);
     unsigned sv32mode = 0x80000000;
     unsigned asid = 0;
     unsigned satp_value = sv32mode | asid | ppn;
 
-    __asm__ volatile("csrw satp, %0\n"::"r"(satp_value));
+    __asm__ volatile("csrw satp, %0\n" ::"r"(satp_value));
 }
 
-static inline char read_from_address(unsigned address) {
-    volatile char* ptr = (volatile char*)address;
+static inline char read_from_address(unsigned address)
+{
+    volatile char *ptr = (volatile char *) address;
     return *ptr;
 }
 
-static inline void write_to_address(unsigned address, char value) {
-    volatile char* ptr = (volatile char*)address;
+static inline void write_to_address(unsigned address, char value)
+{
+    volatile char *ptr = (volatile char *) address;
     *ptr = value;
 }
 
-static void greet(void) {
+static void greet(void)
+{
     print_char('V');
     print_char('i');
     print_char('r');
@@ -60,7 +64,8 @@ static void greet(void) {
     print_char('\n');
 }
 
-static void play_with_memory(void) {
+static void play_with_memory(void)
+{
     write_to_address(0xB0000000, 'A');
     char value0 = read_from_address(0xB0000000);
     print_char(value0);

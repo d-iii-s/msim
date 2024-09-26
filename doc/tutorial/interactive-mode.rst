@@ -113,7 +113,7 @@ So we need a device type and a name.
 
 Let's start with ``add``. We are now interested in processors, so the
 ``dr4kcpu`` device type is what we need (MIPS R4000 processor).
-For other devices, please, consult :doc:`reference documentation <reference/devices>`.
+For other devices, please, consult :doc:`reference documentation <../reference/devices>`.
 
 The first ``d`` letter is just for clearity, to somehow make a space for usual
 users identifies. Let's add a processor named ``c0`` and check it by listing devices:

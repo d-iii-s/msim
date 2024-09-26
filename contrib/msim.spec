@@ -1,6 +1,6 @@
 Summary: A virtual machine simulator based on a MIPS R4000 and RISC-V processor
 Name: msim
-Version: 2.2.1
+Version: 2.3.1
 Release: 1%{?dist}
 License: GPLv2+
 Group: Development/Tools

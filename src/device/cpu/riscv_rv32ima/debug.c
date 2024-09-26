@@ -755,7 +755,7 @@ static void rv_pte_translation_step_dump(const char *header, sv32_pte_t pte, ptr
 
 static bool rv_translation_dump_success(uint32_t virt, ptr36_t phys)
 {
-    printf("\nOK: 0x08%x => 0x%09lx\n", virt, phys);
+    printf("\nOK: 0x%08x => 0x%09lx\n", virt, phys);
     return true;
 }
 

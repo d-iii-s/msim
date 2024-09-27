@@ -16,5 +16,6 @@ not yet installed MSIM.
     :maxdepth: 1
 
     interactive-mode
+    toolchain
     mini-kernel
     riscv-virtual-memory

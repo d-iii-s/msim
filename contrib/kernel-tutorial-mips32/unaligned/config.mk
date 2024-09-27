@@ -4,8 +4,8 @@
 # Guess where the toolchain is installed.
 # Override the last branch if you are not in Rotunda
 # or you have not used our cross-compiler build script.
-ifneq ("$(wildcard /opt/mffd3s/bin/mipsel-linux-gnu-gcc)", "")
-	TOOLCHAIN_DIR = /opt/mffd3s
+ifneq ("$(wildcard /opt/mffd3s/mips32/bin/mipsel-linux-gnu-gcc)", "")
+	TOOLCHAIN_DIR = /opt/mffd3s/mips32
 	TARGET = mipsel-linux-gnu
 else
 	ifneq ("$(wildcard /usr/bin/mipsel-unknown-linux-gnu-gcc)", "")

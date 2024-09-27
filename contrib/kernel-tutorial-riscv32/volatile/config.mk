@@ -4,8 +4,8 @@
 # Guess where the toolchain is installed.
 # Override the last branch if you are not in Rotunda
 # or you have not used our cross-compiler build script.
-ifneq ("$(wildcard /opt/mffd3s/bin/riscv32-unknown-elf-gcc)", "")
-	TOOLCHAIN_DIR = /opt/mffd3s
+ifneq ("$(wildcard /opt/mffd3s/riscv32/bin/riscv32-unknown-elf-gcc)", "")
+	TOOLCHAIN_DIR = /opt/mffd3s/riscv32
 	TARGET = riscv32-unknown-elf
 else
 	ifneq ("$(wildcard /usr/bin/riscv32-unknown-elf-gcc)", "")

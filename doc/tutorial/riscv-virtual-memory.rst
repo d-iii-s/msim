@@ -43,11 +43,13 @@ page walk when determining a mapping between a physical and a virtual address).
 
 Brave developers might try to decode this pagetable by hand.
 
-After/If you've finished, let's run the example program.
+We will now run the example program.
 There are several breakpoints in the ``kernel_main()`` function,
 each of them labeled by a comment.
-Compile the project and run MSIM (``make && msim``).
-We should hit the first breakpoint labeled ``Still in BARE mode``.
+The compilation is performed by a simple ``make`` after which we
+can start the simulation by running ``msim``.
+
+We will hit the first breakpoint labeled ``Still in BARE mode``.
 
 BARE mode
 ---------
@@ -61,7 +63,9 @@ Let's make sure of this by displaying the content of the ``satp`` CSR.
     satp (0x180):
     satp 0x00000000 [ Mode: Bare ]
 
-In this mode, no translation is made between virtual and physical addresses.
+In this mode, no translation is made between virtual and physical addresses
+(sometimes this is called an identity mapping, identity paging, identity mapped
+paging or 1:1 paging).
 The same address we use in our program is the one which will be accessed in memory.
 There aren't many interesting things happening regarding translation for now,
 but we encourage the reader to return here after learning about
@@ -102,10 +106,33 @@ and the active pagetable sits at physical address ``0xA0000000``.
         instead of the 8/5 for 32-bit virtual addresses.
         Note that since only 2 bits are used in this added digit, it can at most be equal to ``3``.
 
+.. quiz::
+
+    What is ASID (address space identifier)?
+
+    .. collapse:: Solution
+
+        The ASID is a performance optimization: the CPU can cache some of the
+        translations in the pagetable in a cache called TLB (see below for
+        further details). However, switching address spaces (e.g., when
+        switching to a different userspace proces) would invalidate the whole
+        cache -- the other process certainly cannot use old mappings.
+
+        Thus, ASID is added to each translation and only translations with
+        current ASID are considered in the TLB.
+
+        It is the responsibility of the operating system to keep track of
+        assigned ASIDs and flush the TLB accordingly if a need to recycle
+        ASIDs arise (e.g., consider a situation when there are more userspace
+        processes than is the size of the ASID space of the CPU).
+
+        RISC-V can have ASID up to 9bits long (ASID on MIPS R4000 is 8bit long).
+
+
 What's inside the pagetable
 ---------------------------
 
-Now that we are using the pagetable, let's diplay its content.
+Now that we are using the pagetable, let's display its content.
 If you have tried to decode the pagetable manually, it's time to check your results.
 We can use the ``ptd`` command to dump the currently used pagetable:
 
@@ -248,8 +275,9 @@ Both ``value0`` and ``value2`` get printed, which prints ``'A'`` twice.
         This works the same for the ``D`` bit and writing.
         These bits do not change for the other pages which map to the same physical memory.
 
-When that one translation does not work
----------------------------------------
+
+Debugging translation issues
+----------------------------
 
 While using virtual memory translation, we might encounter a situation,
 when some address we thought will get translated correctly doesn't
@@ -332,7 +360,8 @@ but we can deduce them from the last displayed PTE.
 
 In addition to ``tr`` MSIM also supports the ``str`` command
 (``s`` again standing for simulated).
-Similarly to ``sptd``, we specify the used pagetable by its physical address.
+Similarly to ``sptd``, we specify the used pagetable by its physical address
+(page table is the first parameter and the translated address is the second one).
 Also, ``str`` completely ignores the TLB.
 
 .. code:: msim
@@ -346,12 +375,12 @@ Also, ``str`` completely ignores the TLB.
 
     OK: 0xb0000000 => 0x0c0000000
 
-What even is the TLB?
----------------------
+More details about TLB on RISC-V
+--------------------------------
 
 .. quiz::
 
-    You know, that is a good question. What even is the TLB?
+    What is TLB?
 
     .. collapse:: Hint
 
@@ -373,6 +402,17 @@ What even is the TLB?
         entry, the **L**\ east **R**\ ecently **U**\ sed entry is evicted.
         The ``sfence.vma`` instruction serves for manual eviction.
         It can either clear the whole TLB or you can use it to evict based on the ASID, virtual address or both.
+
+        Usually TLBs are transparent and users (i.e., kernel authors) can only
+        flush the TLB while hardware controls when entries are added to the
+        cache (TLB) and which entries are evicted because of lack of space
+        (real hardware will typically use some fast approximation of LRU instead
+        of keeping a precise record of recent accesses).
+        Note that TLB on MIPS is a noteworthy exception because it is a
+        software-controlled TLB (the CPU does not perform hardware page walks
+        to find the mapping and relies on the operating system to prefill the
+        TLB).
+
 
 The size of the RISC-V TLB is configurable in MSIM (using the ``tlbresize`` command),
 but using the default count of 48 entries should be reasonable for most applications.

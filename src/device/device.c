@@ -187,7 +187,7 @@ bool dev_next(device_t **device, device_filter_t filter)
  *
  * @param name_prefix  First letters of the device type to be found.
  * @param device_order Position in the device_types array from the searching
- *                     will start. Next start position is returned throught
+ *                     will start. Next start position is returned through
  *                     this parameter. If the array was all searched the
  *                     DEVICE_TYPE_COUNT is returned.
  *

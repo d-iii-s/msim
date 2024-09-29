@@ -35,11 +35,9 @@
 #include "dtime.h"
 #include "mem.h"
 
-/** Count of device types */
-#define DEVICE_TYPE_COUNT 11
 
-/* Implemented peripheral list */
-const device_type_t *device_types[DEVICE_TYPE_COUNT] = {
+/* Known device types. */
+static device_type_t const * const device_types[] = {
     &dr4kcpu,
     &drvcpu,
     &dcycle,
@@ -53,8 +51,33 @@ const device_type_t *device_types[DEVICE_TYPE_COUNT] = {
     &dtime
 };
 
+
 /* List of all devices */
 list_t device_list = LIST_INITIALIZER;
+
+
+/** Search for device type by name.
+ *
+ * @param device_name Name, which will be set to created device.
+ *
+ * @return Pointer to the device type or NULL if the device
+ * type cannot be found.
+ */
+static device_type_t const *
+dev_type_by_name(char const * const type_name) {
+    ASSERT(type_name != NULL);
+
+    for (unsigned i = 0; i < array_len(device_types); i++) {
+        device_type_t const * device_type = device_types[i];
+        if (strcmp(type_name, device_type->name) == 0) {
+            return device_type;
+        }
+    }
+
+    // Not found.
+    return NULL;
+}
+
 
 /** Search for device type and allocates device structure
  *
@@ -65,22 +88,11 @@ list_t device_list = LIST_INITIALIZER;
  *         was not specified correctly.
  *
  */
-device_t *alloc_device(const char *type_string, const char *device_name)
-{
-    const device_type_t *device_type = NULL;
-
-    /* Search for device type */
-    unsigned int i;
-    for (i = 0; i < DEVICE_TYPE_COUNT; i++) {
-        const device_type_t *type = device_types[i];
-        if (strcmp(type_string, type->name) == 0) {
-            device_type = type;
-            break;
-        }
-    }
-
+device_t *
+alloc_device(char const * const type_string, char const * const device_name) {
+    device_type_t const *device_type = dev_type_by_name(type_string);
     if (device_type == NULL) {
-        error("Unknown device type");
+        error("Unknown type for device %s: %s", device_name, type_string);
         return NULL;
     }
 
@@ -92,10 +104,9 @@ device_t *alloc_device(const char *type_string, const char *device_name)
         return NULL;
     }
 
-    /* Allocate a new instance */
-    device_t *dev = safe_malloc_t(device_t);
+    // Allocate and initialize the device.
+    device_t * const dev = safe_malloc_t(device_t);
 
-    /* Inicialization */
     dev->type = device_type;
     dev->name = safe_strdup(device_name);
     dev->data = NULL;
@@ -189,29 +200,29 @@ bool dev_next(device_t **device, device_filter_t filter)
  * @param device_order Position in the device_types array from the searching
  *                     will start. Next start position is returned through
  *                     this parameter. If the array was all searched the
- *                     DEVICE_TYPE_COUNT is returned.
+ *                     number of device types is returned.
  *
  * @return Name of found searched device type or NULL, if there is not any.
  *
  */
-const char *dev_type_by_partial_name(const char *name_prefix,
-        uint32_t *device_order)
-{
+char const *
+dev_type_by_partial_name(
+    char const * const name_prefix, uint32_t * const next_index
+) {
     ASSERT(name_prefix != NULL);
 
     /* Search from the specified device */
-    unsigned int i;
-    for (i = *device_order; i < DEVICE_TYPE_COUNT; i++) {
-        const char *device_name = device_types[i]->name;
+    for (unsigned i = *next_index; i < array_len(device_types); i++) {
+        char const * const device_name = device_types[i]->name;
 
         if (prefix(name_prefix, device_name)) {
             /* Move the order to the next device */
-            *device_order = i + 1;
+            *next_index = i + 1;
             return device_name;
         }
     }
 
-    *device_order = DEVICE_TYPE_COUNT;
+    *next_index = array_len(device_types);
     return NULL;
 }
 

@@ -33,6 +33,7 @@
 #define IS_ALIGNED(addr, align) \
     ((addr & (align - 1)) == 0)
 
+// TODO We should not need to return true for 0.
 #define IS_POWER_OF_2(num) \
     (((num) == 0) || (((num) & ((num) -1)) == 0))
 
@@ -47,6 +48,12 @@
 
 #define AREAS_OVERLAP(base1, size1, base2, size2) \
     (((base1) >= (base2) && (base1) < (base2) + (size2)) || ((base2) >= (base1) && (base2) < (base1) + (size1)))
+
+
+#define offset_of(type, member) __builtin_offsetof(type, member)
+
+#define array_len(array) sizeof(array) / sizeof((array)[0])
+
 
 #define safe_free(ptr) \
     { \

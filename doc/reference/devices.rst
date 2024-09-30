@@ -185,7 +185,7 @@ Commands
       PTEs are dumped in the following format: ``PTE: [ PPN: <ppn> RSW: <rsw> DAGU XWRV]``,
       where ``DAGU`` and ``XWRV`` are either these letters when the corresponding bits are set (i.e. equal to 1),
       or ``-`` when the corresponding bits are clear (i.e. equal to 0).
-   Execute ``tlbflush`` before this command when using the TLB for the translation is not desired (but note that flushing the TLB can change the behavior of the simulated program.)
+      Execute ``tlbflush`` before this command when using the TLB for the translation is not desired (but note that flushing the TLB can change the behavior of the simulated program.)
 ``str <root phys> <addr>``
    Translates the specified virtual address using the pagetable specified by the physical address of its root and describes the translation process.
       Output format is the same as for ``tr``.

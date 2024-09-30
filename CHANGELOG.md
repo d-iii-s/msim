@@ -13,7 +13,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+* Added Mini-kernel multiplatform tutorial (see #70, @HanyzPAPU)
+* RISC-V virtual memory commands tutorial (see #70, @HanyzPAPU)
+
 ### Changed
+
+* Tutorial reorganization (see #70, @vhotspur)
 
 ### Deprecated
 

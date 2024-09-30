@@ -5,7 +5,7 @@
 set -ueo pipefail
 
 find_sources_0() {
-    find -type f -and '-(' -name '*.[ch]' -or -name '*.in' -or -name '*.sh' '-)' -print0
+    git ls-tree -r --name-only -z HEAD | grep -zZ -e '[.][ch]$' -e '[.]in$' -e '[.]sh$' -e '[.]rst$'
 }
 
 find_crlf_files() {
@@ -31,6 +31,10 @@ find_non_utf8_files() {
     find_sources_0 | xargs -0 bash -c 'print_non_utf8_files "$@"'
 }
 
+find_files_with_trailing_whitespace() {
+    find_sources_0 | xargs -0 bash -c '! grep -n -H -e "[ ]\$" "$@"'
+}
+
 echo "Checking line endings..." >&2
 if [ "$( find_crlf_files | wc -l )" -ne 0 ]; then
     echo "Error: following file(s) have CR-LF line endings." >&2
@@ -40,3 +44,6 @@ fi
 
 echo "Checking file encodings..." >&2
 find_non_utf8_files
+
+echo "Checking there is no trailing whitespace..." >&2
+find_files_with_trailing_whitespace

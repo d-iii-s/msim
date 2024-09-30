@@ -1,0 +1,97 @@
+
+kernel.raw:     file format elf32-littleriscv
+
+
+Disassembly of section .kernel:
+
+80000000 <start-0x1000>:
+	...
+
+80001000 <start>:
+80001000:	00000297          	auipc	t0,0x0
+80001004:	03c28293          	addi	t0,t0,60 # 8000103c <machine_trap_handler>
+80001008:	30529073          	csrw	mtvec,t0
+8000100c:	18001073          	csrw	satp,zero
+80001010:	000012b7          	lui	t0,0x1
+80001014:	80028293          	addi	t0,t0,-2048 # 800 <start-0x80000800>
+80001018:	3002a073          	csrs	mstatus,t0
+8000101c:	00000117          	auipc	sp,0x0
+80001020:	fe410113          	addi	sp,sp,-28 # 80001000 <start>
+80001024:	00000097          	auipc	ra,0x0
+80001028:	08408093          	addi	ra,ra,132 # 800010a8 <kernel_main>
+8000102c:	34109073          	csrw	mepc,ra
+80001030:	30200073          	mret
+80001034:	8c000073          	.4byte	0x8c000073
+
+80001038 <loop>:
+80001038:	0000006f          	j	80001038 <loop>
+
+8000103c <machine_trap_handler>:
+8000103c:	8c100073          	.4byte	0x8c100073
+80001040:	34100293          	li	t0,833
+80001044:	8c4002f3          	.4byte	0x8c4002f3
+80001048:	34200293          	li	t0,834
+8000104c:	8c4002f3          	.4byte	0x8c4002f3
+80001050:	34300293          	li	t0,835
+80001054:	8c4002f3          	.4byte	0x8c4002f3
+80001058:	00100073          	ebreak
+8000105c:	8c000073          	.4byte	0x8c000073
+
+80001060 <endless_one>:
+80001060:	800017b7          	lui	a5,0x80001
+80001064:	12c78793          	addi	a5,a5,300 # 8000112c <_kernel_end+0xfffffffc>
+80001068:	00100713          	li	a4,1
+8000106c:	00e7a023          	sw	a4,0(a5)
+80001070:	00e7a023          	sw	a4,0(a5)
+80001074:	ff9ff06f          	j	8000106c <endless_one+0xc>
+
+80001078 <endless_three>:
+80001078:	800017b7          	lui	a5,0x80001
+8000107c:	12c78793          	addi	a5,a5,300 # 8000112c <_kernel_end+0xfffffffc>
+80001080:	00100713          	li	a4,1
+80001084:	00e7a023          	sw	a4,0(a5)
+80001088:	00e7a023          	sw	a4,0(a5)
+8000108c:	ff9ff06f          	j	80001084 <endless_three+0xc>
+
+80001090 <endless_two>:
+80001090:	800017b7          	lui	a5,0x80001
+80001094:	12c78793          	addi	a5,a5,300 # 8000112c <_kernel_end+0xfffffffc>
+80001098:	00100713          	li	a4,1
+8000109c:	00e7a023          	sw	a4,0(a5)
+800010a0:	00e7a023          	sw	a4,0(a5)
+800010a4:	ff9ff06f          	j	8000109c <endless_two+0xc>
+
+800010a8 <kernel_main>:
+800010a8:	800017b7          	lui	a5,0x80001
+800010ac:	ff010113          	addi	sp,sp,-16
+800010b0:	06078793          	addi	a5,a5,96 # 80001060 <_kernel_end+0xffffff30>
+800010b4:	00f12223          	sw	a5,4(sp)
+800010b8:	800017b7          	lui	a5,0x80001
+800010bc:	09078793          	addi	a5,a5,144 # 80001090 <_kernel_end+0xffffff60>
+800010c0:	00f12423          	sw	a5,8(sp)
+800010c4:	800017b7          	lui	a5,0x80001
+800010c8:	07878793          	addi	a5,a5,120 # 80001078 <_kernel_end+0xffffff48>
+800010cc:	00f12623          	sw	a5,12(sp)
+800010d0:	800017b7          	lui	a5,0x80001
+800010d4:	11478793          	addi	a5,a5,276 # 80001114 <_kernel_end+0xffffffe4>
+800010d8:	04500713          	li	a4,69
+800010dc:	900006b7          	lui	a3,0x90000
+800010e0:	00e68023          	sb	a4,0(a3) # 90000000 <_kernel_end+0xfffeed0>
+800010e4:	0017c703          	lbu	a4,1(a5)
+800010e8:	00178793          	addi	a5,a5,1
+800010ec:	fe071ae3          	bnez	a4,800010e0 <kernel_main+0x38>
+800010f0:	800017b7          	lui	a5,0x80001
+800010f4:	1107a783          	lw	a5,272(a5) # 80001110 <_kernel_end+0xffffffe0>
+800010f8:	00279793          	slli	a5,a5,0x2
+800010fc:	01078793          	addi	a5,a5,16
+80001100:	002787b3          	add	a5,a5,sp
+80001104:	ff47a783          	lw	a5,-12(a5)
+80001108:	01010113          	addi	sp,sp,16
+8000110c:	00078067          	jr	a5
+
+80001110 <function>:
+80001110:	00000001 65746e45 676e6972 646e6520     ....Entering end
+80001120:	7373656c 6f6f6c20 00000a70              less loop...
+
+8000112c <blackhole>:
+8000112c:	00000000                                ....

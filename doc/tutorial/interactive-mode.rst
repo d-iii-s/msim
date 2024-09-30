@@ -1,24 +1,5 @@
-Tutorial
-========
-
-.. warning::
-   This tutorial is still work-in-progress and covers only few topics.
-
-
-With a small piece of practice, you fill find MSIM easy and comfortable.
-Follow this tutorial to overcome the difficult beginner's live.
-Status of the document
-
-
-Installing
-----------
-
-Please, refer to our detailed
-:doc:`installation instructions <reference/deployment>` page.
-
-
-Devices
--------
+Interactive-mode tutorial
+=========================
 
 Let's assume that the installation has been completed. After starting
 ``msim`` (from your terminal), you will see this:
@@ -132,7 +113,7 @@ So we need a device type and a name.
 
 Let's start with ``add``. We are now interested in processors, so the
 ``dr4kcpu`` device type is what we need (MIPS R4000 processor).
-For other devices, please, consult :doc:`reference documentation <reference/devices>`.
+For other devices, please, consult :doc:`reference documentation <../reference/devices>`.
 
 The first ``d`` letter is just for clearity, to somehow make a space for usual
 users identifies. Let's add a processor named ``c0`` and check it by listing devices:
@@ -217,5 +198,3 @@ block is "main". And the classic command help may look like:
     save <File name>               Save the context of the memory into the file specified
     <device> <cmd>                 Commands of each added device
 
-
-TO BE CONTINUED

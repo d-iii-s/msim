@@ -1,8 +1,8 @@
-Developement manual
-===================
+Development manual
+==================
 
 For information about the project and user documentation see
-the :doc:`reference documentation <reference/index>` 
+the :doc:`reference documentation <reference/index>`.
 
 
 Structure

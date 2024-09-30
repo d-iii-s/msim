@@ -11,9 +11,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
- - Wrong formatting of virtual address in the result of `tr` and `str` (see #71, @HanyzPAPU)
- - Propagate error when ddisk cannot write to a file (see #63, @PeterHero)
-
 ### Added
 
 ### Changed

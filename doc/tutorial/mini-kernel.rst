@@ -17,7 +17,7 @@ Toolchain setup
 We expect that you have a cross-compiler toolchain already installed so
 that you can try the examples yourself.
 
-Please, refer to our `instructions <toolchain>`__ if you need help with
+Please, refer to our :doc:`instructions <toolchain>` if you need help with
 installing a toolchain.
 
 Once you have your toolchain ready, we can dive into kernel code for real :-).

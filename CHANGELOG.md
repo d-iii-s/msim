@@ -11,6 +11,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+* Wrong toolchain link in mini-kernel tutorial
+
 ### Added
 
 * Added Mini-kernel multiplatform tutorial (see #70, @HanyzPAPU)

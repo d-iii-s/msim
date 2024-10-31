@@ -12,6 +12,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 
 * Wrong toolchain link in mini-kernel tutorial (see #73, @HanyzPAPU)
+* Wrong header guard (see #74, @HanyzPAPU, @vhotspur)
 
 ### Added
 

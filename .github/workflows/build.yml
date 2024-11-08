@@ -45,7 +45,7 @@ jobs:
       run: |
         brew install makedepend
         curl -L -o pcut.pkg https://github.com/vhotspur/pcut/releases/download/v0.0.4/pcut-0.0.4-Darwin.pkg
-        installer -verbose -pkg pcut.pkg -target /
+        sudo installer -verbose -pkg pcut.pkg -target /
 
     - name: configure
       run: ./configure

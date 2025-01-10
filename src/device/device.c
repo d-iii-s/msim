@@ -27,6 +27,7 @@
 #include "ddisk.h"
 #include "device.h"
 #include "dkeyboard.h"
+#include "dnetcard.h"
 #include "dnomem.h"
 #include "dorder.h"
 #include "dprinter.h"
@@ -36,7 +37,7 @@
 #include "mem.h"
 
 /** Count of device types */
-#define DEVICE_TYPE_COUNT 11
+#define DEVICE_TYPE_COUNT 12
 
 /* Implemented peripheral list */
 const device_type_t *device_types[DEVICE_TYPE_COUNT] = {
@@ -50,7 +51,8 @@ const device_type_t *device_types[DEVICE_TYPE_COUNT] = {
     &dkeyboard,
     &dnomem,
     &ddisk,
-    &dtime
+    &dtime,
+    &dnetcard
 };
 
 /* List of all devices */

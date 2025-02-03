@@ -64,3 +64,15 @@ Help ``-h``, ``--help``
 -----------------------
 
 Print command line help and quit.
+
+Allow non-determinism ``-n``, ``--non-deterministic``
+-----------------------------------------------------
+
+Enable non-deterministic behaviour.
+MSIM must be run with this option when using a non-deterministic device.
+
+Tip - When used repeatedly creating an alias might be useful (shell example):
+
+.. code-block:: shell
+
+    alias msim='msim -n'

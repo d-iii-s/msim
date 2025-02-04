@@ -33,7 +33,7 @@ jobs:
       - name: Prepare install for RPM
         run: make install DESTDIR=${{github.workspace}}/pkg-rpm
 
-      - uses: jiro4989/build-deb-action@v3
+      - uses: jiro4989/build-deb-action@v4
         with:
           package_root: ${{github.workspace}}/pkg-deb
           package: ${{ env.PACKAGE_NAME }}

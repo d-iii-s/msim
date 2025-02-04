@@ -20,6 +20,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 * Added Mini-kernel multiplatform tutorial (see #70, @HanyzPAPU)
 * RISC-V virtual memory commands tutorial (see #70, @HanyzPAPU)
 * CI builds on MacOS (see #76, #77, @vhotspur)
+* DEB packages CI built updates (@vhotspur)
 
 ### Changed
 

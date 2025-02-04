@@ -7,6 +7,7 @@ env:
   PACKAGE_MAINTAINER: vhotspur
   PACKAGE_SUMMARY: "A virtual machine simulator based on a MIPS R4000 and RISC-V processor"
   PACKAGE_VERSION: 2.3.1
+  PACKAGE_HOMEPAGE: "https://d3s.mff.cuni.cz/software/msim/"
 
 jobs:
   build:
@@ -40,6 +41,7 @@ jobs:
           maintainer: ${{ env.PACKAGE_MAINTAINER }}
           desc: '${{ env.PACKAGE_SUMMARY }}'
           version: '${{ env.PACKAGE_VERSION }}'
+          homepage: '${{ env.PACKAGE_HOMEPAGE }}'
           arch: 'amd64'
 
       - uses: actions/upload-artifact@v4

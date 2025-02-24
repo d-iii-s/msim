@@ -10,10 +10,13 @@
  */
 
 #include <stdio.h>
+#include <netinet/ip.h>
 
 #include "../fault.h"
+#include "../physmem.h"
 #include "../text.h"
 #include "../utils.h"
+#include "cpu/general_cpu.h"
 #include "dnetcard.h"
 
 /** Actions the network card is performing */
@@ -30,11 +33,17 @@ enum action_e {
 #define REGISTER_LIMIT 12 /* Size of register block */
 
 /* Status flags */
+#define STATUS_INT 0x04 /* Interrupt pending */
+#define STATUS_ERROR 0x08 /* Command error*/
 #define STATUS_MASK 0x0c /* Status mask */
 
 /* Command flags */
 #define COMMAND_SEND 0x01 /**< Send packet */
 #define COMMAND_MASK 0x07 /* Command mask */
+
+/* Constants */
+// #define TX_BUFFER_SIZE ALIGN_UP(IP_MAXPACKET, 4)
+#define TX_BUFFER_SIZE 128
 
 /** Network card instance data structure */
 typedef struct {
@@ -51,6 +60,14 @@ typedef struct {
 
     /* Current action variables */
     enum action_e action; /* Action type */
+    size_t cnt; /* Word counter */
+    bool ig; /* Interrupt pending flag */
+
+    /* Statistics */
+    uint64_t intrcount; /* Number of interrupts */
+    uint64_t cmds_send; /* Number of read commands */
+    uint64_t cmds_error; /* Number of illegal commands */
+
 } netcard_data_s;
 
 /** Init command implementation
@@ -97,11 +114,16 @@ static bool dnetcard_init(token_t *parm, device_t *dev)
     /* Initialization */
     data->addr = addr;
     data->intno = _intno;
-    data->txbuffer = safe_malloc(1); /* todo size should be max ip packet size */
+    data->txbuffer = safe_malloc(TX_BUFFER_SIZE);
     data->netcard_ptr = 0;
     data->netcard_status = 0;
     data->netcard_command = 0;
     data->action = ACTION_NONE;
+    data->cnt = 0;
+    data->ig = false;
+    data->intrcount = 0;
+    data->cmds_send = 0;
+    data->cmds_error = 0;
 
     return true;
 }
@@ -186,6 +208,7 @@ static void dnetcard_write32(unsigned int procno, device_t *dev, ptr36_t addr,
     case REGISTER_ADDR_LO:
         data->netcard_ptr &= ~((ptr36_t) UINT32_C(0xffffffff));
         data->netcard_ptr |= val;
+        printf("addr set\n");
         break;
     case REGISTER_ADDR_HI:
         data->netcard_ptr &= (ptr36_t) UINT32_C(0xffffffff);
@@ -193,16 +216,28 @@ static void dnetcard_write32(unsigned int procno, device_t *dev, ptr36_t addr,
         break;
 
     case REGISTER_COMMAND:
-        break;
         /* Remove unused bits */
         data->netcard_command = val & COMMAND_MASK;
 
         if ((data->netcard_command & COMMAND_SEND) && data->action != ACTION_NONE) {
             /* Command in progress */
-            // todo
+            data->netcard_status = STATUS_INT | STATUS_ERROR;
+            cpu_interrupt_up(NULL, data->intno);
+            data->ig = true;
+            data->intrcount++;
+            data->cmds_error++;
+            return;
         }
 
-        // todo send command
+        /* Send command */
+        if (data->netcard_command & COMMAND_SEND) {
+            printf("send cmd\n");
+            data->action = ACTION_SEND;
+            data->cnt = 0;
+            data->cmds_send++;
+        }
+
+        break;
     }
 }
 
@@ -211,8 +246,31 @@ static void dnetcard_write32(unsigned int procno, device_t *dev, ptr36_t addr,
  * @param dev Device pointer
  *
  */
-static void dnetcard_step4k(device_t *dev)
+static void dnetcard_step(device_t *dev)
 {
+    netcard_data_s *data = (netcard_data_s *) dev->data;
+
+    switch (data->action) {
+    case ACTION_SEND:
+        data->txbuffer[data->cnt] = physmem_read32(-1 /*NULL*/, data->netcard_ptr, true);
+
+        /* Next word */
+        data->netcard_ptr += 4;
+        data->cnt++;
+        break;
+    default:
+        return;
+    }
+
+    if (data->cnt == TX_BUFFER_SIZE) {
+        // todo send packet
+
+        data->action = ACTION_NONE;
+        data->netcard_status = STATUS_INT;
+        cpu_interrupt_up(NULL, data->intno);
+        data->ig = true;
+        data->intrcount++;
+    }
 }
 
 cmd_t dnetcard_cmds[] = {
@@ -259,7 +317,7 @@ device_type_t dnetcard = {
 
     /* Functions */
     .done = dnetcard_done,
-    .step = dnetcard_step4k,
+    .step = dnetcard_step,
     .read32 = dnetcard_read32,
     .write32 = dnetcard_write32,
 

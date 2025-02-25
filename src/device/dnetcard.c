@@ -255,14 +255,14 @@ static void dnetcard_step(device_t *dev)
         data->txbuffer[data->cnt] = physmem_read32(-1 /*NULL*/, data->netcard_ptr, true);
 
         /* Next word */
-        data->netcard_ptr += 4;
+        data->netcard_ptr += sizeof(uint32_t);
         data->cnt++;
         break;
     default:
         return;
     }
 
-    if (data->cnt == TX_BUFFER_SIZE) {
+    if (data->cnt == TX_BUFFER_SIZE / sizeof(uint32_t)) {
         // todo send packet
 
         data->action = ACTION_NONE;

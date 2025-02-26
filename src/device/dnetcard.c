@@ -10,7 +10,10 @@
  */
 
 #include <stdio.h>
+#include <arpa/inet.h>
 #include <netinet/ip.h>
+#include <netinet/tcp.h>
+#include <sys/socket.h>
 
 #include "../fault.h"
 #include "../physmem.h"
@@ -42,8 +45,7 @@ enum action_e {
 #define COMMAND_MASK 0x07 /* Command mask */
 
 /* Constants */
-// #define TX_BUFFER_SIZE ALIGN_UP(IP_MAXPACKET, 4)
-#define TX_BUFFER_SIZE 128
+#define TX_BUFFER_SIZE ALIGN_UP(IP_MAXPACKET, 4)
 
 /** Network card instance data structure */
 typedef struct {
@@ -69,6 +71,40 @@ typedef struct {
     uint64_t cmds_error; /* Number of illegal commands */
 
 } netcard_data_s;
+
+/** Send packet stored in txbuffer
+ *
+ * @param data Network card instance data structure
+ *
+ */
+static void send_packet(netcard_data_s *data)
+{
+    struct ip *ip_header = (struct ip *) data->txbuffer;
+    struct tcphdr *tcp_header = (struct tcphdr *) (data->txbuffer + ip_header->ip_hl);
+
+    struct sockaddr_in in = { 0 };
+    in.sin_family = AF_INET;
+    in.sin_port = tcp_header->th_dport;
+    in.sin_addr = ip_header->ip_dst;
+
+    int fd;
+    if ((fd = socket(AF_INET, SOCK_STREAM, 0)) == -1) {
+        printf("Failed to create socket\n");
+        return;
+    }
+
+    if (connect(fd, (struct sockaddr *) &in, sizeof(in)) == -1) {
+        printf("Failed to connect to address\n");
+        return;
+    }
+
+    char *packet_data = (char *) (tcp_header + tcp_header->th_off * sizeof(uint32_t));
+    size_t data_size = ip_header->ip_len - ip_header->ip_hl - tcp_header->th_off;
+
+    for (size_t i = 0; i < data_size; i++) {
+        write(fd, packet_data + i, 1);
+    }
+}
 
 /** Init command implementation
  *
@@ -208,7 +244,6 @@ static void dnetcard_write32(unsigned int procno, device_t *dev, ptr36_t addr,
     case REGISTER_ADDR_LO:
         data->netcard_ptr &= ~((ptr36_t) UINT32_C(0xffffffff));
         data->netcard_ptr |= val;
-        printf("addr set\n");
         break;
     case REGISTER_ADDR_HI:
         data->netcard_ptr &= (ptr36_t) UINT32_C(0xffffffff);
@@ -231,7 +266,6 @@ static void dnetcard_write32(unsigned int procno, device_t *dev, ptr36_t addr,
 
         /* Send command */
         if (data->netcard_command & COMMAND_SEND) {
-            printf("send cmd\n");
             data->action = ACTION_SEND;
             data->cnt = 0;
             data->cmds_send++;
@@ -263,7 +297,7 @@ static void dnetcard_step(device_t *dev)
     }
 
     if (data->cnt == TX_BUFFER_SIZE / sizeof(uint32_t)) {
-        // todo send packet
+        send_packet(data);
 
         data->action = ACTION_NONE;
         data->netcard_status = STATUS_INT;

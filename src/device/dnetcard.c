@@ -36,20 +36,30 @@ enum action_e {
 #define REGISTER_LIMIT 12 /* Size of register block */
 
 /* Status flags */
+// #define STATUS_TX 0x01 /* Transferring packet */
+// #define STATUS_RX 0x02 /* Received packet */
 #define STATUS_INT 0x04 /* Interrupt pending */
 #define STATUS_ERROR 0x08 /* Command error*/
 #define STATUS_MASK 0x0c /* Status mask */
 
 /* Command flags */
 #define COMMAND_SEND 0x01 /**< Send packet */
+#define COMMAND_INT_ACK 0x04 /**< Interrupt acknowledge */
 #define COMMAND_MASK 0x07 /* Command mask */
 
 /* Constants */
 #define TX_BUFFER_SIZE ALIGN_UP(IP_MAXPACKET, 4)
 
+typedef struct {
+    item_t item;
+    struct sockaddr_in addr;
+    int socket;
+} connection_t;
+
 /** Network card instance data structure */
 typedef struct {
     uint32_t *txbuffer; /* Transfer buffer */
+    list_t opened_connections;
 
     /* Configuration */
     ptr36_t addr; /* Register address */
@@ -72,12 +82,64 @@ typedef struct {
 
 } netcard_data_s;
 
+/** Create a connection
+ *
+ * @param data Network card instance data structure
+ * @param addr Connection address structure
+ *
+ * @return Socket file descriptor, -1 on errors
+ */
+static int dnetcard_create_connection(netcard_data_s *data, struct sockaddr_in *addr)
+{
+    int fd;
+    if ((fd = socket(AF_INET, SOCK_STREAM, 0)) == -1) {
+        // todo signal error in status
+        io_error("Failed to create socket");
+        return -1;
+    }
+
+    if (connect(fd, (struct sockaddr *) addr, sizeof(struct sockaddr_in)) == -1) {
+        io_error("Failed to connect to address");
+        return -1;
+    }
+
+    connection_t *new_conn = malloc(sizeof(connection_t));
+    new_conn->addr.sin_family = addr->sin_family;
+    new_conn->addr.sin_addr = addr->sin_addr;
+    new_conn->addr.sin_port = addr->sin_port;
+    new_conn->socket = fd;
+    item_init(&new_conn->item);
+    list_append(&data->opened_connections, &new_conn->item);
+
+    return fd;
+}
+
+/** Get an open connection socket
+ *
+ * @param data Network card instance data structure
+ * @param addr Connection address structure
+ *
+ * @return File descriptor of the socket, -1 if connection does not exist
+ */
+static int dnetcard_get_connection(netcard_data_s *data, struct sockaddr_in *addr)
+{
+    connection_t *conn;
+    for_each(data->opened_connections, conn, connection_t)
+    {
+        if (conn->addr.sin_addr.s_addr == addr->sin_addr.s_addr && conn->addr.sin_port == addr->sin_port) {
+            return conn->socket;
+        }
+    }
+
+    return -1;
+}
+
 /** Send packet stored in txbuffer
  *
  * @param data Network card instance data structure
  *
  */
-static void send_packet(netcard_data_s *data)
+static void dnetcard_send_packet(netcard_data_s *data)
 {
     struct ip *ip_header = (struct ip *) data->txbuffer;
     struct tcphdr *tcp_header = (struct tcphdr *) (data->txbuffer + ip_header->ip_hl);
@@ -88,14 +150,11 @@ static void send_packet(netcard_data_s *data)
     in.sin_addr = ip_header->ip_dst;
 
     int fd;
-    if ((fd = socket(AF_INET, SOCK_STREAM, 0)) == -1) {
-        printf("Failed to create socket\n");
-        return;
-    }
 
-    if (connect(fd, (struct sockaddr *) &in, sizeof(in)) == -1) {
-        printf("Failed to connect to address\n");
-        return;
+    if ((fd = dnetcard_get_connection(data, &in)) == -1) {
+        if ((fd = dnetcard_create_connection(data, &in)) == -1) {
+            return;
+        }
     }
 
     char *packet_data = (char *) (tcp_header + tcp_header->th_off * sizeof(uint32_t));
@@ -148,6 +207,7 @@ static bool dnetcard_init(token_t *parm, device_t *dev)
     dev->data = data;
 
     /* Initialization */
+    list_init(&data->opened_connections);
     data->addr = addr;
     data->intno = _intno;
     data->txbuffer = safe_malloc(TX_BUFFER_SIZE);
@@ -254,6 +314,12 @@ static void dnetcard_write32(unsigned int procno, device_t *dev, ptr36_t addr,
         /* Remove unused bits */
         data->netcard_command = val & COMMAND_MASK;
 
+        if (data->netcard_command & COMMAND_INT_ACK) {
+            data->netcard_status &= ~STATUS_INT;
+            data->ig = false;
+            cpu_interrupt_down(NULL, data->intno);
+        }
+
         if ((data->netcard_command & COMMAND_SEND) && data->action != ACTION_NONE) {
             /* Command in progress */
             data->netcard_status = STATUS_INT | STATUS_ERROR;
@@ -297,7 +363,7 @@ static void dnetcard_step(device_t *dev)
     }
 
     if (data->cnt == TX_BUFFER_SIZE / sizeof(uint32_t)) {
-        send_packet(data);
+        dnetcard_send_packet(data);
 
         data->action = ACTION_NONE;
         data->netcard_status = STATUS_INT;

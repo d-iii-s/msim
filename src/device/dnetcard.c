@@ -9,6 +9,7 @@
  *
  */
 
+#include <poll.h>
 #include <stdio.h>
 #include <arpa/inet.h>
 #include <netinet/ip.h>
@@ -25,30 +26,39 @@
 /** Actions the network card is performing */
 enum action_e {
     ACTION_NONE, /**< Network card is idle */
-    ACTION_SEND, /**< Network card is sending a packet */
+    ACTION_PROCESS, /**< Network card is sending/receiving a packet */
 };
 
 /* Register offsets */
-#define REGISTER_ADDR_LO 0 /* Address (bits 0 .. 31) */
-#define REGISTER_ADDR_HI 4 /* Address (bits 32 .. 35) */
-#define REGISTER_STATUS 8 /* Status/commands */
-#define REGISTER_COMMAND 8 /* Status/commands */
-#define REGISTER_LIMIT 12 /* Size of register block */
+#define REGISTER_TX_ADDR_LO 0 /* Address (bits 0 .. 31) */
+#define REGISTER_TX_ADDR_HI 4 /* Address (bits 32 .. 35) */
+#define REGISTER_RX_ADDR_LO 8 /* Address (bits 0 .. 31) */
+#define REGISTER_RX_ADDR_HI 12 /* Address (bits 32 .. 35) */
+#define REGISTER_STATUS 16 /* Status/commands */
+#define REGISTER_COMMAND 16 /* Status/commands */
+#define REGISTER_LIMIT 24 /* Size of register block */
 
 /* Status flags */
-// #define STATUS_TX 0x01 /* Transferring packet */
-// #define STATUS_RX 0x02 /* Received packet */
-#define STATUS_INT 0x04 /* Interrupt pending */
-#define STATUS_ERROR 0x08 /* Command error*/
-#define STATUS_MASK 0x0c /* Status mask */
+#define STATUS_RECEIVE 0x02 /* Ready for receiving */
+#define STATUS_INT_TX 0x04 /* Tx interrupt pending */
+#define STATUS_INT_RX 0x08 /* Rx interrupt pending */
+#define STATUS_INT_ERR 0x10 /* Error interrupt pending */
+#define STATUS_MASK 0x1f /* Status mask */
 
 /* Command flags */
 #define COMMAND_SEND 0x01 /**< Send packet */
-#define COMMAND_INT_ACK 0x04 /**< Interrupt acknowledge */
-#define COMMAND_MASK 0x07 /* Command mask */
+#define COMMAND_RECEIVE 0x02 /**< Set receiving on/off */
+#define COMMAND_INT_TX_ACK 0x04 /**< Tx interrupt acknowledge */
+#define COMMAND_INT_RX_ACK 0x08 /**< Rx interrupt acknowledge */
+#define COMMAND_INT_ERR_ACK 0x10 /* Error interrupt acknowledge */
+#define COMMAND_MASK 0x1f /* Command mask */
 
 /* Constants */
-#define TX_BUFFER_SIZE ALIGN_UP(IP_MAXPACKET, 4)
+#define IP_PACKET_SIZE ALIGN_UP(IP_MAXPACKET, 4)
+#define IP_HEADER_LEN 0x5
+#define TCP_HEADER_OFF 0x5
+#define TX_BUFFER_SIZE IP_PACKET_SIZE
+#define RX_BUFFER_SIZE IP_PACKET_SIZE
 
 typedef struct {
     item_t item;
@@ -59,25 +69,31 @@ typedef struct {
 /** Network card instance data structure */
 typedef struct {
     uint32_t *txbuffer; /* Transfer buffer */
-    list_t opened_connections;
+    uint32_t *rxbuffer; /* Receive buffer */
+    list_t opened_conns;
+    size_t conn_count;
 
     /* Configuration */
     ptr36_t addr; /* Register address */
     unsigned int intno; /* Interrupt number */
 
     /* Registers */
-    ptr36_t netcard_ptr; /* Current DMA pointer */
+    ptr36_t netcard_tx_ptr; /* Current tx DMA pointer */
+    ptr36_t netcard_rx_ptr; /* Current rx DMA pointer */
     uint32_t netcard_status; /* Network card status register */
     uint32_t netcard_command; /* Network card command register */
 
     /* Current action variables */
-    enum action_e action; /* Action type */
-    size_t cnt; /* Word counter */
+    enum action_e tx_action; /* Action type */
+    enum action_e rx_action; /* Action type */
+    size_t tx_cnt; /* Word counter */
+    size_t rx_cnt; /* Word counter */
     bool ig; /* Interrupt pending flag */
 
     /* Statistics */
     uint64_t intrcount; /* Number of interrupts */
-    uint64_t cmds_send; /* Number of read commands */
+    uint64_t packets_tx; /* Number of transferred packets */
+    uint64_t packets_rx; /* Number of received packets */
     uint64_t cmds_error; /* Number of illegal commands */
 
 } netcard_data_s;
@@ -100,6 +116,7 @@ static int dnetcard_create_connection(netcard_data_s *data, struct sockaddr_in *
 
     if (connect(fd, (struct sockaddr *) addr, sizeof(struct sockaddr_in)) == -1) {
         io_error("Failed to connect to address");
+        close(fd);
         return -1;
     }
 
@@ -109,7 +126,8 @@ static int dnetcard_create_connection(netcard_data_s *data, struct sockaddr_in *
     new_conn->addr.sin_port = addr->sin_port;
     new_conn->socket = fd;
     item_init(&new_conn->item);
-    list_append(&data->opened_connections, &new_conn->item);
+    list_append(&data->opened_conns, &new_conn->item);
+    data->conn_count++;
 
     return fd;
 }
@@ -124,7 +142,7 @@ static int dnetcard_create_connection(netcard_data_s *data, struct sockaddr_in *
 static int dnetcard_get_connection(netcard_data_s *data, struct sockaddr_in *addr)
 {
     connection_t *conn;
-    for_each(data->opened_connections, conn, connection_t)
+    for_each(data->opened_conns, conn, connection_t)
     {
         if (conn->addr.sin_addr.s_addr == addr->sin_addr.s_addr && conn->addr.sin_port == addr->sin_port) {
             return conn->socket;
@@ -163,6 +181,24 @@ static void dnetcard_send_packet(netcard_data_s *data)
     for (size_t i = 0; i < data_size; i++) {
         write(fd, packet_data + i, 1);
     }
+}
+
+static void dnetcard_receive_packet(netcard_data_s *data, connection_t *conn)
+{
+    struct ip *ip_header = (struct ip *) data->rxbuffer;
+    ip_header->ip_hl = IP_HEADER_LEN;
+    struct in_addr src_addr = { conn->addr.sin_addr.s_addr };
+    ip_header->ip_src = src_addr;
+
+    struct tcphdr *tcp_header = (struct tcphdr *) (data->rxbuffer + ip_header->ip_hl);
+    tcp_header->th_off = TCP_HEADER_OFF;
+    tcp_header->th_sport = conn->addr.sin_port;
+
+    char *data_ptr = (char *) (tcp_header + tcp_header->th_off * sizeof(uint32_t));
+
+    size_t data_size = read(conn->socket, data_ptr, IP_PACKET_SIZE - ip_header->ip_hl - tcp_header->th_off);
+
+    ip_header->ip_len = ip_header->ip_hl + tcp_header->th_off + data_size;
 }
 
 /** Init command implementation
@@ -207,18 +243,22 @@ static bool dnetcard_init(token_t *parm, device_t *dev)
     dev->data = data;
 
     /* Initialization */
-    list_init(&data->opened_connections);
+    list_init(&data->opened_conns);
     data->addr = addr;
     data->intno = _intno;
     data->txbuffer = safe_malloc(TX_BUFFER_SIZE);
-    data->netcard_ptr = 0;
+    data->rxbuffer = safe_malloc(RX_BUFFER_SIZE);
+    data->netcard_tx_ptr = 0;
     data->netcard_status = 0;
     data->netcard_command = 0;
-    data->action = ACTION_NONE;
-    data->cnt = 0;
+    data->tx_action = ACTION_NONE;
+    data->rx_action = ACTION_NONE;
+    data->tx_cnt = 0;
+    data->rx_cnt = 0;
     data->ig = false;
     data->intrcount = 0;
-    data->cmds_send = 0;
+    data->packets_tx = 0;
+    data->packets_rx = 0;
     data->cmds_error = 0;
 
     return true;
@@ -276,11 +316,17 @@ static void dnetcard_read32(unsigned int procno, device_t *dev, ptr36_t addr,
 
     /* Read internal registers */
     switch (addr - data->addr) {
-    case REGISTER_ADDR_LO:
-        *val = (uint32_t) (data->netcard_ptr & UINT32_C(0xffffffff));
+    case REGISTER_TX_ADDR_LO:
+        *val = (uint32_t) (data->netcard_tx_ptr & UINT32_C(0xffffffff));
         break;
-    case REGISTER_ADDR_HI:
-        *val = (uint32_t) (data->netcard_ptr >> 32);
+    case REGISTER_TX_ADDR_HI:
+        *val = (uint32_t) (data->netcard_tx_ptr >> 32);
+        break;
+    case REGISTER_RX_ADDR_LO:
+        *val = (uint32_t) (data->netcard_rx_ptr & UINT32_C(0xffffffff));
+        break;
+    case REGISTER_RX_ADDR_HI:
+        *val = (uint32_t) (data->netcard_rx_ptr >> 32);
         break;
     case REGISTER_STATUS:
         *val = data->netcard_status;
@@ -301,28 +347,77 @@ static void dnetcard_write32(unsigned int procno, device_t *dev, ptr36_t addr,
     netcard_data_s *data = (netcard_data_s *) dev->data;
 
     switch (addr - data->addr) {
-    case REGISTER_ADDR_LO:
-        data->netcard_ptr &= ~((ptr36_t) UINT32_C(0xffffffff));
-        data->netcard_ptr |= val;
+    case REGISTER_TX_ADDR_LO:
+        data->netcard_tx_ptr &= ~((ptr36_t) UINT32_C(0xffffffff));
+        data->netcard_tx_ptr |= val;
         break;
-    case REGISTER_ADDR_HI:
-        data->netcard_ptr &= (ptr36_t) UINT32_C(0xffffffff);
-        data->netcard_ptr |= ((ptr36_t) val) << 32;
+    case REGISTER_TX_ADDR_HI:
+        data->netcard_tx_ptr &= (ptr36_t) UINT32_C(0xffffffff);
+        data->netcard_tx_ptr |= ((ptr36_t) val) << 32;
+        break;
+    case REGISTER_RX_ADDR_LO:
+        if (data->netcard_status & STATUS_RECEIVE) {
+            data->netcard_status = STATUS_INT_ERR;
+            cpu_interrupt_up(NULL, data->intno);
+            data->ig = true;
+            data->intrcount++;
+            data->cmds_error++;
+            return;
+        }
+
+        data->netcard_rx_ptr &= ~((ptr36_t) UINT32_C(0xffffffff));
+        data->netcard_rx_ptr |= val;
+        break;
+    case REGISTER_RX_ADDR_HI:
+        if (data->netcard_status & STATUS_RECEIVE) {
+            data->netcard_status = STATUS_INT_ERR;
+            cpu_interrupt_up(NULL, data->intno);
+            data->ig = true;
+            data->intrcount++;
+            data->cmds_error++;
+            return;
+        }
+
+        data->netcard_rx_ptr &= (ptr36_t) UINT32_C(0xffffffff);
+        data->netcard_rx_ptr |= ((ptr36_t) val) << 32;
         break;
 
     case REGISTER_COMMAND:
         /* Remove unused bits */
         data->netcard_command = val & COMMAND_MASK;
 
-        if (data->netcard_command & COMMAND_INT_ACK) {
-            data->netcard_status &= ~STATUS_INT;
+        if (data->netcard_command & COMMAND_INT_TX_ACK) {
+            data->netcard_status &= ~STATUS_INT_TX;
+        }
+
+        if (data->netcard_command & COMMAND_INT_RX_ACK) {
+            data->netcard_status &= ~STATUS_INT_RX;
+        }
+
+        if (data->netcard_command & COMMAND_INT_ERR_ACK) {
+            data->netcard_status &= ~STATUS_INT_ERR;
+        }
+
+        if (!(data->netcard_status & (STATUS_INT_TX | STATUS_INT_RX | STATUS_INT_ERR))) {
             data->ig = false;
             cpu_interrupt_down(NULL, data->intno);
         }
 
-        if ((data->netcard_command & COMMAND_SEND) && data->action != ACTION_NONE) {
+        if (data->netcard_status & STATUS_INT_ERR) {
+            return;
+        }
+
+        if (data->netcard_command & COMMAND_RECEIVE) {
+            if (data->netcard_status & STATUS_RECEIVE) {
+                data->netcard_status &= ~STATUS_RECEIVE;
+                data->rx_action = ACTION_NONE;
+            }
+            data->netcard_status ^= STATUS_RECEIVE;
+        }
+
+        if ((data->netcard_command & COMMAND_SEND) && data->tx_action != ACTION_NONE) {
             /* Command in progress */
-            data->netcard_status = STATUS_INT | STATUS_ERROR;
+            data->netcard_status = STATUS_INT_ERR;
             cpu_interrupt_up(NULL, data->intno);
             data->ig = true;
             data->intrcount++;
@@ -332,9 +427,8 @@ static void dnetcard_write32(unsigned int procno, device_t *dev, ptr36_t addr,
 
         /* Send command */
         if (data->netcard_command & COMMAND_SEND) {
-            data->action = ACTION_SEND;
-            data->cnt = 0;
-            data->cmds_send++;
+            data->tx_action = ACTION_PROCESS;
+            data->tx_cnt = 0;
         }
 
         break;
@@ -350,27 +444,98 @@ static void dnetcard_step(device_t *dev)
 {
     netcard_data_s *data = (netcard_data_s *) dev->data;
 
-    switch (data->action) {
-    case ACTION_SEND:
-        data->txbuffer[data->cnt] = physmem_read32(-1 /*NULL*/, data->netcard_ptr, true);
+    switch (data->tx_action) {
+    case ACTION_PROCESS:
+        data->txbuffer[data->tx_cnt] = physmem_read32(-1 /*NULL*/, data->netcard_tx_ptr, true);
 
         /* Next word */
-        data->netcard_ptr += sizeof(uint32_t);
-        data->cnt++;
+        data->netcard_tx_ptr += sizeof(uint32_t);
+        data->tx_cnt++;
         break;
     default:
         return;
     }
 
-    if (data->cnt == TX_BUFFER_SIZE / sizeof(uint32_t)) {
+    switch (data->rx_action) {
+    case ACTION_PROCESS:
+        physmem_write32(-1 /*NULL*/, data->netcard_rx_ptr, data->rxbuffer[data->rx_cnt], true);
+
+        /* Next word */
+        data->netcard_rx_ptr += sizeof(uint32_t);
+        data->rx_cnt++;
+        break;
+    default:
+        break;
+    }
+
+    if (data->tx_cnt == IP_PACKET_SIZE / sizeof(uint32_t)) {
         dnetcard_send_packet(data);
 
-        data->action = ACTION_NONE;
-        data->netcard_status = STATUS_INT;
+        data->tx_action = ACTION_NONE;
+        data->netcard_status = STATUS_INT_TX;
         cpu_interrupt_up(NULL, data->intno);
         data->ig = true;
         data->intrcount++;
+        data->packets_tx++;
     }
+
+    if (data->rx_cnt == IP_PACKET_SIZE / sizeof(uint32_t)) {
+        data->rx_action = ACTION_NONE;
+        data->netcard_status = STATUS_INT_RX;
+        cpu_interrupt_up(NULL, data->intno);
+        data->ig = true;
+        data->intrcount++;
+        data->packets_rx++;
+    }
+}
+
+/** Network card listen for incoming data
+ *
+ * @param dev Device pointer
+ *
+ */
+static void dnetcard_step4k(device_t *dev)
+{
+    netcard_data_s *data = (netcard_data_s *) dev->data;
+
+    struct pollfd *fds = malloc(data->conn_count * sizeof(struct pollfd));
+
+    // todo refactor, this is not nice
+    // maybe use different data structure for opened connections?
+
+    connection_t *conn;
+    int i = 0;
+    for_each(data->opened_conns, conn, connection_t)
+    {
+        fds[i].fd = conn->socket;
+        fds[i].events = POLLIN;
+        i++;
+    }
+
+    int timeout = 0;
+    int ret = poll(fds, data->conn_count, timeout);
+    if (ret > 0) {
+        int read_fd;
+        for (int i = 0; i < data->conn_count; i++) {
+            if (fds[i].revents & POLLIN) {
+                read_fd = fds[i].fd;
+            }
+        }
+        connection_t *read_conn;
+        for_each(data->opened_conns, read_conn, connection_t)
+        {
+            if (read_conn->socket == read_fd) {
+                dnetcard_receive_packet(data, read_conn);
+                break;
+            }
+        }
+
+        data->rx_action = ACTION_PROCESS;
+        data->rx_cnt = 0;
+        data->netcard_status &= ~STATUS_RECEIVE;
+    }
+
+    free(fds);
 }
 
 cmd_t dnetcard_cmds[] = {
@@ -418,6 +583,7 @@ device_type_t dnetcard = {
     /* Functions */
     .done = dnetcard_done,
     .step = dnetcard_step,
+    .step4k = dnetcard_step4k,
     .read32 = dnetcard_read32,
     .write32 = dnetcard_write32,
 

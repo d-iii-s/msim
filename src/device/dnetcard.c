@@ -178,9 +178,7 @@ static void dnetcard_send_packet(netcard_data_s *data)
     char *packet_data = (char *) (tcp_header + tcp_header->th_off * sizeof(uint32_t));
     size_t data_size = ip_header->ip_len - ip_header->ip_hl - tcp_header->th_off;
 
-    for (size_t i = 0; i < data_size; i++) {
-        write(fd, packet_data + i, 1);
-    }
+    write(fd, packet_data, data_size);
 }
 
 static void dnetcard_receive_packet(netcard_data_s *data, connection_t *conn)
@@ -357,7 +355,7 @@ static void dnetcard_write32(unsigned int procno, device_t *dev, ptr36_t addr,
         break;
     case REGISTER_RX_ADDR_LO:
         if (data->netcard_status & STATUS_RECEIVE) {
-            data->netcard_status = STATUS_INT_ERR;
+            data->netcard_status |= STATUS_INT_ERR;
             cpu_interrupt_up(NULL, data->intno);
             data->ig = true;
             data->intrcount++;
@@ -370,7 +368,7 @@ static void dnetcard_write32(unsigned int procno, device_t *dev, ptr36_t addr,
         break;
     case REGISTER_RX_ADDR_HI:
         if (data->netcard_status & STATUS_RECEIVE) {
-            data->netcard_status = STATUS_INT_ERR;
+            data->netcard_status |= STATUS_INT_ERR;
             cpu_interrupt_up(NULL, data->intno);
             data->ig = true;
             data->intrcount++;
@@ -411,13 +409,14 @@ static void dnetcard_write32(unsigned int procno, device_t *dev, ptr36_t addr,
             if (data->netcard_status & STATUS_RECEIVE) {
                 data->netcard_status &= ~STATUS_RECEIVE;
                 data->rx_action = ACTION_NONE;
+            } else {
+                data->netcard_status |= STATUS_RECEIVE;
             }
-            data->netcard_status ^= STATUS_RECEIVE;
         }
 
         if ((data->netcard_command & COMMAND_SEND) && data->tx_action != ACTION_NONE) {
             /* Command in progress */
-            data->netcard_status = STATUS_INT_ERR;
+            data->netcard_status |= STATUS_INT_ERR;
             cpu_interrupt_up(NULL, data->intno);
             data->ig = true;
             data->intrcount++;
@@ -451,9 +450,20 @@ static void dnetcard_step(device_t *dev)
         /* Next word */
         data->netcard_tx_ptr += sizeof(uint32_t);
         data->tx_cnt++;
+
+        if (data->tx_cnt == IP_PACKET_SIZE / sizeof(uint32_t)) {
+            dnetcard_send_packet(data);
+
+            data->tx_action = ACTION_NONE;
+            data->netcard_status |= STATUS_INT_TX;
+            cpu_interrupt_up(NULL, data->intno);
+            data->ig = true;
+            data->intrcount++;
+            data->packets_tx++;
+        }
         break;
     default:
-        return;
+        break;
     }
 
     switch (data->rx_action) {
@@ -463,29 +473,18 @@ static void dnetcard_step(device_t *dev)
         /* Next word */
         data->netcard_rx_ptr += sizeof(uint32_t);
         data->rx_cnt++;
+
+        if (data->rx_cnt == IP_PACKET_SIZE / sizeof(uint32_t)) {
+            data->rx_action = ACTION_NONE;
+            data->netcard_status |= STATUS_INT_RX;
+            cpu_interrupt_up(NULL, data->intno);
+            data->ig = true;
+            data->intrcount++;
+            data->packets_rx++;
+        }
         break;
     default:
         break;
-    }
-
-    if (data->tx_cnt == IP_PACKET_SIZE / sizeof(uint32_t)) {
-        dnetcard_send_packet(data);
-
-        data->tx_action = ACTION_NONE;
-        data->netcard_status = STATUS_INT_TX;
-        cpu_interrupt_up(NULL, data->intno);
-        data->ig = true;
-        data->intrcount++;
-        data->packets_tx++;
-    }
-
-    if (data->rx_cnt == IP_PACKET_SIZE / sizeof(uint32_t)) {
-        data->rx_action = ACTION_NONE;
-        data->netcard_status = STATUS_INT_RX;
-        cpu_interrupt_up(NULL, data->intno);
-        data->ig = true;
-        data->intrcount++;
-        data->packets_rx++;
     }
 }
 
@@ -497,6 +496,10 @@ static void dnetcard_step(device_t *dev)
 static void dnetcard_step4k(device_t *dev)
 {
     netcard_data_s *data = (netcard_data_s *) dev->data;
+
+    if (!(data->netcard_status & STATUS_RECEIVE)) {
+        return;
+    }
 
     struct pollfd *fds = malloc(data->conn_count * sizeof(struct pollfd));
 
@@ -516,7 +519,7 @@ static void dnetcard_step4k(device_t *dev)
     int ret = poll(fds, data->conn_count, timeout);
     if (ret > 0) {
         int read_fd;
-        for (int i = 0; i < data->conn_count; i++) {
+        for (size_t i = 0; i < data->conn_count; i++) {
             if (fds[i].revents & POLLIN) {
                 read_fd = fds[i].fd;
             }

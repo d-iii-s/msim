@@ -109,7 +109,8 @@ static int dnetcard_create_connection(netcard_data_s *data, struct sockaddr_in *
 {
     int fd;
     if ((fd = socket(AF_INET, SOCK_STREAM, 0)) == -1) {
-        // todo signal error in status
+        // todo add error only in verbose mode
+        // improve error message, add addr and port
         io_error("Failed to create socket");
         return -1;
     }
@@ -156,8 +157,9 @@ static int dnetcard_get_connection(netcard_data_s *data, struct sockaddr_in *add
  *
  * @param data Network card instance data structure
  *
+ * @return true on success, false on error
  */
-static void dnetcard_send_packet(netcard_data_s *data)
+static bool dnetcard_send_packet(netcard_data_s *data)
 {
     struct ip *ip_header = (struct ip *) data->txbuffer;
     struct tcphdr *tcp_header = (struct tcphdr *) (data->txbuffer + ip_header->ip_hl);
@@ -171,7 +173,7 @@ static void dnetcard_send_packet(netcard_data_s *data)
 
     if ((fd = dnetcard_get_connection(data, &in)) == -1) {
         if ((fd = dnetcard_create_connection(data, &in)) == -1) {
-            return;
+            return false;
         }
     }
 
@@ -179,6 +181,8 @@ static void dnetcard_send_packet(netcard_data_s *data)
     size_t data_size = ip_header->ip_len - ip_header->ip_hl - tcp_header->th_off;
 
     write(fd, packet_data, data_size);
+
+    return true;
 }
 
 static void dnetcard_receive_packet(netcard_data_s *data, connection_t *conn)
@@ -452,7 +456,9 @@ static void dnetcard_step(device_t *dev)
         data->tx_cnt++;
 
         if (data->tx_cnt == IP_PACKET_SIZE / sizeof(uint32_t)) {
-            dnetcard_send_packet(data);
+            if (!dnetcard_send_packet(data)) {
+                data->netcard_status |= STATUS_INT_ERR;
+            }
 
             data->tx_action = ACTION_NONE;
             data->netcard_status |= STATUS_INT_TX;

@@ -62,7 +62,8 @@ enum action_e {
 
 typedef struct {
     item_t item;
-    struct sockaddr_in addr;
+    struct sockaddr_in dest_addr;
+    struct sockaddr_in src_addr;
     int socket;
 } connection_t;
 
@@ -105,7 +106,7 @@ typedef struct {
  *
  * @return Socket file descriptor, -1 on errors
  */
-static int dnetcard_create_connection(netcard_data_s *data, struct sockaddr_in *addr)
+static int dnetcard_create_connection(netcard_data_s *data, struct sockaddr_in *dest_addr, struct sockaddr_in *src_addr)
 {
     int fd;
     if ((fd = socket(AF_INET, SOCK_STREAM, 0)) == -1) {
@@ -115,16 +116,19 @@ static int dnetcard_create_connection(netcard_data_s *data, struct sockaddr_in *
         return -1;
     }
 
-    if (connect(fd, (struct sockaddr *) addr, sizeof(struct sockaddr_in)) == -1) {
+    if (connect(fd, (struct sockaddr *) dest_addr, sizeof(struct sockaddr_in)) == -1) {
         io_error("Failed to connect to address");
         close(fd);
         return -1;
     }
 
     connection_t *new_conn = malloc(sizeof(connection_t));
-    new_conn->addr.sin_family = addr->sin_family;
-    new_conn->addr.sin_addr = addr->sin_addr;
-    new_conn->addr.sin_port = addr->sin_port;
+    new_conn->dest_addr.sin_family = dest_addr->sin_family;
+    new_conn->dest_addr.sin_addr = dest_addr->sin_addr;
+    new_conn->dest_addr.sin_port = dest_addr->sin_port;
+    new_conn->src_addr.sin_family = src_addr->sin_family;
+    new_conn->src_addr.sin_addr = src_addr->sin_addr;
+    new_conn->src_addr.sin_port = src_addr->sin_port;
     new_conn->socket = fd;
     item_init(&new_conn->item);
     list_append(&data->opened_conns, &new_conn->item);
@@ -140,12 +144,13 @@ static int dnetcard_create_connection(netcard_data_s *data, struct sockaddr_in *
  *
  * @return File descriptor of the socket, -1 if connection does not exist
  */
-static int dnetcard_get_connection(netcard_data_s *data, struct sockaddr_in *addr)
+static int dnetcard_get_connection(netcard_data_s *data, struct sockaddr_in *dest_addr, struct sockaddr_in *src_addr)
 {
     connection_t *conn;
     for_each(data->opened_conns, conn, connection_t)
     {
-        if (conn->addr.sin_addr.s_addr == addr->sin_addr.s_addr && conn->addr.sin_port == addr->sin_port) {
+        if (conn->dest_addr.sin_addr.s_addr == dest_addr->sin_addr.s_addr && conn->dest_addr.sin_port == dest_addr->sin_port
+                && conn->src_addr.sin_addr.s_addr == src_addr->sin_addr.s_addr && conn->src_addr.sin_port == src_addr->sin_port) {
             return conn->socket;
         }
     }
@@ -164,21 +169,26 @@ static bool dnetcard_send_packet(netcard_data_s *data)
     struct ip *ip_header = (struct ip *) data->txbuffer;
     struct tcphdr *tcp_header = (struct tcphdr *) (data->txbuffer + ip_header->ip_hl);
 
-    struct sockaddr_in in = { 0 };
-    in.sin_family = AF_INET;
-    in.sin_port = tcp_header->th_dport;
-    in.sin_addr = ip_header->ip_dst;
+    struct sockaddr_in dest_in = { 0 };
+    dest_in.sin_family = AF_INET;
+    dest_in.sin_port = tcp_header->th_dport;
+    dest_in.sin_addr = ip_header->ip_dst;
+
+    struct sockaddr_in src_in = { 0 };
+    src_in.sin_family = AF_INET;
+    src_in.sin_port = tcp_header->th_sport;
+    src_in.sin_addr = ip_header->ip_src;
 
     int fd;
 
-    if ((fd = dnetcard_get_connection(data, &in)) == -1) {
-        if ((fd = dnetcard_create_connection(data, &in)) == -1) {
+    if ((fd = dnetcard_get_connection(data, &dest_in, &src_in)) == -1) {
+        if ((fd = dnetcard_create_connection(data, &dest_in, &src_in)) == -1) {
             return false;
         }
     }
 
-    char *packet_data = (char *) (tcp_header + tcp_header->th_off * sizeof(uint32_t));
-    size_t data_size = ip_header->ip_len - ip_header->ip_hl - tcp_header->th_off;
+    char *packet_data = (char *) tcp_header + tcp_header->th_off * sizeof(uint32_t);
+    size_t data_size = ip_header->ip_len - (ip_header->ip_hl + tcp_header->th_off) * sizeof(uint32_t);
 
     write(fd, packet_data, data_size);
 
@@ -189,18 +199,21 @@ static void dnetcard_receive_packet(netcard_data_s *data, connection_t *conn)
 {
     struct ip *ip_header = (struct ip *) data->rxbuffer;
     ip_header->ip_hl = IP_HEADER_LEN;
-    struct in_addr src_addr = { conn->addr.sin_addr.s_addr };
+    struct in_addr src_addr = { conn->dest_addr.sin_addr.s_addr };
+    struct in_addr dest_addr = { conn->src_addr.sin_addr.s_addr };
     ip_header->ip_src = src_addr;
+    ip_header->ip_dst = dest_addr;
 
     struct tcphdr *tcp_header = (struct tcphdr *) (data->rxbuffer + ip_header->ip_hl);
     tcp_header->th_off = TCP_HEADER_OFF;
-    tcp_header->th_sport = conn->addr.sin_port;
+    tcp_header->th_sport = conn->dest_addr.sin_port;
+    tcp_header->th_dport = conn->src_addr.sin_port;
 
-    char *data_ptr = (char *) (tcp_header + tcp_header->th_off * sizeof(uint32_t));
+    char *data_ptr = (char *) tcp_header + tcp_header->th_off * sizeof(uint32_t);
 
-    size_t data_size = read(conn->socket, data_ptr, IP_PACKET_SIZE - ip_header->ip_hl - tcp_header->th_off);
+    size_t data_size = read(conn->socket, data_ptr, IP_PACKET_SIZE - (ip_header->ip_hl + tcp_header->th_off) * sizeof(uint32_t));
 
-    ip_header->ip_len = ip_header->ip_hl + tcp_header->th_off + data_size;
+    ip_header->ip_len = (ip_header->ip_hl + tcp_header->th_off) * sizeof(uint32_t) + data_size;
 }
 
 /** Init command implementation

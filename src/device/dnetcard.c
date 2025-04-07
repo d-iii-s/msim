@@ -79,10 +79,10 @@ typedef struct {
     unsigned int intno; /* Interrupt number */
 
     /* Registers */
-    ptr36_t netcard_tx_ptr; /* Current tx DMA pointer */
-    ptr36_t netcard_rx_ptr; /* Current rx DMA pointer */
-    uint32_t netcard_status; /* Network card status register */
-    uint32_t netcard_command; /* Network card command register */
+    ptr36_t tx_ptr; /* Current tx DMA pointer */
+    ptr36_t rx_ptr; /* Current rx DMA pointer */
+    uint32_t status; /* Network card status register */
+    uint32_t command; /* Network card command register */
 
     /* Current action variables */
     enum action_e tx_action; /* Action type */
@@ -106,7 +106,7 @@ typedef struct {
  *
  * @return Socket file descriptor, -1 on errors
  */
-static int dnetcard_create_connection(netcard_data_s *data, struct sockaddr_in *dest_addr, struct sockaddr_in *src_addr)
+static int dnetcard_create_connection(netcard_data_s *netcard, struct sockaddr_in *dest_addr, struct sockaddr_in *src_addr)
 {
     int fd;
     if ((fd = socket(AF_INET, SOCK_STREAM, 0)) == -1) {
@@ -131,8 +131,8 @@ static int dnetcard_create_connection(netcard_data_s *data, struct sockaddr_in *
     new_conn->src_addr.sin_port = src_addr->sin_port;
     new_conn->socket = fd;
     item_init(&new_conn->item);
-    list_append(&data->opened_conns, &new_conn->item);
-    data->conn_count++;
+    list_append(&netcard->opened_conns, &new_conn->item);
+    netcard->conn_count++;
 
     return fd;
 }
@@ -144,10 +144,10 @@ static int dnetcard_create_connection(netcard_data_s *data, struct sockaddr_in *
  *
  * @return File descriptor of the socket, -1 if connection does not exist
  */
-static int dnetcard_get_connection(netcard_data_s *data, struct sockaddr_in *dest_addr, struct sockaddr_in *src_addr)
+static int dnetcard_get_connection(netcard_data_s *netcard, struct sockaddr_in *dest_addr, struct sockaddr_in *src_addr)
 {
     connection_t *conn;
-    for_each(data->opened_conns, conn, connection_t)
+    for_each(netcard->opened_conns, conn, connection_t)
     {
         if (conn->dest_addr.sin_addr.s_addr == dest_addr->sin_addr.s_addr && conn->dest_addr.sin_port == dest_addr->sin_port
                 && conn->src_addr.sin_addr.s_addr == src_addr->sin_addr.s_addr && conn->src_addr.sin_port == src_addr->sin_port) {
@@ -164,10 +164,10 @@ static int dnetcard_get_connection(netcard_data_s *data, struct sockaddr_in *des
  *
  * @return true on success, false on error
  */
-static bool dnetcard_send_packet(netcard_data_s *data)
+static bool dnetcard_send_packet(netcard_data_s *netcard)
 {
-    struct ip *ip_header = (struct ip *) data->txbuffer;
-    struct tcphdr *tcp_header = (struct tcphdr *) (data->txbuffer + ip_header->ip_hl);
+    struct ip *ip_header = (struct ip *) netcard->txbuffer;
+    struct tcphdr *tcp_header = (struct tcphdr *) (netcard->txbuffer + ip_header->ip_hl);
 
     struct sockaddr_in dest_in = { 0 };
     dest_in.sin_family = AF_INET;
@@ -181,8 +181,8 @@ static bool dnetcard_send_packet(netcard_data_s *data)
 
     int fd;
 
-    if ((fd = dnetcard_get_connection(data, &dest_in, &src_in)) == -1) {
-        if ((fd = dnetcard_create_connection(data, &dest_in, &src_in)) == -1) {
+    if ((fd = dnetcard_get_connection(netcard, &dest_in, &src_in)) == -1) {
+        if ((fd = dnetcard_create_connection(netcard, &dest_in, &src_in)) == -1) {
             return false;
         }
     }
@@ -195,16 +195,16 @@ static bool dnetcard_send_packet(netcard_data_s *data)
     return true;
 }
 
-static void dnetcard_receive_packet(netcard_data_s *data, connection_t *conn)
+static void dnetcard_receive_packet(netcard_data_s *netcard, connection_t *conn)
 {
-    struct ip *ip_header = (struct ip *) data->rxbuffer;
+    struct ip *ip_header = (struct ip *) netcard->rxbuffer;
     ip_header->ip_hl = IP_HEADER_LEN;
     struct in_addr src_addr = { conn->dest_addr.sin_addr.s_addr };
     struct in_addr dest_addr = { conn->src_addr.sin_addr.s_addr };
     ip_header->ip_src = src_addr;
     ip_header->ip_dst = dest_addr;
 
-    struct tcphdr *tcp_header = (struct tcphdr *) (data->rxbuffer + ip_header->ip_hl);
+    struct tcphdr *tcp_header = (struct tcphdr *) (netcard->rxbuffer + ip_header->ip_hl);
     tcp_header->th_off = TCP_HEADER_OFF;
     tcp_header->th_sport = conn->dest_addr.sin_port;
     tcp_header->th_dport = conn->src_addr.sin_port;
@@ -254,27 +254,27 @@ static bool dnetcard_init(token_t *parm, device_t *dev)
     }
 
     /* Allocate structure */
-    netcard_data_s *data = safe_malloc_t(netcard_data_s);
-    dev->data = data;
+    netcard_data_s *netcard = safe_malloc_t(netcard_data_s);
+    dev->data = netcard;
 
     /* Initialization */
-    list_init(&data->opened_conns);
-    data->addr = addr;
-    data->intno = _intno;
-    data->txbuffer = safe_malloc(TX_BUFFER_SIZE);
-    data->rxbuffer = safe_malloc(RX_BUFFER_SIZE);
-    data->netcard_tx_ptr = 0;
-    data->netcard_status = 0;
-    data->netcard_command = 0;
-    data->tx_action = ACTION_NONE;
-    data->rx_action = ACTION_NONE;
-    data->tx_cnt = 0;
-    data->rx_cnt = 0;
-    data->ig = false;
-    data->intrcount = 0;
-    data->packets_tx = 0;
-    data->packets_rx = 0;
-    data->cmds_error = 0;
+    list_init(&netcard->opened_conns);
+    netcard->addr = addr;
+    netcard->intno = _intno;
+    netcard->txbuffer = safe_malloc(TX_BUFFER_SIZE);
+    netcard->rxbuffer = safe_malloc(RX_BUFFER_SIZE);
+    netcard->tx_ptr = 0;
+    netcard->status = 0;
+    netcard->command = 0;
+    netcard->tx_action = ACTION_NONE;
+    netcard->rx_action = ACTION_NONE;
+    netcard->tx_cnt = 0;
+    netcard->rx_cnt = 0;
+    netcard->ig = false;
+    netcard->intrcount = 0;
+    netcard->packets_tx = 0;
+    netcard->packets_rx = 0;
+    netcard->cmds_error = 0;
 
     return true;
 }
@@ -327,24 +327,24 @@ static void dnetcard_done(device_t *dev)
 static void dnetcard_read32(unsigned int procno, device_t *dev, ptr36_t addr,
         uint32_t *val)
 {
-    netcard_data_s *data = (netcard_data_s *) dev->data;
+    netcard_data_s *netcard = (netcard_data_s *) dev->data;
 
     /* Read internal registers */
-    switch (addr - data->addr) {
+    switch (addr - netcard->addr) {
     case REGISTER_TX_ADDR_LO:
-        *val = (uint32_t) (data->netcard_tx_ptr & UINT32_C(0xffffffff));
+        *val = (uint32_t) (netcard->tx_ptr & UINT32_C(0xffffffff));
         break;
     case REGISTER_TX_ADDR_HI:
-        *val = (uint32_t) (data->netcard_tx_ptr >> 32);
+        *val = (uint32_t) (netcard->tx_ptr >> 32);
         break;
     case REGISTER_RX_ADDR_LO:
-        *val = (uint32_t) (data->netcard_rx_ptr & UINT32_C(0xffffffff));
+        *val = (uint32_t) (netcard->rx_ptr & UINT32_C(0xffffffff));
         break;
     case REGISTER_RX_ADDR_HI:
-        *val = (uint32_t) (data->netcard_rx_ptr >> 32);
+        *val = (uint32_t) (netcard->rx_ptr >> 32);
         break;
     case REGISTER_STATUS:
-        *val = data->netcard_status;
+        *val = netcard->status;
         break;
     }
 }
@@ -359,92 +359,92 @@ static void dnetcard_read32(unsigned int procno, device_t *dev, ptr36_t addr,
 static void dnetcard_write32(unsigned int procno, device_t *dev, ptr36_t addr,
         uint32_t val)
 {
-    netcard_data_s *data = (netcard_data_s *) dev->data;
+    netcard_data_s *netcard = (netcard_data_s *) dev->data;
 
-    switch (addr - data->addr) {
+    switch (addr - netcard->addr) {
     case REGISTER_TX_ADDR_LO:
-        data->netcard_tx_ptr &= ~((ptr36_t) UINT32_C(0xffffffff));
-        data->netcard_tx_ptr |= val;
+        netcard->tx_ptr &= ~((ptr36_t) UINT32_C(0xffffffff));
+        netcard->tx_ptr |= val;
         break;
     case REGISTER_TX_ADDR_HI:
-        data->netcard_tx_ptr &= (ptr36_t) UINT32_C(0xffffffff);
-        data->netcard_tx_ptr |= ((ptr36_t) val) << 32;
+        netcard->tx_ptr &= (ptr36_t) UINT32_C(0xffffffff);
+        netcard->tx_ptr |= ((ptr36_t) val) << 32;
         break;
     case REGISTER_RX_ADDR_LO:
-        if (data->netcard_status & STATUS_RECEIVE) {
-            data->netcard_status |= STATUS_INT_ERR;
-            cpu_interrupt_up(NULL, data->intno);
-            data->ig = true;
-            data->intrcount++;
-            data->cmds_error++;
+        if (netcard->status & STATUS_RECEIVE) {
+            netcard->status |= STATUS_INT_ERR;
+            cpu_interrupt_up(NULL, netcard->intno);
+            netcard->ig = true;
+            netcard->intrcount++;
+            netcard->cmds_error++;
             return;
         }
 
-        data->netcard_rx_ptr &= ~((ptr36_t) UINT32_C(0xffffffff));
-        data->netcard_rx_ptr |= val;
+        netcard->rx_ptr &= ~((ptr36_t) UINT32_C(0xffffffff));
+        netcard->rx_ptr |= val;
         break;
     case REGISTER_RX_ADDR_HI:
-        if (data->netcard_status & STATUS_RECEIVE) {
-            data->netcard_status |= STATUS_INT_ERR;
-            cpu_interrupt_up(NULL, data->intno);
-            data->ig = true;
-            data->intrcount++;
-            data->cmds_error++;
+        if (netcard->status & STATUS_RECEIVE) {
+            netcard->status |= STATUS_INT_ERR;
+            cpu_interrupt_up(NULL, netcard->intno);
+            netcard->ig = true;
+            netcard->intrcount++;
+            netcard->cmds_error++;
             return;
         }
 
-        data->netcard_rx_ptr &= (ptr36_t) UINT32_C(0xffffffff);
-        data->netcard_rx_ptr |= ((ptr36_t) val) << 32;
+        netcard->rx_ptr &= (ptr36_t) UINT32_C(0xffffffff);
+        netcard->rx_ptr |= ((ptr36_t) val) << 32;
         break;
 
     case REGISTER_COMMAND:
         /* Remove unused bits */
-        data->netcard_command = val & COMMAND_MASK;
+        netcard->command = val & COMMAND_MASK;
 
-        if (data->netcard_command & COMMAND_INT_TX_ACK) {
-            data->netcard_status &= ~STATUS_INT_TX;
+        if (netcard->command & COMMAND_INT_TX_ACK) {
+            netcard->status &= ~STATUS_INT_TX;
         }
 
-        if (data->netcard_command & COMMAND_INT_RX_ACK) {
-            data->netcard_status &= ~STATUS_INT_RX;
+        if (netcard->command & COMMAND_INT_RX_ACK) {
+            netcard->status &= ~STATUS_INT_RX;
         }
 
-        if (data->netcard_command & COMMAND_INT_ERR_ACK) {
-            data->netcard_status &= ~STATUS_INT_ERR;
+        if (netcard->command & COMMAND_INT_ERR_ACK) {
+            netcard->status &= ~STATUS_INT_ERR;
         }
 
-        if (!(data->netcard_status & (STATUS_INT_TX | STATUS_INT_RX | STATUS_INT_ERR))) {
-            data->ig = false;
-            cpu_interrupt_down(NULL, data->intno);
+        if (!(netcard->status & (STATUS_INT_TX | STATUS_INT_RX | STATUS_INT_ERR))) {
+            netcard->ig = false;
+            cpu_interrupt_down(NULL, netcard->intno);
         }
 
-        if (data->netcard_status & STATUS_INT_ERR) {
+        if (netcard->status & STATUS_INT_ERR) {
             return;
         }
 
-        if (data->netcard_command & COMMAND_RECEIVE) {
-            if (data->netcard_status & STATUS_RECEIVE) {
-                data->netcard_status &= ~STATUS_RECEIVE;
-                data->rx_action = ACTION_NONE;
+        if (netcard->command & COMMAND_RECEIVE) {
+            if (netcard->status & STATUS_RECEIVE) {
+                netcard->status &= ~STATUS_RECEIVE;
+                netcard->rx_action = ACTION_NONE;
             } else {
-                data->netcard_status |= STATUS_RECEIVE;
+                netcard->status |= STATUS_RECEIVE;
             }
         }
 
-        if ((data->netcard_command & COMMAND_SEND) && data->tx_action != ACTION_NONE) {
+        if ((netcard->command & COMMAND_SEND) && netcard->tx_action != ACTION_NONE) {
             /* Command in progress */
-            data->netcard_status |= STATUS_INT_ERR;
-            cpu_interrupt_up(NULL, data->intno);
-            data->ig = true;
-            data->intrcount++;
-            data->cmds_error++;
+            netcard->status |= STATUS_INT_ERR;
+            cpu_interrupt_up(NULL, netcard->intno);
+            netcard->ig = true;
+            netcard->intrcount++;
+            netcard->cmds_error++;
             return;
         }
 
         /* Send command */
-        if (data->netcard_command & COMMAND_SEND) {
-            data->tx_action = ACTION_PROCESS;
-            data->tx_cnt = 0;
+        if (netcard->command & COMMAND_SEND) {
+            netcard->tx_action = ACTION_PROCESS;
+            netcard->tx_cnt = 0;
         }
 
         break;
@@ -458,48 +458,48 @@ static void dnetcard_write32(unsigned int procno, device_t *dev, ptr36_t addr,
  */
 static void dnetcard_step(device_t *dev)
 {
-    netcard_data_s *data = (netcard_data_s *) dev->data;
+    netcard_data_s *netcard = (netcard_data_s *) dev->data;
 
-    switch (data->tx_action) {
+    switch (netcard->tx_action) {
     case ACTION_PROCESS:
-        data->txbuffer[data->tx_cnt] = physmem_read32(-1 /*NULL*/, data->netcard_tx_ptr, true);
+        netcard->txbuffer[netcard->tx_cnt] = physmem_read32(-1 /*NULL*/, netcard->tx_ptr, true);
 
         /* Next word */
-        data->netcard_tx_ptr += sizeof(uint32_t);
-        data->tx_cnt++;
+        netcard->tx_ptr += sizeof(uint32_t);
+        netcard->tx_cnt++;
 
-        if (data->tx_cnt == IP_PACKET_SIZE / sizeof(uint32_t)) {
-            if (!dnetcard_send_packet(data)) {
-                data->netcard_status |= STATUS_INT_ERR;
+        if (netcard->tx_cnt == IP_PACKET_SIZE / sizeof(uint32_t)) {
+            if (!dnetcard_send_packet(netcard)) {
+                netcard->status |= STATUS_INT_ERR;
             }
 
-            data->tx_action = ACTION_NONE;
-            data->netcard_status |= STATUS_INT_TX;
-            cpu_interrupt_up(NULL, data->intno);
-            data->ig = true;
-            data->intrcount++;
-            data->packets_tx++;
+            netcard->tx_action = ACTION_NONE;
+            netcard->status |= STATUS_INT_TX;
+            cpu_interrupt_up(NULL, netcard->intno);
+            netcard->ig = true;
+            netcard->intrcount++;
+            netcard->packets_tx++;
         }
         break;
     default:
         break;
     }
 
-    switch (data->rx_action) {
+    switch (netcard->rx_action) {
     case ACTION_PROCESS:
-        physmem_write32(-1 /*NULL*/, data->netcard_rx_ptr, data->rxbuffer[data->rx_cnt], true);
+        physmem_write32(-1 /*NULL*/, netcard->rx_ptr, netcard->rxbuffer[netcard->rx_cnt], true);
 
         /* Next word */
-        data->netcard_rx_ptr += sizeof(uint32_t);
-        data->rx_cnt++;
+        netcard->rx_ptr += sizeof(uint32_t);
+        netcard->rx_cnt++;
 
-        if (data->rx_cnt == IP_PACKET_SIZE / sizeof(uint32_t)) {
-            data->rx_action = ACTION_NONE;
-            data->netcard_status |= STATUS_INT_RX;
-            cpu_interrupt_up(NULL, data->intno);
-            data->ig = true;
-            data->intrcount++;
-            data->packets_rx++;
+        if (netcard->rx_cnt == IP_PACKET_SIZE / sizeof(uint32_t)) {
+            netcard->rx_action = ACTION_NONE;
+            netcard->status |= STATUS_INT_RX;
+            cpu_interrupt_up(NULL, netcard->intno);
+            netcard->ig = true;
+            netcard->intrcount++;
+            netcard->packets_rx++;
         }
         break;
     default:
@@ -514,20 +514,22 @@ static void dnetcard_step(device_t *dev)
  */
 static void dnetcard_step4k(device_t *dev)
 {
-    netcard_data_s *data = (netcard_data_s *) dev->data;
+    // todo remove connection that ended form list
 
-    if (!(data->netcard_status & STATUS_RECEIVE)) {
+    netcard_data_s *netcard = (netcard_data_s *) dev->data;
+
+    if (!(netcard->status & STATUS_RECEIVE)) {
         return;
     }
 
-    struct pollfd *fds = malloc(data->conn_count * sizeof(struct pollfd));
+    struct pollfd *fds = malloc(netcard->conn_count * sizeof(struct pollfd));
 
     // todo refactor, this is not nice
     // maybe use different data structure for opened connections?
 
     connection_t *conn;
     int i = 0;
-    for_each(data->opened_conns, conn, connection_t)
+    for_each(netcard->opened_conns, conn, connection_t)
     {
         fds[i].fd = conn->socket;
         fds[i].events = POLLIN;
@@ -535,26 +537,26 @@ static void dnetcard_step4k(device_t *dev)
     }
 
     int timeout = 0;
-    int ret = poll(fds, data->conn_count, timeout);
+    int ret = poll(fds, netcard->conn_count, timeout);
     if (ret > 0) {
         int read_fd;
-        for (size_t i = 0; i < data->conn_count; i++) {
+        for (size_t i = 0; i < netcard->conn_count; i++) {
             if (fds[i].revents & POLLIN) {
                 read_fd = fds[i].fd;
             }
         }
         connection_t *read_conn;
-        for_each(data->opened_conns, read_conn, connection_t)
+        for_each(netcard->opened_conns, read_conn, connection_t)
         {
             if (read_conn->socket == read_fd) {
-                dnetcard_receive_packet(data, read_conn);
+                dnetcard_receive_packet(netcard, read_conn);
                 break;
             }
         }
 
-        data->rx_action = ACTION_PROCESS;
-        data->rx_cnt = 0;
-        data->netcard_status &= ~STATUS_RECEIVE;
+        netcard->rx_action = ACTION_PROCESS;
+        netcard->rx_cnt = 0;
+        netcard->status &= ~STATUS_RECEIVE;
     }
 
     free(fds);

@@ -9,6 +9,8 @@
  *
  */
 
+#include <errno.h>
+#include <fcntl.h>
 #include <poll.h>
 #include <stdio.h>
 #include <arpa/inet.h>
@@ -73,6 +75,7 @@ typedef struct {
     uint32_t *rxbuffer; /* Receive buffer */
     list_t opened_conns;
     size_t conn_count;
+    connection_t listening_conn;
 
     /* Configuration */
     ptr36_t addr; /* Register address */
@@ -307,6 +310,61 @@ static bool dnetcard_stat(token_t *parm, device_t *dev)
     return true;
 }
 
+/** Stat command implementation
+ *
+ * @param parm Command-line parameters
+ * @param dev  Device instance structure
+ *
+ * @return True if successful
+ *
+ */
+static bool dnetcard_listen(token_t *parm, device_t *dev)
+{
+    netcard_data_s *netcard = (netcard_data_s *) dev->data;
+
+    uint64_t _port = parm_uint_next(&parm);
+
+    struct sockaddr_in addr = { 0 };
+    addr.sin_family = AF_INET;
+    addr.sin_port = htons(_port);
+    addr.sin_addr.s_addr = htonl(INADDR_ANY);
+
+    int sockfd;
+    if ((sockfd = socket(AF_INET, SOCK_STREAM, 0)) == -1) {
+        io_error("Error creating socket");
+        return false;
+    }
+
+    int optval = 1;
+    if (setsockopt(sockfd, SOL_SOCKET, SO_REUSEADDR, &optval, sizeof(optval)) == -1) {
+        io_error("Error setting socket option");
+        return false;
+    }
+
+    if (bind(sockfd, (struct sockaddr *) &addr, sizeof(addr)) == -1) {
+        io_error("Error binding address");
+        return false;
+    }
+
+    if (listen(sockfd, SOMAXCONN) == -1) {
+        io_error("Error listening on socket");
+        return false;
+    }
+
+    if (fcntl(sockfd, F_SETFL, O_NONBLOCK) == -1) {
+        io_error("Error setting fd to non-blocking");
+        return false;
+    }
+
+    netcard->listening_conn.socket = sockfd;
+    netcard->listening_conn.src_addr.sin_family = addr.sin_family;
+    netcard->listening_conn.src_addr.sin_port = addr.sin_port;
+    netcard->listening_conn.src_addr.sin_addr.s_addr = addr.sin_addr.s_addr;
+
+    printf("Listening on port %d\n", (uint16_t) _port);
+    return true;
+}
+
 /** Dispose network card
  *
  * @param dev Device pointer
@@ -522,10 +580,57 @@ static void dnetcard_step4k(device_t *dev)
         return;
     }
 
-    struct pollfd *fds = malloc(netcard->conn_count * sizeof(struct pollfd));
+    /* Check listening port for incomming connections */
+    struct pollfd listen_poll;
+    listen_poll.fd = netcard->listening_conn.socket;
+    listen_poll.events = POLLIN;
 
-    // todo refactor, this is not nice
-    // maybe use different data structure for opened connections?
+    int listen_time = 0;
+    if (poll(&listen_poll, 1, listen_time)) {
+        connection_t *new_conn = malloc(sizeof(connection_t));
+        socklen_t len = sizeof(new_conn->dest_addr);
+        int newsock = accept(netcard->listening_conn.socket, (struct sockaddr *) &new_conn->dest_addr, &len);
+
+        new_conn->socket = newsock;
+        new_conn->src_addr.sin_family = netcard->listening_conn.src_addr.sin_family;
+        new_conn->src_addr.sin_addr.s_addr = netcard->listening_conn.src_addr.sin_addr.s_addr;
+        new_conn->src_addr.sin_port = netcard->listening_conn.src_addr.sin_port;
+
+        item_init(&new_conn->item);
+        list_append(&netcard->opened_conns, &new_conn->item);
+        netcard->conn_count++;
+
+        printf("Accepted new connection");
+    }
+
+    /*
+    int newsock;
+    struct sockaddr_in addr;
+    socklen_t len = sizeof(addr);
+    if ((newsock = accept(netcard->listening_conn.socket, (struct sockaddr *) &addr, &len)) != -1) {
+        connection_t *new_conn = malloc(sizeof(connection_t));
+
+        new_conn->socket = newsock;
+        new_conn->src_addr.sin_family = netcard->listening_conn.src_addr.sin_family;
+        new_conn->src_addr.sin_addr.s_addr = netcard->listening_conn.src_addr.sin_addr.s_addr;
+        new_conn->src_addr.sin_port = netcard->listening_conn.src_addr.sin_port;
+        new_conn->dest_addr.sin_family = addr.sin_family;
+        new_conn->dest_addr.sin_addr.s_addr = addr.sin_addr.s_addr;
+        new_conn->dest_addr.sin_port = addr.sin_port;
+
+        item_init(&new_conn->item);
+        list_append(&netcard->opened_conns, &new_conn->item);
+        netcard->conn_count++;
+
+        printf("Accepted new connection");
+
+    } else if (errno != EWOULDBLOCK) {
+        io_error("Accept error other than empty queue.");
+    }
+    */
+
+    /* List opened connections and read data from one */
+    struct pollfd *fds = malloc(netcard->conn_count * sizeof(struct pollfd));
 
     connection_t *conn;
     int i = 0;
@@ -593,6 +698,13 @@ cmd_t dnetcard_cmds[] = {
             "Statistics",
             "Statistics",
             NOCMD },
+    { "listen",
+            (fcmd_t) dnetcard_listen,
+            DEFAULT,
+            DEFAULT,
+            "Listen on port",
+            "Listen on port",
+            REQ INT "port" END },
     LAST_CMD
 };
 

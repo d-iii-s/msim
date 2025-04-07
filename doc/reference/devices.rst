@@ -938,3 +938,103 @@ Commands
    Print configuration information (assigned register address).
 ``stat``
    Print device statistics (current cycle counter).
+
+
+
+
+Networking card device ``dnetcard``
+-----------------------------------
+
+The device simulates a networking card that has ability to send and receive packets
+using DMA for data transfers between the card and memory.
+
+Initialization parameters: ``address`` ``intno``
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+``address``
+   Physical address of the networking card register.
+``intno``
+   DMA Interrupt number.
+
+Registers
+^^^^^^^^^
+
+.. csv-table:: ``dnetcard`` programming registers
+   :header: Offset, Size, Name, Operation, Description
+   :widths: auto
+
+    "+0",4,"TX buffer address (lower 32 bits)",read,"Get the current physical address of the TX DMA buffer (lower 32 bits)"
+    ,,,write,"Set the physical address of the TX DMA buffer (lower 32 bits)
+
+    * performing a send operation will send IP packet stored in this buffer
+    "
+    "+4",4,"TX buffer address (higher 4 bits)","read/write","Higher 4 bits for TX DMA physical address. See description of TX buffer address (lower 32 bits) for further details."
+    "+8",4,"RX buffer address (lower 32 bits)",read,"Get the current physical address of the RX DMA buffer (lower 32 bits)"
+    ,,,write,"Set the physical address of the RX DMA buffer (lower 32 bits)
+
+    * performing a receive operationg will receive incoming IP packet into this buffer
+    * writing to this buffer while receiving is enabled results in an error
+    "
+    "+12",4,"RX buffer address (higher 4 bits)","read/write","Higher 4 bits for RX DMA physical address. See description of RX buffer address (lower 32 bits) for further details."
+    "+16",8,"status/command",read,"
+    Get a bitfield representing the current status of the device:
+
+    .. csv-table::
+        :header: 31 30 29 28 27 26 25 24 23 22 21 20 19 18 17 16 15 14 13 12 11 10 9 8 7 6 5,4,3,2,1,0
+
+        r1,e_i,rx_i,tx_i,rec,r0
+
+    ``r0``, ``r1``
+        (reserved)
+    ``e_i``
+        0: no error
+
+        1: error interrupt pending because the previous operation cause an error
+
+        when with tx_i dnetcard could not send IP packet (maybe address is not reachable)
+    ``rx_i``
+        0: no error
+
+        1: rx interrupt pending because received packet in RX buffer
+
+        data receiving is set off so that new RX address can be set
+    ``tx_i``
+        0: no error
+
+        1: tx interrupt pending because finished sending packet from TX buffer
+    ``rec``
+        0: dnetcard does not receive any data
+
+        1: dnetcard is ready for receiving
+    "
+    ,,,write,"
+    Set a bitfield representing requested operation:
+
+    .. csv-table::
+        :header: 31 30 29 28 27 26 25 24 23 22 21 20 19 18 17 16 15 14 13 12 11 10 9 8 7 6 5,4,3,2,1,0
+
+        r0,e_ack,rx_ack,tx_ack,rec,s
+
+    ``r0``
+        (reserved)
+    ``e_ack``
+        if set to 1 then the error interrupt is deasserted
+    ``rx_ack``
+        if set to 1 then the rx interrupt is deasserted
+    ``tx_ack``
+        if set to 1 then the tx interrupt is deasserted
+    ``rec``
+        if set to 1 then dnetcard receving is switched (on/off depeding on previous state)
+    ``s``
+        if set to 1 then a send operation is initiated (reading the data from TX DMA buffer)
+    "
+
+Commands
+^^^^^^^^
+
+``help [cmd]``
+   Print a help on the command specified or a list of available commands.
+``info``
+   Print the device information.
+``stat``
+   Print device statistics.

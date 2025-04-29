@@ -353,7 +353,7 @@ int main(int argc, char *args[])
      */
 
     r4k_debug_init();
-    rv_debug_init();
+    rv32_debug_init();
 
     input_init();
     input_shadow();

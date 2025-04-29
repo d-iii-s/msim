@@ -219,13 +219,13 @@ static void i_instr_comment_binop_hex(rv_instr_t instr, string_t *s_comments, co
 
 static void imm_shift_mnemonics(rv_instr_t instr, string_t *s_mnemonics)
 {
-    int32_t shamt = instr.i.imm & RV_IMM_SHIFT_SHAMT_MASK;
+    int32_t shamt = instr.i.imm & shift_instr_mask(XLEN);
     string_printf(s_mnemonics, " %s, %s, %u", rv64_regnames[instr.i.rd], rv64_regnames[instr.i.rs1], shamt);
 }
 
 static void imm_shift_comments(rv_instr_t instr, string_t *s_comments, const char *op)
 {
-    int32_t shamt = instr.i.imm & RV_IMM_SHIFT_SHAMT_MASK;
+    int32_t shamt = instr.i.imm & shift_instr_mask(XLEN);
     string_printf(s_comments, "%s = %s %s %u", rv64_regnames[instr.i.rd], rv64_regnames[instr.i.rs1], op, shamt);
 }
 

@@ -382,7 +382,7 @@ static rv_regname_type_t curr_regname_type = rv_regname_abi;
  * @brief Initialize the debugging features
  *
  */
-void rv_debug_init(void)
+void rv32_debug_init(void)
 {
     rv_regnames = rv_reg_name_table[curr_regname_type];
     rv_csrnames = rv_csr_name_table;
@@ -393,7 +393,7 @@ void rv_debug_init(void)
 /**
  * @brief Change the names of the general purpose registers
  */
-bool rv_debug_change_regnames(rv_regname_type_t type)
+bool rv32_debug_change_regnames(rv_regname_type_t type)
 {
     if (type >= __rv_regname_type_count) {
         error("Index out of range 0..%u", __rv_regname_type_count - 1);
@@ -407,7 +407,7 @@ bool rv_debug_change_regnames(rv_regname_type_t type)
 /**
  * @brief Dump the content of the general purpose registers to stdout
  */
-void rv_reg_dump(rv_cpu_t *cpu)
+void rv32_reg_dump(rv32_cpu_t *cpu)
 {
 
     ASSERT(cpu != NULL);
@@ -445,7 +445,7 @@ static void idump_common(uint32_t addr, rv_instr_t instr, string_t *s_opc,
 /**
  * @brief Dump the given instruction as if it lied the given address in the context of the given CPU
  */
-void rv_idump(rv_cpu_t *cpu, uint32_t addr, rv_instr_t instr)
+void rv32_idump(rv32_cpu_t *cpu, uint32_t addr, rv_instr_t instr)
 {
     string_t s_cpu;
     string_t s_addr;
@@ -495,27 +495,27 @@ void rv_idump(rv_cpu_t *cpu, uint32_t addr, rv_instr_t instr)
 /**
  * @brief Dump the given instruction as if it lied on the given address from the global point of view
  */
-void rv_idump_phys(uint32_t addr, rv_instr_t instr)
+void rv32_idump_phys(uint32_t addr, rv_instr_t instr)
 {
-    rv_idump(NULL, addr, instr);
+    rv32_idump(NULL, addr, instr);
 }
 
 /**
  * @brief Dump the content of all CSRs
  */
-void rv_csr_dump_all(rv_cpu_t *cpu)
+void rv32_csr_dump_all(rv32_cpu_t *cpu)
 {
-    rv_csr_dump_mmode(cpu);
+    rv32_csr_dump_mmode(cpu);
     printf("\n");
-    rv_csr_dump_smode(cpu);
+    rv32_csr_dump_smode(cpu);
     printf("\n");
-    rv_csr_dump_counters(cpu);
+    rv32_csr_dump_counters(cpu);
 }
 
 /**
  * @brief Dump the content of all M-Mode CSRs
  */
-extern void rv_csr_dump_mmode(rv_cpu_t *cpu)
+extern void rv32_csr_dump_mmode(rv32_cpu_t *cpu)
 {
     printf("\n");
     printf("Machine level CSRs\n");
@@ -554,7 +554,7 @@ extern void rv_csr_dump_mmode(rv_cpu_t *cpu)
 /**
  * @brief Dump the content of all S-Mode CSRs
  */
-extern void rv_csr_dump_smode(rv_cpu_t *cpu)
+extern void rv32_csr_dump_smode(rv32_cpu_t *cpu)
 {
     printf("\n");
     printf("Supervisor level CSRs\n");
@@ -588,7 +588,7 @@ extern void rv_csr_dump_smode(rv_cpu_t *cpu)
 /**
  * @brief Dump the content of all counter related CSRs
  */
-extern void rv_csr_dump_counters(rv_cpu_t *cpu)
+extern void rv32_csr_dump_counters(rv32_cpu_t *cpu)
 {
     printf("\n");
     printf("Unprivileged Counters/Timers\n");
@@ -610,7 +610,7 @@ extern void rv_csr_dump_counters(rv_cpu_t *cpu)
 /**
  * @brief Dump the content of selected CSRs
  */
-extern void rv_csr_dump_reduced(rv_cpu_t *cpu)
+extern void rv32_csr_dump_reduced(rv32_cpu_t *cpu)
 {
     printf("\n");
     printf("Machine level CSRs\n");
@@ -655,7 +655,7 @@ extern void rv_csr_dump_reduced(rv_cpu_t *cpu)
 /**
  * @brief Dump the content of the given CSR
  */
-bool rv_csr_dump(rv_cpu_t *cpu, csr_num_t csr)
+bool rv32_csr_dump(rv32_cpu_t *cpu, csr_num_t csr)
 {
     ASSERT((csr >= 0 && csr < 0x1000));
     ASSERT(cpu != NULL);
@@ -674,7 +674,7 @@ bool rv_csr_dump(rv_cpu_t *cpu, csr_num_t csr)
 /**
  * @brief Dump the content of the given CSR based on the name
  */
-bool rv_csr_dump_by_name(rv_cpu_t *cpu, const char *name)
+bool rv32_csr_dump_by_name(rv32_cpu_t *cpu, const char *name)
 {
     ASSERT(cpu != NULL);
     for (int i = 0; i < 0x1000; ++i) {
@@ -684,33 +684,33 @@ bool rv_csr_dump_by_name(rv_cpu_t *cpu, const char *name)
         }
 
         if (strcmp(name, rv_csr_name_table[i]) == 0) {
-            return rv_csr_dump(cpu, i);
+            return rv32_csr_dump(cpu, i);
         }
     }
     printf("Specified name is not a valid CSR!\n");
     return false;
 }
 
-extern bool rv_csr_dump_command(rv_cpu_t *cpu, const char *command)
+extern bool rv32_csr_dump_command(rv32_cpu_t *cpu, const char *command)
 {
     ASSERT(cpu != NULL);
     if (strcmp(command, mmode_command) == 0) {
-        rv_csr_dump_mmode(cpu);
+        rv32_csr_dump_mmode(cpu);
         return true;
     } else if (strcmp(command, smode_command) == 0) {
-        rv_csr_dump_smode(cpu);
+        rv32_csr_dump_smode(cpu);
         return true;
     } else if (strcmp(command, counters_command) == 0) {
-        rv_csr_dump_counters(cpu);
+        rv32_csr_dump_counters(cpu);
         return true;
     } else if (strcmp(command, all_command) == 0) {
-        rv_csr_dump_all(cpu);
+        rv32_csr_dump_all(cpu);
         return true;
     }
     return false;
 }
 
-static char *rv_pte_rsw_string(unsigned rsw)
+static char *rv32_pte_rsw_string(unsigned rsw)
 {
     switch (rsw) {
     case 0b00:
@@ -725,11 +725,11 @@ static char *rv_pte_rsw_string(unsigned rsw)
     assert(false && "Unreachable code, RSW has only 2 bits");
 }
 
-static void rv_pte_dump(sv32_pte_t pte)
+static void rv32_pte_dump(sv32_pte_t pte)
 {
     printf("[ PPN: 0x%06x RSW: %s %s%s%s%s %s%s%s%s ]",
             pte.ppn,
-            rv_pte_rsw_string(pte.rsw),
+            rv32_pte_rsw_string(pte.rsw),
             pte.d ? "D" : "-",
             pte.a ? "A" : "-",
             pte.g ? "G" : "-",
@@ -740,26 +740,26 @@ static void rv_pte_dump(sv32_pte_t pte)
             pte.v ? "V" : "-");
 }
 
-static void rv_pte_addr_dump(ptr36_t pte_addr, ptr36_t pt_base_addr, uint32_t vpn_i)
+static void rv32_pte_addr_dump(ptr36_t pte_addr, ptr36_t pt_base_addr, uint32_t vpn_i)
 {
     printf(RV_DEBUG_INDENT "This entry ^ physical address: 0x%09lx = 0x%09lx + 0x%03x * %d\n", pte_addr, pt_base_addr, vpn_i, RV_PTESIZE);
 }
 
-static void rv_pte_translation_step_dump(const char *header, sv32_pte_t pte, ptr36_t pte_addr, ptr36_t pt_base_addr, uint32_t vpn_i)
+static void rv32_pte_translation_step_dump(const char *header, sv32_pte_t pte, ptr36_t pte_addr, ptr36_t pt_base_addr, uint32_t vpn_i)
 {
     printf("%s ", header);
-    rv_pte_dump(pte);
+    rv32_pte_dump(pte);
     printf("\n");
-    rv_pte_addr_dump(pte_addr, pt_base_addr, vpn_i);
+    rv32_pte_addr_dump(pte_addr, pt_base_addr, vpn_i);
 }
 
-static bool rv_translation_dump_success(uint32_t virt, ptr36_t phys)
+static bool rv32_translation_dump_success(uint32_t virt, ptr36_t phys)
 {
     printf("\nOK: 0x%08x => 0x%09lx\n", virt, phys);
     return true;
 }
 
-extern bool rv_translate_sv32_dump(rv_cpu_t *cpu, ptr36_t root_pagetable_phys, uint32_t virt)
+extern bool rv32_translate_sv32_dump(rv32_cpu_t *cpu, ptr36_t root_pagetable_phys, uint32_t virt)
 {
     ASSERT(cpu != NULL);
     ASSERT(IS_ALIGNED(root_pagetable_phys, RV_PAGEBYTES));
@@ -774,7 +774,7 @@ extern bool rv_translate_sv32_dump(rv_cpu_t *cpu, ptr36_t root_pagetable_phys, u
     uint32_t pte_val = physmem_read32(cpu->csr.mhartid, pte_addr, false);
     sv32_pte_t pte = pte_from_uint(pte_val);
 
-    rv_pte_translation_step_dump("PTE1:", pte, pte_addr, a, vpn1);
+    rv32_pte_translation_step_dump("PTE1:", pte, pte_addr, a, vpn1);
 
     if (!is_pte_valid(pte)) {
         printf("\nPAGE FAULT - Invalid PTE on 1st level\n");
@@ -789,7 +789,7 @@ extern bool rv_translate_sv32_dump(rv_cpu_t *cpu, ptr36_t root_pagetable_phys, u
         }
 
         ptr36_t phys = make_phys_from_ppn(virt, pte, true);
-        return rv_translation_dump_success(virt, phys);
+        return rv32_translation_dump_success(virt, phys);
     } else {
         a = pte_ppn_phys(pte);
 
@@ -797,7 +797,7 @@ extern bool rv_translate_sv32_dump(rv_cpu_t *cpu, ptr36_t root_pagetable_phys, u
         pte_val = physmem_read32(cpu->csr.mhartid, pte_addr, false);
         pte = pte_from_uint(pte_val);
 
-        rv_pte_translation_step_dump("PTE2:", pte, pte_addr, a, vpn0);
+        rv32_pte_translation_step_dump("PTE2:", pte, pte_addr, a, vpn0);
 
         if (!is_pte_valid(pte)) {
             printf("\nPAGE FAULT - Invalid PTE in 2nd level\n");
@@ -810,30 +810,30 @@ extern bool rv_translate_sv32_dump(rv_cpu_t *cpu, ptr36_t root_pagetable_phys, u
         }
 
         ptr36_t phys = make_phys_from_ppn(virt, pte, false);
-        return rv_translation_dump_success(virt, phys);
+        return rv32_translation_dump_success(virt, phys);
     }
 }
 
-extern bool rv_translate_dump(rv_cpu_t *cpu, uint32_t addr)
+extern bool rv32_translate_dump(rv32_cpu_t *cpu, uint32_t addr)
 {
     ASSERT(cpu != NULL);
 
     if (sv32_effective_priv(cpu) > rv_smode) {
         printf("M-mode Bare translation\n");
-        return rv_translation_dump_success(addr, addr);
+        return rv32_translation_dump_success(addr, addr);
     }
 
     rv_csr_dump_common(cpu, csr_satp);
 
     if (rv_csr_satp_is_bare(cpu)) {
-        return rv_translation_dump_success(addr, addr);
+        return rv32_translation_dump_success(addr, addr);
     }
 
     unsigned asid = rv_csr_satp_asid(cpu);
     sv32_pte_t pte;
     bool megapage;
 
-    if (rv_tlb_get_mapping(&cpu->tlb, asid, addr, &pte, &megapage, false)) {
+    if (rv32_tlb_get_mapping(&cpu->tlb, asid, addr, &pte, &megapage, false)) {
         printf("TLB Hit!\n");
 
         if (!is_pte_valid(pte)) {
@@ -847,12 +847,12 @@ extern bool rv_translate_dump(rv_cpu_t *cpu, uint32_t addr)
         }
 
         ptr36_t phys = make_phys_from_ppn(addr, pte, megapage);
-        return rv_translation_dump_success(addr, phys);
+        return rv32_translation_dump_success(addr, phys);
     }
 
     uint32_t ppn = rv_csr_satp_ppn(cpu);
     ptr36_t root_pagetable_phys = ((ptr36_t) ppn) << RV_PAGESIZE;
-    return rv_translate_sv32_dump(cpu, root_pagetable_phys, addr);
+    return rv32_translate_sv32_dump(cpu, root_pagetable_phys, addr);
 }
 
 static bool rv_is_zero_pte(sv32_pte_t pte)
@@ -865,18 +865,18 @@ static bool rv_should_dump_pte(sv32_pte_t pte, bool verbose)
     return !rv_is_zero_pte(pte) && (pte.v || verbose);
 }
 
-static void rv_pagetable_dump_second_level_pte(rv_cpu_t *cpu, bool verbose, sv32_pte_t pte, size_t pte_offset)
+static void rv_pagetable_dump_second_level_pte(rv32_cpu_t *cpu, bool verbose, sv32_pte_t pte, size_t pte_offset)
 {
     if (!rv_should_dump_pte(pte, verbose)) {
         return;
     }
 
     printf(RV_DEBUG_INDENT "0x%03lx: ", pte_offset);
-    rv_pte_dump(pte);
+    rv32_pte_dump(pte);
     printf("\n");
 }
 
-static void rv_pagetable_dump_first_level_pte(rv_cpu_t *cpu, bool verbose, sv32_pte_t pte, size_t pte_offset)
+static void rv_pagetable_dump_first_level_pte(rv32_cpu_t *cpu, bool verbose, sv32_pte_t pte, size_t pte_offset)
 {
 
     if (!rv_should_dump_pte(pte, verbose)) {
@@ -884,7 +884,7 @@ static void rv_pagetable_dump_first_level_pte(rv_cpu_t *cpu, bool verbose, sv32_
     }
 
     printf("0x%03lx: ", pte_offset);
-    rv_pte_dump(pte);
+    rv32_pte_dump(pte);
 
     if (is_pte_leaf(pte)) {
         printf(" [ Megapage ]\n");
@@ -904,7 +904,7 @@ static void rv_pagetable_dump_first_level_pte(rv_cpu_t *cpu, bool verbose, sv32_
     }
 }
 
-extern bool rv_pagetable_dump_from_phys(rv_cpu_t *cpu, ptr36_t root_pagetable_phys, bool verbose)
+extern bool rv32_pagetable_dump_from_phys(rv32_cpu_t *cpu, ptr36_t root_pagetable_phys, bool verbose)
 {
     ASSERT(cpu != NULL);
     ASSERT(IS_ALIGNED(root_pagetable_phys, RV_PAGEBYTES));
@@ -919,7 +919,7 @@ extern bool rv_pagetable_dump_from_phys(rv_cpu_t *cpu, ptr36_t root_pagetable_ph
     return true;
 }
 
-bool rv_pagetable_dump(rv_cpu_t *cpu, bool verbose)
+bool rv32_pagetable_dump(rv32_cpu_t *cpu, bool verbose)
 {
     ASSERT(cpu != NULL);
     if (sv32_effective_priv(cpu) > rv_smode) {
@@ -936,6 +936,6 @@ bool rv_pagetable_dump(rv_cpu_t *cpu, bool verbose)
     uint32_t ppn = rv_csr_satp_ppn(cpu);
 
     ptr36_t root_pagetable_addr = ((ptr36_t) ppn) << RV_PAGESIZE;
-    rv_pagetable_dump_from_phys(cpu, root_pagetable_addr, verbose);
+    rv32_pagetable_dump_from_phys(cpu, root_pagetable_addr, verbose);
     return true;
 }

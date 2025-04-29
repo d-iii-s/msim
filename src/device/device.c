@@ -31,17 +31,23 @@
 #include "dorder.h"
 #include "dprinter.h"
 #include "dr4kcpu.h"
-#include "drvcpu.h"
 #include "dtime.h"
 #include "mem.h"
 
+/** This is necessary evil... */
+#include "drvcpu.h"
+#undef XLEN
+#include "drv64cpu.h"
+#undef XLEN
+
 /** Count of device types */
-#define DEVICE_TYPE_COUNT 11
+#define DEVICE_TYPE_COUNT 12
 
 /* Implemented peripheral list */
 const device_type_t *device_types[DEVICE_TYPE_COUNT] = {
     &dr4kcpu,
     &drvcpu,
+    &drv64cpu,
     &dcycle,
     &drwm,
     &drom,

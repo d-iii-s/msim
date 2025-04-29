@@ -11,6 +11,8 @@
 #ifndef RISCV_RV64IMA_TLB_H_
 #define RISCV_RV64IMA_TLB_H_
 
+#define XLEN 64
+
 #include <stdbool.h>
 #include <stdint.h>
 

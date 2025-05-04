@@ -112,27 +112,6 @@ static bool dlcd_init(token_t *parm, device_t *dev)
     return true;
 }
 
-static cmd_t lcd_cmds[] = {
-    { "init",
-            (fcmd_t) dlcd_init,
-            DEFAULT,
-            DEFAULT,
-            "Initialization",
-            "Initialization",
-            REQ STR "name/lcd name" NEXT
-                    REQ INT "rows/number of rows" NEXT
-                            REQ INT "columns/number of columns" NEXT
-                                    REQ INT "register/address of the register" END },
-    { "help",
-            (fcmd_t) dev_generic_help,
-            DEFAULT,
-            DEFAULT,
-            "Display this help text",
-            "Display this help text",
-            OPT STR "cmd/command name" END },
-    LAST_CMD
-};
-
 static void lcd_done(device_t *dev)
 {
     lcd_data_t *data = (lcd_data_t *) dev->data;
@@ -287,6 +266,46 @@ static void lcd_write32(unsigned int procno, device_t *dev, ptr36_t addr, uint32
         break;
     }
 }
+
+static bool dlcd_info(token_t *parm, device_t *dev)
+{
+    lcd_data_t *data = (lcd_data_t *) dev->data;
+
+    printf("[data register]\n");
+    printf("%#11" PRIx64 "\n", data->addr);
+    printf("[control register]\n");
+    printf("%#11" PRIx64 "\n", data->addr + 1);
+
+    return true;
+}
+
+static cmd_t lcd_cmds[] = {
+    { "init",
+            (fcmd_t) dlcd_init,
+            DEFAULT,
+            DEFAULT,
+            "Initialization",
+            "Initialization",
+            REQ STR "name/lcd name" NEXT
+                    REQ INT "rows/number of rows" NEXT
+                            REQ INT "columns/number of columns" NEXT
+                                    REQ INT "register/address of the register" END },
+    { "help",
+            (fcmd_t) dev_generic_help,
+            DEFAULT,
+            DEFAULT,
+            "Display this help text",
+            "Display this help text",
+            OPT STR "cmd/command name" END },
+    { "info",
+            (fcmd_t) dlcd_info,
+            DEFAULT,
+            DEFAULT,
+            "Display LCD state and configuration",
+            "Display LCD state and configuration",
+            NOCMD },
+    LAST_CMD
+};
 
 device_type_t dlcd = {
     /* LCD is a deterministic device */

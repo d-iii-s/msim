@@ -3,7 +3,17 @@
 
 #include "../../../src/device/cpu/riscv_rv32ima/cpu.h"
 #include "../../../src/device/cpu/riscv_rv32ima/csr.h"
-#include "../../../src/device/cpu/riscv_rv32ima/instructions/system.h"
+
+#define rv_cpu rv32_cpu
+#define rv_cpu_t rv32_cpu_t
+
+// Memory helpers
+#include "../../../src/device/cpu/riscv_rv_ima/memory.c"
+
+// Instructions
+#include "../../../src/device/cpu/riscv_rv_ima/csr.c"
+#include "../../../src/device/cpu/riscv_rv_ima/instr.h"
+#include "../../../src/device/cpu/riscv_rv_ima/instructions/system.c"
 
 PCUT_INIT
 
@@ -13,7 +23,7 @@ rv_cpu_t cpu0;
 
 PCUT_TEST_BEFORE
 {
-    rv_cpu_init(&cpu0, 0);
+    rv32_cpu_init(&cpu0, 0);
 }
 
 PCUT_TEST(default_value)
@@ -29,7 +39,7 @@ PCUT_TEST(shorter_asid_zeroes_out)
     // set asid to max value of 511
     cpu0.csr.satp = rv_csr_satp_mode_mask | rv_csr_asid_mask | ppn;
 
-    rv_csr_set_asid_len(&cpu0, 7);
+    rv32_csr_set_asid_len(&cpu0, 7);
 
     unsigned expected_asid = 0x7F;
 
@@ -45,7 +55,7 @@ PCUT_TEST(shorter_asid_zeroes_out)
 PCUT_TEST(longer_asid_perserves)
 {
 
-    rv_csr_set_asid_len(&cpu0, 7);
+    rv32_csr_set_asid_len(&cpu0, 7);
 
     uint32_t ppn = 0x12345;
     unsigned asid = 0x7F;
@@ -53,7 +63,7 @@ PCUT_TEST(longer_asid_perserves)
     // set asid to max value of 511
     cpu0.csr.satp = rv_csr_satp_mode_mask | (asid << rv_csr_satp_asid_offset) | ppn;
 
-    rv_csr_set_asid_len(&cpu0, 9);
+    rv32_csr_set_asid_len(&cpu0, 9);
 
     uint32_t mode_after = cpu0.csr.satp & rv_csr_satp_mode_mask;
     unsigned asid_after = (cpu0.csr.satp & rv_csr_asid_mask) >> rv_csr_satp_asid_offset;
@@ -66,7 +76,7 @@ PCUT_TEST(longer_asid_perserves)
 
 PCUT_TEST(csr_write_masks)
 {
-    rv_csr_set_asid_len(&cpu0, 7);
+    rv32_csr_set_asid_len(&cpu0, 7);
 
     rv_instr_t instr = { .i = {
                                  .opcode = rv_opcSYSTEM,
@@ -95,7 +105,7 @@ PCUT_TEST(csr_write_masks)
 
 PCUT_TEST(csr_set_masks)
 {
-    rv_csr_set_asid_len(&cpu0, 7);
+    rv32_csr_set_asid_len(&cpu0, 7);
 
     rv_instr_t instr = { .i = {
                                  .opcode = rv_opcSYSTEM,
@@ -167,7 +177,7 @@ static void test_asid_len_probe(unsigned asid_len)
     cpu0.priv_mode = rv_mmode;
     cpu0.csr.satp = 0;
 
-    rv_csr_set_asid_len(&cpu0, asid_len);
+    rv32_csr_set_asid_len(&cpu0, asid_len);
 
     unsigned probed_asid_len = probe_asid_len();
 
@@ -189,3 +199,6 @@ PCUT_TEST(asid_len_probes)
 }
 
 PCUT_EXPORT(asid_len);
+
+#undef rv_cpu
+#undef rv_cpu_t

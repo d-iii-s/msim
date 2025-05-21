@@ -418,11 +418,11 @@ static rv_exc_t rv_srai_instr(rv_cpu_t *cpu, rv_instr_t instr)
     ASSERT(cpu != NULL);
     ASSERT(instr.i.opcode == rv_opcOP_IMM);
 
-    uint32_t imm = instr.i.imm & 0x3F;
+    uint32_t imm = instr.i.imm & shift_instr_mask(XLEN);
 
-    int64_t val = (int64_t) cpu->regs[instr.i.rs1] >> imm;
+    xlen_t val = ((xlen_t) cpu->regs[instr.i.rs1]) >> imm;
 
-    cpu->regs[instr.i.rd] = (uint64_t) val;
+    cpu->regs[instr.i.rd] = (uxlen_t) val;
 
     return rv_exc_none;
 }

@@ -2,12 +2,17 @@
 #include <pcut/pcut.h>
 
 #include "../../../src/device/cpu/riscv_rv32ima/cpu.h"
-#include "../../../src/device/cpu/riscv_rv32ima/csr.h"
-#include "../../../src/device/cpu/riscv_rv32ima/instr.h"
-#include "../../../src/device/cpu/riscv_rv32ima/instructions/computations.h"
-#include "../../../src/device/cpu/riscv_rv32ima/instructions/control_transfer.h"
-#include "../../../src/device/cpu/riscv_rv32ima/instructions/mem_ops.h"
-#include "../../../src/device/cpu/riscv_rv32ima/instructions/system.h"
+
+#define rv_cpu rv32_cpu
+#define rv_cpu_t rv32_cpu_t
+
+// Memory utils
+#include "../../../src/device/cpu/riscv_rv_ima/memory.c"
+
+#define rv_convert_addr rv32_convert_addr
+
+// Instructions
+#include "../../../src/device/cpu/riscv_rv32ima/instr.c"
 
 PCUT_INIT
 
@@ -17,7 +22,7 @@ rv_cpu_t cpu1;
 
 PCUT_TEST_BEFORE
 {
-    rv_cpu_init(&cpu1, 0);
+    rv32_cpu_init(&cpu1, 0);
 }
 
 PCUT_TEST(add_no_ex)
@@ -245,7 +250,7 @@ PCUT_TEST(sfence_vma_trapped)
     // TVM => Trap virtual memory (sfence.vma)
     cpu1.csr.mstatus |= 1 << 20;
 
-    rv_exc_t ex = rv_sfence_instr(&cpu1, instr);
+    rv_exc_t ex = _rv32_sfence_instr(&cpu1, instr);
 
     PCUT_ASSERT_INT_EQUALS(rv_exc_illegal_instruction, ex);
 }
@@ -293,7 +298,7 @@ PCUT_TEST(amo_address_missaligned)
 
     cpu1.regs[0] = 2;
 
-    rv_exc_t ex = rv_amoswap_instr(&cpu1, instr);
+    rv_exc_t ex = rv_amoswap_w_instr(&cpu1, instr);
     PCUT_ASSERT_INT_EQUALS(rv_exc_store_amo_address_misaligned, ex);
 }
 
@@ -603,3 +608,7 @@ PCUT_TEST(csrrc_WPRI_field_ignores_writes)
 }
 
 PCUT_EXPORT(instruction_exceptions);
+
+#undef rv_cpu
+#undef rv_cpu_t
+#undef rv_convert_addr

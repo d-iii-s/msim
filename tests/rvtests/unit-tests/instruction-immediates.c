@@ -1,18 +1,7 @@
 #include <stdint.h>
 #include <pcut/pcut.h>
 
-#include "../../../src/device/cpu/riscv_rv32ima/cpu.h"
-
-#define rv_cpu rv32_cpu
-#define rv_cpu_t rv32_cpu_t
-
-// Memory utils
-#include "../../../src/device/cpu/riscv_rv_ima/memory.c"
-
-#define rv_convert_addr rv32_convert_addr
-
-// Instructions
-#include "../../../src/device/cpu/riscv_rv32ima/instr.c"
+#include "common.h"
 
 PCUT_INIT
 
@@ -90,7 +79,3 @@ PCUT_TEST(b_imm_negative)
 }
 
 PCUT_EXPORT(instruction_immediates);
-
-#undef rv_cpu
-#undef rv_cpu_t
-#undef rv_convert_addr

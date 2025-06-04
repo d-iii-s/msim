@@ -28,7 +28,6 @@ PCUT_TEST_AFTER
 
 PCUT_TEST(simple)
 {
-
     uint32_t virt = 0x0;
     ptr36_t phys = 0x0;
     unsigned asid = 1;

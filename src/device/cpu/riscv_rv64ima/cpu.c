@@ -88,9 +88,6 @@ void rv64_cpu_init(rv64_cpu_t *cpu, unsigned int procno)
 {
     ASSERT(cpu != NULL);
 
-    alert("XLEN IS %u", XLEN);
-    alert("RVI is IS %016lx", RV_INTERRUPT_EXC_BITS);
-
     memset(cpu, 0, sizeof(rv64_cpu_t));
 
     init_regs(cpu);

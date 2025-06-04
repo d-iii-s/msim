@@ -32,15 +32,7 @@
 
 static_assert(sizeof(uxlen_t) == sizeof(uint64_t), "XLEN is not set to 64 bits in RV64");
 
-static rv_exc_t rv_illegal_instr(rv_cpu_t *cpu, rv_instr_t instr)
-{
-    alert("ILLEGAL INSTRUCTION");
-    alert("Instruction: %16x", instr.val);
-    alert("Located at PC=%016lx", cpu->pc);
-    return machine_undefined ? rv_exc_none : rv_exc_illegal_instruction;
-}
-
-static rv_exc_t _rv64_dump_instr(rv_cpu_t *cpu, rv_instr_t instr)
+static rv_exc_t rv64_dump_instr(rv_cpu_t *cpu, rv_instr_t instr)
 {
     ASSERT(cpu != NULL);
     ASSERT(instr.i.opcode == rv_opcSYSTEM);
@@ -128,7 +120,7 @@ static rv_instr_func_t decode_PRIV(rv_instr_t instr)
     case rv_privEHALT:
         return (machine_specific_instructions ? rv_halt_instr : rv_illegal_instr);
     case rv_privEDUMP:
-        return (machine_specific_instructions ? _rv64_dump_instr : rv_illegal_instr);
+        return (machine_specific_instructions ? rv64_dump_instr : rv_illegal_instr);
     case rv_privETRACES:
         return (machine_specific_instructions ? rv_trace_set_instr : rv_illegal_instr);
     case rv_privETRACER:

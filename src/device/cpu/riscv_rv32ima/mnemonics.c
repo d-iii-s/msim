@@ -102,7 +102,7 @@ extern rv_mnemonics_func_t rv_decode_mnemonics(rv_instr_t instr)
         return rv_ehalt_mnemonics;
     }
 
-    if (instr_func == _rv32_dump_instr) {
+    if (instr_func == rv32_dump_instr) {
         return rv_edump_mnemonics;
     }
 

@@ -463,7 +463,7 @@ static rv_instr_func_t decode_LUI(rv_instr_t instr)
     return rv_lui_instr;
 }
 
-static rv_instr_func_t riscv64_instr_decode(rv_instr_t instr)
+static rv_instr_func_t rv64_instr_decode(rv_instr_t instr)
 {
     // opcode is at the same spot in all encodings, so any can be chosen
     switch (instr.r.opcode) {
@@ -499,14 +499,4 @@ static rv_instr_func_t riscv64_instr_decode(rv_instr_t instr)
         return rv_illegal_instr;
     }
     }
-}
-
-static rv_instr_func_t _rv64_instr_decode(rv_instr_t instr)
-{
-    return riscv64_instr_decode(instr);
-}
-
-static rv_instr_func_t rv64_instr_decode(rv_instr_t instr)
-{
-    return riscv64_instr_decode(instr);
 }

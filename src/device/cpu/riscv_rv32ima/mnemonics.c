@@ -35,7 +35,7 @@ static rv_exc_t rv_convert_addr(rv_cpu_t *cpu, virt_t virt, ptr36_t *phys, bool 
 extern rv_mnemonics_func_t rv_decode_mnemonics(rv_instr_t instr)
 {
     // is this dirty?
-    rv_instr_func_t instr_func = _rv32_instr_decode(instr);
+    rv_instr_func_t instr_func = rv32_instr_decode(instr);
 
     // very dirty indeed, but only one decode is needed
 

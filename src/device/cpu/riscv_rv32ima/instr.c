@@ -360,7 +360,7 @@ static rv_instr_func_t decode_SYSTEM(rv_instr_t instr)
     }
 }
 
-static rv_instr_func_t riscv32_instr_decode(rv_instr_t instr)
+static rv_instr_func_t rv32_instr_decode(rv_instr_t instr)
 {
     // opcode is at the same spot in all encodings, so any can be chosen
     switch (instr.r.opcode) {
@@ -392,14 +392,4 @@ static rv_instr_func_t riscv32_instr_decode(rv_instr_t instr)
         return rv32_illegal_instr;
     }
     }
-}
-
-static rv_instr_func_t _rv32_instr_decode(rv_instr_t instr)
-{
-    return riscv32_instr_decode(instr);
-}
-
-static rv_instr_func_t rv32_instr_decode(rv_instr_t instr)
-{
-    return riscv32_instr_decode(instr);
 }

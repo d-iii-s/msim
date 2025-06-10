@@ -13,6 +13,7 @@
 #include <fcntl.h>
 #include <poll.h>
 #include <stdio.h>
+#include <string.h>
 #include <arpa/inet.h>
 #include <netinet/ip.h>
 #include <netinet/tcp.h>
@@ -292,7 +293,13 @@ static bool dnetcard_init(token_t *parm, device_t *dev)
  */
 static bool dnetcard_info(token_t *parm, device_t *dev)
 {
-    printf("Network card info\n");
+    netcard_data_s *netcard = (netcard_data_s *) dev->data;
+
+    char listen_address[INET_ADDRSTRLEN];
+    inet_ntop(AF_INET, &netcard->listening_conn.src_addr.sin_addr, listen_address, INET_ADDRSTRLEN);
+
+    printf("Listening on %s:%d\n", listen_address, (uint16_t) ntohs(netcard->listening_conn.src_addr.sin_port));
+    printf("Opened connections:...\n");
     return true;
 }
 
@@ -324,10 +331,24 @@ static bool dnetcard_listen(token_t *parm, device_t *dev)
 
     uint64_t _port = parm_uint_next(&parm);
 
+    // parse optional parameter visibility
+    bool public_addr = false;
+    if (parm_type(parm) != tt_end) {
+        const char *visibility = parm_str_next(&parm);
+        if (strcmp(visibility, "public") == 0) {
+            public_addr = true;
+        } else if (strcmp(visibility, "local") == 0) {
+            public_addr = false;
+        } else {
+            error("Unknown visibility string %s. Expected 'local' or 'public'.", visibility);
+            return false;
+        }
+    }
+
     struct sockaddr_in addr = { 0 };
     addr.sin_family = AF_INET;
     addr.sin_port = htons(_port);
-    addr.sin_addr.s_addr = htonl(INADDR_ANY);
+    addr.sin_addr.s_addr = htonl(public_addr ? INADDR_ANY : INADDR_LOOPBACK);
 
     int sockfd;
     if ((sockfd = socket(AF_INET, SOCK_STREAM, 0)) == -1) {
@@ -361,7 +382,6 @@ static bool dnetcard_listen(token_t *parm, device_t *dev)
     netcard->listening_conn.src_addr.sin_port = addr.sin_port;
     netcard->listening_conn.src_addr.sin_addr.s_addr = addr.sin_addr.s_addr;
 
-    printf("Listening on port %d\n", (uint16_t) _port);
     return true;
 }
 
@@ -680,7 +700,8 @@ cmd_t dnetcard_cmds[] = {
             DEFAULT,
             "Listen on port",
             "Listen on port",
-            REQ INT "port" END },
+            REQ INT "port" NEXT
+                    OPT STR "visibility - local (default) or public" END },
     LAST_CMD
 };
 

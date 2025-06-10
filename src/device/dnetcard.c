@@ -56,7 +56,7 @@ enum action_e {
 #define COMMAND_MASK 0x1f /* Command mask */
 
 /* Constants */
-#define IP_PACKET_SIZE ALIGN_UP(IP_MAXPACKET, 4)
+#define IP_PACKET_SIZE 1500 // typical MTU
 #define IP_HEADER_LEN 0x5
 #define TCP_HEADER_OFF 0x5
 #define TX_BUFFER_SIZE IP_PACKET_SIZE
@@ -590,19 +590,19 @@ static void dnetcard_step4k(device_t *dev)
         connection_t *new_conn = malloc(sizeof(connection_t));
         socklen_t len = sizeof(new_conn->dest_addr);
         int newsock = accept(netcard->listening_conn.socket, (struct sockaddr *) &new_conn->dest_addr, &len);
-	if (newsock == -1) {
-	    io_error("Error accepting a connection");
-	    free(new_conn);
-	} else {
-	    new_conn->socket = newsock;
-	    new_conn->src_addr.sin_family = netcard->listening_conn.src_addr.sin_family;
-	    new_conn->src_addr.sin_addr.s_addr = netcard->listening_conn.src_addr.sin_addr.s_addr;
-	    new_conn->src_addr.sin_port = netcard->listening_conn.src_addr.sin_port;
+        if (newsock == -1) {
+            io_error("Error accepting a connection");
+            free(new_conn);
+        } else {
+            new_conn->socket = newsock;
+            new_conn->src_addr.sin_family = netcard->listening_conn.src_addr.sin_family;
+            new_conn->src_addr.sin_addr.s_addr = netcard->listening_conn.src_addr.sin_addr.s_addr;
+            new_conn->src_addr.sin_port = netcard->listening_conn.src_addr.sin_port;
 
-	    item_init(&new_conn->item);
-	    list_append(&netcard->opened_conns, &new_conn->item);
-	    netcard->conn_count++;
-	}
+            item_init(&new_conn->item);
+            list_append(&netcard->opened_conns, &new_conn->item);
+            netcard->conn_count++;
+        }
     }
 
     /* List opened connections and read data from one */

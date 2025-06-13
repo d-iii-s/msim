@@ -75,8 +75,9 @@ typedef struct {
     uint32_t *txbuffer; /* Transfer buffer */
     uint32_t *rxbuffer; /* Receive buffer */
     list_t opened_conns;
-    size_t conn_count;
-    connection_t listening_conn;
+    size_t opened_count;
+    list_t listening_conns;
+    size_t listening_count;
 
     /* Configuration */
     ptr36_t addr; /* Register address */
@@ -103,14 +104,14 @@ typedef struct {
 
 } netcard_data_s;
 
-/** Create a connection
+/** Create new outgoing connection
  *
  * @param netcard Network card instance data structure
  * @param addr Connection address structure
  *
  * @return Socket file descriptor, -1 on errors
  */
-static int dnetcard_create_connection(netcard_data_s *netcard, struct sockaddr_in *dest_addr, struct sockaddr_in *src_addr)
+static int dnetcard_create_outgoing_connection(netcard_data_s *netcard, struct sockaddr_in *dest_addr, struct sockaddr_in *src_addr)
 {
     int fd;
     if ((fd = socket(AF_INET, SOCK_STREAM, 0)) == -1) {
@@ -136,9 +137,38 @@ static int dnetcard_create_connection(netcard_data_s *netcard, struct sockaddr_i
     new_conn->socket = fd;
     item_init(&new_conn->item);
     list_append(&netcard->opened_conns, &new_conn->item);
-    netcard->conn_count++;
+    netcard->opened_count++;
 
     return fd;
+}
+
+/** Create new incoming connection
+ *
+ * @param netcard Network card instance data structure
+ * @param listen_conn Listening connection from which to accept new connection
+ *
+ * @return Socket file descriptor, -1 on errors
+ */
+static int dnetcard_create_incoming_connection(netcard_data_s *netcard, connection_t *listen_conn)
+{
+    connection_t *new_conn = malloc(sizeof(connection_t));
+    socklen_t len = sizeof(new_conn->dest_addr);
+    int newsock = accept(listen_conn->socket, (struct sockaddr *) &new_conn->dest_addr, &len);
+    if (newsock == -1) {
+        io_error("Error accepting a connection");
+        free(new_conn);
+        return -1;
+    }
+
+    new_conn->socket = newsock;
+    new_conn->src_addr.sin_family = listen_conn->src_addr.sin_family;
+    new_conn->src_addr.sin_addr.s_addr = listen_conn->src_addr.sin_addr.s_addr;
+    new_conn->src_addr.sin_port = listen_conn->src_addr.sin_port;
+
+    item_init(&new_conn->item);
+    list_append(&netcard->opened_conns, &new_conn->item);
+    netcard->opened_count++;
+    return newsock;
 }
 
 /** Get an open connection socket
@@ -175,6 +205,9 @@ static void dnetcard_close_connection(netcard_data_s *netcard, int fd)
         if (conn->socket == fd) {
             close(fd);
             list_remove(&netcard->opened_conns, &conn->item);
+            free(conn);
+            netcard->opened_count--;
+            return;
         }
     }
 }
@@ -203,7 +236,7 @@ static bool dnetcard_send_packet(netcard_data_s *netcard)
     int fd;
 
     if ((fd = dnetcard_get_connection(netcard, &dest_in, &src_in)) == -1) {
-        if ((fd = dnetcard_create_connection(netcard, &dest_in, &src_in)) == -1) {
+        if ((fd = dnetcard_create_outgoing_connection(netcard, &dest_in, &src_in)) == -1) {
             return false;
         }
     }
@@ -323,10 +356,14 @@ static bool dnetcard_info(token_t *parm, device_t *dev)
 {
     netcard_data_s *netcard = (netcard_data_s *) dev->data;
 
-    char listen_address[INET_ADDRSTRLEN];
-    inet_ntop(AF_INET, &netcard->listening_conn.src_addr.sin_addr, listen_address, INET_ADDRSTRLEN);
+    connection_t *conn;
+    for_each(netcard->listening_conns, conn, connection_t)
+    {
+        char listen_address[INET_ADDRSTRLEN];
+        inet_ntop(AF_INET, &conn->src_addr.sin_addr, listen_address, INET_ADDRSTRLEN);
 
-    printf("Listening on %s:%d\n", listen_address, (uint16_t) ntohs(netcard->listening_conn.src_addr.sin_port));
+        printf("Listening on %s:%d\n", listen_address, (uint16_t) ntohs(conn->src_addr.sin_port));
+    }
     printf("Opened connections:...\n");
     return true;
 }
@@ -405,10 +442,15 @@ static bool dnetcard_listen(token_t *parm, device_t *dev)
         return false;
     }
 
-    netcard->listening_conn.socket = sockfd;
-    netcard->listening_conn.src_addr.sin_family = addr.sin_family;
-    netcard->listening_conn.src_addr.sin_port = addr.sin_port;
-    netcard->listening_conn.src_addr.sin_addr.s_addr = addr.sin_addr.s_addr;
+    connection_t *new_conn = malloc(sizeof(connection_t));
+
+    new_conn->socket = sockfd;
+    new_conn->src_addr.sin_family = addr.sin_family;
+    new_conn->src_addr.sin_port = addr.sin_port;
+    new_conn->src_addr.sin_addr.s_addr = addr.sin_addr.s_addr;
+    item_init(&new_conn->item);
+    list_append(&netcard->listening_conns, &new_conn->item);
+    netcard->listening_count++;
 
     return true;
 }
@@ -620,41 +662,50 @@ static void dnetcard_step(device_t *dev)
  */
 static void dnetcard_step4k(device_t *dev)
 {
-    // todo remove connection that ended form list
-
     netcard_data_s *netcard = (netcard_data_s *) dev->data;
 
     if (!(netcard->status & STATUS_RECEIVE)) {
         return;
     }
 
-    /* Check listening port for incomming connections */
-    struct pollfd listen_poll;
-    listen_poll.fd = netcard->listening_conn.socket;
-    listen_poll.events = POLLIN;
+    /* Check listening ports for incomming connections */
+    struct pollfd *listen_fds = malloc(netcard->listening_count * sizeof(struct pollfd));
 
-    int listen_time = 0;
-    if (poll(&listen_poll, 1, listen_time)) {
-        connection_t *new_conn = malloc(sizeof(connection_t));
-        socklen_t len = sizeof(new_conn->dest_addr);
-        int newsock = accept(netcard->listening_conn.socket, (struct sockaddr *) &new_conn->dest_addr, &len);
-        if (newsock == -1) {
-            io_error("Error accepting a connection");
-            free(new_conn);
-        } else {
-            new_conn->socket = newsock;
-            new_conn->src_addr.sin_family = netcard->listening_conn.src_addr.sin_family;
-            new_conn->src_addr.sin_addr.s_addr = netcard->listening_conn.src_addr.sin_addr.s_addr;
-            new_conn->src_addr.sin_port = netcard->listening_conn.src_addr.sin_port;
-
-            item_init(&new_conn->item);
-            list_append(&netcard->opened_conns, &new_conn->item);
-            netcard->conn_count++;
+    {
+        connection_t *conn;
+        int i = 0;
+        for_each(netcard->listening_conns, conn, connection_t)
+        {
+            listen_fds[i].fd = conn->socket;
+            listen_fds[i].events = POLLIN;
+            i++;
         }
     }
 
+    int listen_time = 0;
+    if (poll(listen_fds, netcard->listening_count, listen_time) > 0) {
+        int listen_fd;
+        for (size_t i = 0; i < netcard->listening_count; i++) {
+            if (listen_fds[i].revents & POLLIN) {
+                listen_fd = listen_fds[i].fd;
+                break;
+            }
+        }
+
+        connection_t *listen_conn;
+        for_each(netcard->listening_conns, listen_conn, connection_t)
+        {
+            if (listen_conn->socket == listen_fd) {
+                dnetcard_create_incoming_connection(netcard, listen_conn);
+                break;
+            }
+        }
+    }
+
+    free(listen_fds);
+
     /* List opened connections and read data from one */
-    struct pollfd *fds = malloc(netcard->conn_count * sizeof(struct pollfd));
+    struct pollfd *fds = malloc(netcard->opened_count * sizeof(struct pollfd));
 
     connection_t *conn;
     int i = 0;
@@ -666,10 +717,10 @@ static void dnetcard_step4k(device_t *dev)
     }
 
     int timeout = 0;
-    int ret = poll(fds, netcard->conn_count, timeout);
+    int ret = poll(fds, netcard->opened_count, timeout);
     if (ret > 0) {
         int read_fd;
-        for (size_t i = 0; i < netcard->conn_count; i++) {
+        for (size_t i = 0; i < netcard->opened_count; i++) {
             if (fds[i].revents & POLLIN) {
                 read_fd = fds[i].fd;
                 break;

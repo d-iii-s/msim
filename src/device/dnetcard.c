@@ -39,7 +39,8 @@ enum action_e {
 #define REGISTER_RX_ADDR_HI 12 /* Address (bits 32 .. 35) */
 #define REGISTER_STATUS 16 /* Status/commands */
 #define REGISTER_COMMAND 16 /* Status/commands */
-#define REGISTER_LIMIT 24 /* Size of register block */
+#define REGISTER_IP_ADDRESS 24 /* IP address of the device */
+#define REGISTER_LIMIT 28 /* Size of register block */
 
 /* Status flags */
 #define STATUS_RECEIVE 0x02 /* Ready for receiving */
@@ -88,6 +89,8 @@ typedef struct {
     ptr36_t rx_ptr; /* Current rx DMA pointer */
     uint32_t status; /* Network card status register */
     uint32_t command; /* Network card command register */
+    uint32_t ip_address; /* Device IP address */
+    bool ip_address_set;
 
     /* Current action variables */
     enum action_e tx_action; /* Action type */
@@ -233,6 +236,12 @@ static bool dnetcard_send_packet(netcard_data_s *netcard)
     src_in.sin_port = tcp_header->th_sport;
     src_in.sin_addr = ip_header->ip_src;
 
+    if (ip_header->ip_src.s_addr != netcard->ip_address) {
+        // todo on debug
+        error("Trying to sent a packet from different IP address");
+        return false;
+    }
+
     int fd;
 
     if ((fd = dnetcard_get_connection(netcard, &dest_in, &src_in)) == -1) {
@@ -331,6 +340,8 @@ static bool dnetcard_init(token_t *parm, device_t *dev)
     netcard->tx_ptr = 0;
     netcard->status = 0;
     netcard->command = 0;
+    netcard->ip_address = 0;
+    netcard->ip_address_set = false;
     netcard->tx_action = ACTION_NONE;
     netcard->rx_action = ACTION_NONE;
     netcard->tx_cnt = 0;
@@ -355,6 +366,14 @@ static bool dnetcard_init(token_t *parm, device_t *dev)
 static bool dnetcard_info(token_t *parm, device_t *dev)
 {
     netcard_data_s *netcard = (netcard_data_s *) dev->data;
+
+    if (netcard->ip_address_set) {
+        char device_address[INET_ADDRSTRLEN];
+        inet_ntop(AF_INET, &netcard->ip_address, device_address, INET_ADDRSTRLEN);
+        printf("inet: %s\n", device_address);
+    } else {
+        printf("inet: [NOT SET] - device is inactive\n");
+    }
 
     connection_t *conn;
     for_each(netcard->listening_conns, conn, connection_t)
@@ -447,7 +466,7 @@ static bool dnetcard_listen(token_t *parm, device_t *dev)
     new_conn->socket = sockfd;
     new_conn->src_addr.sin_family = addr.sin_family;
     new_conn->src_addr.sin_port = addr.sin_port;
-    new_conn->src_addr.sin_addr.s_addr = addr.sin_addr.s_addr;
+    new_conn->src_addr.sin_addr.s_addr = netcard->ip_address;
     item_init(&new_conn->item);
     list_append(&netcard->listening_conns, &new_conn->item);
     netcard->listening_count++;
@@ -494,6 +513,8 @@ static void dnetcard_read32(unsigned int procno, device_t *dev, ptr36_t addr,
     case REGISTER_STATUS:
         *val = netcard->status;
         break;
+    case REGISTER_IP_ADDRESS:
+        *val = netcard->ip_address;
     }
 }
 
@@ -579,8 +600,8 @@ static void dnetcard_write32(unsigned int procno, device_t *dev, ptr36_t addr,
             }
         }
 
-        if ((netcard->command & COMMAND_SEND) && netcard->tx_action != ACTION_NONE) {
-            /* Command in progress */
+        if ((netcard->command & COMMAND_SEND) && (netcard->tx_action != ACTION_NONE || !netcard->ip_address_set)) {
+            /* Command in progress or device address not set*/
             netcard->status |= STATUS_INT_ERR;
             cpu_interrupt_up(NULL, netcard->intno);
             netcard->ig = true;
@@ -595,6 +616,17 @@ static void dnetcard_write32(unsigned int procno, device_t *dev, ptr36_t addr,
             netcard->tx_cnt = 0;
         }
 
+        break;
+
+    case REGISTER_IP_ADDRESS:
+        netcard->ip_address = val;
+        netcard->ip_address_set = true;
+
+        connection_t *conn;
+        for_each(netcard->listening_conns, conn, connection_t)
+        {
+            conn->src_addr.sin_addr.s_addr = netcard->ip_address;
+        }
         break;
     }
 }
@@ -664,7 +696,7 @@ static void dnetcard_step4k(device_t *dev)
 {
     netcard_data_s *netcard = (netcard_data_s *) dev->data;
 
-    if (!(netcard->status & STATUS_RECEIVE)) {
+    if (!(netcard->status & STATUS_RECEIVE) || !netcard->ip_address_set) {
         return;
     }
 

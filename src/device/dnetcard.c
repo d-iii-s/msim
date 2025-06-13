@@ -105,7 +105,7 @@ typedef struct {
 
 /** Create a connection
  *
- * @param data Network card instance data structure
+ * @param netcard Network card instance data structure
  * @param addr Connection address structure
  *
  * @return Socket file descriptor, -1 on errors
@@ -143,7 +143,7 @@ static int dnetcard_create_connection(netcard_data_s *netcard, struct sockaddr_i
 
 /** Get an open connection socket
  *
- * @param data Network card instance data structure
+ * @param netcard Network card instance data structure
  * @param addr Connection address structure
  *
  * @return File descriptor of the socket, -1 if connection does not exist
@@ -162,9 +162,26 @@ static int dnetcard_get_connection(netcard_data_s *netcard, struct sockaddr_in *
     return -1;
 }
 
+/** Close opened connection by fd
+ *
+ * @param netcard Network card instance data structure
+ * @param fd File descriptor number of the connection
+ */
+static void dnetcard_close_connection(netcard_data_s *netcard, int fd)
+{
+    connection_t *conn;
+    for_each(netcard->opened_conns, conn, connection_t)
+    {
+        if (conn->socket == fd) {
+            close(fd);
+            list_remove(&netcard->opened_conns, &conn->item);
+        }
+    }
+}
+
 /** Send packet stored in txbuffer
  *
- * @param data Network card instance data structure
+ * @param netcard Network card instance data structure
  *
  * @return true on success, false on error
  */
@@ -199,7 +216,14 @@ static bool dnetcard_send_packet(netcard_data_s *netcard)
     return true;
 }
 
-static void dnetcard_receive_packet(netcard_data_s *netcard, connection_t *conn)
+/** Read data for DMA transfer
+ *
+ * @param netcard Network card instance data structure
+ * @param conn Ready connection to read data from
+ *
+ * @return true on success, false on error
+ */
+static bool dnetcard_receive_packet(netcard_data_s *netcard, connection_t *conn)
 {
     struct ip *ip_header = (struct ip *) netcard->rxbuffer;
     ip_header->ip_hl = IP_HEADER_LEN;
@@ -215,9 +239,13 @@ static void dnetcard_receive_packet(netcard_data_s *netcard, connection_t *conn)
 
     char *data_ptr = (char *) tcp_header + tcp_header->th_off * sizeof(uint32_t);
 
-    size_t data_size = read(conn->socket, data_ptr, IP_PACKET_SIZE - (ip_header->ip_hl + tcp_header->th_off) * sizeof(uint32_t));
+    ssize_t data_size = read(conn->socket, data_ptr, IP_PACKET_SIZE - (ip_header->ip_hl + tcp_header->th_off) * sizeof(uint32_t));
+    if (data_size == 0 || data_size == -1) {
+        return false;
+    }
 
     ip_header->ip_len = (ip_header->ip_hl + tcp_header->th_off) * sizeof(uint32_t) + data_size;
+    return true;
 }
 
 /** Init command implementation
@@ -644,20 +672,27 @@ static void dnetcard_step4k(device_t *dev)
         for (size_t i = 0; i < netcard->conn_count; i++) {
             if (fds[i].revents & POLLIN) {
                 read_fd = fds[i].fd;
+                break;
+            } else if (fds[i].revents & (POLLERR | POLLHUP | POLLNVAL)) {
+                dnetcard_close_connection(netcard, fds[i].fd);
+                free(fds);
+                return;
             }
         }
         connection_t *read_conn;
         for_each(netcard->opened_conns, read_conn, connection_t)
         {
             if (read_conn->socket == read_fd) {
-                dnetcard_receive_packet(netcard, read_conn);
+                if (dnetcard_receive_packet(netcard, read_conn)) {
+                    netcard->rx_action = ACTION_PROCESS;
+                    netcard->rx_cnt = 0;
+                    netcard->status &= ~STATUS_RECEIVE;
+                } else {
+                    dnetcard_close_connection(netcard, read_fd);
+                }
                 break;
             }
         }
-
-        netcard->rx_action = ACTION_PROCESS;
-        netcard->rx_cnt = 0;
-        netcard->status &= ~STATUS_RECEIVE;
     }
 
     free(fds);

@@ -14,15 +14,35 @@
 #include "../../../assert.h"
 #include "../../../main.h"
 #include "cpu.h"
-#include "instr.h"
-#include "instructions/computations.h"
-#include "instructions/control_transfer.h"
-#include "instructions/mem_ops.h"
-#include "instructions/system.h"
+#include "debug.h"
 
-rv_exc_t rv_illegal_instr(rv_cpu_t *cpu, rv_instr_t instr)
+/** Generic types */
+#include "../riscv_rv_ima/types.h"
+
+#define rv_cpu_t rv32_cpu_t
+#define rv_cpu rv32_cpu
+
+#include "../riscv_rv_ima/csr.c"
+#include "../riscv_rv_ima/instr.h"
+#include "../riscv_rv_ima/instructions/computations.c"
+#include "../riscv_rv_ima/instructions/control_transfer.c"
+#include "../riscv_rv_ima/instructions/mem_ops.c"
+#include "../riscv_rv_ima/instructions/system.c"
+
+static_assert(sizeof(uxlen_t) == sizeof(uint32_t), "XLEN is not set to 32 bits in RV32");
+
+static rv_exc_t rv32_illegal_instr(rv_cpu_t *cpu, rv_instr_t instr)
 {
     return machine_undefined ? rv_exc_none : rv_exc_illegal_instruction;
+}
+
+static rv_exc_t _rv32_dump_instr(rv_cpu_t *cpu, rv_instr_t instr)
+{
+    ASSERT(cpu != NULL);
+    ASSERT(instr.i.opcode == rv_opcSYSTEM);
+    alert("EDUMP: Dumping general registers");
+    rv32_reg_dump(cpu);
+    return rv_exc_none;
 }
 
 static rv_instr_func_t decode_LOAD(rv_instr_t instr)
@@ -40,7 +60,7 @@ static rv_instr_func_t decode_LOAD(rv_instr_t instr)
     case rv_func_LHU:
         return rv_lhu_instr;
     default:
-        return rv_illegal_instr;
+        return rv32_illegal_instr;
     }
 }
 
@@ -50,7 +70,7 @@ static rv_instr_func_t decode_MISC_MEM(rv_instr_t instr)
     if (instr.i.funct3 == 0) {
         return rv_fence_instr;
     }
-    return rv_illegal_instr;
+    return rv32_illegal_instr;
 }
 
 static rv_instr_func_t decode_OP_IMM(rv_instr_t instr)
@@ -74,7 +94,7 @@ static rv_instr_func_t decode_OP_IMM(rv_instr_t instr)
         if (instr.i.imm >> 5 == 0) {
             return rv_slli_instr;
         } else {
-            return rv_illegal_instr;
+            return rv32_illegal_instr;
         }
     }
     case rv_func_SRI: {
@@ -84,11 +104,11 @@ static rv_instr_func_t decode_OP_IMM(rv_instr_t instr)
         case rv_SRLI:
             return rv_srli_instr;
         default:
-            return rv_illegal_instr;
+            return rv32_illegal_instr;
         }
     }
     default:
-        return rv_illegal_instr;
+        return rv32_illegal_instr;
     }
 }
 
@@ -109,7 +129,7 @@ static rv_instr_func_t decode_STORE(rv_instr_t instr)
     case rv_func_SW:
         return rv_sw_instr;
     default:
-        return rv_illegal_instr;
+        return rv32_illegal_instr;
     }
 }
 
@@ -119,34 +139,34 @@ static rv_instr_func_t decode_AMO(rv_instr_t instr)
 
     // only 32 bit width is supported
     if (instr.r.funct3 != RV_AMO_32_WLEN) {
-        return rv_illegal_instr;
+        return rv32_illegal_instr;
     }
 
     switch (RV_AMO_FUNCT(instr)) {
     case rv_funcLR:
-        return instr.r.rs2 == 0 ? rv_lr_instr : rv_illegal_instr;
+        return instr.r.rs2 == 0 ? rv_lr_w_instr : rv32_illegal_instr;
     case rv_funcSC:
-        return rv_sc_instr;
+        return rv_sc_w_instr;
     case rv_funcAMOSWAP:
-        return rv_amoswap_instr;
+        return rv_amoswap_w_instr;
     case rv_funcAMOADD:
-        return rv_amoadd_instr;
+        return rv_amoadd_w_instr;
     case rv_funcAMOXOR:
-        return rv_amoxor_instr;
+        return rv_amoxor_w_instr;
     case rv_funcAMOAND:
-        return rv_amoand_instr;
+        return rv_amoand_w_instr;
     case rv_funcAMOOR:
-        return rv_amoor_instr;
+        return rv_amoor_w_instr;
     case rv_funcAMOMIN:
-        return rv_amomin_instr;
+        return rv_amomin_w_instr;
     case rv_funcAMOMAX:
-        return rv_amomax_instr;
+        return rv_amomax_w_instr;
     case rv_funcAMOMINU:
-        return rv_amominu_instr;
+        return rv_amominu_w_instr;
     case rv_funcAMOMAXU:
-        return rv_amomaxu_instr;
+        return rv_amomaxu_w_instr;
     default:
-        return rv_illegal_instr;
+        return rv32_illegal_instr;
     }
 }
 
@@ -193,7 +213,7 @@ static rv_instr_func_t decode_OP(rv_instr_t instr)
     case rv_func_REMU:
         return rv_remu_instr;
     default:
-        return rv_illegal_instr;
+        return rv32_illegal_instr;
     }
 }
 
@@ -220,7 +240,7 @@ static rv_instr_func_t decode_BRANCH(rv_instr_t instr)
     case rv_func_BGEU:
         return rv_bgeu_instr;
     default:
-        return rv_illegal_instr;
+        return rv32_illegal_instr;
     }
 }
 
@@ -229,7 +249,7 @@ static rv_instr_func_t decode_JALR(rv_instr_t instr)
     ASSERT(instr.i.opcode == rv_opcJALR);
 
     if (instr.i.funct3 != 0) {
-        return rv_illegal_instr;
+        return rv32_illegal_instr;
     }
     return rv_jalr_instr;
 }
@@ -240,28 +260,70 @@ static rv_instr_func_t decode_JAL(rv_instr_t instr)
     return rv_jal_instr;
 }
 
+static rv_exc_t _rv32_csr_rd_instr(rv_cpu_t *cpu, rv_instr_t instr)
+{
+    ASSERT(cpu != NULL);
+    ASSERT(instr.i.opcode == rv_opcSYSTEM);
+    alert("ECSRD: Dump CSR");
+    uint64_t csr = cpu->regs[instr.i.rd] & 0xFFF;
+
+    if (csr >= 0x1000) {
+        alert("Wrong CSR number!");
+    } else {
+        rv32_csr_dump(cpu, csr);
+    }
+    return rv_exc_none;
+}
+
+static rv_exc_t _rv32_sfence_instr(rv_cpu_t *cpu, rv_instr_t instr)
+{
+    if (rv_csr_mstatus_tvm(cpu) || cpu->priv_mode < rv_smode) {
+        return rv_exc_illegal_instruction;
+    }
+
+    if (instr.r.rs1 == 0) {
+        if (instr.r.rs2 == 0) {
+            // rs1 == x0 && rs2 == x0
+            rv32_tlb_flush(&cpu->tlb);
+        } else {
+            // rs1 == x0 && rs2 != x0
+            rv32_tlb_flush_by_asid(&cpu->tlb, cpu->regs[instr.r.rs2] & rv_asid_mask);
+        }
+    } else {
+        if (instr.r.rs2 == 0) {
+            // rs1 != x0 && rs2 == x0
+            rv32_tlb_flush_by_addr(&cpu->tlb, cpu->regs[instr.r.rs1]);
+        } else {
+            // rs1 != x0 && rs2 != x0
+            rv32_tlb_flush_by_asid_and_addr(&cpu->tlb, cpu->regs[instr.r.rs2] & rv_asid_mask, cpu->regs[instr.r.rs1]);
+        }
+    }
+    return rv_exc_none;
+}
+
 static rv_instr_func_t decode_PRIV(rv_instr_t instr)
 {
     ASSERT(instr.i.opcode == rv_opcSYSTEM);
     ASSERT(instr.i.funct3 == rv_funcPRIV);
 
     if (instr.r.funct7 == rv_privSFENCEVMA_FUNCT7) {
-        return rv_sfence_instr;
+        return _rv32_sfence_instr;
     }
 
     switch (instr.i.imm & 0xFFF) {
     case rv_privEBREAK:
         return rv_break_instr;
     case rv_privEHALT:
-        return machine_specific_instructions ? rv_halt_instr : rv_illegal_instr;
+        return (machine_specific_instructions ? rv_halt_instr : rv32_illegal_instr);
     case rv_privEDUMP:
-        return machine_specific_instructions ? rv_dump_instr : rv_illegal_instr;
+        return (machine_specific_instructions ? _rv32_dump_instr : rv32_illegal_instr);
+
     case rv_privETRACES:
-        return machine_specific_instructions ? rv_trace_set_instr : rv_illegal_instr;
+        return (machine_specific_instructions ? rv_trace_set_instr : rv32_illegal_instr);
     case rv_privETRACER:
-        return machine_specific_instructions ? rv_trace_reset_instr : rv_illegal_instr;
+        return (machine_specific_instructions ? rv_trace_reset_instr : rv32_illegal_instr);
     case rv_privECSRD:
-        return machine_specific_instructions ? rv_csr_rd_instr : rv_illegal_instr;
+        return (machine_specific_instructions ? _rv32_csr_rd_instr : rv32_illegal_instr);
     case rv_privECALL:
         return rv_call_instr;
     case rv_privSRET:
@@ -271,7 +333,7 @@ static rv_instr_func_t decode_PRIV(rv_instr_t instr)
     case rv_privWFI:
         return rv_wfi_instr;
     default:
-        return rv_illegal_instr;
+        return rv32_illegal_instr;
     }
 }
 
@@ -294,11 +356,11 @@ static rv_instr_func_t decode_SYSTEM(rv_instr_t instr)
     case rv_funcCSRRCI:
         return rv_csrrci_instr;
     default:
-        return rv_illegal_instr;
+        return rv32_illegal_instr;
     }
 }
 
-rv_instr_func_t rv_instr_decode(rv_instr_t instr)
+static rv_instr_func_t riscv32_instr_decode(rv_instr_t instr)
 {
     // opcode is at the same spot in all encodings, so any can be chosen
     switch (instr.r.opcode) {
@@ -327,7 +389,17 @@ rv_instr_func_t rv_instr_decode(rv_instr_t instr)
     case rv_opcSYSTEM:
         return decode_SYSTEM(instr);
     default: {
-        return rv_illegal_instr;
+        return rv32_illegal_instr;
     }
     }
+}
+
+static rv_instr_func_t _rv32_instr_decode(rv_instr_t instr)
+{
+    return riscv32_instr_decode(instr);
+}
+
+static rv_instr_func_t rv32_instr_decode(rv_instr_t instr)
+{
+    return riscv32_instr_decode(instr);
 }

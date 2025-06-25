@@ -176,7 +176,7 @@ def run_os_test(test_descriptor, extra_configure_args, logger, build_dir_name):
 
     logger.info('Running MSIM ...')
     (exit_code, output) = run_command_with_logging(
-        ['msim'],
+        ['../../../../msim', '-n'],
         build_dir,
         msim_log,
         logger,

@@ -87,6 +87,9 @@ loadermem load "kernel/loader.bin"
 # Console printer
 add dprinter printer 0x90000000
 
+# Network device
+add dnetcard netcard 0x91000000 6
+
 '''
 
 TOOLCHAIN_TARGETS = ['riscv32-unknown-elf']

@@ -39,7 +39,7 @@ typedef struct {
     rv_instr_func_t instrs[FRAME_SIZE / sizeof(rv_instr_t)]; // Decoded instructions (represented as function pointers)
 } cache_item_t;
 
-#define PHYS2CACHEINSTR(phys) (((phys) & FRAME_MASK) / sizeof(rv_instr_t))
+#define PHYS2CACHEINSTR(phys) (((phys) &FRAME_MASK) / sizeof(rv_instr_t))
 
 static void cache_item_init(cache_item_t *cache_item)
 {

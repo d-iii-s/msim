@@ -15,18 +15,27 @@
 #include "../../../assert.h"
 #include "../../../env.h"
 #include "../../../utils.h"
+#include "cpu.h"
 #include "debug.h"
-#include "instr.h"
-#include "instructions/computations.h"
-#include "instructions/control_transfer.h"
-#include "instructions/mem_ops.h"
-#include "instructions/system.h"
 #include "mnemonics.h"
+
+/** types */
+#include "../riscv_rv_ima/types.h"
+
+static rv_exc_t rv_convert_addr(rv_cpu_t *cpu, virt_t virt, ptr36_t *phys, bool wr, bool fetch, bool noisy)
+{
+    return rv32_convert_addr(cpu, virt, phys, wr, fetch, noisy);
+}
+
+/** First memory helpers */
+#include "../riscv_rv_ima/memory.c"
+/** Then instructions */
+#include "instr.c"
 
 extern rv_mnemonics_func_t rv_decode_mnemonics(rv_instr_t instr)
 {
     // is this dirty?
-    rv_instr_func_t instr_func = rv_instr_decode(instr);
+    rv_instr_func_t instr_func = _rv32_instr_decode(instr);
 
     // very dirty indeed, but only one decode is needed
 
@@ -81,6 +90,10 @@ extern rv_mnemonics_func_t rv_decode_mnemonics(rv_instr_t instr)
 
     // SYSTEM
 
+    if (instr_func == _rv32_sfence_instr) {
+        return rv_sfence_mnemonics;
+    }
+
     if (instr_func == rv_break_instr) {
         return rv_ebreak_mnemonics;
     }
@@ -89,7 +102,7 @@ extern rv_mnemonics_func_t rv_decode_mnemonics(rv_instr_t instr)
         return rv_ehalt_mnemonics;
     }
 
-    if (instr_func == rv_dump_instr) {
+    if (instr_func == _rv32_dump_instr) {
         return rv_edump_mnemonics;
     }
 
@@ -101,7 +114,7 @@ extern rv_mnemonics_func_t rv_decode_mnemonics(rv_instr_t instr)
         return rv_trace_reset_mnemonics;
     }
 
-    if (instr_func == rv_csr_rd_instr) {
+    if (instr_func == _rv32_csr_rd_instr) {
         return rv_csr_rd_mnemonics;
     }
 
@@ -112,7 +125,6 @@ extern rv_mnemonics_func_t rv_decode_mnemonics(rv_instr_t instr)
     IF_SAME_DECODE(sret);
     IF_SAME_DECODE(mret);
     IF_SAME_DECODE(wfi);
-    IF_SAME_DECODE(sfence);
 
     IF_SAME_DECODE(csrrw);
     IF_SAME_DECODE(csrrs);
@@ -136,15 +148,15 @@ extern rv_mnemonics_func_t rv_decode_mnemonics(rv_instr_t instr)
 
     IF_SAME_DECODE(lr);
     IF_SAME_DECODE(sc);
-    IF_SAME_DECODE(amoswap);
-    IF_SAME_DECODE(amoadd);
-    IF_SAME_DECODE(amoxor);
-    IF_SAME_DECODE(amoor);
-    IF_SAME_DECODE(amoand);
-    IF_SAME_DECODE(amomin);
-    IF_SAME_DECODE(amomax);
-    IF_SAME_DECODE(amominu);
-    IF_SAME_DECODE(amomaxu);
+    IF_SAME_DECODE(amoswap_w);
+    IF_SAME_DECODE(amoadd_w);
+    IF_SAME_DECODE(amoxor_w);
+    IF_SAME_DECODE(amoor_w);
+    IF_SAME_DECODE(amoand_w);
+    IF_SAME_DECODE(amomin_w);
+    IF_SAME_DECODE(amomax_w);
+    IF_SAME_DECODE(amominu_w);
+    IF_SAME_DECODE(amomaxu_w);
 
     return undefined_mnemonics;
 }
@@ -207,13 +219,13 @@ static void i_instr_comment_binop_hex(rv_instr_t instr, string_t *s_comments, co
 
 static void imm_shift_mnemonics(rv_instr_t instr, string_t *s_mnemonics)
 {
-    int32_t shamt = instr.i.imm & RV_IMM_SHIFT_SHAMT_MASK;
+    int32_t shamt = instr.i.imm & shift_instr_mask(XLEN);
     string_printf(s_mnemonics, " %s, %s, %u", rv_regnames[instr.i.rd], rv_regnames[instr.i.rs1], shamt);
 }
 
 static void imm_shift_comments(rv_instr_t instr, string_t *s_comments, const char *op)
 {
-    int32_t shamt = instr.i.imm & RV_IMM_SHIFT_SHAMT_MASK;
+    int32_t shamt = instr.i.imm & shift_instr_mask(XLEN);
     string_printf(s_comments, "%s = %s %s %u", rv_regnames[instr.i.rd], rv_regnames[instr.i.rs1], op, shamt);
 }
 
@@ -737,47 +749,47 @@ extern void rv_sc_mnemonics(uint32_t addr, rv_instr_t instr, string_t *s_mnemoni
     string_printf(s_mnemonics, "sc");
     amo_instr_mnemonics(instr, s_mnemonics);
 }
-extern void rv_amoswap_mnemonics(uint32_t addr, rv_instr_t instr, string_t *s_mnemonics, string_t *s_comments)
+extern void rv_amoswap_w_mnemonics(uint32_t addr, rv_instr_t instr, string_t *s_mnemonics, string_t *s_comments)
 {
     string_printf(s_mnemonics, "amoswap");
     amo_instr_mnemonics(instr, s_mnemonics);
 }
-extern void rv_amoadd_mnemonics(uint32_t addr, rv_instr_t instr, string_t *s_mnemonics, string_t *s_comments)
+extern void rv_amoadd_w_mnemonics(uint32_t addr, rv_instr_t instr, string_t *s_mnemonics, string_t *s_comments)
 {
     string_printf(s_mnemonics, "amoadd");
     amo_instr_mnemonics(instr, s_mnemonics);
 }
-extern void rv_amoxor_mnemonics(uint32_t addr, rv_instr_t instr, string_t *s_mnemonics, string_t *s_comments)
+extern void rv_amoxor_w_mnemonics(uint32_t addr, rv_instr_t instr, string_t *s_mnemonics, string_t *s_comments)
 {
     string_printf(s_mnemonics, "amoxor");
     amo_instr_mnemonics(instr, s_mnemonics);
 }
-extern void rv_amoand_mnemonics(uint32_t addr, rv_instr_t instr, string_t *s_mnemonics, string_t *s_comments)
+extern void rv_amoand_w_mnemonics(uint32_t addr, rv_instr_t instr, string_t *s_mnemonics, string_t *s_comments)
 {
     string_printf(s_mnemonics, "amoand");
     amo_instr_mnemonics(instr, s_mnemonics);
 }
-extern void rv_amoor_mnemonics(uint32_t addr, rv_instr_t instr, string_t *s_mnemonics, string_t *s_comments)
+extern void rv_amoor_w_mnemonics(uint32_t addr, rv_instr_t instr, string_t *s_mnemonics, string_t *s_comments)
 {
     string_printf(s_mnemonics, "amoor");
     amo_instr_mnemonics(instr, s_mnemonics);
 }
-extern void rv_amomin_mnemonics(uint32_t addr, rv_instr_t instr, string_t *s_mnemonics, string_t *s_comments)
+extern void rv_amomin_w_mnemonics(uint32_t addr, rv_instr_t instr, string_t *s_mnemonics, string_t *s_comments)
 {
     string_printf(s_mnemonics, "amomin");
     amo_instr_mnemonics(instr, s_mnemonics);
 }
-extern void rv_amomax_mnemonics(uint32_t addr, rv_instr_t instr, string_t *s_mnemonics, string_t *s_comments)
+extern void rv_amomax_w_mnemonics(uint32_t addr, rv_instr_t instr, string_t *s_mnemonics, string_t *s_comments)
 {
     string_printf(s_mnemonics, "amomax");
     amo_instr_mnemonics(instr, s_mnemonics);
 }
-extern void rv_amominu_mnemonics(uint32_t addr, rv_instr_t instr, string_t *s_mnemonics, string_t *s_comments)
+extern void rv_amominu_w_mnemonics(uint32_t addr, rv_instr_t instr, string_t *s_mnemonics, string_t *s_comments)
 {
     string_printf(s_mnemonics, "amominu");
     amo_instr_mnemonics(instr, s_mnemonics);
 }
-extern void rv_amomaxu_mnemonics(uint32_t addr, rv_instr_t instr, string_t *s_mnemonics, string_t *s_comments)
+extern void rv_amomaxu_w_mnemonics(uint32_t addr, rv_instr_t instr, string_t *s_mnemonics, string_t *s_comments)
 {
     string_printf(s_mnemonics, "amomaxu");
     amo_instr_mnemonics(instr, s_mnemonics);

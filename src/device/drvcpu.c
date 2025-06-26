@@ -26,27 +26,27 @@
 #include "cpu/riscv_rv32ima/debug.h"
 #include "drvcpu.h"
 
-static bool rv_convert_add_wrapper(void *cpu, ptr64_t virt, ptr36_t *phys, bool write)
+static bool rv32_convert_add_wrapper(void *cpu, ptr64_t virt, ptr36_t *phys, bool write)
 {
     // use only low 32-bits from virt
-    return rv_convert_addr((rv_cpu_t *) cpu, virt.lo, phys, write, false, false) == rv_exc_none;
+    return rv32_convert_addr((rv_cpu_t *) cpu, virt.lo, phys, write, false, false) == rv_exc_none;
 }
 
-static void rv_set_pc_wrapper(void *cpu, ptr64_t addr)
+static void rv32_set_pc_wrapper(void *cpu, ptr64_t addr)
 {
     // use only low 32-bits from addr
-    rv_cpu_set_pc((rv_cpu_t *) cpu, addr.lo);
+    rv32_cpu_set_pc((rv_cpu_t *) cpu, addr.lo);
 }
 
 static const cpu_ops_t rv_cpu = {
-    .interrupt_up = (interrupt_func_t) rv_interrupt_up,
-    .interrupt_down = (interrupt_func_t) rv_interrupt_down,
+    .interrupt_up = (interrupt_func_t) rv32_interrupt_up,
+    .interrupt_down = (interrupt_func_t) rv32_interrupt_down,
 
-    .convert_addr = (convert_addr_func_t) rv_convert_add_wrapper,
-    .reg_dump = (reg_dump_func_t) rv_reg_dump,
+    .convert_addr = (convert_addr_func_t) rv32_convert_add_wrapper,
+    .reg_dump = (reg_dump_func_t) rv32_reg_dump,
 
-    .set_pc = (set_pc_func_t) rv_set_pc_wrapper,
-    .sc_access = (sc_access_func_t) rv_sc_access
+    .set_pc = (set_pc_func_t) rv32_set_pc_wrapper,
+    .sc_access = (sc_access_func_t) rv32_sc_access
 };
 
 /**
@@ -62,8 +62,8 @@ static bool drvcpu_init(token_t *parm, device_t *dev)
         return false;
     }
 
-    rv_cpu_t *cpu = safe_malloc_t(rv_cpu_t);
-    rv_cpu_init(cpu, id);
+    rv32_cpu_t *cpu = safe_malloc_t(rv_cpu_t);
+    rv32_cpu_init(cpu, id);
     general_cpu_t *gen_cpu = safe_malloc_t(general_cpu_t);
     gen_cpu->cpuno = id;
     gen_cpu->data = cpu;
@@ -92,7 +92,7 @@ static bool drvcpu_rd(token_t *parm, device_t *dev)
 {
     ASSERT(dev != NULL);
 
-    rv_reg_dump(get_rv(dev));
+    rv32_reg_dump(get_rv(dev));
     return true;
 }
 
@@ -104,7 +104,7 @@ static bool drvcpu_csr_dump(token_t *parm, device_t *dev)
     ASSERT(dev != NULL);
 
     if (parm->ttype == tt_end) {
-        rv_csr_dump_reduced(get_rv(dev));
+        rv32_csr_dump_reduced(get_rv(dev));
         return true;
     }
 
@@ -113,11 +113,11 @@ static bool drvcpu_csr_dump(token_t *parm, device_t *dev)
     if (token_type == tt_str) {
         const char *param = parm_str_next(&parm);
 
-        if (rv_csr_dump_command(get_rv(dev), param)) {
+        if (rv32_csr_dump_command(get_rv(dev), param)) {
             return true;
         }
 
-        if (rv_csr_dump_by_name(get_rv(dev), param)) {
+        if (rv32_csr_dump_by_name(get_rv(dev), param)) {
             return true;
         }
 
@@ -127,7 +127,7 @@ static bool drvcpu_csr_dump(token_t *parm, device_t *dev)
         if (num > 0xFFF) {
             return false;
         }
-        return rv_csr_dump(get_rv(dev), num);
+        return rv32_csr_dump(get_rv(dev), num);
     }
 
     printf("Invalid arguments!");
@@ -148,7 +148,7 @@ static bool drvcpu_tr(token_t *parm, device_t *dev)
         return false;
     }
 
-    return rv_translate_dump(get_rv(dev), (uint32_t) addr);
+    return rv32_translate_dump(get_rv(dev), (uint32_t) addr);
 }
 
 /**
@@ -172,7 +172,7 @@ static bool drvcpu_str(token_t *parm, device_t *dev)
         return false;
     }
 
-    return rv_translate_sv32_dump(get_rv(dev), root_phys, (uint32_t) addr);
+    return rv32_translate_sv32_dump(get_rv(dev), root_phys, (uint32_t) addr);
 }
 
 static bool drvcpu_specifies_verbose(const char *param)
@@ -188,7 +188,7 @@ static bool drvcpu_ptd(token_t *parm, device_t *dev)
     ASSERT(dev != NULL);
 
     if (parm->ttype == tt_end) {
-        return rv_pagetable_dump(get_rv(dev), false);
+        return rv32_pagetable_dump(get_rv(dev), false);
     }
 
     const char *param = parm_str_next(&parm);
@@ -198,7 +198,7 @@ static bool drvcpu_ptd(token_t *parm, device_t *dev)
         return false;
     }
 
-    return rv_pagetable_dump(get_rv(dev), true);
+    return rv32_pagetable_dump(get_rv(dev), true);
 }
 
 /**
@@ -216,7 +216,7 @@ static bool drvcpu_sptd(token_t *parm, device_t *dev)
     }
 
     if (parm->ttype == tt_end) {
-        return rv_pagetable_dump_from_phys(get_rv(dev), root_phys, false);
+        return rv32_pagetable_dump_from_phys(get_rv(dev), root_phys, false);
     }
 
     const char *param = parm_str_next(&parm);
@@ -226,7 +226,7 @@ static bool drvcpu_sptd(token_t *parm, device_t *dev)
         return false;
     }
 
-    return rv_pagetable_dump_from_phys(get_rv(dev), root_phys, true);
+    return rv32_pagetable_dump_from_phys(get_rv(dev), root_phys, true);
 }
 
 /**
@@ -235,7 +235,7 @@ static bool drvcpu_sptd(token_t *parm, device_t *dev)
 static bool drvcpu_tlb_dump(token_t *parm, device_t *dev)
 {
     ASSERT(dev != NULL);
-    rv_tlb_dump(&get_rv(dev)->tlb);
+    rv32_tlb_dump(&get_rv(dev)->tlb);
     return true;
 }
 
@@ -253,18 +253,18 @@ static bool drvcpu_tlb_resize(token_t *parm, device_t *dev)
         return false;
     }
 
-    rv_tlb_t *tlb = &get_rv(dev)->tlb;
+    rv32_tlb_t *tlb = &get_rv(dev)->tlb;
 
-    return rv_tlb_resize(tlb, new_tlb_size);
+    return rv32_tlb_resize(tlb, new_tlb_size);
 }
 
 static bool drvcpu_tlb_flush(token_t *parm, device_t *dev)
 {
     ASSERT(dev != NULL);
 
-    rv_tlb_t *tlb = &get_rv(dev)->tlb;
+    rv32_tlb_t *tlb = &get_rv(dev)->tlb;
 
-    rv_tlb_flush(tlb);
+    rv32_tlb_flush(tlb);
 
     return true;
 }
@@ -283,7 +283,7 @@ static bool drvcpu_set_asid_len(token_t *parm, device_t *dev)
         return false;
     }
 
-    rv_csr_set_asid_len(get_rv(dev), new_asid_len);
+    rv32_csr_set_asid_len(get_rv(dev), new_asid_len);
 
     return true;
 }
@@ -293,7 +293,7 @@ static bool drvcpu_set_asid_len(token_t *parm, device_t *dev)
  */
 static void drvcpu_done(device_t *dev)
 {
-    rv_cpu_done(get_rv(dev));
+    rv32_cpu_done(get_rv(dev));
     safe_free(((general_cpu_t *) dev->data)->data);
     safe_free(dev->data)
 }
@@ -303,7 +303,7 @@ static void drvcpu_done(device_t *dev)
  */
 static void drvcpu_step(device_t *dev)
 {
-    rv_cpu_step(get_rv(dev));
+    rv32_cpu_step(get_rv(dev));
 }
 
 /**

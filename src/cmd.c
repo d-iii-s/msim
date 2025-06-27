@@ -200,7 +200,7 @@ static bool system_dumpins(token_t *parm, void *data)
         } else if (is_rv) {
             rv_instr_t instr;
             instr.val = physmem_read32(-1, addr, false);
-            rv_idump_phys(addr, instr);
+            rv32_idump_phys(addr, instr);
         }
     }
 

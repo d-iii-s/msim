@@ -17,6 +17,7 @@
 #include <arpa/inet.h>
 #include <netinet/ip.h>
 #include <netinet/tcp.h>
+#include <netinet/udp.h>
 #include <sys/socket.h>
 
 #include "../fault.h"
@@ -114,12 +115,13 @@ typedef struct {
 /** Create new outgoing connection
  *
  * @param netcard Network card instance data structure
- * @param addr Connection address structure
+ * @param dest_addr Connection address structure
+ * @param src_addr Connection address structure
  * @param protocol Transport protocol number
  *
- * @return Socket file descriptor, -1 on errors
+ * @return Connection, null on errors
  */
-static int dnetcard_create_outgoing_connection(netcard_data_s *netcard, struct sockaddr_in *dest_addr, struct sockaddr_in *src_addr, uint8_t protocol)
+static connection_t *dnetcard_create_outgoing_connection(netcard_data_s *netcard, struct sockaddr_in *dest_addr, struct sockaddr_in *src_addr, uint8_t protocol)
 {
     int fd;
     switch (protocol) {
@@ -128,20 +130,25 @@ static int dnetcard_create_outgoing_connection(netcard_data_s *netcard, struct s
             // todo add error only in verbose mode
             // improve error message, add addr and port
             io_error("Failed to create socket");
-            return -1;
+            return NULL;
         }
 
         if (connect(fd, (struct sockaddr *) dest_addr, sizeof(struct sockaddr_in)) == -1) {
             io_error("Failed to connect to address");
             close(fd);
-            return -1;
+            return NULL;
         }
         break;
     case PROTOCOL_UDP:
+        if ((fd = socket(AF_INET, SOCK_DGRAM, 0)) == -1) {
+            io_error("Failed to create socket");
+            return NULL;
+        }
+        break;
     case PROTOCOL_TCP:
     default:
         error("Creating outgoing connection failed, protocol number %d not supported.", protocol);
-        return -1;
+        return NULL;
     }
 
     connection_t *new_conn = malloc(sizeof(connection_t));
@@ -157,7 +164,7 @@ static int dnetcard_create_outgoing_connection(netcard_data_s *netcard, struct s
     list_append(&netcard->opened_conns, &new_conn->item);
     netcard->opened_count++;
 
-    return fd;
+    return new_conn;
 }
 
 /** Create new incoming connection
@@ -196,21 +203,34 @@ static int dnetcard_create_incoming_stcp_connection(netcard_data_s *netcard, con
  * @param addr Connection address structure
  * @param protocol Transport protocol number
  *
- * @return File descriptor of the socket, -1 if connection does not exist
+ * @return Connection, null if connection does not exist
  */
-static int dnetcard_get_connection(netcard_data_s *netcard, struct sockaddr_in *dest_addr, struct sockaddr_in *src_addr, uint8_t protocol)
+static connection_t *dnetcard_get_connection(netcard_data_s *netcard, struct sockaddr_in *dest_addr, struct sockaddr_in *src_addr, uint8_t protocol)
 {
+    if (protocol == PROTOCOL_UDP) {
+        connection_t *conn;
+        for_each(netcard->listening_conns, conn, connection_t)
+        {
+            if (conn->src_addr.sin_addr.s_addr == src_addr->sin_addr.s_addr && conn->src_addr.sin_port == src_addr->sin_port
+                    && conn->transport_protocol == protocol) {
+                conn->dest_addr.sin_addr.s_addr = dest_addr->sin_addr.s_addr;
+                conn->dest_addr.sin_port = dest_addr->sin_port;
+                return conn;
+            }
+        }
+    }
+
     connection_t *conn;
     for_each(netcard->opened_conns, conn, connection_t)
     {
         if (conn->dest_addr.sin_addr.s_addr == dest_addr->sin_addr.s_addr && conn->dest_addr.sin_port == dest_addr->sin_port
                 && conn->src_addr.sin_addr.s_addr == src_addr->sin_addr.s_addr && conn->src_addr.sin_port == src_addr->sin_port
                 && conn->transport_protocol == protocol) {
-            return conn->socket;
+            return conn;
         }
     }
 
-    return -1;
+    return NULL;
 }
 
 /** Close opened connection by fd
@@ -269,22 +289,45 @@ static bool dnetcard_send_packet(netcard_data_s *netcard)
         data_size = ip_header->ip_len - (ip_header->ip_hl + tcp_header->th_off) * sizeof(uint32_t);
         break;
     }
-    case PROTOCOL_UDP:
+    case PROTOCOL_UDP: {
+        struct udphdr *udp_header = (struct udphdr *) (netcard->txbuffer + ip_header->ip_hl);
+        dest_in.sin_port = udp_header->uh_dport;
+        src_in.sin_port = udp_header->uh_sport;
+        packet_data = (char *) udp_header + sizeof(struct udphdr);
+        data_size = udp_header->uh_ulen - sizeof(struct udphdr);
+        break;
+    }
     case PROTOCOL_TCP:
     default:
         error("Sending packet failed, protocol %d not supported.", protocol);
         return false;
     }
 
-    int fd;
+    connection_t *conn;
 
-    if ((fd = dnetcard_get_connection(netcard, &dest_in, &src_in, protocol)) == -1) {
-        if ((fd = dnetcard_create_outgoing_connection(netcard, &dest_in, &src_in, protocol)) == -1) {
+    if ((conn = dnetcard_get_connection(netcard, &dest_in, &src_in, protocol)) == NULL) {
+        if ((conn = dnetcard_create_outgoing_connection(netcard, &dest_in, &src_in, protocol)) == NULL) {
             return false;
         }
     }
 
-    write(fd, packet_data, data_size);
+    switch (protocol) {
+    case PROTOCOL_STCP:
+        write(conn->socket, packet_data, data_size);
+        break;
+    case PROTOCOL_UDP: {
+        struct sockaddr_in addr = { 0 };
+        addr.sin_family = AF_INET;
+        addr.sin_addr.s_addr = conn->dest_addr.sin_addr.s_addr;
+        addr.sin_port = conn->dest_addr.sin_port;
+        sendto(conn->socket, packet_data, data_size, 0, (struct sockaddr *) &addr, sizeof(addr));
+        break;
+    }
+    case PROTOCOL_TCP:
+    default:
+        error("Writing to socket failed, protocol %d not supported.", protocol);
+        return false;
+    }
 
     return true;
 }
@@ -304,9 +347,11 @@ static bool dnetcard_receive_packet(netcard_data_s *netcard, connection_t *conn)
     struct in_addr dest_addr = { conn->src_addr.sin_addr.s_addr };
     ip_header->ip_src = src_addr;
     ip_header->ip_dst = dest_addr;
+    ip_header->ip_p = conn->transport_protocol;
 
     char *data_ptr;
     size_t th_off;
+    ssize_t data_size;
 
     uint8_t protocol = ip_header->ip_p;
     switch (protocol) {
@@ -317,17 +362,32 @@ static bool dnetcard_receive_packet(netcard_data_s *netcard, connection_t *conn)
         tcp_header->th_dport = conn->src_addr.sin_port;
         data_ptr = (char *) tcp_header + tcp_header->th_off * sizeof(uint32_t);
         th_off = tcp_header->th_off;
+
+        data_size = read(conn->socket, data_ptr, IP_PACKET_SIZE - (ip_header->ip_hl + th_off) * sizeof(uint32_t));
+        if (data_size == 0 || data_size == -1) {
+            return false;
+        }
         break;
     }
-    case PROTOCOL_UDP:
+    case PROTOCOL_UDP: {
+        struct udphdr *udp_header = (struct udphdr *) (netcard->rxbuffer + ip_header->ip_hl);
+        udp_header->uh_dport = conn->src_addr.sin_port;
+        data_ptr = (char *) udp_header + sizeof(struct udphdr);
+        th_off = sizeof(struct udphdr) / sizeof(uint32_t);
+
+        struct sockaddr_in remote_addr;
+        socklen_t addrsize = sizeof(remote_addr);
+
+        data_size = recvfrom(conn->socket, data_ptr, IP_PACKET_SIZE - (ip_header->ip_hl + th_off) * sizeof(uint32_t), 0, (struct sockaddr *) &remote_addr, &addrsize);
+        ip_header->ip_src.s_addr = remote_addr.sin_addr.s_addr;
+        udp_header->uh_sport = remote_addr.sin_port;
+        udp_header->uh_dport = conn->src_addr.sin_port;
+        udp_header->uh_ulen = sizeof(struct udphdr) + data_size;
+        break;
+    }
     case PROTOCOL_TCP:
     default:
         error("Reading from socket failed, protocol %d not supported", protocol);
-        return false;
-    }
-
-    ssize_t data_size = read(conn->socket, data_ptr, IP_PACKET_SIZE - (ip_header->ip_hl + th_off) * sizeof(uint32_t));
-    if (data_size == 0 || data_size == -1) {
         return false;
     }
 
@@ -426,6 +486,7 @@ static bool dnetcard_info(token_t *parm, device_t *dev)
         char listen_address[INET_ADDRSTRLEN];
         inet_ntop(AF_INET, &conn->src_addr.sin_addr, listen_address, INET_ADDRSTRLEN);
 
+        // todo improve
         printf("Listening on %s:%d ", listen_address, (uint16_t) ntohs(conn->src_addr.sin_port));
         switch (conn->transport_protocol) {
         case PROTOCOL_STCP:
@@ -470,7 +531,17 @@ static bool dnetcard_listen(token_t *parm, device_t *dev)
     netcard_data_s *netcard = (netcard_data_s *) dev->data;
 
     uint64_t _port = parm_uint_next(&parm);
-    uint8_t protocol = PROTOCOL_STCP;
+
+    uint8_t protocol;
+    const char *protocol_name = parm_str_next(&parm);
+    if (strcmp(protocol_name, "STCP") == 0) {
+        protocol = PROTOCOL_STCP;
+    } else if (strcmp(protocol_name, "UDP") == 0) {
+        protocol = PROTOCOL_UDP;
+    } else {
+        error("Unknown protocol %s", protocol_name);
+        return false;
+    }
 
     // parse optional parameter visibility
     bool public_addr = false;
@@ -521,7 +592,17 @@ static bool dnetcard_listen(token_t *parm, device_t *dev)
         }
         break;
     }
-    case PROTOCOL_UDP:
+    case PROTOCOL_UDP: {
+        if ((sockfd = socket(AF_INET, SOCK_DGRAM, 0)) == -1) {
+            io_error("Error creating socket");
+        }
+
+        if (bind(sockfd, (struct sockaddr *) &addr, sizeof(addr)) == -1) {
+            io_error("Error binding address");
+            return false;
+        }
+        break;
+    }
     case PROTOCOL_TCP:
     default:
         error("Listen failed, protocol %d not supported", protocol);
@@ -534,6 +615,7 @@ static bool dnetcard_listen(token_t *parm, device_t *dev)
     new_conn->src_addr.sin_family = addr.sin_family;
     new_conn->src_addr.sin_port = addr.sin_port;
     new_conn->src_addr.sin_addr.s_addr = netcard->ip_address;
+    new_conn->dest_addr.sin_family = AF_INET;
     new_conn->transport_protocol = protocol;
     item_init(&new_conn->item);
     list_append(&netcard->listening_conns, &new_conn->item);
@@ -802,6 +884,15 @@ static void dnetcard_step4k(device_t *dev)
                     dnetcard_create_incoming_stcp_connection(netcard, listen_conn);
                     break;
                 case PROTOCOL_UDP:
+                    if (dnetcard_receive_packet(netcard, listen_conn)) {
+                        netcard->rx_action = ACTION_PROCESS;
+                        netcard->rx_cnt = 0;
+                        netcard->status &= ~STATUS_RECEIVE;
+                    } else {
+                        dnetcard_close_connection(netcard, listen_conn->socket);
+                    }
+                    free(listen_fds);
+                    return;
                 case PROTOCOL_TCP:
                 default:
                     error("Reading from listening socket failed, protocol %d not supported.", protocol);
@@ -897,7 +988,8 @@ cmd_t dnetcard_cmds[] = {
             "Listen on port",
             "Listen on port",
             REQ INT "port" NEXT
-                    OPT STR "visibility - local (default) or public" END },
+                    REQ STR "protocol - STCP or UDP" NEXT
+                            OPT STR "visibility - local (default) or public" END },
     LAST_CMD
 };
 

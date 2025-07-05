@@ -40,8 +40,8 @@ enum action_e {
 #define REGISTER_RX_ADDR_HI 12 /* Address (bits 32 .. 35) */
 #define REGISTER_STATUS 16 /* Status/commands */
 #define REGISTER_COMMAND 16 /* Status/commands */
-#define REGISTER_IP_ADDRESS 24 /* IP address of the device */
-#define REGISTER_LIMIT 28 /* Size of register block */
+#define REGISTER_IP_ADDRESS 20 /* IP address of the device */
+#define REGISTER_LIMIT 24 /* Size of register block */
 
 /* Status flags */
 #define STATUS_RECEIVE 0x02 /* Ready for receiving */

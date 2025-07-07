@@ -15,6 +15,9 @@ import subprocess
 import sys
 import threading
 import time
+import http.server
+import socketserver
+import threading
 
 CPU_COUNT = multiprocessing.cpu_count()
 
@@ -92,6 +95,14 @@ class InThreadPopener(threading.Thread):
             except OSError as exc:
                 self.logger.debug(exc)
                 # Probably (fingers crossed) a race between poll() and kill()
+
+class ReusableTCPServer(socketserver.TCPServer):
+    allow_reuse_address = True
+
+PORT = 60123
+httpd = ReusableTCPServer(("", PORT), http.server.SimpleHTTPRequestHandler)
+def start_server():
+    httpd.serve_forever()
 
 def run_command_with_logging(command, work_dir, log_filename, logger, stdin=subprocess.DEVNULL, timeout=600):
     proc = InThreadPopener(command, work_dir, log_filename, logger, stdin)
@@ -247,6 +258,10 @@ def get_suite_tests(suite_filename):
 def run_tests(tests, fail_fast, extra_configure_args):
     logger = logging.getLogger('run_tests')
 
+    # Starting an HTTP server
+    thread = threading.Thread(target=start_server)
+    thread.start()
+
     report = []
     for test in tests:
         try:
@@ -274,6 +289,11 @@ def run_tests(tests, fail_fast, extra_configure_args):
             if fail_fast:
                 logger.warning('Fail fast turned on, terminating immediately.')
                 break
+
+    # Stopping the HTTP server
+    httpd.shutdown()
+    httpd.server_close()
+    thread.join()
 
     return report
 

@@ -21,6 +21,7 @@
 #include <sys/socket.h>
 
 #include "../fault.h"
+#include "../main.h"
 #include "../physmem.h"
 #include "../text.h"
 #include "../utils.h"
@@ -127,27 +128,33 @@ static connection_t *dnetcard_create_outgoing_connection(netcard_data_s *netcard
     switch (protocol) {
     case PROTOCOL_STCP:
         if ((fd = socket(AF_INET, SOCK_STREAM, 0)) == -1) {
-            // todo add error only in verbose mode
-            // improve error message, add addr and port
-            io_error("Failed to create socket");
+            if (machine_verbose) {
+                io_error("Failed to create socket");
+            }
             return NULL;
         }
 
         if (connect(fd, (struct sockaddr *) dest_addr, sizeof(struct sockaddr_in)) == -1) {
-            io_error("Failed to connect to address");
+            if (machine_verbose) {
+                io_error("Failed to connect to address");
+            }
             close(fd);
             return NULL;
         }
         break;
     case PROTOCOL_UDP:
         if ((fd = socket(AF_INET, SOCK_DGRAM, 0)) == -1) {
-            io_error("Failed to create socket");
+            if (machine_verbose) {
+                io_error("Failed to create socket");
+            }
             return NULL;
         }
         break;
     case PROTOCOL_TCP:
     default:
-        error("Creating outgoing connection failed, protocol number %d not supported.", protocol);
+        if (machine_verbose) {
+            error("Creating outgoing connection failed, protocol number %d not supported.", protocol);
+        }
         return NULL;
     }
 
@@ -180,7 +187,9 @@ static int dnetcard_create_incoming_stcp_connection(netcard_data_s *netcard, con
     socklen_t len = sizeof(new_conn->dest_addr);
     int newsock = accept(listen_conn->socket, (struct sockaddr *) &new_conn->dest_addr, &len);
     if (newsock == -1) {
-        io_error("Error accepting a connection");
+        if (machine_verbose) {
+            io_error("Error accepting a connection");
+        }
         free(new_conn);
         return -1;
     }
@@ -264,7 +273,9 @@ static bool dnetcard_send_packet(netcard_data_s *netcard)
     struct ip *ip_header = (struct ip *) netcard->txbuffer;
 
     if (ip_header->ip_src.s_addr != netcard->ip_address) {
-        error("Trying to sent a packet from different IP address");
+        if (machine_verbose) {
+            error("Trying to sent a packet from different IP address");
+        }
         return false;
     }
 
@@ -299,7 +310,9 @@ static bool dnetcard_send_packet(netcard_data_s *netcard)
     }
     case PROTOCOL_TCP:
     default:
-        error("Sending packet failed, protocol %d not supported.", protocol);
+        if (machine_verbose) {
+            error("Sending packet failed, protocol %d not supported.", protocol);
+        }
         return false;
     }
 
@@ -325,7 +338,9 @@ static bool dnetcard_send_packet(netcard_data_s *netcard)
     }
     case PROTOCOL_TCP:
     default:
-        error("Writing to socket failed, protocol %d not supported.", protocol);
+        if (machine_verbose) {
+            error("Writing to socket failed, protocol %d not supported.", protocol);
+        }
         return false;
     }
 
@@ -387,7 +402,9 @@ static bool dnetcard_receive_packet(netcard_data_s *netcard, connection_t *conn)
     }
     case PROTOCOL_TCP:
     default:
-        error("Reading from socket failed, protocol %d not supported", protocol);
+        if (machine_verbose) {
+            error("Reading from socket failed, protocol %d not supported", protocol);
+        }
         return false;
     }
 
@@ -500,7 +517,6 @@ static bool dnetcard_info(token_t *parm, device_t *dev)
             break;
         }
     }
-    printf("Opened connections:...\n");
     return true;
 }
 
@@ -895,7 +911,9 @@ static void dnetcard_step4k(device_t *dev)
                     return;
                 case PROTOCOL_TCP:
                 default:
-                    error("Reading from listening socket failed, protocol %d not supported.", protocol);
+                    if (machine_verbose) {
+                        error("Reading from listening socket failed, protocol %d not supported.", protocol);
+                    }
                     dnetcard_close_connection(netcard, listen_fd);
                     break;
                 }

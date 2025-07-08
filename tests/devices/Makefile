@@ -7,9 +7,7 @@ DIFF = diff
 
 ### Phony targets
 
-.PHONY: all clean distclean kernel cstyle check-cstyle check-config
-
-
+.PHONY: all clean distclean kernel cstyle check-cstyle check-config test
 
 ### Default target
 
@@ -30,6 +28,9 @@ check-cstyle:
 
 cstyle:
 	find kernel/ -name '*.[ch]' -exec clang-format -style=file -i {} \;
+
+test:
+	./tools/tester.py suite suites/dnetcard.txt
 
 
 ### Usability target

@@ -210,6 +210,12 @@ const env_t global_env[] = {
             vt_bool,
             &machine_trace,
             NULL },
+    { "verbose",
+            "Allow devices to print additional output",
+            "Allow devices to print additional output",
+            vt_bool,
+            &machine_verbose,
+            NULL },
     LAST_ENV
 };
 

@@ -69,6 +69,7 @@ extern bool remote_gdb_step;
 /** General simulator behaviour */
 extern bool machine_nondet;
 extern bool machine_trace;
+extern bool machine_verbose;
 extern bool machine_halt;
 extern bool machine_break;
 extern bool machine_interactive;

@@ -942,11 +942,23 @@ Commands
 
 
 
-Networking card device ``dnetcard``
+Network card device ``dnetcard``
 -----------------------------------
 
-The device simulates a networking card that has ability to send and receive packets
+The device simulates a network card that has ability to send and receive packets
 using DMA for data transfers between the card and memory.
+
+Network card has optional logs which can be turned on using `verbose` variable: ``set verbose``.
+This helps to detect some mistakes as connection failure with TCP.
+
+Both DMA buffers have size of 1500, because that is a common MTU.
+
+Supported protocols are UDP and simplified TCP. UDP protocol is fully supported.
+Simplified TCP means, that the device sends only TCP data packets to/from the guest.
+If the guest initiates a connection by sending a packet to a new address,
+the device starts a connection which can be used to transfer the data.
+If the connection can not be established, then both TX and ERR interrupts are raised signaling an error with sending packet.
+Other features of the TCP protocol are not supported.
 
 Initialization parameters: ``address`` ``intno``
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -976,7 +988,7 @@ Registers
     * writing to this buffer while receiving is enabled results in an error
     "
     "+12",4,"RX buffer address (higher 4 bits)","read/write","Higher 4 bits for RX DMA physical address. See description of RX buffer address (lower 32 bits) for further details."
-    "+16",8,"status/command",read,"
+    "+16",4,"status/command",read,"
     Get a bitfield representing the current status of the device:
 
     .. csv-table::
@@ -991,7 +1003,7 @@ Registers
 
         1: error interrupt pending because the previous operation cause an error
 
-        when with tx_i dnetcard could not send IP packet (maybe address is not reachable)
+        when combined with tx_i: dnetcard could not send IP packet (used in simplified TCP)
     ``rx_i``
         0: no error
 
@@ -1028,6 +1040,7 @@ Registers
     ``s``
         if set to 1 then a send operation is initiated (reading the data from TX DMA buffer)
     "
+    "+20",4,"IP address","read/write","IP address assigned to the device by the guest. It must be set before the device can be used. This address must be used in outgoing packets and will be used in incoming packets."
 
 Commands
 ^^^^^^^^
@@ -1038,3 +1051,5 @@ Commands
    Print the device information.
 ``stat``
    Print device statistics.
+``listen <port> <protocol - STCP or UDP> [<visibility - local (default) or public>]``
+   Listen on port with specified protocol. If listenning locally (default), MSIM listens on localhost. If listenning publicly, MSIM listens on some IP address of the host.

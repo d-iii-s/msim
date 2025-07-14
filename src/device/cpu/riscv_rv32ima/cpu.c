@@ -21,9 +21,12 @@
 #include "../../../utils.h"
 #include "cpu.h"
 #include "csr.h"
-#include "debug.h"
 #include "tlb.h"
 #include "virt_mem.h"
+
+/** Generic types */
+#include "../riscv_rv_ima/exception.h"
+#include "../riscv_rv_ima/instr.h"
 
 /// Caching of decoded instructions
 
@@ -67,94 +70,7 @@ static bool cache_hit(ptr36_t phys, cache_item_t **cache_item)
     return false;
 }
 
-/**
- * @brief Fills the cache_item instrs field with decoded data based on the addr field
- */
-static void cache_item_page_decode(rv_cpu_t *cpu, cache_item_t *cache_item)
-{
-    for (size_t i = 0; i < FRAME_SIZE / sizeof(rv_instr_t); ++i) {
-        ptr36_t addr = cache_item->addr + (i * sizeof(rv_instr_t));
-        rv_instr_t instr_data = (rv_instr_t) physmem_read32(cpu->csr.mhartid, addr, false);
-        cache_item->instrs[i] = rv_instr_decode(instr_data);
-    }
-}
-
-/**
- * @brief Updates the cache item to represent the data in memory
- */
-static void update_cache_item(rv_cpu_t *cpu, cache_item_t *cache_item)
-{
-    frame_t *frame = physmem_find_frame(cache_item->addr);
-    ASSERT(frame != NULL);
-
-    if (frame->valid) {
-        return;
-    }
-
-    cache_item_page_decode(cpu, cache_item);
-
-    frame->valid = true;
-    return;
-}
-
-/**
- * @brief Tries to add a new entry to the cache based on the given address
- *
- * @return cache_item_t* the added intem or NULL, if the address does not lead to valid memory area
- */
-static cache_item_t *cache_try_add(rv_cpu_t *cpu, ptr36_t phys)
-{
-    frame_t *frame = physmem_find_frame(phys);
-    if (frame == NULL) {
-        return NULL;
-    }
-
-    cache_item_t *cache_item = safe_malloc(sizeof(cache_item_t));
-
-    cache_item_init(cache_item);
-    cache_item->addr = ALIGN_DOWN(phys, FRAME_SIZE);
-
-    list_push(&rv_instruction_cache, &cache_item->item);
-
-    cache_item_page_decode(cpu, cache_item);
-
-    frame->valid = true;
-    return cache_item;
-}
-
-/**
- * @brief Fethes a decoded instruction from memory
- *
- * Consults the cache first and updates the cache on misses or on invalid memory
- */
-static rv_instr_func_t fetch_instr(rv_cpu_t *cpu, ptr36_t phys)
-{
-    cache_item_t *cache_item = NULL;
-
-    if (cache_hit(phys, &cache_item)) {
-        ASSERT(cache_item != NULL);
-        update_cache_item(cpu, cache_item);
-
-        // Move item to front of list on hit
-
-        if (rv_instruction_cache.head != &cache_item->item) {
-            list_remove(&rv_instruction_cache, &cache_item->item);
-            list_push(&rv_instruction_cache, &cache_item->item);
-        }
-
-        return cache_item->instrs[PHYS2CACHEINSTR(phys)];
-    }
-
-    cache_item = cache_try_add(cpu, phys);
-
-    if (cache_item != NULL) {
-        return cache_item->instrs[PHYS2CACHEINSTR(phys)];
-    }
-    alert("Trying to fetch instructions from outside of physical memory");
-    return rv_instr_decode((rv_instr_t) physmem_read32(cpu->csr.mhartid, phys, true));
-}
-
-static void init_regs(rv_cpu_t *cpu)
+static void init_regs(rv32_cpu_t *cpu)
 {
     ASSERT(cpu != NULL);
 
@@ -167,18 +83,18 @@ static void init_regs(rv_cpu_t *cpu)
 /**
  * @brief Initialize the CPU
  */
-void rv_cpu_init(rv_cpu_t *cpu, unsigned int procno)
+void rv32_cpu_init(rv32_cpu_t *cpu, unsigned int procno)
 {
 
     ASSERT(cpu != NULL);
 
-    memset(cpu, 0, sizeof(rv_cpu_t));
+    memset(cpu, 0, sizeof(rv32_cpu_t));
 
     init_regs(cpu);
 
-    rv_init_csr(&cpu->csr, procno);
+    rv32_init_csr(&cpu->csr, procno);
 
-    rv_tlb_init(&cpu->tlb, DEFAULT_RV_TLB_SIZE);
+    rv32_tlb_init(&cpu->tlb, DEFAULT_RV_TLB_SIZE);
 
     cpu->priv_mode = rv_mmode;
 }
@@ -186,7 +102,7 @@ void rv_cpu_init(rv_cpu_t *cpu, unsigned int procno)
 /**
  * @brief Cleanup CPU structures
  */
-void rv_cpu_done(rv_cpu_t *cpu)
+void rv32_cpu_done(rv32_cpu_t *cpu)
 {
     // Clean whole cache for simplicity whenever any cpu is done
     while (!is_empty(&rv_instruction_cache)) {
@@ -195,7 +111,7 @@ void rv_cpu_done(rv_cpu_t *cpu)
         safe_free(cache_item);
     }
 
-    rv_tlb_done(&cpu->tlb);
+    rv32_tlb_done(&cpu->tlb);
 }
 
 static_assert((sizeof(sv32_pte_t) == 4), "wrong size of sv32_pte_t");
@@ -206,7 +122,7 @@ static_assert((sizeof(sv32_pte_t) == 4), "wrong size of sv32_pte_t");
  * @par wr True for Write, False for Read
  * @par fetch whether the access is an instruction fetch
  */
-static bool is_access_allowed(rv_cpu_t *cpu, sv32_pte_t pte, bool wr, bool fetch)
+static bool is_access_allowed(rv32_cpu_t *cpu, sv32_pte_t pte, bool wr, bool fetch)
 {
     if (wr && !pte.w) {
         return false;
@@ -266,7 +182,7 @@ static inline bool pte_access_dirty_update_needed(sv32_pte_t pte, bool wr)
  * @brief Tranlates the virtual address to physical by Sv32 memory translation algorithm, modifying the pagetable by doing so (setting the Accessed and Dirty bits and populating the TLB)
  *
  */
-static rv_exc_t rv_pagewalk(rv_cpu_t *cpu, uint32_t virt, ptr36_t *phys, bool wr, bool fetch, bool noisy)
+static rv_exc_t rv32_pagewalk(rv32_cpu_t *cpu, uint32_t virt, ptr36_t *phys, bool wr, bool fetch, bool noisy)
 {
     uint32_t vpn0 = (virt & 0x003FF000) >> 12;
     uint32_t vpn1 = (virt & 0xFFC00000) >> 22;
@@ -342,7 +258,7 @@ static rv_exc_t rv_pagewalk(rv_cpu_t *cpu, uint32_t virt, ptr36_t *phys, bool wr
     *phys = make_phys_from_ppn(virt, pte, is_megapage);
 
     // Add the leaf PTE of the translation to the TLB
-    rv_tlb_add_mapping(&cpu->tlb, rv_csr_satp_asid(cpu), virt, pte, is_megapage, is_global);
+    rv32_tlb_add_mapping(&cpu->tlb, rv_csr_satp_asid(cpu), virt, pte, is_megapage, is_global);
 
     return rv_exc_none;
 }
@@ -358,9 +274,8 @@ static rv_exc_t rv_pagewalk(rv_cpu_t *cpu, uint32_t virt, ptr36_t *phys, bool wr
  * @param noisy Shall this function change the processor and global state
  * @return rv_exc_t The exception code of this operation
  */
-rv_exc_t rv_convert_addr(rv_cpu_t *cpu, uint32_t virt, ptr36_t *phys, bool wr, bool fetch, bool noisy)
+static rv_exc_t rv_convert_addr(rv_cpu_t *cpu, uint32_t virt, ptr36_t *phys, bool wr, bool fetch, bool noisy)
 {
-
     // TODO: should pagewalk trigger memory breakpoints?
 
     ASSERT(cpu != NULL);
@@ -379,7 +294,7 @@ rv_exc_t rv_convert_addr(rv_cpu_t *cpu, uint32_t virt, ptr36_t *phys, bool wr, b
     bool megapage;
 
     // First try the TLB
-    if (rv_tlb_get_mapping(&cpu->tlb, asid, virt, &pte, &megapage, true)) {
+    if (rv32_tlb_get_mapping(&cpu->tlb, asid, virt, &pte, &megapage, true)) {
 
         if (!is_pte_valid(pte)) {
             return page_fault_exception;
@@ -401,311 +316,117 @@ rv_exc_t rv_convert_addr(rv_cpu_t *cpu, uint32_t virt, ptr36_t *phys, bool wr, b
             return rv_exc_none;
         } else {
             // Flush stale entry from cache
-            rv_tlb_remove_mapping(&cpu->tlb, asid, virt);
+            rv32_tlb_remove_mapping(&cpu->tlb, asid, virt);
         }
     }
 
     // If the TLB lookup failed or if the AD bits need to be updated, perform the full pagewalk
-    return rv_pagewalk(cpu, virt, phys, wr, fetch, noisy);
+    return rv32_pagewalk(cpu, virt, phys, wr, fetch, noisy);
 }
 #undef page_fault_exception
 
-#define read_address_misaligned_exception (fetch ? rv_exc_instruction_address_misaligned : rv_exc_load_address_misaligned)
-
-#define try_read_memory_mapped_regs_body(cpu, virt, value, width, type) \
-    if (!IS_ALIGNED(virt, width / 8)) \
-        return false; \
-    if (((cpu)->priv_mode < rv_mmode) || rv_csr_mstatus_mprv(cpu)) \
-        return false; \
-    int offset = (virt & 0x7) * 8; \
-    if (ALIGN_DOWN(virt, 8) == RV_MTIME_ADDRESS) { \
-        *value = (type) EXTRACT_BITS(cpu->csr.mtime, offset, offset + width); \
-        return true; \
-    } \
-    if (ALIGN_DOWN(virt, 8) == RV_MTIMECMP_ADDRESS) { \
-        *value = (type) EXTRACT_BITS(cpu->csr.mtimecmp, offset, offset + width); \
-        return true; \
-    } \
-    return false;
-
-/** @brief Reads from memory mapped registers if there are any located on the given address */
-static bool try_read_memory_mapped_regs_32(rv_cpu_t *cpu, uint32_t virt, uint32_t *value)
+rv_exc_t rv32_convert_addr(rv32_cpu_t *cpu, virt_t virt, ptr36_t *phys, bool wr, bool fetch, bool noisy)
 {
-    try_read_memory_mapped_regs_body(cpu, virt, value, 32, uint32_t)
+    return rv_convert_addr(cpu, virt, phys, wr, fetch, noisy);
 }
 
-/** @brief Reads from memory mapped registers if there are any located on the given address */
-static bool try_read_memory_mapped_regs_16(rv_cpu_t *cpu, uint32_t virt, uint16_t *value)
-{
-    try_read_memory_mapped_regs_body(cpu, virt, value, 16, uint16_t)
-}
-
-/** @brief Reads from memory mapped registers if there are any located on the given address */
-static bool try_read_memory_mapped_regs_8(rv_cpu_t *cpu, uint32_t virt, uint8_t *value)
-{
-    try_read_memory_mapped_regs_body(cpu, virt, value, 8, uint8_t)
-}
-
-#undef try_read_memory_mapped_regs_body
-
-static void handle_mtip(rv_cpu_t *cpu)
-{
-    if (cpu->csr.mtime >= cpu->csr.mtimecmp) {
-        // Set MTIP
-        cpu->csr.mip |= rv_csr_mti_mask;
-    } else {
-        // Clear MTIP
-        cpu->csr.mip &= ~rv_csr_mti_mask;
-    }
-}
-
-/** @brief Writes to memory mapped registers if there are any located on the given address */
-static bool try_write_memory_mapped_regs(rv_cpu_t *cpu, uint32_t virt, uint32_t value, int width)
-{
-    if (!IS_ALIGNED(virt, width / 8)) {
-        return false;
-    }
-
-    if ((cpu->priv_mode < rv_mmode) || rv_csr_mstatus_mprv(cpu)) {
-        return false;
-    }
-    int offset = (virt & 0x7) * 8;
-    if (ALIGN_DOWN(virt, 8) == RV_MTIME_ADDRESS) {
-        cpu->csr.mtime = WRITE_BITS(cpu->csr.mtime, value, offset, offset + width);
-        handle_mtip(cpu);
-        return true;
-    }
-    if (ALIGN_DOWN(virt, 8) == RV_MTIMECMP_ADDRESS) {
-        cpu->csr.mtimecmp = WRITE_BITS(cpu->csr.mtimecmp, value, offset, offset + width);
-        handle_mtip(cpu);
-        return true;
-    }
-    return false;
-}
-
-#define throw_ex(cpu, virt, ex, noisy) \
-    { \
-        if (noisy) { \
-            (cpu)->csr.tval_next = (virt); \
-        } \
-        return (ex); \
-    }
+/** First we include memory helpers */
+#include "../riscv_rv_ima/memory.c"
+/** Then instruction implementations */
+#include "instr.c"
 
 /**
- * @brief Reads 32 bits from virtual memory
- *
- * @param cpu The cpu which makes the read
- * @param virt The virtual address of the read target
- * @param value The pointer where will the read value be stored on success
- * @param fetch If the read is instruction fetch or data read
- * @param noisy Shall this operation change the global and cpu state
- * @return rv_exc_t The exception code
+ * @brief Fills the cache_item instrs field with decoded data based on the addr field
  */
-rv_exc_t rv_read_mem32(rv_cpu_t *cpu, uint32_t virt, uint32_t *value, bool fetch, bool noisy)
+static void cache_item_page_decode(rv32_cpu_t *cpu, cache_item_t *cache_item)
 {
-    ASSERT(cpu != NULL);
-    ASSERT(value != NULL);
-
-    if (try_read_memory_mapped_regs_32(cpu, virt, value)) {
-        return rv_exc_none;
+    for (size_t i = 0; i < FRAME_SIZE / sizeof(rv_instr_t); ++i) {
+        ptr36_t addr = cache_item->addr + (i * sizeof(rv_instr_t));
+        rv_instr_t instr_data = (rv_instr_t) physmem_read32(cpu->csr.mhartid, addr, false);
+        cache_item->instrs[i] = rv32_instr_decode(instr_data);
     }
-
-    ptr36_t phys;
-    rv_exc_t ex = rv_convert_addr(cpu, virt, &phys, false, fetch, noisy);
-
-    // Address translation exceptions have priority to alignment exceptions
-
-    if (ex != rv_exc_none) {
-        throw_ex(cpu, virt, ex, noisy);
-    }
-
-    if (!IS_ALIGNED(virt, 4)) {
-        throw_ex(cpu, virt, read_address_misaligned_exception, noisy);
-    }
-
-    *value = physmem_read32(cpu->csr.mhartid, phys, true);
-    return rv_exc_none;
 }
 
 /**
- * @brief Reads 16 bits from virtual memory
- *
- * @param cpu The cpu which makes the read
- * @param virt The virtual address of the read target
- * @param value The pointer where will the read value be stored on success
- * @param fetch If the read is instruction fetch or data read
- * @param noisy Shall this operation change the global and cpu state
- * @return rv_exc_t The exception code
+ * @brief Updates the cache item to represent the data in memory
  */
-rv_exc_t rv_read_mem16(rv_cpu_t *cpu, uint32_t virt, uint16_t *value, bool fetch, bool noisy)
+static void update_cache_item(rv32_cpu_t *cpu, cache_item_t *cache_item)
 {
-    ASSERT(cpu != NULL);
-    ASSERT(value != NULL);
+    frame_t *frame = physmem_find_frame(cache_item->addr);
+    ASSERT(frame != NULL);
 
-    if (try_read_memory_mapped_regs_16(cpu, virt, value)) {
-        return rv_exc_none;
+    if (frame->valid) {
+        return;
     }
 
-    ptr36_t phys;
-    rv_exc_t ex = rv_convert_addr(cpu, virt, &phys, false, fetch, noisy);
+    cache_item_page_decode(cpu, cache_item);
 
-    if (ex != rv_exc_none) {
-        throw_ex(cpu, virt, ex, noisy);
-    }
-
-    if (!IS_ALIGNED(virt, 2)) {
-        throw_ex(cpu, virt, read_address_misaligned_exception, noisy);
-    }
-
-    *value = physmem_read16(cpu->csr.mhartid, phys, true);
-    return rv_exc_none;
+    frame->valid = true;
+    return;
 }
 
 /**
- * @brief Reads 8 bits from virtual memory
+ * @brief Tries to add a new entry to the cache based on the given address
  *
- * @param cpu The cpu which makes the read
- * @param virt The virtual address of the read target
- * @param value The pointer where will the read value be stored on success
- * @param fetch If the read is instruction fetch or data read
- * @param noisy Shall this operation change the global and cpu state
- * @return rv_exc_t The exception code
+ * @return cache_item_t* the added intem or NULL, if the address does not lead to valid memory area
  */
-rv_exc_t rv_read_mem8(rv_cpu_t *cpu, uint32_t virt, uint8_t *value, bool noisy)
+static cache_item_t *cache_try_add(rv32_cpu_t *cpu, ptr36_t phys)
 {
-    ASSERT(cpu != NULL);
-    ASSERT(value != NULL);
-
-    if (try_read_memory_mapped_regs_8(cpu, virt, value)) {
-        return rv_exc_none;
+    frame_t *frame = physmem_find_frame(phys);
+    if (frame == NULL) {
+        return NULL;
     }
 
-    ptr36_t phys;
-    rv_exc_t ex = rv_convert_addr(cpu, virt, &phys, false, false, noisy);
+    cache_item_t *cache_item = safe_malloc(sizeof(cache_item_t));
 
-    if (ex != rv_exc_none) {
-        throw_ex(cpu, virt, ex, noisy);
-    }
+    cache_item_init(cache_item);
+    cache_item->addr = ALIGN_DOWN(phys, FRAME_SIZE);
 
-    *value = physmem_read8(cpu->csr.mhartid, phys, true);
-    return rv_exc_none;
+    list_push(&rv_instruction_cache, &cache_item->item);
+
+    cache_item_page_decode(cpu, cache_item);
+
+    frame->valid = true;
+    return cache_item;
 }
 
 /**
- * @brief Writes 8 bits to the specified virtual address
+ * @brief Fethes a decoded instruction from memory
  *
- * @param cpu The cpu which makes the write
- * @param virt The virtual address
- * @param value The value to be written
- * @param noisy Shall this operation change the global and cpu state
- * @return rv_exc_t The exception code
+ * Consults the cache first and updates the cache on misses or on invalid memory
  */
-rv_exc_t rv_write_mem8(rv_cpu_t *cpu, uint32_t virt, uint8_t value, bool noisy)
+static rv_instr_func_t fetch_instr(rv32_cpu_t *cpu, ptr36_t phys)
 {
-    ASSERT(cpu != NULL);
+    cache_item_t *cache_item = NULL;
 
-    if (try_write_memory_mapped_regs(cpu, virt, value, 8)) {
-        return rv_exc_none;
+    if (cache_hit(phys, &cache_item)) {
+        ASSERT(cache_item != NULL);
+        update_cache_item(cpu, cache_item);
+
+        // Move item to front of list on hit
+
+        if (rv_instruction_cache.head != &cache_item->item) {
+            list_remove(&rv_instruction_cache, &cache_item->item);
+            list_push(&rv_instruction_cache, &cache_item->item);
+        }
+
+        return cache_item->instrs[PHYS2CACHEINSTR(phys)];
     }
 
-    ptr36_t phys;
-    rv_exc_t ex = rv_convert_addr(cpu, virt, &phys, true, false, noisy);
+    cache_item = cache_try_add(cpu, phys);
 
-    if (ex != rv_exc_none) {
-        throw_ex(cpu, virt, ex, noisy);
+    if (cache_item != NULL) {
+        return cache_item->instrs[PHYS2CACHEINSTR(phys)];
     }
-
-    if (physmem_write8(cpu->csr.mhartid, phys, value, true)) {
-        return rv_exc_none;
-    }
-
-    // writing to invalid memory
-    // throw_ex(cpu, virt, rv_exc_store_amo_access_fault, noisy);
-    return rv_exc_none;
+    alert("Trying to fetch instructions from outside of physical memory");
+    return rv32_instr_decode((rv_instr_t) physmem_read32(cpu->csr.mhartid, phys, true));
 }
-
-/**
- * @brief Writes 16 bits to the specified virtual address
- *
- * @param cpu The cpu which makes the write
- * @param virt The virtual address
- * @param value The value to be written
- * @param noisy Shall this operation change the global and cpu state
- * @return rv_exc_t The exception code
- */
-rv_exc_t rv_write_mem16(rv_cpu_t *cpu, uint32_t virt, uint16_t value, bool noisy)
-{
-    ASSERT(cpu != NULL);
-
-    if (try_write_memory_mapped_regs(cpu, virt, value, 16)) {
-        return rv_exc_none;
-    }
-
-    ptr36_t phys;
-    rv_exc_t ex = rv_convert_addr(cpu, virt, &phys, true, false, noisy);
-
-    // address translation exceptions have priority to alignment exceptions
-    if (ex != rv_exc_none) {
-        throw_ex(cpu, virt, ex, noisy);
-    }
-
-    if (!IS_ALIGNED(virt, 2)) {
-        throw_ex(cpu, virt, rv_exc_store_amo_address_misaligned, noisy);
-    }
-
-    if (physmem_write16(cpu->csr.mhartid, phys, value, true)) {
-        return rv_exc_none;
-    }
-
-    // writing to invalid memory
-    // throw_ex(cpu, virt, rv_exc_store_amo_access_fault, noisy);
-    return rv_exc_none;
-}
-
-/**
- * @brief Writes 32 bits to the specified virtual address
- *
- * @param cpu The cpu which makes the write
- * @param virt The virtual address
- * @param value The value to be written
- * @param noisy Shall this operation change the global and cpu state
- * @return rv_exc_t The exception code
- */
-rv_exc_t rv_write_mem32(rv_cpu_t *cpu, uint32_t virt, uint32_t value, bool noisy)
-{
-    ASSERT(cpu != NULL);
-
-    if (try_write_memory_mapped_regs(cpu, virt, value, 32)) {
-        return rv_exc_none;
-    }
-
-    ptr36_t phys;
-    rv_exc_t ex = rv_convert_addr(cpu, virt, &phys, true, false, noisy);
-
-    if (ex != rv_exc_none) {
-        throw_ex(cpu, virt, ex, noisy);
-    }
-
-    if (!IS_ALIGNED(virt, 4)) {
-        throw_ex(cpu, virt, rv_exc_store_amo_address_misaligned, noisy);
-    }
-
-    if (physmem_write32(cpu->csr.mhartid, phys, value, true)) {
-        return rv_exc_none;
-    }
-
-    // writing to invalid memory
-    // throw_ex(cpu, virt, rv_exc_store_amo_access_fault, noisy);
-    return rv_exc_none;
-}
-
-#undef throw_ex
 
 /**
  * @brief Sets the PC to the given virtual address
  *
  */
-void rv_cpu_set_pc(rv_cpu_t *cpu, uint32_t value)
+void rv32_cpu_set_pc(rv_cpu_t *cpu, uint32_t value)
 {
     ASSERT(cpu != NULL);
     if (!IS_ALIGNED(value, 4)) {
@@ -922,7 +643,7 @@ static void account_hmp(rv_cpu_t *cpu, int i)
         return;
     }
 
-    csr_hpm_event_t event = cpu->csr.hpmevents[i];
+    rv_csr_hpm_event_t event = cpu->csr.hpmevents[i];
 
     switch (event) {
     case (hpm_u_cycles): {
@@ -958,7 +679,7 @@ static void account_hmp(rv_cpu_t *cpu, int i)
  * @brief Raises and clears timer interrupts based on the content of the coresponding CSRs
  *
  */
-static void manage_timer_interrupts(rv_cpu_t *cpu)
+static void manage_timer_interrupts(rv32_cpu_t *cpu)
 {
     // raise or clear scyclecmp ESTIP
     cpu->csr.external_STIP = ((uint32_t) cpu->csr.cycle) >= cpu->csr.scyclecmp;
@@ -970,7 +691,7 @@ static void manage_timer_interrupts(rv_cpu_t *cpu)
 /**
  * @brief Increase the counter CSRs and raise timer interrupts if desired
  */
-static void account(rv_cpu_t *cpu, bool instruction_retired)
+static void account(rv32_cpu_t *cpu, bool instruction_retired)
 {
     if (!(cpu->csr.mcountinhibit & 0b001)) {
         cpu->csr.cycle++;
@@ -995,7 +716,7 @@ static void account(rv_cpu_t *cpu, bool instruction_retired)
 /**
  * @brief Execute the instruction that PC is pointing to and handle interrupts or exceptions
  */
-static rv_exc_t execute(rv_cpu_t *cpu)
+static rv_exc_t execute(rv32_cpu_t *cpu)
 {
     ptr36_t phys;
     rv_exc_t ex = rv_convert_addr(cpu, cpu->pc, &phys, false, true, true);
@@ -1003,7 +724,7 @@ static rv_exc_t execute(rv_cpu_t *cpu)
     if (ex != rv_exc_none) {
         alert("Fetching from unconvertable address!");
         if (machine_trace) {
-            rv_idump(cpu, cpu->pc, (rv_instr_t) 0U);
+            // rv32_idump(cpu, cpu->pc, (rv_instr_t) 0U);
         }
         return ex;
     }
@@ -1012,7 +733,7 @@ static rv_exc_t execute(rv_cpu_t *cpu)
     rv_instr_t instr_data = (rv_instr_t) physmem_read32(cpu->csr.mhartid, phys, true);
 
     if (machine_trace) {
-        rv_idump(cpu, cpu->pc, instr_data);
+        // rv32_idump(cpu, cpu->pc, instr_data);
     }
 
     ex = instr_func(cpu, instr_data);
@@ -1027,7 +748,7 @@ static rv_exc_t execute(rv_cpu_t *cpu)
 /**
  * @brief Simulate one step of the CPU
  */
-void rv_cpu_step(rv_cpu_t *cpu)
+void rv32_cpu_step(rv32_cpu_t *cpu)
 {
     ASSERT(cpu != NULL);
 
@@ -1065,19 +786,9 @@ void rv_cpu_step(rv_cpu_t *cpu)
  *
  * @returns Whether we hit the LR reserved address
  */
-bool rv_sc_access(rv_cpu_t *cpu, ptr36_t phys, int size)
+bool rv32_sc_access(rv32_cpu_t *cpu, ptr36_t phys, int size)
 {
-    ASSERT(cpu != NULL);
-
-    ptr36_t res_addr = cpu->reserved_addr;
-
-    // The size of the reservation is 4B, we check whether the write overlaps
-    bool hit = AREAS_OVERLAP(res_addr, 4, phys, size);
-
-    if (hit) {
-        cpu->reserved_valid = false;
-    }
-    return hit;
+    return rv_sc_access(cpu, phys, size);
 }
 
 /* Interrupts
@@ -1092,7 +803,7 @@ bool rv_sc_access(rv_cpu_t *cpu, ptr36_t phys, int size)
  *
  * @param no The interrupt number (1 = SSI, 3 = MSI, 5 = STI, 7 = MTI, 9 = SEI, 11 = MEI)
  */
-void rv_interrupt_up(rv_cpu_t *cpu, unsigned int no)
+void rv32_interrupt_up(rv32_cpu_t *cpu, unsigned int no)
 {
     ASSERT(cpu != NULL);
 
@@ -1118,7 +829,7 @@ void rv_interrupt_up(rv_cpu_t *cpu, unsigned int no)
  *
  * @param no The interrupt number (1 = SSI, 3 = MSI, 5 = STI, 7 = MTI, 9 = SEI, 11 = MEI)
  */
-void rv_interrupt_down(rv_cpu_t *cpu, unsigned int no)
+void rv32_interrupt_down(rv32_cpu_t *cpu, unsigned int no)
 {
     ASSERT(cpu != NULL);
     //! for simplicity just clears the bit

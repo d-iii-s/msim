@@ -21,6 +21,7 @@ bool machine_nondet = false;
 
 // set to true for debugging
 bool machine_trace = false;
+bool machine_verbose = false;
 bool machine_halt = false;
 bool machine_break = false;
 bool machine_interactive = false;

@@ -40,11 +40,18 @@ SOURCES = \
 	device/cpu/riscv_rv32ima/tlb.c \
 	device/cpu/riscv_rv32ima/mnemonics.c \
 	device/cpu/riscv_rv32ima/debug.c \
+	device/cpu/riscv_rv64ima/cpu.c \
+	device/cpu/riscv_rv64ima/csr.c \
+	device/cpu/riscv_rv64ima/instr.c \
+	device/cpu/riscv_rv64ima/tlb.c \
+	device/cpu/riscv_rv64ima/debug.c \
+	device/cpu/riscv_rv64ima/mnemonics.c \
 	device/cpu/general_cpu.c \
 	device/mem.c \
 	device/ddisk.c \
 	device/dr4kcpu.c \
 	device/drvcpu.c  \
+	device/drv64cpu.c  \
 	device/dcycle.c \
 	device/dkeyboard.c \
 	device/dnomem.c \

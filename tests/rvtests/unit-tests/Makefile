@@ -53,6 +53,6 @@ test64: $(TARGET_64)
 
 clean:
 	$(RM) -f $(TARGET_32) $(TARGET_64)
-	$(RM) -r 32bit 64bit
+	$(RM) -rf 32bit 64bit
 
 distclean: clean

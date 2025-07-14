@@ -54,6 +54,7 @@ SOURCES = \
 	device/drv64cpu.c  \
 	device/dcycle.c \
 	device/dkeyboard.c \
+	device/dlcd.c \
 	device/dnomem.c \
 	device/dorder.c \
 	device/dprinter.c \

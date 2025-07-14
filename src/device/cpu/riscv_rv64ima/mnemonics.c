@@ -32,7 +32,7 @@ static rv_exc_t rv_convert_addr(rv_cpu_t *cpu, virt_t virt, ptr36_t *phys, bool 
 extern rv_mnemonics_func_t rv64_decode_mnemonics(rv_instr_t instr)
 {
     // is this dirty?
-    rv_instr_func_t instr_func = _rv64_instr_decode(instr);
+    rv_instr_func_t instr_func = rv64_instr_decode(instr);
 
     // very dirty indeed, but only one decode is needed
 
@@ -99,7 +99,7 @@ extern rv_mnemonics_func_t rv64_decode_mnemonics(rv_instr_t instr)
         return rv64_ehalt_mnemonics;
     }
 
-    if (instr_func == _rv64_dump_instr) {
+    if (instr_func == rv64_dump_instr) {
         return rv64_edump_mnemonics;
     }
 

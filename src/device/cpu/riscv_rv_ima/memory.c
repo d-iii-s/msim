@@ -411,4 +411,3 @@ static bool rv_sc_access(rv_cpu_t *cpu, ptr36_t phys, int size)
 }
 
 #undef throw_ex
-#undef rv_convert_addr

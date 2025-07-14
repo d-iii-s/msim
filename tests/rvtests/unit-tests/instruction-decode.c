@@ -1,12 +1,7 @@
 #include <stdint.h>
 #include <pcut/pcut.h>
 
-#include "../../../src/device/cpu/riscv_rv32ima/cpu.h"
-#include "../../../src/device/cpu/riscv_rv32ima/instr.h"
-#include "../../../src/device/cpu/riscv_rv32ima/instructions/computations.h"
-#include "../../../src/device/cpu/riscv_rv32ima/instructions/control_transfer.h"
-#include "../../../src/device/cpu/riscv_rv32ima/instructions/mem_ops.h"
-#include "../../../src/device/cpu/riscv_rv32ima/instructions/system.h"
+#include "common.h"
 
 PCUT_INIT
 
@@ -551,7 +546,7 @@ PCUT_TEST(lr_decode)
     instr.r.rs2 = 0;
     instr.r.funct7 = rv_funcLR << 2;
 
-    PCUT_ASSERT_EQUALS(rv_lr_instr, rv_instr_decode(instr));
+    PCUT_ASSERT_EQUALS(rv_lr_w_instr, rv_instr_decode(instr));
 }
 
 PCUT_TEST(lr_wrong_rs2)
@@ -569,7 +564,7 @@ PCUT_TEST(amo_wrong_width)
 {
     rv_instr_t instr;
     instr.r.opcode = rv_opcAMO;
-    instr.r.funct3 = 0b011;
+    instr.r.funct3 = XLEN == 32 ? 0b011 : 0b001;
     instr.r.funct7 = rv_funcLR << 2;
 
     PCUT_ASSERT_EQUALS(rv_illegal_instr, rv_instr_decode(instr));

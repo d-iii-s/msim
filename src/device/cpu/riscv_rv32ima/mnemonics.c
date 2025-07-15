@@ -22,11 +22,6 @@
 /** types */
 #include "../riscv_rv_ima/types.h"
 
-static rv_exc_t rv_convert_addr(rv_cpu_t *cpu, virt_t virt, ptr36_t *phys, bool wr, bool fetch, bool noisy)
-{
-    return rv32_convert_addr(cpu, virt, phys, wr, fetch, noisy);
-}
-
 /** First memory helpers */
 #include "../riscv_rv_ima/memory.c"
 /** Then instructions */

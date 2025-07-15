@@ -164,8 +164,6 @@ ptr55_t sv39_make_phys_from_ppn(virt_t virt, sv39_pte_t pte, sv39_page_type_t pa
 {
     // get the page offset from the virtual address
     ptr55_t page_offset = virt & 0xFFF;
-    // get vpn0 from virtual address
-    ptr55_t virt_vpn0 = virt & 0x1FF000;
 
     // we only shift by constatnt (the page offset size, which is the pagesize)
     // because the sv39_pte_ppnX macros return relative shifted values.

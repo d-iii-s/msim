@@ -131,7 +131,7 @@ static uxlen_t probe_asid_len()
                                  .rs1 = 1,
                                  .rd = 2 } };
 
-    cpu0.regs[instr.i.rs1] = uxlen_max(XLEN);
+    cpu0.regs[instr.i.rs1] = XLEN_UMAX;
     cpu0.regs[instr.i.rd] = 0;
 
     rv_exc_t ex = rv_csrrs_instr(&cpu0, instr);

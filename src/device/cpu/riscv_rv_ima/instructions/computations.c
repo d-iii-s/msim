@@ -561,9 +561,9 @@ static rv_exc_t rv_div_instr(rv_cpu_t *cpu, rv_instr_t instr)
         return rv_exc_none;
     }
 
-    if (lhs == xlen_min(XLEN) && rhs == -1) {
+    if (lhs == XLEN_MIN && rhs == -1) {
         // as per spec, divide overflow causes the result to be the minimal XLEN
-        cpu->regs[instr.r.rd] = xlen_min(XLEN);
+        cpu->regs[instr.r.rd] = XLEN_MIN;
         return rv_exc_none;
     }
 
@@ -581,7 +581,7 @@ static rv_exc_t rv_divu_instr(rv_cpu_t *cpu, rv_instr_t instr)
 
     if (rhs == 0) {
         // as per spec, dividing by 0 sets the result to the maximal val
-        cpu->regs[instr.r.rd] = uxlen_max(XLEN);
+        cpu->regs[instr.r.rd] = XLEN_UMAX;
         return rv_exc_none;
     }
 
@@ -648,7 +648,7 @@ static rv_exc_t rv_rem_instr(rv_cpu_t *cpu, rv_instr_t instr)
         return rv_exc_none;
     }
 
-    if (lhs == xlen_min(XLEN) && rhs == -1) {
+    if (lhs == XLEN_MIN && rhs == -1) {
         // as per spec, divide overflow causes the remainder to be set to 0
         cpu->regs[instr.r.rd] = 0;
         return rv_exc_none;

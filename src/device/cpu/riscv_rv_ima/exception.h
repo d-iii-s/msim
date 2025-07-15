@@ -25,7 +25,7 @@
 // MSb that determines if the exception is an interrupt
 #define RV_INTERRUPT_EXC_BITS UINT64_C(1UL << 63)
 #define RV_EXCEPTION_EXC_BITS UINT64_C(0)
-#define RV_EXCEPTION_MASK(exc) (UINT64_C(1) << ((exc) &0x3F))
+#define RV_EXCEPTION_MASK(exc) (UINT64_C(1) << ((exc) & 0x3F))
 #define RV_INTERRUPT_NO(interrupt) ((interrupt) & ~RV_INTERRUPT_EXC_BITS)
 #endif
 

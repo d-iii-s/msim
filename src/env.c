@@ -101,11 +101,11 @@ typedef struct {
 #define LAST_ENV \
     { \
         NULL, \
-                NULL, \
-                NULL, \
-                vt_uint, \
-                NULL, \
-                NULL \
+        NULL, \
+        NULL, \
+        vt_uint, \
+        NULL, \
+        NULL \
     }
 
 static const env_t *last_env;

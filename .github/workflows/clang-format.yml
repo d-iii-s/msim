@@ -10,6 +10,7 @@ jobs:
     - uses: actions/checkout@v4
 
     - name: Check C source formatting with clang-format
-      uses: DoozyX/clang-format-lint-action@v0.18
+      # Do not forget to update the clangFormatVersion below too!
+      uses: DoozyX/clang-format-lint-action@v0.20
       with:
-        clangFormatVersion: 16
+        clangFormatVersion: 20

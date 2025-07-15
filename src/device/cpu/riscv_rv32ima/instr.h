@@ -69,11 +69,11 @@ typedef union {
 
 static_assert(sizeof(rv_instr_t) == 4, "rv_instr_t has wrong size");
 
-#define RV_S_IMM(instr) (uint32_t)((((int32_t) instr.s.imm11_5) << 5) | ((0x1F) & instr.s.imm4_0))
-#define RV_R_FUNCT(instr) (uint32_t)(((uint32_t) (instr.r.funct7) << 3) | (0x7 & instr.r.funct3))
-#define RV_I_UNSIGNED_IMM(instr) (uint32_t)(instr.i.imm & 0xFFF)
-#define RV_J_IMM(instr) (uint32_t)((((int32_t) instr.j.imm20) << 20) | (instr.j.imm19_12 << 12) | (instr.j.imm11 << 11) | (instr.j.imm10_1 << 1))
-#define RV_B_IMM(instr) (uint32_t)((((int32_t) instr.b.imm12) << 12) | (instr.b.imm11 << 11) | (instr.b.imm10_5 << 5) | (instr.b.imm4_1 << 1))
+#define RV_S_IMM(instr) (uint32_t) ((((int32_t) instr.s.imm11_5) << 5) | ((0x1F) & instr.s.imm4_0))
+#define RV_R_FUNCT(instr) (uint32_t) (((uint32_t) (instr.r.funct7) << 3) | (0x7 & instr.r.funct3))
+#define RV_I_UNSIGNED_IMM(instr) (uint32_t) (instr.i.imm & 0xFFF)
+#define RV_J_IMM(instr) (uint32_t) ((((int32_t) instr.j.imm20) << 20) | (instr.j.imm19_12 << 12) | (instr.j.imm11 << 11) | (instr.j.imm10_1 << 1))
+#define RV_B_IMM(instr) (uint32_t) ((((int32_t) instr.b.imm12) << 12) | (instr.b.imm11 << 11) | (instr.b.imm10_5 << 5) | (instr.b.imm4_1 << 1))
 #define RV_AMO_FUNCT(instr) (instr.r.funct7 >> 2)
 
 /** Opcodes*/

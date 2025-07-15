@@ -36,11 +36,11 @@
         return false; \
     int offset = (virt & 0x7) * 8; \
     if (ALIGN_DOWN(virt, 8) == RV_MTIME_ADDRESS) { \
-        *value = (type) EXTRACT_BITS(cpu->csr.mtime, offset, offset + width); \
+        *value = (type) EXTRACT_BITS(cpu->csr.mtime, offset, offset + (width) / 8); \
         return true; \
     } \
     if (ALIGN_DOWN(virt, 8) == RV_MTIMECMP_ADDRESS) { \
-        *value = (type) EXTRACT_BITS(cpu->csr.mtimecmp, offset, offset + width); \
+        *value = (type) EXTRACT_BITS(cpu->csr.mtimecmp, offset, offset + (width) / 8); \
         return true; \
     } \
     return false;

@@ -1,13 +1,7 @@
 #include <stdint.h>
 #include <pcut/pcut.h>
 
-#include "../../../src/device/cpu/riscv_rv32ima/cpu.h"
-#include "../../../src/device/cpu/riscv_rv32ima/csr.h"
-#include "../../../src/device/cpu/riscv_rv32ima/instr.h"
-#include "../../../src/device/cpu/riscv_rv32ima/instructions/computations.h"
-#include "../../../src/device/cpu/riscv_rv32ima/instructions/control_transfer.h"
-#include "../../../src/device/cpu/riscv_rv32ima/instructions/mem_ops.h"
-#include "../../../src/device/cpu/riscv_rv32ima/instructions/system.h"
+#include "common.h"
 
 PCUT_INIT
 
@@ -293,7 +287,7 @@ PCUT_TEST(amo_address_missaligned)
 
     cpu1.regs[0] = 2;
 
-    rv_exc_t ex = rv_amoswap_instr(&cpu1, instr);
+    rv_exc_t ex = rv_amoswap_w_instr(&cpu1, instr);
     PCUT_ASSERT_INT_EQUALS(rv_exc_store_amo_address_misaligned, ex);
 }
 

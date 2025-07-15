@@ -46,6 +46,14 @@ struct rv32_cpu;
 typedef struct rv32_cpu rv_cpu_t;
 #endif
 
+#if XLEN == 64
+#define XLEN_MIN INT64_MIN
+#define XLEN_UMAX UINT64_MAX
+#else
+#define XLEN_MIN INT32_MIN
+#define XLEN_UMAX UINT32_MAX
+#endif
+
 static ALWAYS_INLINE xlen_t sign_extend_8_to_xlen(uint8_t const value, int const xlen)
 {
     if (xlen == 32) {
@@ -176,28 +184,6 @@ static ALWAYS_INLINE int shift_instr_mask(int const xlen)
         return 0x3F;
     } else {
         return 0x3F;
-    }
-}
-
-static ALWAYS_INLINE xlen_t xlen_min(int const xlen)
-{
-    if (xlen == 32) {
-        return INT32_MIN;
-    } else if (xlen == 64) {
-        return INT64_MIN;
-    } else {
-        return INT64_MIN;
-    }
-}
-
-static ALWAYS_INLINE xlen_t uxlen_max(int const xlen)
-{
-    if (xlen == 32) {
-        return UINT32_MAX;
-    } else if (xlen == 64) {
-        return UINT64_MAX;
-    } else {
-        return UINT64_MAX;
     }
 }
 

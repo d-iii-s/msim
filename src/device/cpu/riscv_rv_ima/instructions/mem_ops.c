@@ -48,6 +48,11 @@ enum rv_exc rv_csr_rw(rv_cpu_t *cpu, csr_num_t csr, uxlen_t value, uxlen_t *read
 enum rv_exc rv_csr_rs(rv_cpu_t *cpu, csr_num_t csr, uxlen_t value, uxlen_t *read_target, bool write);
 enum rv_exc rv_csr_rc(rv_cpu_t *cpu, csr_num_t csr, uxlen_t value, uxlen_t *read_target, bool write);
 
+static rv_exc_t rv_illegal_instr(rv_cpu_t *cpu, rv_instr_t instr)
+{
+    return machine_undefined ? rv_exc_none : rv_exc_illegal_instruction;
+}
+
 static rv_exc_t rv_lb_instr(rv_cpu_t *cpu, rv_instr_t instr)
 {
     ASSERT(cpu != NULL);

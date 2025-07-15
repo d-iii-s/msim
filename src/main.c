@@ -26,8 +26,6 @@
 #include "device/cpu/general_cpu.h"
 #include "device/cpu/mips_r4000/cpu.h"
 #include "device/cpu/mips_r4000/debug.h"
-#include "device/cpu/riscv_rv32ima/cpu.h"
-#include "device/cpu/riscv_rv32ima/debug.h"
 #include "device/device.h"
 #include "device/dr4kcpu.h"
 #include "endian.h"
@@ -37,6 +35,14 @@
 #include "parser.h"
 #include "text.h"
 #include "utils.h"
+
+/** This is necessary evil... */
+#include "device/cpu/riscv_rv32ima/cpu.h"
+#include "device/cpu/riscv_rv32ima/debug.h"
+#undef XLEN
+#include "device/cpu/riscv_rv64ima/cpu.h"
+#include "device/cpu/riscv_rv64ima/debug.h"
+#undef XLEN
 
 /** Configuration file name */
 char *config_file = NULL;
@@ -353,7 +359,8 @@ int main(int argc, char *args[])
      */
 
     r4k_debug_init();
-    rv_debug_init();
+    rv32_debug_init();
+    rv64_debug_init();
 
     input_init();
     input_shadow();

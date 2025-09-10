@@ -197,7 +197,7 @@ const env_t global_env[] = {
             "Mode 1 (ABI): zero, sp, a0, s5, etc.\n",
             vt_uint,
             &__rv_ireg_mock, // unused
-            rv_debug_change_regnames },
+            rv32_debug_change_regnames },
     { "debugging",
             "Debugging features",
             NULL,

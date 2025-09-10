@@ -40,10 +40,6 @@ SOURCES = \
 	device/cpu/riscv_rv32ima/tlb.c \
 	device/cpu/riscv_rv32ima/mnemonics.c \
 	device/cpu/riscv_rv32ima/debug.c \
-	device/cpu/riscv_rv32ima/instructions/computations.c \
-	device/cpu/riscv_rv32ima/instructions/mem_ops.c \
-	device/cpu/riscv_rv32ima/instructions/control_transfer.c \
-	device/cpu/riscv_rv32ima/instructions/system.c \
 	device/cpu/general_cpu.c \
 	device/mem.c \
 	device/ddisk.c \

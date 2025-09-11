@@ -11,6 +11,7 @@
 
 #include <inttypes.h>
 #include <stdbool.h>
+#include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -65,7 +66,7 @@ typedef struct {
 static bool dlcd_init(token_t *parm, device_t *dev)
 {
     parm_next(&parm);
-    uint cols = parm_uint(parm);
+    uint64_t cols = parm_uint(parm);
 
     if (cols > LCD_MAX_COLS) {
         error("Number of columns exceeds maximum (%d)", LCD_MAX_COLS);
@@ -73,7 +74,7 @@ static bool dlcd_init(token_t *parm, device_t *dev)
     }
 
     parm_next(&parm);
-    uint rows = parm_uint(parm);
+    uint64_t rows = parm_uint(parm);
 
     if (rows > LCD_MAX_ROWS) {
         error("Number of rows exceeds maximum (%d)", LCD_MAX_ROWS);

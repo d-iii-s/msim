@@ -161,7 +161,7 @@ static bool drv64cpu_str(token_t *parm, device_t *dev)
     ptr55_t root_phys = parm_uint_next(&parm);
 
     if (!IS_ALIGNED(root_phys, RV64_PAGEBYTES)) {
-        error("Root pagetable physical address 0x%09lx is not aligned to pagesize!", root_phys);
+        error("Root pagetable physical address 0x%09" PRIx64 " is not aligned to pagesize!", root_phys);
         return false;
     }
 
@@ -211,7 +211,7 @@ static bool drv64cpu_sptd(token_t *parm, device_t *dev)
     ptr36_t root_phys = parm_uint_next(&parm);
 
     if (!IS_ALIGNED(root_phys, RV64_PAGEBYTES)) {
-        error("Root pagetable physical address 0x%09lx is not aligned to pagesize!", root_phys);
+        error("Root pagetable physical address 0x%09" PRIx64 " is not aligned to pagesize!", root_phys);
         return false;
     }
 

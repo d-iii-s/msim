@@ -10,6 +10,7 @@
  *
  */
 
+#include <inttypes.h>
 #include <stdint.h>
 #include <sys/time.h>
 
@@ -803,12 +804,12 @@ extern void rv64_amomaxu_mnemonics(uint32_t addr, rv_instr_t instr, string_t *s_
 #define default_print_function(csr_name) \
     static void print_##csr_name(rv64_cpu_t *cpu, string_t *mnemonics, string_t *comments) \
     { \
-        string_printf(mnemonics, "%s 0x%016lx", #csr_name, cpu->csr.csr_name); \
+        string_printf(mnemonics, "%s 0x%016" PRIx64, #csr_name, cpu->csr.csr_name); \
     }
 
 static void print_64_reg(uint64_t val, const char *name, string_t *s)
 {
-    string_printf(s, "%s 0x%016lx (%sh = 0x%08x, %s = 0x%08x)", name, val, name, (uint32_t) (val >> 32), name, (uint32_t) val);
+    string_printf(s, "%s 0x%016" PRIx64 " (%sh = 0x%08x, %s = 0x%08x)", name, val, name, (uint32_t) (val >> 32), name, (uint32_t) val);
 }
 
 static void print_cycle(rv64_cpu_t *cpu, string_t *mnemonics, string_t *comments)
@@ -842,7 +843,7 @@ static void print_hpm_event(rv64_cpu_t *cpu, int hpm, string_t *mnemonics, strin
     string_init(&s);
     string_printf(&s, "mhpmevent%i", hpm);
 
-    string_printf(mnemonics, "%s 0x%08lx", s.str, cpu->csr.hpmevents[hpm - 3]);
+    string_printf(mnemonics, "%s 0x%08" PRIx64, s.str, cpu->csr.hpmevents[hpm - 3]);
 
     char *event_name;
     switch (cpu->csr.hpmevents[hpm - 3]) {
@@ -999,16 +1000,16 @@ static void print_misa(rv64_cpu_t *cpu, string_t *mnemonics, string_t *comments)
 
 static void print_mtvec(rv64_cpu_t *cpu, string_t *mnemonics, string_t *comments)
 {
-    string_printf(mnemonics, "%s 0x%08lx", "mtvec", cpu->csr.mtvec);
+    string_printf(mnemonics, "%s 0x%08" PRIx64, "mtvec", cpu->csr.mtvec);
     string_printf(comments,
-            "Base: 0x%08lx Mode: %s",
+            "Base: 0x%08" PRIx64 " Mode: %s",
             cpu->csr.mtvec & ~0b11,
             (((cpu->csr.mtvec & 0b11) == 0) ? "Direct" : "Vectored"));
 }
 
 static void print_medeleg(rv64_cpu_t *cpu, string_t *mnemonics, string_t *comments)
 {
-    string_printf(mnemonics, "%s 0x%08lx", "medeleg", cpu->csr.medeleg);
+    string_printf(mnemonics, "%s 0x%08" PRIx64, "medeleg", cpu->csr.medeleg);
     if (cpu->csr.medeleg == 0) {
         return;
     }
@@ -1038,7 +1039,7 @@ static void print_medeleg(rv64_cpu_t *cpu, string_t *mnemonics, string_t *commen
 
 static void print_mideleg(rv64_cpu_t *cpu, string_t *mnemonics, string_t *comments)
 {
-    string_printf(mnemonics, "%s 0x%08lx", "mideleg", cpu->csr.mideleg);
+    string_printf(mnemonics, "%s 0x%08" PRIx64, "mideleg", cpu->csr.mideleg);
     if (cpu->csr.mideleg == 0) {
         return;
     }
@@ -1067,7 +1068,7 @@ static void print_mie(rv64_cpu_t *cpu, string_t *mnemonics, string_t *comments)
     bool msie = cpu->csr.mie & rv_csr_msi_mask;
     bool ssie = cpu->csr.mie & rv_csr_ssi_mask;
 
-    string_printf(mnemonics, "%s 0x%08lx", "mie", cpu->csr.mie);
+    string_printf(mnemonics, "%s 0x%08" PRIx64, "mie", cpu->csr.mie);
     string_printf(comments,
             "MEIE %s, SEIE %s, MTIE %s, STIE %s, MSIE %s, SSIE %s",
             bit_string(meie),
@@ -1088,7 +1089,7 @@ static void print_mip(rv64_cpu_t *cpu, string_t *mnemonics, string_t *comments)
     bool msip = cpu->csr.mip & rv_csr_msi_mask;
     bool ssip = cpu->csr.mip & rv_csr_ssi_mask;
 
-    string_printf(mnemonics, "%s 0x%08lx", "mip", cpu->csr.mip);
+    string_printf(mnemonics, "%s 0x%08" PRIx64, "mip", cpu->csr.mip);
     string_printf(comments,
             "MEIP %s, SEIP %s, MTIP %s, STIP %s, MSIP %s, SSIP %s (External SEIP %s, External STIP %s)",
             bit_string(meip),
@@ -1103,7 +1104,7 @@ static void print_mip(rv64_cpu_t *cpu, string_t *mnemonics, string_t *comments)
 
 static void print_mcause(rv64_cpu_t *cpu, string_t *mnemonics, string_t *comments)
 {
-    string_printf(mnemonics, "%s 0x%08lx", "mcause", cpu->csr.mcause);
+    string_printf(mnemonics, "%s 0x%08" PRIx64, "mcause", cpu->csr.mcause);
     bool is_interrupt = cpu->csr.mcause & RV_INTERRUPT_EXC_BITS;
     int cause_id = cpu->csr.mcause & ~RV_INTERRUPT_EXC_BITS;
     string_printf(comments, "%s", (is_interrupt ? rv64_interruptnames[cause_id] : rv64_excnames[cause_id]));
@@ -1111,7 +1112,7 @@ static void print_mcause(rv64_cpu_t *cpu, string_t *mnemonics, string_t *comment
 
 static void print_mseccfg(rv64_cpu_t *cpu, string_t *mnemonics, string_t *comments)
 {
-    string_printf(mnemonics, "%s 0x%08lx", "mseccfg", cpu->csr.mseccfg);
+    string_printf(mnemonics, "%s 0x%08" PRIx64, "mseccfg", cpu->csr.mseccfg);
     bool sseed = cpu->csr.mseccfg & (1 << 9);
     bool useed = cpu->csr.mseccfg & (1 << 8);
     bool rlb = cpu->csr.mseccfg & (1 << 2);
@@ -1149,8 +1150,8 @@ static void print_menvcfg(rv64_cpu_t *cpu, string_t *mnemonics, string_t *commen
 
 static void print_stvec(rv64_cpu_t *cpu, string_t *mnemonics, string_t *comments)
 {
-    string_printf(mnemonics, "%s 0x%08lx", "stvec", cpu->csr.stvec);
-    string_printf(comments, "Base: 0x%08lx Mode: %s",
+    string_printf(mnemonics, "%s 0x%08" PRIx64, "stvec", cpu->csr.stvec);
+    string_printf(comments, "Base: 0x%08" PRIx64 " Mode: %s",
             cpu->csr.stvec & ~0b11,
             (((cpu->csr.stvec & 0b11) == 0) ? "Direct" : "Vectored"));
 }
@@ -1162,7 +1163,7 @@ static void print_sie(rv64_cpu_t *cpu, string_t *mnemonics, string_t *comments)
     bool stie = cpu->csr.mie & rv_csr_sti_mask;
     bool ssie = cpu->csr.mie & rv_csr_ssi_mask;
 
-    string_printf(mnemonics, "%s 0x%016lx", "sie", cpu->csr.mie & rv_csr_si_mask);
+    string_printf(mnemonics, "%s 0x%016" PRIx64, "sie", cpu->csr.mie & rv_csr_si_mask);
     string_printf(comments,
             "SEIE %s, STIE %s, SSIE %s",
             bit_string(seie),
@@ -1176,7 +1177,7 @@ static void print_sip(rv64_cpu_t *cpu, string_t *mnemonics, string_t *comments)
     bool stip = cpu->csr.mip & rv_csr_sti_mask;
     bool ssip = cpu->csr.mip & rv_csr_ssi_mask;
 
-    string_printf(mnemonics, "%s 0x%016lx", "sip", cpu->csr.mip & rv_csr_si_mask);
+    string_printf(mnemonics, "%s 0x%016" PRIx64, "sip", cpu->csr.mip & rv_csr_si_mask);
     string_printf(comments,
             "SEIP %s, STIP %s, SSIP %s (External SEIP %s, External STIP %s)",
             bit_string(seip),
@@ -1188,7 +1189,7 @@ static void print_sip(rv64_cpu_t *cpu, string_t *mnemonics, string_t *comments)
 
 static void print_scause(rv64_cpu_t *cpu, string_t *mnemonics, string_t *comments)
 {
-    string_printf(mnemonics, "%s 0x%016lx", "scause", cpu->csr.scause);
+    string_printf(mnemonics, "%s 0x%016" PRIx64, "scause", cpu->csr.scause);
     bool is_interrupt = cpu->csr.scause & RV_INTERRUPT_EXC_BITS;
     int cause_id = cpu->csr.scause & ~RV_INTERRUPT_EXC_BITS;
     string_printf(comments, "%s", (is_interrupt ? rv64_interruptnames[cause_id] : rv64_excnames[cause_id]));
@@ -1196,7 +1197,7 @@ static void print_scause(rv64_cpu_t *cpu, string_t *mnemonics, string_t *comment
 
 static void print_senvcfg(rv64_cpu_t *cpu, string_t *mnemonics, string_t *comments)
 {
-    string_printf(mnemonics, "%s 0x%016lx", "senvcfg", cpu->csr.senvcfg);
+    string_printf(mnemonics, "%s 0x%016" PRIx64, "senvcfg", cpu->csr.senvcfg);
     bool cbze = cpu->csr.senvcfg & (UINT32_C(1) << 7);
     bool cbfe = cpu->csr.senvcfg & (UINT32_C(1) << 6);
     bool cbie = cpu->csr.senvcfg & (UINT32_C(1) << 5);
@@ -1212,7 +1213,7 @@ static void print_senvcfg(rv64_cpu_t *cpu, string_t *mnemonics, string_t *commen
 
 static void print_satp(rv64_cpu_t *cpu, string_t *mnemonics, string_t *comments)
 {
-    string_printf(mnemonics, "%s 0x%016lx", "satp", cpu->csr.satp);
+    string_printf(mnemonics, "%s 0x%016" PRIx64, "satp", cpu->csr.satp);
     char *mode = (rv_csr_satp_is_bare(cpu)) ? "Bare" : "Sv39";
 
     string_printf(comments, "Mode: %s", mode);
@@ -1223,13 +1224,13 @@ static void print_satp(rv64_cpu_t *cpu, string_t *mnemonics, string_t *comments)
 
         if (cpu->csr.asid_len == rv_asid_len) {
             string_printf(comments,
-                    " ASID: %i PPN: 0x%06lx (Physical address: 0x%09lx)",
+                    " ASID: %i PPN: 0x%06" PRIx64 " (Physical address: 0x%09" PRIx64 ")",
                     asid,
                     ppn,
                     ppn << RV64_PAGESIZE);
         } else {
             string_printf(comments,
-                    " ASID: %i (%d active bits) PPN: 0x%06lx (Physical address: 0x%09lx)",
+                    " ASID: %i (%d active bits) PPN: 0x%06" PRIx64 " (Physical address: 0x%09" PRIx64 ")",
                     asid,
                     cpu->csr.asid_len,
                     ppn,

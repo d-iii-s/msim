@@ -10,6 +10,7 @@
  *
  */
 
+#include <inttypes.h>
 #include <string.h>
 
 #include "../../../assert.h"
@@ -412,7 +413,7 @@ void rv64_reg_dump(rv64_cpu_t *cpu)
     ASSERT(cpu != NULL);
 
     for (unsigned int i = 0; i < RV64_REG_COUNT; i += 4) {
-        printf(" %5s: %16lx %5s: %16lx %5s: %16lx %5s: %16lx\n",
+        printf(" %5s: %16" PRIx64 " %5s: %16" PRIx64 " %5s: %16" PRIx64 " %5s: %16" PRIx64 "\n",
                 rv64_regnames[i], cpu->regs[i],
                 rv64_regnames[i + 1], cpu->regs[i + 1],
                 rv64_regnames[i + 2], cpu->regs[i + 2],
@@ -423,7 +424,7 @@ void rv64_reg_dump(rv64_cpu_t *cpu)
             : cpu->priv_mode == rv_umode                                            ? "U"
                                                                                     : "ERROR";
 
-    printf(" %5s: %016lx %44s: %s\n",
+    printf(" %5s: %016" PRIx64 " %44s: %s\n",
             "pc", cpu->pc,
             "Privilege mode", priv_mode);
 }
@@ -457,7 +458,7 @@ void rv64_idump(rv64_cpu_t *cpu, uint32_t addr, rv_instr_t instr)
     string_init(&s_comments);
 
     if (cpu != NULL) {
-        string_printf(&s_cpu, "cpu%lu", cpu->csr.mhartid);
+        string_printf(&s_cpu, "cpu%" PRIu64, cpu->csr.mhartid);
     }
 
     string_printf(&s_addr, "0x%08x", addr);
@@ -724,7 +725,7 @@ static char *rv_pte_rsw_string(unsigned rsw)
 
 static void rv64_pte_dump(sv39_pte_t pte)
 {
-    printf("[ PPN: 0x%012lx RSW: %s %s%s%s%s %s%s%s%s ]",
+    printf("[ PPN: 0x%012" PRIx64 " RSW: %s %s%s%s%s %s%s%s%s ]",
             (uint64_t) pte.ppn,
             rv_pte_rsw_string(pte.rsw),
             pte.d ? "D" : "-",
@@ -739,7 +740,7 @@ static void rv64_pte_dump(sv39_pte_t pte)
 
 static void rv64_pte_addr_dump(ptr55_t pte_addr, ptr55_t pt_base_addr, uint64_t vpn_i)
 {
-    printf(RV64_DEBUG_INDENT "This entry ^ physical address: 0x%09lx = 0x%09lx + 0x%03lx * %d\n", pte_addr, pt_base_addr, vpn_i, RV64_PTESIZE);
+    printf(RV64_DEBUG_INDENT "This entry ^ physical address: 0x%09" PRIx64 " = 0x%09" PRIx64 " + 0x%03" PRIx64 " * %d\n", pte_addr, pt_base_addr, vpn_i, RV64_PTESIZE);
 }
 
 static void rv64_pte_translation_step_dump(const char *header, sv39_pte_t pte, ptr55_t pte_addr, ptr55_t pt_base_addr, uint64_t vpn_i)
@@ -752,7 +753,7 @@ static void rv64_pte_translation_step_dump(const char *header, sv39_pte_t pte, p
 
 static bool rv64_translation_dump_success(uint64_t virt, ptr36_t phys)
 {
-    printf("\nOK: 0x%09lx => 0x%09lx\n", virt, phys);
+    printf("\nOK: 0x%09" PRIx64 " => 0x%09" PRIx64 "\n", virt, phys);
     return true;
 }
 
@@ -781,7 +782,7 @@ extern bool rv64_translate_sv39_dump(rv64_cpu_t *cpu, ptr55_t root_pagetable_phy
 
     if (sv39_is_pte_leaf(pte)) {
         if (sv39_pte_ppn0(pte) != 0 || sv39_pte_ppn1(pte) != 0) {
-            printf("\nFATAL - Misaligned Gigapage (PPN[0] and PPN[1] should be 0 but is 0x%03lx and 0x%03lx)\n", (uint64_t) sv39_pte_ppn0(pte), (uint64_t) sv39_pte_ppn1(pte));
+            printf("\nFATAL - Misaligned Gigapage (PPN[0] and PPN[1] should be 0 but is 0x%03" PRIx64 " and 0x%03" PRIx64 ")\n", (uint64_t) sv39_pte_ppn0(pte), (uint64_t) sv39_pte_ppn1(pte));
             return false;
         }
 
@@ -803,7 +804,7 @@ extern bool rv64_translate_sv39_dump(rv64_cpu_t *cpu, ptr55_t root_pagetable_phy
 
         if (sv39_is_pte_leaf(pte)) {
             if (sv39_pte_ppn0(pte) != 0) {
-                printf("\nFATAL - Misaligned Megapage (PPN[0] should be 0 but is 0x%03lx)\n", (uint64_t) sv39_pte_ppn0(pte));
+                printf("\nFATAL - Misaligned Megapage (PPN[0] should be 0 but is 0x%03" PRIx64 ")\n", (uint64_t) sv39_pte_ppn0(pte));
                 return false;
             }
 
@@ -901,7 +902,7 @@ static void rv64_pagetable_dump_third_level_pte(rv64_cpu_t *cpu, bool verbose, s
         return;
     }
 
-    printf(RV64_DEBUG_INDENT RV64_DEBUG_INDENT "0x%06lx: ", pte_offset);
+    printf(RV64_DEBUG_INDENT RV64_DEBUG_INDENT "0x%06" PRIx64 ": ", pte_offset);
     rv64_pte_dump(pte);
     printf("\n");
 }
@@ -913,7 +914,7 @@ static void rv64_pagetable_dump_second_level_pte(rv64_cpu_t *cpu, bool verbose, 
         return;
     }
 
-    printf(RV64_DEBUG_INDENT "0x%06lx: ", pte_offset);
+    printf(RV64_DEBUG_INDENT "0x%06" PRIx64 ": ", pte_offset);
     rv64_pte_dump(pte);
 
     if (sv39_is_pte_leaf(pte)) {
@@ -941,7 +942,7 @@ static void rv64_pagetable_dump_first_level_pte(rv64_cpu_t *cpu, bool verbose, s
         return;
     }
 
-    printf("0x%06lx: ", pte_offset);
+    printf("0x%06" PRIx64 ": ", pte_offset);
     rv64_pte_dump(pte);
 
     if (sv39_is_pte_leaf(pte)) {

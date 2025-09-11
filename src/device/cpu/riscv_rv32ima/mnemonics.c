@@ -9,6 +9,7 @@
  *
  */
 
+#include <inttypes.h>
 #include <stdint.h>
 #include <sys/time.h>
 
@@ -798,7 +799,7 @@ extern void rv_amomaxu_w_mnemonics(uint32_t addr, rv_instr_t instr, string_t *s_
 
 static void print_64_reg(uint64_t val, const char *name, string_t *s)
 {
-    string_printf(s, "%s 0x%016lx (%sh = 0x%08x, %s = 0x%08x)", name, val, name, (uint32_t) (val >> 32), name, (uint32_t) val);
+    string_printf(s, "%s 0x%016" PRIx64 " (%sh = 0x%08x, %s = 0x%08x)", name, val, name, (uint32_t) (val >> 32), name, (uint32_t) val);
 }
 
 static void print_cycle(rv_cpu_t *cpu, string_t *mnemonics, string_t *comments)
@@ -1214,13 +1215,13 @@ static void print_satp(rv_cpu_t *cpu, string_t *mnemonics, string_t *comments)
 
         if (cpu->csr.asid_len == rv_asid_len) {
             string_printf(comments,
-                    " ASID: %i PPN: 0x%06x (Physical address: 0x%09lx)",
+                    " ASID: %i PPN: 0x%06x (Physical address: 0x%09" PRIx64 ")",
                     asid,
                     ppn,
                     (uint64_t) ppn << RV_PAGESIZE);
         } else {
             string_printf(comments,
-                    " ASID: %i (%d active bits) PPN: 0x%06x (Physical address: 0x%09lx)",
+                    " ASID: %i (%d active bits) PPN: 0x%06x (Physical address: 0x%09" PRIx64 ")",
                     asid,
                     cpu->csr.asid_len,
                     ppn,

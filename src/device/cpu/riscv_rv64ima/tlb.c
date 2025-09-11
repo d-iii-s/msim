@@ -1,3 +1,4 @@
+#include <inttypes.h>
 #include <string.h>
 
 #include "../../../assert.h"
@@ -319,7 +320,7 @@ static inline void dump_tlb_entry(rv64_tlb_entry_t entry, string_t *text)
         return;
     }
 
-    string_printf(text, "0x%08lx => 0x%09lx [ ASID: %d, GLOBAL: %s, PAGE TYPE: %s ]",
+    string_printf(text, "0x%08" PRIx64 " => 0x%09" PRIx64 " [ ASID: %d, GLOBAL: %s, PAGE TYPE: %s ]",
             virt,
             (ptr55_t) entry.pte.ppn << RV64_PAGESIZE,
             entry.asid,

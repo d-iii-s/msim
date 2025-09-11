@@ -1,3 +1,4 @@
+#include <inttypes.h>
 #include <string.h>
 
 #include "../../../assert.h"
@@ -264,7 +265,7 @@ extern bool rv32_tlb_resize(rv32_tlb_t *tlb, size_t size)
 
 static inline void dump_tlb_entry(rv32_tlb_entry_t entry, string_t *text)
 {
-    string_printf(text, "0x%08x => 0x%09lx [ ASID: %d, GLOBAL: %s, MEGAPAGE: %s ]",
+    string_printf(text, "0x%08x => 0x%09" PRIx64 " [ ASID: %d, GLOBAL: %s, MEGAPAGE: %s ]",
             entry.vpn << (entry.megapage ? RV_MEGAPAGESIZE : RV_PAGESIZE),
             (ptr36_t) entry.pte.ppn << RV_PAGESIZE,
             entry.asid,

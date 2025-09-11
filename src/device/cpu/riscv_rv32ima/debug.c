@@ -9,6 +9,7 @@
  *
  */
 
+#include <inttypes.h>
 #include <string.h>
 
 #include "../../../assert.h"
@@ -742,7 +743,7 @@ static void rv32_pte_dump(sv32_pte_t pte)
 
 static void rv32_pte_addr_dump(ptr36_t pte_addr, ptr36_t pt_base_addr, uint32_t vpn_i)
 {
-    printf(RV_DEBUG_INDENT "This entry ^ physical address: 0x%09lx = 0x%09lx + 0x%03x * %d\n", pte_addr, pt_base_addr, vpn_i, RV_PTESIZE);
+    printf(RV_DEBUG_INDENT "This entry ^ physical address: 0x%09" PRIx64 " = 0x%09" PRIx64 " + 0x%03x * %d\n", pte_addr, pt_base_addr, vpn_i, RV_PTESIZE);
 }
 
 static void rv32_pte_translation_step_dump(const char *header, sv32_pte_t pte, ptr36_t pte_addr, ptr36_t pt_base_addr, uint32_t vpn_i)
@@ -755,7 +756,7 @@ static void rv32_pte_translation_step_dump(const char *header, sv32_pte_t pte, p
 
 static bool rv32_translation_dump_success(uint32_t virt, ptr36_t phys)
 {
-    printf("\nOK: 0x%08x => 0x%09lx\n", virt, phys);
+    printf("\nOK: 0x%08x => 0x%09" PRIx64 "\n", virt, phys);
     return true;
 }
 

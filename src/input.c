@@ -118,6 +118,7 @@ void input_init(void)
     tio_inter.c_cc[VMIN] = 1;
     tio_inter.c_cc[VTIME] = 0;
 
+    using_history();
     rl_readline_name = "msim";
     rl_attempted_completion_function = msim_completion;
 }

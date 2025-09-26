@@ -6,7 +6,7 @@ env:
   PACKAGE_NAME: msim-git
   PACKAGE_MAINTAINER: vhotspur
   PACKAGE_SUMMARY: "A virtual machine simulator based on a MIPS R4000 and RISC-V processor"
-  PACKAGE_VERSION: 2.3.1
+  PACKAGE_VERSION: 3.0.0
   PACKAGE_HOMEPAGE: "https://d3s.mff.cuni.cz/software/msim/"
 
 jobs:

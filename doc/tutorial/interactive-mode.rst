@@ -8,7 +8,7 @@ Let's assume that the installation has been completed. After starting
 
     ~$ msim
     <msim> Alert: Configuration file "msim.conf" not found, skipping
-    <msim> Alert: MSIM 2.3.1
+    <msim> Alert: MSIM 3.0.0
     <msim> Alert: Entering interactive mode, type `help' for help.
     [msim]
 

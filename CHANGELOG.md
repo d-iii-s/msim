@@ -11,6 +11,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+### Added
+
+### Changed
+
+### Deprecated
+
+### Removed
+
+
+## v3.0.0 - 2025-09-26
+
+### Fixed
+
 * Wrong toolchain link in mini-kernel tutorial (see #73, @HanyzPAPU)
 * Wrong header guard (see #74, @HanyzPAPU, @vhotspur)
 * Document `-n` option (see #78, @PeterHero)
@@ -27,10 +40,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 
 * Tutorial reorganization (see #70, @vhotspur)
-
-### Deprecated
-
-### Removed
 
 
 ## v2.3.1 - 2024-09-25

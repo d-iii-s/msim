@@ -62,6 +62,9 @@ bool machine_nondet = false;
 /** Trace instructions */
 bool machine_trace = false;
 
+/** Verbose mode */
+bool machine_verbose = false;
+
 /** Halt the simulation */
 bool machine_halt = false;
 

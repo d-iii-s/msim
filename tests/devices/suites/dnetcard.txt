@@ -1,0 +1,6 @@
+# Networking device tests
+kernel dnetcard/simple
+kernel dnetcard/read-write-registers
+kernel dnetcard/interrupt
+kernel dnetcard/TCP-connect-fail
+kernel dnetcard/TCP-curl

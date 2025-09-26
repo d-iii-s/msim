@@ -1470,6 +1470,12 @@ static csr_ops_t get_csr_ops(csr_num_t csr)
         break; \
     }
 
+#define unreachable_case(csr, reason) \
+    case csr_##csr: { \
+        die(ERR_INTERN, "Register " #csr " not available here" reason "."); \
+        break; \
+    }
+
 #define read_only_case(csr) \
     case csr_##csr: { \
         ops.read = csr##_read; \
@@ -1773,6 +1779,8 @@ static csr_ops_t get_csr_ops(csr_num_t csr)
     default_case(mstatus)
     #if XLEN == 32
     default_case(mstatush)
+    #else
+    unreachable_case(mstatush, " (XLEN is " STRINGIFY(XLEN) ")")
     #endif
 
 

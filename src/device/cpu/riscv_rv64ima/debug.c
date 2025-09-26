@@ -1,5 +1,6 @@
 /*
  * Copyright (c) 2022 Jan Papesch
+ * Copyright (c) 2025 Martin Rosenberg
  * All rights reserved.
  *
  * Distributed under the terms of GPL.
@@ -22,9 +23,9 @@
 #include "debug.h"
 #include "mnemonics.h"
 
-#define RV_DEBUG_INDENT "  "
+#define RV64_DEBUG_INDENT "  "
 
-char *rv_reg_name_table[__rv_regname_type_count][RV_REG_COUNT] = {
+char *rv64_reg_name_table[__rv64_regname_type_count][RV64_REG_COUNT] = {
     { "x0", "x1", "x2", "x2", "x4", "x5", "x6", "x7",
             "x8", "x9", "x10", "x11", "x12", "x13", "x14", "x15",
             "x16", "x17", "x18", "x19", "x20", "x21", "x22", "x23",
@@ -35,7 +36,7 @@ char *rv_reg_name_table[__rv_regname_type_count][RV_REG_COUNT] = {
             "s8", "s9", "s10", "s11", "t3", "t4", "t5", "t6" }
 };
 
-char *rv_csr_name_table[0x1000] = {
+char *rv64_csr_name_table[0x1000] = {
     [csr_cycle] = "cycle",
     [csr_time] = "time",
     [csr_instret] = "instret",
@@ -132,7 +133,6 @@ char *rv_csr_name_table[0x1000] = {
     [csr_mie] = "mie",
     [csr_mtvec] = "mtvec",
     [csr_mcounteren] = "mcounteren",
-    [csr_mstatush] = "mstatush",
 
     [csr_mscratch] = "mscratch",
     [csr_mepc] = "mepc",
@@ -341,7 +341,7 @@ char *rv_csr_name_table[0x1000] = {
     [csr_dscratch1] = "dscratch1"
 };
 
-char *exc_name_table[32] = {
+char *rv64_exc_name_table[32] = {
     [rv_exc_instruction_address_misaligned] = "Instruction address misaligned",
     [rv_exc_instruction_access_fault] = "Instruction access fault",
     [rv_exc_illegal_instruction] = "Illegal instruction",
@@ -358,7 +358,7 @@ char *exc_name_table[32] = {
     [rv_exc_store_amo_page_fault] = "Store/Amo page fault"
 };
 
-char *interrupt_name_table[32] = {
+char *rv64_interrupt_name_table[32] = {
     [1] = "Supervisor software interrupt",
     [3] = "Machine software interrupt",
     [5] = "Supervisor timer interrupt",
@@ -372,62 +372,59 @@ static const char *smode_command = "smode";
 static const char *counters_command = "counters";
 static const char *all_command = "all";
 
-char **rv_regnames;
-char **rv_csrnames;
-char **rv_excnames;
-char **rv_interruptnames;
+char **rv64_regnames;
+char **rv64_csrnames;
+char **rv64_excnames;
+char **rv64_interruptnames;
 
-static rv_regname_type_t curr_regname_type = rv_regname_abi;
+static rv64_regname_type_t curr_regname_type = rv64_regname_abi;
 
 /**
  * @brief Initialize the debugging features
  *
  */
-void rv32_debug_init(void)
+void rv64_debug_init(void)
 {
-    rv_regnames = rv_reg_name_table[curr_regname_type];
-    rv_csrnames = rv_csr_name_table;
-    rv_excnames = exc_name_table;
-    rv_interruptnames = interrupt_name_table;
+    rv64_regnames = rv64_reg_name_table[curr_regname_type];
+    rv64_csrnames = rv64_csr_name_table;
+    rv64_excnames = rv64_exc_name_table;
+    rv64_interruptnames = rv64_interrupt_name_table;
 }
 
 /**
  * @brief Change the names of the general purpose registers
  */
-bool rv32_debug_change_regnames(rv_regname_type_t type)
+bool rv64_debug_change_regnames(rv64_regname_type_t type)
 {
-    if (type >= __rv_regname_type_count) {
-        error("Index out of range 0..%u", __rv_regname_type_count - 1);
+    if (type >= __rv64_regname_type_count) {
+        error("Index out of range 0..%u", __rv64_regname_type_count - 1);
         return false;
     }
-    curr_regname_type = (rv_regname_type_t) type;
-    rv_regnames = rv_reg_name_table[curr_regname_type];
+    curr_regname_type = (rv64_regname_type_t) type;
+    rv64_regnames = rv64_reg_name_table[curr_regname_type];
     return true;
 }
 
 /**
  * @brief Dump the content of the general purpose registers to stdout
  */
-void rv32_reg_dump(rv32_cpu_t *cpu)
+void rv64_reg_dump(rv64_cpu_t *cpu)
 {
-
     ASSERT(cpu != NULL);
 
-    printf("processor %u\n", cpu->csr.mhartid);
-
-    for (unsigned int i = 0; i < RV_REG_COUNT; i += 4) {
-        printf(" %5s: %8x %5s: %8x %5s: %8x %5s: %8x\n",
-                rv_regnames[i], cpu->regs[i],
-                rv_regnames[i + 1], cpu->regs[i + 1],
-                rv_regnames[i + 2], cpu->regs[i + 2],
-                rv_regnames[i + 3], cpu->regs[i + 3]);
+    for (unsigned int i = 0; i < RV64_REG_COUNT; i += 4) {
+        printf(" %5s: %16" PRIx64 " %5s: %16" PRIx64 " %5s: %16" PRIx64 " %5s: %16" PRIx64 "\n",
+                rv64_regnames[i], cpu->regs[i],
+                rv64_regnames[i + 1], cpu->regs[i + 1],
+                rv64_regnames[i + 2], cpu->regs[i + 2],
+                rv64_regnames[i + 3], cpu->regs[i + 3]);
     }
 
     char *priv_mode = cpu->priv_mode == rv_mmode ? "M" : cpu->priv_mode == rv_smode ? "S"
             : cpu->priv_mode == rv_umode                                            ? "U"
                                                                                     : "ERROR";
 
-    printf(" %5s: %08x %44s: %s\n",
+    printf(" %5s: %016" PRIx64 " %44s: %s\n",
             "pc", cpu->pc,
             "Privilege mode", priv_mode);
 }
@@ -438,7 +435,7 @@ static void idump_common(uint32_t addr, rv_instr_t instr, string_t *s_opc,
 
     string_printf(s_opc, "%08x", instr.val);
 
-    rv_mnemonics_func_t mnem_func = rv_decode_mnemonics(instr);
+    rv_mnemonics_func_t mnem_func = rv64_decode_mnemonics(instr);
 
     mnem_func(addr, instr, s_mnemonics, s_comments);
 }
@@ -446,7 +443,7 @@ static void idump_common(uint32_t addr, rv_instr_t instr, string_t *s_opc,
 /**
  * @brief Dump the given instruction as if it lied the given address in the context of the given CPU
  */
-void rv32_idump(rv32_cpu_t *cpu, uint32_t addr, rv_instr_t instr)
+void rv64_idump(rv64_cpu_t *cpu, uint32_t addr, rv_instr_t instr)
 {
     string_t s_cpu;
     string_t s_addr;
@@ -461,7 +458,7 @@ void rv32_idump(rv32_cpu_t *cpu, uint32_t addr, rv_instr_t instr)
     string_init(&s_comments);
 
     if (cpu != NULL) {
-        string_printf(&s_cpu, "cpu%u", cpu->csr.mhartid);
+        string_printf(&s_cpu, "cpu%" PRIu64, cpu->csr.mhartid);
     }
 
     string_printf(&s_addr, "0x%08x", addr);
@@ -496,222 +493,222 @@ void rv32_idump(rv32_cpu_t *cpu, uint32_t addr, rv_instr_t instr)
 /**
  * @brief Dump the given instruction as if it lied on the given address from the global point of view
  */
-void rv32_idump_phys(uint32_t addr, rv_instr_t instr)
+void rv64_idump_phys(uint32_t addr, rv_instr_t instr)
 {
-    rv32_idump(NULL, addr, instr);
+    rv64_idump(NULL, addr, instr);
 }
 
 /**
  * @brief Dump the content of all CSRs
  */
-void rv32_csr_dump_all(rv32_cpu_t *cpu)
+void rv64_csr_dump_all(rv64_cpu_t *cpu)
 {
-    rv32_csr_dump_mmode(cpu);
+    rv64_csr_dump_mmode(cpu);
     printf("\n");
-    rv32_csr_dump_smode(cpu);
+    rv64_csr_dump_smode(cpu);
     printf("\n");
-    rv32_csr_dump_counters(cpu);
+    rv64_csr_dump_counters(cpu);
 }
 
 /**
  * @brief Dump the content of all M-Mode CSRs
  */
-extern void rv32_csr_dump_mmode(rv32_cpu_t *cpu)
+extern void rv64_csr_dump_mmode(rv64_cpu_t *cpu)
 {
     printf("\n");
     printf("Machine level CSRs\n");
     printf("\n");
     printf("Machine Information\n");
-    rv_csr_dump_common(cpu, csr_mvendorid);
-    rv_csr_dump_common(cpu, csr_marchid);
-    rv_csr_dump_common(cpu, csr_mimpid);
-    rv_csr_dump_common(cpu, csr_mhartid);
-    rv_csr_dump_common(cpu, csr_mconfigptr);
+    rv64_csr_dump_common(cpu, csr_mvendorid);
+    rv64_csr_dump_common(cpu, csr_marchid);
+    rv64_csr_dump_common(cpu, csr_mimpid);
+    rv64_csr_dump_common(cpu, csr_mhartid);
+    rv64_csr_dump_common(cpu, csr_mconfigptr);
     printf("\n");
     printf("Trap Setup\n");
-    rv_csr_dump_common(cpu, csr_mstatus);
-    rv_csr_dump_common(cpu, csr_misa);
-    rv_csr_dump_common(cpu, csr_medeleg);
-    rv_csr_dump_common(cpu, csr_mideleg);
-    rv_csr_dump_common(cpu, csr_mie);
-    rv_csr_dump_common(cpu, csr_mtvec);
-    rv_csr_dump_common(cpu, csr_mcounteren);
+    rv64_csr_dump_common(cpu, csr_mstatus);
+    rv64_csr_dump_common(cpu, csr_misa);
+    rv64_csr_dump_common(cpu, csr_medeleg);
+    rv64_csr_dump_common(cpu, csr_mideleg);
+    rv64_csr_dump_common(cpu, csr_mie);
+    rv64_csr_dump_common(cpu, csr_mtvec);
+    rv64_csr_dump_common(cpu, csr_mcounteren);
     printf("\n");
     printf("Trap Handling\n");
-    rv_csr_dump_common(cpu, csr_mscratch);
-    rv_csr_dump_common(cpu, csr_mepc);
-    rv_csr_dump_common(cpu, csr_mcause);
-    rv_csr_dump_common(cpu, csr_mtval);
-    rv_csr_dump_common(cpu, csr_mip);
+    rv64_csr_dump_common(cpu, csr_mscratch);
+    rv64_csr_dump_common(cpu, csr_mepc);
+    rv64_csr_dump_common(cpu, csr_mcause);
+    rv64_csr_dump_common(cpu, csr_mtval);
+    rv64_csr_dump_common(cpu, csr_mip);
     printf("\n");
     printf("Configuration\n");
-    rv_csr_dump_common(cpu, csr_menvcfg);
-    rv_csr_dump_common(cpu, csr_mseccfg);
+    rv64_csr_dump_common(cpu, csr_menvcfg);
+    rv64_csr_dump_common(cpu, csr_mseccfg);
     printf("\n");
     printf("Debug/Trace\n");
-    rv_csr_dump_common(cpu, csr_mcontext);
+    rv64_csr_dump_common(cpu, csr_mcontext);
 }
 
 /**
  * @brief Dump the content of all S-Mode CSRs
  */
-extern void rv32_csr_dump_smode(rv32_cpu_t *cpu)
+extern void rv64_csr_dump_smode(rv64_cpu_t *cpu)
 {
     printf("\n");
     printf("Supervisor level CSRs\n");
     printf("\n");
     printf("Trap Setup\n");
-    rv_csr_dump_common(cpu, csr_sstatus);
-    rv_csr_dump_common(cpu, csr_sie);
-    rv_csr_dump_common(cpu, csr_stvec);
-    rv_csr_dump_common(cpu, csr_scounteren);
+    rv64_csr_dump_common(cpu, csr_sstatus);
+    rv64_csr_dump_common(cpu, csr_sie);
+    rv64_csr_dump_common(cpu, csr_stvec);
+    rv64_csr_dump_common(cpu, csr_scounteren);
     printf("\n");
     printf("Configuration\n");
-    rv_csr_dump_common(cpu, csr_senvcfg);
+    rv64_csr_dump_common(cpu, csr_senvcfg);
     printf("\n");
     printf("Trap Handling\n");
-    rv_csr_dump_common(cpu, csr_sscratch);
-    rv_csr_dump_common(cpu, csr_sepc);
-    rv_csr_dump_common(cpu, csr_scause);
-    rv_csr_dump_common(cpu, csr_stval);
-    rv_csr_dump_common(cpu, csr_sip);
+    rv64_csr_dump_common(cpu, csr_sscratch);
+    rv64_csr_dump_common(cpu, csr_sepc);
+    rv64_csr_dump_common(cpu, csr_scause);
+    rv64_csr_dump_common(cpu, csr_stval);
+    rv64_csr_dump_common(cpu, csr_sip);
     printf("\n");
     printf("Protection and Translation\n");
-    rv_csr_dump_common(cpu, csr_satp);
+    rv64_csr_dump_common(cpu, csr_satp);
     printf("\n");
     printf("Debug/Trace\n");
-    rv_csr_dump_common(cpu, csr_scontext);
+    rv64_csr_dump_common(cpu, csr_scontext);
     printf("\n");
     printf("Custom\n");
-    rv_csr_dump_common(cpu, csr_scyclecmp);
+    rv64_csr_dump_common(cpu, csr_scyclecmp);
 }
 
 /**
  * @brief Dump the content of all counter related CSRs
  */
-extern void rv32_csr_dump_counters(rv32_cpu_t *cpu)
+extern void rv64_csr_dump_counters(rv64_cpu_t *cpu)
 {
     printf("\n");
     printf("Unprivileged Counters/Timers\n");
-    rv_csr_dump_common(cpu, csr_cycle);
-    rv_csr_dump_common(cpu, csr_time);
-    rv_csr_dump_common(cpu, csr_instret);
+    rv64_csr_dump_common(cpu, csr_cycle);
+    rv64_csr_dump_common(cpu, csr_time);
+    rv64_csr_dump_common(cpu, csr_instret);
     printf("\n");
     for (int i = 0; i < 29; ++i) {
-        rv_csr_dump_common(cpu, csr_hpmcounter3 + i);
+        rv64_csr_dump_common(cpu, csr_hpmcounter3 + i);
     }
     printf("\n");
     printf("Counter Setup\n");
-    rv_csr_dump_common(cpu, csr_mcountinhibit);
+    rv64_csr_dump_common(cpu, csr_mcountinhibit);
     for (int i = 0; i < 29; ++i) {
-        rv_csr_dump_common(cpu, csr_mhpmevent3 + i);
+        rv64_csr_dump_common(cpu, csr_mhpmevent3 + i);
     }
 }
 
 /**
  * @brief Dump the content of selected CSRs
  */
-extern void rv32_csr_dump_reduced(rv32_cpu_t *cpu)
+extern void rv64_csr_dump_reduced(rv64_cpu_t *cpu)
 {
     printf("\n");
     printf("Machine level CSRs\n");
     printf("\n");
     printf("Trap Setup\n");
-    rv_csr_dump_common(cpu, csr_mstatus);
-    rv_csr_dump_common(cpu, csr_medeleg);
-    rv_csr_dump_common(cpu, csr_mideleg);
-    rv_csr_dump_common(cpu, csr_mie);
-    rv_csr_dump_common(cpu, csr_mtvec);
-    rv_csr_dump_common(cpu, csr_mcounteren);
+    rv64_csr_dump_common(cpu, csr_mstatus);
+    rv64_csr_dump_common(cpu, csr_medeleg);
+    rv64_csr_dump_common(cpu, csr_mideleg);
+    rv64_csr_dump_common(cpu, csr_mie);
+    rv64_csr_dump_common(cpu, csr_mtvec);
+    rv64_csr_dump_common(cpu, csr_mcounteren);
     printf("\n");
     printf("Trap Handling\n");
-    rv_csr_dump_common(cpu, csr_mscratch);
-    rv_csr_dump_common(cpu, csr_mepc);
-    rv_csr_dump_common(cpu, csr_mcause);
-    rv_csr_dump_common(cpu, csr_mtval);
-    rv_csr_dump_common(cpu, csr_mip);
+    rv64_csr_dump_common(cpu, csr_mscratch);
+    rv64_csr_dump_common(cpu, csr_mepc);
+    rv64_csr_dump_common(cpu, csr_mcause);
+    rv64_csr_dump_common(cpu, csr_mtval);
+    rv64_csr_dump_common(cpu, csr_mip);
     printf("\n\n");
     printf("Supervisor level CSRs\n");
     printf("\n");
     printf("Trap Setup\n");
-    rv_csr_dump_common(cpu, csr_sstatus);
-    rv_csr_dump_common(cpu, csr_sie);
-    rv_csr_dump_common(cpu, csr_stvec);
-    rv_csr_dump_common(cpu, csr_scounteren);
+    rv64_csr_dump_common(cpu, csr_sstatus);
+    rv64_csr_dump_common(cpu, csr_sie);
+    rv64_csr_dump_common(cpu, csr_stvec);
+    rv64_csr_dump_common(cpu, csr_scounteren);
     printf("\n");
     printf("Trap Handling\n");
-    rv_csr_dump_common(cpu, csr_sscratch);
-    rv_csr_dump_common(cpu, csr_sepc);
-    rv_csr_dump_common(cpu, csr_scause);
-    rv_csr_dump_common(cpu, csr_stval);
-    rv_csr_dump_common(cpu, csr_sip);
+    rv64_csr_dump_common(cpu, csr_sscratch);
+    rv64_csr_dump_common(cpu, csr_sepc);
+    rv64_csr_dump_common(cpu, csr_scause);
+    rv64_csr_dump_common(cpu, csr_stval);
+    rv64_csr_dump_common(cpu, csr_sip);
     printf("\n");
     printf("Protection and Translation\n");
-    rv_csr_dump_common(cpu, csr_satp);
+    rv64_csr_dump_common(cpu, csr_satp);
     printf("\n");
     printf("Custom\n");
-    rv_csr_dump_common(cpu, csr_scyclecmp);
+    rv64_csr_dump_common(cpu, csr_scyclecmp);
 }
 
 /**
  * @brief Dump the content of the given CSR
  */
-bool rv32_csr_dump(rv32_cpu_t *cpu, csr_num_t csr)
+bool rv64_csr_dump(rv64_cpu_t *cpu, csr_num_t csr)
 {
     ASSERT((csr >= 0 && csr < 0x1000));
     ASSERT(cpu != NULL);
 
-    if (rv_csr_name_table[csr] == NULL) {
+    if (rv64_csr_name_table[csr] == NULL) {
         printf("Invalid CSR!\n");
         return false;
     }
 
-    printf("%s (0x%03x):\n", rv_csr_name_table[csr], csr);
+    printf("%s (0x%03x):\n", rv64_csr_name_table[csr], csr);
 
-    rv_csr_dump_common(cpu, csr);
+    rv64_csr_dump_common(cpu, csr);
     return true;
 }
 
 /**
  * @brief Dump the content of the given CSR based on the name
  */
-bool rv32_csr_dump_by_name(rv32_cpu_t *cpu, const char *name)
+bool rv64_csr_dump_by_name(rv64_cpu_t *cpu, const char *name)
 {
     ASSERT(cpu != NULL);
     for (int i = 0; i < 0x1000; ++i) {
 
-        if (rv_csr_name_table[i] == NULL) {
+        if (rv64_csr_name_table[i] == NULL) {
             continue;
         }
 
-        if (strcmp(name, rv_csr_name_table[i]) == 0) {
-            return rv32_csr_dump(cpu, i);
+        if (strcmp(name, rv64_csr_name_table[i]) == 0) {
+            return rv64_csr_dump(cpu, i);
         }
     }
     printf("Specified name is not a valid CSR!\n");
     return false;
 }
 
-extern bool rv32_csr_dump_command(rv32_cpu_t *cpu, const char *command)
+extern bool rv64_csr_dump_command(rv64_cpu_t *cpu, const char *command)
 {
     ASSERT(cpu != NULL);
     if (strcmp(command, mmode_command) == 0) {
-        rv32_csr_dump_mmode(cpu);
+        rv64_csr_dump_mmode(cpu);
         return true;
     } else if (strcmp(command, smode_command) == 0) {
-        rv32_csr_dump_smode(cpu);
+        rv64_csr_dump_smode(cpu);
         return true;
     } else if (strcmp(command, counters_command) == 0) {
-        rv32_csr_dump_counters(cpu);
+        rv64_csr_dump_counters(cpu);
         return true;
     } else if (strcmp(command, all_command) == 0) {
-        rv32_csr_dump_all(cpu);
+        rv64_csr_dump_all(cpu);
         return true;
     }
     return false;
 }
 
-static char *rv32_pte_rsw_string(unsigned rsw)
+static char *rv_pte_rsw_string(unsigned rsw)
 {
     switch (rsw) {
     case 0b00:
@@ -726,11 +723,11 @@ static char *rv32_pte_rsw_string(unsigned rsw)
     assert(false && "Unreachable code, RSW has only 2 bits");
 }
 
-static void rv32_pte_dump(sv32_pte_t pte)
+static void rv64_pte_dump(sv39_pte_t pte)
 {
-    printf("[ PPN: 0x%06x RSW: %s %s%s%s%s %s%s%s%s ]",
-            pte.ppn,
-            rv32_pte_rsw_string(pte.rsw),
+    printf("[ PPN: 0x%012" PRIx64 " RSW: %s %s%s%s%s %s%s%s%s ]",
+            (uint64_t) pte.ppn,
+            rv_pte_rsw_string(pte.rsw),
             pte.d ? "D" : "-",
             pte.a ? "A" : "-",
             pte.g ? "G" : "-",
@@ -741,189 +738,250 @@ static void rv32_pte_dump(sv32_pte_t pte)
             pte.v ? "V" : "-");
 }
 
-static void rv32_pte_addr_dump(ptr36_t pte_addr, ptr36_t pt_base_addr, uint32_t vpn_i)
+static void rv64_pte_addr_dump(ptr55_t pte_addr, ptr55_t pt_base_addr, uint64_t vpn_i)
 {
-    printf(RV_DEBUG_INDENT "This entry ^ physical address: 0x%09" PRIx64 " = 0x%09" PRIx64 " + 0x%03x * %d\n", pte_addr, pt_base_addr, vpn_i, RV_PTESIZE);
+    printf(RV64_DEBUG_INDENT "This entry ^ physical address: 0x%09" PRIx64 " = 0x%09" PRIx64 " + 0x%03" PRIx64 " * %d\n", pte_addr, pt_base_addr, vpn_i, RV64_PTESIZE);
 }
 
-static void rv32_pte_translation_step_dump(const char *header, sv32_pte_t pte, ptr36_t pte_addr, ptr36_t pt_base_addr, uint32_t vpn_i)
+static void rv64_pte_translation_step_dump(const char *header, sv39_pte_t pte, ptr55_t pte_addr, ptr55_t pt_base_addr, uint64_t vpn_i)
 {
     printf("%s ", header);
-    rv32_pte_dump(pte);
+    rv64_pte_dump(pte);
     printf("\n");
-    rv32_pte_addr_dump(pte_addr, pt_base_addr, vpn_i);
+    rv64_pte_addr_dump(pte_addr, pt_base_addr, vpn_i);
 }
 
-static bool rv32_translation_dump_success(uint32_t virt, ptr36_t phys)
+static bool rv64_translation_dump_success(uint64_t virt, ptr36_t phys)
 {
-    printf("\nOK: 0x%08x => 0x%09" PRIx64 "\n", virt, phys);
+    printf("\nOK: 0x%09" PRIx64 " => 0x%09" PRIx64 "\n", virt, phys);
     return true;
 }
 
-extern bool rv32_translate_sv32_dump(rv32_cpu_t *cpu, ptr36_t root_pagetable_phys, uint32_t virt)
+extern bool rv64_translate_sv39_dump(rv64_cpu_t *cpu, ptr55_t root_pagetable_phys, uint64_t virt)
 {
     ASSERT(cpu != NULL);
-    ASSERT(IS_ALIGNED(root_pagetable_phys, RV_PAGEBYTES));
+    ASSERT(IS_ALIGNED(root_pagetable_phys, RV64_PAGEBYTES));
 
-    uint32_t vpn0 = (virt & 0x003FF000) >> 12;
-    uint32_t vpn1 = (virt & 0xFFC00000) >> 22;
+    uint32_t vpn0 = (virt & 0x1FF000) >> 12;
+    uint32_t vpn1 = (virt & 0x3FE00000) >> 21;
+    uint32_t vpn2 = (virt & 0x7FC0000000) >> 30;
 
-    printf("VPN[1]: 0x%03x VPN[0]: 0x%03x page offset: 0x%03x\n", vpn1, vpn0, virt & 0xFFF);
+    printf("VPN[2]: 0x%03x VPN[1]: 0x%03x VPN[0]: 0x%03x page offset: 0x%03x\n", vpn2, vpn1, vpn0, (uint32_t) (virt & 0xFFF));
 
-    ptr36_t a = root_pagetable_phys;
-    ptr36_t pte_addr = a + vpn1 * RV_PTESIZE;
-    uint32_t pte_val = physmem_read32(cpu->csr.mhartid, pte_addr, false);
-    sv32_pte_t pte = pte_from_uint(pte_val);
+    ptr55_t a = root_pagetable_phys;
+    ptr55_t pte_addr = a + vpn2 * RV64_PTESIZE;
+    uint64_t pte_val = physmem_read64(cpu->csr.mhartid, pte_addr, false);
+    sv39_pte_t pte = sv39_pte_from_uint(pte_val);
 
-    rv32_pte_translation_step_dump("PTE1:", pte, pte_addr, a, vpn1);
+    rv64_pte_translation_step_dump("PTE1:", pte, pte_addr, a, vpn2);
 
-    if (!is_pte_valid(pte)) {
+    if (!sv39_is_pte_valid(pte)) {
         printf("\nPAGE FAULT - Invalid PTE on 1st level\n");
         return false;
     }
 
-    if (is_pte_leaf(pte)) {
-
-        if (pte_ppn0(pte) != 0) {
-            printf("\nFATAL - Misaligned Megapage (PPN[0] should be 0 but is 0x%03x)\n", pte_ppn0(pte));
+    if (sv39_is_pte_leaf(pte)) {
+        if (sv39_pte_ppn0(pte) != 0 || sv39_pte_ppn1(pte) != 0) {
+            printf("\nFATAL - Misaligned Gigapage (PPN[0] and PPN[1] should be 0 but is 0x%03" PRIx64 " and 0x%03" PRIx64 ")\n", (uint64_t) sv39_pte_ppn0(pte), (uint64_t) sv39_pte_ppn1(pte));
             return false;
         }
 
-        ptr36_t phys = make_phys_from_ppn(virt, pte, true);
-        return rv32_translation_dump_success(virt, phys);
+        ptr55_t phys = sv39_make_phys_from_ppn(virt, pte, true);
+        return rv64_translation_dump_success(virt, phys);
     } else {
-        a = pte_ppn_phys(pte);
+        a = sv39_pte_ppn_phys(pte);
 
-        pte_addr = a + vpn0 * RV_PTESIZE;
-        pte_val = physmem_read32(cpu->csr.mhartid, pte_addr, false);
-        pte = pte_from_uint(pte_val);
+        pte_addr = a + vpn1 * RV64_PTESIZE;
+        pte_val = physmem_read64(cpu->csr.mhartid, pte_addr, false);
+        pte = sv39_pte_from_uint(pte_val);
 
-        rv32_pte_translation_step_dump("PTE2:", pte, pte_addr, a, vpn0);
+        rv64_pte_translation_step_dump("PTE2:", pte, pte_addr, a, vpn1);
 
-        if (!is_pte_valid(pte)) {
+        if (!sv39_is_pte_valid(pte)) {
             printf("\nPAGE FAULT - Invalid PTE in 2nd level\n");
             return false;
         }
 
-        if (!is_pte_leaf(pte)) {
-            printf("\nFATAL - 2nd level PTE is non leaf (no XWR bit set)\n");
-            return false;
-        }
+        if (sv39_is_pte_leaf(pte)) {
+            if (sv39_pte_ppn0(pte) != 0) {
+                printf("\nFATAL - Misaligned Megapage (PPN[0] should be 0 but is 0x%03" PRIx64 ")\n", (uint64_t) sv39_pte_ppn0(pte));
+                return false;
+            }
 
-        ptr36_t phys = make_phys_from_ppn(virt, pte, false);
-        return rv32_translation_dump_success(virt, phys);
+            ptr55_t phys = sv39_make_phys_from_ppn(virt, pte, true);
+            return rv64_translation_dump_success(virt, phys);
+        } else {
+            // if it's not a leaf, we go deeper
+
+            a = sv39_pte_ppn_phys(pte);
+
+            pte_addr = a + vpn0 * RV64_PTESIZE;
+            pte_val = physmem_read64(cpu->csr.mhartid, pte_addr, false);
+            pte = sv39_pte_from_uint(pte_val);
+
+            rv64_pte_translation_step_dump("PTE3:", pte, pte_addr, a, vpn0);
+
+            if (!sv39_is_pte_valid(pte)) {
+                printf("\nPAGE FAULT - Invalid PTE in 3rd level\n");
+                return false;
+            }
+
+            if (!sv39_is_pte_leaf(pte)) {
+                printf("\nFATAL - 3rd level PTE is non leaf (no XWR bit set)\n");
+                return false;
+            }
+
+            ptr36_t phys = sv39_make_phys_from_ppn(virt, pte, false);
+            return rv64_translation_dump_success(virt, phys);
+        }
     }
 }
 
-extern bool rv32_translate_dump(rv32_cpu_t *cpu, uint32_t addr)
+extern bool rv64_translate_dump(rv64_cpu_t *cpu, uint64_t addr)
 {
     ASSERT(cpu != NULL);
 
-    if (sv32_effective_priv(cpu) > rv_smode) {
+    if (sv39_effective_priv(cpu) > rv_smode) {
         printf("M-mode Bare translation\n");
-        return rv32_translation_dump_success(addr, addr);
+        return rv64_translation_dump_success(addr, addr);
     }
 
-    rv_csr_dump_common(cpu, csr_satp);
+    rv64_csr_dump_common(cpu, csr_satp);
 
     if (rv_csr_satp_is_bare(cpu)) {
-        return rv32_translation_dump_success(addr, addr);
+        return rv64_translation_dump_success(addr, addr);
     }
 
     unsigned asid = rv_csr_satp_asid(cpu);
-    sv32_pte_t pte;
-    bool megapage;
+    sv39_pte_t pte;
+    sv39_page_type_t page_type;
 
-    if (rv32_tlb_get_mapping(&cpu->tlb, asid, addr, &pte, &megapage, false)) {
+    if (rv64_tlb_get_mapping(&cpu->tlb, asid, addr, &pte, &page_type, false)) {
         printf("TLB Hit!\n");
 
-        if (!is_pte_valid(pte)) {
+        if (!sv39_is_pte_valid(pte)) {
             printf("\nFATAL - Invalid TLB Entry PTE!\n");
             return false;
         }
 
-        if (megapage && pte_ppn0(pte) != 0) {
+        // implement alignment check for gigapage
+
+        if (page_type == gigapage && (sv39_pte_ppn0(pte) != 0 || sv39_pte_ppn1(pte) != 0)) {
+            printf("\nFATAL - Misaligned Gigapage TLB Entry!\n");
+            return false;
+        }
+
+        if (page_type == megapage && sv39_pte_ppn0(pte) != 0) {
             printf("\nFATAL - Misaligned Megapage TLB Entry!\n");
             return false;
         }
 
-        ptr36_t phys = make_phys_from_ppn(addr, pte, megapage);
-        return rv32_translation_dump_success(addr, phys);
+        ptr55_t phys = sv39_make_phys_from_ppn(addr, pte, page_type);
+        return rv64_translation_dump_success(addr, phys);
     }
 
-    uint32_t ppn = rv_csr_satp_ppn(cpu);
-    ptr36_t root_pagetable_phys = ((ptr36_t) ppn) << RV_PAGESIZE;
-    return rv32_translate_sv32_dump(cpu, root_pagetable_phys, addr);
+    uint64_t ppn = rv_csr_satp_ppn(cpu);
+    ptr55_t root_pagetable_phys = ((ptr55_t) ppn) << RV64_PAGESIZE;
+    return rv64_translate_sv39_dump(cpu, root_pagetable_phys, addr);
 }
 
-static bool rv_is_zero_pte(sv32_pte_t pte)
+static bool rv64_is_zero_pte(sv39_pte_t pte)
 {
-    return uint_from_pte(pte) == 0;
+    return sv39_uint_from_pte(pte) == 0;
 }
 
-static bool rv_should_dump_pte(sv32_pte_t pte, bool verbose)
+static bool rv64_should_dump_pte(sv39_pte_t pte, bool verbose)
 {
-    return !rv_is_zero_pte(pte) && (pte.v || verbose);
+    return !rv64_is_zero_pte(pte) && (pte.v || verbose);
 }
 
-static void rv_pagetable_dump_second_level_pte(rv32_cpu_t *cpu, bool verbose, sv32_pte_t pte, size_t pte_offset)
+/* Dump L0 page tables */
+static void rv64_pagetable_dump_third_level_pte(rv64_cpu_t *cpu, bool verbose, sv39_pte_t pte, virt_t pte_offset)
 {
-    if (!rv_should_dump_pte(pte, verbose)) {
+    if (!rv64_should_dump_pte(pte, verbose)) {
         return;
     }
 
-    printf(RV_DEBUG_INDENT "0x%03lx: ", pte_offset);
-    rv32_pte_dump(pte);
+    printf(RV64_DEBUG_INDENT RV64_DEBUG_INDENT "0x%06" PRIx64 ": ", pte_offset);
+    rv64_pte_dump(pte);
     printf("\n");
 }
 
-static void rv_pagetable_dump_first_level_pte(rv32_cpu_t *cpu, bool verbose, sv32_pte_t pte, size_t pte_offset)
+/* Dump L1 page tables */
+static void rv64_pagetable_dump_second_level_pte(rv64_cpu_t *cpu, bool verbose, sv39_pte_t pte, virt_t pte_offset)
 {
-
-    if (!rv_should_dump_pte(pte, verbose)) {
+    if (!rv64_should_dump_pte(pte, verbose)) {
         return;
     }
 
-    printf("0x%03lx: ", pte_offset);
-    rv32_pte_dump(pte);
+    printf(RV64_DEBUG_INDENT "0x%06" PRIx64 ": ", pte_offset);
+    rv64_pte_dump(pte);
 
-    if (is_pte_leaf(pte)) {
+    if (sv39_is_pte_leaf(pte)) {
         printf(" [ Megapage ]\n");
         return;
     }
     printf("\n");
 
-    ptr36_t second_level_pagetable_addr = pte_ppn_phys(pte);
+    ptr36_t third_level_pagetable_addr = sv39_pte_ppn_phys(pte);
 
-    for (ptr36_t offset = 0; offset < RV_PAGEBYTES; offset += RV_PTESIZE) {
+    for (ptr36_t offset = 0; offset < RV64_PAGEBYTES; offset += RV64_PTESIZE) {
 
-        ptr36_t pte_addr = second_level_pagetable_addr + offset;
-        uint32_t pte_val = physmem_read32(cpu->csr.mhartid, pte_addr, false);
-        sv32_pte_t pte = pte_from_uint(pte_val);
+        ptr36_t pte_addr = third_level_pagetable_addr + offset;
+        uint64_t pte_val = physmem_read64(cpu->csr.mhartid, pte_addr, false);
+        sv39_pte_t pte = sv39_pte_from_uint(pte_val);
 
-        rv_pagetable_dump_second_level_pte(cpu, verbose, pte, offset);
+        rv64_pagetable_dump_third_level_pte(cpu, verbose, pte, offset);
     }
 }
 
-extern bool rv32_pagetable_dump_from_phys(rv32_cpu_t *cpu, ptr36_t root_pagetable_phys, bool verbose)
+/* Dump L2 page tables */
+static void rv64_pagetable_dump_first_level_pte(rv64_cpu_t *cpu, bool verbose, sv39_pte_t pte, virt_t pte_offset)
+{
+    if (!rv64_should_dump_pte(pte, verbose)) {
+        return;
+    }
+
+    printf("0x%06" PRIx64 ": ", pte_offset);
+    rv64_pte_dump(pte);
+
+    if (sv39_is_pte_leaf(pte)) {
+        printf(" [ Gigapage ]\n");
+        return;
+    }
+    printf("\n");
+
+    ptr36_t second_level_pagetable_addr = sv39_pte_ppn_phys(pte);
+
+    for (ptr36_t offset = 0; offset < RV64_PAGEBYTES; offset += RV64_PTESIZE) {
+
+        ptr36_t pte_addr = second_level_pagetable_addr + offset;
+        uint64_t pte_val = physmem_read64(cpu->csr.mhartid, pte_addr, false);
+        sv39_pte_t pte = sv39_pte_from_uint(pte_val);
+
+        rv64_pagetable_dump_second_level_pte(cpu, verbose, pte, offset);
+    }
+}
+
+extern bool rv64_pagetable_dump_from_phys(rv64_cpu_t *cpu, ptr36_t root_pagetable_phys, bool verbose)
 {
     ASSERT(cpu != NULL);
-    ASSERT(IS_ALIGNED(root_pagetable_phys, RV_PAGEBYTES));
+    ASSERT(IS_ALIGNED(root_pagetable_phys, RV64_PAGEBYTES));
 
-    for (ptr36_t offset = 0; offset < RV_PAGEBYTES; offset += RV_PTESIZE) {
+    for (ptr36_t offset = 0; offset < RV64_PAGEBYTES; offset += RV64_PTESIZE) {
         ptr36_t pte_addr = root_pagetable_phys + offset;
-        uint32_t pte_val = physmem_read32(cpu->csr.mhartid, pte_addr, false);
-        sv32_pte_t pte = pte_from_uint(pte_val);
-        rv_pagetable_dump_first_level_pte(cpu, verbose, pte, offset);
+        uint64_t pte_val = physmem_read64(cpu->csr.mhartid, pte_addr, false);
+        sv39_pte_t pte = sv39_pte_from_uint(pte_val);
+        rv64_pagetable_dump_first_level_pte(cpu, verbose, pte, offset);
     }
 
     return true;
 }
 
-bool rv32_pagetable_dump(rv32_cpu_t *cpu, bool verbose)
+bool rv64_pagetable_dump(rv64_cpu_t *cpu, bool verbose)
 {
     ASSERT(cpu != NULL);
-    if (sv32_effective_priv(cpu) > rv_smode) {
+    if (sv39_effective_priv(cpu) > rv_smode) {
         error("Pagetable not active - M-mode Bare translation mode\n");
         return false;
     }
@@ -933,10 +991,10 @@ bool rv32_pagetable_dump(rv32_cpu_t *cpu, bool verbose)
         return false;
     }
 
-    rv_csr_dump_common(cpu, csr_satp);
-    uint32_t ppn = rv_csr_satp_ppn(cpu);
+    rv64_csr_dump_common(cpu, csr_satp);
+    uint64_t ppn = rv_csr_satp_ppn(cpu);
 
-    ptr36_t root_pagetable_addr = ((ptr36_t) ppn) << RV_PAGESIZE;
-    rv32_pagetable_dump_from_phys(cpu, root_pagetable_addr, verbose);
+    ptr36_t root_pagetable_addr = ((ptr36_t) ppn) << RV64_PAGESIZE;
+    rv64_pagetable_dump_from_phys(cpu, root_pagetable_addr, verbose);
     return true;
 }

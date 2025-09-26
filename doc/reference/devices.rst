@@ -249,6 +249,22 @@ Example of the ``tlbd`` command:
           2: 0x00400000 => 0x000400000 [ ASID: 2, GLOBAL: F, MEGAPAGE: T ]
    [msim]
 
+
+RISC-V Processor ``drv64cpu``
+---------------------------
+
+The ``drv64cpu`` device encapsulates a RISC-V RV64IMA processor.
+
+Initialization parameters: none
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+Commands
+^^^^^^^^
+
+The command and behavior is virtually identical to ``drvcpu`` but the CPU is
+emulating a 64-bit RISC-V processor.
+
+
 Read/write memory ``rwm``
 -------------------------
 

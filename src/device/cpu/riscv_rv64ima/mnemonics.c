@@ -1,5 +1,6 @@
 /*
  * Copyright (c) 2022 Jan Papesch
+ * Copyright (c) 2025 Martin Rosenberg
  * All rights reserved.
  *
  * Distributed under the terms of GPL.
@@ -16,28 +17,24 @@
 #include "../../../assert.h"
 #include "../../../env.h"
 #include "../../../utils.h"
-#include "cpu.h"
 #include "debug.h"
 #include "mnemonics.h"
-
-/** types */
-#include "../riscv_rv_ima/types.h"
 
 /** First memory helpers */
 #include "../riscv_rv_ima/memory.c"
 /** Then instructions */
 #include "instr.c"
 
-extern rv_mnemonics_func_t rv_decode_mnemonics(rv_instr_t instr)
+extern rv_mnemonics_func_t rv64_decode_mnemonics(rv_instr_t instr)
 {
     // is this dirty?
-    rv_instr_func_t instr_func = rv32_instr_decode(instr);
+    rv_instr_func_t instr_func = rv64_instr_decode(instr);
 
     // very dirty indeed, but only one decode is needed
 
 #define IF_SAME_DECODE(expected_instr) \
     if (instr_func == rv_##expected_instr##_instr) \
-    return rv_##expected_instr##_mnemonics
+    return rv64_##expected_instr##_mnemonics
 
     IF_SAME_DECODE(lui);
     IF_SAME_DECODE(auipc);
@@ -86,41 +83,42 @@ extern rv_mnemonics_func_t rv_decode_mnemonics(rv_instr_t instr)
 
     // SYSTEM
 
-    if (instr_func == _rv32_sfence_instr) {
-        return rv_sfence_mnemonics;
+    if (instr_func == _rv64_sfence_instr) {
+        return rv64_sfence_mnemonics;
     }
 
     if (instr_func == rv_break_instr) {
-        return rv_ebreak_mnemonics;
+        return rv64_ebreak_mnemonics;
     }
 
     if (instr_func == rv_halt_instr) {
-        return rv_ehalt_mnemonics;
+        return rv64_ehalt_mnemonics;
     }
 
-    if (instr_func == rv32_dump_instr) {
-        return rv_edump_mnemonics;
+    if (instr_func == rv64_dump_instr) {
+        return rv64_edump_mnemonics;
     }
 
     if (instr_func == rv_trace_set_instr) {
-        return rv_trace_set_mnemonics;
+        return rv64_trace_set_mnemonics;
     }
 
     if (instr_func == rv_trace_reset_instr) {
-        return rv_trace_reset_mnemonics;
+        return rv64_trace_reset_mnemonics;
     }
 
-    if (instr_func == _rv32_csr_rd_instr) {
-        return rv_csr_rd_mnemonics;
+    if (instr_func == _rv64_csr_rd_instr) {
+        return rv64_csr_rd_mnemonics;
     }
 
     if (instr_func == rv_call_instr) {
-        return rv_ecall_mnemonics;
+        return rv64_ecall_mnemonics;
     }
 
     IF_SAME_DECODE(sret);
     IF_SAME_DECODE(mret);
     IF_SAME_DECODE(wfi);
+    // IF_SAME_DECODE(sfence);
 
     IF_SAME_DECODE(csrrw);
     IF_SAME_DECODE(csrrs);
@@ -142,19 +140,21 @@ extern rv_mnemonics_func_t rv_decode_mnemonics(rv_instr_t instr)
 
     // A-extension
 
-    IF_SAME_DECODE(lr);
-    IF_SAME_DECODE(sc);
-    IF_SAME_DECODE(amoswap_w);
-    IF_SAME_DECODE(amoadd_w);
-    IF_SAME_DECODE(amoxor_w);
-    IF_SAME_DECODE(amoor_w);
-    IF_SAME_DECODE(amoand_w);
-    IF_SAME_DECODE(amomin_w);
-    IF_SAME_DECODE(amomax_w);
-    IF_SAME_DECODE(amominu_w);
-    IF_SAME_DECODE(amomaxu_w);
+    // IF_SAME_DECODE(lr_w);
+    // IF_SAME_DECODE(lr_d);
+    // IF_SAME_DECODE(sc_w);
+    // IF_SAME_DECODE(sc_d);
+    // IF_SAME_DECODE(amoswap);
+    // IF_SAME_DECODE(amoadd);
+    // IF_SAME_DECODE(amoxor);
+    // IF_SAME_DECODE(amoor);
+    // IF_SAME_DECODE(amoand);
+    // IF_SAME_DECODE(amomin);
+    // IF_SAME_DECODE(amomax);
+    // IF_SAME_DECODE(amominu);
+    // IF_SAME_DECODE(amomaxu);
 
-    return undefined_mnemonics;
+    return rv64_undefined_mnemonics;
 }
 
 /***********
@@ -164,33 +164,33 @@ extern rv_mnemonics_func_t rv_decode_mnemonics(rv_instr_t instr)
 static void r_instr_mnemonics(rv_instr_t instr, string_t *s_mnemonics)
 {
     string_printf(s_mnemonics, " %s, %s, %s",
-            rv_regnames[instr.r.rd],
-            rv_regnames[instr.r.rs1],
-            rv_regnames[instr.r.rs2]);
+            rv64_regnames[instr.r.rd],
+            rv64_regnames[instr.r.rs1],
+            rv64_regnames[instr.r.rs2]);
 }
 
 static void r_instr_comment_binop(rv_instr_t instr, string_t *s_comments, const char *op)
 {
     string_printf(s_comments, "%s = %s %s %s",
-            rv_regnames[instr.r.rd],
-            rv_regnames[instr.r.rs1],
+            rv64_regnames[instr.r.rd],
+            rv64_regnames[instr.r.rs1],
             op,
-            rv_regnames[instr.r.rs2]);
+            rv64_regnames[instr.r.rs2]);
 }
 
 static void i_instr_mnemonics(rv_instr_t instr, string_t *s_mnemonics)
 {
     string_printf(s_mnemonics, " %s, %s, %d",
-            rv_regnames[instr.i.rd],
-            rv_regnames[instr.i.rs1],
+            rv64_regnames[instr.i.rd],
+            rv64_regnames[instr.i.rs1],
             instr.i.imm);
 }
 
 static void i_instr_comment_binop(rv_instr_t instr, string_t *s_comments, const char *op)
 {
     string_printf(s_comments, "%s = %s %s %d",
-            rv_regnames[instr.i.rd],
-            rv_regnames[instr.i.rs1],
+            rv64_regnames[instr.i.rd],
+            rv64_regnames[instr.i.rs1],
             op,
             instr.i.imm);
 }
@@ -198,8 +198,8 @@ static void i_instr_comment_binop(rv_instr_t instr, string_t *s_comments, const 
 static void i_instr_comment_binop_unsigned(rv_instr_t instr, string_t *s_comments, const char *op)
 {
     string_printf(s_comments, "%s = %s %s %u",
-            rv_regnames[instr.i.rd],
-            rv_regnames[instr.i.rs1],
+            rv64_regnames[instr.i.rd],
+            rv64_regnames[instr.i.rs1],
             op,
             instr.i.imm);
 }
@@ -207,8 +207,8 @@ static void i_instr_comment_binop_unsigned(rv_instr_t instr, string_t *s_comment
 static void i_instr_comment_binop_hex(rv_instr_t instr, string_t *s_comments, const char *op)
 {
     string_printf(s_comments, "%s = %s %s 0x%08x",
-            rv_regnames[instr.i.rd],
-            rv_regnames[instr.i.rs1],
+            rv64_regnames[instr.i.rd],
+            rv64_regnames[instr.i.rs1],
             op,
             instr.i.imm);
 }
@@ -216,19 +216,19 @@ static void i_instr_comment_binop_hex(rv_instr_t instr, string_t *s_comments, co
 static void imm_shift_mnemonics(rv_instr_t instr, string_t *s_mnemonics)
 {
     int32_t shamt = instr.i.imm & shift_instr_mask(XLEN);
-    string_printf(s_mnemonics, " %s, %s, %u", rv_regnames[instr.i.rd], rv_regnames[instr.i.rs1], shamt);
+    string_printf(s_mnemonics, " %s, %s, %u", rv64_regnames[instr.i.rd], rv64_regnames[instr.i.rs1], shamt);
 }
 
 static void imm_shift_comments(rv_instr_t instr, string_t *s_comments, const char *op)
 {
     int32_t shamt = instr.i.imm & shift_instr_mask(XLEN);
-    string_printf(s_comments, "%s = %s %s %u", rv_regnames[instr.i.rd], rv_regnames[instr.i.rs1], op, shamt);
+    string_printf(s_comments, "%s = %s %s %u", rv64_regnames[instr.i.rd], rv64_regnames[instr.i.rs1], op, shamt);
 }
 
 static void dissasemble_target(int reg, int32_t offset, string_t *s_mnemonics)
 {
-    if (reg >= 0 && reg < RV_REG_COUNT) {
-        string_printf(s_mnemonics, "%d(%s)", offset, rv_regnames[reg]);
+    if (reg >= 0 && reg < RV64_REG_COUNT) {
+        string_printf(s_mnemonics, "%d(%s)", offset, rv64_regnames[reg]);
     } else {
         string_printf(s_mnemonics, "%d", offset);
     }
@@ -239,7 +239,7 @@ static void load_instr_mnemonics(rv_instr_t instr, string_t *s_mnemonics)
 
     int32_t imm = instr.i.imm;
 
-    string_printf(s_mnemonics, " %s, ", rv_regnames[instr.i.rd]);
+    string_printf(s_mnemonics, " %s, ", rv64_regnames[instr.i.rd]);
 
     dissasemble_target(instr.i.rs1, imm, s_mnemonics);
 }
@@ -249,7 +249,7 @@ static void store_instr_mnemonics(rv_instr_t instr, string_t *s_mnemonics)
 
     int32_t imm = RV_S_IMM(instr);
 
-    string_printf(s_mnemonics, " %s, ", rv_regnames[instr.s.rs2]);
+    string_printf(s_mnemonics, " %s, ", rv64_regnames[instr.s.rs2]);
     dissasemble_target(instr.s.rs1, imm, s_mnemonics);
 }
 
@@ -257,7 +257,7 @@ static void j_instr_mnemonics(rv_instr_t instr, string_t *s_mnemonics)
 {
     int32_t imm = RV_J_IMM(instr);
 
-    string_printf(s_mnemonics, " %s, ", rv_regnames[instr.j.rd]);
+    string_printf(s_mnemonics, " %s, ", rv64_regnames[instr.j.rd]);
 
     dissasemble_target(-1, imm, s_mnemonics);
 }
@@ -271,116 +271,116 @@ static void j_instr_comments(rv_instr_t instr, uint32_t addr, string_t *s_commen
 static void jalr_instr_mnemonics(rv_instr_t instr, string_t *s_mnemonics)
 {
     int32_t imm = instr.i.imm;
-    string_printf(s_mnemonics, " %s, ", rv_regnames[instr.i.rd]);
+    string_printf(s_mnemonics, " %s, ", rv64_regnames[instr.i.rd]);
     dissasemble_target(instr.i.rs1, imm, s_mnemonics);
 }
 
 static void b_instr_mnemonics(rv_instr_t instr, string_t *s_mnemonics)
 {
     int32_t imm = RV_B_IMM(instr);
-    string_printf(s_mnemonics, " %s, %s, ", rv_regnames[instr.b.rs1], rv_regnames[instr.b.rs2]);
+    string_printf(s_mnemonics, " %s, %s, ", rv64_regnames[instr.b.rs1], rv64_regnames[instr.b.rs2]);
     dissasemble_target(-1, imm, s_mnemonics);
 }
 
 static void b_instr_comments(rv_instr_t instr, uint32_t addr, string_t *s_comments, const char *op)
 {
     int32_t imm = RV_B_IMM(instr);
-    string_printf(s_comments, "branch to %#010x if %s %s %s", addr + imm, rv_regnames[instr.b.rs1], op, rv_regnames[instr.b.rs2]);
+    string_printf(s_comments, "branch to %#010x if %s %s %s", addr + imm, rv64_regnames[instr.b.rs1], op, rv64_regnames[instr.b.rs2]);
 }
 
 static void u_instr_mnemonics(rv_instr_t instr, string_t *s_mnemonics)
 {
-    string_printf(s_mnemonics, " %s, %#07x", rv_regnames[instr.u.rd], instr.u.imm);
+    string_printf(s_mnemonics, " %s, %#07x", rv64_regnames[instr.u.rd], instr.u.imm);
 }
 
 static void amo_instr_mnemonics(rv_instr_t instr, string_t *s_mnemonics)
 {
-    string_printf(s_mnemonics, " %s, %s, (%s)", rv_regnames[instr.r.rd], rv_regnames[instr.r.rs2], rv_regnames[instr.r.rs1]);
+    string_printf(s_mnemonics, " %s, %s, (%s)", rv64_regnames[instr.r.rd], rv64_regnames[instr.r.rs2], rv64_regnames[instr.r.rs1]);
 }
 
 static void csr_reg_instr_mnemonics(rv_instr_t instr, string_t *s_mnemonics)
 {
-    string_printf(s_mnemonics, " %s, %s, %s", rv_regnames[instr.i.rd], rv_csrnames[RV_I_UNSIGNED_IMM(instr)], rv_regnames[instr.i.rs1]);
+    string_printf(s_mnemonics, " %s, %s, %s", rv64_regnames[instr.i.rd], rv64_csrnames[RV_I_UNSIGNED_IMM(instr)], rv64_regnames[instr.i.rs1]);
 }
 
 static void csr_imm_instr_mnemonics(rv_instr_t instr, string_t *s_mnemonics)
 {
-    string_printf(s_mnemonics, " %s, %s, %u", rv_regnames[instr.i.rd], rv_csrnames[RV_I_UNSIGNED_IMM(instr)], instr.i.rs1 & 0x1F);
+    string_printf(s_mnemonics, " %s, %s, %u", rv64_regnames[instr.i.rd], rv64_csrnames[RV_I_UNSIGNED_IMM(instr)], instr.i.rs1 & 0x1F);
 }
 
 /***********************************
  * Mnemonics/Dissasembly functions *
  ***********************************/
 
-void undefined_mnemonics(uint32_t addr, rv_instr_t instr, string_t *s_mnemonics, string_t *s_comments)
+void rv64_undefined_mnemonics(uint32_t addr, rv_instr_t instr, string_t *s_mnemonics, string_t *s_comments)
 {
     string_printf(s_mnemonics, "(undefined)");
 }
 
 // relative addressing
-extern void rv_lui_mnemonics(uint32_t addr, rv_instr_t instr, string_t *s_mnemonics, string_t *s_comments)
+extern void rv64_lui_mnemonics(uint32_t addr, rv_instr_t instr, string_t *s_mnemonics, string_t *s_comments)
 {
     string_printf(s_mnemonics, "lui");
     u_instr_mnemonics(instr, s_mnemonics);
 
-    string_printf(s_comments, "%s = 0x%08x", rv_regnames[instr.u.rd], instr.u.imm << 12);
+    string_printf(s_comments, "%s = 0x%08x", rv64_regnames[instr.u.rd], instr.u.imm << 12);
 }
-extern void rv_auipc_mnemonics(uint32_t addr, rv_instr_t instr, string_t *s_mnemonics, string_t *s_comments)
+extern void rv64_auipc_mnemonics(uint32_t addr, rv_instr_t instr, string_t *s_mnemonics, string_t *s_comments)
 {
     string_printf(s_mnemonics, "auipc");
     u_instr_mnemonics(instr, s_mnemonics);
 
     uint32_t imm = instr.u.imm << 12;
 
-    string_printf(s_comments, "%s = pc + 0x%08x (= 0x%08x)", rv_regnames[instr.u.rd], imm, imm + addr);
+    string_printf(s_comments, "%s = pc + 0x%08x (= 0x%08x)", rv64_regnames[instr.u.rd], imm, imm + addr);
 }
 
 // control transfer
-extern void rv_jal_mnemonics(uint32_t addr, rv_instr_t instr, string_t *s_mnemonics, string_t *s_comments)
+extern void rv64_jal_mnemonics(uint32_t addr, rv_instr_t instr, string_t *s_mnemonics, string_t *s_comments)
 {
     string_printf(s_mnemonics, "jal");
     j_instr_mnemonics(instr, s_mnemonics);
     j_instr_comments(instr, addr, s_comments);
 }
-extern void rv_jalr_mnemonics(uint32_t addr, rv_instr_t instr, string_t *s_mnemonics, string_t *s_comments)
+extern void rv64_jalr_mnemonics(uint32_t addr, rv_instr_t instr, string_t *s_mnemonics, string_t *s_comments)
 {
     string_printf(s_mnemonics, "jalr");
     jalr_instr_mnemonics(instr, s_mnemonics);
 }
-extern void rv_beq_mnemonics(uint32_t addr, rv_instr_t instr, string_t *s_mnemonics, string_t *s_comments)
+extern void rv64_beq_mnemonics(uint32_t addr, rv_instr_t instr, string_t *s_mnemonics, string_t *s_comments)
 {
     string_printf(s_mnemonics, "beq");
     b_instr_mnemonics(instr, s_mnemonics);
     b_instr_comments(instr, addr, s_comments, "==");
 }
-extern void rv_bne_mnemonics(uint32_t addr, rv_instr_t instr, string_t *s_mnemonics, string_t *s_comments)
+extern void rv64_bne_mnemonics(uint32_t addr, rv_instr_t instr, string_t *s_mnemonics, string_t *s_comments)
 {
     string_printf(s_mnemonics, "bne");
     b_instr_mnemonics(instr, s_mnemonics);
     b_instr_comments(instr, addr, s_comments, "!=");
 }
-extern void rv_blt_mnemonics(uint32_t addr, rv_instr_t instr, string_t *s_mnemonics, string_t *s_comments)
+extern void rv64_blt_mnemonics(uint32_t addr, rv_instr_t instr, string_t *s_mnemonics, string_t *s_comments)
 {
     string_printf(s_mnemonics, "blt");
     b_instr_mnemonics(instr, s_mnemonics);
     b_instr_comments(instr, addr, s_comments, "<");
     string_printf(s_comments, " (signed)");
 }
-extern void rv_bge_mnemonics(uint32_t addr, rv_instr_t instr, string_t *s_mnemonics, string_t *s_comments)
+extern void rv64_bge_mnemonics(uint32_t addr, rv_instr_t instr, string_t *s_mnemonics, string_t *s_comments)
 {
     string_printf(s_mnemonics, "bge");
     b_instr_mnemonics(instr, s_mnemonics);
     b_instr_comments(instr, addr, s_comments, ">=");
     string_printf(s_comments, " (signed)");
 }
-extern void rv_bltu_mnemonics(uint32_t addr, rv_instr_t instr, string_t *s_mnemonics, string_t *s_comments)
+extern void rv64_bltu_mnemonics(uint32_t addr, rv_instr_t instr, string_t *s_mnemonics, string_t *s_comments)
 {
     string_printf(s_mnemonics, "bltu");
     b_instr_mnemonics(instr, s_mnemonics);
     b_instr_comments(instr, addr, s_comments, "<");
     string_printf(s_comments, " (unsigned)");
 }
-extern void rv_bgeu_mnemonics(uint32_t addr, rv_instr_t instr, string_t *s_mnemonics, string_t *s_comments)
+extern void rv64_bgeu_mnemonics(uint32_t addr, rv_instr_t instr, string_t *s_mnemonics, string_t *s_comments)
 {
     string_printf(s_mnemonics, "bgeu");
     b_instr_mnemonics(instr, s_mnemonics);
@@ -389,102 +389,102 @@ extern void rv_bgeu_mnemonics(uint32_t addr, rv_instr_t instr, string_t *s_mnemo
 }
 
 // mem load
-extern void rv_lb_mnemonics(uint32_t addr, rv_instr_t instr, string_t *s_mnemonics, string_t *s_comments)
+extern void rv64_lb_mnemonics(uint32_t addr, rv_instr_t instr, string_t *s_mnemonics, string_t *s_comments)
 {
     string_printf(s_mnemonics, "lb");
     load_instr_mnemonics(instr, s_mnemonics);
 }
-extern void rv_lh_mnemonics(uint32_t addr, rv_instr_t instr, string_t *s_mnemonics, string_t *s_comments)
+extern void rv64_lh_mnemonics(uint32_t addr, rv_instr_t instr, string_t *s_mnemonics, string_t *s_comments)
 {
     string_printf(s_mnemonics, "lh");
     load_instr_mnemonics(instr, s_mnemonics);
 }
-extern void rv_lw_mnemonics(uint32_t addr, rv_instr_t instr, string_t *s_mnemonics, string_t *s_comments)
+extern void rv64_lw_mnemonics(uint32_t addr, rv_instr_t instr, string_t *s_mnemonics, string_t *s_comments)
 {
     string_printf(s_mnemonics, "lw");
     load_instr_mnemonics(instr, s_mnemonics);
 }
-extern void rv_lbu_mnemonics(uint32_t addr, rv_instr_t instr, string_t *s_mnemonics, string_t *s_comments)
+extern void rv64_lbu_mnemonics(uint32_t addr, rv_instr_t instr, string_t *s_mnemonics, string_t *s_comments)
 {
     string_printf(s_mnemonics, "lbu");
     load_instr_mnemonics(instr, s_mnemonics);
 }
-extern void rv_lhu_mnemonics(uint32_t addr, rv_instr_t instr, string_t *s_mnemonics, string_t *s_comments)
+extern void rv64_lhu_mnemonics(uint32_t addr, rv_instr_t instr, string_t *s_mnemonics, string_t *s_comments)
 {
     string_printf(s_mnemonics, "lhu");
     load_instr_mnemonics(instr, s_mnemonics);
 }
 
 // mem store
-extern void rv_sb_mnemonics(uint32_t addr, rv_instr_t instr, string_t *s_mnemonics, string_t *s_comments)
+extern void rv64_sb_mnemonics(uint32_t addr, rv_instr_t instr, string_t *s_mnemonics, string_t *s_comments)
 {
     string_printf(s_mnemonics, "sb");
     store_instr_mnemonics(instr, s_mnemonics);
 }
-extern void rv_sh_mnemonics(uint32_t addr, rv_instr_t instr, string_t *s_mnemonics, string_t *s_comments)
+extern void rv64_sh_mnemonics(uint32_t addr, rv_instr_t instr, string_t *s_mnemonics, string_t *s_comments)
 {
     string_printf(s_mnemonics, "sh");
     store_instr_mnemonics(instr, s_mnemonics);
 }
-extern void rv_sw_mnemonics(uint32_t addr, rv_instr_t instr, string_t *s_mnemonics, string_t *s_comments)
+extern void rv64_sw_mnemonics(uint32_t addr, rv_instr_t instr, string_t *s_mnemonics, string_t *s_comments)
 {
     string_printf(s_mnemonics, "sw");
     store_instr_mnemonics(instr, s_mnemonics);
 }
 
 // op imm
-extern void rv_addi_mnemonics(uint32_t addr, rv_instr_t instr, string_t *s_mnemonics, string_t *s_comments)
+extern void rv64_addi_mnemonics(uint32_t addr, rv_instr_t instr, string_t *s_mnemonics, string_t *s_comments)
 {
     string_printf(s_mnemonics, "addi");
     i_instr_mnemonics(instr, s_mnemonics);
     i_instr_comment_binop(instr, s_comments, "+");
 }
-extern void rv_slti_mnemonics(uint32_t addr, rv_instr_t instr, string_t *s_mnemonics, string_t *s_comments)
+extern void rv64_slti_mnemonics(uint32_t addr, rv_instr_t instr, string_t *s_mnemonics, string_t *s_comments)
 {
     string_printf(s_mnemonics, "slti");
     i_instr_mnemonics(instr, s_mnemonics);
     i_instr_comment_binop(instr, s_comments, "<");
     string_printf(s_comments, " (signed)");
 }
-extern void rv_sltiu_mnemonics(uint32_t addr, rv_instr_t instr, string_t *s_mnemonics, string_t *s_comments)
+extern void rv64_sltiu_mnemonics(uint32_t addr, rv_instr_t instr, string_t *s_mnemonics, string_t *s_comments)
 {
     string_printf(s_mnemonics, "sltiu");
     i_instr_mnemonics(instr, s_mnemonics);
     i_instr_comment_binop_unsigned(instr, s_comments, "<");
     string_printf(s_comments, " (unsigned)");
 }
-extern void rv_xori_mnemonics(uint32_t addr, rv_instr_t instr, string_t *s_mnemonics, string_t *s_comments)
+extern void rv64_xori_mnemonics(uint32_t addr, rv_instr_t instr, string_t *s_mnemonics, string_t *s_comments)
 {
     string_printf(s_mnemonics, "xori");
     i_instr_mnemonics(instr, s_mnemonics);
     i_instr_comment_binop_hex(instr, s_comments, "^");
 }
-extern void rv_ori_mnemonics(uint32_t addr, rv_instr_t instr, string_t *s_mnemonics, string_t *s_comments)
+extern void rv64_ori_mnemonics(uint32_t addr, rv_instr_t instr, string_t *s_mnemonics, string_t *s_comments)
 {
     string_printf(s_mnemonics, "ori");
     i_instr_mnemonics(instr, s_mnemonics);
     i_instr_comment_binop_hex(instr, s_comments, "|");
 }
-extern void rv_andi_mnemonics(uint32_t addr, rv_instr_t instr, string_t *s_mnemonics, string_t *s_comments)
+extern void rv64_andi_mnemonics(uint32_t addr, rv_instr_t instr, string_t *s_mnemonics, string_t *s_comments)
 {
     string_printf(s_mnemonics, "andi");
     i_instr_mnemonics(instr, s_mnemonics);
     i_instr_comment_binop_hex(instr, s_comments, "&");
 }
-extern void rv_slli_mnemonics(uint32_t addr, rv_instr_t instr, string_t *s_mnemonics, string_t *s_comments)
+extern void rv64_slli_mnemonics(uint32_t addr, rv_instr_t instr, string_t *s_mnemonics, string_t *s_comments)
 {
     string_printf(s_mnemonics, "slli");
     imm_shift_mnemonics(instr, s_mnemonics);
     imm_shift_comments(instr, s_comments, "<<");
 }
-extern void rv_srli_mnemonics(uint32_t addr, rv_instr_t instr, string_t *s_mnemonics, string_t *s_comments)
+extern void rv64_srli_mnemonics(uint32_t addr, rv_instr_t instr, string_t *s_mnemonics, string_t *s_comments)
 {
     string_printf(s_mnemonics, "srli");
     imm_shift_mnemonics(instr, s_mnemonics);
     imm_shift_comments(instr, s_comments, ">>");
     string_printf(s_comments, " (logical)");
 }
-extern void rv_srai_mnemonics(uint32_t addr, rv_instr_t instr, string_t *s_mnemonics, string_t *s_comments)
+extern void rv64_srai_mnemonics(uint32_t addr, rv_instr_t instr, string_t *s_mnemonics, string_t *s_comments)
 {
     string_printf(s_mnemonics, "srai");
     imm_shift_mnemonics(instr, s_mnemonics);
@@ -493,65 +493,65 @@ extern void rv_srai_mnemonics(uint32_t addr, rv_instr_t instr, string_t *s_mnemo
 }
 
 // reg op
-extern void rv_add_mnemonics(uint32_t addr, rv_instr_t instr, string_t *s_mnemonics, string_t *s_comments)
+extern void rv64_add_mnemonics(uint32_t addr, rv_instr_t instr, string_t *s_mnemonics, string_t *s_comments)
 {
     string_printf(s_mnemonics, "add");
     r_instr_mnemonics(instr, s_mnemonics);
     r_instr_comment_binop(instr, s_comments, "+");
 }
-extern void rv_sub_mnemonics(uint32_t addr, rv_instr_t instr, string_t *s_mnemonics, string_t *s_comments)
+extern void rv64_sub_mnemonics(uint32_t addr, rv_instr_t instr, string_t *s_mnemonics, string_t *s_comments)
 {
     string_printf(s_mnemonics, "sub");
     r_instr_mnemonics(instr, s_mnemonics);
     r_instr_comment_binop(instr, s_comments, "-");
 }
-extern void rv_sll_mnemonics(uint32_t addr, rv_instr_t instr, string_t *s_mnemonics, string_t *s_comments)
+extern void rv64_sll_mnemonics(uint32_t addr, rv_instr_t instr, string_t *s_mnemonics, string_t *s_comments)
 {
     string_printf(s_mnemonics, "sll");
     r_instr_mnemonics(instr, s_mnemonics);
     r_instr_comment_binop(instr, s_comments, "<<");
 }
-extern void rv_slt_mnemonics(uint32_t addr, rv_instr_t instr, string_t *s_mnemonics, string_t *s_comments)
+extern void rv64_slt_mnemonics(uint32_t addr, rv_instr_t instr, string_t *s_mnemonics, string_t *s_comments)
 {
     string_printf(s_mnemonics, "slt");
     r_instr_mnemonics(instr, s_mnemonics);
     r_instr_comment_binop(instr, s_comments, "<");
     string_printf(s_comments, " (signed)");
 }
-extern void rv_sltu_mnemonics(uint32_t addr, rv_instr_t instr, string_t *s_mnemonics, string_t *s_comments)
+extern void rv64_sltu_mnemonics(uint32_t addr, rv_instr_t instr, string_t *s_mnemonics, string_t *s_comments)
 {
     string_printf(s_mnemonics, "sltu");
     r_instr_mnemonics(instr, s_mnemonics);
     r_instr_comment_binop(instr, s_comments, "<");
     string_printf(s_comments, " (unsigned)");
 }
-extern void rv_xor_mnemonics(uint32_t addr, rv_instr_t instr, string_t *s_mnemonics, string_t *s_comments)
+extern void rv64_xor_mnemonics(uint32_t addr, rv_instr_t instr, string_t *s_mnemonics, string_t *s_comments)
 {
     string_printf(s_mnemonics, "xor");
     r_instr_mnemonics(instr, s_mnemonics);
     r_instr_comment_binop(instr, s_comments, "^");
 }
-extern void rv_srl_mnemonics(uint32_t addr, rv_instr_t instr, string_t *s_mnemonics, string_t *s_comments)
+extern void rv64_srl_mnemonics(uint32_t addr, rv_instr_t instr, string_t *s_mnemonics, string_t *s_comments)
 {
     string_printf(s_mnemonics, "srl");
     r_instr_mnemonics(instr, s_mnemonics);
     r_instr_comment_binop(instr, s_comments, ">>");
     string_printf(s_comments, " (logical)");
 }
-extern void rv_sra_mnemonics(uint32_t addr, rv_instr_t instr, string_t *s_mnemonics, string_t *s_comments)
+extern void rv64_sra_mnemonics(uint32_t addr, rv_instr_t instr, string_t *s_mnemonics, string_t *s_comments)
 {
     string_printf(s_mnemonics, "sra");
     r_instr_mnemonics(instr, s_mnemonics);
     r_instr_comment_binop(instr, s_comments, ">>");
     string_printf(s_comments, " (arithmetical)");
 }
-extern void rv_or_mnemonics(uint32_t addr, rv_instr_t instr, string_t *s_mnemonics, string_t *s_comments)
+extern void rv64_or_mnemonics(uint32_t addr, rv_instr_t instr, string_t *s_mnemonics, string_t *s_comments)
 {
     string_printf(s_mnemonics, "or");
     r_instr_mnemonics(instr, s_mnemonics);
     r_instr_comment_binop(instr, s_comments, "|");
 }
-extern void rv_and_mnemonics(uint32_t addr, rv_instr_t instr, string_t *s_mnemonics, string_t *s_comments)
+extern void rv64_and_mnemonics(uint32_t addr, rv_instr_t instr, string_t *s_mnemonics, string_t *s_comments)
 {
     string_printf(s_mnemonics, "and");
     r_instr_mnemonics(instr, s_mnemonics);
@@ -559,174 +559,174 @@ extern void rv_and_mnemonics(uint32_t addr, rv_instr_t instr, string_t *s_mnemon
 }
 
 // mem misc
-extern void rv_fence_mnemonics(uint32_t addr, rv_instr_t instr, string_t *s_mnemonics, string_t *s_comments)
+extern void rv64_fence_mnemonics(uint32_t addr, rv_instr_t instr, string_t *s_mnemonics, string_t *s_comments)
 {
     string_printf(s_mnemonics, "fence");
 }
 
 // system
-extern void rv_ecall_mnemonics(uint32_t addr, rv_instr_t instr, string_t *s_mnemonics, string_t *s_comments)
+extern void rv64_ecall_mnemonics(uint32_t addr, rv_instr_t instr, string_t *s_mnemonics, string_t *s_comments)
 {
     string_printf(s_mnemonics, "ecall");
 }
-extern void rv_ebreak_mnemonics(uint32_t addr, rv_instr_t instr, string_t *s_mnemonics, string_t *s_comments)
+extern void rv64_ebreak_mnemonics(uint32_t addr, rv_instr_t instr, string_t *s_mnemonics, string_t *s_comments)
 {
     string_printf(s_mnemonics, "ebreak");
 }
-extern void rv_ehalt_mnemonics(uint32_t addr, rv_instr_t instr, string_t *s_mnemonics, string_t *s_comments)
+extern void rv64_ehalt_mnemonics(uint32_t addr, rv_instr_t instr, string_t *s_mnemonics, string_t *s_comments)
 {
     string_printf(s_mnemonics, "ehalt");
 }
 
-void rv_edump_mnemonics(uint32_t addr, rv_instr_t instr, string_t *s_mnemonics, string_t *s_comments)
+void rv64_edump_mnemonics(uint32_t addr, rv_instr_t instr, string_t *s_mnemonics, string_t *s_comments)
 {
     string_printf(s_mnemonics, "edump");
 }
 
-void rv_trace_set_mnemonics(uint32_t addr, rv_instr_t instr, string_t *s_mnemonics, string_t *s_comments)
+void rv64_trace_set_mnemonics(uint32_t addr, rv_instr_t instr, string_t *s_mnemonics, string_t *s_comments)
 {
     string_printf(s_mnemonics, "etraces");
 }
-void rv_trace_reset_mnemonics(uint32_t addr, rv_instr_t instr, string_t *s_mnemonics, string_t *s_comments)
+void rv64_trace_reset_mnemonics(uint32_t addr, rv_instr_t instr, string_t *s_mnemonics, string_t *s_comments)
 {
     string_printf(s_mnemonics, "etracer");
 }
-void rv_csr_rd_mnemonics(uint32_t addr, rv_instr_t instr, string_t *s_mnemonics, string_t *s_comments)
+void rv64_csr_rd_mnemonics(uint32_t addr, rv_instr_t instr, string_t *s_mnemonics, string_t *s_comments)
 {
-    string_printf(s_mnemonics, "ecsrd %s", rv_regnames[instr.i.rd]);
+    string_printf(s_mnemonics, "ecsrd %s", rv64_regnames[instr.i.rd]);
 }
 
-extern void rv_sret_mnemonics(uint32_t addr, rv_instr_t instr, string_t *s_mnemonics, string_t *s_comments)
+extern void rv64_sret_mnemonics(uint32_t addr, rv_instr_t instr, string_t *s_mnemonics, string_t *s_comments)
 {
     string_printf(s_mnemonics, "sret");
 }
 
-extern void rv_mret_mnemonics(uint32_t addr, rv_instr_t instr, string_t *s_mnemonics, string_t *s_comments)
+extern void rv64_mret_mnemonics(uint32_t addr, rv_instr_t instr, string_t *s_mnemonics, string_t *s_comments)
 {
     string_printf(s_mnemonics, "mret");
 }
 
-extern void rv_wfi_mnemonics(uint32_t addr, rv_instr_t instr, string_t *s_mnemonics, string_t *s_comments)
+extern void rv64_wfi_mnemonics(uint32_t addr, rv_instr_t instr, string_t *s_mnemonics, string_t *s_comments)
 {
     string_printf(s_mnemonics, "wfi");
 }
-extern void rv_sfence_mnemonics(uint32_t addr, rv_instr_t instr, string_t *s_mnemonics, string_t *s_comments)
+extern void rv64_sfence_mnemonics(uint32_t addr, rv_instr_t instr, string_t *s_mnemonics, string_t *s_comments)
 {
     string_printf(s_mnemonics, "sfence.vma");
 }
 
 // CSR
-extern void rv_csrrw_mnemonics(uint32_t addr, rv_instr_t instr, string_t *s_mnemonics, string_t *s_comments)
+extern void rv64_csrrw_mnemonics(uint32_t addr, rv_instr_t instr, string_t *s_mnemonics, string_t *s_comments)
 {
     string_printf(s_mnemonics, "csrrw");
     csr_reg_instr_mnemonics(instr, s_mnemonics);
 
-    char *rd = rv_regnames[instr.i.rd];
-    char *csr = rv_csrnames[RV_I_UNSIGNED_IMM(instr)];
-    char *rs1 = rv_regnames[instr.i.rs1];
+    char *rd = rv64_regnames[instr.i.rd];
+    char *csr = rv64_csrnames[RV_I_UNSIGNED_IMM(instr)];
+    char *rs1 = rv64_regnames[instr.i.rs1];
     string_printf(s_comments, "%s = %s, %s = %s", rd, csr, csr, rs1);
 }
-extern void rv_csrrs_mnemonics(uint32_t addr, rv_instr_t instr, string_t *s_mnemonics, string_t *s_comments)
+extern void rv64_csrrs_mnemonics(uint32_t addr, rv_instr_t instr, string_t *s_mnemonics, string_t *s_comments)
 {
     string_printf(s_mnemonics, "csrrs");
     csr_reg_instr_mnemonics(instr, s_mnemonics);
 
-    char *rd = rv_regnames[instr.i.rd];
-    char *csr = rv_csrnames[RV_I_UNSIGNED_IMM(instr)];
-    char *rs1 = rv_regnames[instr.i.rs1];
+    char *rd = rv64_regnames[instr.i.rd];
+    char *csr = rv64_csrnames[RV_I_UNSIGNED_IMM(instr)];
+    char *rs1 = rv64_regnames[instr.i.rs1];
     string_printf(s_comments, "%s = %s, %s |= %s", rd, csr, csr, rs1);
 }
-extern void rv_csrrc_mnemonics(uint32_t addr, rv_instr_t instr, string_t *s_mnemonics, string_t *s_comments)
+extern void rv64_csrrc_mnemonics(uint32_t addr, rv_instr_t instr, string_t *s_mnemonics, string_t *s_comments)
 {
     string_printf(s_mnemonics, "csrrc");
     csr_reg_instr_mnemonics(instr, s_mnemonics);
 
-    char *rd = rv_regnames[instr.i.rd];
-    char *csr = rv_csrnames[RV_I_UNSIGNED_IMM(instr)];
-    char *rs1 = rv_regnames[instr.i.rs1];
+    char *rd = rv64_regnames[instr.i.rd];
+    char *csr = rv64_csrnames[RV_I_UNSIGNED_IMM(instr)];
+    char *rs1 = rv64_regnames[instr.i.rs1];
     string_printf(s_comments, "%s = %s, %s &= ~%s", rd, csr, csr, rs1);
 }
-extern void rv_csrrwi_mnemonics(uint32_t addr, rv_instr_t instr, string_t *s_mnemonics, string_t *s_comments)
+extern void rv64_csrrwi_mnemonics(uint32_t addr, rv_instr_t instr, string_t *s_mnemonics, string_t *s_comments)
 {
     string_printf(s_mnemonics, "csrrwi");
     csr_imm_instr_mnemonics(instr, s_mnemonics);
 
-    char *rd = rv_regnames[instr.i.rd];
-    char *csr = rv_csrnames[RV_I_UNSIGNED_IMM(instr)];
+    char *rd = rv64_regnames[instr.i.rd];
+    char *csr = rv64_csrnames[RV_I_UNSIGNED_IMM(instr)];
     uint32_t imm = instr.i.rs1 & 0x1F;
     string_printf(s_comments, "%s = %s, %s = %u", rd, csr, csr, imm);
 }
-extern void rv_csrrsi_mnemonics(uint32_t addr, rv_instr_t instr, string_t *s_mnemonics, string_t *s_comments)
+extern void rv64_csrrsi_mnemonics(uint32_t addr, rv_instr_t instr, string_t *s_mnemonics, string_t *s_comments)
 {
     string_printf(s_mnemonics, "csrrsi");
     csr_imm_instr_mnemonics(instr, s_mnemonics);
 
-    char *rd = rv_regnames[instr.i.rd];
-    char *csr = rv_csrnames[RV_I_UNSIGNED_IMM(instr)];
+    char *rd = rv64_regnames[instr.i.rd];
+    char *csr = rv64_csrnames[RV_I_UNSIGNED_IMM(instr)];
     uint32_t imm = instr.i.rs1 & 0x1F;
     string_printf(s_comments, "%s = %s, %s |= 0x%08x", rd, csr, csr, imm);
 }
-extern void rv_csrrci_mnemonics(uint32_t addr, rv_instr_t instr, string_t *s_mnemonics, string_t *s_comments)
+extern void rv64_csrrci_mnemonics(uint32_t addr, rv_instr_t instr, string_t *s_mnemonics, string_t *s_comments)
 {
     string_printf(s_mnemonics, "csrrci");
     csr_imm_instr_mnemonics(instr, s_mnemonics);
-    char *rd = rv_regnames[instr.i.rd];
-    char *csr = rv_csrnames[RV_I_UNSIGNED_IMM(instr)];
+    char *rd = rv64_regnames[instr.i.rd];
+    char *csr = rv64_csrnames[RV_I_UNSIGNED_IMM(instr)];
     uint32_t imm = instr.i.rs1 & 0x1F;
     string_printf(s_comments, "%s = %s, %s &= 0x%08x", rd, csr, csr, ~imm);
 }
 
 // M extension
-extern void rv_mul_mnemonics(uint32_t addr, rv_instr_t instr, string_t *s_mnemonics, string_t *s_comments)
+extern void rv64_mul_mnemonics(uint32_t addr, rv_instr_t instr, string_t *s_mnemonics, string_t *s_comments)
 {
     string_printf(s_mnemonics, "mul");
     r_instr_mnemonics(instr, s_mnemonics);
     r_instr_comment_binop(instr, s_comments, "*");
     string_printf(s_comments, " (low 32 bits)");
 }
-extern void rv_mulh_mnemonics(uint32_t addr, rv_instr_t instr, string_t *s_mnemonics, string_t *s_comments)
+extern void rv64_mulh_mnemonics(uint32_t addr, rv_instr_t instr, string_t *s_mnemonics, string_t *s_comments)
 {
     string_printf(s_mnemonics, "mulh");
     r_instr_mnemonics(instr, s_mnemonics);
     r_instr_comment_binop(instr, s_comments, "*");
     string_printf(s_comments, " (high 32 bits, both signed)");
 }
-extern void rv_mulhsu_mnemonics(uint32_t addr, rv_instr_t instr, string_t *s_mnemonics, string_t *s_comments)
+extern void rv64_mulhsu_mnemonics(uint32_t addr, rv_instr_t instr, string_t *s_mnemonics, string_t *s_comments)
 {
     string_printf(s_mnemonics, "mulhsu");
     r_instr_mnemonics(instr, s_mnemonics);
     r_instr_comment_binop(instr, s_comments, "*");
     string_printf(s_comments, " (high 32 bits, signed and unsigned)");
 }
-extern void rv_mulhu_mnemonics(uint32_t addr, rv_instr_t instr, string_t *s_mnemonics, string_t *s_comments)
+extern void rv64_mulhu_mnemonics(uint32_t addr, rv_instr_t instr, string_t *s_mnemonics, string_t *s_comments)
 {
     string_printf(s_mnemonics, "mulhu");
     r_instr_mnemonics(instr, s_mnemonics);
     r_instr_comment_binop(instr, s_comments, "*");
     string_printf(s_comments, " (high 32 bits, both unsigned)");
 }
-extern void rv_div_mnemonics(uint32_t addr, rv_instr_t instr, string_t *s_mnemonics, string_t *s_comments)
+extern void rv64_div_mnemonics(uint32_t addr, rv_instr_t instr, string_t *s_mnemonics, string_t *s_comments)
 {
     string_printf(s_mnemonics, "div");
     r_instr_mnemonics(instr, s_mnemonics);
     r_instr_comment_binop(instr, s_comments, "/");
     string_printf(s_comments, " (signed)");
 }
-extern void rv_divu_mnemonics(uint32_t addr, rv_instr_t instr, string_t *s_mnemonics, string_t *s_comments)
+extern void rv64_divu_mnemonics(uint32_t addr, rv_instr_t instr, string_t *s_mnemonics, string_t *s_comments)
 {
     string_printf(s_mnemonics, "divu");
     r_instr_mnemonics(instr, s_mnemonics);
     r_instr_comment_binop(instr, s_comments, "/");
     string_printf(s_comments, " (unsigned)");
 }
-extern void rv_rem_mnemonics(uint32_t addr, rv_instr_t instr, string_t *s_mnemonics, string_t *s_comments)
+extern void rv64_rem_mnemonics(uint32_t addr, rv_instr_t instr, string_t *s_mnemonics, string_t *s_comments)
 {
     string_printf(s_mnemonics, "rem");
     r_instr_mnemonics(instr, s_mnemonics);
     r_instr_comment_binop(instr, s_comments, "%");
     string_printf(s_comments, " (signed)");
 }
-extern void rv_remu_mnemonics(uint32_t addr, rv_instr_t instr, string_t *s_mnemonics, string_t *s_comments)
+extern void rv64_remu_mnemonics(uint32_t addr, rv_instr_t instr, string_t *s_mnemonics, string_t *s_comments)
 {
     string_printf(s_mnemonics, "remu");
     r_instr_mnemonics(instr, s_mnemonics);
@@ -735,66 +735,76 @@ extern void rv_remu_mnemonics(uint32_t addr, rv_instr_t instr, string_t *s_mnemo
 }
 
 // A extension
-extern void rv_lr_mnemonics(uint32_t addr, rv_instr_t instr, string_t *s_mnemonics, string_t *s_comments)
+extern void rv64_lr_w_mnemonics(uint32_t addr, rv_instr_t instr, string_t *s_mnemonics, string_t *s_comments)
 {
     string_printf(s_mnemonics, "lr");
-    string_printf(s_mnemonics, " %s, (%s)", rv_regnames[instr.r.rd], rv_regnames[instr.r.rs1]);
+    string_printf(s_mnemonics, " %s, (%s)", rv64_regnames[instr.r.rd], rv64_regnames[instr.r.rs1]);
 }
-extern void rv_sc_mnemonics(uint32_t addr, rv_instr_t instr, string_t *s_mnemonics, string_t *s_comments)
+extern void rv64_lr_d_mnemonics(uint32_t addr, rv_instr_t instr, string_t *s_mnemonics, string_t *s_comments)
+{
+    string_printf(s_mnemonics, "lr");
+    string_printf(s_mnemonics, " %s, (%s)", rv64_regnames[instr.r.rd], rv64_regnames[instr.r.rs1]);
+}
+extern void rv64_sc_w_mnemonics(uint32_t addr, rv_instr_t instr, string_t *s_mnemonics, string_t *s_comments)
 {
     string_printf(s_mnemonics, "sc");
     amo_instr_mnemonics(instr, s_mnemonics);
 }
-extern void rv_amoswap_w_mnemonics(uint32_t addr, rv_instr_t instr, string_t *s_mnemonics, string_t *s_comments)
+extern void rv64_sc_d_mnemonics(uint32_t addr, rv_instr_t instr, string_t *s_mnemonics, string_t *s_comments)
+{
+    string_printf(s_mnemonics, "sc");
+    amo_instr_mnemonics(instr, s_mnemonics);
+}
+extern void rv64_amoswap_mnemonics(uint32_t addr, rv_instr_t instr, string_t *s_mnemonics, string_t *s_comments)
 {
     string_printf(s_mnemonics, "amoswap");
     amo_instr_mnemonics(instr, s_mnemonics);
 }
-extern void rv_amoadd_w_mnemonics(uint32_t addr, rv_instr_t instr, string_t *s_mnemonics, string_t *s_comments)
+extern void rv64_amoadd_mnemonics(uint32_t addr, rv_instr_t instr, string_t *s_mnemonics, string_t *s_comments)
 {
     string_printf(s_mnemonics, "amoadd");
     amo_instr_mnemonics(instr, s_mnemonics);
 }
-extern void rv_amoxor_w_mnemonics(uint32_t addr, rv_instr_t instr, string_t *s_mnemonics, string_t *s_comments)
+extern void rv64_amoxor_mnemonics(uint32_t addr, rv_instr_t instr, string_t *s_mnemonics, string_t *s_comments)
 {
     string_printf(s_mnemonics, "amoxor");
     amo_instr_mnemonics(instr, s_mnemonics);
 }
-extern void rv_amoand_w_mnemonics(uint32_t addr, rv_instr_t instr, string_t *s_mnemonics, string_t *s_comments)
+extern void rv64_amoand_mnemonics(uint32_t addr, rv_instr_t instr, string_t *s_mnemonics, string_t *s_comments)
 {
     string_printf(s_mnemonics, "amoand");
     amo_instr_mnemonics(instr, s_mnemonics);
 }
-extern void rv_amoor_w_mnemonics(uint32_t addr, rv_instr_t instr, string_t *s_mnemonics, string_t *s_comments)
+extern void rv64_amoor_mnemonics(uint32_t addr, rv_instr_t instr, string_t *s_mnemonics, string_t *s_comments)
 {
     string_printf(s_mnemonics, "amoor");
     amo_instr_mnemonics(instr, s_mnemonics);
 }
-extern void rv_amomin_w_mnemonics(uint32_t addr, rv_instr_t instr, string_t *s_mnemonics, string_t *s_comments)
+extern void rv64_amomin_mnemonics(uint32_t addr, rv_instr_t instr, string_t *s_mnemonics, string_t *s_comments)
 {
     string_printf(s_mnemonics, "amomin");
     amo_instr_mnemonics(instr, s_mnemonics);
 }
-extern void rv_amomax_w_mnemonics(uint32_t addr, rv_instr_t instr, string_t *s_mnemonics, string_t *s_comments)
+extern void rv64_amomax_mnemonics(uint32_t addr, rv_instr_t instr, string_t *s_mnemonics, string_t *s_comments)
 {
     string_printf(s_mnemonics, "amomax");
     amo_instr_mnemonics(instr, s_mnemonics);
 }
-extern void rv_amominu_w_mnemonics(uint32_t addr, rv_instr_t instr, string_t *s_mnemonics, string_t *s_comments)
+extern void rv64_amominu_mnemonics(uint32_t addr, rv_instr_t instr, string_t *s_mnemonics, string_t *s_comments)
 {
     string_printf(s_mnemonics, "amominu");
     amo_instr_mnemonics(instr, s_mnemonics);
 }
-extern void rv_amomaxu_w_mnemonics(uint32_t addr, rv_instr_t instr, string_t *s_mnemonics, string_t *s_comments)
+extern void rv64_amomaxu_mnemonics(uint32_t addr, rv_instr_t instr, string_t *s_mnemonics, string_t *s_comments)
 {
     string_printf(s_mnemonics, "amomaxu");
     amo_instr_mnemonics(instr, s_mnemonics);
 }
 
 #define default_print_function(csr_name) \
-    static void print_##csr_name(rv_cpu_t *cpu, string_t *mnemonics, string_t *comments) \
+    static void print_##csr_name(rv64_cpu_t *cpu, string_t *mnemonics, string_t *comments) \
     { \
-        string_printf(mnemonics, "%s 0x%08x", #csr_name, cpu->csr.csr_name); \
+        string_printf(mnemonics, "%s 0x%016" PRIx64, #csr_name, cpu->csr.csr_name); \
     }
 
 static void print_64_reg(uint64_t val, const char *name, string_t *s)
@@ -802,22 +812,22 @@ static void print_64_reg(uint64_t val, const char *name, string_t *s)
     string_printf(s, "%s 0x%016" PRIx64 " (%sh = 0x%08x, %s = 0x%08x)", name, val, name, (uint32_t) (val >> 32), name, (uint32_t) val);
 }
 
-static void print_cycle(rv_cpu_t *cpu, string_t *mnemonics, string_t *comments)
+static void print_cycle(rv64_cpu_t *cpu, string_t *mnemonics, string_t *comments)
 {
     print_64_reg(cpu->csr.cycle, "cycle", mnemonics);
 }
 
-static void print_time(rv_cpu_t *cpu, string_t *mnemonics, string_t *comments)
+static void print_time(rv64_cpu_t *cpu, string_t *mnemonics, string_t *comments)
 {
     print_64_reg(cpu->csr.mtime, "time", mnemonics);
 }
 
-static void print_instret(rv_cpu_t *cpu, string_t *mnemonics, string_t *comments)
+static void print_instret(rv64_cpu_t *cpu, string_t *mnemonics, string_t *comments)
 {
     print_64_reg(cpu->csr.instret, "instret", mnemonics);
 }
 
-static void print_hpm(rv_cpu_t *cpu, int hpm, string_t *mnemonics, string_t *comments)
+static void print_hpm(rv64_cpu_t *cpu, int hpm, string_t *mnemonics, string_t *comments)
 {
     ASSERT((hpm >= 3 && hpm < 32));
     string_t s;
@@ -826,14 +836,14 @@ static void print_hpm(rv_cpu_t *cpu, int hpm, string_t *mnemonics, string_t *com
     print_64_reg(cpu->csr.hpmcounters[hpm - 3], s.str, mnemonics);
 }
 
-static void print_hpm_event(rv_cpu_t *cpu, int hpm, string_t *mnemonics, string_t *comments)
+static void print_hpm_event(rv64_cpu_t *cpu, int hpm, string_t *mnemonics, string_t *comments)
 {
     ASSERT((hpm >= 3 && hpm < 32));
     string_t s;
     string_init(&s);
     string_printf(&s, "mhpmevent%i", hpm);
 
-    string_printf(mnemonics, "%s 0x%08x", s.str, cpu->csr.hpmevents[hpm - 3]);
+    string_printf(mnemonics, "%s 0x%08" PRIx64, s.str, cpu->csr.hpmevents[hpm - 3]);
 
     char *event_name;
     switch (cpu->csr.hpmevents[hpm - 3]) {
@@ -862,7 +872,7 @@ static void print_hpm_event(rv_cpu_t *cpu, int hpm, string_t *mnemonics, string_
 
 #define bit_string(b) (b ? "1" : "0")
 
-static void print_sstatus(rv_cpu_t *cpu, string_t *mnemonics, string_t *comments)
+static void print_sstatus(rv64_cpu_t *cpu, string_t *mnemonics, string_t *comments)
 {
     uint32_t sstatus = cpu->csr.mstatus & rv_csr_sstatus_mask;
 
@@ -894,10 +904,10 @@ static void print_sstatus(rv_cpu_t *cpu, string_t *mnemonics, string_t *comments
             bit_string(sie));
 }
 
-static void print_mstatus(rv_cpu_t *cpu, string_t *mnemonics, string_t *comments)
+static void print_mstatus(rv64_cpu_t *cpu, string_t *mnemonics, string_t *comments)
 {
-    bool mbe = (cpu->csr.mstatus >> 32) & rv_csr_mstatush_mbe_mask;
-    bool sbe = (cpu->csr.mstatus >> 32) & rv_csr_mstatush_sbe_mask;
+    bool mbe = (cpu->csr.mstatus >> 32) & rv_csr_mstatus_mbe_mask;
+    bool sbe = (cpu->csr.mstatus >> 32) & rv_csr_mstatus_sbe_mask;
 
     bool sd = cpu->csr.mstatus & 0x80000000;
     bool tsr = rv_csr_mstatus_tsr(cpu);
@@ -945,7 +955,7 @@ static void print_mstatus(rv_cpu_t *cpu, string_t *mnemonics, string_t *comments
             bit_string(sie));
 }
 
-static void print_misa(rv_cpu_t *cpu, string_t *mnemonics, string_t *comments)
+static void print_misa(rv64_cpu_t *cpu, string_t *mnemonics, string_t *comments)
 {
     uint32_t misa = cpu->csr.misa;
     string_printf(mnemonics, "%s 0x%08x", "misa", misa);
@@ -988,18 +998,18 @@ static void print_misa(rv_cpu_t *cpu, string_t *mnemonics, string_t *comments)
     }
 }
 
-static void print_mtvec(rv_cpu_t *cpu, string_t *mnemonics, string_t *comments)
+static void print_mtvec(rv64_cpu_t *cpu, string_t *mnemonics, string_t *comments)
 {
-    string_printf(mnemonics, "%s 0x%08x", "mtvec", cpu->csr.mtvec);
+    string_printf(mnemonics, "%s 0x%08" PRIx64, "mtvec", cpu->csr.mtvec);
     string_printf(comments,
-            "Base: 0x%08x Mode: %s",
+            "Base: 0x%08" PRIx64 " Mode: %s",
             cpu->csr.mtvec & ~0b11,
             (((cpu->csr.mtvec & 0b11) == 0) ? "Direct" : "Vectored"));
 }
 
-static void print_medeleg(rv_cpu_t *cpu, string_t *mnemonics, string_t *comments)
+static void print_medeleg(rv64_cpu_t *cpu, string_t *mnemonics, string_t *comments)
 {
-    string_printf(mnemonics, "%s 0x%08x", "medeleg", cpu->csr.medeleg);
+    string_printf(mnemonics, "%s 0x%08" PRIx64, "medeleg", cpu->csr.medeleg);
     if (cpu->csr.medeleg == 0) {
         return;
     }
@@ -1009,7 +1019,7 @@ static void print_medeleg(rv_cpu_t *cpu, string_t *mnemonics, string_t *comments
 
 #define comment_if_ex_delegated(ex) \
     if (cpu->csr.medeleg & RV_EXCEPTION_MASK(rv_exc_##ex)) \
-        string_printf(comments, " %s,", rv_excnames[rv_exc_##ex]);
+        string_printf(comments, " %s,", rv64_excnames[rv_exc_##ex]);
 
     comment_if_ex_delegated(instruction_address_misaligned);
     comment_if_ex_delegated(instruction_access_fault);
@@ -1027,9 +1037,9 @@ static void print_medeleg(rv_cpu_t *cpu, string_t *mnemonics, string_t *comments
     comment_if_ex_delegated(store_amo_page_fault);
 }
 
-static void print_mideleg(rv_cpu_t *cpu, string_t *mnemonics, string_t *comments)
+static void print_mideleg(rv64_cpu_t *cpu, string_t *mnemonics, string_t *comments)
 {
-    string_printf(mnemonics, "%s 0x%08x", "mideleg", cpu->csr.mideleg);
+    string_printf(mnemonics, "%s 0x%08" PRIx64, "mideleg", cpu->csr.mideleg);
     if (cpu->csr.mideleg == 0) {
         return;
     }
@@ -1038,7 +1048,7 @@ static void print_mideleg(rv_cpu_t *cpu, string_t *mnemonics, string_t *comments
 // TODO: remove trailing comma
 #define comment_if_i_delegated(i) \
     if (cpu->csr.mideleg & RV_EXCEPTION_MASK(rv_exc_##i)) \
-        string_printf(comments, " %s,", rv_interruptnames[rv_exc_##i & ~RV_INTERRUPT_EXC_BITS]);
+        string_printf(comments, " %s,", rv64_interruptnames[rv_exc_##i & ~RV_INTERRUPT_EXC_BITS]);
 
     comment_if_i_delegated(machine_external_interrupt);
     comment_if_i_delegated(supervisor_external_interrupt);
@@ -1048,7 +1058,7 @@ static void print_mideleg(rv_cpu_t *cpu, string_t *mnemonics, string_t *comments
     comment_if_i_delegated(supervisor_software_interrupt);
 }
 
-static void print_mie(rv_cpu_t *cpu, string_t *mnemonics, string_t *comments)
+static void print_mie(rv64_cpu_t *cpu, string_t *mnemonics, string_t *comments)
 {
 
     bool meie = cpu->csr.mie & rv_csr_mei_mask;
@@ -1058,7 +1068,7 @@ static void print_mie(rv_cpu_t *cpu, string_t *mnemonics, string_t *comments)
     bool msie = cpu->csr.mie & rv_csr_msi_mask;
     bool ssie = cpu->csr.mie & rv_csr_ssi_mask;
 
-    string_printf(mnemonics, "%s 0x%08x", "mie", cpu->csr.mie);
+    string_printf(mnemonics, "%s 0x%08" PRIx64, "mie", cpu->csr.mie);
     string_printf(comments,
             "MEIE %s, SEIE %s, MTIE %s, STIE %s, MSIE %s, SSIE %s",
             bit_string(meie),
@@ -1069,7 +1079,7 @@ static void print_mie(rv_cpu_t *cpu, string_t *mnemonics, string_t *comments)
             bit_string(ssie));
 }
 
-static void print_mip(rv_cpu_t *cpu, string_t *mnemonics, string_t *comments)
+static void print_mip(rv64_cpu_t *cpu, string_t *mnemonics, string_t *comments)
 {
 
     bool meip = cpu->csr.mip & rv_csr_mei_mask;
@@ -1079,7 +1089,7 @@ static void print_mip(rv_cpu_t *cpu, string_t *mnemonics, string_t *comments)
     bool msip = cpu->csr.mip & rv_csr_msi_mask;
     bool ssip = cpu->csr.mip & rv_csr_ssi_mask;
 
-    string_printf(mnemonics, "%s 0x%08x", "mip", cpu->csr.mip);
+    string_printf(mnemonics, "%s 0x%08" PRIx64, "mip", cpu->csr.mip);
     string_printf(comments,
             "MEIP %s, SEIP %s, MTIP %s, STIP %s, MSIP %s, SSIP %s (External SEIP %s, External STIP %s)",
             bit_string(meip),
@@ -1092,17 +1102,17 @@ static void print_mip(rv_cpu_t *cpu, string_t *mnemonics, string_t *comments)
             bit_string(cpu->csr.external_STIP));
 }
 
-static void print_mcause(rv_cpu_t *cpu, string_t *mnemonics, string_t *comments)
+static void print_mcause(rv64_cpu_t *cpu, string_t *mnemonics, string_t *comments)
 {
-    string_printf(mnemonics, "%s 0x%08x", "mcause", cpu->csr.mcause);
+    string_printf(mnemonics, "%s 0x%08" PRIx64, "mcause", cpu->csr.mcause);
     bool is_interrupt = cpu->csr.mcause & RV_INTERRUPT_EXC_BITS;
     int cause_id = cpu->csr.mcause & ~RV_INTERRUPT_EXC_BITS;
-    string_printf(comments, "%s", (is_interrupt ? rv_interruptnames[cause_id] : rv_excnames[cause_id]));
+    string_printf(comments, "%s", (is_interrupt ? rv64_interruptnames[cause_id] : rv64_excnames[cause_id]));
 }
 
-static void print_mseccfg(rv_cpu_t *cpu, string_t *mnemonics, string_t *comments)
+static void print_mseccfg(rv64_cpu_t *cpu, string_t *mnemonics, string_t *comments)
 {
-    string_printf(mnemonics, "%s 0x%08x", "mseccfg", cpu->csr.mseccfg);
+    string_printf(mnemonics, "%s 0x%08" PRIx64, "mseccfg", cpu->csr.mseccfg);
     bool sseed = cpu->csr.mseccfg & (1 << 9);
     bool useed = cpu->csr.mseccfg & (1 << 8);
     bool rlb = cpu->csr.mseccfg & (1 << 2);
@@ -1118,7 +1128,7 @@ static void print_mseccfg(rv_cpu_t *cpu, string_t *mnemonics, string_t *comments
             bit_string(mml));
 }
 
-static void print_menvcfg(rv_cpu_t *cpu, string_t *mnemonics, string_t *comments)
+static void print_menvcfg(rv64_cpu_t *cpu, string_t *mnemonics, string_t *comments)
 {
     print_64_reg(cpu->csr.menvcfg, "menvcfg", mnemonics);
     bool stce = cpu->csr.menvcfg & (UINT64_C(1) << 63);
@@ -1138,22 +1148,22 @@ static void print_menvcfg(rv_cpu_t *cpu, string_t *mnemonics, string_t *comments
             bit_string(fiom));
 }
 
-static void print_stvec(rv_cpu_t *cpu, string_t *mnemonics, string_t *comments)
+static void print_stvec(rv64_cpu_t *cpu, string_t *mnemonics, string_t *comments)
 {
-    string_printf(mnemonics, "%s 0x%08x", "stvec", cpu->csr.stvec);
-    string_printf(comments, "Base: 0x%08x Mode: %s",
+    string_printf(mnemonics, "%s 0x%08" PRIx64, "stvec", cpu->csr.stvec);
+    string_printf(comments, "Base: 0x%08" PRIx64 " Mode: %s",
             cpu->csr.stvec & ~0b11,
             (((cpu->csr.stvec & 0b11) == 0) ? "Direct" : "Vectored"));
 }
 
-static void print_sie(rv_cpu_t *cpu, string_t *mnemonics, string_t *comments)
+static void print_sie(rv64_cpu_t *cpu, string_t *mnemonics, string_t *comments)
 {
 
     bool seie = cpu->csr.mie & rv_csr_sei_mask;
     bool stie = cpu->csr.mie & rv_csr_sti_mask;
     bool ssie = cpu->csr.mie & rv_csr_ssi_mask;
 
-    string_printf(mnemonics, "%s 0x%08x", "sie", cpu->csr.mie & rv_csr_si_mask);
+    string_printf(mnemonics, "%s 0x%016" PRIx64, "sie", cpu->csr.mie & rv_csr_si_mask);
     string_printf(comments,
             "SEIE %s, STIE %s, SSIE %s",
             bit_string(seie),
@@ -1161,14 +1171,13 @@ static void print_sie(rv_cpu_t *cpu, string_t *mnemonics, string_t *comments)
             bit_string(ssie));
 }
 
-static void print_sip(rv_cpu_t *cpu, string_t *mnemonics, string_t *comments)
+static void print_sip(rv64_cpu_t *cpu, string_t *mnemonics, string_t *comments)
 {
-
     bool seip = cpu->csr.mip & rv_csr_sei_mask;
     bool stip = cpu->csr.mip & rv_csr_sti_mask;
     bool ssip = cpu->csr.mip & rv_csr_ssi_mask;
 
-    string_printf(mnemonics, "%s 0x%08x", "sip", cpu->csr.mip & rv_csr_si_mask);
+    string_printf(mnemonics, "%s 0x%016" PRIx64, "sip", cpu->csr.mip & rv_csr_si_mask);
     string_printf(comments,
             "SEIP %s, STIP %s, SSIP %s (External SEIP %s, External STIP %s)",
             bit_string(seip),
@@ -1178,17 +1187,17 @@ static void print_sip(rv_cpu_t *cpu, string_t *mnemonics, string_t *comments)
             bit_string(cpu->csr.external_STIP));
 }
 
-static void print_scause(rv_cpu_t *cpu, string_t *mnemonics, string_t *comments)
+static void print_scause(rv64_cpu_t *cpu, string_t *mnemonics, string_t *comments)
 {
-    string_printf(mnemonics, "%s 0x%08x", "scause", cpu->csr.scause);
+    string_printf(mnemonics, "%s 0x%016" PRIx64, "scause", cpu->csr.scause);
     bool is_interrupt = cpu->csr.scause & RV_INTERRUPT_EXC_BITS;
     int cause_id = cpu->csr.scause & ~RV_INTERRUPT_EXC_BITS;
-    string_printf(comments, "%s", (is_interrupt ? rv_interruptnames[cause_id] : rv_excnames[cause_id]));
+    string_printf(comments, "%s", (is_interrupt ? rv64_interruptnames[cause_id] : rv64_excnames[cause_id]));
 }
 
-static void print_senvcfg(rv_cpu_t *cpu, string_t *mnemonics, string_t *comments)
+static void print_senvcfg(rv64_cpu_t *cpu, string_t *mnemonics, string_t *comments)
 {
-    string_printf(mnemonics, "%s 0x%08x", "senvcfg", cpu->csr.senvcfg);
+    string_printf(mnemonics, "%s 0x%016" PRIx64, "senvcfg", cpu->csr.senvcfg);
     bool cbze = cpu->csr.senvcfg & (UINT32_C(1) << 7);
     bool cbfe = cpu->csr.senvcfg & (UINT32_C(1) << 6);
     bool cbie = cpu->csr.senvcfg & (UINT32_C(1) << 5);
@@ -1202,53 +1211,57 @@ static void print_senvcfg(rv_cpu_t *cpu, string_t *mnemonics, string_t *comments
             bit_string(fiom));
 }
 
-static void print_satp(rv_cpu_t *cpu, string_t *mnemonics, string_t *comments)
+static void print_satp(rv64_cpu_t *cpu, string_t *mnemonics, string_t *comments)
 {
-    string_printf(mnemonics, "%s 0x%08x", "satp", cpu->csr.satp);
-    char *mode = (rv_csr_satp_is_bare(cpu)) ? "Bare" : "Sv32";
+    string_printf(mnemonics, "%s 0x%016" PRIx64, "satp", cpu->csr.satp);
+    char *mode = (rv_csr_satp_is_bare(cpu)) ? "Bare" : "Sv39";
 
     string_printf(comments, "Mode: %s", mode);
 
     if (!rv_csr_satp_is_bare(cpu)) {
         int asid = rv_csr_satp_asid(cpu);
-        uint32_t ppn = rv_csr_satp_ppn(cpu);
+        uint64_t ppn = rv_csr_satp_ppn(cpu);
 
         if (cpu->csr.asid_len == rv_asid_len) {
             string_printf(comments,
-                    " ASID: %i PPN: 0x%06x (Physical address: 0x%09" PRIx64 ")",
+                    " ASID: %i PPN: 0x%06" PRIx64 " (Physical address: 0x%09" PRIx64 ")",
                     asid,
                     ppn,
-                    (uint64_t) ppn << RV_PAGESIZE);
+                    ppn << RV64_PAGESIZE);
         } else {
             string_printf(comments,
-                    " ASID: %i (%d active bits) PPN: 0x%06x (Physical address: 0x%09" PRIx64 ")",
+                    " ASID: %i (%d active bits) PPN: 0x%06" PRIx64 " (Physical address: 0x%09" PRIx64 ")",
                     asid,
                     cpu->csr.asid_len,
                     ppn,
-                    (uint64_t) ppn << RV_PAGESIZE);
+                    ppn << RV64_PAGESIZE);
         }
     }
 }
 
-default_print_function(mvendorid)
-        default_print_function(marchid)
-                default_print_function(mimpid)
-                        default_print_function(mhartid)
-                                default_print_function(mcounteren)
-                                        default_print_function(mcountinhibit)
-                                                default_print_function(mepc)
-                                                        default_print_function(mscratch)
-                                                                default_print_function(mtval)
-                                                                        default_print_function(mconfigptr)
-                                                                                default_print_function(mcontext)
-                                                                                        default_print_function(scounteren)
-                                                                                                default_print_function(sscratch)
-                                                                                                        default_print_function(sepc)
-                                                                                                                default_print_function(stval)
-                                                                                                                        default_print_function(scontext)
-                                                                                                                                default_print_function(scyclecmp)
+// clang-format off
 
-                                                                                                                                        void rv_csr_dump_common(rv_cpu_t *cpu, csr_num_t csr)
+default_print_function(mvendorid)
+default_print_function(marchid)
+default_print_function(mimpid)
+default_print_function(mhartid)
+default_print_function(mcounteren)
+default_print_function(mcountinhibit)
+default_print_function(mepc)
+default_print_function(mscratch)
+default_print_function(mtval)
+default_print_function(mconfigptr)
+default_print_function(mcontext)
+default_print_function(scounteren)
+default_print_function(sscratch)
+default_print_function(sepc)
+default_print_function(stval)
+default_print_function(scontext)
+default_print_function(scyclecmp)
+
+        // clang-format on
+
+        void rv64_csr_dump_common(rv64_cpu_t *cpu, csr_num_t csr)
 {
     string_t s_mnemonics;
     string_t s_comments;
@@ -1425,41 +1438,40 @@ default_print_function(mvendorid)
         print_hpm_event(cpu, csr & 0x1F, &s_mnemonics, &s_comments);
         break;
 
+        // clang-format off
     default_case(misa)
-            default_case(mvendorid)
-                    default_case(marchid)
-                            default_case(mimpid)
-                                    default_case(mhartid)
-                                            default_case(mtvec)
-                                                    default_case(medeleg)
-                                                            default_case(mideleg)
-                                                                    default_case(mie)
-                                                                            default_case(mip)
-                                                                                    default_case(mcounteren)
-                                                                                            default_case(mcountinhibit)
-                                                                                                    default_case(mscratch)
-                                                                                                            default_case(mepc)
-                                                                                                                    default_case(mcause)
-                                                                                                                            default_case(mtval)
-                                                                                                                                    default_case(mconfigptr)
-                                                                                                                                            default_case(mcontext)
-                                                                                                                                                    default_case(sstatus)
-                                                                                                                                                            default_case(stvec)
-                                                                                                                                                                    default_case(sie)
-                                                                                                                                                                            default_case(sip)
-                                                                                                                                                                                    default_case(scounteren)
-                                                                                                                                                                                            default_case(sscratch)
-                                                                                                                                                                                                    default_case(sepc)
-                                                                                                                                                                                                            default_case(scause)
-                                                                                                                                                                                                                    default_case(stval)
-                                                                                                                                                                                                                            default_case(senvcfg)
-                                                                                                                                                                                                                                    default_case(satp)
-                                                                                                                                                                                                                                            default_case(scontext)
-                                                                                                                                                                                                                                                    default_case(scyclecmp)
+    default_case(mvendorid)
+    default_case(marchid)
+    default_case(mimpid)
+    default_case(mhartid)
+    default_case(mtvec)
+    default_case(medeleg)
+    default_case(mideleg)
+    default_case(mie)
+    default_case(mip)
+    default_case(mcounteren)
+    default_case(mcountinhibit)
+    default_case(mscratch)
+    default_case(mepc)
+    default_case(mcause)
+    default_case(mtval)
+    default_case(mconfigptr)
+    default_case(mcontext)
+    default_case(sstatus)
+    default_case(stvec)
+    default_case(sie)
+    default_case(sip)
+    default_case(scounteren)
+    default_case(sscratch)
+    default_case(sepc)
+    default_case(scause)
+    default_case(stval)
+    default_case(senvcfg)
+    default_case(satp)
+    default_case(scontext)
+    default_case(scyclecmp)
 
-                                                                                                                                                                                                                                                            case csr_mstatush:
-    default_case(mstatus)
-
+            // clang-format on
             case csr_mseccfgh:
     default_case(mseccfg)
 

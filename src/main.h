@@ -25,6 +25,7 @@ typedef uint32_t pfn_t;
 typedef uint64_t len36_t;
 typedef uint64_t len64_t;
 typedef uint64_t ptr36_t;
+typedef uint64_t ptr55_t;
 
 typedef union {
     uint64_t ptr;

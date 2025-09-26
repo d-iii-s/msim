@@ -2,12 +2,13 @@
  * Copyright (c) 2004-2007 Viliam Holub
  * Copyright (c) 2008-2011 Martin Decky
  * Copyright (c) 2022   Jan Papesch
+ * Copyright (c) 2025   Martin Rosenberg
  * All rights reserved.
  *
  * Distributed under the terms of GPL.
  *
  *
- *  RISC-V RV32IMA device
+ *  RISC-V RV64IMA device
  *
  */
 
@@ -21,40 +22,39 @@
 #include "../main.h"
 #include "../utils.h"
 #include "cpu/general_cpu.h"
-#include "cpu/riscv_rv32ima/cpu.h"
-#include "cpu/riscv_rv32ima/csr.h"
-#include "cpu/riscv_rv32ima/debug.h"
-#include "drvcpu.h"
+#include "cpu/riscv_rv64ima/cpu.h"
+#include "cpu/riscv_rv64ima/csr.h"
+#include "cpu/riscv_rv64ima/debug.h"
+#include "drv64cpu.h"
 
-static bool rv32_convert_add_wrapper(void *cpu, ptr64_t virt, ptr36_t *phys, bool write)
+static bool rv64_convert_add_wrapper(void *cpu, ptr64_t virt, ptr36_t *phys, bool write)
 {
-    // use only low 32-bits from virt
-    return rv32_convert_addr((rv_cpu_t *) cpu, virt.lo, phys, write, false, false) == rv_exc_none;
+    // use all 64 bits from virt
+    return rv64_convert_addr((rv_cpu_t *) cpu, virt.ptr, phys, write, false, false) == rv_exc_none;
 }
 
-static void rv32_set_pc_wrapper(void *cpu, ptr64_t addr)
+static void rv64_set_pc_wrapper(void *cpu, ptr64_t addr)
 {
-    // use only low 32-bits from addr
-    rv32_cpu_set_pc((rv_cpu_t *) cpu, addr.lo);
+    // use all 64 bits from addr
+    rv64_cpu_set_pc((rv64_cpu_t *) cpu, addr.ptr);
 }
 
 static const cpu_ops_t rv_cpu = {
-    .interrupt_up = (interrupt_func_t) rv32_interrupt_up,
-    .interrupt_down = (interrupt_func_t) rv32_interrupt_down,
+    .interrupt_up = (interrupt_func_t) rv64_interrupt_up,
+    .interrupt_down = (interrupt_func_t) rv64_interrupt_down,
 
-    .convert_addr = (convert_addr_func_t) rv32_convert_add_wrapper,
-    .reg_dump = (reg_dump_func_t) rv32_reg_dump,
+    .convert_addr = (convert_addr_func_t) rv64_convert_add_wrapper,
+    .reg_dump = (reg_dump_func_t) rv64_reg_dump,
 
-    .set_pc = (set_pc_func_t) rv32_set_pc_wrapper,
-    .sc_access = (sc_access_func_t) rv32_sc_access
+    .set_pc = (set_pc_func_t) rv64_set_pc_wrapper,
+    .sc_access = (sc_access_func_t) rv64_sc_access
 };
 
 /**
  * Initialization
  */
-static bool drvcpu_init(token_t *parm, device_t *dev)
+static bool drv64cpu_init(token_t *parm, device_t *dev)
 {
-
     unsigned int id = get_free_cpuno();
 
     if (id == MAX_CPUS) {
@@ -62,8 +62,8 @@ static bool drvcpu_init(token_t *parm, device_t *dev)
         return false;
     }
 
-    rv32_cpu_t *cpu = safe_malloc_t(rv_cpu_t);
-    rv32_cpu_init(cpu, id);
+    rv64_cpu_t *cpu = safe_malloc_t(rv64_cpu_t);
+    rv64_cpu_init(cpu, id);
     general_cpu_t *gen_cpu = safe_malloc_t(general_cpu_t);
     gen_cpu->cpuno = id;
     gen_cpu->data = cpu;
@@ -79,32 +79,32 @@ static bool drvcpu_init(token_t *parm, device_t *dev)
 /**
  * Info command implementation
  */
-static bool drvcpu_info(token_t *parm, device_t *dev)
+static bool drv64cpu_info(token_t *parm, device_t *dev)
 {
-    printf("RV32IMA (processor ID: %i)\n", ((general_cpu_t *) dev->data)->cpuno);
+    printf("RV64IMA (processor ID: %i)\n", ((general_cpu_t *) dev->data)->cpuno);
     return true;
 }
 
 /**
  * RD command implementation
  */
-static bool drvcpu_rd(token_t *parm, device_t *dev)
+static bool drv64cpu_rd(token_t *parm, device_t *dev)
 {
     ASSERT(dev != NULL);
 
-    rv32_reg_dump(get_rv(dev));
+    rv64_reg_dump(get_rv64(dev));
     return true;
 }
 
 /**
  * CSRD command implementation
  */
-static bool drvcpu_csr_dump(token_t *parm, device_t *dev)
+static bool drv64cpu_csr_dump(token_t *parm, device_t *dev)
 {
     ASSERT(dev != NULL);
 
     if (parm->ttype == tt_end) {
-        rv32_csr_dump_reduced(get_rv(dev));
+        rv64_csr_dump_reduced(get_rv64(dev));
         return true;
     }
 
@@ -113,11 +113,11 @@ static bool drvcpu_csr_dump(token_t *parm, device_t *dev)
     if (token_type == tt_str) {
         const char *param = parm_str_next(&parm);
 
-        if (rv32_csr_dump_command(get_rv(dev), param)) {
+        if (rv64_csr_dump_command(get_rv64(dev), param)) {
             return true;
         }
 
-        if (rv32_csr_dump_by_name(get_rv(dev), param)) {
+        if (rv64_csr_dump_by_name(get_rv64(dev), param)) {
             return true;
         }
 
@@ -127,7 +127,7 @@ static bool drvcpu_csr_dump(token_t *parm, device_t *dev)
         if (num > 0xFFF) {
             return false;
         }
-        return rv32_csr_dump(get_rv(dev), num);
+        return rv64_csr_dump(get_rv64(dev), num);
     }
 
     printf("Invalid arguments!");
@@ -137,45 +137,45 @@ static bool drvcpu_csr_dump(token_t *parm, device_t *dev)
 /**
  * TR command implementation
  */
-static bool drvcpu_tr(token_t *parm, device_t *dev)
+static bool drv64cpu_tr(token_t *parm, device_t *dev)
 {
     ASSERT(dev != NULL);
 
     uint64_t addr = parm_uint_next(&parm);
 
-    if (addr > (uint64_t) UINT32_MAX) {
+    if (addr > UINT64_MAX) {
         error("Virtual memory address too large");
         return false;
     }
 
-    return rv32_translate_dump(get_rv(dev), (uint32_t) addr);
+    return rv64_translate_dump(get_rv64(dev), addr);
 }
 
 /**
  * STR command implementation
  */
-static bool drvcpu_str(token_t *parm, device_t *dev)
+static bool drv64cpu_str(token_t *parm, device_t *dev)
 {
     ASSERT(dev != NULL);
 
-    ptr36_t root_phys = parm_uint_next(&parm);
+    ptr55_t root_phys = parm_uint_next(&parm);
 
-    if (!IS_ALIGNED(root_phys, RV_PAGEBYTES)) {
+    if (!IS_ALIGNED(root_phys, RV64_PAGEBYTES)) {
         error("Root pagetable physical address 0x%09" PRIx64 " is not aligned to pagesize!", root_phys);
         return false;
     }
 
     uint64_t addr = parm_uint_next(&parm);
 
-    if (addr > (uint64_t) UINT32_MAX) {
+    if (addr > UINT64_MAX) {
         error("Virtual memory address too large");
         return false;
     }
 
-    return rv32_translate_sv32_dump(get_rv(dev), root_phys, (uint32_t) addr);
+    return rv64_translate_sv39_dump(get_rv64(dev), root_phys, addr);
 }
 
-static bool drvcpu_specifies_verbose(const char *param)
+static bool drv64cpu_specifies_verbose(const char *param)
 {
     return strcmp(param, "v") == 0 || strcmp(param, "verbose") == 0;
 }
@@ -183,66 +183,66 @@ static bool drvcpu_specifies_verbose(const char *param)
 /**
  * PTD command implementation
  */
-static bool drvcpu_ptd(token_t *parm, device_t *dev)
+static bool drv64cpu_ptd(token_t *parm, device_t *dev)
 {
     ASSERT(dev != NULL);
 
     if (parm->ttype == tt_end) {
-        return rv32_pagetable_dump(get_rv(dev), false);
+        return rv64_pagetable_dump(get_rv64(dev), false);
     }
 
     const char *param = parm_str_next(&parm);
 
-    if (!drvcpu_specifies_verbose(param)) {
+    if (!drv64cpu_specifies_verbose(param)) {
         error("Invalid parameter <%s>", param);
         return false;
     }
 
-    return rv32_pagetable_dump(get_rv(dev), true);
+    return rv64_pagetable_dump(get_rv64(dev), true);
 }
 
 /**
  * SPTD command implementation
  */
-static bool drvcpu_sptd(token_t *parm, device_t *dev)
+static bool drv64cpu_sptd(token_t *parm, device_t *dev)
 {
     ASSERT(dev != NULL);
 
     ptr36_t root_phys = parm_uint_next(&parm);
 
-    if (!IS_ALIGNED(root_phys, RV_PAGEBYTES)) {
+    if (!IS_ALIGNED(root_phys, RV64_PAGEBYTES)) {
         error("Root pagetable physical address 0x%09" PRIx64 " is not aligned to pagesize!", root_phys);
         return false;
     }
 
     if (parm->ttype == tt_end) {
-        return rv32_pagetable_dump_from_phys(get_rv(dev), root_phys, false);
+        return rv64_pagetable_dump_from_phys(get_rv64(dev), root_phys, false);
     }
 
     const char *param = parm_str_next(&parm);
 
-    if (!drvcpu_specifies_verbose(param)) {
+    if (!drv64cpu_specifies_verbose(param)) {
         error("Invalid parameter <%s>", param);
         return false;
     }
 
-    return rv32_pagetable_dump_from_phys(get_rv(dev), root_phys, true);
+    return rv64_pagetable_dump_from_phys(get_rv64(dev), root_phys, true);
 }
 
 /**
  * TLBD command implementation
  */
-static bool drvcpu_tlb_dump(token_t *parm, device_t *dev)
+static bool drv64cpu_tlb_dump(token_t *parm, device_t *dev)
 {
     ASSERT(dev != NULL);
-    rv32_tlb_dump(&get_rv(dev)->tlb);
+    rv64_tlb_dump(&get_rv64(dev)->tlb);
     return true;
 }
 
 /**
  * TLBRESIZE command implementation
  */
-static bool drvcpu_tlb_resize(token_t *parm, device_t *dev)
+static bool drv64cpu_tlb_resize(token_t *parm, device_t *dev)
 {
     ASSERT(dev != NULL);
 
@@ -253,18 +253,18 @@ static bool drvcpu_tlb_resize(token_t *parm, device_t *dev)
         return false;
     }
 
-    rv32_tlb_t *tlb = &get_rv(dev)->tlb;
+    rv64_tlb_t *tlb = &get_rv64(dev)->tlb;
 
-    return rv32_tlb_resize(tlb, new_tlb_size);
+    return rv64_tlb_resize(tlb, new_tlb_size);
 }
 
-static bool drvcpu_tlb_flush(token_t *parm, device_t *dev)
+static bool drv64cpu_tlb_flush(token_t *parm, device_t *dev)
 {
     ASSERT(dev != NULL);
 
-    rv32_tlb_t *tlb = &get_rv(dev)->tlb;
+    rv64_tlb_t *tlb = &get_rv64(dev)->tlb;
 
-    rv32_tlb_flush(tlb);
+    rv64_tlb_flush(tlb);
 
     return true;
 }
@@ -272,7 +272,7 @@ static bool drvcpu_tlb_flush(token_t *parm, device_t *dev)
 /**
  * SETASIDLEN command implementation
  */
-static bool drvcpu_set_asid_len(token_t *parm, device_t *dev)
+static bool drv64cpu_set_asid_len(token_t *parm, device_t *dev)
 {
     ASSERT(dev != NULL);
 
@@ -283,7 +283,7 @@ static bool drvcpu_set_asid_len(token_t *parm, device_t *dev)
         return false;
     }
 
-    rv32_csr_set_asid_len(get_rv(dev), new_asid_len);
+    rv64_csr_set_asid_len(get_rv64(dev), new_asid_len);
 
     return true;
 }
@@ -291,9 +291,9 @@ static bool drvcpu_set_asid_len(token_t *parm, device_t *dev)
 /**
  * Done device operation
  */
-static void drvcpu_done(device_t *dev)
+static void drv64cpu_done(device_t *dev)
 {
-    rv32_cpu_done(get_rv(dev));
+    rv64_cpu_done(get_rv64(dev));
     safe_free(((general_cpu_t *) dev->data)->data);
     safe_free(dev->data)
 }
@@ -301,17 +301,17 @@ static void drvcpu_done(device_t *dev)
 /**
  * Step device operation
  */
-static void drvcpu_step(device_t *dev)
+static void drv64cpu_step(device_t *dev)
 {
-    rv32_cpu_step(get_rv(dev));
+    rv64_cpu_step(get_rv64(dev));
 }
 
 /**
  * Device commands specification
  */
-cmd_t drvcpu_cmds[] = {
+cmd_t drv64cpu_cmds[] = {
     { "init",
-            (fcmd_t) drvcpu_init,
+            (fcmd_t) drv64cpu_init,
             DEFAULT,
             DEFAULT,
             "Initialization",
@@ -325,35 +325,35 @@ cmd_t drvcpu_cmds[] = {
             "Display this help text",
             OPT STR "cmd/command name" END },
     { "info",
-            (fcmd_t) drvcpu_info,
+            (fcmd_t) drv64cpu_info,
             DEFAULT,
             DEFAULT,
             "Display configuration information",
             "Display configuration information",
             NOCMD },
     { "rd",
-            (fcmd_t) drvcpu_rd,
+            (fcmd_t) drv64cpu_rd,
             DEFAULT,
             DEFAULT,
             "Dump content of CPU general registers",
             "Dump content of CPU general registers",
             NOCMD },
     { "csrd",
-            (fcmd_t) drvcpu_csr_dump,
+            (fcmd_t) drv64cpu_csr_dump,
             DEFAULT,
             DEFAULT,
             "Dump content of CSR registers",
             "Dump content of some CSRs if no argument is given, dump the content of the specified register (numerically or by name), or dump a predefined set of CSRs (mmode, smode, counters or all)",
             OPT VAR "csr" END },
     { "tr",
-            (fcmd_t) drvcpu_tr,
+            (fcmd_t) drv64cpu_tr,
             DEFAULT,
             DEFAULT,
             "Translates the specified address",
             "Translates the specified virtual address based on the current CPU state and describes the translation steps.",
             REQ INT "addr/virtual address" END },
     { "str",
-            (fcmd_t) drvcpu_str,
+            (fcmd_t) drv64cpu_str,
             DEFAULT,
             DEFAULT,
             "Translates the specified address using the given pagetable",
@@ -361,14 +361,14 @@ cmd_t drvcpu_cmds[] = {
             REQ INT "phys/root pagetable physical address" NEXT
                     REQ INT "addr/virtual address" END },
     { "ptd",
-            (fcmd_t) drvcpu_ptd,
+            (fcmd_t) drv64cpu_ptd,
             DEFAULT,
             DEFAULT,
             "Dumps the current pagetable",
             "Prints out all valid PTEs in the pagetable currently pointed to by the satp CSR. Adding the `verbose` parameter prints out all nonzero PTEs.",
             OPT STR "verbose" END },
     { "sptd",
-            (fcmd_t) drvcpu_sptd,
+            (fcmd_t) drv64cpu_sptd,
             DEFAULT,
             DEFAULT,
             "Dumps the specified pagetable",
@@ -376,28 +376,28 @@ cmd_t drvcpu_cmds[] = {
             REQ INT "phys/physical address of the root pagetable" NEXT
                     OPT STR "verbose" END },
     { "tlbd",
-            (fcmd_t) drvcpu_tlb_dump,
+            (fcmd_t) drv64cpu_tlb_dump,
             DEFAULT,
             DEFAULT,
             "Dump valid content of the TLB",
             "Dump content of the TLB. Dumps only valid entries.",
             NOCMD },
     { "tlbresize",
-            (fcmd_t) drvcpu_tlb_resize,
+            (fcmd_t) drv64cpu_tlb_resize,
             DEFAULT,
             DEFAULT,
             "Resize the TLB",
             "Resizes the TLB, flushing it completely in the process.",
             REQ INT "TLB size" END },
     { "tlbflush",
-            (fcmd_t) drvcpu_tlb_flush,
+            (fcmd_t) drv64cpu_tlb_flush,
             DEFAULT,
             DEFAULT,
             "Flushes the TLB",
             "Removes all entries from the TLB.",
             NOCMD },
     { "asidlen",
-            (fcmd_t) drvcpu_set_asid_len,
+            (fcmd_t) drv64cpu_set_asid_len,
             DEFAULT,
             DEFAULT,
             "Changes the bit-length of ASIDs",
@@ -408,17 +408,17 @@ cmd_t drvcpu_cmds[] = {
 /**
  * Device type specification
  */
-device_type_t drvcpu = {
+device_type_t drv64cpu = {
     .nondet = false,
 
-    .name = "drvcpu",
+    .name = "drv64cpu",
 
-    .brief = "RISC-V RV32IMA processor",
+    .brief = "RISC-V RV64IMA processor",
 
-    .full = "RISC-V processor, supporting M and A extensions, with support for Machine, Supervisor and User mode and with virtual memory support.",
+    .full = "RISC-V processor, supporting M and A extensions, with support for Machine, Supervisor and User mode and with Sv39 virtual memory support.",
 
-    .done = drvcpu_done,
-    .step = drvcpu_step,
+    .done = drv64cpu_done,
+    .step = drv64cpu_step,
 
-    .cmds = drvcpu_cmds
+    .cmds = drv64cpu_cmds
 };

@@ -1,7 +1,7 @@
 # Not to be run on its own, but as src/Makefile rvtest
 CC = gcc
-CFLAGS = -g -Wall -Wextra
-LIBS = -lpcut
+CFLAGS = -g -Wall -Wextra -I../../../pcut/include
+LIBS = -L../../../pcut/build -lpcut
 SOURCES = $(wildcard *.c)
 OBJECTS := $(addsuffix .o,$(basename $(SOURCES)))
 

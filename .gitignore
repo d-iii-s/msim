@@ -12,6 +12,7 @@
 /src/Makefile.depend
 /src/Makefile.depend.prev
 *.o
+/build
 
 stamp-h
 
@@ -25,3 +26,4 @@ doxygen/
 /.cproject
 /.settings
 /.pydevproject
+/.idea

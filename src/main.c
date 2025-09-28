@@ -22,6 +22,7 @@
 #include "assert.h"
 #include "cmd.h"
 #include "debug/breakpoint.h"
+#include "debug/dap.h"
 #include "debug/gdb.h"
 #include "device/cpu/general_cpu.h"
 #include "device/cpu/mips_r4000/cpu.h"
@@ -55,6 +56,15 @@ bool remote_gdb_listen = false;
 
 /** Remote GDB stepping */
 bool remote_gdb_step = false;
+
+/** Enable DAP debugging */
+bool dap_enabled = false;
+
+/** TCP port for DAP listening socket */
+unsigned int dap_port = 5000;
+
+/** DAP connection indication */
+bool dap_connected = false;
 
 /** Enable non-deterministic behaviour */
 bool machine_nondet = false;
@@ -156,6 +166,11 @@ static void setup_remote_gdb(const char *opt)
     remote_gdb_port = port_no;
 }
 
+static void setup_dap() {
+    alert("DAP debugging setup");
+    dap_enabled = true;
+}
+
 static bool parse_cmdline(int argc, char *args[])
 {
     opterr = 0;
@@ -163,7 +178,7 @@ static bool parse_cmdline(int argc, char *args[])
     while (true) {
         int option_index = 0;
 
-        int c = getopt_long(argc, args, "tVic:hg:nXI",
+        int c = getopt_long(argc, args, "tVic:hg:dnXI",
                 long_options, &option_index);
 
         if (c == -1) {
@@ -195,6 +210,9 @@ static bool parse_cmdline(int argc, char *args[])
             return false;
         case 'g':
             setup_remote_gdb(optarg);
+            break;
+        case 'd':
+            setup_dap();
             break;
         case 'n':
             machine_nondet = true;
@@ -244,6 +262,18 @@ static bool gdb_startup(void)
     remote_gdb = remote_gdb_conn;
 
     return true;
+}
+
+static bool dap_startup(void) {
+    alert("Starting DAP connection on port %u.", dap_port);
+
+    if (get_cpu(0) == NULL) {
+        error("Cannot debug without any processor");
+        return false;
+    }
+
+    dap_connected = dap_init();
+    return dap_connected;
 }
 
 /** Run 4096 machine cycles
@@ -301,6 +331,15 @@ static void machine_run(void)
         if ((remote_gdb) && (remote_gdb_conn) && (remote_gdb_listen)) {
             remote_gdb_listen = false;
             gdb_session();
+        }
+
+        if ((dap_enabled) && (!dap_connected)) {
+            dap_startup();
+        }
+
+        if ((dap_enabled) && (dap_connected)) {
+            alert("DAP: Waiting for command");
+            dap_process();
         }
 
         /* Stepping check */

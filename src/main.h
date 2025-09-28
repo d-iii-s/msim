@@ -67,6 +67,11 @@ extern bool remote_gdb_conn;
 extern bool remote_gdb_listen;
 extern bool remote_gdb_step;
 
+/** DAP debugging */
+extern bool dap_enabled;
+extern unsigned int dap_port;
+extern bool dap_connected;
+
 /** General simulator behaviour */
 extern bool machine_nondet;
 extern bool machine_trace;

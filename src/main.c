@@ -135,6 +135,10 @@ static struct option long_options[] = {
             required_argument,
             0,
             'g' },
+{ "dap",
+        required_argument,
+        0,
+        'd' },
     { "non-deterministic",
             no_argument,
             0,
@@ -166,9 +170,27 @@ static void setup_remote_gdb(const char *opt)
     remote_gdb_port = port_no;
 }
 
-static void setup_dap() {
+/** Setup DAP debugging
+ *
+ */
+static void setup_dap(const char *opt)
+{
     alert("DAP debugging setup");
+
+    ASSERT(opt != NULL);
+
+    char *endp = NULL;
+    const long int port_no = strtol(opt, &endp, 0);
+    if (!endp) {
+        die(ERR_PARM, "Port number expected");
+    }
+
+    if ((port_no < 0) || (port_no > 65534)) {
+        die(ERR_PARM, "Invalid port number");
+    }
+
     dap_enabled = true;
+    dap_port = port_no;
 }
 
 static bool parse_cmdline(int argc, char *args[])
@@ -178,7 +200,7 @@ static bool parse_cmdline(int argc, char *args[])
     while (true) {
         int option_index = 0;
 
-        int c = getopt_long(argc, args, "tVic:hg:dnXI",
+        int c = getopt_long(argc, args, "tVic:hg:d:nXI",
                 long_options, &option_index);
 
         if (c == -1) {
@@ -212,7 +234,7 @@ static bool parse_cmdline(int argc, char *args[])
             setup_remote_gdb(optarg);
             break;
         case 'd':
-            setup_dap();
+            setup_dap(optarg);
             break;
         case 'n':
             machine_nondet = true;
@@ -264,7 +286,12 @@ static bool gdb_startup(void)
     return true;
 }
 
-static bool dap_startup(void) {
+/** Try to startup DAP connection.
+ *
+ * @return True if the connection was opened.
+ */
+static bool dap_startup(void)
+{
     alert("Starting DAP connection on port %u.", dap_port);
 
     if (get_cpu(0) == NULL) {
@@ -333,12 +360,14 @@ static void machine_run(void)
             gdb_session();
         }
 
+        // Startup DAP if enabled & not connected yet
         if ((dap_enabled) && (!dap_connected)) {
             dap_startup();
         }
 
+        // Process new DAP events
         if ((dap_enabled) && (dap_connected)) {
-            alert("DAP: Waiting for command");
+            alert("DAP: Processing events");
             dap_process();
         }
 

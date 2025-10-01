@@ -5,11 +5,14 @@
 #include <sys/socket.h>
 #include <sys/types.h>
 
+#include "../device/cpu/general_cpu.h"
+#include "../device/cpu/mips_r4000/cpu.h"
 #include "../fault.h"
 #include "../main.h"
 #include "dap.h"
 
 static int dap_connection_fd = -1;
+static unsigned int cpuno_global = 0; // TODO: what is it?
 
 typedef enum dap_command_type {
     NO_OP = 0,
@@ -94,9 +97,40 @@ static bool dap_receive(dap_command_t *out_cmd)
     return true;
 }
 
+/** Add a DAP breakpoint */
 static void dap_breakpoint_add(const uint32_t addr)
 {
-    alert("Adding DAP breakpoint at address 0x%u.",  addr);
+    alert("Adding DAP breakpoint at address 0x%u.", addr);
+
+    ptr64_t virt_address;
+    virt_address.ptr = UINT64_C(0xffffffff00000000) | addr;
+    r4k_cpu_t *cpu = get_cpu(cpuno_global)->data;
+
+    const breakpoint_t *breakpoint = breakpoint_find_by_address(cpu->bps, virt_address, BREAKPOINT_FILTER_DEBUGGER);
+    if (breakpoint != NULL) {
+        return;
+    }
+
+    breakpoint_t *inserted_breakpoint = breakpoint_init(virt_address, BREAKPOINT_KIND_DEBUGGER);
+    list_append(&cpu->bps, &inserted_breakpoint->item);
+}
+
+/** Remove a DAP breakpoint */
+static void dap_breakpoint_remove(const uint32_t addr)
+{
+    alert("Removing DAP breakpoint from address 0x%u.", addr);
+
+    ptr64_t virt_address;
+    virt_address.ptr = UINT64_C(0xffffffff00000000) | addr;
+    r4k_cpu_t *cpu = get_cpu(cpuno_global)->data;
+
+    breakpoint_t *breakpoint = breakpoint_find_by_address(cpu->bps, virt_address, BREAKPOINT_FILTER_DEBUGGER);
+    if (breakpoint != NULL) {
+        return;
+    }
+
+    list_remove(&cpu->bps, &breakpoint->item);
+    safe_free(breakpoint)
 }
 
 void dap_process(void)

@@ -6,6 +6,9 @@
  */
 extern bool dap_init(void);
 
+/** Process new DAP events
+ * (main DAP callback)
+ */
 extern void dap_process(void);
 
 #endif // MSIM_DAP_H

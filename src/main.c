@@ -366,15 +366,18 @@ static void machine_run(void)
             gdb_session();
         }
 
-        // Startup DAP if enabled & not connected yet
-        if ((dap_enabled) && (!dap_connected)) {
-            dap_startup();
-        }
+        // DAP
+        if (dap_enabled) {
+            // Startup DAP if enabled & not connected yet
+            if (!dap_connected) {
+                dap_startup();
+            }
 
-        // Process new DAP events
-        if ((dap_enabled) && (dap_connected)) {
-            alert("DAP: Processing events");
-            dap_process();
+            // Process new DAP events
+            if (dap_connected) {
+                alert("DAP: Processing events");
+                dap_process();
+            }
         }
 
         /* Stepping check */

@@ -37,5 +37,6 @@ PCUT_IMPORT(instruction_decoding);
 PCUT_IMPORT(instruction_exceptions);
 PCUT_IMPORT(tlb);
 PCUT_IMPORT(asid_len);
+PCUT_IMPORT(mulh);
 
 PCUT_MAIN()

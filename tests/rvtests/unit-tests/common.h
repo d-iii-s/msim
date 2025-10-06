@@ -1,6 +1,8 @@
 #ifndef _RVTEST_COMMON_H
 
+#ifndef ARCH
 #define ARCH 64
+#endif
 
 #if ARCH == 32
 #define rv_cpu rv32_cpu

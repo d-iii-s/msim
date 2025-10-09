@@ -733,7 +733,7 @@ static rv_exc_t execute(rv32_cpu_t *cpu)
     rv_instr_t instr_data = (rv_instr_t) physmem_read32(cpu->csr.mhartid, phys, true);
 
     if (machine_trace) {
-        // rv32_idump(cpu, cpu->pc, instr_data);
+        rv32_idump(cpu, cpu->pc, instr_data);
     }
 
     ex = instr_func(cpu, instr_data);

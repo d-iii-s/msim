@@ -77,13 +77,16 @@ msim_command_check() {
 
 msim_run_code() {
     local test_dir="$( dirname "$BATS_TEST_FILENAME" )/$1"
+    shift
     local expected_from_guest="$( cat "$test_dir/guest.expected" )"
-    local expected_from_simulator="$( cat "$test_dir/host.expected" )"
+    local expected_from_simulator="$( cat "$test_dir/${expected:-host.expected}" )"
 
     echo "quit" >>"$MSIM_TEST_TMPDIR/msim.conf"
     (
         sed "s#\"boot.bin\"#\"$test_dir/boot.bin\"#" <"$test_dir/msim.conf"
-        echo "printer redir \"$MSIM_TEST_TMPDIR/printer.output\""
+        if grep -q printer "$test_dir/msim.conf"; then
+            echo "printer redir \"$MSIM_TEST_TMPDIR/printer.output\""
+        fi
     ) >"$MSIM_TEST_TMPDIR/msim.conf"
 
     {
@@ -92,7 +95,7 @@ msim_run_code() {
         sed 's:.*:#  | &:' "$MSIM_TEST_TMPDIR/msim.conf"
     } >&2
 
-    run bash -c "cd '$MSIM_TEST_TMPDIR' && '$MSIM' </dev/null"
+    run bash -c "cd '$MSIM_TEST_TMPDIR' && '$MSIM' "$@" </dev/null"
     {
         echo
         echo "# MSIM output (stdout and stderr interleaved)"

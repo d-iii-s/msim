@@ -11,8 +11,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
-* Enable instruction tracing with `-t` on RISC-V 32 (see #93)
-
 ### Added
 
 ### Changed
@@ -20,6 +18,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Deprecated
 
 ### Removed
+
+
+## v3.0.1 - 2025-10-09
+
+### Fixed
+
+* Enable instruction tracing with `-t` on RISC-V 32 (see #93)
 
 
 ## v3.0.0 - 2025-09-26

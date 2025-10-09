@@ -1,6 +1,6 @@
 Summary: A virtual machine simulator based on a MIPS R4000 and RISC-V processor
 Name: {{{ git_name name="msim-git" }}}
-Version: {{{ git_version lead=3.0.0 }}}
+Version: {{{ git_version lead=3.0.1 }}}
 Release: 1%{?dist}
 License: GPLv2+
 Group: Development/Tools

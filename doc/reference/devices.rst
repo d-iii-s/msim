@@ -153,7 +153,7 @@ Example of the ``rd`` command:
 
 
 
-RISC-V Processor ``drvcpu``
+32-bit RISC-V Processor ``drvcpu``
 ---------------------------
 
 The ``drvcpu`` device encapsulates a RISC-V RV32IMA processor.
@@ -250,7 +250,7 @@ Example of the ``tlbd`` command:
    [msim]
 
 
-RISC-V Processor ``drv64cpu``
+64-bit RISC-V Processor ``drv64cpu``
 ---------------------------
 
 The ``drv64cpu`` device encapsulates a RISC-V RV64IMA processor.
@@ -954,3 +954,63 @@ Commands
    Print configuration information (assigned register address).
 ``stat``
    Print device statistics (current cycle counter).
+
+
+
+
+LCD display ``dlcd``
+--------------------
+
+The LCD display device simulates a simplified version of the `HD44780U <https://cdn.sparkfun.com/assets/9/5/f/7/b/HD44780.pdf>`_
+character LCD display with memory-mapped control and data registers.
+
+Initialization parameters: ``cols`` ``rows`` ``address``
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+``cols``
+   Number of columns, or characters per row. Typical values are 16 or 20.
+
+``rows``
+   Number of rows. Typical values are 2 or 4.
+
+``address``
+   Physical address of the device register.
+
+Registers
+^^^^^^^^^
+
+Offsets in the following tables are bits relative to the base address specified.
+
+.. table:: ``data`` register
+
+   ====== ==== ======================= ========= =================================================================
+   Offset Size Name                    Operation Description
+   ====== ==== ======================= ========= =================================================================
+   +0     8    Data                    read      (not used)
+   \                                   write     Write a character/command to the display
+   ====== ==== ======================= ========= =================================================================
+
+
+.. table:: ``control`` register
+
+    ====== ==== ======================= ========= =================================================================
+    Offset Size Name                    Operation Description
+    ====== ==== ======================= ========= =================================================================
+    +8     1    RS (Register Select)    read      (not used)
+    \                                   write     Selects the purpose of the data register: 0: command register, 1: data register
+    +9     1    RW (Read/Write)         read      (not used)
+    \                                   write     0 = write to the display, 1 = read from the display (not supported)
+    +10    1    E (Enable)              read      (not used)
+    \                                   write     Causes the display to process the data written to the data register. This happens on a falling edge.
+    +11    5    Reserved                read      Reserved
+    \                                   write     Reserved
+    ====== ==== ======================= ========= =================================================================
+
+
+Commands
+^^^^^^^^
+
+``help [cmd]``
+    Print a help on the command specified or a list of available commands.
+``info``
+    Print configuration information (number of columns, number of rows, assigned register address).

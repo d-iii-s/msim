@@ -39,6 +39,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 * Support for RISC-V 64 (see #81, #82, #83, #84, @rosenbergm)
+* `dlcd` LCD display device (@rosenbergm)
 * Added Mini-kernel multiplatform tutorial (see #70, @HanyzPAPU)
 * RISC-V virtual memory commands tutorial (see #70, @HanyzPAPU)
 * CI builds on MacOS (see #76, #77, @vhotspur)

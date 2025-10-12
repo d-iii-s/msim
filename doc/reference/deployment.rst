@@ -23,6 +23,9 @@ We provide automatically built packages for Fedora and other RPM-based
 distributions over `COPR <https://copr.fedorainfracloud.org/>`_
 in `our D3S repository <https://copr.fedorainfracloud.org/coprs/d3s/main/>`_.
 
+Fedora
+^^^^^^
+
 Following commands are intended for Fedora and you might need to update them
 to match your distribution.
 
@@ -32,6 +35,13 @@ to match your distribution.
     sudo dnf copr enable d3s/main      # Add our repository
     sudo dnf install msim              # Install MSIM package
     msim --version                     # Verify package is installed
+
+Arch Linux
+^^^^^^^^^^
+
+MSIM is available in the Arch User Repository (AUR) and can be installed
+via the `msim <https://aur.archlinux.org/packages/msim>`_ or
+`msim-git <https://aur.archlinux.org/packages/msim-git>`_ packages.
 
 
 Manual installation

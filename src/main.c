@@ -369,7 +369,6 @@ static void machine_run(void)
 
             // Process new DAP events
             if (dap_connected) {
-                alert("DAP: Processing events");
                 dap_process();
             }
         }
@@ -414,6 +413,7 @@ static void cleanup()
     if (dev != NULL) {
         free_device(dev);
     }
+    dap_close();
     input_end();
 }
 

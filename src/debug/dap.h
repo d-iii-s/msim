@@ -11,4 +11,6 @@ extern bool dap_init(void);
  */
 extern void dap_process(void);
 
+extern void dap_close(void);
+
 #endif // MSIM_DAP_H

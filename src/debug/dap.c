@@ -12,6 +12,7 @@
 #include "dap.h"
 
 #include "../assert.h"
+#include "../device/cpu/riscv_rv32ima/cpu.h"
 
 static int connection_fd = -1;
 static unsigned int cpuno_global = 0; // TODO: what is it?
@@ -72,7 +73,7 @@ bool dap_init(void) {
     return true;
 }
 
-static void dap_close(void) {
+void dap_close(void) {
     if (connection_fd == -1) {
         io_error("dap_already_closed");
     }
@@ -107,10 +108,11 @@ static bool dap_receive_bytes(void* buf, const ssize_t len) {
     ASSERT(len > 0);
 
     const ssize_t received = recv(connection_fd, write_buffer, need_bytes, MSG_DONTWAIT);
-    message_buffer_used += received;
 
     // Received
     if (received > 0) {
+        message_buffer_used += received;
+
         // Got enough
         if (received == need_bytes) {
             ASSERT(message_buffer_used == len);
@@ -148,17 +150,17 @@ static bool dap_receive_bytes(void* buf, const ssize_t len) {
  * @return True if successful.
  */
 static bool dap_receive_command(dap_command_t* out_cmd) {
-    dap_command_t command = {0};
-
-    if (!dap_receive_bytes(&command.type, sizeof(command.type))) {
+    uint8_t buffer[sizeof(dap_command_t)] = {0};
+    if (!dap_receive_bytes(buffer, sizeof(dap_command_t))) {
         return false;
     }
 
-    if (!dap_receive_bytes(&command.addr, sizeof(command.addr))) {
-        return false;
-    }
+    out_cmd->type = buffer[0];
 
-    *out_cmd = command;
+    uint32_t netorder_addr;
+    memcpy(&netorder_addr,buffer + sizeof(out_cmd->type), sizeof(netorder_addr));
+    out_cmd->addr = ntohl(netorder_addr);
+
     return true;
 }
 
@@ -168,7 +170,7 @@ static void dap_breakpoint_add(const uint32_t addr) {
 
     ptr64_t virt_address;
     virt_address.ptr = UINT64_C(0xffffffff00000000) | addr;
-    r4k_cpu_t* cpu = get_cpu(cpuno_global)->data;
+    rv_cpu_t* cpu = get_cpu(cpuno_global)->data;
 
     const breakpoint_t* breakpoint = breakpoint_find_by_address(cpu->bps, virt_address, BREAKPOINT_FILTER_DEBUGGER);
     if (breakpoint != NULL) {
@@ -201,6 +203,8 @@ void dap_process(void) {
     if (!dap_receive_command(&command)) {
         return;
     }
+    alert("DAP: Received command type %u", command.type);
+    machine_interactive = true;
 
     switch (command.type) {
         case NO_OP:

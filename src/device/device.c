@@ -142,6 +142,8 @@ static bool dev_match_to_filter(device_t *device, device_filter_t filter)
         return (strcmp(device->type->name, "rom") == 0) || (strcmp(device->type->name, "rwm") == 0);
     case DEVICE_FILTER_R4K_PROCESSOR:
         return (strcmp(device->type->name, "dr4kcpu") == 0);
+    case DEVICE_FILTER_RV_PROCESSOR:
+        return (strcmp(device->type->name, "drvcpu") == 0);
     default:
         die(ERR_INTERN, "Unexpected device filter");
     }

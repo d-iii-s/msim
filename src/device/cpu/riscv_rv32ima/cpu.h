@@ -107,6 +107,9 @@ typedef struct rv_cpu {
     /** Translation Lookaside Buffer used for caching translated addresses */
     rv_tlb_t tlb;
 
+    /** breakpoints **/
+    list_t bps;
+
 } rv_cpu_t;
 
 /** Basic CPU routines */

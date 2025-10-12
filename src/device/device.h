@@ -79,6 +79,7 @@ typedef enum {
     DEVICE_FILTER_STEP4K,
     DEVICE_FILTER_MEMORY,
     DEVICE_FILTER_R4K_PROCESSOR,
+    DEVICE_FILTER_RV_PROCESSOR,
 } device_filter_t;
 
 /**

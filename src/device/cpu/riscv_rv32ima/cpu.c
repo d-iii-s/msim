@@ -181,6 +181,9 @@ void rv_cpu_init(rv_cpu_t *cpu, unsigned int procno)
     rv_tlb_init(&cpu->tlb, DEFAULT_RV_TLB_SIZE);
 
     cpu->priv_mode = rv_mmode;
+
+    /* Breakpoints */
+    list_init(&cpu->bps);
 }
 
 /**

@@ -154,7 +154,7 @@ Example of the ``rd`` command:
 
 
 32-bit RISC-V Processor ``drvcpu``
----------------------------
+----------------------------------
 
 The ``drvcpu`` device encapsulates a RISC-V RV32IMA processor.
 
@@ -251,7 +251,7 @@ Example of the ``tlbd`` command:
 
 
 64-bit RISC-V Processor ``drv64cpu``
----------------------------
+------------------------------------
 
 The ``drv64cpu`` device encapsulates a RISC-V RV64IMA processor.
 

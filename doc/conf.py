@@ -98,7 +98,7 @@ source_parsers = {
 
 master_doc = 'index'
 project = u'MSIM'
-copyright = '2000 - 2023'
+copyright = '2000 - 2025'
 version = 'stable'
 release = 'stable'
 pygments_style = 'sphinx'

@@ -39,6 +39,12 @@ bool dap_init(void) {
         return false;
     }
 
+    const int yes = 1;
+    if (setsockopt(sock, SOL_SOCKET, SO_REUSEADDR, &yes, sizeof(yes))) {
+        io_error("setsockopt");
+        return false;
+    }
+
     struct sockaddr_in address = {0};
     address.sin_family = AF_INET;
     address.sin_addr.s_addr = htonl(INADDR_ANY);
@@ -166,7 +172,7 @@ static bool dap_receive_command(dap_command_t* out_cmd) {
 
 /** Add a DAP breakpoint */
 static void dap_breakpoint_add(const uint32_t addr) {
-    alert("Adding DAP breakpoint at address 0x%u.", addr);
+    alert("Adding DAP breakpoint at address 0x%x.", addr);
 
     ptr64_t virt_address;
     virt_address.ptr = UINT64_C(0xffffffff00000000) | addr;
@@ -183,7 +189,7 @@ static void dap_breakpoint_add(const uint32_t addr) {
 
 /** Remove a DAP breakpoint */
 static void dap_breakpoint_remove(const uint32_t addr) {
-    alert("Removing DAP breakpoint from address 0x%u.", addr);
+    alert("Removing DAP breakpoint from address 0x%x.", addr);
 
     ptr64_t virt_address;
     virt_address.ptr = UINT64_C(0xffffffff00000000) | addr;

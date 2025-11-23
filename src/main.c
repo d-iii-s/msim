@@ -40,9 +40,11 @@
 #include "device/cpu/riscv_rv32ima/cpu.h"
 #include "device/cpu/riscv_rv32ima/debug.h"
 #undef XLEN
+#if BUILD_RV64
 #include "device/cpu/riscv_rv64ima/cpu.h"
 #include "device/cpu/riscv_rv64ima/debug.h"
 #undef XLEN
+#endif
 
 /** Configuration file name */
 char *config_file = NULL;
@@ -360,7 +362,9 @@ int main(int argc, char *args[])
 
     r4k_debug_init();
     rv32_debug_init();
+#if BUILD_RV64
     rv64_debug_init();
+#endif
 
     input_init();
     input_shadow();

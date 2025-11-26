@@ -413,7 +413,7 @@ static void physmem_breakpoint_find(ptr36_t addr, len36_t size,
             continue;
         }
 
-        if (breakpoint->addr > addr + size) {
+        if (breakpoint->addr > addr + breakpoint->size) {
             continue;
         }
 

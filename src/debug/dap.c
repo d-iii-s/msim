@@ -19,7 +19,7 @@ static unsigned int cpuno_global = 0; // TODO: what is it?
 
 /** Internal buffer for incoming messages */
 static uint8_t message_buffer[64];
-static constexpr ssize_t message_buffer_len = sizeof(message_buffer);
+static const ssize_t message_buffer_len = sizeof(message_buffer);
 static ssize_t message_buffer_used = 0;
 
 typedef enum dap_command_type {

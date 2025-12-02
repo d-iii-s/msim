@@ -105,4 +105,4 @@ pygments_style = 'sphinx'
 htmlhelp_basename = 'msim'
 html_theme = 'sphinx_rtd_theme'
 html_sidebars = { '**': ['globaltoc.html', 'relations.html', 'sourcelink.html', 'searchbox.html'] }
-exclude_patterns = ['_build', 'venv-*', 'tests']
+exclude_patterns = ['_build', 'venv-*', 'tests', 'README.md']

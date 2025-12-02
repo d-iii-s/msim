@@ -164,7 +164,7 @@ static bool dap_receive_command(dap_command_t* out_cmd) {
     out_cmd->type = buffer[0];
 
     uint32_t netorder_addr;
-    memcpy(&netorder_addr,buffer + sizeof(out_cmd->type), sizeof(netorder_addr));
+    memcpy(&netorder_addr, buffer + sizeof(out_cmd->type), sizeof(netorder_addr));
     out_cmd->addr = ntohl(netorder_addr);
 
     return true;
@@ -206,20 +206,20 @@ static void dap_breakpoint_remove(const uint32_t addr) {
 
 void dap_process(void) {
     dap_command_t command = {0};
-    if (!dap_receive_command(&command)) {
-        return;
-    }
-    alert("DAP: Received command type %u", command.type);
-    machine_interactive = true;
 
-    switch (command.type) {
-        case NO_OP:
-            break;
-        case BREAKPOINT:
-            dap_breakpoint_add(command.addr);
-            break;
-        default:
-            alert("Unknown DAP command type %u.", command.type);
-            break;
+    while (dap_receive_command(&command)) {
+        alert("DAP: Received command type %u", command.type);
+        machine_interactive = true;
+
+        switch (command.type) {
+            case NO_OP:
+                break;
+            case BREAKPOINT:
+                dap_breakpoint_add(command.addr);
+                break;
+            default:
+                alert("Unknown DAP command type %u.", command.type);
+                break;
+        }
     }
 }

@@ -82,7 +82,7 @@ const char txt_help[] = "  -V, --version               display version info\n"
                         "  -i, --interactive           enter interactive mode\n"
                         "  -t, --trace                 enter trace mode\n"
                         "  -g, --remote-gdb=port       enter gdb mode\n"
-                        "  -d, --dap=port              enter DAP mode\n"
+                        "  -d, --dap[port]            enter DAP mode (default: 10505)\n"
                         "  -n, --non-deterministic     enable non-deterministic behaviour\n"
                         "  -X, --no-extra-instructions disable MSIM-specific instructions\n";
 

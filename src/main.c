@@ -66,8 +66,8 @@ bool remote_gdb_step = false;
 /** Enable DAP debugging */
 bool dap_enabled = false;
 
-/** TCP port for DAP listening socket */
-unsigned int dap_port = 5000;
+/** TCP port for DAP listening socket (default: 10505) */
+unsigned int dap_port = 10505;
 
 /** DAP connection indication */
 bool dap_connected = false;
@@ -142,7 +142,7 @@ static struct option long_options[] = {
             0,
             'g' },
     { "dap",
-            required_argument,
+            optional_argument,
             0,
             'd' },
     { "non-deterministic",
@@ -181,22 +181,24 @@ static void setup_remote_gdb(const char *opt)
  */
 static void setup_dap(const char *opt)
 {
-    alert("DAP debugging setup");
+    // Port override
+    if (opt != NULL) {
+        char *endp = NULL;
+        const long int port_no = strtol(opt, &endp, 0);
 
-    ASSERT(opt != NULL);
+        if (!endp) {
+            die(ERR_PARM, "Port number expected");
+        }
 
-    char *endp = NULL;
-    const long int port_no = strtol(opt, &endp, 0);
-    if (!endp) {
-        die(ERR_PARM, "Port number expected");
-    }
+        if ((port_no < 0) || (port_no > 65534)) {
+            die(ERR_PARM, "Invalid port number");
+        }
 
-    if ((port_no < 0) || (port_no > 65534)) {
-        die(ERR_PARM, "Invalid port number");
+        dap_port = port_no;
     }
 
     dap_enabled = true;
-    dap_port = port_no;
+    alert("DAP debugging enabled for this session.");
 }
 
 static bool parse_cmdline(int argc, char *args[])
@@ -206,7 +208,7 @@ static bool parse_cmdline(int argc, char *args[])
     while (true) {
         int option_index = 0;
 
-        int c = getopt_long(argc, args, "tVic:hg:d:nXI",
+        int c = getopt_long(argc, args, "tVic:hg:d::nXI",
                 long_options, &option_index);
 
         if (c == -1) {
@@ -298,8 +300,6 @@ static bool gdb_startup(void)
  */
 static bool dap_startup(void)
 {
-    alert("Starting DAP connection on port %u.", dap_port);
-
     if (get_cpu(0) == NULL) {
         error("Cannot debug without any processor");
         return false;

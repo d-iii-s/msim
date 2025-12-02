@@ -60,7 +60,7 @@ bool dap_init(void)
         return false;
     }
 
-    alert("DAP: Waiting for connection on port %u", dap_port);
+    alert("Listening for DAP connection on port %u.", dap_port);
 
     struct sockaddr_in sa_dap;
     socklen_t address_len = sizeof(sa_dap);
@@ -75,7 +75,7 @@ bool dap_init(void)
         return false;
     }
 
-    alert("DAP: Connected");
+    alert("DAP connected.");
     return true;
 }
 
@@ -91,7 +91,7 @@ void dap_close(void)
 
     connection_fd = -1;
     dap_connected = false;
-    alert("DAP connection closed");
+    alert("DAP connection closed.");
 }
 
 /** Receive bytes from DAP connection, non-blocking
@@ -214,7 +214,6 @@ void dap_process(void)
     dap_command_t command = { 0 };
 
     while (dap_receive_command(&command)) {
-        alert("DAP: Received command type %u", command.type);
         machine_interactive = true;
 
         switch (command.type) {

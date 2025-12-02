@@ -573,6 +573,7 @@ Enter.
 
 We can also do ``step 10`` to execute ten instructions at once.
 
+.. _entering-the-debugger:
 
 Entering the debugger
 ---------------------

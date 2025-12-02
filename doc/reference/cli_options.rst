@@ -60,6 +60,23 @@ The GDB mode is rather experimental.
 Syntax: ``-g|--remote-gdb[=]port_number``
 
 
+DAP mode ``-d``, ``--dap[port_number]``
+---------------------------------------
+
+Enter the DAP (debugger adapter protocol) mode which allows a DAP-enabled IDE to connect to the running
+MSIM for interactive debugging.
+
+The DAP mode is experimental and a work in progress.
+
+The port argument is the port number on which MSIM listens for incoming DAP connections.
+The current version of the debugging extension and adapter by default tries to connect to the default
+port `10505`.
+
+See the :doc:`detailed DAP documentation <./dap>` for more information.
+
+Syntax: ``-d|--dap[port_number]`` (do not put space nor `=` between the option and the port number)
+
+
 Help ``-h``, ``--help``
 -----------------------
 

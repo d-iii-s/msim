@@ -24,7 +24,7 @@ String constants are located in ``text.c``.
 
 Architecture dependent code is located in ``arch/`` directory.
 
-Debugging features, including work-in-progress GDB support can be found in the
+Debugging features, including work-in-progress GDB and DAP support can be found in the
 ``debug`` directory.
 
 The device interface is specified in ``device/device.h``.

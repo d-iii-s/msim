@@ -24,3 +24,4 @@ The purpose of this document is to provide a comprehensive reference manual for 
     riscv_special_csr
     riscv_tlb
     gdb
+    dap

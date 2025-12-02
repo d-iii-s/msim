@@ -327,7 +327,7 @@ bool breakpoint_check_for_code_breakpoints(void)
     while (dev_next(&dev, DEVICE_FILTER_RV_PROCESSOR)) {
         const rv_cpu_t *cpu = get_rv(dev);
 
-        ptr64_t addr;
+        ptr64_t addr = { 0 };
         addr.lo = cpu->pc;
         if (breakpoint_hit_by_address(cpu->bps, addr)) {
             hit = true;

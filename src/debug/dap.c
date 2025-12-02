@@ -176,19 +176,19 @@ static bool dap_receive_command(dap_command_t *out_cmd)
 /** Add a DAP breakpoint */
 static void dap_breakpoint_add(const uint32_t addr)
 {
-    alert("Adding DAP breakpoint at address 0x%x.", addr);
-
-    ptr64_t virt_address;
-    virt_address.ptr = UINT64_C(0xffffffff00000000) | addr;
+    ptr64_t virt_address = { 0 };
+    virt_address.lo = addr;
     rv_cpu_t *cpu = get_cpu(cpuno_global)->data;
 
-    const breakpoint_t *breakpoint = breakpoint_find_by_address(cpu->bps, virt_address, BREAKPOINT_FILTER_DEBUGGER);
+    // TODO: Register as DAP debugger breakpoint
+    const breakpoint_t *breakpoint = breakpoint_find_by_address(cpu->bps, virt_address, BREAKPOINT_FILTER_SIMULATOR);
     if (breakpoint != NULL) {
         return;
     }
 
-    breakpoint_t *inserted_breakpoint = breakpoint_init(virt_address, BREAKPOINT_KIND_DEBUGGER);
+    breakpoint_t *inserted_breakpoint = breakpoint_init(virt_address, BREAKPOINT_KIND_SIMULATOR);
     list_append(&cpu->bps, &inserted_breakpoint->item);
+    alert("Added DAP breakpoint at address 0x%x.", addr);
 }
 
 /** Remove a DAP breakpoint */
@@ -200,7 +200,7 @@ static void dap_breakpoint_remove(const uint32_t addr)
     virt_address.ptr = UINT64_C(0xffffffff00000000) | addr;
     r4k_cpu_t *cpu = get_cpu(cpuno_global)->data;
 
-    breakpoint_t *breakpoint = breakpoint_find_by_address(cpu->bps, virt_address, BREAKPOINT_FILTER_DEBUGGER);
+    breakpoint_t *breakpoint = breakpoint_find_by_address(cpu->bps, virt_address, BREAKPOINT_FILTER_SIMULATOR);
     if (breakpoint != NULL) {
         return;
     }

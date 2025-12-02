@@ -419,7 +419,9 @@ static void cleanup()
     if (dev != NULL) {
         free_device(dev);
     }
-    dap_close();
+    if (dap_enabled) {
+        dap_close();
+    }
     input_end();
 }
 

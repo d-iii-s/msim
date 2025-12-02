@@ -23,7 +23,8 @@ static ssize_t message_buffer_used = 0;
 
 typedef enum dap_command_type {
     NO_OP = 0,
-    BREAKPOINT = 1
+    BREAKPOINT = 1,
+    CONTINUE = 2,
 } dap_command_type_t;
 
 typedef struct __attribute__((__packed__)) dap_command {
@@ -90,7 +91,8 @@ void dap_close(void)
     }
 
     connection_fd = -1;
-    dap_connected = false;
+    dap_state = DAP_DONE;
+    machine_halt = true;
     alert("DAP connection closed.");
 }
 
@@ -138,7 +140,7 @@ static bool dap_receive_bytes(void *buf, const ssize_t len)
 
     // Closed
     if (received == 0) {
-        dap_close(); // TODO: ?
+        dap_close();
         return false;
     }
 
@@ -214,17 +216,18 @@ void dap_process(void)
     dap_command_t command = { 0 };
 
     while (dap_receive_command(&command)) {
-        machine_interactive = true;
-
         switch (command.type) {
         case NO_OP:
-            break;
+            continue;
         case BREAKPOINT:
             dap_breakpoint_add(command.addr);
-            break;
+            continue;
+        case CONTINUE:
+            dap_state = DAP_RUNNING;
+            continue;
         default:
             alert("Unknown DAP command type %u.", command.type);
-            break;
+            continue;
         }
     }
 }

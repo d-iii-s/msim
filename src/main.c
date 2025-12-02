@@ -69,8 +69,8 @@ bool dap_enabled = false;
 /** TCP port for DAP listening socket (default: 10505) */
 unsigned int dap_port = 10505;
 
-/** DAP connection indication */
-bool dap_connected = false;
+/** DAP state */
+dap_state_t dap_state = DAP_READY;
 
 /** Enable non-deterministic behaviour */
 bool machine_nondet = false;
@@ -298,15 +298,18 @@ static bool gdb_startup(void)
  *
  * @return True if the connection was opened.
  */
-static bool dap_startup(void)
+static void dap_startup(void)
 {
     if (get_cpu(0) == NULL) {
         error("Cannot debug without any processor");
-        return false;
+        return;
     }
 
-    dap_connected = dap_init();
-    return dap_connected;
+    if (dap_init()) {
+        dap_state = DAP_CONNECTED;
+    } else {
+        dap_state = DAP_DONE;
+    }
 }
 
 /** Run 4096 machine cycles
@@ -369,13 +372,18 @@ static void machine_run(void)
         // DAP
         if (dap_enabled) {
             // Startup DAP if enabled & not connected yet
-            if (!dap_connected) {
+            if (dap_state == DAP_READY) {
                 dap_startup();
             }
 
             // Process new DAP events
-            if (dap_connected) {
+            if (dap_state == DAP_CONNECTED) {
                 dap_process();
+            }
+
+            // TODO: avoid busy wait
+            if (dap_state != DAP_RUNNING && dap_state != DAP_DONE) {
+                continue;
             }
         }
 

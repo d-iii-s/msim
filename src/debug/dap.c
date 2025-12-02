@@ -5,14 +5,13 @@
 #include <sys/socket.h>
 #include <sys/types.h>
 
+#include "../assert.h"
 #include "../device/cpu/general_cpu.h"
 #include "../device/cpu/mips_r4000/cpu.h"
+#include "../device/cpu/riscv_rv32ima/cpu.h"
 #include "../fault.h"
 #include "../main.h"
 #include "dap.h"
-
-#include "../assert.h"
-#include "../device/cpu/riscv_rv32ima/cpu.h"
 
 static int connection_fd = -1;
 static unsigned int cpuno_global = 0; // TODO: what is it?
@@ -32,7 +31,8 @@ typedef struct __attribute__((__packed__)) dap_command {
     uint32_t addr;
 } dap_command_t;
 
-bool dap_init(void) {
+bool dap_init(void)
+{
     const int sock = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
     if (sock < 0) {
         io_error("dap_socket");
@@ -45,12 +45,12 @@ bool dap_init(void) {
         return false;
     }
 
-    struct sockaddr_in address = {0};
+    struct sockaddr_in address = { 0 };
     address.sin_family = AF_INET;
     address.sin_addr.s_addr = htonl(INADDR_ANY);
     address.sin_port = htons(dap_port);
 
-    if (bind(sock, (struct sockaddr*)&address, sizeof(address)) < 0) {
+    if (bind(sock, (struct sockaddr *) &address, sizeof(address)) < 0) {
         io_error("dap_bind");
         return false;
     }
@@ -64,7 +64,7 @@ bool dap_init(void) {
 
     struct sockaddr_in sa_dap;
     socklen_t address_len = sizeof(sa_dap);
-    connection_fd = accept(sock, (struct sockaddr*)&sa_dap, &address_len);
+    connection_fd = accept(sock, (struct sockaddr *) &sa_dap, &address_len);
     if (connection_fd < 0) {
         if (errno == EINTR) {
             alert("DAP: Interrupted");
@@ -79,7 +79,8 @@ bool dap_init(void) {
     return true;
 }
 
-void dap_close(void) {
+void dap_close(void)
+{
     if (connection_fd == -1) {
         io_error("dap_already_closed");
     }
@@ -103,9 +104,10 @@ void dap_close(void) {
  * @param len Total number of bytes to receive.
  * @return True if successful.
  */
-static bool dap_receive_bytes(void* buf, const ssize_t len) {
+static bool dap_receive_bytes(void *buf, const ssize_t len)
+{
     const ssize_t need_bytes = len - message_buffer_used;
-    uint8_t* write_buffer = message_buffer + message_buffer_used;
+    uint8_t *write_buffer = message_buffer + message_buffer_used;
     ASSERT(need_bytes <= message_buffer_len);
     ASSERT(len <= message_buffer_len);
     ASSERT(need_bytes > 0);
@@ -155,8 +157,9 @@ static bool dap_receive_bytes(void* buf, const ssize_t len) {
  * @param out_cmd Pointer to output command structure.
  * @return True if successful.
  */
-static bool dap_receive_command(dap_command_t* out_cmd) {
-    uint8_t buffer[sizeof(dap_command_t)] = {0};
+static bool dap_receive_command(dap_command_t *out_cmd)
+{
+    uint8_t buffer[sizeof(dap_command_t)] = { 0 };
     if (!dap_receive_bytes(buffer, sizeof(dap_command_t))) {
         return false;
     }
@@ -171,31 +174,33 @@ static bool dap_receive_command(dap_command_t* out_cmd) {
 }
 
 /** Add a DAP breakpoint */
-static void dap_breakpoint_add(const uint32_t addr) {
+static void dap_breakpoint_add(const uint32_t addr)
+{
     alert("Adding DAP breakpoint at address 0x%x.", addr);
 
     ptr64_t virt_address;
     virt_address.ptr = UINT64_C(0xffffffff00000000) | addr;
-    rv_cpu_t* cpu = get_cpu(cpuno_global)->data;
+    rv_cpu_t *cpu = get_cpu(cpuno_global)->data;
 
-    const breakpoint_t* breakpoint = breakpoint_find_by_address(cpu->bps, virt_address, BREAKPOINT_FILTER_DEBUGGER);
+    const breakpoint_t *breakpoint = breakpoint_find_by_address(cpu->bps, virt_address, BREAKPOINT_FILTER_DEBUGGER);
     if (breakpoint != NULL) {
         return;
     }
 
-    breakpoint_t* inserted_breakpoint = breakpoint_init(virt_address, BREAKPOINT_KIND_DEBUGGER);
+    breakpoint_t *inserted_breakpoint = breakpoint_init(virt_address, BREAKPOINT_KIND_DEBUGGER);
     list_append(&cpu->bps, &inserted_breakpoint->item);
 }
 
 /** Remove a DAP breakpoint */
-static void dap_breakpoint_remove(const uint32_t addr) {
+static void dap_breakpoint_remove(const uint32_t addr)
+{
     alert("Removing DAP breakpoint from address 0x%x.", addr);
 
     ptr64_t virt_address;
     virt_address.ptr = UINT64_C(0xffffffff00000000) | addr;
-    r4k_cpu_t* cpu = get_cpu(cpuno_global)->data;
+    r4k_cpu_t *cpu = get_cpu(cpuno_global)->data;
 
-    breakpoint_t* breakpoint = breakpoint_find_by_address(cpu->bps, virt_address, BREAKPOINT_FILTER_DEBUGGER);
+    breakpoint_t *breakpoint = breakpoint_find_by_address(cpu->bps, virt_address, BREAKPOINT_FILTER_DEBUGGER);
     if (breakpoint != NULL) {
         return;
     }
@@ -204,22 +209,23 @@ static void dap_breakpoint_remove(const uint32_t addr) {
     safe_free(breakpoint)
 }
 
-void dap_process(void) {
-    dap_command_t command = {0};
+void dap_process(void)
+{
+    dap_command_t command = { 0 };
 
     while (dap_receive_command(&command)) {
         alert("DAP: Received command type %u", command.type);
         machine_interactive = true;
 
         switch (command.type) {
-            case NO_OP:
-                break;
-            case BREAKPOINT:
-                dap_breakpoint_add(command.addr);
-                break;
-            default:
-                alert("Unknown DAP command type %u.", command.type);
-                break;
+        case NO_OP:
+            break;
+        case BREAKPOINT:
+            dap_breakpoint_add(command.addr);
+            break;
+        default:
+            alert("Unknown DAP command type %u.", command.type);
+            break;
         }
     }
 }

@@ -320,7 +320,9 @@ bool breakpoint_check_for_code_breakpoints(void)
         }
     }
 
-    if (hit) { return hit; }
+    if (hit) {
+        return hit;
+    }
 
     while (dev_next(&dev, DEVICE_FILTER_RV_PROCESSOR)) {
         const rv_cpu_t *cpu = get_rv(dev);

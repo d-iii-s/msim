@@ -22,6 +22,7 @@
 #include "assert.h"
 #include "cmd.h"
 #include "debug/breakpoint.h"
+#include "debug/dap.h"
 #include "debug/gdb.h"
 #include "device/cpu/general_cpu.h"
 #include "device/cpu/mips_r4000/cpu.h"
@@ -61,6 +62,15 @@ bool remote_gdb_listen = false;
 
 /** Remote GDB stepping */
 bool remote_gdb_step = false;
+
+/** Enable DAP debugging */
+bool dap_enabled = false;
+
+/** TCP port for DAP listening socket (default: 10505) */
+unsigned int dap_port = 10505;
+
+/** DAP state */
+dap_state_t dap_state = DAP_READY;
 
 /** Enable non-deterministic behaviour */
 bool machine_nondet = false;
@@ -131,6 +141,10 @@ static struct option long_options[] = {
             required_argument,
             0,
             'g' },
+    { "dap",
+            optional_argument,
+            0,
+            'd' },
     { "non-deterministic",
             no_argument,
             0,
@@ -162,6 +176,31 @@ static void setup_remote_gdb(const char *opt)
     remote_gdb_port = port_no;
 }
 
+/** Setup DAP debugging
+ *
+ */
+static void setup_dap(const char *opt)
+{
+    // Port override
+    if (opt != NULL) {
+        char *endp = NULL;
+        const long int port_no = strtol(opt, &endp, 0);
+
+        if (!endp) {
+            die(ERR_PARM, "Port number expected");
+        }
+
+        if ((port_no < 0) || (port_no > 65534)) {
+            die(ERR_PARM, "Invalid port number");
+        }
+
+        dap_port = port_no;
+    }
+
+    dap_enabled = true;
+    alert("DAP debugging enabled for this session.");
+}
+
 static bool parse_cmdline(int argc, char *args[])
 {
     opterr = 0;
@@ -169,7 +208,7 @@ static bool parse_cmdline(int argc, char *args[])
     while (true) {
         int option_index = 0;
 
-        int c = getopt_long(argc, args, "tVic:hg:nXI",
+        int c = getopt_long(argc, args, "tVic:hg:d::nXI",
                 long_options, &option_index);
 
         if (c == -1) {
@@ -201,6 +240,9 @@ static bool parse_cmdline(int argc, char *args[])
             return false;
         case 'g':
             setup_remote_gdb(optarg);
+            break;
+        case 'd':
+            setup_dap(optarg);
             break;
         case 'n':
             machine_nondet = true;
@@ -250,6 +292,24 @@ static bool gdb_startup(void)
     remote_gdb = remote_gdb_conn;
 
     return true;
+}
+
+/** Try to startup DAP connection.
+ *
+ * @return True if the connection was opened.
+ */
+static void dap_startup(void)
+{
+    if (get_cpu(0) == NULL) {
+        error("Cannot debug without any processor");
+        return;
+    }
+
+    if (dap_init()) {
+        dap_state = DAP_CONNECTED;
+    } else {
+        dap_state = DAP_DONE;
+    }
 }
 
 /** Run 4096 machine cycles
@@ -309,6 +369,24 @@ static void machine_run(void)
             gdb_session();
         }
 
+        // DAP
+        if (dap_enabled) {
+            // Startup DAP if enabled & not connected yet
+            if (dap_state == DAP_READY) {
+                dap_startup();
+            }
+
+            // Process new DAP events
+            if (dap_state == DAP_CONNECTED) {
+                dap_process();
+            }
+
+            // TODO: avoid busy wait
+            if (dap_state != DAP_RUNNING && dap_state != DAP_DONE) {
+                continue;
+            }
+        }
+
         /* Stepping check */
         if (stepping > 0) {
             stepping--;
@@ -348,6 +426,9 @@ static void cleanup()
 
     if (dev != NULL) {
         free_device(dev);
+    }
+    if (dap_enabled) {
+        dap_close();
     }
     input_end();
 }

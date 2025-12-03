@@ -17,6 +17,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 * Missing documentation for `dlcd` (see #92, @rosenbergm)
 * Installation notes for Arch (see #92, , @rosenbergm)
+* Basic DAP debugging support (@0xVector)
 
 ### Changed
 

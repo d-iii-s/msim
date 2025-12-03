@@ -35,8 +35,10 @@
 #include "../assert.h"
 #include "../device/cpu/general_cpu.h"
 #include "../device/cpu/mips_r4000/cpu.h"
+#include "../device/cpu/riscv_rv32ima/cpu.h"
 #include "../device/device.h"
 #include "../device/dr4kcpu.h"
+#include "../device/drvcpu.h"
 #include "../fault.h"
 #include "../main.h"
 #include "../utils.h"
@@ -307,7 +309,6 @@ breakpoint_t *breakpoint_find_by_address(list_t breakpoints,
  */
 bool breakpoint_check_for_code_breakpoints(void)
 {
-    // TODO: add RV support
     bool hit = false;
     device_t *dev = NULL;
 
@@ -315,6 +316,20 @@ bool breakpoint_check_for_code_breakpoints(void)
         r4k_cpu_t *cpu = get_r4k(dev);
 
         if (breakpoint_hit_by_address(cpu->bps, cpu->pc)) {
+            hit = true;
+        }
+    }
+
+    if (hit) {
+        return hit;
+    }
+
+    while (dev_next(&dev, DEVICE_FILTER_RV_PROCESSOR)) {
+        const rv_cpu_t *cpu = get_rv(dev);
+
+        ptr64_t addr = { 0 };
+        addr.lo = cpu->pc;
+        if (breakpoint_hit_by_address(cpu->bps, addr)) {
             hit = true;
         }
     }

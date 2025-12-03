@@ -13,6 +13,7 @@
 #include <stdint.h>
 
 #include "../config.h"
+#include "debug/dap.h"
 #include "list.h"
 
 #define MAX_CPUS 32
@@ -66,6 +67,11 @@ extern unsigned int remote_gdb_port;
 extern bool remote_gdb_conn;
 extern bool remote_gdb_listen;
 extern bool remote_gdb_step;
+
+// DAP debugging
+extern bool dap_enabled;
+extern unsigned int dap_port;
+extern dap_state_t dap_state;
 
 /** General simulator behaviour */
 extern bool machine_nondet;

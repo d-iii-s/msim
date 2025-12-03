@@ -11,6 +11,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+### Added
+
+### Changed
+
+### Deprecated
+
+### Removed
+
+
+## v3.1.0 - 2025-12-03
+
+### Fixed
+
 * Use proper breakpoint size (see #96, @ceresek)
 
 ### Added
@@ -18,12 +31,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 * Missing documentation for `dlcd` (see #92, @rosenbergm)
 * Installation notes for Arch (see #92, @rosenbergm)
 * Basic DAP debugging support (see #99, @0xVector)
-
-### Changed
-
-### Deprecated
-
-### Removed
 
 
 ## v3.0.1 - 2025-10-09

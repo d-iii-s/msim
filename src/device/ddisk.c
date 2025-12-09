@@ -71,6 +71,7 @@ typedef struct {
 
     /* Configuration */
     unsigned int intno; /**< Interrupt number */
+    unsigned int cpuid; /**< ID of the CPU that will receive interrupts */
     enum disk_type_e disk_type; /**< Disk type: none, memory, file-mapped */
     ptr36_t addr; /**< Disk memory location */
     uint64_t size; /**< Disk size */
@@ -135,6 +136,7 @@ static bool ddisk_init(token_t *parm, device_t *dev)
     parm_next(&parm);
     uint64_t _addr = parm_uint_next(&parm);
     uint64_t _intno = parm_uint_next(&parm);
+    const char *cpu_device_name = parm_str_next(&parm);
 
     if (!phys_range(_addr)) {
         error("Physical memory address out of range");
@@ -159,6 +161,24 @@ static bool ddisk_init(token_t *parm, device_t *dev)
         return false;
     }
 
+    unsigned int cpuid;
+
+    device_t *cpu_dev = dev_by_name(cpu_device_name);
+
+    if (cpu_dev == NULL) {
+        error("A device named %s does not exist.", cpu_device_name);
+        return false;
+    }
+
+    if (!strcmp(cpu_dev->type->name, "dr4kcpu") || !strcmp(cpu_dev->type->name, "drvcpu") || !strcmp(cpu_dev->type->name, "drv64cpu")) {
+        general_cpu_t *cpu = (general_cpu_t *) cpu_dev->data;
+
+        cpuid = cpu->cpuno;
+    } else {
+        error("The device %s is not a CPU, it is a device of type %s.", cpu_dev->name, cpu_dev->type->name);
+        return false;
+    }
+
     /* Allocate structure */
     disk_data_s *data = safe_malloc_t(disk_data_s);
     dev->data = data;
@@ -166,6 +186,7 @@ static bool ddisk_init(token_t *parm, device_t *dev)
     /* Basic structure inicialization */
     data->addr = addr;
     data->intno = _intno;
+    data->cpuid = cpuid;
     data->size = 0;
     data->disk_ptr = 0;
     data->disk_secno = 0;
@@ -741,7 +762,8 @@ cmd_t ddisk_cmds[] = {
             "Initialization",
             REQ STR "name/disk name" NEXT
                     REQ INT "addr/register block address" NEXT
-                            REQ INT "intno/interrupt number within 0..6" END },
+                            REQ INT "intno/interrupt number within 0..6" NEXT
+                                    REQ STR "cpuname/name of the cpu device" END },
     { "help",
             (fcmd_t) dev_generic_help,
             DEFAULT,

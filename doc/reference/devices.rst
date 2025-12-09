@@ -634,6 +634,8 @@ Initialization parameters: ``address`` ``intno``
    Physical address of the hard disk register.
 ``intno``
    DMA Interrupt number.
+``cpuname``
+   Name of the CPU device to which interrupts will be sent.
 
 Registers
 ^^^^^^^^^

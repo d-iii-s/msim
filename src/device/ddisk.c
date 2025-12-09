@@ -652,14 +652,14 @@ static void ddisk_write32(unsigned int procno, device_t *dev, ptr36_t addr,
         if (data->disk_command & COMMAND_INT_ACK) {
             data->disk_status &= ~STATUS_INT;
             data->ig = false;
-            cpu_interrupt_down(NULL, data->intno);
+            cpu_interrupt_down(get_cpu(data->cpuid), data->intno);
         }
 
         /* Check general errors */
         if ((data->disk_command & COMMAND_READ) && (data->disk_command & COMMAND_WRITE)) {
             /* Simultaneous read/write command */
             data->disk_status = STATUS_INT | STATUS_ERROR;
-            cpu_interrupt_up(NULL, data->intno);
+            cpu_interrupt_up(get_cpu(data->cpuid), data->intno);
             data->ig = true;
             data->intrcount++;
             data->cmds_error++;
@@ -669,7 +669,7 @@ static void ddisk_write32(unsigned int procno, device_t *dev, ptr36_t addr,
         if ((data->disk_command & (COMMAND_READ | COMMAND_WRITE)) && (data->action != ACTION_NONE)) {
             /* Command in progress */
             data->disk_status = STATUS_INT | STATUS_ERROR;
-            cpu_interrupt_up(NULL, data->intno);
+            cpu_interrupt_up(get_cpu(data->cpuid), data->intno);
             data->ig = true;
             data->intrcount++;
             data->cmds_error++;
@@ -680,7 +680,7 @@ static void ddisk_write32(unsigned int procno, device_t *dev, ptr36_t addr,
         if (((uint64_t) data->disk_secno + 1) * 512 > data->size) {
             /* Generate interrupt to indicate error */
             data->disk_status = STATUS_INT | STATUS_ERROR;
-            cpu_interrupt_up(NULL, data->intno);
+            cpu_interrupt_up(get_cpu(data->cpuid), data->intno);
             data->ig = true;
             data->intrcount++;
             data->cmds_error++;
@@ -747,7 +747,7 @@ static void ddisk_step(device_t *dev)
     if (data->cnt == 128) {
         data->action = ACTION_NONE;
         data->disk_status = STATUS_INT;
-        cpu_interrupt_up(NULL, data->intno);
+        cpu_interrupt_up(get_cpu(data->cpuid), data->intno);
         data->ig = true;
         data->intrcount++;
     }

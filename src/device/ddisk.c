@@ -48,7 +48,8 @@ enum action_e {
 /** \{ \name Status flags */
 #define STATUS_INT 0x04 /**< Interrupt pending */
 #define STATUS_ERROR 0x08 /**< Command error */
-#define STATUS_MASK 0x0c /**< Status mask */
+#define STATUS_BUSY (1 << 4) /**< Busy bit */
+#define STATUS_MASK 0x1c /**< Status mask */
 /* \} */
 
 /** \{ \name Command flags */
@@ -72,6 +73,7 @@ typedef struct {
     /* Configuration */
     unsigned int intno; /**< Interrupt number */
     unsigned int cpuid; /**< ID of the CPU that will receive interrupts */
+    bool uses_busy_bit; /**< Determines if the device should use busy bit or interrupts */
     enum disk_type_e disk_type; /**< Disk type: none, memory, file-mapped */
     ptr36_t addr; /**< Disk memory location */
     uint64_t size; /**< Disk size */
@@ -135,8 +137,6 @@ static bool ddisk_init(token_t *parm, device_t *dev)
 {
     parm_next(&parm);
     uint64_t _addr = parm_uint_next(&parm);
-    uint64_t _intno = parm_uint_next(&parm);
-    const char *cpu_device_name = parm_str_next(&parm);
 
     if (!phys_range(_addr)) {
         error("Physical memory address out of range");
@@ -156,27 +156,43 @@ static bool ddisk_init(token_t *parm, device_t *dev)
         return false;
     }
 
-    if (_intno > MAX_INTRS) {
-        error("%s", txt_intnum_range);
-        return false;
-    }
+    bool uses_busy_bit = true;
+    uint64_t intno = 0;
+    uint64_t cpuid = 0;
 
-    unsigned int cpuid;
+    // Check if interrupt mode is requested (both intno and cpuname provided)
+    if (parm_type(parm) == tt_uint) {
+        uint64_t _intno = parm_uint_next(&parm);
 
-    device_t *cpu_dev = dev_by_name(cpu_device_name);
+        if (_intno > MAX_INTRS) {
+            error("%s", txt_intnum_range);
+            return false;
+        }
 
-    if (cpu_dev == NULL) {
-        error("A device named %s does not exist.", cpu_device_name);
-        return false;
-    }
+        if (parm_type(parm) == tt_str) {
+            const char *cpu_device_name = parm_str_next(&parm);
+            device_t *cpu_dev = dev_by_name(cpu_device_name);
 
-    if (!strcmp(cpu_dev->type->name, "dr4kcpu") || !strcmp(cpu_dev->type->name, "drvcpu") || !strcmp(cpu_dev->type->name, "drv64cpu")) {
-        general_cpu_t *cpu = (general_cpu_t *) cpu_dev->data;
+            if (cpu_dev == NULL) {
+                error("A device named %s does not exist.", cpu_device_name);
+                return false;
+            }
 
-        cpuid = cpu->cpuno;
-    } else {
-        error("The device %s is not a CPU, it is a device of type %s.", cpu_dev->name, cpu_dev->type->name);
-        return false;
+            if (!strcmp(cpu_dev->type->name, "dr4kcpu") || !strcmp(cpu_dev->type->name, "drvcpu") || !strcmp(cpu_dev->type->name, "drv64cpu")) {
+                general_cpu_t *cpu = (general_cpu_t *) cpu_dev->data;
+
+                intno = _intno;
+                cpuid = cpu->cpuno;
+                uses_busy_bit = false; // Interrupt mode enabled
+            } else {
+                error("The device %s is not a CPU, it is a device of type %s.",
+                        cpu_dev->name, cpu_dev->type->name);
+                return false;
+            }
+        } else {
+            error("Expected string for CPU device name when interrupt number is provided.");
+            return false;
+        }
     }
 
     /* Allocate structure */
@@ -185,7 +201,8 @@ static bool ddisk_init(token_t *parm, device_t *dev)
 
     /* Basic structure inicialization */
     data->addr = addr;
-    data->intno = _intno;
+    data->intno = intno;
+    data->uses_busy_bit = uses_busy_bit;
     data->cpuid = cpuid;
     data->size = 0;
     data->disk_ptr = 0;
@@ -652,26 +669,34 @@ static void ddisk_write32(unsigned int procno, device_t *dev, ptr36_t addr,
         if (data->disk_command & COMMAND_INT_ACK) {
             data->disk_status &= ~STATUS_INT;
             data->ig = false;
-            cpu_interrupt_down(get_cpu(data->cpuid), data->intno);
+            if (!data->uses_busy_bit) {
+                cpu_interrupt_down(get_cpu(data->cpuid), data->intno);
+            }
         }
 
         /* Check general errors */
         if ((data->disk_command & COMMAND_READ) && (data->disk_command & COMMAND_WRITE)) {
             /* Simultaneous read/write command */
-            data->disk_status = STATUS_INT | STATUS_ERROR;
-            cpu_interrupt_up(get_cpu(data->cpuid), data->intno);
-            data->ig = true;
-            data->intrcount++;
+            data->disk_status = STATUS_ERROR;
+            if (!data->uses_busy_bit) {
+                data->disk_status |= STATUS_INT;
+                cpu_interrupt_up(get_cpu(data->cpuid), data->intno);
+                data->ig = true;
+                data->intrcount++;
+            }
             data->cmds_error++;
             return;
         }
 
         if ((data->disk_command & (COMMAND_READ | COMMAND_WRITE)) && (data->action != ACTION_NONE)) {
             /* Command in progress */
-            data->disk_status = STATUS_INT | STATUS_ERROR;
-            cpu_interrupt_up(get_cpu(data->cpuid), data->intno);
-            data->ig = true;
-            data->intrcount++;
+            data->disk_status = STATUS_ERROR;
+            if (!data->uses_busy_bit) {
+                data->disk_status |= STATUS_INT;
+                cpu_interrupt_up(get_cpu(data->cpuid), data->intno);
+                data->ig = true;
+                data->intrcount++;
+            }
             data->cmds_error++;
             return;
         }
@@ -679,10 +704,13 @@ static void ddisk_write32(unsigned int procno, device_t *dev, ptr36_t addr,
         /* Check bound */
         if (((uint64_t) data->disk_secno + 1) * 512 > data->size) {
             /* Generate interrupt to indicate error */
-            data->disk_status = STATUS_INT | STATUS_ERROR;
-            cpu_interrupt_up(get_cpu(data->cpuid), data->intno);
-            data->ig = true;
-            data->intrcount++;
+            data->disk_status = STATUS_ERROR;
+            if (!data->uses_busy_bit) {
+                data->disk_status |= STATUS_INT;
+                cpu_interrupt_up(get_cpu(data->cpuid), data->intno);
+                data->ig = true;
+                data->intrcount++;
+            }
             data->cmds_error++;
             return;
         }
@@ -693,6 +721,7 @@ static void ddisk_write32(unsigned int procno, device_t *dev, ptr36_t addr,
             data->action = ACTION_READ;
             data->cnt = 0;
             data->secno = data->disk_secno;
+            data->disk_status |= STATUS_BUSY;
             data->cmds_read++;
         }
 
@@ -702,6 +731,7 @@ static void ddisk_write32(unsigned int procno, device_t *dev, ptr36_t addr,
             data->action = ACTION_WRITE;
             data->cnt = 0;
             data->secno = data->disk_secno;
+            data->disk_status |= STATUS_BUSY;
             data->cmds_write++;
         }
 
@@ -746,10 +776,14 @@ static void ddisk_step(device_t *dev)
 
     if (data->cnt == 128) {
         data->action = ACTION_NONE;
-        data->disk_status = STATUS_INT;
-        cpu_interrupt_up(get_cpu(data->cpuid), data->intno);
-        data->ig = true;
-        data->intrcount++;
+        data->disk_status &= ~STATUS_BUSY;
+
+        if (!data->uses_busy_bit) {
+            data->disk_status |= STATUS_INT;
+            cpu_interrupt_up(get_cpu(data->cpuid), data->intno);
+            data->ig = true;
+            data->intrcount++;
+        }
     }
 }
 
@@ -762,8 +796,8 @@ cmd_t ddisk_cmds[] = {
             "Initialization",
             REQ STR "name/disk name" NEXT
                     REQ INT "addr/register block address" NEXT
-                            REQ INT "intno/interrupt number within 0..6" NEXT
-                                    REQ STR "cpuname/name of the cpu device" END },
+                            OPT INT "intno/interrupt number within 0..6" NEXT
+                                    OPT STR "cpuname/name of the cpu device" END },
     { "help",
             (fcmd_t) dev_generic_help,
             DEFAULT,

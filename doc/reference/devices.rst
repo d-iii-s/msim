@@ -663,12 +663,15 @@ Registers
     Get a bitfield representing the current status of the device:
 
     .. csv-table::
-        :header: 31 30 29 28 27 26 25 24 23 22 21 20 19 18 17 16 15 14 13 12 11 10 9 8 7 6 5 4,3,2,1 0
+        :header: 31 30 29 28 27 26 25 24 23 22 21 20 19 18 17 16 15 14 13 12 11 10 9 8 7 6 5,4,3,2,1 0
 
-        r1,e,i,r0
+        r1,b,e,i,r0
 
     ``r0``, ``r1``
         (reserved)
+    ``b``
+        0: the device is not busy
+        1: the device is busy
     ``e``
         0: no error
         1: the previous operation caused an error

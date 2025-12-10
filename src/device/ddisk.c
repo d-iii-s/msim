@@ -235,6 +235,8 @@ static bool ddisk_info(token_t *parm, device_t *dev)
     disk_data_s *data = (disk_data_s *) dev->data;
     const char *stype;
     char *size = uint64_human_readable(data->size);
+    char intno_str[16];
+    sprintf(intno_str, "%u", data->intno);
 
     switch (data->disk_type) {
     case DISKT_NONE:
@@ -250,10 +252,11 @@ static bool ddisk_info(token_t *parm, device_t *dev)
         stype = "*";
     }
 
-    printf("[address  ] [int] [size      ] [type] [pointer] [sector] "
+    printf("[address  ] [int] [size      ] [type] [pointer  ] [sector] "
            "[status] [command] [ig]\n"
-           "%#011" PRIx64 " %-5u %12s %7s %#011" PRIx64 " %8u %8u %9u %u\n",
-            data->addr, data->intno, size, stype, data->disk_ptr, data->disk_secno,
+           "%#011" PRIx64 " %5s %12s %6s %#011" PRIx64 " %8u %8u %9u %4u\n",
+            data->addr, data->uses_busy_bit ? "-" : intno_str, size,
+            stype, data->disk_ptr, data->disk_secno,
             data->disk_status, data->disk_command, data->ig);
 
     safe_free(size);
@@ -274,9 +277,9 @@ static bool ddisk_stat(token_t *parm, device_t *dev)
 
     printf("[interrupts        ] [commands          ]\n");
     printf("[reads             ] [writes            ] [errors            ]\n");
-    printf(" %20" PRIu64 " %20" PRIu64 "\n",
+    printf("%20" PRIu64 " %20" PRIu64 "\n",
             data->intrcount, data->cmds_read + data->cmds_write + data->cmds_error);
-    printf("%20" PRIu64 "%20" PRIu64 " %20" PRIu64 "\n",
+    printf("%20" PRIu64 " %20" PRIu64 " %20" PRIu64 "\n",
             data->cmds_read, data->cmds_write, data->cmds_error);
 
     return true;

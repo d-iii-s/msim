@@ -9,19 +9,26 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## Unreleased
 
-* Deliver `ddisk` interrupts to any CPU (see #100, @rosenbergm)
-
 ### Fixed
 
 ### Added
-
-* Allow polling of `ddisk` device (see #100, @rosenbergm)
 
 ### Changed
 
 ### Deprecated
 
 ### Removed
+
+
+## v3.2.0 - 2025-12-10
+
+### Fixed
+
+* Deliver `ddisk` interrupts to any CPU (see #100, @rosenbergm)
+
+### Added
+
+* Allow polling of `ddisk` device (see #100, @rosenbergm)
 
 
 ## v3.1.0 - 2025-12-03

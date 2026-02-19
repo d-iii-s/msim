@@ -6,7 +6,8 @@
 #include <main.h>
 
 /** Halt the execution of the simulator */
-static inline void halt(void) {
+static inline void halt(void)
+{
     __asm__ volatile(".word 0x8C000073");
 }
 
@@ -19,7 +20,8 @@ static inline void halt(void) {
  * When the code is compiled to run kernel test, we execute only
  * that test and terminate.
  */
-void kernel_main(void) {
+void kernel_main(void)
+{
 #ifdef KERNEL_TEST
     kernel_test();
 #else

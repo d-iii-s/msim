@@ -4,8 +4,8 @@
 #ifndef _DEBUG_H
 #define _DEBUG_H
 
-#include <drivers/machine.h>
 #include <common.h>
+#include <drivers/machine.h>
 
 /* Helper macros. */
 #define QUOTE_ME_(x) #x

@@ -59,7 +59,7 @@ const device_type_t *device_types[DEVICE_TYPE_COUNT] = {
     &dnomem,
     &ddisk,
     &dtime,
-    &dlcd
+    &dlcd,
     &dnetcard
 };
 

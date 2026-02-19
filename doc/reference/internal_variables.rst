@@ -9,6 +9,8 @@ Following internal variables are available:
 
 ``trace``
    Enable trace mode
+``verbose``
+   Enable verbose mode for devices e.g. dnetcard
 ``iaddr``
    Enable addresses in disassembler
 ``iopc``

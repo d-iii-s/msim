@@ -1,6 +1,6 @@
 #include "common.h"
 
-void* memset(void* buf, char c, size_t n)
+void *memset(void *buf, char c, size_t n)
 {
     uint8_t *p = (uint8_t *) buf;
     while (n--) {
@@ -9,7 +9,8 @@ void* memset(void* buf, char c, size_t n)
     return buf;
 }
 
-void *memcpy(void *dst, const void *src, size_t n) {
+void *memcpy(void *dst, const void *src, size_t n)
+{
     uint8_t *d = (uint8_t *) dst;
     const uint8_t *s = (const uint8_t *) src;
     while (n--) {
@@ -18,7 +19,8 @@ void *memcpy(void *dst, const void *src, size_t n) {
     return dst;
 }
 
-char *strcpy(char *dst, const char *src) {
+char *strcpy(char *dst, const char *src)
+{
     char *d = dst;
     while (*src) {
         *d++ = *src++;
@@ -42,7 +44,7 @@ int strcmp(const char *s1, const char *s2)
 
 void putchar(char ch)
 {
-    volatile char *printer = (volatile char *)(0x90000000);
+    volatile char *printer = (volatile char *) (0x90000000);
     *printer = ch;
 }
 
@@ -108,7 +110,7 @@ end:
     va_end(vargs);
 }
 
-void puts(const char * str)
+void puts(const char *str)
 {
     while (*str) {
         putchar(*str);

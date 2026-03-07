@@ -38,17 +38,25 @@
 /** This is necessary evil... */
 #include "drvcpu.h"
 #undef XLEN
+#if BUILD_RV64
 #include "drv64cpu.h"
 #undef XLEN
+#endif
 
 /** Count of device types */
+#if BUILD_RV64
 #define DEVICE_TYPE_COUNT 13
+#else
+#define DEVICE_TYPE_COUNT 12
+#endif
 
 /* Implemented peripheral list */
 const device_type_t *device_types[DEVICE_TYPE_COUNT] = {
     &dr4kcpu,
     &drvcpu,
+#if BUILD_RV64
     &drv64cpu,
+#endif
     &dcycle,
     &drwm,
     &drom,

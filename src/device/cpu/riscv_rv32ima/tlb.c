@@ -278,7 +278,7 @@ extern void rv32_tlb_dump(rv32_tlb_t *tlb)
     string_t s_text;
     string_init(&s_text);
 
-    printf("TLB    size: %ld entries\n", tlb->size);
+    printf("TLB    size: %zu entries\n", tlb->size);
     printf("%8s: %10s => %-11s [ %s ]\n", "index", "virt", "phys", "info");
 
     bool printed = false;
@@ -292,7 +292,7 @@ extern void rv32_tlb_dump(rv32_tlb_t *tlb)
 
         string_clear(&s_text);
         dump_tlb_entry(*entry, &s_text);
-        printf("%8ld: %s\n", i, s_text.str);
+        printf("%8zu: %s\n", i, s_text.str);
 
         ++i;
     }

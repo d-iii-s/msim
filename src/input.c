@@ -160,6 +160,9 @@ void interactive_control(void)
             /* User break in readline */
             printf("\n");
             alert("Quit");
+            if (dap_enabled) {
+                dap_close();
+            }
             input_back();
             free(cmdline);
             exit(ERR_OK);

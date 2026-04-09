@@ -70,7 +70,7 @@ bool dap_enabled = false;
 unsigned int dap_port = 10505;
 
 /** DAP state */
-dap_state_t dap_state = DAP_READY;
+dap_state_t dap_state = DAP_INIT;
 
 /** Enable non-deterministic behaviour */
 bool machine_nondet = false;
@@ -296,20 +296,17 @@ static bool gdb_startup(void)
 
 /** Try to startup DAP connection.
  *
- * @return True if the connection was opened.
+ * The dap state upon return will be either DAP_CONNECTED if the connection was successful, DAP_DONE otherwise.
  */
 static void dap_startup(void)
 {
     if (get_cpu(0) == NULL) {
         error("Cannot debug without any processor");
+        dap_state = DAP_DONE;
         return;
     }
 
-    if (dap_init()) {
-        dap_state = DAP_CONNECTED;
-    } else {
-        dap_state = DAP_DONE;
-    }
+    dap_state = dap_init() ? DAP_PAUSED : DAP_DONE;
 }
 
 /** Run 4096 machine cycles
@@ -371,19 +368,13 @@ static void machine_run(void)
 
         // DAP
         if (dap_enabled) {
-            // Startup DAP if enabled & not connected yet
-            if (dap_state == DAP_READY) {
-                dap_startup();
-            }
-
             // Process new DAP events
-            if (dap_state == DAP_CONNECTED) {
+            if (dap_state != DAP_DONE) {
                 dap_process();
             }
 
-            // TODO: avoid busy wait
-            if (dap_state != DAP_RUNNING && dap_state != DAP_DONE) {
-                continue;
+            if (dap_state == DAP_DONE) {
+                machine_halt = true;
             }
         }
 
@@ -460,6 +451,11 @@ int main(int argc, char *args[])
     if (machine_interactive) {
         alert("MSIM %s", PACKAGE_VERSION);
         alert("Entering interactive mode, type `help' for help.");
+    }
+
+    if (dap_enabled) {
+        // Startup DAP
+        dap_startup();
     }
 
     /*

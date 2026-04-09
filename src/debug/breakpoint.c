@@ -232,11 +232,16 @@ static void breakpoint_hit(breakpoint_t *breakpoint)
 
     switch (breakpoint->kind) {
     case BREAKPOINT_KIND_SIMULATOR:
-        alert("Debug: Hit breakpoint at %#0" PRIx64, breakpoint->pc.ptr);
+        alert("Debug: Hit simulator breakpoint at %#0" PRIx64, breakpoint->pc.ptr);
         machine_interactive = true;
         break;
     case BREAKPOINT_KIND_DEBUGGER:
-        gdb_handle_event(GDB_EVENT_BREAKPOINT);
+        if (dap_enabled) {
+            alert("Debug: Hit debugger breakpoint at %#0" PRIx64, breakpoint->pc.ptr);
+            dap_event_hit_code_breakpoint(breakpoint->pc.ptr);
+        } else if (remote_gdb) {
+            gdb_handle_event(GDB_EVENT_BREAKPOINT);
+        }
         break;
     default:
         die(ERR_INTERN, "Unexpected breakpoint kind");
@@ -320,10 +325,6 @@ bool breakpoint_check_for_code_breakpoints(void)
         }
     }
 
-    if (hit) {
-        return hit;
-    }
-
     while (dev_next(&dev, DEVICE_FILTER_RV_PROCESSOR)) {
         const rv_cpu_t *cpu = get_rv(dev);
 
@@ -333,6 +334,18 @@ bool breakpoint_check_for_code_breakpoints(void)
             hit = true;
         }
     }
+
+    // TODO: implement for rv64 as well
+
+    // while (dev_next(&dev, DEVICE_FILTER_RV_PROCESSOR)) {
+    //     const struct rv64_cpu *cpu = get_rv(dev);
+    //
+    //     ptr64_t addr = { 0 };
+    //     addr.lo = cpu->pc;
+    //     if (breakpoint_hit_by_address(cpu->bps, addr)) {
+    //         hit = true;
+    //     }
+    // }
 
     return hit;
 }

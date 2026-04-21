@@ -13,12 +13,13 @@ MV = @MV@
 RM = @RM@
 DIFF = @DIFF@
 MAKEDEPEND = @MAKEDEPEND@
+BUILD_RV64 = @BUILD_RV64@
 
 DEPEND = Makefile.depend
 DEPEND_PREV = $(DEPEND).prev
 TARGET = ../msim
 
-SOURCES = \
+SOURCES_COMMON = \
 	utils.c \
 	fault.c \
 	text.c \
@@ -41,18 +42,11 @@ SOURCES = \
 	device/cpu/riscv_rv32ima/tlb.c \
 	device/cpu/riscv_rv32ima/mnemonics.c \
 	device/cpu/riscv_rv32ima/debug.c \
-	device/cpu/riscv_rv64ima/cpu.c \
-	device/cpu/riscv_rv64ima/csr.c \
-	device/cpu/riscv_rv64ima/instr.c \
-	device/cpu/riscv_rv64ima/tlb.c \
-	device/cpu/riscv_rv64ima/debug.c \
-	device/cpu/riscv_rv64ima/mnemonics.c \
 	device/cpu/general_cpu.c \
 	device/mem.c \
 	device/ddisk.c \
 	device/dr4kcpu.c \
 	device/drvcpu.c  \
-	device/drv64cpu.c  \
 	device/dcycle.c \
 	device/dkeyboard.c \
 	device/dlcd.c \
@@ -66,6 +60,23 @@ SOURCES = \
 	arch/win32/signal.c \
 	arch/posix/stdin.c \
 	arch/posix/signal.c
+
+SOURCES_RV64 = \
+	device/cpu/riscv_rv64ima/cpu.c \
+	device/cpu/riscv_rv64ima/csr.c \
+	device/cpu/riscv_rv64ima/instr.c \
+	device/cpu/riscv_rv64ima/tlb.c \
+	device/cpu/riscv_rv64ima/debug.c \
+	device/cpu/riscv_rv64ima/mnemonics.c \
+	device/drv64cpu.c
+
+ifeq ($(BUILD_RV64),yes)
+SOURCES = $(SOURCES_COMMON) $(SOURCES_RV64)
+CFLAGS += -DBUILD_RV64=1
+else
+SOURCES = $(SOURCES_COMMON)
+CFLAGS += -DBUILD_RV64=0
+endif
 
 OBJECTS := $(addsuffix .o,$(basename $(SOURCES)))
 

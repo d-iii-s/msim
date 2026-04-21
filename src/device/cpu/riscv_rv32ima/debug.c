@@ -872,7 +872,7 @@ static void rv_pagetable_dump_second_level_pte(rv32_cpu_t *cpu, bool verbose, sv
         return;
     }
 
-    printf(RV_DEBUG_INDENT "0x%03lx: ", pte_offset);
+    printf(RV_DEBUG_INDENT "0x%03zx: ", pte_offset);
     rv32_pte_dump(pte);
     printf("\n");
 }
@@ -884,7 +884,7 @@ static void rv_pagetable_dump_first_level_pte(rv32_cpu_t *cpu, bool verbose, sv3
         return;
     }
 
-    printf("0x%03lx: ", pte_offset);
+    printf("0x%03zx: ", pte_offset);
     rv32_pte_dump(pte);
 
     if (is_pte_leaf(pte)) {

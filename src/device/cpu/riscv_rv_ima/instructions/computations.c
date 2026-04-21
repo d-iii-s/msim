@@ -513,9 +513,7 @@ static rv_exc_t rv_mulh_instr(rv_cpu_t *cpu, rv_instr_t instr)
     xlen_t lhs = (xlen_t) cpu->regs[instr.r.rs1];
     xlen_t rhs = (xlen_t) cpu->regs[instr.r.rs2];
 
-    bigxlen_t res = (bigxlen_t) lhs * (bigxlen_t) rhs;
-
-    cpu->regs[instr.r.rd] = (uxlen_t) (res >> XLEN);
+    cpu->regs[instr.r.rd] = uxlen_mulhss(lhs, rhs);
     return rv_exc_none;
 }
 
@@ -527,9 +525,7 @@ static rv_exc_t rv_mulhsu_instr(rv_cpu_t *cpu, rv_instr_t instr)
     xlen_t lhs = (xlen_t) cpu->regs[instr.r.rs1];
     uxlen_t rhs = cpu->regs[instr.r.rs2];
 
-    bigxlen_t res = (bigxlen_t) lhs * (bigxlen_t) rhs;
-
-    cpu->regs[instr.r.rd] = (uxlen_t) (res >> XLEN);
+    cpu->regs[instr.r.rd] = uxlen_mulhsu(lhs, rhs);
     return rv_exc_none;
 }
 
@@ -541,9 +537,8 @@ static rv_exc_t rv_mulhu_instr(rv_cpu_t *cpu, rv_instr_t instr)
     uxlen_t lhs = cpu->regs[instr.r.rs1];
     uxlen_t rhs = cpu->regs[instr.r.rs2];
 
-    ubigxlen_t res = (ubigxlen_t) lhs * (ubigxlen_t) rhs;
+    cpu->regs[instr.r.rd] = uxlen_mulhuu(lhs, rhs);
 
-    cpu->regs[instr.r.rd] = (uxlen_t) (res >> XLEN);
     return rv_exc_none;
 }
 

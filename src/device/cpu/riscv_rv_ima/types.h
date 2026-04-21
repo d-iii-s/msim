@@ -14,6 +14,7 @@
 #ifndef RISCV_RV_COMMON_TYPES_H_
 #define RISCV_RV_COMMON_TYPES_H_
 
+#include <stdbool.h>
 #include <stdint.h>
 
 #include "exception.h"
@@ -26,14 +27,10 @@
 typedef uint64_t uxlen_t;
 typedef uint64_t virt_t;
 typedef int64_t xlen_t;
-typedef __int128 bigxlen_t;
-typedef unsigned __int128 ubigxlen_t;
 #elif XLEN == 32
 typedef uint32_t uxlen_t;
 typedef uint32_t virt_t;
 typedef int32_t xlen_t;
-typedef int64_t bigxlen_t;
-typedef uint64_t ubigxlen_t;
 #else
 #error "XLEN is not set to 32 or 64 bits"
 #endif
@@ -185,6 +182,103 @@ static ALWAYS_INLINE int shift_instr_mask(int const xlen)
     } else {
         return 0x3F;
     }
+}
+
+/* Multiplication utilities */
+
+static inline uxlen_t uxlen_mulhuu(uxlen_t a, uxlen_t b)
+{
+#if XLEN == 64
+
+#if defined(__SIZEOF_INT128__)
+    unsigned __int128 x = a;
+    unsigned __int128 y = b;
+    unsigned __int128 result = x * y;
+    return result >> 64;
+#else
+    uint64_t a_lo = (uint32_t) (a & 0xffffffff);
+    uint64_t a_hi = a >> 32;
+    uint64_t b_lo = (uint32_t) (b & 0xffffffff);
+    uint64_t b_hi = b >> 32;
+
+    uint64_t res_lo = a_lo * b_lo;
+    uint64_t mid = a_hi * b_lo + (res_lo >> 32);
+    uint64_t mid_lo = (uint32_t) (mid & 0xffffffff);
+    uint64_t mid_hi = mid >> 32;
+    uint64_t mid_lo2 = mid_lo + a_lo * b_hi;
+
+    uint64_t res_hi = a_hi * b_hi + mid_hi + (mid_lo2 >> 32);
+    return res_hi;
+#endif
+
+#elif XLEN == 32
+
+    uint64_t result = ((uint64_t) a) * ((uint64_t) b);
+    return result >> 32;
+
+#else
+#error "XLEN is not set to 32 or 64 bits"
+#endif
+}
+
+static inline uxlen_t uxlen_mulhsu(xlen_t a, uxlen_t b)
+{
+#if XLEN == 64
+
+#if defined(__SIZEOF_INT128__)
+    __int128 x = a;
+    unsigned __int128 y = b;
+    unsigned __int128 result = x * y;
+    return result >> 64;
+#else
+    uint64_t ua = (uint64_t) a;
+    uint64_t hi = uxlen_mulhuu(ua, b);
+    if (a < 0) {
+        hi -= b;
+    }
+    return hi;
+#endif
+
+#elif XLEN == 32
+
+    int64_t result = ((int64_t) a) * ((uint64_t) b);
+    return result >> 32;
+
+#else
+#error "XLEN is not set to 32 or 64 bits"
+#endif
+}
+
+static inline uxlen_t uxlen_mulhss(xlen_t a, xlen_t b)
+{
+#if XLEN == 64
+
+#if defined(__SIZEOF_INT128__)
+    __int128 x = a;
+    __int128 y = b;
+    __int128 result = x * y;
+    return result >> 64;
+#else
+    uint64_t ua = (uint64_t) a;
+    uint64_t ub = (uint64_t) b;
+    uint64_t hi = uxlen_mulhuu(ua, ub);
+    if (a < 0) {
+        hi -= ub;
+    }
+    if (b < 0) {
+        hi -= ua;
+    }
+    return hi;
+#endif
+
+#elif XLEN == 32
+
+    int64_t result = ((int64_t) a) * ((int64_t) b);
+    return result >> 32;
+
+#else
+#error "XLEN is not set to 32 or 64 bits"
+#endif
 }
 
 #endif // RISCV_RV_COMMON_TYPES_H_

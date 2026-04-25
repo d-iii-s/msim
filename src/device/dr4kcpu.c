@@ -30,12 +30,18 @@ static bool r4k_cpu_convert_addr(r4k_cpu_t *cpu, ptr64_t virt, ptr36_t *phys, bo
     return r4k_convert_addr(cpu, virt, phys, write, false) == r4k_excNone;
 }
 
+static ptr64_t r4k_get_pc_wrapper(void *cpu)
+{
+    return ((r4k_cpu_t *) cpu)->pc;
+}
+
 static const cpu_ops_t r4k_cpu = {
     .interrupt_up = (interrupt_func_t) r4k_interrupt_up,
     .interrupt_down = (interrupt_func_t) r4k_interrupt_down,
 
     .convert_addr = (convert_addr_func_t) r4k_cpu_convert_addr,
     .reg_dump = (reg_dump_func_t) r4k_reg_dump,
+    .get_pc = (get_pc_func_t) r4k_get_pc_wrapper,
     .set_pc = (set_pc_func_t) r4k_set_pc,
     .sc_access = (sc_access_func_t) r4k_sc_access
 };

@@ -32,6 +32,11 @@ static bool rv32_convert_add_wrapper(void *cpu, ptr64_t virt, ptr36_t *phys, boo
     return rv32_convert_addr((rv_cpu_t *) cpu, virt.lo, phys, write, false, false) == rv_exc_none;
 }
 
+static ptr64_t rv32_get_pc_wrapper(void *cpu)
+{
+    return (ptr64_t) { .lo = ((rv_cpu_t *) cpu)->pc, .hi = 0 };
+}
+
 static void rv32_set_pc_wrapper(void *cpu, ptr64_t addr)
 {
     // use only low 32-bits from addr
@@ -45,6 +50,7 @@ static const cpu_ops_t rv_cpu = {
     .convert_addr = (convert_addr_func_t) rv32_convert_add_wrapper,
     .reg_dump = (reg_dump_func_t) rv32_reg_dump,
 
+    .get_pc = (get_pc_func_t) rv32_get_pc_wrapper,
     .set_pc = (set_pc_func_t) rv32_set_pc_wrapper,
     .sc_access = (sc_access_func_t) rv32_sc_access
 };

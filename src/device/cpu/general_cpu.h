@@ -27,6 +27,8 @@ typedef void (*remove_breakpoint_func_t)(void *, ptr64_t);
 typedef bool (*convert_addr_func_t)(void *, ptr64_t, ptr36_t *, bool);
 /** Function type for dumping register content */
 typedef void (*reg_dump_func_t)(void *);
+/** Function type for getting the program counter of a cpu */
+typedef ptr64_t (*get_pc_func_t)(void *);
 /** Function type for setting the program counter of a cpu */
 typedef void (*set_pc_func_t)(void *, ptr64_t);
 /** Function type for notifying the processor about a write to a memory location, used for implementing SC atomic*/
@@ -43,6 +45,7 @@ typedef struct {
     remove_breakpoint_func_t remove_breakpoint;
     convert_addr_func_t convert_addr;
     reg_dump_func_t reg_dump;
+    get_pc_func_t get_pc;
     set_pc_func_t set_pc;
     sc_access_func_t sc_access;
 } cpu_ops_t;
@@ -109,6 +112,7 @@ extern bool cpu_convert_addr(general_cpu_t *cpu, ptr64_t virt, ptr36_t *phys, bo
  */
 extern void cpu_reg_dump(general_cpu_t *cpu);
 
+extern ptr64_t cpu_get_pc(general_cpu_t *cpu);
 extern void cpu_set_pc(general_cpu_t *cpu, ptr64_t pc);
 
 /**

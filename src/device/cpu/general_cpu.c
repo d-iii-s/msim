@@ -132,6 +132,14 @@ void cpu_reg_dump(general_cpu_t *cpu)
     cpu->type->reg_dump(cpu->data);
 }
 
+ptr64_t cpu_get_pc(general_cpu_t *cpu)
+{
+    if (cpu == NULL) {
+        cpu = get_fallback_cpu();
+    }
+    return cpu->type->get_pc(cpu->data);
+}
+
 void cpu_set_pc(general_cpu_t *cpu, ptr64_t pc)
 {
     if (cpu == NULL) {

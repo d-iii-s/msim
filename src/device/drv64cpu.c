@@ -33,6 +33,11 @@ static bool rv64_convert_add_wrapper(void *cpu, ptr64_t virt, ptr36_t *phys, boo
     return rv64_convert_addr((rv_cpu_t *) cpu, virt.ptr, phys, write, false, false) == rv_exc_none;
 }
 
+static ptr64_t rv64_get_pc_wrapper(void *cpu)
+{
+    return (ptr64_t) { .ptr = ((rv_cpu_t *) cpu)->pc };
+}
+
 static void rv64_set_pc_wrapper(void *cpu, ptr64_t addr)
 {
     // use all 64 bits from addr
@@ -46,6 +51,7 @@ static const cpu_ops_t rv_cpu = {
     .convert_addr = (convert_addr_func_t) rv64_convert_add_wrapper,
     .reg_dump = (reg_dump_func_t) rv64_reg_dump,
 
+    .get_pc = (get_pc_func_t) rv64_get_pc_wrapper,
     .set_pc = (set_pc_func_t) rv64_set_pc_wrapper,
     .sc_access = (sc_access_func_t) rv64_sc_access
 };

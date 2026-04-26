@@ -60,10 +60,7 @@ static bool dr4kcpu_init(token_t *parm, device_t *dev)
 
     r4k_cpu_t *cpu = safe_malloc_t(r4k_cpu_t);
     r4k_init(cpu, id);
-    general_cpu_t *gen_cpu = safe_malloc_t(general_cpu_t);
-    gen_cpu->cpuno = id;
-    gen_cpu->data = cpu;
-    gen_cpu->type = &r4k_cpu;
+    general_cpu_t *gen_cpu = general_cpu_init(id, cpu, &r4k_cpu);
 
     add_cpu(gen_cpu);
 

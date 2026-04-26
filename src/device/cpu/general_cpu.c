@@ -11,10 +11,20 @@
 
 #include "../../assert.h"
 #include "../../main.h"
+#include "../../utils.h"
 #include "general_cpu.h"
 
 // list of all cpus
 list_t cpu_list = LIST_INITIALIZER;
+
+general_cpu_t *general_cpu_init(const uint id, void *cpu, const cpu_ops_t *type)
+{
+    general_cpu_t *gen_cpu = safe_malloc_t(general_cpu_t);
+    gen_cpu->cpuno = id;
+    gen_cpu->data = cpu;
+    gen_cpu->type = type;
+    return gen_cpu;
+}
 
 general_cpu_t *get_cpu(unsigned int no)
 {

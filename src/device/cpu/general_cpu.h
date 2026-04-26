@@ -59,6 +59,16 @@ typedef struct {
 } general_cpu_t;
 
 /**
+ * @brief Allocates and initializes a general_cpu_t structure
+ *
+ * @param id The CPU id
+ * @param cpu A pointer to the CPU-specific data structure
+ * @param type A pointer to the cpu_ops_t structure describing the CPU methods
+ * @return A pointer to the initialized general_cpu_t structure
+ */
+extern general_cpu_t *general_cpu_init(uint id, void *cpu, const cpu_ops_t *type);
+
+/**
  * @brief Retrieves the general_cpu_t structure based on the given cpu id
  */
 extern general_cpu_t *get_cpu(unsigned int no);

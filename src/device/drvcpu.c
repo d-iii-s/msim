@@ -70,10 +70,7 @@ static bool drvcpu_init(token_t *parm, device_t *dev)
 
     rv32_cpu_t *cpu = safe_malloc_t(rv_cpu_t);
     rv32_cpu_init(cpu, id);
-    general_cpu_t *gen_cpu = safe_malloc_t(general_cpu_t);
-    gen_cpu->cpuno = id;
-    gen_cpu->data = cpu;
-    gen_cpu->type = &rv_cpu;
+    general_cpu_t *gen_cpu = general_cpu_init(id, cpu, &rv_cpu);
 
     add_cpu(gen_cpu);
 

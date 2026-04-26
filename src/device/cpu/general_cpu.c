@@ -14,15 +14,15 @@
 #include "../../utils.h"
 #include "general_cpu.h"
 
-// list of all cpus
 list_t cpu_list = LIST_INITIALIZER;
 
-general_cpu_t *general_cpu_init(const uint id, void *cpu, const cpu_ops_t *type)
+general_cpu_t *general_cpu_init(const unsigned int id, void *cpu, const cpu_ops_t *type)
 {
     general_cpu_t *gen_cpu = safe_malloc_t(general_cpu_t);
     gen_cpu->cpuno = id;
     gen_cpu->data = cpu;
     gen_cpu->type = type;
+    list_init(&gen_cpu->bps);
     return gen_cpu;
 }
 
@@ -101,19 +101,64 @@ void cpu_interrupt_down(general_cpu_t *cpu, unsigned int no)
     cpu->type->interrupt_down(cpu->data, no);
 }
 
-void cpu_insert_breakpoint(general_cpu_t *cpu, ptr64_t addr, breakpoint_t kind)
+bool cpu_normalize_bp_addr(general_cpu_t *cpu, const ptr64_t addr, ptr64_t *out)
 {
     if (cpu == NULL) {
         cpu = get_fallback_cpu();
     }
-    cpu->type->insert_breakpoint(cpu->data, addr, kind);
+    return cpu->type->normalize_bp_addr(cpu->data, addr, out);
 }
-void cpu_remove_breakpoint(general_cpu_t *cpu, ptr64_t addr)
+
+bool cpu_insert_breakpoint(general_cpu_t *cpu, const ptr64_t addr, const breakpoint_kind_t kind)
 {
     if (cpu == NULL) {
         cpu = get_fallback_cpu();
     }
-    cpu->type->remove_breakpoint(cpu->data, addr);
+
+    ptr64_t normalized_addr = { 0 };
+    if (!cpu->type->normalize_bp_addr(cpu->data, addr, &normalized_addr)) {
+        if (kind == BREAKPOINT_KIND_SIMULATOR) {
+            error("Virtual address out of range");
+        }
+        return false;
+    }
+
+    const breakpoint_t *existing = breakpoint_find_by_address(cpu->bps, normalized_addr, (breakpoint_filter_t) kind);
+    if (existing == NULL) {
+        breakpoint_t *bp = breakpoint_init(normalized_addr, kind);
+        list_append(&cpu->bps, &bp->item);
+    }
+    // Only report error for simulator breakpoints, debuggers are left to handle it as they want
+    else if (kind == BREAKPOINT_KIND_SIMULATOR) {
+        error("Breakpoint already exists");
+    }
+    return true;
+}
+
+bool cpu_remove_breakpoint(general_cpu_t *cpu, const ptr64_t addr, const breakpoint_kind_t kind)
+{
+    if (cpu == NULL) {
+        cpu = get_fallback_cpu();
+    }
+
+    ptr64_t normalized_addr = { 0 };
+    if (!cpu->type->normalize_bp_addr(cpu->data, addr, &normalized_addr)) {
+        if (kind == BREAKPOINT_KIND_SIMULATOR) {
+            error("Virtual address out of range");
+        }
+        return false;
+    }
+
+    breakpoint_t *remove = breakpoint_find_by_address(cpu->bps, normalized_addr, (breakpoint_filter_t) kind);
+    if (remove != NULL) {
+        list_remove(&cpu->bps, &remove->item);
+        safe_free(remove);
+    }
+    // Only report error for simulator breakpoints, debuggers are left to handle it as they want
+    else if (kind == BREAKPOINT_KIND_SIMULATOR) {
+        error("Unknown breakpoint");
+    }
+    return true;
 }
 
 /**

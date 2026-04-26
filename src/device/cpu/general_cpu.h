@@ -19,10 +19,8 @@
 
 /** Function type for raising and canceling interrupts */
 typedef void (*interrupt_func_t)(void *, unsigned int);
-/** Function type for inserting breakpoints */
-typedef void (*insert_breakpoint_func_t)(void *, ptr64_t, breakpoint_t);
-/** Function type for removing breakpoints */
-typedef void (*remove_breakpoint_func_t)(void *, ptr64_t);
+/** Function type for normalizing breakpoint addresses */
+typedef bool (*normalize_bp_addr_func_t)(void *, ptr64_t, ptr64_t *);
 /** Function type for converting addresses */
 typedef bool (*convert_addr_func_t)(void *, ptr64_t, ptr36_t *, bool);
 /** Function type for dumping register content */
@@ -39,10 +37,9 @@ typedef bool (*sc_access_func_t)(void *, ptr36_t, int);
  * NULL value means "not implemented"
  */
 typedef struct {
-    interrupt_func_t interrupt_up; /** Rainse an interrupt */
+    interrupt_func_t interrupt_up; /** Raise an interrupt */
     interrupt_func_t interrupt_down; /** Cancel an interrupt */
-    insert_breakpoint_func_t insert_breakpoint;
-    remove_breakpoint_func_t remove_breakpoint;
+    normalize_bp_addr_func_t normalize_bp_addr; /** Normalize a breakpoint address, e.g. to align it to instruction boundary or anything arch-specific */
     convert_addr_func_t convert_addr;
     reg_dump_func_t reg_dump;
     get_pc_func_t get_pc;
@@ -50,13 +47,17 @@ typedef struct {
     sc_access_func_t sc_access;
 } cpu_ops_t;
 
-/** Structure describinfg cpu methods */
+/** Structure describing general CPU */
 typedef struct {
     item_t item;
     unsigned int cpuno;
     const cpu_ops_t *type;
     void *data;
+    list_t bps; // Breakpoints
 } general_cpu_t;
+
+/** List of all CPUs */
+extern list_t cpu_list;
 
 /**
  * @brief Allocates and initializes a general_cpu_t structure
@@ -66,7 +67,7 @@ typedef struct {
  * @param type A pointer to the cpu_ops_t structure describing the CPU methods
  * @return A pointer to the initialized general_cpu_t structure
  */
-extern general_cpu_t *general_cpu_init(uint id, void *cpu, const cpu_ops_t *type);
+extern general_cpu_t *general_cpu_init(unsigned int id, void *cpu, const cpu_ops_t *type);
 
 /**
  * @brief Retrieves the general_cpu_t structure based on the given cpu id
@@ -102,8 +103,40 @@ extern void cpu_interrupt_up(general_cpu_t *cpu, unsigned int no);
  */
 extern void cpu_interrupt_down(general_cpu_t *cpu, unsigned int no);
 
-extern void cpu_insert_breakpoint(general_cpu_t *cpu, ptr64_t addr, breakpoint_t kind);
-extern void cpu_remove_breakpoint(general_cpu_t *cpu, ptr64_t addr);
+/**
+ * @brief Normalizes an address for breakpoint insertion
+ *
+ * This is used to align the address to instruction boundaries
+ * or to do any other architecture-specific normalization
+ * that is required for breakpoint insertion.
+ *
+ * @param cpu The cpu for which the address will be normalized
+ * @param addr The address that will be normalized
+ * @param out A pointer to the variable where the normalized address will be stored,
+ *           only modified if the function returns true
+ * @return true if the address was successfully normalized, false otherwise
+ */
+extern bool cpu_normalize_bp_addr(general_cpu_t *cpu, ptr64_t addr, ptr64_t *out);
+
+/**
+ * @brief Inserts a code breakpoint at the given address
+ *
+ * @param cpu The cpu on which the breakpoint will be inserted
+ * @param addr The address at which the breakpoint will be inserted
+ * @param kind The breakpoint kind
+ * @return true if the breakpoint was successfully inserted, false otherwise
+ */
+extern bool cpu_insert_breakpoint(general_cpu_t *cpu, ptr64_t addr, breakpoint_kind_t kind);
+
+/**
+ * @brief Removes a code breakpoint at the given address
+ *
+ * @param cpu The cpu on which the breakpoint will be removed
+ * @param addr The address at which the breakpoint will be removed
+ * @param kind The breakpoint kind, only this kind of breakpoint will be removed
+ * @return true if the breakpoint was successfully removed, false otherwise
+ */
+extern bool cpu_remove_breakpoint(general_cpu_t *cpu, ptr64_t addr, breakpoint_kind_t kind);
 
 /**
  * @brief converts an address from virtual to physical memory, not modifying cpu state

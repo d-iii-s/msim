@@ -2653,9 +2653,6 @@ void r4k_init(r4k_cpu_t *cpu, unsigned int procno)
     cp0_cause(cpu).val = HARD_RESET_CAUSE;
     cp0_watchlo(cpu).val = HARD_RESET_WATCHLO;
     cp0_watchhi(cpu).val = HARD_RESET_WATCHHI;
-
-    /* Breakpoints */
-    list_init(&cpu->bps);
 }
 
 /** Set the PC register

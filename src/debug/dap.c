@@ -398,42 +398,34 @@ static void dap_handle_pause(void)
     dap_send_event((dap_event_t){StoppedAtEvent, address.ptr, StoppedReasonPaused});
 }
 
-// TODO: implement both set and remove as device-specific (vtable) entries and use that to support all archs
 /** Set a DAP code breakpoint */
 static void dap_handle_set_code_breakpoint(const uint64_t addr)
 {
-    ptr64_t virt_address = { addr };
-    rv_cpu_t* cpu = get_cpu(cpuno_global)->data;
+    const ptr64_t virt_addr = { addr };
+    general_cpu_t* cpu = get_cpu(cpuno_global);
 
-    const breakpoint_t* breakpoint = breakpoint_find_by_address(cpu->bps, virt_address, BREAKPOINT_FILTER_DEBUGGER);
-    if (breakpoint != NULL) {
+    if (!cpu_insert_breakpoint(cpu, virt_addr, BREAKPOINT_KIND_DEBUGGER)) {
         dap_send_response((dap_response_t){ StatusUnspecifiedError, 0, 0 }); // TODO: more specific err code
         return;
     }
 
-    breakpoint_t *inserted_breakpoint = breakpoint_init(virt_address, BREAKPOINT_KIND_DEBUGGER);
-    list_append(&cpu->bps, &inserted_breakpoint->item);
-    alert("Added DAP code breakpoint at address 0x%x %x.", virt_address.hi, virt_address.lo);
+    alert("Added DAP code breakpoint at address %#0" PRIx64, virt_addr.ptr);
     dap_send_response((dap_response_t){ StatusOk, 0, 0 });
 }
 
 /** Remove a DAP code breakpoint */
 static void dap_handle_remove_code_breakpoint(const uint64_t addr)
 {
-    const ptr64_t virt_address = { addr };
-    alert("Removing DAP code breakpoint from address 0x%x %x.", virt_address.hi, virt_address.lo);
+    const ptr64_t virt_addr = { addr };
+    general_cpu_t* cpu = get_cpu(cpuno_global);
 
-    rv_cpu_t* cpu = get_cpu(cpuno_global)->data;
-
-    breakpoint_t* breakpoint = breakpoint_find_by_address(cpu->bps, virt_address, BREAKPOINT_FILTER_DEBUGGER);
-    if (breakpoint == NULL) {
+    if (!cpu_remove_breakpoint(cpu, virt_addr, BREAKPOINT_KIND_DEBUGGER)) {
         alert("No such breakpoint!");
         dap_send_response((dap_response_t){ StatusUnspecifiedError, 0, 0 }); // TODO: more specific err code
         return;
     }
 
-    list_remove(&cpu->bps, &breakpoint->item);
-    safe_free(breakpoint)
+    alert("Removed DAP code breakpoint from address %#0" PRIx64, virt_addr.ptr);
     dap_send_response((dap_response_t){ StatusOk, 0, 0 });
 }
 

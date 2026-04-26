@@ -26,7 +26,14 @@
 #include "cpu/riscv_rv32ima/debug.h"
 #include "drvcpu.h"
 
-static bool rv32_convert_add_wrapper(void *cpu, ptr64_t virt, ptr36_t *phys, bool write)
+static bool rv32_cpu_normalize_bp_addr(void *cpu, const ptr64_t addr, ptr64_t *out)
+{
+    (void) cpu;
+    out->ptr = ALIGN_DOWN(addr.ptr, 4);
+    return true;
+}
+
+static bool rv32_convert_addr_wrapper(void *cpu, ptr64_t virt, ptr36_t *phys, bool write)
 {
     // use only low 32-bits from virt
     return rv32_convert_addr((rv_cpu_t *) cpu, virt.lo, phys, write, false, false) == rv_exc_none;
@@ -47,7 +54,8 @@ static const cpu_ops_t rv_cpu = {
     .interrupt_up = (interrupt_func_t) rv32_interrupt_up,
     .interrupt_down = (interrupt_func_t) rv32_interrupt_down,
 
-    .convert_addr = (convert_addr_func_t) rv32_convert_add_wrapper,
+    .normalize_bp_addr = (normalize_bp_addr_func_t) rv32_cpu_normalize_bp_addr,
+    .convert_addr = (convert_addr_func_t) rv32_convert_addr_wrapper,
     .reg_dump = (reg_dump_func_t) rv32_reg_dump,
 
     .get_pc = (get_pc_func_t) rv32_get_pc_wrapper,

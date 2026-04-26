@@ -625,9 +625,6 @@ typedef struct r4k_cpu {
     uint64_t tlb_invalid;
     uint64_t tlb_modified;
     uint64_t intr[INTR_COUNT];
-
-    /* breakpoints */
-    list_t bps;
 } r4k_cpu_t;
 
 /** Opcode numbers

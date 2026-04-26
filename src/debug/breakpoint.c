@@ -34,11 +34,6 @@
 
 #include "../assert.h"
 #include "../device/cpu/general_cpu.h"
-#include "../device/cpu/mips_r4000/cpu.h"
-#include "../device/cpu/riscv_rv32ima/cpu.h"
-#include "../device/device.h"
-#include "../device/dr4kcpu.h"
-#include "../device/drvcpu.h"
 #include "../fault.h"
 #include "../main.h"
 #include "../utils.h"
@@ -303,49 +298,25 @@ breakpoint_t *breakpoint_find_by_address(list_t breakpoints,
     return NULL;
 }
 
-/** Search all of the processors
+/** Search all the processors
  *
- * Search all of the processors whether any of them is going to
+ * Search all the processors whether any of them is going to
  * execute instruction where a code breakpoint is located. All such
  * breakpoints are fired.
  *
  * @return True, if at least one breakpoint has been fired.
- *
  */
 bool breakpoint_check_for_code_breakpoints(void)
 {
     bool hit = false;
-    device_t *dev = NULL;
 
-    while (dev_next(&dev, DEVICE_FILTER_R4K_PROCESSOR)) {
-        r4k_cpu_t *cpu = get_r4k(dev);
-
-        if (breakpoint_hit_by_address(cpu->bps, cpu->pc)) {
+    general_cpu_t* cpu = NULL;
+    for_each(cpu_list, cpu, general_cpu_t)
+    {
+        if (breakpoint_hit_by_address(cpu->bps, cpu_get_pc(cpu))) {
             hit = true;
         }
     }
-
-    while (dev_next(&dev, DEVICE_FILTER_RV_PROCESSOR)) {
-        const rv_cpu_t *cpu = get_rv(dev);
-
-        ptr64_t addr = { 0 };
-        addr.lo = cpu->pc;
-        if (breakpoint_hit_by_address(cpu->bps, addr)) {
-            hit = true;
-        }
-    }
-
-    // TODO: implement for rv64 as well
-
-    // while (dev_next(&dev, DEVICE_FILTER_RV_PROCESSOR)) {
-    //     const struct rv64_cpu *cpu = get_rv(dev);
-    //
-    //     ptr64_t addr = { 0 };
-    //     addr.lo = cpu->pc;
-    //     if (breakpoint_hit_by_address(cpu->bps, addr)) {
-    //         hit = true;
-    //     }
-    // }
 
     return hit;
 }

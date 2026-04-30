@@ -40,6 +40,24 @@ static bool rv64_convert_addr_wrapper(void *cpu, ptr64_t virt, ptr36_t *phys, bo
     return rv64_convert_addr((rv_cpu_t *) cpu, virt.ptr, phys, write, false, false) == rv_exc_none;
 }
 
+static bool rv64_get_reg_wrapper(void *cpu, unsigned int regno, uint64_t *out_val)
+{
+    if (regno >= RV64_REG_COUNT) {
+        return false;
+    }
+    *out_val = ((rv_cpu_t *) cpu)->regs[regno];
+    return true;
+}
+
+static bool rv64_set_reg_wrapper(void *cpu, unsigned int regno, uint64_t val)
+{
+    if (regno >= RV64_REG_COUNT) {
+        return false;
+    }
+    ((rv_cpu_t *) cpu)->regs[regno] = val;
+    return true;
+}
+
 static ptr64_t rv64_get_pc_wrapper(void *cpu)
 {
     return (ptr64_t) { .ptr = ((rv_cpu_t *) cpu)->pc };
@@ -59,6 +77,8 @@ static const cpu_ops_t rv_cpu = {
     .convert_addr = (convert_addr_func_t) rv64_convert_addr_wrapper,
     .reg_dump = (reg_dump_func_t) rv64_reg_dump,
 
+    .get_reg = (get_reg_func_t) rv64_get_reg_wrapper,
+    .set_reg = (set_reg_func_t) rv64_set_reg_wrapper,
     .get_pc = (get_pc_func_t) rv64_get_pc_wrapper,
     .set_pc = (set_pc_func_t) rv64_set_pc_wrapper,
     .sc_access = (sc_access_func_t) rv64_sc_access

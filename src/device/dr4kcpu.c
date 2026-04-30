@@ -46,6 +46,24 @@ static bool r4k_cpu_convert_addr_wrapper(r4k_cpu_t *cpu, ptr64_t virt, ptr36_t *
     return r4k_convert_addr(cpu, virt, phys, write, false) == r4k_excNone;
 }
 
+static bool r4k_get_reg_wrapper(void *cpu, unsigned int regno, uint64_t *out_val)
+{
+    if (regno >= R4K_REG_COUNT) {
+        return false;
+    }
+    *out_val = ((r4k_cpu_t *) cpu)->regs[regno].val;
+    return true;
+}
+
+static bool r4k_set_reg_wrapper(void *cpu, unsigned int regno, uint64_t val)
+{
+    if (regno >= R4K_REG_COUNT) {
+        return false;
+    }
+    ((r4k_cpu_t *) cpu)->regs[regno].val = val;
+    return true;
+}
+
 static ptr64_t r4k_get_pc_wrapper(void *cpu)
 {
     return ((r4k_cpu_t *) cpu)->pc;
@@ -59,6 +77,8 @@ static const cpu_ops_t r4k_cpu = {
     .convert_addr = (convert_addr_func_t) r4k_cpu_convert_addr_wrapper,
     .reg_dump = (reg_dump_func_t) r4k_reg_dump,
 
+    .get_reg = (get_reg_func_t) r4k_get_reg_wrapper,
+    .set_reg = (set_reg_func_t) r4k_set_reg_wrapper,
     .get_pc = (get_pc_func_t) r4k_get_pc_wrapper,
     .set_pc = (set_pc_func_t) r4k_set_pc,
     .sc_access = (sc_access_func_t) r4k_sc_access

@@ -25,6 +25,10 @@ typedef bool (*normalize_bp_addr_func_t)(void *, ptr64_t, ptr64_t *);
 typedef bool (*convert_addr_func_t)(void *, ptr64_t, ptr36_t *, bool);
 /** Function type for dumping register content */
 typedef void (*reg_dump_func_t)(void *);
+/** Function type for getting the value of a general register of a cpu */
+typedef bool (*get_reg_func_t)(void *, unsigned int, uint64_t *);
+/** Function type for setting the value of a general register of a cpu */
+typedef bool (*set_reg_func_t)(void *, unsigned int, uint64_t);
 /** Function type for getting the program counter of a cpu */
 typedef ptr64_t (*get_pc_func_t)(void *);
 /** Function type for setting the program counter of a cpu */
@@ -42,6 +46,8 @@ typedef struct {
     normalize_bp_addr_func_t normalize_bp_addr; /** Normalize a breakpoint address, e.g. to align it to instruction boundary or anything arch-specific */
     convert_addr_func_t convert_addr;
     reg_dump_func_t reg_dump;
+    get_reg_func_t get_reg;
+    set_reg_func_t set_reg;
     get_pc_func_t get_pc;
     set_pc_func_t set_pc;
     sc_access_func_t sc_access;
@@ -154,6 +160,26 @@ extern bool cpu_convert_addr(general_cpu_t *cpu, ptr64_t virt, ptr36_t *phys, bo
  * @brief Dumps the registers of the CPU to stdout in a cpu-specific format
  */
 extern void cpu_reg_dump(general_cpu_t *cpu);
+
+/**
+ * @brief Gets the value of a general register of the cpu
+ *
+ * @param cpu the processor pointer
+ * @param regno the index of the register to get
+ * @param out_value a pointer to the variable where the register value will be stored, only modified if the function returns true
+ * @return true if the register value was successfully retrieved, false otherwise
+ */
+extern bool cpu_get_reg(general_cpu_t *cpu, unsigned int regno, uint64_t *out_value);
+
+/**
+ * @brief Sets the value of a general register of the cpu
+ *
+ * @param cpu the processor pointer
+ * @param regno the index of the register to set
+ * @param value the value that will be set to the register
+ * @return true if the register value was successfully set, false otherwise
+ */
+extern bool cpu_set_reg(general_cpu_t *cpu, unsigned int regno, uint64_t value);
 
 extern ptr64_t cpu_get_pc(general_cpu_t *cpu);
 extern void cpu_set_pc(general_cpu_t *cpu, ptr64_t pc);

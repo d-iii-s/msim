@@ -187,6 +187,22 @@ void cpu_reg_dump(general_cpu_t *cpu)
     cpu->type->reg_dump(cpu->data);
 }
 
+bool cpu_get_reg(general_cpu_t *cpu, unsigned int regno, uint64_t *out_value)
+{
+    if (cpu == NULL) {
+        cpu = get_fallback_cpu();
+    }
+    return cpu->type->get_reg(cpu->data, regno, out_value);
+}
+
+bool cpu_set_reg(general_cpu_t *cpu, unsigned int regno, uint64_t value)
+{
+    if (cpu == NULL) {
+        cpu = get_fallback_cpu();
+    }
+    return cpu->type->set_reg(cpu->data, regno, value);
+}
+
 ptr64_t cpu_get_pc(general_cpu_t *cpu)
 {
     if (cpu == NULL) {

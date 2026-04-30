@@ -4,8 +4,8 @@ DAP support
 DAP (debugger adapter protocol) is a protocol that enables standardized communication
 between development tools (IDEs) and debuggers.
 
-An experimental DAP support now arrived to MSIM, allowing DAP-enabled IDEs to connect to
-the running MSIM for interactive debugging.
+DAP support is integrated to MSIM, allowing DAP-enabled IDEs to connect to
+the running MSIM for interactive debugging via a debugging adapter.
 
 Currently the only supported and tested IDE is Visual Studio Code with the provided
 `msim-debugger extension <https://github.com/0xVector/msim-debugger>`_.
@@ -31,9 +31,9 @@ in future releases.
 Breakpoints
 ~~~~~~~~~~~
 
-The first supported debugging feature are simple breakpoints.
+Code breakpoints are fully supported.
 You can set breakpoints in your IDE, and when MSIM hits them during execution,
-it will enter interactive mode to allow you to e.g. inspect CPU registers.extension
+it will pause and wait for further commands from the IDE.
 
 This can be useful to pause execution at specific points in your program and
 examine the state of your kernel.
@@ -46,25 +46,52 @@ It is conceptually similar to adding a breakpoint via the special `ebreak` instr
 as described in :ref:`entering-the-debugger`.
 
 When stopped at a breakpoint, you can resume the execution just as you would normally,
-using the ``continue`` command.
+using the resume command in your IDE.
+
+Execution control
+~~~~~~~~~~~~~~~~~
+
+MSIM can be paused and resumed from the IDE, allowing you to control the execution of your kernel.
+
+Register Inspection
+~~~~~~~~~~~~~~~~~~~
+
+When MSIM is paused, you can inspect the values of the registers in your kernel from the IDE.
+Both general-purpose and control/status registers are supported. The registers are displayed
+in the IDE's variables view, and their values can be modified.
+
+Memory Inspection
+~~~~~~~~~~~~~~~~~
+
+When MSIM is paused, you can inspect the memory of your kernel from the IDE.
+The memory view in the IDE allows you to view and modify the contents of the memory at specific addresses.
+This is done by clicking the memory view next to a register with pointer-like semantics.
+
+CPU View
+~~~~~~~~
+
+The CPUs in MSIM are displayed in the IDE, presented as threads. You can see the highlighted CPU when MSIM
+is paused, denoting the CPU causing the stopping.
+
+Stepping
+~~~~~~~~
+
+Stepping is supported, allowing you to step through your kernel's execution one instruction at a time.
+The step-in command steps by one instruction, while the step-over command attempts to step to the next statement.
+The step-out command is not supported yet, defaulting to step-in behavior.
 
 Limitations
 ^^^^^^^^^^^
 
-You can't remove the breakpoints when MSIM is running yet.
-You need to restart MSIM and the debugging session after removing them in your IDE.
-
-The IDE is currently not aware when and where MSIM stops,
-this is a planned feature in next releases.
-
 Some sources files might not be correctly mapped to the memory addresses, and
-will not have the breakpoints hit.
+will not have the breakpoints hit. This happens especially when entering a userspace application,
+as that is usually built as a separate ELF file, which the extension has no access to.
+
+The step-out command is not supported yet.
 
 Bug reports and feedback
 ------------------------
 
-This extension is *very* experimental and a work in progress.
-
-Please, report any bugs or feedback you have to the `issues in the MSIM repository <https://github.com/d-iii-s/msim/issues>`_.
+Please, report any bugs or feedback you have to the `issues in the MSIM repository <https://github.com/0xVector/msim/issues>`_.
 
 Your bug reports and feedback are very much appreciated! :)

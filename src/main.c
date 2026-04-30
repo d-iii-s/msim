@@ -306,6 +306,7 @@ static void dap_startup(void)
         return;
     }
 
+    // Start in PAUSED state
     dap_state = dap_init() ? DAP_PAUSED : DAP_DONE;
 }
 

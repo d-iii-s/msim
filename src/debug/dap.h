@@ -26,6 +26,7 @@ extern void dap_process(void);
  */
 extern void dap_close(void);
 
-extern void dap_event_hit_code_breakpoint(uint64_t address);
+extern void dap_event_hit_code_breakpoint(unsigned int cpu_no);
+extern void dap_event_hit_data_breakpoint(uint64_t address);
 
 #endif // MSIM_DAP_H

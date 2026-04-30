@@ -185,7 +185,11 @@ void physmem_breakpoint_hit(physmem_breakpoint_t *breakpoint,
         machine_interactive = true;
         break;
     case BREAKPOINT_KIND_DEBUGGER:
-        gdb_handle_event(GDB_EVENT_BREAKPOINT);
+        if (dap_enabled) {
+            dap_event_hit_data_breakpoint(breakpoint->addr);
+        } else if (remote_gdb) {
+            gdb_handle_event(GDB_EVENT_BREAKPOINT);
+        }
         break;
     default:
         die(ERR_INTERN, "Unexpected physical memory breakpoint kind");
@@ -219,9 +223,10 @@ breakpoint_t *breakpoint_init(ptr64_t address, breakpoint_kind_t kind)
 /** Fires given breakpoint
  *
  * @param breakpoint Breakpoint structure to be fired
+ * @param cpu_no     Number of CPU which hit the breakpoint.
  *
  */
-static void breakpoint_hit(breakpoint_t *breakpoint)
+static void breakpoint_hit(breakpoint_t *breakpoint, unsigned long cpu_no)
 {
     breakpoint->hits++;
 
@@ -232,8 +237,7 @@ static void breakpoint_hit(breakpoint_t *breakpoint)
         break;
     case BREAKPOINT_KIND_DEBUGGER:
         if (dap_enabled) {
-            alert("Debug: Hit debugger breakpoint at %#0" PRIx64, breakpoint->pc.ptr);
-            dap_event_hit_code_breakpoint(breakpoint->pc.ptr);
+            dap_event_hit_code_breakpoint(cpu_no);
         } else if (remote_gdb) {
             gdb_handle_event(GDB_EVENT_BREAKPOINT);
         }
@@ -246,23 +250,24 @@ static void breakpoint_hit(breakpoint_t *breakpoint)
 /** Search for a breakpoint
  *
  * Search for a breakpoint in given list which should be
- * fired on given address and fire it.
+ * fired based on address of given CPU's PC.
  *
  * @param breakpoints List of code breakpoints of some processor.
- * @param address     Address of executed instruction.
+ * @param cpu         CPU which can hit the breakpoint.
  *
  * @return True, if at least one breakpoint has been hit.
  *
  */
-static bool breakpoint_hit_by_address(list_t breakpoints, ptr64_t address)
+static bool breakpoint_hit_by_cpu(list_t breakpoints, general_cpu_t *cpu)
 {
+    ptr64_t address = cpu_get_pc(cpu);
     bool hit = false;
 
     breakpoint_t *breakpoint = NULL;
     for_each(breakpoints, breakpoint, breakpoint_t)
     {
         if (breakpoint->pc.ptr == address.ptr) {
-            breakpoint_hit(breakpoint);
+            breakpoint_hit(breakpoint, cpu->cpuno);
             hit = true;
         }
     }
@@ -310,10 +315,10 @@ bool breakpoint_check_for_code_breakpoints(void)
 {
     bool hit = false;
 
-    general_cpu_t* cpu = NULL;
+    general_cpu_t *cpu = NULL;
     for_each(cpu_list, cpu, general_cpu_t)
     {
-        if (breakpoint_hit_by_address(cpu->bps, cpu_get_pc(cpu))) {
+        if (breakpoint_hit_by_cpu(cpu->bps, cpu)) {
             hit = true;
         }
     }

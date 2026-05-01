@@ -80,7 +80,9 @@ static const cpu_ops_t rv_cpu = {
     .set_reg = (set_reg_func_t) rv32_set_reg_wrapper,
     .get_pc = (get_pc_func_t) rv32_get_pc_wrapper,
     .set_pc = (set_pc_func_t) rv32_set_pc_wrapper,
-    .sc_access = (sc_access_func_t) rv32_sc_access
+    .sc_access = (sc_access_func_t) rv32_sc_access,
+
+    .arch = CpuArchRiscV32,
 };
 
 /**

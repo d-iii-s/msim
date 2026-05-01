@@ -81,7 +81,9 @@ static const cpu_ops_t r4k_cpu = {
     .set_reg = (set_reg_func_t) r4k_set_reg_wrapper,
     .get_pc = (get_pc_func_t) r4k_get_pc_wrapper,
     .set_pc = (set_pc_func_t) r4k_set_pc,
-    .sc_access = (sc_access_func_t) r4k_sc_access
+    .sc_access = (sc_access_func_t) r4k_sc_access,
+
+    .arch = CpuArchMips,
 };
 
 /** Initialization

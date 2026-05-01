@@ -233,3 +233,11 @@ extern bool cpu_sc_access(general_cpu_t *cpu, ptr36_t addr, int size)
     }
     return cpu->type->sc_access(cpu->data, addr, size);
 }
+
+cpu_arch_t cpu_get_arch(general_cpu_t *cpu)
+{
+    if (cpu == NULL) {
+        cpu = get_fallback_cpu();
+    }
+    return cpu->type->arch;
+}

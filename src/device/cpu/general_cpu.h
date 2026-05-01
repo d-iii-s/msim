@@ -36,6 +36,16 @@ typedef void (*set_pc_func_t)(void *, ptr64_t);
 /** Function type for notifying the processor about a write to a memory location, used for implementing SC atomic*/
 typedef bool (*sc_access_func_t)(void *, ptr36_t, int);
 
+/** The supported CPU architectures */
+typedef enum cpu_arch {
+    /** MIPS R4000 architecture. */
+    CpuArchMips,
+    /** RISC-V 32-bit architecture. */
+    CpuArchRiscV32,
+    /** RISC-V 64-bit architecture. */
+    CpuArchRiscV64,
+} cpu_arch_t;
+
 /** Cpu method table
  *
  * NULL value means "not implemented"
@@ -51,6 +61,7 @@ typedef struct {
     get_pc_func_t get_pc;
     set_pc_func_t set_pc;
     sc_access_func_t sc_access;
+    cpu_arch_t arch; /** The architecture of the CPU */
 } cpu_ops_t;
 
 /** Structure describing general CPU */
@@ -193,5 +204,13 @@ extern void cpu_set_pc(general_cpu_t *cpu, ptr64_t pc);
  * @return whether the address was linked/reserved
  */
 extern bool cpu_sc_access(general_cpu_t *cpu, ptr36_t addr, int size);
+
+/**
+ * @brief Get the architecture of the CPU
+ *
+ * @param cpu the processor pointer
+ * @return the architecture of the CPU
+ */
+extern cpu_arch_t cpu_get_arch(general_cpu_t *cpu);
 
 #endif // GENERAL_CPU_H_

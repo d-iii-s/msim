@@ -203,6 +203,22 @@ bool cpu_set_reg(general_cpu_t *cpu, unsigned int regno, uint64_t value)
     return cpu->type->set_reg(cpu->data, regno, value);
 }
 
+bool cpu_get_csr(general_cpu_t *cpu, unsigned int regno, uint64_t *out_value)
+{
+    if (cpu == NULL) {
+        cpu = get_fallback_cpu();
+    }
+    return cpu->type->get_csr(cpu->data, regno, out_value);
+}
+
+bool cpu_set_csr(general_cpu_t *cpu, unsigned int regno, uint64_t value)
+{
+    if (cpu == NULL) {
+        cpu = get_fallback_cpu();
+    }
+    return cpu->type->set_csr(cpu->data, regno, value);
+}
+
 ptr64_t cpu_get_pc(general_cpu_t *cpu)
 {
     if (cpu == NULL) {

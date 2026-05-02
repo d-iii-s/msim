@@ -64,6 +64,24 @@ static bool r4k_set_reg_wrapper(void *cpu, unsigned int regno, uint64_t val)
     return true;
 }
 
+static bool r4k_get_csr_wrapper(void *cpu, unsigned int regno, uint64_t *out_val)
+{
+    if (regno >= R4K_REG_COUNT) {
+        return false;
+    }
+    *out_val = ((r4k_cpu_t *) cpu)->cp0[regno].val;
+    return true;
+}
+
+static bool r4k_set_csr_wrapper(void *cpu, unsigned int regno, uint64_t val)
+{
+    if (regno >= R4K_REG_COUNT) {
+        return false;
+    }
+    ((r4k_cpu_t *) cpu)->cp0[regno].val = val;
+    return true;
+}
+
 static ptr64_t r4k_get_pc_wrapper(void *cpu)
 {
     return ((r4k_cpu_t *) cpu)->pc;
@@ -79,6 +97,8 @@ static const cpu_ops_t r4k_cpu = {
 
     .get_reg = (get_reg_func_t) r4k_get_reg_wrapper,
     .set_reg = (set_reg_func_t) r4k_set_reg_wrapper,
+    .get_csr = (get_csr_func_t) r4k_get_csr_wrapper,
+    .set_csr = (set_csr_func_t) r4k_set_csr_wrapper,
     .get_pc = (get_pc_func_t) r4k_get_pc_wrapper,
     .set_pc = (set_pc_func_t) r4k_set_pc,
     .sc_access = (sc_access_func_t) r4k_sc_access,

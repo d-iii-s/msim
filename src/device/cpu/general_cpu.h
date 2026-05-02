@@ -29,6 +29,10 @@ typedef void (*reg_dump_func_t)(void *);
 typedef bool (*get_reg_func_t)(void *, unsigned int, uint64_t *);
 /** Function type for setting the value of a general register of a cpu */
 typedef bool (*set_reg_func_t)(void *, unsigned int, uint64_t);
+/** Function type for getting the value of a CSR of a cpu */
+typedef bool (*get_csr_func_t)(void *, unsigned int, uint64_t *);
+/** Function type for setting the value of a CSR a cpu */
+typedef bool (*set_csr_func_t)(void *, unsigned int, uint64_t);
 /** Function type for getting the program counter of a cpu */
 typedef ptr64_t (*get_pc_func_t)(void *);
 /** Function type for setting the program counter of a cpu */
@@ -58,6 +62,8 @@ typedef struct {
     reg_dump_func_t reg_dump;
     get_reg_func_t get_reg;
     set_reg_func_t set_reg;
+    get_csr_func_t get_csr;
+    set_csr_func_t set_csr;
     get_pc_func_t get_pc;
     set_pc_func_t set_pc;
     sc_access_func_t sc_access;
@@ -191,6 +197,26 @@ extern bool cpu_get_reg(general_cpu_t *cpu, unsigned int regno, uint64_t *out_va
  * @return true if the register value was successfully set, false otherwise
  */
 extern bool cpu_set_reg(general_cpu_t *cpu, unsigned int regno, uint64_t value);
+
+/**
+ * @brief Gets the value of a CSR of the cpu
+ *
+ * @param cpu the processor pointer
+ * @param regno the index of the CSR to get
+ * @param out_value a pointer to the variable where the CSR value will be stored, only modified if the function returns true
+ * @return true if the CSR value was successfully retrieved, false otherwise
+ */
+bool cpu_get_csr(general_cpu_t *cpu, unsigned int regno, uint64_t *out_value);
+
+/**
+ * @brief Sets the value of a CSR of the cpu
+ *
+ * @param cpu the processor pointer
+ * @param regno the index of the CSR to set
+ * @param value the value that will be set to the CSR
+ * @return true if the CSR value was successfully set, false otherwise
+ */
+bool cpu_set_csr(general_cpu_t *cpu, unsigned int regno, uint64_t value);
 
 extern ptr64_t cpu_get_pc(general_cpu_t *cpu);
 extern void cpu_set_pc(general_cpu_t *cpu, ptr64_t pc);

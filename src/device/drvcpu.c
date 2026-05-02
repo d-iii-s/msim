@@ -57,6 +57,39 @@ static bool rv32_set_reg_wrapper(void *cpu, unsigned int regno, uint64_t val)
     return true;
 }
 
+static bool rv32_get_csr_wrapper(void *cpu, unsigned int csrno, uint64_t *out_val)
+{
+    rv32_cpu_t *rv_cpu = cpu;
+    const rv_priv_mode_t prev = rv_cpu->priv_mode;
+    rv_cpu->priv_mode = rv_mmode; // Temporarily switch to M-mode to be able to read all CSRs
+
+    uint32_t temp_out;
+    const bool result = rv32_csr_rs(rv_cpu, csrno, 0, &temp_out, false) == rv_exc_none;
+
+    rv_cpu->priv_mode = prev; // Restore previous privilege mode
+
+    if (result) {
+        *out_val = 0;
+        *out_val = temp_out;
+    }
+
+    return result;
+}
+
+static bool rv32_set_csr_wrapper(void *cpu, unsigned int csrno, uint64_t val)
+{
+    rv32_cpu_t *rv_cpu = cpu;
+    const rv_priv_mode_t prev = rv_cpu->priv_mode;
+    rv_cpu->priv_mode = rv_mmode; // Temporarily switch to M-mode to be able to write all CSRs
+
+    uint32_t dummy_target;
+    const bool result = rv32_csr_rw(rv_cpu, csrno, val, &dummy_target, false) == rv_exc_none;
+
+    rv_cpu->priv_mode = prev; // Restore previous privilege mode
+
+    return result;
+}
+
 static ptr64_t rv32_get_pc_wrapper(void *cpu)
 {
     return (ptr64_t) { .lo = ((rv_cpu_t *) cpu)->pc, .hi = 0 };
@@ -78,6 +111,8 @@ static const cpu_ops_t rv_cpu = {
 
     .get_reg = (get_reg_func_t) rv32_get_reg_wrapper,
     .set_reg = (set_reg_func_t) rv32_set_reg_wrapper,
+    .get_csr = (get_csr_func_t) rv32_get_csr_wrapper,
+    .set_csr = (set_csr_func_t) rv32_set_csr_wrapper,
     .get_pc = (get_pc_func_t) rv32_get_pc_wrapper,
     .set_pc = (set_pc_func_t) rv32_set_pc_wrapper,
     .sc_access = (sc_access_func_t) rv32_sc_access,

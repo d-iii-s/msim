@@ -22,6 +22,7 @@ general_cpu_t *general_cpu_init(const unsigned int id, void *cpu, const cpu_ops_
     gen_cpu->cpuno = id;
     gen_cpu->data = cpu;
     gen_cpu->type = type;
+    gen_cpu->steps_left = 0;
     list_init(&gen_cpu->bps);
     return gen_cpu;
 }

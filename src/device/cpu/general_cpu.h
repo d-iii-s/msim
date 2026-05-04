@@ -77,6 +77,7 @@ typedef struct {
     const cpu_ops_t *type;
     void *data;
     list_t bps; // Breakpoints
+    uint64_t steps_left; // Number of instruction steps to execute before pausing. 0 means infinite.
 } general_cpu_t;
 
 /** List of all CPUs */

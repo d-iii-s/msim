@@ -56,6 +56,9 @@ typedef struct rv64_cpu {
     /** Translation Lookaside Buffer used for caching translated addresses */
     rv64_tlb_t tlb;
 
+    bool pending_fetch_fault;
+    uint64_t pending_fetch_fault_pc;
+
 } rv64_cpu_t;
 
 /** Basic CPU routines */

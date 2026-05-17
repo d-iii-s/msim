@@ -32,6 +32,7 @@
 #include "dorder.h"
 #include "dprinter.h"
 #include "dr4kcpu.h"
+#include "dsh2ecmt.h"
 #include "dsh2ecpu.h"
 #include "dsh2eintc.h"
 #include "dtime.h"
@@ -48,6 +49,7 @@ static device_type_t const *const device_types[] = {
     &dr4kcpu,
     &drvcpu,
     &drv64cpu,
+    &dsh2ecmt,
     &dsh2ecpu,
     &dsh2eintc,
     &dcycle,

@@ -19,6 +19,7 @@
 #include <string.h>
 
 #include "../../../assert.h"
+#include "../../dsh2ecmt.h"
 #include "../../intc/superh_sh2e/intc.h"
 #include "bitops.h"
 #include "cpu.h"
@@ -527,8 +528,27 @@ sh2e_reset_state_step(sh2e_cpu_t *const restrict cpu)
 
     // TODO: Initialize On-Chip Peripherals
 
-    if (cpu->reset_req == SH2E_POWER_ON_RESET_REQ_EXTERNAL) {
+    switch (cpu->reset_req) {
+    case SH2E_POWER_ON_RESET_REQ_INTERNAL: {
+        cmt_reset();
+        break;
+    }
+    case SH2E_POWER_ON_RESET_REQ_EXTERNAL: {
         // TODO: Initialize PFC/IO Port
+        cmt_reset();
+    }
+    case SH2E_POWER_ON_RESET_INITIAL: {
+        // Nothing for now
+        break;
+    }
+    case SH2E_MANUAL_RESET_REQ: {
+        // Nothing for now
+        break;
+    }
+    case SH2E_RESET_REQ_NONE: {
+        // Should not happen
+        break;
+    }
     }
 
     // Clear the request
@@ -596,6 +616,12 @@ sh2e_program_execution_state_step(sh2e_cpu_t *const restrict cpu)
         cpu->insn_exception = sh2e_cpu_execute_insn(cpu, &insn_cycles);
     }
 
+    // Can happen after executing the SLEEP instruction
+    if (cpu->pr_state == SH2E_PSTATE_POWER_DOWN) {
+        // CMT is initialized also in standy state
+        cmt_reset();
+    }
+
     // If interrupts are not disabled, check for pending interrupts.
     if (!cpu->disable_interrupts) {
 
@@ -614,6 +640,7 @@ sh2e_program_execution_state_step(sh2e_cpu_t *const restrict cpu)
 
     // Accounting
     cpu->program_execution_cycles += insn_cycles;
+    cmt_cpu_cycles_update(insn_cycles);
 
     // Update program counter (respect delay slots).
     if (cpu->pr_state == SH2E_PSTATE_PROGRAM_EXECUTION) {

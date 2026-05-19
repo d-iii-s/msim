@@ -3059,7 +3059,7 @@ static r4k_exc_t execute(r4k_cpu_t *cpu)
         return r4k_excAdEL;
     }
 
-    r4k_instr_t instr = (r4k_instr_t) physmem_read32(cpu->procno, phys, false);
+    r4k_instr_t instr = (r4k_instr_t) physmem_read32(cpu->procno, phys, true);
 
     /* Execute instruction */
     r4k_exc_t exc = fnc(cpu, instr);

@@ -409,11 +409,11 @@ static void physmem_breakpoint_find(ptr36_t addr, len36_t size,
 
     for_each(physmem_breakpoints, breakpoint, physmem_breakpoint_t)
     {
-        if (breakpoint->addr + breakpoint->size < addr) {
+        if (breakpoint->addr + breakpoint->size <= addr) {
             continue;
         }
 
-        if (breakpoint->addr > addr + breakpoint->size) {
+        if (breakpoint->addr >= addr + size) {
             continue;
         }
 

@@ -25,9 +25,6 @@
 #include "cpu/general_cpu.h"
 #include "dsh2ecmt.h"
 
-#define PACKED __attribute__((packed))
-
-#define SH2E_CMT_CHANNELS_COUNT 2
 #define SH2E_CMT_CHANNEL_REGISTERS_COUNT 3
 #define SH2E_CMT_REGISTERS_START_ADDRESS UINT32_C(0xFFFFF710)
 #define SH2E_CMT_CMCOR_INITIAL_VALUE UINT16_C(0xFFFF)
@@ -48,117 +45,11 @@
 
 #define SH2E_CMT_CMSTR_NAME "cmstr"
 
-list_t cmt_list = LIST_INITIALIZER;
-
 char const *const sh2e_cmt_channel_reg_names[SH2E_CMT_CHANNEL_REGISTERS_COUNT] = {
     "cmcsr",
     "cmcnt",
     "cmcor"
 };
-
-// Link to hardware manual (REJ09B0045-0200H, page 445)
-
-typedef union sh2e_cmt_cmstr {
-    uint16_t value;
-
-    PACKED struct {
-#ifdef WORDS_BIGENDIAN
-        uint16_t _rf : 14; /** Reserved field, bits 15 to 2. */
-        uint16_t str1 : 1; /** Selects whether to operate or halt compare match timer counter 1 */
-        uint16_t str0 : 1; /** Selects whether to operate or halt compare match timer counter 0 */
-#else
-        uint16_t str0 : 1; /** Selects whether to operate or halt compare match timer counter 0 */
-        uint16_t str1 : 1; /** Selects whether to operate or halt compare match timer counter 1 */
-        uint16_t _rf : 14; /** Reserved field, bits 15 to 2. */
-#endif
-    };
-} sh2e_cmt_cmstr_t;
-
-typedef union sh2e_cmt_cmcsr {
-    uint16_t value;
-
-    PACKED struct {
-#ifdef WORDS_BIGENDIAN
-        uint16_t _rf1 : 8; /** Reserved field 1, bits 15 to 8. These bits are always read as 0. The write value should always be 0. */
-        uint16_t cmf : 1; /** Compare Match Flag - This flag indicates whether or not the CMCNT and CMCOR values have matched. */
-        uint16_t cmie : 1; /** Compare Match Interrupt Enable - Selects whether to enable or disable a
-                               compare match interrupt (CMI) when the CMCNT and CMCOR values have matched (CMF = 1)
-                            */
-        uint16_t _rf2 : 4; /** Reserved field 2, bits 5 to 2. */
-
-        /**
-         *  These bits select the clock input to
-         *  CMCNT from among the four internal clocks obtained by dividing the peripheral clock (Pφ).
-         *  When the STR bit of CMSTR is set to 1, CMCNT begins incrementing with the clock selected
-         *  by CKS1 and CKS0.
-         */
-        uint16_t cks1 : 1; /** Clock Select 1  */
-        uint16_t cks0 : 1; /** Clock Select 0  */
-#else
-        uint16_t cks0 : 1; /** Clock Select 0  */
-        uint16_t cks1 : 1; /** Clock Select 1  */
-        /**
-         *  These bits select the clock input to
-         *  CMCNT from among the four internal clocks obtained by dividing the peripheral clock (Pφ).
-         *  When the STR bit of CMSTR is set to 1, CMCNT begins incrementing with the clock selected
-         *  by CKS1 and CKS0.
-         */
-
-        uint16_t _rf2 : 4; /** Reserved field 2, bits 5 to 2. */
-        uint16_t cmie : 1; /** Compare Match Interrupt Enable - Selects whether to enable or disable a
-                       compare match interrupt (CMI) when the CMCNT and CMCOR values have matched (CMF = 1)
-                    */
-        uint16_t cmf : 1; /** Compare Match Flag - This flag indicates whether or not the CMCNT and CMCOR values have matched. */
-        uint16_t _rf1 : 8; /** Reserved field 1, bits 15 to 8. These bits are always read as 0. The write value should always be 0. */
-
-#endif
-    };
-} sh2e_cmt_cmcsr_t;
-
-typedef struct sh2e_cmt_channel_reg {
-    sh2e_cmt_cmcsr_t cmcsr; /* CMT control/status register */
-
-    /**
-     * CMT counter.
-     * CMCNT is initialized to H'0000 by a power-on reset and in the standby modes.
-     * It is not initialized by a manual reset.
-     */
-    uint16_t cmcnt;
-
-    /**
-     * CMT constant register.
-     * CMCOR is initialized to H'FFFF by a power-on reset and in the standby modes.
-     * It is not initialized by a manual reset.
-     */
-    uint16_t cmcor;
-} sh2e_cmt_channel_reg_t;
-
-typedef struct sh2e_cmt_regs {
-    sh2e_cmt_cmstr_t cmstr; /* CMT start register */
-
-    sh2e_cmt_channel_reg_t channels[SH2E_CMT_CHANNELS_COUNT]; /* CMT channel registers */
-} sh2e_cmt_regs_t;
-
-typedef struct sh2e_cmt {
-    item_t item;
-
-    uint64_t regs_addr; /* Base address of the CMT registers */
-
-    sh2e_cmt_regs_t cmt_regs; /* CMT registers */
-
-    // TODO: find better solution for keeping track of cycles, as this number will also be used by WDT
-    unsigned int cpu_cycles; /* Number of CPU cycles since last tick */
-
-    /* Internal counters */
-    uint_fast16_t counter0;
-    uint_fast16_t counter1;
-
-    unsigned int int_no_first_channel; /* Interrupt number for the first channel */
-    unsigned int int_no_second_channel; /* Interrupt number for the second channel */
-
-    uint64_t interrupts_channel_0_count; /* Number of interrupts asserted from channel 0 */
-    uint64_t interrupts_channel_1_count; /* Number of interrupts asserted from channel 1 */
-} sh2e_cmt_t;
 
 static void sh2e_cmt_cmstr_reg_write(sh2e_cmt_t *cmt, uint16_t value)
 {
@@ -195,7 +86,10 @@ static void write_byte_to_register(uint16_t *reg, bool upper_byte, uint8_t val)
     }
 }
 
-static void sh2e_cmt_reset(sh2e_cmt_t *cmt)
+/**
+ * @brief Resets the CMT device
+ */
+void sh2e_cmt_reset(sh2e_cmt_t *cmt)
 {
     // Also initialize the counters to 0
     cmt->counter0 = 0;
@@ -210,30 +104,13 @@ static void sh2e_cmt_reset(sh2e_cmt_t *cmt)
 }
 
 /**
- * @brief Resets every CMT in the system
+ * @brief Updates the internal cycle counter of the specified CMT in the system with the given number of cycles
+ * @param cmt The CMT instance to update
+ * @param cycles The number of cycles to add to the counter
  */
-void cmt_reset(void)
+void sh2e_cmt_cpu_cycles_update(sh2e_cmt_t *cmt, unsigned int cycles)
 {
-    sh2e_cmt_t *cmt;
-
-    for_each(cmt_list, cmt, sh2e_cmt_t)
-    {
-        sh2e_cmt_reset(cmt);
-    }
-}
-
-/**
- * @brief Updates the internal cycle counter of every CMT in the system with the given number of cycles
- * @param cycles The number of cycles add to the counter
- */
-void cmt_cpu_cycles_update(unsigned int cycles)
-{
-    sh2e_cmt_t *cmt;
-
-    for_each(cmt_list, cmt, sh2e_cmt_t)
-    {
-        cmt->cpu_cycles = cycles;
-    }
+    cmt->cpu_cycles = cycles;
 }
 
 /** Init command implementation
@@ -294,7 +171,6 @@ static bool dsh2ecmt_init(token_t *parm, device_t *dev)
     sh2e_cmt_reset(sh2e_cmt);
 
     item_init(&sh2e_cmt->item);
-    list_append(&cmt_list, &sh2e_cmt->item);
 
     return true;
 }
@@ -327,7 +203,7 @@ static bool dsh2ecmt_stat(token_t *parm, device_t *dev)
 {
     ASSERT(dev != NULL);
 
-    sh2e_cmt_t *cmt = (sh2e_cmt_t *) dev->data;
+    sh2e_cmt_t *cmt = device_get_sh2e_cmt(dev);
 
     printf("[CMT0 interrupts] [CMT1 interrupts] [Total interrupts]\n");
     printf("%17" PRIu64 " %17" PRIu64 " %18" PRIu64 "\n\n",
@@ -350,7 +226,7 @@ static void dsh2ecmt_read8(unsigned int procno, device_t *dev, ptr36_t addr, uin
 {
     ASSERT(dev != NULL);
 
-    sh2e_cmt_t *sh2e_cmt = (sh2e_cmt_t *) dev->data;
+    sh2e_cmt_t *sh2e_cmt = device_get_sh2e_cmt(dev);
     ptr36_t offset = addr - sh2e_cmt->regs_addr;
 
     bool upper_byte = (offset % 2) == 0;
@@ -393,7 +269,7 @@ static void dsh2ecmt_read16(unsigned int procno, device_t *dev, ptr36_t addr, ui
 {
     ASSERT(dev != NULL);
 
-    sh2e_cmt_t *sh2e_cmt = (sh2e_cmt_t *) dev->data;
+    sh2e_cmt_t *sh2e_cmt = device_get_sh2e_cmt(dev);
 
     ptr36_t offset = addr - sh2e_cmt->regs_addr;
     unsigned int channel_num = (offset >= SH2E_CMT_CMCSR1_REGISTER_ADDRESS_OFFSET) ? 1 : 0;
@@ -437,7 +313,7 @@ static void dsh2ecmt_read32(unsigned int procno, device_t *dev, ptr36_t addr, ui
 {
     ASSERT(dev != NULL);
 
-    sh2e_cmt_t *sh2e_cmt = (sh2e_cmt_t *) dev->data;
+    sh2e_cmt_t *sh2e_cmt = device_get_sh2e_cmt(dev);
 
     ptr36_t offset = addr - sh2e_cmt->regs_addr;
 
@@ -477,7 +353,7 @@ static void dsh2ecmt_write8(unsigned int procno, device_t *dev, ptr36_t addr, ui
 {
     ASSERT(dev != NULL);
 
-    sh2e_cmt_t *sh2e_cmt = (sh2e_cmt_t *) dev->data;
+    sh2e_cmt_t *sh2e_cmt = device_get_sh2e_cmt(dev);
 
     ptr36_t offset = addr - sh2e_cmt->regs_addr;
     bool upper_byte = (offset % 2) == 0;
@@ -524,7 +400,7 @@ static void dsh2ecmt_write16(unsigned int procno, device_t *dev, ptr36_t addr, u
 {
     ASSERT(dev != NULL);
 
-    sh2e_cmt_t *sh2e_cmt = (sh2e_cmt_t *) dev->data;
+    sh2e_cmt_t *sh2e_cmt = device_get_sh2e_cmt(dev);
 
     ptr36_t offset = addr - sh2e_cmt->regs_addr;
     unsigned int channel_num = (offset >= SH2E_CMT_CMCSR1_REGISTER_ADDRESS_OFFSET) ? 1 : 0;
@@ -568,7 +444,7 @@ static void dsh2ecmt_write32(unsigned int procno, device_t *dev, ptr36_t addr, u
 {
     ASSERT(dev != NULL);
 
-    sh2e_cmt_t *sh2e_cmt = (sh2e_cmt_t *) dev->data;
+    sh2e_cmt_t *sh2e_cmt = device_get_sh2e_cmt(dev);
 
     ptr36_t offset = addr - sh2e_cmt->regs_addr;
 
@@ -675,7 +551,7 @@ static void dsh2ecmt_step(device_t *dev)
 {
     ASSERT(dev != NULL);
 
-    sh2e_cmt_t *sh2e_cmt = (sh2e_cmt_t *) dev->data;
+    sh2e_cmt_t *sh2e_cmt = device_get_sh2e_cmt(dev);
 
     for (unsigned int i = 0; i < SH2E_CMT_CHANNELS_COUNT; ++i) {
         bool enabled = false;
@@ -708,7 +584,7 @@ dsh2ecmt_cmd_dump_regs(token_t *parm, device_t *const dev)
 {
     ASSERT(dev != NULL);
 
-    sh2e_cmt_t *sh2e_cmt = (sh2e_cmt_t *) dev->data;
+    sh2e_cmt_t *sh2e_cmt = device_get_sh2e_cmt(dev);
 
     printf("CMT\n");
 

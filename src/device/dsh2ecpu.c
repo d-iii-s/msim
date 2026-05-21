@@ -26,6 +26,7 @@
 #include "cpu/superh_sh2e/cpu.h"
 #include "cpu/superh_sh2e/debug.h"
 #include "device.h"
+#include "dsh2ecmt.h"
 #include "dsh2ecpu.h"
 
 #define device_get_sh2e_cpu(dev) (sh2e_cpu_t *) (((general_cpu_t *) (dev)->data)->data)
@@ -210,6 +211,26 @@ static bool dsh2ecpu_cmd_set_intc(token_t *parm, device_t *const dev)
     return true;
 }
 
+static bool dsh2ecpu_cmd_add_cmt(token_t *parm, device_t *const dev)
+{
+    ASSERT(dev != NULL);
+
+    const char *cmt_name = parm_str_next(&parm);
+    device_t *cmt_dev = dev_by_name(cmt_name);
+
+    if (cmt_dev == NULL) {
+        error("Compare match timer device '%s' not found", cmt_name);
+        return false;
+    }
+
+    sh2e_cpu_t *cpu = device_get_sh2e_cpu(dev);
+    sh2e_cmt_t *cmt = device_get_sh2e_cmt(cmt_dev);
+
+    list_append(&cpu->on_chip_peripherals.cmt_list, &cmt->item);
+
+    return true;
+}
+
 /** Execute one processor step. */
 static void
 dsh2ecpu_step(device_t *const dev)
@@ -299,6 +320,13 @@ static cmd_t const dsh2ecpu_cmds[] = {
             "Set interrupt controller",
             "Set interrupt controller <intc_device_name>",
             REQ STR "intc_device_name" END },
+    { "addcmt",
+            (fcmd_t) dsh2ecpu_cmd_add_cmt,
+            DEFAULT,
+            DEFAULT,
+            "Add a compare match timer to the CPU's on-chip peripherals",
+            "Add a compare match timer to the CPU's on-chip peripherals <cmt_device_name>",
+            REQ STR "cmt_device_name" END },
     LAST_CMD
 };
 

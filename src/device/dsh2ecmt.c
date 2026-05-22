@@ -24,6 +24,8 @@
 #include "../utils.h"
 #include "cpu/general_cpu.h"
 #include "dsh2ecmt.h"
+#include "intc/superh_sh2e/intc.h"
+#include "peripheral.h"
 
 #define SH2E_CMT_CHANNEL_REGISTERS_COUNT 3
 #define SH2E_CMT_REGISTERS_START_ADDRESS UINT32_C(0xFFFFF710)
@@ -89,7 +91,7 @@ static void write_byte_to_register(uint16_t *reg, bool upper_byte, uint8_t val)
 /**
  * @brief Resets the CMT device
  */
-void sh2e_cmt_reset(sh2e_cmt_t *cmt)
+static void sh2e_cmt_reset(sh2e_cmt_t *cmt)
 {
     // Also initialize the counters to 0
     cmt->counter0 = 0;
@@ -108,10 +110,37 @@ void sh2e_cmt_reset(sh2e_cmt_t *cmt)
  * @param cmt The CMT instance to update
  * @param cycles The number of cycles to add to the counter
  */
-void sh2e_cmt_cpu_cycles_update(sh2e_cmt_t *cmt, unsigned int cycles)
+static void sh2e_cmt_cpu_cycles_update(void *peripheral, unsigned int cycles)
 {
+    sh2e_cmt_t *cmt = (sh2e_cmt_t *) ((peripheral_t *) peripheral)->data;
     cmt->cpu_cycles = cycles;
 }
+
+static void sh2e_cmt_interrupt_up(void *peripheral, unsigned int int_no)
+{
+    sh2e_cmt_t *cmt = (sh2e_cmt_t *) ((peripheral_t *) peripheral)->data;
+
+    switch (int_no) {
+    case SH2E_INTC_POWER_ON_RESET_EXTERNAL_OFFSET:
+    case SH2E_INTC_POWER_ON_RESET_INTERNAL_OFFSET:
+    case SH2E_INTC_SLEEP_MODE_OFFSET: {
+        sh2e_cmt_reset(cmt);
+        break;
+    }
+    }
+}
+
+static void sh2e_cmt_register_cpu(void *peripheral, void *cpu)
+{
+    sh2e_cmt_t *cmt = (sh2e_cmt_t *) ((peripheral_t *) peripheral)->data;
+    cmt->cpu = (general_cpu_t *) cpu;
+}
+
+static peripheral_ops_t const sh2e_cmt_peripheral_ops = {
+    .interrupt_up = (interrupt_func_t) sh2e_cmt_interrupt_up,
+    .register_cpu = (register_cpu_func_t) sh2e_cmt_register_cpu,
+    .update_cycles = (update_cycles_func_t) sh2e_cmt_cpu_cycles_update
+};
 
 /** Init command implementation
  *
@@ -158,7 +187,6 @@ static bool dsh2ecmt_init(token_t *parm, device_t *dev)
 
     /* Initialization */
     sh2e_cmt_t *sh2e_cmt = safe_malloc_t(sh2e_cmt_t);
-    dev->data = sh2e_cmt;
 
     sh2e_cmt->regs_addr = addr;
     sh2e_cmt->int_no_first_channel = int_no_first_channel;
@@ -170,7 +198,14 @@ static bool dsh2ecmt_init(token_t *parm, device_t *dev)
 
     sh2e_cmt_reset(sh2e_cmt);
 
-    item_init(&sh2e_cmt->item);
+    peripheral_t *generic_peripheral = safe_malloc_t(peripheral_t);
+    *generic_peripheral = (peripheral_t) {
+        .data = sh2e_cmt,
+        .type = &sh2e_cmt_peripheral_ops,
+    };
+
+    item_init(&generic_peripheral->item);
+    dev->data = generic_peripheral;
 
     return true;
 }
@@ -536,7 +571,7 @@ static void update_channel_counter(sh2e_cmt_t *cmt, unsigned int channel_num)
 
             if (channel_reg->cmcsr.cmie) { // If interrupt is enabled
                 (*interrupts_count)++;
-                cpu_interrupt_up(NULL, *int_no);
+                cpu_interrupt_up(cmt->cpu, *int_no);
             }
         }
     }
@@ -610,6 +645,26 @@ dsh2ecmt_cmd_dump_regs(token_t *parm, device_t *const dev)
     return true;
 }
 
+static bool dsh2e_cmt_add_cpu(token_t *parm, device_t *const dev)
+{
+    ASSERT(dev != NULL);
+
+    const char *cpu_name = parm_str_next(&parm);
+    device_t *cpu_dev = dev_by_name(cpu_name);
+
+    if (cpu_dev == NULL) {
+        error("CPU device '%s' not found", cpu_name);
+        return false;
+    }
+
+    general_cpu_t *cpu = cpu_dev->data;
+    sh2e_cmt_t *cmt = device_get_sh2e_cmt(dev);
+
+    cmt->cpu = cpu;
+
+    return true;
+}
+
 /** Dispose dsh2ecmt
  *
  * @param dev Device pointer
@@ -618,8 +673,12 @@ dsh2ecmt_cmd_dump_regs(token_t *parm, device_t *const dev)
 static void dsh2ecmt_done(device_t *dev)
 {
     ASSERT(dev != NULL);
+    peripheral_t *peripheral = (peripheral_t *) dev->data;
 
-    safe_free(dev->data);
+    sh2e_cmt_t *sh2e_cmt = (sh2e_cmt_t *) peripheral->data;
+    safe_free(sh2e_cmt);
+
+    safe_free(peripheral);
 }
 
 static cmd_t dsh2ecmt_cmds[] = {
@@ -661,6 +720,13 @@ static cmd_t dsh2ecmt_cmds[] = {
             "Dump contents of CMT registers",
             "Dump contents of CMT registers",
             NOCMD },
+    { "addcpu",
+            (fcmd_t) dsh2e_cmt_add_cpu,
+            DEFAULT,
+            DEFAULT,
+            "Add CPU to the device",
+            "Add CPU to the device",
+            REQ STR "cpu name" END },
     LAST_CMD
 };
 

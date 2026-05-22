@@ -315,11 +315,6 @@ typedef enum sh2e_reset_req {
     SH2E_MANUAL_RESET_REQ,
 } sh2e_reset_req_t;
 
-typedef struct sh2e_cpu_on_chip_peripherals {
-    list_t cmt_list; /** List of compare match timer devices. */
-} sh2e_cpu_on_chip_peripherals_t;
-
-
 /** Main processor structure */
 typedef struct sh2e_cpu {
 
@@ -361,7 +356,7 @@ typedef struct sh2e_cpu {
     sh2e_reset_req_t reset_req; /** Flag indicating a pending reset request. */
 
     /* References to on-chip peripherals */
-    sh2e_cpu_on_chip_peripherals_t on_chip_peripherals;
+    list_t on_chip_peripherals;
 } sh2e_cpu_t;
 
 /** Instruction implementation. */

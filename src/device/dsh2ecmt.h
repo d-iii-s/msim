@@ -20,7 +20,7 @@ extern device_type_t const dsh2ecmt;
 
 #define PACKED __attribute__((packed))
 
-#define device_get_sh2e_cmt(dev) ((sh2e_cmt_t *) (dev)->data)
+#define device_get_sh2e_cmt(dev) ((sh2e_cmt_t *) (((peripheral_t *) (dev)->data)->data))
 
 #define SH2E_CMT_CHANNELS_COUNT 2
 
@@ -108,13 +108,12 @@ typedef struct sh2e_cmt_regs {
 } sh2e_cmt_regs_t;
 
 typedef struct sh2e_cmt {
-    item_t item;
+    general_cpu_t *cpu; /* Pointer to the CPU this peripheral is attached to */
 
     uint64_t regs_addr; /* Base address of the CMT registers */
 
     sh2e_cmt_regs_t cmt_regs; /* CMT registers */
 
-    // TODO: find better solution for keeping track of cycles, as this number will also be used by WDT
     unsigned int cpu_cycles; /* Number of CPU cycles since last tick */
 
     /* Internal counters */
@@ -127,9 +126,5 @@ typedef struct sh2e_cmt {
     uint64_t interrupts_channel_0_count; /* Number of interrupts asserted from channel 0 */
     uint64_t interrupts_channel_1_count; /* Number of interrupts asserted from channel 1 */
 } sh2e_cmt_t;
-
-extern void sh2e_cmt_reset(sh2e_cmt_t *cmt);
-
-extern void sh2e_cmt_cpu_cycles_update(sh2e_cmt_t *cmt, unsigned int cycles);
 
 #endif

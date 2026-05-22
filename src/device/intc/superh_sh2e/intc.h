@@ -40,6 +40,7 @@
 #define SH2E_INTC_PRIORITY_MAX_VALUE 15
 #define SH2E_INTC_SOURCE_MAX_VALUE 255
 #define SH2E_INTC_IPR_HALF_BYTES_LENGTH (SH2E_INTC_IPR_REGISTERS_COUNT * 4)
+#define SH2E_INTC_IRQ_NUMBER_OF_SOURCES 8
 
 #define SH2E_INTC_POWER_ON_RESET_EXTERNAL_OFFSET 0
 #define SH2E_INTC_POWER_ON_RESET_INTERNAL_OFFSET 1
@@ -48,7 +49,14 @@
 #define SH2E_INTC_UBC_VECTOR_ADDRESS_OFFSET 12
 #define SH2E_INTC_HUDI_VECTOR_ADDRESS_OFFSET 14
 #define SH2E_INTC_IRQ_VECTOR_ADDRESS_OFFSET 64
-#define SH2E_INTC_IRQ_NUMBER_OF_SOURCES 8
+
+// NOTE: These offsets map to reserved fields in the Exception Processing Vector Table and are not used by the INTC.
+//       They are used by the CPU to send a 'interrupt' number to the peripherals. Because the CPU takes constants
+//       from this file, I thought it would be appropriate to put these constants here as well even though they are
+//       not used by the INTC itself.
+#define SH2E_INTC_SLEEP_MODE_OFFSET 5
+#define SH2E_INTC_HARDWARE_STANBY_MODE_OFFSET 7
+#define SH2E_INTC_SOFTWARE_STANBY_MODE_OFFSET 8
 
 #define SH2E_INTC_VALID_RESET_ID(id) (id <= SH2E_INTC_MANUAL_RESET_OFFSET)
 #define SH2E_INTC_VALID_IRQ_SOURCE_ID(id) (id >= SH2E_INTC_IRQ_VECTOR_ADDRESS_OFFSET && id < (SH2E_INTC_IRQ_VECTOR_ADDRESS_OFFSET + SH2E_INTC_IRQ_NUMBER_OF_SOURCES))

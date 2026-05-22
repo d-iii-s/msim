@@ -26,8 +26,8 @@
 #include "cpu/superh_sh2e/cpu.h"
 #include "cpu/superh_sh2e/debug.h"
 #include "device.h"
-#include "dsh2ecmt.h"
 #include "dsh2ecpu.h"
+#include "peripheral.h"
 
 #define device_get_sh2e_cpu(dev) (sh2e_cpu_t *) (((general_cpu_t *) (dev)->data)->data)
 
@@ -211,22 +211,22 @@ static bool dsh2ecpu_cmd_set_intc(token_t *parm, device_t *const dev)
     return true;
 }
 
-static bool dsh2ecpu_cmd_add_cmt(token_t *parm, device_t *const dev)
+static bool dsh2ecpu_cmd_add_peripheral(token_t *parm, device_t *const dev)
 {
     ASSERT(dev != NULL);
 
-    const char *cmt_name = parm_str_next(&parm);
-    device_t *cmt_dev = dev_by_name(cmt_name);
+    const char *peripheral_name = parm_str_next(&parm);
+    device_t *peripheral_dev = dev_by_name(peripheral_name);
 
-    if (cmt_dev == NULL) {
-        error("Compare match timer device '%s' not found", cmt_name);
+    if (peripheral_dev == NULL) {
+        error("Peripheral device '%s' not found", peripheral_name);
         return false;
     }
 
+    peripheral_t *peripheral = peripheral_dev->data;
     sh2e_cpu_t *cpu = device_get_sh2e_cpu(dev);
-    sh2e_cmt_t *cmt = device_get_sh2e_cmt(cmt_dev);
 
-    list_append(&cpu->on_chip_peripherals.cmt_list, &cmt->item);
+    list_append(&cpu->on_chip_peripherals, &peripheral->item);
 
     return true;
 }
@@ -320,13 +320,13 @@ static cmd_t const dsh2ecpu_cmds[] = {
             "Set interrupt controller",
             "Set interrupt controller <intc_device_name>",
             REQ STR "intc_device_name" END },
-    { "addcmt",
-            (fcmd_t) dsh2ecpu_cmd_add_cmt,
+    { "addperipheral",
+            (fcmd_t) dsh2ecpu_cmd_add_peripheral,
             DEFAULT,
             DEFAULT,
-            "Add a compare match timer to the CPU's on-chip peripherals",
-            "Add a compare match timer to the CPU's on-chip peripherals <cmt_device_name>",
-            REQ STR "cmt_device_name" END },
+            "Add a peripheral to the CPU's on-chip peripherals",
+            "Add a peripheral to the CPU's on-chip peripherals <peripheral_device_name>",
+            REQ STR "peripheral_device_name" END },
     LAST_CMD
 };
 

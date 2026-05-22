@@ -19,8 +19,8 @@
 #include <string.h>
 
 #include "../../../assert.h"
-#include "../../dsh2ecmt.h"
 #include "../../intc/superh_sh2e/intc.h"
+#include "../../peripheral.h"
 #include "bitops.h"
 #include "cpu.h"
 #include "debug.h"
@@ -68,7 +68,6 @@ sh2e_cpu_insn_cache_get(ptr36_t phys, cache_item_t **const output_item)
     ASSERT(output_item != NULL);
 
     ptr36_t const target_page = ALIGN_DOWN(phys, FRAME_SIZE);
-    // printf("looking up insn cache page 0x%08" PRIx64 "\n", target_page);
 
     cache_item_t *item;
     for_each(sh2e_insn_cache, item, cache_item_t)
@@ -78,8 +77,6 @@ sh2e_cpu_insn_cache_get(ptr36_t phys, cache_item_t **const output_item)
             return true;
         }
     }
-
-    // printf("  insn cache page not found\n");
     return false;
 }
 
@@ -345,6 +342,13 @@ sh2e_cpu_handle_interrupt(sh2e_cpu_t *const restrict cpu)
 {
     cpu->pr_state = SH2E_PSTATE_EXCEPTION_PROCESSING;
 
+    // Send the interrupt signal to on-chip peripherals (if any) so that they can update their state accordingly.
+    peripheral_t *peripheral;
+    for_each(cpu->on_chip_peripherals, peripheral, peripheral_t)
+    {
+        peripheral->type->interrupt_up(peripheral, cpu->pending_interrupt);
+    }
+
     uint32_t const stack_sr = cpu->cpu_regs.sr.value;
     uint32_t const stack_sr_addr = cpu->cpu_regs.sp - sizeof(uint32_t);
 
@@ -526,29 +530,28 @@ sh2e_reset_state_step(sh2e_cpu_t *const restrict cpu)
     // Initialize CPU/FPU and INTC
     sh2e_cpu_reset(cpu);
 
-    // TODO: Initialize On-Chip Peripherals
-    sh2e_cmt_t *cmt;
+    peripheral_t *peripheral;
+    bool raise_interrupt = false;
+    unsigned int int_no = 0;
 
     switch (cpu->reset_req) {
     case SH2E_POWER_ON_RESET_REQ_INTERNAL: {
-        for_each(cpu->on_chip_peripherals.cmt_list, cmt, sh2e_cmt_t)
-        {
-            sh2e_cmt_reset(cmt);
-        }
+        int_no = SH2E_INTC_POWER_ON_RESET_INTERNAL_OFFSET;
+        raise_interrupt = true;
         break;
     }
     case SH2E_POWER_ON_RESET_REQ_EXTERNAL: {
-        // TODO: Initialize PFC/IO Port
-        for_each(cpu->on_chip_peripherals.cmt_list, cmt, sh2e_cmt_t)
-        {
-            sh2e_cmt_reset(cmt);
-        }
+        int_no = SH2E_INTC_POWER_ON_RESET_EXTERNAL_OFFSET;
+        raise_interrupt = true;
+        break;
     }
     case SH2E_POWER_ON_RESET_INITIAL: {
         // Nothing for now
         break;
     }
     case SH2E_MANUAL_RESET_REQ: {
+        int_no = SH2E_INTC_MANUAL_RESET_OFFSET;
+        raise_interrupt = true;
         // Nothing for now
         break;
     }
@@ -556,6 +559,14 @@ sh2e_reset_state_step(sh2e_cpu_t *const restrict cpu)
         // Should not happen
         break;
     }
+    }
+
+    if (raise_interrupt) {
+        // Signal the reset interrupt to on-chip peripherals
+        for_each(cpu->on_chip_peripherals, peripheral, peripheral_t)
+        {
+            peripheral->type->interrupt_up(peripheral, int_no);
+        }
     }
 
     // Clear the request
@@ -625,11 +636,11 @@ sh2e_program_execution_state_step(sh2e_cpu_t *const restrict cpu)
 
     // Can happen after executing the SLEEP instruction
     if (cpu->pr_state == SH2E_PSTATE_POWER_DOWN) {
-        // CMT is initialized also in standy state
-        sh2e_cmt_t *cmt;
-        for_each(cpu->on_chip_peripherals.cmt_list, cmt, sh2e_cmt_t)
+        peripheral_t *peripheral;
+        for_each(cpu->on_chip_peripherals, peripheral, peripheral_t)
         {
-            sh2e_cmt_reset(cmt);
+            // Using sleep mode for now, because we don't support the other standby modes yet.
+            peripheral->type->interrupt_up(peripheral, SH2E_INTC_SLEEP_MODE_OFFSET);
         }
     }
 
@@ -651,10 +662,10 @@ sh2e_program_execution_state_step(sh2e_cpu_t *const restrict cpu)
 
     // Accounting
     cpu->program_execution_cycles += insn_cycles;
-    sh2e_cmt_t *cmt;
-    for_each(cpu->on_chip_peripherals.cmt_list, cmt, sh2e_cmt_t)
+    peripheral_t *peripheral;
+    for_each(cpu->on_chip_peripherals, peripheral, peripheral_t)
     {
-        sh2e_cmt_cpu_cycles_update(cmt, insn_cycles);
+        peripheral->type->update_cycles(peripheral, insn_cycles);
     }
 
     // Update program counter (respect delay slots).
@@ -701,7 +712,7 @@ void sh2e_cpu_init(sh2e_cpu_t *const restrict cpu, unsigned int id)
     cpu->pr_state = SH2E_PSTATE_RESET;
     cpu->reset_req = SH2E_POWER_ON_RESET_INITIAL;
 
-    cpu->on_chip_peripherals.cmt_list = (list_t) LIST_INITIALIZER;
+    cpu->on_chip_peripherals = (list_t) LIST_INITIALIZER;
 }
 
 /** @brief Cleanup CPU structures. */

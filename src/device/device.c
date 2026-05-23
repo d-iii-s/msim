@@ -35,6 +35,7 @@
 #include "dsh2ecmt.h"
 #include "dsh2ecpu.h"
 #include "dsh2eintc.h"
+#include "dsh2ewdt.h"
 #include "dtime.h"
 #include "mem.h"
 
@@ -52,6 +53,7 @@ static device_type_t const *const device_types[] = {
     &dsh2ecmt,
     &dsh2ecpu,
     &dsh2eintc,
+    &dsh2ewdt,
     &dcycle,
     &drwm,
     &drom,

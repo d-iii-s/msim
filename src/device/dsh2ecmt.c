@@ -130,15 +130,8 @@ static void sh2e_cmt_interrupt_up(void *peripheral, unsigned int int_no)
     }
 }
 
-static void sh2e_cmt_register_cpu(void *peripheral, void *cpu)
-{
-    sh2e_cmt_t *cmt = (sh2e_cmt_t *) ((peripheral_t *) peripheral)->data;
-    cmt->cpu = (general_cpu_t *) cpu;
-}
-
 static peripheral_ops_t const sh2e_cmt_peripheral_ops = {
     .interrupt_up = (interrupt_func_t) sh2e_cmt_interrupt_up,
-    .register_cpu = (register_cpu_func_t) sh2e_cmt_register_cpu,
     .update_cycles = (update_cycles_func_t) sh2e_cmt_cpu_cycles_update
 };
 

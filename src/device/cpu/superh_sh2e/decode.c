@@ -1239,7 +1239,7 @@ sh2e_insn_decode_nm_format(sh2e_insn_nm_t const insn)
             .disasm = sh2e_insn_desc_dump_nm_format,
             .cycles = 1,
         };
-        return &or;
+        return &or ;
     }
 
     case ic8(sh2e_insn_nm_ic_h_sub, sh2e_insn_nm_ic_l_sub): {

@@ -195,6 +195,10 @@ TESTS = [
     "shifts/shlr2",
     "shifts/shlr8",
     "shifts/shlr16",
+    "wdt/interrupt_2",
+    "wdt/interrupt_64",
+    "wdt/interrupt_8192",
+    "wdt/manual_reset",
 ]
 
 MSIM_PATH = "../../msim"

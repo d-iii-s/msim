@@ -69,6 +69,7 @@ SOURCES = \
 	device/device.c \
 	device/dsh2ecmt.c \
 	device/dsh2eintc.c \
+	device/dsh2ewdt.c \
 	device/intc/general_intc.c \
 	device/intc/superh_sh2e/intc.c \
 	device/intc/superh_sh2e/debug.c \

@@ -19,6 +19,8 @@
 #include <string.h>
 
 #include "../../../assert.h"
+#include "../../dsh2ecmt.h"
+#include "../../dsh2ewdt.h"
 #include "../../intc/superh_sh2e/intc.h"
 #include "../../peripheral.h"
 #include "bitops.h"

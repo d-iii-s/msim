@@ -20,6 +20,7 @@
 
 #include "../../../arch/endianness.h"
 #include "../../../assert.h"
+#include "../../../utils.h"
 #include "bitops.h"
 #include "cpu.h"
 #include "debug.h"
@@ -48,6 +49,12 @@ sh2e_addr_pc_relative_insn(sh2e_cpu_t *const restrict cpu, signed const disp)
 {
     // PC relative instruction addressing.
     return cpu->cpu_regs.pc + disp * sizeof(sh2e_insn_t);
+}
+
+static ALWAYS_INLINE uint32_t
+sh2e_addr_pc_relative_data(uint32_t const pc_addr, unsigned const disp, unsigned const scale)
+{
+    return ALIGN_DOWN(pc_addr, scale) + (disp * scale);
 }
 
 static ALWAYS_INLINE uint32_t
@@ -111,7 +118,7 @@ sh2e_insn_movi(
     ASSERT(0 <= POWER_OF_TWO(scale) && POWER_OF_TWO(scale) <= 2 && "invalid `scale` value");
 
     uint32_t const disp = zero_extend_8_32(insn.d8);
-    uint32_t const addr = ((cpu->cpu_regs.pc) & (~(scale - 1))) + 4 + (disp * scale);
+    uint32_t const addr = sh2e_addr_pc_relative_data(cpu->cpu_regs.pc + 4, disp, scale);
 
     uint32_t mem_value;
     sh2e_exception_t const cpu_read_ex = sh2e_cpu_read(cpu, addr, &mem_value);
@@ -1245,9 +1252,15 @@ sh2e_insn_exec_movls4(sh2e_cpu_t *const restrict cpu, sh2e_insn_nmd_t const insn
 sh2e_exception_t
 sh2e_insn_exec_mova(sh2e_cpu_t *const restrict cpu, sh2e_insn_d_t const insn)
 {
-    // TODO Check address calculation! The starting address of PC is unclear.
     uint32_t const disp = zero_extend_8_32(insn.d8);
-    cpu->cpu_regs.r0 = (cpu->cpu_regs.pc & UINT32_C(0xFFFFFFFC)) + (disp * sizeof(uint32_t));
+    unsigned const scale = sizeof(uint32_t);
+
+    // If this instruction is placed immediately after a delayed branch instruction, the PC must
+    // point to an address specified by (the starting address of the branch destination) + 2.
+    // pc_next is already set to the branch destination address in the execution of the delayed branch instruction.
+    uint32_t const addr = cpu->br_state == SH2E_BRANCH_STATE_DELAY ? (cpu->pc_next + 2) : (cpu->cpu_regs.pc + 4);
+
+    cpu->cpu_regs.r0 = sh2e_addr_pc_relative_data(addr, disp, scale);
     return SH2E_EXCEPTION_NONE;
 }
 

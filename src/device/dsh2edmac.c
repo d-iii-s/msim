@@ -289,6 +289,8 @@ static bool dsh2edmac_init(token_t *parm, device_t *dev)
     }
 
     memset(sh2e_dmac->peripheral_request_table, 0, sizeof(sh2e_dmac->peripheral_request_table));
+    sh2e_dmac->successful_transfers_count = 0;
+    sh2e_dmac->interrupts_count = 0;
 
     peripheral_t *generic_peripheral = safe_malloc_t(peripheral_t);
     *generic_peripheral = (peripheral_t) {
@@ -329,8 +331,9 @@ static bool dsh2edmac_stat(token_t *parm, device_t *dev)
 {
     ASSERT(dev != NULL);
 
-    // TODO:
-    // sh2e_dmac_t *dmac = device_get_sh2e_dmac(dev);
+    sh2e_dmac_t *dmac = device_get_sh2e_dmac(dev);
+    printf("[Total transfers] [Total interrupts]\n");
+    printf("%17" PRIu64 " %18" PRIu64 "\n\n", dmac->successful_transfers_count, dmac->interrupts_count);
 
     return true;
 }
@@ -685,6 +688,19 @@ static void perform_transfer(sh2e_dmac_t *dmac, unsigned int c_no)
     --dmac->dmac_regs.channels[c_no].tcr;
 }
 
+static bool check_abort_conditions(sh2e_dmac_t *dmac)
+{
+    return dmac->dmac_regs.dmaor.nmif || dmac->dmac_regs.dmaor.ae || !dmac->dmac_regs.dmaor.dme || !dmac->dmac_regs.channels[dmac->picked_channel].chcr.de;
+}
+
+static void abort_transfer(sh2e_dmac_t *dmac)
+{
+    dmac->transfer_state = SH2E_DMAC_TRANSFER_STATE_INITIAL;
+    if (dmac->picked_channel == 2) {
+        dmac->reload_counter = SH2E_DMAC_RELOAD_COUNTER_INITIAL_VALUE;
+    }
+}
+
 static void transfer_and_update_regs(sh2e_dmac_t *dmac)
 {
     ASSERT(dmac->picked_channel != -1);
@@ -700,6 +716,16 @@ static void transfer_and_update_regs(sh2e_dmac_t *dmac)
         }
     }
 
+    // Check if the transfer should be aborted due to DMAOR conditions
+    if (check_abort_conditions(dmac)) {
+        // Abort the transfer
+        abort_transfer(dmac);
+        return;
+    }
+
+    // Only count successful transfers that are not aborted due to DMAOR conditions
+    dmac->successful_transfers_count++;
+
     // Check if the transfer is finished (TCR reached 0)
     if (dmac->dmac_regs.channels[dmac->picked_channel].tcr == 0) {
         // Set transfer end bit
@@ -710,18 +736,9 @@ static void transfer_and_update_regs(sh2e_dmac_t *dmac)
         if (dmac->dmac_regs.channels[dmac->picked_channel].chcr.ie) {
             //  Interrupt request if ie is set
             cpu_interrupt_up(dmac->cpu, dmac->interrupt_number[dmac->picked_channel]);
+            dmac->interrupts_count++;
         }
         dmac->transfer_state = SH2E_DMAC_TRANSFER_STATE_INITIAL;
-        return;
-    }
-
-    // Check if the transfer should be aborted due to DMAOR conditions
-    if (dmac->dmac_regs.dmaor.nmif || dmac->dmac_regs.dmaor.ae || !dmac->dmac_regs.dmaor.dme || !dmac->dmac_regs.channels[dmac->picked_channel].chcr.de) {
-        // Abort the transfer
-        dmac->transfer_state = SH2E_DMAC_TRANSFER_STATE_INITIAL;
-        if (dmac->picked_channel == 2) {
-            dmac->reload_counter = SH2E_DMAC_RELOAD_COUNTER_INITIAL_VALUE;
-        }
         return;
     }
 
@@ -737,6 +754,12 @@ static void transfer_and_update_regs(sh2e_dmac_t *dmac)
 static void step_transferring(sh2e_dmac_t *dmac)
 {
     ASSERT(dmac->picked_channel != -1);
+
+    if (check_abort_conditions(dmac)) {
+        // Abort the transfer
+        abort_transfer(dmac);
+        return;
+    }
 
     transfer_and_update_regs(dmac);
 
@@ -783,7 +806,7 @@ static void step_waiting(sh2e_dmac_t *dmac)
             entry->pending = false;
 
             if (entry->type != DO_NOT_CARE) {
-                uint32_t *addr_to_check = entry->type == RECIEVE ? &dmac->dmac_regs.channels[dmac->picked_channel].sar : &dmac->dmac_regs.channels[dmac->picked_channel].dar;
+                uint32_t *addr_to_check = entry->type == RECEIVE ? &dmac->dmac_regs.channels[dmac->picked_channel].sar : &dmac->dmac_regs.channels[dmac->picked_channel].dar;
 
                 if (*addr_to_check != entry->peripheral_request_address) {
                     error("Address does not match the peripheral request address");
@@ -940,7 +963,7 @@ static bool dsh2edmac_cmd_add_source(token_t *parm, device_t *const dev)
 
     sh2e_dmac_peripheral_request_type_t type = (sh2e_dmac_peripheral_request_type_t) _type;
 
-    if ((type == RECIEVE || type == TRANSMIT) && !has_addr) {
+    if ((type == RECEIVE || type == TRANSMIT) && !has_addr) {
         error("Peripheral request of type %d requires an address", type);
         return false;
     }

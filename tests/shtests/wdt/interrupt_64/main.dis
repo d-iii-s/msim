@@ -9,8 +9,8 @@ Disassembly of section .text:
 
 00000400 <start>:
  400:	40 0e       	ldc	r0,sr
- 402:	d0 04       	mov.l	414 <wdt_tcsr_address>,r0	! ffffec10
- 404:	91 08       	mov.w	418 <wdt_tcsr_value>,r1	! a539
+ 402:	d0 03       	mov.l	410 <wdt_tcsr_address>,r0	! ffffec10
+ 404:	91 06       	mov.w	414 <wdt_tcsr_value>,r1	! a539
  406:	20 11       	mov.w	r1,@r0
 
 00000408 <loop>:
@@ -19,14 +19,10 @@ Disassembly of section .text:
  40c:	82 01       	.word 0x8201
  40e:	82 00       	.word 0x8200
 
-00000410 <printer_address>:
- 410:	a0 00       	bra	414 <wdt_tcsr_address>
-	...
+00000410 <wdt_tcsr_address>:
+ 410:	ff ff       	.word 0xffff
+ 412:	ec 10       	mov	#16,r12
 
-00000414 <wdt_tcsr_address>:
- 414:	ff ff       	.word 0xffff
- 416:	ec 10       	mov	#16,r12
-
-00000418 <wdt_tcsr_value>:
- 418:	a5 39       	bra	e8e <wdt_tcsr_value+0xa76>
- 41a:	00 09       	nop	
+00000414 <wdt_tcsr_value>:
+ 414:	a5 39       	bra	e8a <wdt_tcsr_value+0xa76>
+ 416:	00 09       	nop	

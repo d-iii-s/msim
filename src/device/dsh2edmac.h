@@ -106,7 +106,7 @@ typedef enum sh2e_dmac_transfer_state {
 } sh2e_dmac_transfer_state_t;
 
 typedef enum sh2e_dmac_peripheral_request_type {
-    RECIEVE,
+    RECEIVE,
     TRANSMIT,
     DO_NOT_CARE,
     __SH2E_DMAC_PERIPHERAL_REQUEST_TYPE_COUNT,
@@ -120,7 +120,7 @@ typedef struct sh2e_dmac_peripheral_request_table_entry {
 
     /**
      * If the type is:
-     * - RECIEVE: transfer is valid and will proceed only if the SAR contains the same address as the peripheral_request_address
+     * - RECEIVE: transfer is valid and will proceed only if the SAR contains the same address as the peripheral_request_address
      * - TRANSMIT: transfer is valid and will proceed only if the DAR contains the same address as the peripheral_request_address
      * - DO_NOT_CARE: transfer is valid regardless of the peripheral_request_address
      */
@@ -148,6 +148,9 @@ typedef struct sh2e_dmac {
     uint32_t initial_sar2; /* Initial SAR value at the start of transfer for channel 2, used for reloads */
 
     sh2e_dmac_peripheral_request_table_entry_t peripheral_request_table[SH2E_DMAC_PERIPHERAL_REQUESTS_COUNT]; /* Table for tracking pending requests from peripherals */
+
+    uint64_t successful_transfers_count; /* Total number of successful transfers completed by the DMAC */
+    uint64_t interrupts_count; /* Total number of interrupts triggered by the DMAC */
 } sh2e_dmac_t;
 
 #endif

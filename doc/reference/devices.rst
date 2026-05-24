@@ -1287,7 +1287,7 @@ Snippet from the `msim.conf` which configures the SH-2E INTC to mimic the SH7055
    intc0 addintsrc 1 0 0
    # manual reset
    intc0 addintsrc 2 0 0
-   
+
    # UBC (fixed priority 15)
    intc0 addintsrc 12 0 0
    # H-UDI (fixed priority 15)
@@ -1302,7 +1302,7 @@ Snippet from the `msim.conf` which configures the SH-2E INTC to mimic the SH7055
    intc0 addintsrc 69 5 9 # IPRB (15-12), priority 9
    intc0 addintsrc 70 6 8 # IPRB (15-12), priority 8
    intc0 addintsrc 71 7 7 # IPRB (15-12), priority 7
-   
+
    # DMAC0-DMAC3
    intc0 addintsrc 72 8 6 # IPRC (15-12), priority 6
    intc0 addintsrc 74 8 6 # IPRC (15-12), priority 6
@@ -1723,7 +1723,7 @@ Commands
 
    :request_index: index of the request source (0-31)
    :request_type: type of the request source (0: RECEIVE, 1: TRANSMIT, 2: DO_NOT_CARE)
-   
+
       * RECEIVE: the transfer is valid and will proceed only if the SAR contains the same address as the ``address`` parameter of the ``addsource`` command.
       * TRANSMIT: the transfer is valid and will proceed only if the DAR contains the same address as the ``address`` parameter of the ``addsource`` command.
       * DO_NOT_CARE: the transfer is valid and will proceed regardless of the SAR and DAR values.

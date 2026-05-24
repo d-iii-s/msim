@@ -27,10 +27,67 @@
 #include "cpu/riscv_rv64ima/debug.h"
 #include "drv64cpu.h"
 
-static bool rv64_convert_add_wrapper(void *cpu, ptr64_t virt, ptr36_t *phys, bool write)
+static bool rv64_cpu_normalize_bp_addr(void *cpu, const ptr64_t addr, ptr64_t *out)
+{
+    (void) cpu;
+    out->ptr = ALIGN_DOWN(addr.ptr, 4);
+    return true;
+}
+
+static bool rv64_convert_addr_wrapper(void *cpu, ptr64_t virt, ptr36_t *phys, bool write)
 {
     // use all 64 bits from virt
     return rv64_convert_addr((rv_cpu_t *) cpu, virt.ptr, phys, write, false, false) == rv_exc_none;
+}
+
+static bool rv64_get_reg_wrapper(void *cpu, unsigned int regno, uint64_t *out_val)
+{
+    if (regno >= RV64_REG_COUNT) {
+        return false;
+    }
+    *out_val = ((rv_cpu_t *) cpu)->regs[regno];
+    return true;
+}
+
+static bool rv64_set_reg_wrapper(void *cpu, unsigned int regno, uint64_t val)
+{
+    if (regno >= RV64_REG_COUNT) {
+        return false;
+    }
+    ((rv_cpu_t *) cpu)->regs[regno] = val;
+    return true;
+}
+
+static bool rv64_get_csr_wrapper(void *cpu, unsigned int csrno, uint64_t *out_val)
+{
+    rv64_cpu_t *rv_cpu = cpu;
+    const rv_priv_mode_t prev = rv_cpu->priv_mode;
+    rv_cpu->priv_mode = rv_mmode; // Temporarily switch to M-mode to be able to read all CSRs
+
+    const bool result = rv64_csr_rs(rv_cpu, csrno, 0, out_val, true) == rv_exc_none;
+
+    rv_cpu->priv_mode = prev; // Restore previous privilege mode
+
+    return result;
+}
+
+static bool rv64_set_csr_wrapper(void *cpu, unsigned int csrno, uint64_t val)
+{
+    rv64_cpu_t *rv_cpu = cpu;
+    const rv_priv_mode_t prev = rv_cpu->priv_mode;
+    rv_cpu->priv_mode = rv_mmode; // Temporarily switch to M-mode to be able to write all CSRs
+
+    uint64_t dummy_target;
+    const bool result = rv64_csr_rw(rv_cpu, csrno, val, &dummy_target, false) == rv_exc_none;
+
+    rv_cpu->priv_mode = prev; // Restore previous privilege mode
+
+    return result;
+}
+
+static ptr64_t rv64_get_pc_wrapper(void *cpu)
+{
+    return (ptr64_t) { .ptr = ((rv_cpu_t *) cpu)->pc };
 }
 
 static void rv64_set_pc_wrapper(void *cpu, ptr64_t addr)
@@ -43,11 +100,19 @@ static const cpu_ops_t rv_cpu = {
     .interrupt_up = (interrupt_func_t) rv64_interrupt_up,
     .interrupt_down = (interrupt_func_t) rv64_interrupt_down,
 
-    .convert_addr = (convert_addr_func_t) rv64_convert_add_wrapper,
+    .normalize_bp_addr = (normalize_bp_addr_func_t) rv64_cpu_normalize_bp_addr,
+    .convert_addr = (convert_addr_func_t) rv64_convert_addr_wrapper,
     .reg_dump = (reg_dump_func_t) rv64_reg_dump,
 
+    .get_reg = (get_reg_func_t) rv64_get_reg_wrapper,
+    .set_reg = (set_reg_func_t) rv64_set_reg_wrapper,
+    .get_csr = (get_csr_func_t) rv64_get_csr_wrapper,
+    .set_csr = (set_csr_func_t) rv64_set_csr_wrapper,
+    .get_pc = (get_pc_func_t) rv64_get_pc_wrapper,
     .set_pc = (set_pc_func_t) rv64_set_pc_wrapper,
-    .sc_access = (sc_access_func_t) rv64_sc_access
+    .sc_access = (sc_access_func_t) rv64_sc_access,
+
+    .arch = CpuArchRiscV64,
 };
 
 /**
@@ -64,10 +129,7 @@ static bool drv64cpu_init(token_t *parm, device_t *dev)
 
     rv64_cpu_t *cpu = safe_malloc_t(rv64_cpu_t);
     rv64_cpu_init(cpu, id);
-    general_cpu_t *gen_cpu = safe_malloc_t(general_cpu_t);
-    gen_cpu->cpuno = id;
-    gen_cpu->data = cpu;
-    gen_cpu->type = &rv_cpu;
+    general_cpu_t *gen_cpu = general_cpu_init(id, cpu, &rv_cpu);
 
     add_cpu(gen_cpu);
 

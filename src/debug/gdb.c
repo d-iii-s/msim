@@ -715,7 +715,7 @@ static void gdb_reply_event(gdb_event_t event)
 /** Activate code breakpoint
  *
  */
-static void gdb_insert_code_breakpoint(r4k_cpu_t *cpu, ptr64_t addr)
+static void gdb_insert_code_breakpoint(general_cpu_t *cpu, ptr64_t addr)
 {
     /*
      * Breakpoint insertion should be done in an idempotent way,
@@ -723,34 +723,15 @@ static void gdb_insert_code_breakpoint(r4k_cpu_t *cpu, ptr64_t addr)
      * we will not insert a new breakpoint and we will not consider
      * this as faulty behavior.
      */
-    breakpoint_t *breakpoint = breakpoint_find_by_address(cpu->bps,
-            addr, BREAKPOINT_FILTER_DEBUGGER);
-
-    if (breakpoint != NULL) {
-        return;
-    }
-
-    /* Breakpoint not found, thus insert it now. */
-    breakpoint_t *inserted_breakpoint = breakpoint_init(addr, BREAKPOINT_KIND_DEBUGGER);
-
-    list_append(&cpu->bps, &inserted_breakpoint->item);
+    cpu_insert_breakpoint(cpu, addr, BREAKPOINT_KIND_DEBUGGER);
 }
 
 /** Deactivate code breakpoint
  *
  */
-static void gdb_remove_code_breakpoint(r4k_cpu_t *cpu, ptr64_t addr)
+static void gdb_remove_code_breakpoint(general_cpu_t *cpu, ptr64_t addr)
 {
-    breakpoint_t *breakpoint = breakpoint_find_by_address(cpu->bps,
-            addr, BREAKPOINT_FILTER_DEBUGGER);
-
-    /* Removing non existent breakpoint is not considered as a bug */
-    if (breakpoint == NULL) {
-        return;
-    }
-
-    list_remove(&cpu->bps, &breakpoint->item);
-    safe_free(breakpoint);
+    cpu_remove_breakpoint(cpu, addr, BREAKPOINT_KIND_DEBUGGER);
 }
 
 /** Handle code or memory breakpoint commands from the debugger
@@ -801,12 +782,8 @@ static void gdb_breakpoint(char *req, bool insert)
         return;
     }
 
-    ptr64_t virt;
-    // Extend the address as the GDB sends the address in 32bits.
-    virt.ptr = UINT64_C(0xffffffff00000000) | address;
-    // TODO: implement for both
-    r4k_cpu_t *cpu = (r4k_cpu_t *) get_cpu(cpuno_global)->data;
-    // TODO: ASSERT that it really us r4k
+    general_cpu_t *cpu = get_cpu(cpuno_global);
+    const ptr64_t virt = { .ptr = address };
 
     if (code_breakpoint) {
         if (length != 4) {
@@ -843,9 +820,7 @@ static void gdb_breakpoint(char *req, bool insert)
  */
 static void gdb_remote_done(bool fail, bool remote_request)
 {
-    // TODO: implement for both
-    r4k_cpu_t *cpu = (r4k_cpu_t *) get_cpu(cpuno_global)->data;
-    // TODO: ASSERT that it really us r4k
+    general_cpu_t *cpu = get_cpu(cpuno_global);
 
     if (!fail) {
         gdb_send_reply(remote_request ? GDB_REPLY_OK : GDB_REPLY_WARNING);

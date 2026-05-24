@@ -57,9 +57,6 @@ typedef struct rv32_cpu {
     /** Translation Lookaside Buffer used for caching translated addresses */
     rv32_tlb_t tlb;
 
-    /** breakpoints **/
-    list_t bps;
-
 } rv32_cpu_t;
 
 /** Basic CPU routines */

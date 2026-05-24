@@ -2653,9 +2653,6 @@ void r4k_init(r4k_cpu_t *cpu, unsigned int procno)
     cp0_cause(cpu).val = HARD_RESET_CAUSE;
     cp0_watchlo(cpu).val = HARD_RESET_WATCHLO;
     cp0_watchhi(cpu).val = HARD_RESET_WATCHHI;
-
-    /* Breakpoints */
-    list_init(&cpu->bps);
 }
 
 /** Set the PC register
@@ -3062,7 +3059,7 @@ static r4k_exc_t execute(r4k_cpu_t *cpu)
         return r4k_excAdEL;
     }
 
-    r4k_instr_t instr = (r4k_instr_t) physmem_read32(cpu->procno, phys, false);
+    r4k_instr_t instr = (r4k_instr_t) physmem_read32(cpu->procno, phys, true);
 
     /* Execute instruction */
     r4k_exc_t exc = fnc(cpu, instr);

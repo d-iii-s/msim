@@ -160,6 +160,9 @@ void interactive_control(void)
             /* User break in readline */
             printf("\n");
             alert("Quit");
+            if (dap_enabled) {
+                dap_close();
+            }
             input_back();
             free(cmdline);
             exit(ERR_OK);
@@ -186,5 +189,7 @@ int input_is_terminal(void)
 
 void input_end(void)
 {
-    clear_history();
+    if (input_term) {
+        clear_history();
+    }
 }

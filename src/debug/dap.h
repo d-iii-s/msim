@@ -2,9 +2,9 @@
 #define MSIM_DAP_H
 
 typedef enum {
-    DAP_READY, // DAP initialized, waiting for connection
-    DAP_CONNECTED, // DAP connected, ready to process requests
-    DAP_RUNNING, // DAP running
+    DAP_INIT, // DAP not connected yet
+    DAP_RUNNING, // Running the simulation
+    DAP_PAUSED, // Paused, waiting for requests
     DAP_DONE // DAP session done
 } dap_state_t;
 
@@ -15,11 +15,18 @@ extern bool dap_init(void);
 
 /** Process new DAP requests
  * (main DAP callback)
- *
- * @return Processing decision
+ * Blocks only when dap_state is DAP_PAUSED, otherwise it will
+ * return immediately if there are no requests to process.
  */
 extern void dap_process(void);
 
+/** Close DAP connection and cleanup
+ *
+ * This will also send an "exited" event to the DAP client, so it should be called when the simulation is exiting.
+ */
 extern void dap_close(void);
+
+extern void dap_event_hit_code_breakpoint(unsigned int cpu_no);
+extern void dap_event_hit_data_breakpoint(uint64_t address);
 
 #endif // MSIM_DAP_H

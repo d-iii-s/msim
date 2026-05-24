@@ -25,19 +25,85 @@
 #include "device.h"
 #include "dr4kcpu.h"
 
-static bool r4k_cpu_convert_addr(r4k_cpu_t *cpu, ptr64_t virt, ptr36_t *phys, bool write)
+static bool r4k_cpu_normalize_bp_addr(void *cpu, const ptr64_t addr, ptr64_t *out)
+{
+    (void) cpu;
+    const uint64_t aligned_addr = ALIGN_DOWN(addr.ptr, 4);
+
+    // Virtual address out of range
+    if (!virt_range(aligned_addr)) {
+        return false;
+    }
+
+    // Extend the address as the user will not enter it in 64bit mode
+    // when the emulated CPU is 32bit.
+    *out = (ptr64_t) { .ptr = UINT64_C(0xffffffff00000000) | aligned_addr };
+    return true;
+}
+
+static bool r4k_cpu_convert_addr_wrapper(r4k_cpu_t *cpu, ptr64_t virt, ptr36_t *phys, bool write)
 {
     return r4k_convert_addr(cpu, virt, phys, write, false) == r4k_excNone;
+}
+
+static bool r4k_get_reg_wrapper(void *cpu, unsigned int regno, uint64_t *out_val)
+{
+    if (regno >= R4K_REG_COUNT) {
+        return false;
+    }
+    *out_val = ((r4k_cpu_t *) cpu)->regs[regno].val;
+    return true;
+}
+
+static bool r4k_set_reg_wrapper(void *cpu, unsigned int regno, uint64_t val)
+{
+    if (regno >= R4K_REG_COUNT) {
+        return false;
+    }
+    ((r4k_cpu_t *) cpu)->regs[regno].val = val;
+    return true;
+}
+
+static bool r4k_get_csr_wrapper(void *cpu, unsigned int regno, uint64_t *out_val)
+{
+    if (regno >= R4K_REG_COUNT) {
+        return false;
+    }
+    *out_val = ((r4k_cpu_t *) cpu)->cp0[regno].val;
+    return true;
+}
+
+static bool r4k_set_csr_wrapper(void *cpu, unsigned int regno, uint64_t val)
+{
+    if (regno >= R4K_REG_COUNT) {
+        return false;
+    }
+    ((r4k_cpu_t *) cpu)->cp0[regno].val = val;
+    return true;
+}
+
+static ptr64_t r4k_get_pc_wrapper(void *cpu)
+{
+    return ((r4k_cpu_t *) cpu)->pc;
 }
 
 static const cpu_ops_t r4k_cpu = {
     .interrupt_up = (interrupt_func_t) r4k_interrupt_up,
     .interrupt_down = (interrupt_func_t) r4k_interrupt_down,
+    .normalize_bp_addr = (normalize_bp_addr_func_t) r4k_cpu_normalize_bp_addr,
 
-    .convert_addr = (convert_addr_func_t) r4k_cpu_convert_addr,
+    .convert_addr = (convert_addr_func_t) r4k_cpu_convert_addr_wrapper,
     .reg_dump = (reg_dump_func_t) r4k_reg_dump,
+
+    .get_reg = (get_reg_func_t) r4k_get_reg_wrapper,
+    .set_reg = (set_reg_func_t) r4k_set_reg_wrapper,
+    .get_csr = (get_csr_func_t) r4k_get_csr_wrapper,
+    .set_csr = (set_csr_func_t) r4k_set_csr_wrapper,
+    .get_pc = (get_pc_func_t) r4k_get_pc_wrapper,
     .set_pc = (set_pc_func_t) r4k_set_pc,
-    .sc_access = (sc_access_func_t) r4k_sc_access
+    .sc_access = (sc_access_func_t) r4k_sc_access,
+
+    .arch = CpuArchMips,
 };
 
 /** Initialization
@@ -54,10 +120,7 @@ static bool dr4kcpu_init(token_t *parm, device_t *dev)
 
     r4k_cpu_t *cpu = safe_malloc_t(r4k_cpu_t);
     r4k_init(cpu, id);
-    general_cpu_t *gen_cpu = safe_malloc_t(general_cpu_t);
-    gen_cpu->cpuno = id;
-    gen_cpu->data = cpu;
-    gen_cpu->type = &r4k_cpu;
+    general_cpu_t *gen_cpu = general_cpu_init(id, cpu, &r4k_cpu);
 
     add_cpu(gen_cpu);
 
@@ -266,27 +329,11 @@ static bool dr4kcpu_goto(token_t *parm, device_t *dev)
 
 /** Break command implementation
  *
+ * Insert a code breakpoint at the specified address.
  */
 static bool dr4kcpu_break(token_t *parm, device_t *dev)
 {
-    r4k_cpu_t *cpu = get_r4k(dev);
-    uint64_t _addr = ALIGN_DOWN(parm_uint_next(&parm), 4);
-
-    if (!virt_range(_addr)) {
-        error("Virtual address out of range");
-        return false;
-    }
-
-    ptr64_t addr;
-    // Extend the address as the user will not enter it in 64bit mode
-    // when the emulated CPU is 32bit.
-    addr.ptr = UINT64_C(0xffffffff00000000) | _addr;
-
-    breakpoint_t *bp = breakpoint_init(addr,
-            BREAKPOINT_KIND_SIMULATOR);
-    list_append(&cpu->bps, &bp->item);
-
-    return true;
+    return cpu_insert_breakpoint(dev->data, (ptr64_t) { .ptr = parm_uint_next(&parm) }, BREAKPOINT_KIND_SIMULATOR);
 }
 
 /** Bd command implementation
@@ -294,7 +341,7 @@ static bool dr4kcpu_break(token_t *parm, device_t *dev)
  */
 static bool dr4kcpu_bd(token_t *parm, device_t *dev)
 {
-    r4k_cpu_t *cpu = get_r4k(dev);
+    general_cpu_t *cpu = dev->data;
     breakpoint_t *bp;
 
     printf("[address ] [hits              ] [kind    ]\n");
@@ -317,32 +364,7 @@ static bool dr4kcpu_bd(token_t *parm, device_t *dev)
  */
 static bool dr4kcpu_br(token_t *parm, device_t *dev)
 {
-    r4k_cpu_t *cpu = get_r4k(dev);
-    uint64_t addr = ALIGN_DOWN(parm_uint_next(&parm), 4);
-
-    if (!virt_range(addr)) {
-        error("Virtual address out of range");
-        return false;
-    }
-
-    bool fnd = false;
-    breakpoint_t *bp;
-    for_each(cpu->bps, bp, breakpoint_t)
-    {
-        if (bp->pc.ptr == addr) {
-            list_remove(&cpu->bps, &bp->item);
-            safe_free(bp);
-            fnd = true;
-            break;
-        }
-    }
-
-    if (!fnd) {
-        error("Unknown breakpoint");
-        return false;
-    }
-
-    return true;
+    return cpu_remove_breakpoint(dev->data, (ptr64_t) { .ptr = parm_uint_next(&parm) }, BREAKPOINT_KIND_SIMULATOR);
 }
 
 /** Done

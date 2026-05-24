@@ -34,11 +34,6 @@
 
 #include "../assert.h"
 #include "../device/cpu/general_cpu.h"
-#include "../device/cpu/mips_r4000/cpu.h"
-#include "../device/cpu/riscv_rv32ima/cpu.h"
-#include "../device/device.h"
-#include "../device/dr4kcpu.h"
-#include "../device/drvcpu.h"
 #include "../fault.h"
 #include "../main.h"
 #include "../utils.h"
@@ -190,7 +185,11 @@ void physmem_breakpoint_hit(physmem_breakpoint_t *breakpoint,
         machine_interactive = true;
         break;
     case BREAKPOINT_KIND_DEBUGGER:
-        gdb_handle_event(GDB_EVENT_BREAKPOINT);
+        if (dap_enabled) {
+            dap_event_hit_data_breakpoint(breakpoint->addr);
+        } else if (remote_gdb) {
+            gdb_handle_event(GDB_EVENT_BREAKPOINT);
+        }
         break;
     default:
         die(ERR_INTERN, "Unexpected physical memory breakpoint kind");
@@ -224,19 +223,24 @@ breakpoint_t *breakpoint_init(ptr64_t address, breakpoint_kind_t kind)
 /** Fires given breakpoint
  *
  * @param breakpoint Breakpoint structure to be fired
+ * @param cpu_no     Number of CPU which hit the breakpoint.
  *
  */
-static void breakpoint_hit(breakpoint_t *breakpoint)
+static void breakpoint_hit(breakpoint_t *breakpoint, unsigned long cpu_no)
 {
     breakpoint->hits++;
 
     switch (breakpoint->kind) {
     case BREAKPOINT_KIND_SIMULATOR:
-        alert("Debug: Hit breakpoint at %#0" PRIx64, breakpoint->pc.ptr);
+        alert("Debug: Hit simulator breakpoint at %#0" PRIx64, breakpoint->pc.ptr);
         machine_interactive = true;
         break;
     case BREAKPOINT_KIND_DEBUGGER:
-        gdb_handle_event(GDB_EVENT_BREAKPOINT);
+        if (dap_enabled) {
+            dap_event_hit_code_breakpoint(cpu_no);
+        } else if (remote_gdb) {
+            gdb_handle_event(GDB_EVENT_BREAKPOINT);
+        }
         break;
     default:
         die(ERR_INTERN, "Unexpected breakpoint kind");
@@ -246,23 +250,24 @@ static void breakpoint_hit(breakpoint_t *breakpoint)
 /** Search for a breakpoint
  *
  * Search for a breakpoint in given list which should be
- * fired on given address and fire it.
+ * fired based on address of given CPU's PC.
  *
  * @param breakpoints List of code breakpoints of some processor.
- * @param address     Address of executed instruction.
+ * @param cpu         CPU which can hit the breakpoint.
  *
  * @return True, if at least one breakpoint has been hit.
  *
  */
-static bool breakpoint_hit_by_address(list_t breakpoints, ptr64_t address)
+static bool breakpoint_hit_by_cpu(list_t breakpoints, general_cpu_t *cpu)
 {
+    ptr64_t address = cpu_get_pc(cpu);
     bool hit = false;
 
     breakpoint_t *breakpoint = NULL;
     for_each(breakpoints, breakpoint, breakpoint_t)
     {
         if (breakpoint->pc.ptr == address.ptr) {
-            breakpoint_hit(breakpoint);
+            breakpoint_hit(breakpoint, cpu->cpuno);
             hit = true;
         }
     }
@@ -298,38 +303,22 @@ breakpoint_t *breakpoint_find_by_address(list_t breakpoints,
     return NULL;
 }
 
-/** Search all of the processors
+/** Search all the processors
  *
- * Search all of the processors whether any of them is going to
+ * Search all the processors whether any of them is going to
  * execute instruction where a code breakpoint is located. All such
  * breakpoints are fired.
  *
  * @return True, if at least one breakpoint has been fired.
- *
  */
 bool breakpoint_check_for_code_breakpoints(void)
 {
     bool hit = false;
-    device_t *dev = NULL;
 
-    while (dev_next(&dev, DEVICE_FILTER_R4K_PROCESSOR)) {
-        r4k_cpu_t *cpu = get_r4k(dev);
-
-        if (breakpoint_hit_by_address(cpu->bps, cpu->pc)) {
-            hit = true;
-        }
-    }
-
-    if (hit) {
-        return hit;
-    }
-
-    while (dev_next(&dev, DEVICE_FILTER_RV_PROCESSOR)) {
-        const rv_cpu_t *cpu = get_rv(dev);
-
-        ptr64_t addr = { 0 };
-        addr.lo = cpu->pc;
-        if (breakpoint_hit_by_address(cpu->bps, addr)) {
+    general_cpu_t *cpu = NULL;
+    for_each(cpu_list, cpu, general_cpu_t)
+    {
+        if (breakpoint_hit_by_cpu(cpu->bps, cpu)) {
             hit = true;
         }
     }

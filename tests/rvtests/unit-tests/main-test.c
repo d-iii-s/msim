@@ -19,7 +19,7 @@ bool remote_gdb_step = false;
 // DAP debugging
 bool dap_enabled = false;
 unsigned int dap_port = 10505;
-dap_state_t dap_state = DAP_READY;
+dap_state_t dap_state = DAP_INIT;
 
 /** General simulator behaviour */
 bool machine_nondet = false;

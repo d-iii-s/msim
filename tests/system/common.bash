@@ -132,3 +132,56 @@ msim_run_code() {
         } | fail
     fi
 }
+
+msim_dap_run() {
+    local test_dir="$( dirname "$BATS_TEST_FILENAME" )/$1"
+    local scenario="$2"
+
+    # Find a free port
+    local port
+    port="$( python3 -c "import socket; s=socket.socket(); s.bind(('',0)); p=s.getsockname()[1]; s.close(); print(p)" )"
+
+    sed "s#\"boot.bin\"#\"$test_dir/boot.bin\"#" <"$test_dir/msim.conf" >"$MSIM_TEST_TMPDIR/msim.conf"
+
+    {
+        echo
+        echo "# MSIM configuration msim.conf"
+        sed 's:.*:#  | &:' "$MSIM_TEST_TMPDIR/msim.conf"
+    } >&2
+
+    # Start MSIM in background with DAP
+    "$MSIM" -c "$MSIM_TEST_TMPDIR/msim.conf" "--dap=$port" >"$MSIM_TEST_TMPDIR/msim.stdout" 2>&1 &
+    local msim_pid=$!
+
+    # Wait until MSIM is listening
+    sleep 0.1
+
+    local scenario_status=0
+    python3 "$test_dir/$scenario" "$port" 2>&1 | tee "$MSIM_TEST_TMPDIR/scenario.stdout" >&2
+    scenario_status=${PIPESTATUS[0]}
+
+    # If the scenario failed, kill MSIM explicitly in case there's a bug and it doesn't exit on its own
+    if (( scenario_status != 0 )); then
+        kill "$msim_pid" 2>/dev/null
+    fi
+
+    wait "$msim_pid"
+    local msim_status=$?
+
+    {
+        echo
+        echo "# Scenario output"
+        sed 's:.*:#  | &:' "$MSIM_TEST_TMPDIR/scenario.stdout"
+        echo
+        echo "# MSIM output"
+        sed 's:.*:#  | &:' "$MSIM_TEST_TMPDIR/msim.stdout"
+    } >&2
+
+    if [ "$scenario_status" -ne 0 ]; then
+        fail "Adapter scenario failed with exit $scenario_status"
+    fi
+
+    if [ "$msim_status" -ne 0 ]; then
+        fail "MSIM exited with status $msim_status"
+    fi
+}

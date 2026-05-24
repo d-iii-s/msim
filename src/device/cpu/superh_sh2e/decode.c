@@ -1232,14 +1232,14 @@ sh2e_insn_decode_nm_format(sh2e_insn_nm_t const insn)
     }
 
     case ic8(sh2e_insn_nm_ic_h_or, sh2e_insn_nm_ic_l_or): {
-        static sh2e_insn_desc_t const or = {
+        static sh2e_insn_desc_t const or_insn = {
             .assembly = "OR Rm, Rn",
             .abstract = "Rn | Rm → Rn",
             .exec = sh2e_insn_exec_or,
             .disasm = sh2e_insn_desc_dump_nm_format,
             .cycles = 1,
         };
-        return &or ;
+        return &or_insn;
     }
 
     case ic8(sh2e_insn_nm_ic_h_sub, sh2e_insn_nm_ic_l_sub): {

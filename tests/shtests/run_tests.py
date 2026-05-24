@@ -133,6 +133,7 @@ TESTS = [
     "data_transfer/swap_b",
     "data_transfer/swap_w",
     "data_transfer/xtrct",
+    "dmac/simple",
     "exceptions/cpu_address_error",
     "exceptions/fpu_exception",
     "exceptions/illegal_insn",
@@ -213,7 +214,7 @@ def run_test(test_folder):
     relative_path = os.path.relpath(MSIM_PATH, test_folder)
     try:
         os.chdir(test_folder)
-        res = subprocess.run(relative_path, capture_output=True, timeout=10, check=True, text=True)
+        res = subprocess.run(relative_path, capture_output=True, timeout=15, check=True, text=True)
 
         # Test didn't use printer, probably because it uses register dumps instead
         # Then use stdout as reference

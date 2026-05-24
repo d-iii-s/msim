@@ -1,0 +1,37 @@
+processor 0
+    r0:        0    r1: ffffecb0    r2: ffffecc0    r3: ffffa010
+    r4:        0    r5:        0    r6: ffffece0    r7: ffffa010
+    r8:        2    r9:        2   r10: ffffb000   r11: ffffb010
+   r12:        0   r13:        0   r14:        0    sp: ffff7ff0
+    pc:      478    pr:        0  mach:        0  macl:        0
+    sr:        1   gbr:        0   vbr:        0
+processor 0
+    r0:        1    r1:        5    r2: ffffecc0    r3: ffffa010
+    r4:        0    r5:        0    r6: ffffece0    r7: ffffa010
+    r8:        2    r9:        2   r10: ffffb004   r11: ffffb014
+   r12:        0   r13:        0   r14:        0    sp: ffff7ff0
+    pc:      47e    pr:        0  mach:        0  macl:        0
+    sr:        1   gbr:        0   vbr:        0
+processor 0
+    r0:        2    r1:        6    r2: ffffecc0    r3: ffffa010
+    r4:        0    r5:        0    r6: ffffece0    r7: ffffa010
+    r8:        2    r9:        2   r10: ffffb008   r11: ffffb018
+   r12:        0   r13:        0   r14:        0    sp: ffff7ff0
+    pc:      484    pr:        0  mach:        0  macl:        0
+    sr:        1   gbr:        0   vbr:        0
+processor 0
+    r0:        3    r1:        7    r2: ffffecc0    r3: ffffa010
+    r4:        0    r5:        0    r6: ffffece0    r7: ffffa010
+    r8:        2    r9:        2   r10: ffffb00c   r11: ffffb01c
+   r12:        0   r13:        0   r14:        0    sp: ffff7ff0
+    pc:      48a    pr:        0  mach:        0  macl:        0
+    sr:        1   gbr:        0   vbr:        0
+processor 0
+    r0:        4    r1:        8    r2: ffffecc0    r3: ffffa010
+    r4:        0    r5:        0    r6: ffffece0    r7: ffffa010
+    r8:        2    r9:        2   r10: ffffb010   r11: ffffb020
+   r12:        0   r13:        0   r14:        0    sp: ffff7ff0
+    pc:      490    pr:        0  mach:        0  macl:        0
+    sr:        1   gbr:        0   vbr:        0
+
+Cycles: 91

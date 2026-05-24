@@ -9,6 +9,8 @@
 #ifndef ASSERT_H_
 #define ASSERT_H_
 
+#include <assert.h>
+
 #ifndef NDEBUG
 
 #include "fault.h"

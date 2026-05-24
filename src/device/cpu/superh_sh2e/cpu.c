@@ -350,10 +350,10 @@ sh2e_cpu_handle_interrupt(sh2e_cpu_t *const restrict cpu)
     cpu->pr_state = SH2E_PSTATE_EXCEPTION_PROCESSING;
 
     // Send the interrupt signal to on-chip peripherals (if any) so that they can update their state accordingly.
-    peripheral_t *peripheral;
-    for_each(cpu->on_chip_peripherals, peripheral, peripheral_t)
+    peripheral_link_t *peripheral_link;
+    for_each(cpu->on_chip_peripherals, peripheral_link, peripheral_link_t)
     {
-        peripheral->type->interrupt_up(peripheral, cpu->pending_interrupt);
+        peripheral_link->peripheral->type->interrupt_up_from_cpu(peripheral_link->peripheral, cpu->pending_interrupt);
     }
 
     uint32_t const stack_sr = cpu->cpu_regs.sr.value;
@@ -537,7 +537,7 @@ sh2e_reset_state_step(sh2e_cpu_t *const restrict cpu)
     // Initialize CPU/FPU and INTC
     sh2e_cpu_reset(cpu);
 
-    peripheral_t *peripheral;
+    peripheral_link_t *peripheral_link;
     bool raise_interrupt = false;
     unsigned int int_no = 0;
 
@@ -570,9 +570,9 @@ sh2e_reset_state_step(sh2e_cpu_t *const restrict cpu)
 
     if (raise_interrupt) {
         // Signal the reset interrupt to on-chip peripherals
-        for_each(cpu->on_chip_peripherals, peripheral, peripheral_t)
+        for_each(cpu->on_chip_peripherals, peripheral_link, peripheral_link_t)
         {
-            peripheral->type->interrupt_up(peripheral, int_no);
+            peripheral_link->peripheral->type->interrupt_up_from_cpu(peripheral_link->peripheral, int_no);
         }
     }
 
@@ -652,11 +652,11 @@ sh2e_program_execution_state_step(sh2e_cpu_t *const restrict cpu)
 
     // Can happen after executing the SLEEP instruction
     if (cpu->pr_state == SH2E_PSTATE_POWER_DOWN) {
-        peripheral_t *peripheral;
-        for_each(cpu->on_chip_peripherals, peripheral, peripheral_t)
+        peripheral_link_t *peripheral_link;
+        for_each(cpu->on_chip_peripherals, peripheral_link, peripheral_link_t)
         {
             // Using sleep mode for now, because we don't support the other standby modes yet.
-            peripheral->type->interrupt_up(peripheral, SH2E_INTC_SLEEP_MODE_OFFSET);
+            peripheral_link->peripheral->type->interrupt_up_from_cpu(peripheral_link->peripheral, SH2E_INTC_SLEEP_MODE_OFFSET);
         }
     }
 
@@ -677,10 +677,10 @@ sh2e_program_execution_state_step(sh2e_cpu_t *const restrict cpu)
 
     // Accounting
     cpu->program_execution_cycles += insn_cycles;
-    peripheral_t *peripheral;
-    for_each(cpu->on_chip_peripherals, peripheral, peripheral_t)
+    peripheral_link_t *peripheral_link;
+    for_each(cpu->on_chip_peripherals, peripheral_link, peripheral_link_t)
     {
-        peripheral->type->update_cycles(peripheral, insn_cycles);
+        peripheral_link->peripheral->type->update_cycles(peripheral_link->peripheral, insn_cycles);
     }
 
     // Update program counter (respect delay slots).

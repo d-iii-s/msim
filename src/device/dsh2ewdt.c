@@ -115,7 +115,7 @@ static void sh2e_wdt_interrupt_up(void *peripheral, unsigned int int_no)
 }
 
 static peripheral_ops_t const sh2e_wdt_peripheral_ops = {
-    .interrupt_up = (interrupt_func_t) sh2e_wdt_interrupt_up,
+    .interrupt_up_from_cpu = (interrupt_func_t) sh2e_wdt_interrupt_up,
     .update_cycles = (update_cycles_func_t) sh2e_wdt_cpu_cycles_update
 };
 
@@ -180,7 +180,6 @@ static bool dsh2ewdt_init(token_t *parm, device_t *dev)
         .type = &sh2e_wdt_peripheral_ops,
     };
 
-    item_init(&generic_peripheral->item);
     dev->data = generic_peripheral;
 
     return true;

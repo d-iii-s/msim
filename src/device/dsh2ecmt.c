@@ -131,7 +131,7 @@ static void sh2e_cmt_interrupt_up(void *peripheral, unsigned int int_no)
 }
 
 static peripheral_ops_t const sh2e_cmt_peripheral_ops = {
-    .interrupt_up = (interrupt_func_t) sh2e_cmt_interrupt_up,
+    .interrupt_up_from_cpu = (interrupt_func_t) sh2e_cmt_interrupt_up,
     .update_cycles = (update_cycles_func_t) sh2e_cmt_cpu_cycles_update
 };
 
@@ -197,7 +197,6 @@ static bool dsh2ecmt_init(token_t *parm, device_t *dev)
         .type = &sh2e_cmt_peripheral_ops,
     };
 
-    item_init(&generic_peripheral->item);
     dev->data = generic_peripheral;
 
     return true;
@@ -638,7 +637,7 @@ dsh2ecmt_cmd_dump_regs(token_t *parm, device_t *const dev)
     return true;
 }
 
-static bool dsh2e_cmt_add_cpu(token_t *parm, device_t *const dev)
+static bool dsh2ecmt_add_cpu(token_t *parm, device_t *const dev)
 {
     ASSERT(dev != NULL);
 
@@ -714,7 +713,7 @@ static cmd_t dsh2ecmt_cmds[] = {
             "Dump contents of CMT registers",
             NOCMD },
     { "addcpu",
-            (fcmd_t) dsh2e_cmt_add_cpu,
+            (fcmd_t) dsh2ecmt_add_cpu,
             DEFAULT,
             DEFAULT,
             "Add CPU to the device",

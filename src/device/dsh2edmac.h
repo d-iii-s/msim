@@ -20,6 +20,7 @@
 #define device_get_sh2e_dmac(dev) ((sh2e_dmac_t *) (((peripheral_t *) (dev)->data)->data))
 
 #define SH2E_DMAC_CHANNELS_COUNT 4
+#define SH2E_DMAC_PERIPHERAL_REQUESTS_COUNT 32 /* there are 5 rs bits -> 32 possible values */
 
 extern device_type_t const dsh2edmac;
 
@@ -57,7 +58,7 @@ typedef union sh2e_dmac_chcr_reg {
         uint32_t _rf4 : 2; /** Reserved field 4 (bits 11 to 10), wired to 0. */
         uint32_t sm : 2; /** Source Address Mode bits (bits 13 to 12). */
         uint32_t _rf3 : 2; /** Reserved field 3 (bits 15 to 14), wired to 0. */
-        uint32_t rs : 5; /** Register Select bits (bits 20 to 16). */
+        uint32_t rs : 5; /** Resource Select bits (bits 20 to 16). */
         uint32_t _rf2 : 3; /** Reserved field 2 (bits 23 to 21), wired to 0. */
         uint32_t ro : 1; /** Source Address Reload (bit 24) */
         uint32_t _rf1 : 3; /** Reserved field 1 (bits 27 to 25), wired to 0. */
@@ -104,6 +105,29 @@ typedef enum sh2e_dmac_transfer_state {
     SH2E_DMAC_TRANSFER_STATE_TRANSFERRING,
 } sh2e_dmac_transfer_state_t;
 
+typedef enum sh2e_dmac_peripheral_request_type {
+    RECIEVE,
+    TRANSMIT,
+    DO_NOT_CARE,
+    __SH2E_DMAC_PERIPHERAL_REQUEST_TYPE_COUNT,
+} sh2e_dmac_peripheral_request_type_t;
+
+typedef struct sh2e_dmac_peripheral_request_table_entry {
+    uint8_t index; /* Index of the request that corresponds to the RS bits in the CHCR */
+    bool pending; /* Whether the DMAC has received the request for this entry */
+    bool registered; /* Whether this entry is registered by a peripheral via config */
+    sh2e_dmac_peripheral_request_type_t type; /* Whether this entry corresponds to a receive data, transmit data, or if the type doesn't matter */
+
+    /**
+     * If the type is:
+     * - RECIEVE: transfer is valid and will proceed only if the SAR contains the same address as the peripheral_request_address
+     * - TRANSMIT: transfer is valid and will proceed only if the DAR contains the same address as the peripheral_request_address
+     * - DO_NOT_CARE: transfer is valid regardless of the peripheral_request_address
+     */
+    uint32_t peripheral_request_address;
+
+} sh2e_dmac_peripheral_request_table_entry_t;
+
 typedef struct sh2e_dmac {
     general_cpu_t *cpu; /* Pointer to the CPU that the DMAC is attached to */
 
@@ -122,6 +146,8 @@ typedef struct sh2e_dmac {
     int picked_channel; /* Currently picked channel for transfer, -1 if no channel is picked */
 
     uint32_t initial_sar2; /* Initial SAR value at the start of transfer for channel 2, used for reloads */
+
+    sh2e_dmac_peripheral_request_table_entry_t peripheral_request_table[SH2E_DMAC_PERIPHERAL_REQUESTS_COUNT]; /* Table for tracking pending requests from peripherals */
 } sh2e_dmac_t;
 
 #endif

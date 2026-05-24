@@ -48,6 +48,16 @@
 #define SH2E_DMAC_TRANSFER_SIZE_16BIT 1
 #define SH2E_DMAC_TRANSFER_SIZE_32BIT 2
 
+#define SH2E_DMAC_RESOURCE_AUTO_REQUEST 0b11111
+#define SH2E_DMAC_RESOURCE_NO_REQUEST_0 0b00000
+#define SH2E_DMAC_RESOURCE_NO_REQUEST_1 0b01110
+#define SH2E_DMAC_RESOURCE_NO_REQUEST_2 0b10000
+#define SH2E_DMAC_RESOURCE_NO_REQUEST_3 0b11101
+#define SH2E_DMAC_RESOURCE_NO_REQUEST_4 0b11110
+
+#define SH2E_DMAC_VALID_PERIPHERAL_REQUEST(index) ( \
+        (index) < SH2E_DMAC_PERIPHERAL_REQUESTS_COUNT && (index) != SH2E_DMAC_RESOURCE_AUTO_REQUEST && (index) != SH2E_DMAC_RESOURCE_NO_REQUEST_0 && (index) != SH2E_DMAC_RESOURCE_NO_REQUEST_1 && (index) != SH2E_DMAC_RESOURCE_NO_REQUEST_2 && (index) != SH2E_DMAC_RESOURCE_NO_REQUEST_3 && (index) != SH2E_DMAC_RESOURCE_NO_REQUEST_4)
+
 #define SH2E_DMAC_DMAOR_NAME "dmaor"
 
 // Link to hardware manual (REJ09B0045-0200H, page 157)
@@ -135,7 +145,11 @@ static void sh2e_dmac_chcr_write(sh2e_dmac_t *dmac, unsigned int c_no, uint32_t 
     chcr->tm = new_val.tm;
     chcr->ie = new_val.ie;
     chcr->te = !new_val.te ? 0 : chcr->te; /* Allows only a 0 write after reading 1 */
-    chcr->de = new_val.de;
+
+    // Do not allow setting the DE bit if the RS bits are set to no request
+    if (!new_val.de || ((SH2E_DMAC_VALID_PERIPHERAL_REQUEST(new_val.rs) || (new_val.rs == SH2E_DMAC_RESOURCE_AUTO_REQUEST)) && new_val.de)) {
+        chcr->de = new_val.de;
+    }
 
     if (!chcr->de && c_no == 2) {
         dmac->reload_counter = SH2E_DMAC_RELOAD_COUNTER_INITIAL_VALUE;
@@ -160,7 +174,7 @@ static void sh2e_dmac_reset(sh2e_dmac_t *dmac)
  * @param peripheral Pointer to the peripheral structure which contains the DMAC instance data.
  * @param int_no The interrupt number that is being signaled.
  */
-static void sh2e_dmac_interrupt_up(void *peripheral, unsigned int int_no)
+static void sh2e_dmac_interrupt_up_from_cpu(void *peripheral, unsigned int int_no)
 {
     sh2e_dmac_t *dmac = (sh2e_dmac_t *) ((peripheral_t *) peripheral)->data;
 
@@ -181,6 +195,27 @@ static void sh2e_dmac_interrupt_up(void *peripheral, unsigned int int_no)
 }
 
 /**
+ * @brief Interrupt handler function for the DMAC peripheral.
+ * @param peripheral Pointer to the peripheral structure which contains the DMAC instance data.
+ * @param int_no The interrupt number that is being signaled.
+ */
+static void sh2e_dmac_interrupt_up_from_peripheral(void *peripheral, unsigned int int_no)
+{
+    sh2e_dmac_t *dmac = (sh2e_dmac_t *) ((peripheral_t *) peripheral)->data;
+
+    if (SH2E_DMAC_VALID_PERIPHERAL_REQUEST(int_no)) {
+        sh2e_dmac_peripheral_request_table_entry_t *entry = &dmac->peripheral_request_table[int_no];
+
+        if (!entry->registered) {
+            error("Received request from a peripheral that was not registered in the configuration");
+            return;
+        }
+
+        entry->pending = true;
+    }
+}
+
+/**
  * @brief Update cycles handler function for the DMAC peripheral, called by the CPU to notify the DMAC of cycle updates.
  * @param peripheral Pointer to the peripheral structure which contains the DMAC instance data.
  * @param cycles The number of CPU cycles since the last update.
@@ -192,7 +227,8 @@ static void sh2e_dmac_cpu_cycles_update(void *peripheral, unsigned int cycles)
 }
 
 static peripheral_ops_t const sh2e_dmac_peripheral_ops = {
-    .interrupt_up = (interrupt_func_t) sh2e_dmac_interrupt_up,
+    .interrupt_up_from_cpu = (interrupt_func_t) sh2e_dmac_interrupt_up_from_cpu,
+    .interrupt_up_from_peripheral = (interrupt_func_t) sh2e_dmac_interrupt_up_from_peripheral,
     .update_cycles = (update_cycles_func_t) sh2e_dmac_cpu_cycles_update
 };
 
@@ -252,13 +288,14 @@ static bool dsh2edmac_init(token_t *parm, device_t *dev)
         sh2e_dmac->interrupt_number[i] = int_nos[i];
     }
 
+    memset(sh2e_dmac->peripheral_request_table, 0, sizeof(sh2e_dmac->peripheral_request_table));
+
     peripheral_t *generic_peripheral = safe_malloc_t(peripheral_t);
     *generic_peripheral = (peripheral_t) {
         .data = sh2e_dmac,
         .type = &sh2e_dmac_peripheral_ops,
     };
 
-    item_init(&generic_peripheral->item);
     dev->data = generic_peripheral;
 
     return true;
@@ -715,15 +752,50 @@ static void step_waiting(sh2e_dmac_t *dmac)
 {
     ASSERT(dmac->picked_channel != -1);
 
-    // TODO: implement peripheral requests
-    switch (dmac->dmac_regs.channels[dmac->picked_channel].chcr.rs) {
-    case 0b11111: {
+    uint32_t resource = dmac->dmac_regs.channels[dmac->picked_channel].chcr.rs;
+
+    switch (resource) {
+    case SH2E_DMAC_RESOURCE_AUTO_REQUEST: {
         // Auto-request - trasfer immediately
         dmac->transfer_state = SH2E_DMAC_TRANSFER_STATE_TRANSFERRING;
         step_transferring(dmac);
         break;
     }
+    case SH2E_DMAC_RESOURCE_NO_REQUEST_0:
+    case SH2E_DMAC_RESOURCE_NO_REQUEST_1:
+    case SH2E_DMAC_RESOURCE_NO_REQUEST_2:
+    case SH2E_DMAC_RESOURCE_NO_REQUEST_3:
+    case SH2E_DMAC_RESOURCE_NO_REQUEST_4: {
+        ASSERT(false && "Invalid peripheral request resource configured in RS bits");
+    }
     default: {
+        // Peripheral request
+        sh2e_dmac_peripheral_request_table_entry_t *entry = &dmac->peripheral_request_table[resource];
+
+        if (!entry->registered) {
+            error("Peripheral request was not registered in the configuration");
+            dmac->transfer_state = SH2E_DMAC_TRANSFER_STATE_INITIAL;
+            return;
+        }
+
+        if (entry->pending) {
+            // Clear the pending request
+            entry->pending = false;
+
+            if (entry->type != DO_NOT_CARE) {
+                uint32_t *addr_to_check = entry->type == RECIEVE ? &dmac->dmac_regs.channels[dmac->picked_channel].sar : &dmac->dmac_regs.channels[dmac->picked_channel].dar;
+
+                if (*addr_to_check != entry->peripheral_request_address) {
+                    error("Address does not match the peripheral request address");
+                    dmac->transfer_state = SH2E_DMAC_TRANSFER_STATE_INITIAL;
+                    return;
+                }
+            }
+            // Start the transfer
+            dmac->transfer_state = SH2E_DMAC_TRANSFER_STATE_TRANSFERRING;
+            step_transferring(dmac);
+        }
+
         break;
     }
     }
@@ -840,6 +912,51 @@ static bool dsh2edmac_cmd_add_cpu(token_t *parm, device_t *const dev)
     return true;
 }
 
+static bool dsh2edmac_cmd_add_source(token_t *parm, device_t *const dev)
+{
+    ASSERT(dev != NULL);
+
+    uint64_t index = parm_uint_next(&parm);
+    uint64_t _type = parm_uint_next(&parm);
+    uint64_t addr = 0;
+    bool has_addr;
+
+    if (parm_type(parm) == tt_end) {
+        has_addr = false;
+    } else {
+        addr = parm_uint_next(&parm);
+        has_addr = true;
+    }
+
+    if (!SH2E_DMAC_VALID_PERIPHERAL_REQUEST(index)) {
+        error("Invalid peripheral request index");
+        return false;
+    }
+
+    if (_type >= __SH2E_DMAC_PERIPHERAL_REQUEST_TYPE_COUNT) {
+        error("Invalid peripheral request type");
+        return false;
+    }
+
+    sh2e_dmac_peripheral_request_type_t type = (sh2e_dmac_peripheral_request_type_t) _type;
+
+    if ((type == RECIEVE || type == TRANSMIT) && !has_addr) {
+        error("Peripheral request of type %d requires an address", type);
+        return false;
+    }
+
+    sh2e_dmac_t *dmac = device_get_sh2e_dmac(dev);
+
+    // Register the peripheral request in the DMAC's peripheral request table
+    dmac->peripheral_request_table[index].index = index;
+    dmac->peripheral_request_table[index].pending = false;
+    dmac->peripheral_request_table[index].registered = true;
+    dmac->peripheral_request_table[index].type = type;
+    dmac->peripheral_request_table[index].peripheral_request_address = addr;
+
+    return true;
+}
+
 /** Dispose dsh2edmac
  *
  * @param dev Device pointer
@@ -901,6 +1018,15 @@ static cmd_t dsh2edmac_cmds[] = {
             "Add CPU to the device",
             "Add CPU to the device",
             REQ STR "cpu name" END },
+    { "addsource",
+            (fcmd_t) dsh2edmac_cmd_add_source,
+            DEFAULT,
+            DEFAULT,
+            "Add request source to the device",
+            "Add request source to the device",
+            REQ INT "request index" NEXT
+                    REQ INT "type of the request" NEXT
+                            OPT INT "address to read from/write to" END },
     LAST_CMD
 };
 

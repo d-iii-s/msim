@@ -226,7 +226,11 @@ static bool dsh2ecpu_cmd_add_peripheral(token_t *parm, device_t *const dev)
     peripheral_t *peripheral = peripheral_dev->data;
     sh2e_cpu_t *cpu = device_get_sh2e_cpu(dev);
 
-    list_append(&cpu->on_chip_peripherals, &peripheral->item);
+    peripheral_link_t *peripheral_link = safe_malloc_t(peripheral_link_t);
+    peripheral_link->peripheral = peripheral;
+    item_init(&peripheral_link->item);
+
+    list_append(&cpu->on_chip_peripherals, &peripheral_link->item);
 
     return true;
 }

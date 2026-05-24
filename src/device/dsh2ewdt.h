@@ -14,8 +14,8 @@
 #ifndef DSH2E_WDT_H_
 #define DSH2E_WDT_H_
 
-#include "device.h"
 #include "cpu/general_cpu.h"
+#include "device.h"
 
 #define PACKED __attribute__((packed))
 #define device_get_sh2e_wdt(dev) ((sh2e_wdt_t *) (((peripheral_t *) (dev)->data)->data))

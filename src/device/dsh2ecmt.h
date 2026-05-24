@@ -14,8 +14,8 @@
 #ifndef DSH2ECMT_H_
 #define DSH2ECMT_H_
 
-#include "device.h"
 #include "cpu/general_cpu.h"
+#include "device.h"
 
 extern device_type_t const dsh2ecmt;
 

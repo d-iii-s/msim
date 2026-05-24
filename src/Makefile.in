@@ -68,6 +68,7 @@ SOURCES = \
 	device/dtime.c \
 	device/device.c \
 	device/dsh2ecmt.c \
+	device/dsh2edmac.c \
 	device/dsh2eintc.c \
 	device/dsh2ewdt.c \
 	device/intc/general_intc.c \

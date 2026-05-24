@@ -299,6 +299,7 @@ typedef struct sh2e_fpu_regs {
 /** Exception codes. */
 typedef enum sh2e_exception {
     SH2E_EXCEPTION_CPU_ADDRESS_ERROR,
+    SH2E_EXCEPTION_DMAC_ADDRESS_ERROR,
     SH2E_EXCEPTION_ILLEGAL_INSTRUCTION,
     SH2E_EXCEPTION_ILLEGAL_SLOT_INSTRUCTION,
     SH2E_EXCEPTION_FPU_OPERATION,
@@ -314,12 +315,6 @@ typedef enum sh2e_reset_req {
     SH2E_POWER_ON_RESET_REQ_EXTERNAL,
     SH2E_MANUAL_RESET_REQ,
 } sh2e_reset_req_t;
-
-typedef struct sh2e_cpu_on_chip_peripherals {
-
-    list_t wdt_list; /** List of watchdog timer devices. */
-
-} sh2e_cpu_on_chip_peripherals_t;
 
 /** Main processor structure */
 typedef struct sh2e_cpu {
@@ -356,7 +351,7 @@ typedef struct sh2e_cpu {
 
     uint8_t pending_interrupt; /** Source ID of the highest priority pending interrupt. 0 if no pending interrupts. */
 
-    bool pending_address_error; /** Flag indicating a pending address error exception. */
+    sh2e_exception_t pending_address_error; /** Flag indicating a pending address error exception. */
 
     /** Flag for resets */
     sh2e_reset_req_t reset_req; /** Flag indicating a pending reset request. */

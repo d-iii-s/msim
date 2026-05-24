@@ -34,6 +34,7 @@
 #include "dr4kcpu.h"
 #include "dsh2ecmt.h"
 #include "dsh2ecpu.h"
+#include "dsh2edmac.h"
 #include "dsh2eintc.h"
 #include "dsh2ewdt.h"
 #include "dtime.h"
@@ -52,6 +53,7 @@ static device_type_t const *const device_types[] = {
     &drv64cpu,
     &dsh2ecmt,
     &dsh2ecpu,
+    &dsh2edmac,
     &dsh2eintc,
     &dsh2ewdt,
     &dcycle,

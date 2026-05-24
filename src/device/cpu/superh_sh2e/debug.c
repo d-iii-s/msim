@@ -306,6 +306,9 @@ void sh2e_cpu_dump_exception_state_data(sh2e_cpu_t const *cpu, sh2e_exception_t 
     case SH2E_EXCEPTION_CPU_ADDRESS_ERROR:
         string_printf(&s_exception, "CPU Address Error");
         break;
+    case SH2E_EXCEPTION_DMAC_ADDRESS_ERROR:
+        string_printf(&s_exception, "DMA Address Error");
+        break;
     case SH2E_EXCEPTION_ILLEGAL_INSTRUCTION:
         string_printf(&s_exception, "Illegal Instruction");
         break;

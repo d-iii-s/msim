@@ -277,6 +277,10 @@ sh2e_cpu_handle_exception(sh2e_cpu_t *const restrict cpu, sh2e_exception_t ex, b
         vector_addr = (uint32_t) address(&epva->cpu_address_error);
         break;
     }
+    case SH2E_EXCEPTION_DMAC_ADDRESS_ERROR: {
+        vector_addr = (uint32_t) address(&epva->dmac_address_error);
+        break;
+    }
     case SH2E_EXCEPTION_FPU_OPERATION: {
         vector_addr = (uint32_t) address(&epva->fpu_exception);
         break;
@@ -300,7 +304,8 @@ sh2e_cpu_handle_exception(sh2e_cpu_t *const restrict cpu, sh2e_exception_t ex, b
     }
     case SH2E_EXCEPTION_ILLEGAL_SLOT_INSTRUCTION:
     case SH2E_EXCEPTION_FPU_OPERATION:
-    case SH2E_EXCEPTION_CPU_ADDRESS_ERROR: {
+    case SH2E_EXCEPTION_CPU_ADDRESS_ERROR:
+    case SH2E_EXCEPTION_DMAC_ADDRESS_ERROR: {
         stack_pc = cpu->pc_next;
     }
     default: {
@@ -585,16 +590,25 @@ sh2e_exception_state_step(sh2e_cpu_t *const restrict cpu)
     ASSERT(cpu != NULL);
 
     // Check if address errors are disabled.
-    if (cpu->disable_address_errors && cpu->insn_exception == SH2E_EXCEPTION_CPU_ADDRESS_ERROR) {
-        cpu->pending_address_error = true;
+    if (cpu->disable_address_errors && (cpu->insn_exception == SH2E_EXCEPTION_CPU_ADDRESS_ERROR || cpu->insn_exception == SH2E_EXCEPTION_DMAC_ADDRESS_ERROR)) {
+        cpu->pending_address_error = cpu->insn_exception;
         cpu->insn_exception = SH2E_EXCEPTION_NONE;
     }
 
     // Exception Processing Priority Order:
     // - CPU address error
-    if ((cpu->pending_address_error || cpu->insn_exception == SH2E_EXCEPTION_CPU_ADDRESS_ERROR) && !cpu->disable_address_errors) {
-        cpu->pending_address_error = false;
-        sh2e_cpu_handle_exception(cpu, SH2E_EXCEPTION_CPU_ADDRESS_ERROR, false);
+    if ((cpu->pending_address_error == SH2E_EXCEPTION_CPU_ADDRESS_ERROR || cpu->insn_exception == SH2E_EXCEPTION_CPU_ADDRESS_ERROR) && !cpu->disable_address_errors) {
+        sh2e_exception_t accepted_addr_error = cpu->pending_address_error != SH2E_EXCEPTION_NONE ? cpu->pending_address_error : cpu->insn_exception;
+        cpu->pending_address_error = cpu->pending_address_error == SH2E_EXCEPTION_CPU_ADDRESS_ERROR ? cpu->insn_exception : SH2E_EXCEPTION_NONE;
+        sh2e_cpu_handle_exception(cpu, accepted_addr_error, false);
+        return;
+    }
+
+    // - DMAC address error
+    if ((cpu->pending_address_error == SH2E_EXCEPTION_DMAC_ADDRESS_ERROR || cpu->insn_exception == SH2E_EXCEPTION_DMAC_ADDRESS_ERROR) && !cpu->disable_address_errors) {
+        sh2e_exception_t accepted_addr_error = cpu->pending_address_error != SH2E_EXCEPTION_NONE ? cpu->pending_address_error : cpu->insn_exception;
+        cpu->pending_address_error = cpu->pending_address_error == SH2E_EXCEPTION_DMAC_ADDRESS_ERROR ? cpu->insn_exception : SH2E_EXCEPTION_NONE;
+        sh2e_cpu_handle_exception(cpu, accepted_addr_error, false);
         return;
     }
 
@@ -651,14 +665,13 @@ sh2e_program_execution_state_step(sh2e_cpu_t *const restrict cpu)
 
         uint8_t interrupt_source = 0;
         bool interrupt_pending = intc_check_interrupts(cpu->intc, cpu->cpu_regs.sr.im, &interrupt_source);
-
         if (interrupt_pending) {
             cpu->pending_interrupt = interrupt_source;
         }
     }
 
     // Go to exception processing state if there is an exception or a pending interrupt.
-    if (cpu->insn_exception != SH2E_EXCEPTION_NONE || cpu->pending_address_error || cpu->pending_interrupt) {
+    if (cpu->insn_exception != SH2E_EXCEPTION_NONE || (cpu->pending_address_error != SH2E_EXCEPTION_NONE) || cpu->pending_interrupt) {
         cpu->pr_state = SH2E_PSTATE_EXCEPTION_PROCESSING;
     }
 
@@ -713,6 +726,7 @@ void sh2e_cpu_init(sh2e_cpu_t *const restrict cpu, unsigned int id)
 
     cpu->pr_state = SH2E_PSTATE_RESET;
     cpu->reset_req = SH2E_POWER_ON_RESET_INITIAL;
+    cpu->pending_address_error = SH2E_EXCEPTION_NONE;
 
     cpu->on_chip_peripherals = (list_t) LIST_INITIALIZER;
 }
@@ -772,7 +786,14 @@ void sh2e_cpu_goto(sh2e_cpu_t *const restrict cpu, ptr64_t const addr)
 /** Assert the specified interrupt. */
 void sh2e_cpu_assert_interrupt(sh2e_cpu_t *const restrict cpu, unsigned int num)
 {
-    intc_interrupt_up(cpu->intc, num);
+    // DMAC address error is not a real interrupt, but we use the same mechanism to
+    // signal it to the CPU so we need to handle it separately here.
+    if (num == SH2E_INTC_DMAC_VECTOR_ADDRESS_OFFSET) {
+        cpu->pending_address_error = SH2E_EXCEPTION_DMAC_ADDRESS_ERROR;
+        cpu->pr_state = SH2E_PSTATE_EXCEPTION_PROCESSING;
+    } else {
+        intc_interrupt_up(cpu->intc, num);
+    }
 }
 
 /** Deassert the specified interrupt */

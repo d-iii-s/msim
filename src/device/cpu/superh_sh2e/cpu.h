@@ -351,7 +351,7 @@ typedef struct sh2e_cpu {
 
     uint8_t pending_interrupt; /** Source ID of the highest priority pending interrupt. 0 if no pending interrupts. */
 
-    sh2e_exception_t pending_address_error; /** Flag indicating a pending address error exception. */
+    sh2e_exception_t pending_address_error; /** Latest address error exception that is pending due to disabled address errors. */
 
     /** Flag for resets */
     sh2e_reset_req_t reset_req; /** Flag indicating a pending reset request. */

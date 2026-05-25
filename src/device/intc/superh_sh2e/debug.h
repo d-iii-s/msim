@@ -18,4 +18,6 @@
 
 extern void sh2e_intc_dump_regs(sh2e_intc_t const *intc);
 
+extern void sh2e_intc_dump_configuration(sh2e_intc_t *intc);
+
 #endif // SUPERH_SH2E_INTC_DEBUG_H_

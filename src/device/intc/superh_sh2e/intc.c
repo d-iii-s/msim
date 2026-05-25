@@ -102,13 +102,13 @@ void sh2e_intc_add_interrupt_source(sh2e_intc_t *intc, uint8_t source_id, uint8_
         // Need this in order to reverse the order and shift correctly
         int shift = (3 - (priority_pool_index % 4)) * 4;
 
+        // NOTE: tha last value in the configuration with the same priority_pool_index will overwrite the previous ones
         intc->intc_regs.priority[priority_pool_index / 4] &= ~(0xF << shift);
         intc->intc_regs.priority[priority_pool_index / 4] |= (priority & 0xF) << shift;
     }
 }
 
-static bool
-sh2e_check_nmi_interrupt(sh2e_intc_t *intc)
+bool sh2e_check_nmi_interrupt(sh2e_intc_t *intc)
 {
     ASSERT(intc != NULL);
 
@@ -121,7 +121,15 @@ sh2e_check_nmi_interrupt(sh2e_intc_t *intc)
         // NMI interrupt is detected on the falling edge of the NMI pin
         detected = intc->nmi_prev_value != 0 && !icr.nmil;
     }
-    intc->nmi_prev_value = icr.nmil;
+    return detected;
+}
+
+static bool sh2e_check_nmi_and_update_nmi_prev_value(sh2e_intc_t *intc)
+{
+    ASSERT(intc != NULL);
+
+    bool detected = sh2e_check_nmi_interrupt(intc);
+    intc->nmi_prev_value = intc->intc_regs.icr.nmil;
     return detected;
 }
 
@@ -184,7 +192,7 @@ bool sh2e_check_pending_interrupts(sh2e_intc_t *intc, uint8_t mask, uint8_t *int
     ASSERT(interrupt_out != NULL);
 
     // Check NMI
-    if (sh2e_check_nmi_interrupt(intc)) {
+    if (sh2e_check_nmi_and_update_nmi_prev_value(intc)) {
         intc->interrupt_out = SH2E_INTC_NMI_VECTOR_ADDRESS_OFFSET;
         intc->priority_out = SH2E_INTC_PRIORITY_MAX_VALUE;
         return SH2E_INTC_NMI_VECTOR_ADDRESS_OFFSET;

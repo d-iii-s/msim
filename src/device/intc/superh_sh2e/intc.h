@@ -188,6 +188,8 @@ extern bool sh2e_check_pending_interrupts(sh2e_intc_t *intc, uint8_t mask, uint8
 
 extern bool sh2e_check_pending_resets(sh2e_intc_t *intc, uint8_t *reset_out);
 
+extern bool sh2e_check_nmi_interrupt(sh2e_intc_t *intc);
+
 extern void sh2e_accept_interrupt(sh2e_intc_t *intc, uint32_t *new_mask_out);
 
 extern void sh2e_accept_reset(sh2e_intc_t *intc);

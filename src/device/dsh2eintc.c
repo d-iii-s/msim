@@ -227,6 +227,15 @@ dsh2eintc_cmd_dump_intc_regs(token_t *parm, device_t *const dev)
     return true;
 }
 
+static bool
+dsh2eintc_cmd_dump_configuration(token_t *parm, device_t *const dev)
+{
+    ASSERT(dev != NULL);
+
+    sh2e_intc_dump_configuration(get_sh2e_intc(dev));
+    return true;
+}
+
 /*
  * Device commands
  */
@@ -266,6 +275,13 @@ static cmd_t dsh2eintc_cmds[] = {
             DEFAULT,
             "Dump contents of INTC registers",
             "Dump contents of INTC registers",
+            NOCMD },
+    { "conf",
+            (fcmd_t) dsh2eintc_cmd_dump_configuration,
+            DEFAULT,
+            DEFAULT,
+            "Dump INTC configuration",
+            "Dump INTC configuration",
             NOCMD },
     { "addintsrc",
             (fcmd_t) dsh2eintc_cmd_add_interrupt_source,

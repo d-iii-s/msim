@@ -1206,6 +1206,9 @@ Commands
    :priority_pool_index: index of the priority pool (0-31)
    :priority: interrupt priority (0-14)
 
+``conf``
+   Display the current interrupt source configuration.
+
 Examples
 ^^^^^^^^
 
@@ -1456,6 +1459,32 @@ After this configuration, the INTC registers look like this:
       iprl: 3221
        icr:    0
        isr:    0
+
+Example of the ``conf`` command:
+
+.. code:: msim
+
+   [msim] intc0 conf
+   intc 0
+   [Interrupt no] [Type of interrupt      ] [Pending] [Priority register] [IPR bits]
+               0   External power-on reset     false                   -          -
+               1   Internal power-on reset     false                   -          -
+               2              Manual reset     false                   -          -
+              11                       NMI     false                   -          -
+              12        Internal interrupt     false                   -          -
+              14        Internal interrupt     false                   -          -
+              64                      IRQ0     false                IPRA      15-12
+              65                      IRQ1     false                IPRA       11-8
+              66                      IRQ2     false                IPRA        7-4
+              67                      IRQ3     false                IPRA        3-0
+              68                      IRQ4     false                IPRB      15-12
+              69                      IRQ5     false                IPRB       11-8
+              70                      IRQ6     false                IPRB        7-4
+              71                      IRQ7     false                IPRB        3-0
+              72        Internal interrupt     false                IPRC      15-12
+              74        Internal interrupt     false                IPRC      15-12
+              76        Internal interrupt     false                IPRC       11-8
+              78        Internal interrupt     false                IPRC       11-8
 
 
 SuperH SH-2E Watchdog Timer ``dsh2ewdt``

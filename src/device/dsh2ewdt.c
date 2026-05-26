@@ -524,10 +524,15 @@ static bool dsh2e_wdt_add_cpu(token_t *parm, device_t *const dev)
         return false;
     }
 
-    general_cpu_t *cpu = cpu_dev->data;
-    sh2e_wdt_t *wdt = device_get_sh2e_wdt(dev);
-
-    wdt->cpu = cpu;
+    if (is_dev_cpu(cpu_dev)) {
+        general_cpu_t *cpu = (general_cpu_t *) cpu_dev->data;
+        sh2e_wdt_t *wdt = device_get_sh2e_wdt(dev);
+        wdt->cpu = cpu;
+    } else {
+        error("The device %s is not a CPU, it is a device of type %s.",
+                cpu_dev->name, cpu_dev->type->name);
+        return false;
+    }
 
     return true;
 }

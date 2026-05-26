@@ -36,7 +36,9 @@
 
 typedef enum {
     SH2E_BRANCH_STATE_NONE = 0,
+    /* This instruction is a branch instruction with a delay slot and next instruction is in the delay slot */
     SH2E_BRANCH_STATE_DELAY_NEXT,
+    /* This instruction is in a delay slot of a branch instruction */
     SH2E_BRANCH_STATE_DELAY,
     SH2E_BRANCH_STATE_EXECUTE,
 } sh2e_branch_state_t;

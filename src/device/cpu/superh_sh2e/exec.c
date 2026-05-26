@@ -118,7 +118,14 @@ sh2e_insn_movi(
     ASSERT(0 <= POWER_OF_TWO(scale) && POWER_OF_TWO(scale) <= 2 && "invalid `scale` value");
 
     uint32_t const disp = zero_extend_8_32(insn.d8);
-    uint32_t const addr = sh2e_addr_pc_relative_data(cpu->cpu_regs.pc + 4, disp, scale);
+
+    // We simulate the pipelined behaviour of the cpu, so the PC value used for calculating the effective address is the one in the EX stage, which is:
+    // - If the instruction is not in a delay slot the PC value used for calculation is PC + 4
+    // - If the instruction is in a delay slot and the branch is not taken, the PC value used for calculation is PC + 4
+    // - If the instruction is in a delay slot and the branch is taken, the PC value used for calculation is the branch target address + 2
+    // In all three cases, the pc_next + 2 is the equivalent value
+    // NOTE: this "quirk" was fixed in the Sh4 by prohibitng the MOVI (w/L) instructions to be placed in a delay slot.
+    uint32_t const addr = sh2e_addr_pc_relative_data(cpu->pc_next + 2, disp, scale);
 
     uint32_t mem_value;
     sh2e_exception_t const cpu_read_ex = sh2e_cpu_read(cpu, addr, &mem_value);
@@ -1255,12 +1262,13 @@ sh2e_insn_exec_mova(sh2e_cpu_t *const restrict cpu, sh2e_insn_d_t const insn)
     uint32_t const disp = zero_extend_8_32(insn.d8);
     unsigned const scale = sizeof(uint32_t);
 
-    // If this instruction is placed immediately after a delayed branch instruction, the PC must
-    // point to an address specified by (the starting address of the branch destination) + 2.
-    // pc_next is already set to the branch destination address in the execution of the delayed branch instruction.
-    uint32_t const addr = cpu->br_state == SH2E_BRANCH_STATE_DELAY ? (cpu->pc_next + 2) : (cpu->cpu_regs.pc + 4);
-
-    cpu->cpu_regs.r0 = sh2e_addr_pc_relative_data(addr, disp, scale);
+    // We simulate the pipelined behaviour of the cpu, so the PC value used for calculating the effective address is the one in the EX stage, which is:
+    // - If the instruction is not in a delay slot so the PC value used for calculation is PC + 4
+    // - If the instruction is in a delay slot and the branch is not taken, the PC value used for calculation is PC + 4
+    // - If the instruction is in a delay slot and the branch is taken, the PC value used for calculation is the branch target address + 2
+    // In all three cases, the pc_next + 2 is the equivalent value
+    // NOTE: this "quirk" was fixed in the Sh4 by prohibitng the MOVA instruction to be placed in a delay slot.
+    cpu->cpu_regs.r0 = sh2e_addr_pc_relative_data(cpu->pc_next + 2, disp, scale);
     return SH2E_EXCEPTION_NONE;
 }
 

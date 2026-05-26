@@ -223,6 +223,11 @@ static bool dsh2ecpu_cmd_add_peripheral(token_t *parm, device_t *const dev)
         return false;
     }
 
+    if (!is_dev_peripheral(peripheral_dev)) {
+        error("Device '%s' is not a peripheral", peripheral_name);
+        return false;
+    }
+
     peripheral_t *peripheral = peripheral_dev->data;
     sh2e_cpu_t *cpu = device_get_sh2e_cpu(dev);
 

@@ -118,6 +118,10 @@ extern size_t dev_count_by_partial_name(const char *prefix_name,
 
 extern bool dev_next(device_t **dev, device_filter_t filter);
 
+extern bool is_dev_cpu(const device_t *dev);
+
+extern bool is_dev_peripheral(const device_t *dev);
+
 /*
  * General utilities
  */

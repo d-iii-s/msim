@@ -117,7 +117,7 @@ void sh2e_cpu_dump_insn(
     if (desc->disasm != NULL) {
         desc->disasm(desc, cpu, addr, insn, &s_mnemonics, &s_comments);
     } else {
-        string_printf(&s_mnemonics, desc->assembly);
+        string_printf(&s_mnemonics, "%s", desc->assembly);
     }
 
     if (desc->abstract != NULL) {

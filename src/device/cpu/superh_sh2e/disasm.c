@@ -15,6 +15,7 @@
 #include <stdint.h>
 #include <string.h>
 
+#include "../../../utils.h"
 #include "bitops.h"
 #include "decode.h"
 #include "decode.inc"
@@ -334,8 +335,9 @@ void sh2e_insn_desc_dump_d_format_mova(
     char const *format = __dump_operation_name(desc->assembly, mnemonics);
     while (*format != '\0') {
         if (strstr(format, disp_pc_arg) == format) {
-            uint32_t const disp = zero_extend_8_32(insn.d_form.d8) * sizeof(uint32_t);
-            uint32_t const target_addr = addr + 2 * sizeof(sh2e_insn_t) + disp;
+            uint32_t const scale = sizeof(uint32_t);
+            uint32_t const disp = zero_extend_8_32(insn.d_form.d8);
+            uint32_t const target_addr = ALIGN_DOWN((cpu->pc_next + 2), scale) + (disp * scale);
             string_printf(mnemonics, "%#010" PRIx32, target_addr);
             format += strlen(disp_pc_arg);
         } else {
@@ -430,7 +432,7 @@ sh2e_insn_desc_dump_nd8_format(
     while (*format != '\0') {
         if (strstr(format, disp_pc_arg) == format) {
             uint32_t const disp = zero_extend_8_32(insn.nd8_form.d8);
-            uint32_t const target_addr = (addr & (~(scale - 1))) + 4 + (disp * scale);
+            uint32_t const target_addr = ALIGN_DOWN((cpu->pc_next + 2), scale) + (disp * scale);
             string_printf(mnemonics, "%#010" PRIx32, target_addr);
             format += strlen(disp_pc_arg);
         } else if (strstr(format, rn_arg) == format) {
@@ -471,7 +473,7 @@ void sh2e_insn_desc_dump_i_format(
     char const *format = __dump_operation_name(desc->assembly, mnemonics);
     while (*format != '\0') {
         if (strstr(format, imm_arg) == format) {
-            string_printf(mnemonics, "%#04" PRIx8, insn.i_form.i8);
+            string_printf(mnemonics, "%#04" PRIx8, (uint8_t) insn.i_form.i8);
             format += strlen(imm_arg);
         } else {
             string_push(mnemonics, *format);

@@ -412,3 +412,19 @@ gen_t dev_find_generator(token_t **parm, const device_t *dev,
 
     return NULL;
 }
+
+/**
+ * Check if the given device is a CPU device by comparing its type name.
+ *
+ * @param dev Pointer to the device to be checked.
+ * @return True if the device is a CPU device, false otherwise.
+ */
+bool is_dev_cpu(const device_t *const dev)
+{
+    return !strcmp(dev->type->name, dsh2ecpu.name) || !strcmp(dev->type->name, dr4kcpu.name) || !strcmp(dev->type->name, drvcpu.name) || !strcmp(dev->type->name, drv64cpu.name);
+}
+
+bool is_dev_peripheral(const device_t *const dev)
+{
+    return !strcmp(dev->type->name, dsh2ecmt.name) || !strcmp(dev->type->name, dsh2edmac.name) || !strcmp(dev->type->name, dsh2ewdt.name);
+}

@@ -301,12 +301,14 @@ sh2e_cpu_handle_exception(sh2e_cpu_t *const restrict cpu, sh2e_exception_t ex, b
     switch (ex) {
     case SH2E_EXCEPTION_ILLEGAL_INSTRUCTION: {
         stack_pc = cpu->cpu_regs.pc;
+        break;
     }
     case SH2E_EXCEPTION_ILLEGAL_SLOT_INSTRUCTION:
     case SH2E_EXCEPTION_FPU_OPERATION:
     case SH2E_EXCEPTION_CPU_ADDRESS_ERROR:
     case SH2E_EXCEPTION_DMAC_ADDRESS_ERROR: {
         stack_pc = cpu->pc_next;
+        break;
     }
     default: {
         break;

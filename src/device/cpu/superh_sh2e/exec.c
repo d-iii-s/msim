@@ -2382,6 +2382,11 @@ sh2e_exception_t
 sh2e_insn_exec_illegal(sh2e_cpu_t *const restrict cpu, sh2e_insn_t const insn)
 {
     alert("instruction 0x%04x is invalid", insn.word);
+
+    if (cpu->br_state == SH2E_BRANCH_STATE_DELAY) {
+        return SH2E_EXCEPTION_ILLEGAL_SLOT_INSTRUCTION;
+    }
+
     return SH2E_EXCEPTION_ILLEGAL_INSTRUCTION;
 }
 

@@ -337,7 +337,13 @@ void sh2e_insn_desc_dump_d_format_mova(
         if (strstr(format, disp_pc_arg) == format) {
             uint32_t const scale = sizeof(uint32_t);
             uint32_t const disp = zero_extend_8_32(insn.d_form.d8);
-            uint32_t const target_addr = ALIGN_DOWN((cpu->pc_next + 2), scale) + (disp * scale);
+            uint32_t pc_addr;
+            if (cpu->br_state != SH2E_BRANCH_STATE_DELAY) {
+                pc_addr = cpu->cpu_regs.pc + 2 * sizeof(sh2e_insn_t);
+            } else {
+                pc_addr = cpu->pc_target + sizeof(sh2e_insn_t);
+            }
+            uint32_t const target_addr = ALIGN_DOWN((pc_addr + sizeof(sh2e_insn_t)), scale) + (disp * scale);
             string_printf(mnemonics, "%#010" PRIx32, target_addr);
             format += strlen(disp_pc_arg);
         } else {
@@ -432,7 +438,13 @@ sh2e_insn_desc_dump_nd8_format(
     while (*format != '\0') {
         if (strstr(format, disp_pc_arg) == format) {
             uint32_t const disp = zero_extend_8_32(insn.nd8_form.d8);
-            uint32_t const target_addr = ALIGN_DOWN((cpu->pc_next + 2), scale) + (disp * scale);
+            uint32_t pc_addr;
+            if (cpu->br_state != SH2E_BRANCH_STATE_DELAY) {
+                pc_addr = cpu->cpu_regs.pc + 2 * sizeof(sh2e_insn_t);
+            } else {
+                pc_addr = cpu->pc_target + sizeof(sh2e_insn_t);
+            }
+            uint32_t const target_addr = ALIGN_DOWN((pc_addr + sizeof(sh2e_insn_t)), scale) + (disp * scale);
             string_printf(mnemonics, "%#010" PRIx32, target_addr);
             format += strlen(disp_pc_arg);
         } else if (strstr(format, rn_arg) == format) {

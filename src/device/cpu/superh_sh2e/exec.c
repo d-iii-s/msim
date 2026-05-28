@@ -81,17 +81,23 @@ sh2e_insn_branch_t_eq(
     uint32_t const target = sh2e_addr_pc_relative_insn(cpu, 2 + disp);
 
     if (cpu->br_state == SH2E_BRANCH_STATE_DELAY) {
-        if (cpu->cpu_regs.sr.t == t_expected) {
-            cpu->pc_next = target;
-        }
+        // We need to set this value here because it will be pushed
+        // to the stack when the exception processing starts
+        cpu->pc_target = cpu->cpu_regs.pc;
         return SH2E_EXCEPTION_ILLEGAL_SLOT_INSTRUCTION;
     }
 
     if (cpu->cpu_regs.sr.t == t_expected) {
         // TODO Leave cycle counting to the higher-level function.
         cpu->program_execution_cycles += delayed ? 1 : 2;
-        cpu->pc_next = target;
+        cpu->pc_target = target;
         cpu->br_state = delayed ? SH2E_BRANCH_STATE_DELAY_NEXT : SH2E_BRANCH_STATE_EXECUTE;
+    } else {
+        // pc_target must be set even if the branch is not taken, in case this instruction
+        // is a delay branch slot instruction and the next instruction is a MOVA/MOVI.W/MOVI.L instruction
+        // which uses the PC for calculating the effective address. This behaviour is a quirk of the SH2 and
+        // was fixed in the SH4 by prohibiting the MOVA/MOVI.W/MOVI.L instructions to be placed in a delay slot.
+        cpu->pc_target = cpu->cpu_regs.pc + 2 * sizeof(sh2e_insn_t);
     }
 
     return SH2E_EXCEPTION_NONE;
@@ -119,13 +125,19 @@ sh2e_insn_movi(
 
     uint32_t const disp = zero_extend_8_32(insn.d8);
 
+    uint32_t pc_addr;
     // We simulate the pipelined behaviour of the cpu, so the PC value used for calculating the effective address is the one in the EX stage, which is:
-    // - If the instruction is not in a delay slot the PC value used for calculation is PC + 4
-    // - If the instruction is in a delay slot and the branch is not taken, the PC value used for calculation is PC + 4
-    // - If the instruction is in a delay slot and the branch is taken, the PC value used for calculation is the branch target address + 2
-    // In all three cases, the pc_next + 2 is the equivalent value
-    // NOTE: this "quirk" was fixed in the Sh4 by prohibitng the MOVI (w/L) instructions to be placed in a delay slot.
-    uint32_t const addr = sh2e_addr_pc_relative_data(cpu->pc_next + 2, disp, scale);
+    if (cpu->br_state != SH2E_BRANCH_STATE_DELAY) {
+        // - If the instruction is not in a delay slot, the PC value used for calculation is PC + 2 * sizeof(sh2e_insn_t)
+        pc_addr = cpu->cpu_regs.pc + 2 * sizeof(sh2e_insn_t);
+    } else {
+        // - If the instruction is in a delay slot and the branch is not taken, the PC value used for calculation is PC + 4
+        // - If the instruction is in a delay slot and the branch is taken, the PC value used for calculation is the branch target address + 2
+        // In the case of a taken branch, the pc_target holds the jump address, in the other case it holds the address of the instruction after the delay slot
+        pc_addr = cpu->pc_target + sizeof(sh2e_insn_t);
+    }
+    // NOTE: this "quirk" was fixed in the SH4 by prohibitng the MOVI (W/L) instructions to be placed in a delay slot.
+    uint32_t const addr = sh2e_addr_pc_relative_data(pc_addr, disp, scale);
 
     uint32_t mem_value;
     sh2e_exception_t const cpu_read_ex = sh2e_cpu_read(cpu, addr, &mem_value);
@@ -408,11 +420,14 @@ sh2e_exception_t
 sh2e_insn_exec_bra(sh2e_cpu_t *const restrict cpu, sh2e_insn_d12_t const insn)
 {
     if (cpu->br_state == SH2E_BRANCH_STATE_DELAY) {
+        // We need to set this value here because it will be pushed
+        // to the stack when the exception processing starts
+        cpu->pc_target = cpu->cpu_regs.pc;
         return SH2E_EXCEPTION_ILLEGAL_SLOT_INSTRUCTION;
     }
 
     uint32_t const disp = sign_extend_12_32(insn.d12);
-    cpu->pc_next = sh2e_addr_pc_relative_insn(cpu, 2 + disp);
+    cpu->pc_target = sh2e_addr_pc_relative_insn(cpu, 2 + disp);
 
     cpu->br_state = SH2E_BRANCH_STATE_DELAY_NEXT;
     return SH2E_EXCEPTION_NONE;
@@ -424,10 +439,13 @@ sh2e_exception_t
 sh2e_insn_exec_braf(sh2e_cpu_t *const restrict cpu, sh2e_insn_m_t const insn)
 {
     if (cpu->br_state == SH2E_BRANCH_STATE_DELAY) {
+        // We need to set this value here because it will be pushed
+        // to the stack when the exception processing starts
+        cpu->pc_target = cpu->cpu_regs.pc;
         return SH2E_EXCEPTION_ILLEGAL_SLOT_INSTRUCTION;
     }
 
-    cpu->pc_next = sh2e_addr_pc_relative_insn(cpu, 2) + cpu->cpu_regs.general[insn.rm];
+    cpu->pc_target = sh2e_addr_pc_relative_insn(cpu, 2) + cpu->cpu_regs.general[insn.rm];
     cpu->br_state = SH2E_BRANCH_STATE_DELAY_NEXT;
     return SH2E_EXCEPTION_NONE;
 }
@@ -438,12 +456,15 @@ sh2e_exception_t
 sh2e_insn_exec_bsr(sh2e_cpu_t *const restrict cpu, sh2e_insn_d12_t const insn)
 {
     if (cpu->br_state == SH2E_BRANCH_STATE_DELAY) {
+        // We need to set this value here because it will be pushed
+        // to the stack when the exception processing starts
+        cpu->pc_target = cpu->cpu_regs.pc;
         return SH2E_EXCEPTION_ILLEGAL_SLOT_INSTRUCTION;
     }
 
     uint32_t const disp = sign_extend_12_32(insn.d12);
     cpu->cpu_regs.pr = sh2e_addr_pc_relative_insn(cpu, 2);
-    cpu->pc_next = sh2e_addr_pc_relative_insn(cpu, 2 + disp);
+    cpu->pc_target = sh2e_addr_pc_relative_insn(cpu, 2 + disp);
 
     cpu->br_state = SH2E_BRANCH_STATE_DELAY_NEXT;
     return SH2E_EXCEPTION_NONE;
@@ -455,11 +476,14 @@ sh2e_exception_t
 sh2e_insn_exec_bsrf(sh2e_cpu_t *const restrict cpu, sh2e_insn_m_t const insn)
 {
     if (cpu->br_state == SH2E_BRANCH_STATE_DELAY) {
+        // We need to set this value here because it will be pushed
+        // to the stack when the exception processing starts
+        cpu->pc_target = cpu->cpu_regs.pc;
         return SH2E_EXCEPTION_ILLEGAL_SLOT_INSTRUCTION;
     }
 
     cpu->cpu_regs.pr = sh2e_addr_pc_relative_insn(cpu, 2);
-    cpu->pc_next = sh2e_addr_pc_relative_insn(cpu, 2) + cpu->cpu_regs.general[insn.rm];
+    cpu->pc_target = sh2e_addr_pc_relative_insn(cpu, 2) + cpu->cpu_regs.general[insn.rm];
     cpu->br_state = SH2E_BRANCH_STATE_DELAY_NEXT;
     return SH2E_EXCEPTION_NONE;
 }
@@ -716,10 +740,13 @@ sh2e_insn_exec_jmp(sh2e_cpu_t *const restrict cpu, sh2e_insn_m_t const insn)
 {
 
     if (cpu->br_state == SH2E_BRANCH_STATE_DELAY) {
+        // We need to set this value here because it will be pushed
+        // to the stack when the exception processing starts
+        cpu->pc_target = cpu->cpu_regs.pc;
         return SH2E_EXCEPTION_ILLEGAL_SLOT_INSTRUCTION;
     }
 
-    cpu->pc_next = cpu->cpu_regs.general[insn.rm];
+    cpu->pc_target = cpu->cpu_regs.general[insn.rm];
     cpu->br_state = SH2E_BRANCH_STATE_DELAY_NEXT;
     return SH2E_EXCEPTION_NONE;
 }
@@ -731,11 +758,14 @@ sh2e_insn_exec_jsr(sh2e_cpu_t *const restrict cpu, sh2e_insn_m_t const insn)
 {
 
     if (cpu->br_state == SH2E_BRANCH_STATE_DELAY) {
+        // We need to set this value here because it will be pushed
+        // to the stack when the exception processing starts
+        cpu->pc_target = cpu->cpu_regs.pc;
         return SH2E_EXCEPTION_ILLEGAL_SLOT_INSTRUCTION;
     }
 
     cpu->cpu_regs.pr = sh2e_addr_pc_relative_insn(cpu, 2);
-    cpu->pc_next = cpu->cpu_regs.general[insn.rm];
+    cpu->pc_target = cpu->cpu_regs.general[insn.rm];
 
     cpu->br_state = SH2E_BRANCH_STATE_DELAY_NEXT;
     return SH2E_EXCEPTION_NONE;
@@ -1262,13 +1292,20 @@ sh2e_insn_exec_mova(sh2e_cpu_t *const restrict cpu, sh2e_insn_d_t const insn)
     uint32_t const disp = zero_extend_8_32(insn.d8);
     unsigned const scale = sizeof(uint32_t);
 
+    uint32_t pc_addr;
     // We simulate the pipelined behaviour of the cpu, so the PC value used for calculating the effective address is the one in the EX stage, which is:
-    // - If the instruction is not in a delay slot so the PC value used for calculation is PC + 4
-    // - If the instruction is in a delay slot and the branch is not taken, the PC value used for calculation is PC + 4
-    // - If the instruction is in a delay slot and the branch is taken, the PC value used for calculation is the branch target address + 2
-    // In all three cases, the pc_next + 2 is the equivalent value
-    // NOTE: this "quirk" was fixed in the Sh4 by prohibitng the MOVA instruction to be placed in a delay slot.
-    cpu->cpu_regs.r0 = sh2e_addr_pc_relative_data(cpu->pc_next + 2, disp, scale);
+    if (cpu->br_state != SH2E_BRANCH_STATE_DELAY) {
+        // - If the instruction is not in a delay slot, the PC value used for calculation is PC + 2 * sizeof(sh2e_insn_t)
+        pc_addr = cpu->cpu_regs.pc + 2 * sizeof(sh2e_insn_t);
+    } else {
+        // - If the instruction is in a delay slot and the branch is not taken, the PC value used for calculation is PC + 4
+        // - If the instruction is in a delay slot and the branch is taken, the PC value used for calculation is the branch target address + 2
+        // In the case of a taken branch, the pc_target holds the jump address, in the other case it holds the address of the instruction after the delay slot
+        pc_addr = cpu->pc_target + sizeof(sh2e_insn_t);
+    }
+    // NOTE: this "quirk" was fixed in the SH4 by prohibitng the MOVA instruction to be placed in a delay slot.
+
+    cpu->cpu_regs.r0 = sh2e_addr_pc_relative_data(pc_addr, disp, scale);
     return SH2E_EXCEPTION_NONE;
 }
 
@@ -1386,6 +1423,9 @@ sh2e_exception_t
 sh2e_insn_exec_rte(sh2e_cpu_t *const restrict cpu, sh2e_insn_z_t const insn)
 {
     if (cpu->br_state == SH2E_BRANCH_STATE_DELAY) {
+        // We need to set this value here because it will be pushed
+        // to the stack when the exception processing starts
+        cpu->pc_target = cpu->cpu_regs.pc;
         return SH2E_EXCEPTION_ILLEGAL_SLOT_INSTRUCTION;
     }
 
@@ -1407,7 +1447,7 @@ sh2e_insn_exec_rte(sh2e_cpu_t *const restrict cpu, sh2e_insn_z_t const insn)
 
     cpu->cpu_regs.sp = stack_sr_addr + sizeof(uint32_t);
     sh2e_cpu_set_sr(cpu, stack_sr & 0x0FFF0FFF);
-    cpu->pc_next = stack_pc;
+    cpu->pc_target = stack_pc;
 
     cpu->br_state = SH2E_BRANCH_STATE_DELAY_NEXT;
     return SH2E_EXCEPTION_NONE;
@@ -1419,6 +1459,9 @@ sh2e_exception_t
 sh2e_insn_exec_rts(sh2e_cpu_t *const restrict cpu, sh2e_insn_z_t const insn)
 {
     if (cpu->br_state == SH2E_BRANCH_STATE_DELAY) {
+        // We need to set this value here because it will be pushed
+        // to the stack when the exception processing starts
+        cpu->pc_target = cpu->cpu_regs.pc;
         return SH2E_EXCEPTION_ILLEGAL_SLOT_INSTRUCTION;
     }
 
@@ -1431,7 +1474,7 @@ sh2e_insn_exec_rts(sh2e_cpu_t *const restrict cpu, sh2e_insn_z_t const insn)
     // that JSR should set PR = PC + 4, thus requiring RTS to set PC = PR (which
     // makes a bit more sense, why should PR point at the jump instruction?).
     //
-    cpu->pc_next = cpu->cpu_regs.pr;
+    cpu->pc_target = cpu->cpu_regs.pr;
     cpu->br_state = SH2E_BRANCH_STATE_DELAY_NEXT;
     return SH2E_EXCEPTION_NONE;
 }
@@ -1747,7 +1790,7 @@ sh2e_insn_exec_trapa(sh2e_cpu_t *const restrict cpu, sh2e_insn_i_t const insn)
     cpu->cpu_regs.sp = stack_pc_addr;
 
     // Execute the branch immediately.
-    cpu->pc_next = vbr_pc;
+    cpu->pc_target = vbr_pc;
     cpu->br_state = SH2E_BRANCH_STATE_EXECUTE;
 
     return SH2E_EXCEPTION_NONE;

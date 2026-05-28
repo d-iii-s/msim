@@ -131,7 +131,6 @@ static void
 sh2e_set_pc(sh2e_cpu_t *const restrict cpu, uint32_t const addr)
 {
     cpu->cpu_regs.pc = addr;
-    cpu->pc_next = addr + sizeof(sh2e_insn_t);
 }
 
 #define address(ptr) (uintptr_t) (ptr)
@@ -300,14 +299,25 @@ sh2e_cpu_handle_exception(sh2e_cpu_t *const restrict cpu, sh2e_exception_t ex, b
     uint32_t stack_pc = 0;
     switch (ex) {
     case SH2E_EXCEPTION_ILLEGAL_INSTRUCTION: {
+        // In illegal instruction exception, the PC value to be pushed to the
+        // stack should be the start address of the undefined code.
         stack_pc = cpu->cpu_regs.pc;
         break;
     }
-    case SH2E_EXCEPTION_ILLEGAL_SLOT_INSTRUCTION:
+    case SH2E_EXCEPTION_ILLEGAL_SLOT_INSTRUCTION: {
+        // The PC value saved is the jump address of the delayed branch instruction
+        // immediately before the undefined code or address of the instruction that rewrites the PC.
+        stack_pc = cpu->pc_target;
+        // Clear the branch state
+        cpu->br_state = SH2E_BRANCH_STATE_NONE;
+        break;
+    }
     case SH2E_EXCEPTION_FPU_OPERATION:
     case SH2E_EXCEPTION_CPU_ADDRESS_ERROR:
     case SH2E_EXCEPTION_DMAC_ADDRESS_ERROR: {
-        stack_pc = cpu->pc_next;
+        // In all these cases the PC value to be pushed to the stack should be the
+        // address of the instruction after the last executed instruction.
+        stack_pc = cpu->cpu_regs.pc + sizeof(sh2e_insn_t);
         break;
     }
     default: {
@@ -332,7 +342,6 @@ sh2e_cpu_handle_exception(sh2e_cpu_t *const restrict cpu, sh2e_exception_t ex, b
 
     cpu->cpu_regs.sp = stack_pc_addr;
     cpu->cpu_regs.pc = sh2e_physmem_read32(cpu->id, vector_addr, false);
-    cpu->pc_next = cpu->cpu_regs.pc + sizeof(sh2e_insn_t);
 
     // Handle stacking exception immediately (if not disabled)
     if (stack_ex && !disable_stacking_exception) {
@@ -361,7 +370,9 @@ sh2e_cpu_handle_interrupt(sh2e_cpu_t *const restrict cpu)
     uint32_t const stack_sr = cpu->cpu_regs.sr.value;
     uint32_t const stack_sr_addr = cpu->cpu_regs.sp - sizeof(uint32_t);
 
-    uint32_t const stack_pc = cpu->pc_next;
+    // If the branch state is EXECUTE or DELAY, it means the interrupt is taken right before/after the PC should be updated
+    // In this case, the PC value to be pushed to the stack should be the jump address of the delayed branch instruction immediately before the interrupt
+    uint32_t const stack_pc = cpu->br_state == SH2E_BRANCH_STATE_EXECUTE || cpu->br_state == SH2E_BRANCH_STATE_DELAY ? cpu->pc_target : cpu->cpu_regs.pc + sizeof(sh2e_insn_t);
     uint32_t const stack_pc_addr = stack_sr_addr - sizeof(uint32_t);
 
     bool stack_ex = false;
@@ -382,7 +393,6 @@ sh2e_cpu_handle_interrupt(sh2e_cpu_t *const restrict cpu)
 
     uint32_t eva_pc_addr = (uint32_t) address(&epva->vectors[cpu->pending_interrupt]);
     cpu->cpu_regs.pc = sh2e_physmem_read32(cpu->id, eva_pc_addr, false);
-    cpu->pc_next = cpu->cpu_regs.pc + sizeof(sh2e_insn_t);
 
     uint32_t new_mask = 0;
 
@@ -399,6 +409,8 @@ sh2e_cpu_handle_interrupt(sh2e_cpu_t *const restrict cpu)
         sh2e_cpu_handle_exception(cpu, SH2E_EXCEPTION_CPU_ADDRESS_ERROR, true);
     }
 
+    // Clear the branch state
+    cpu->br_state = SH2E_BRANCH_STATE_NONE;
     // Clear the pending interrupt
     cpu->pending_interrupt = 0;
     // Go back to program execution state
@@ -477,8 +489,6 @@ sh2e_cpu_reset(sh2e_cpu_t *const restrict cpu)
 
     cpu->cpu_regs.sp = sh2e_physmem_read32(cpu->id, eva_sp_addr, false);
     cpu->cpu_regs.pc = sh2e_physmem_read32(cpu->id, eva_pc_addr, false);
-
-    cpu->pc_next = cpu->cpu_regs.pc + sizeof(sh2e_insn_t);
 
     // Initialize INTC (only if this is not the initial power-on reset because we want to keep the values from config).
     if (cpu->reset_req != SH2E_POWER_ON_RESET_INITIAL) {
@@ -688,22 +698,18 @@ sh2e_program_execution_state_step(sh2e_cpu_t *const restrict cpu)
     // Update program counter (respect delay slots).
     if (cpu->pr_state == SH2E_PSTATE_PROGRAM_EXECUTION) {
         switch (cpu->br_state) {
-        case SH2E_BRANCH_STATE_DELAY_NEXT: { // Just executed a branch instruction, we change the state to delay and advance the PC to the next instruction, but we keep the jump address in pc_next for the delayed slot instruction.
+        case SH2E_BRANCH_STATE_DELAY_NEXT: { // Just executed a branch instruction, enter delay slot. pc_target holds the address of the jump target
             cpu->br_state = SH2E_BRANCH_STATE_DELAY;
-            // We want to leave the value of the jump in the pc_next, so we can use it after the execution of the instruction in the delayed slot.
-            // Therefore, we only advance the PC to the next instruction here.
             cpu->cpu_regs.pc += sizeof(sh2e_insn_t);
             break;
         }
         case SH2E_BRANCH_STATE_NONE: { // Advance PC to next instruction.
-            cpu->cpu_regs.pc = cpu->pc_next;
-            cpu->pc_next += sizeof(sh2e_insn_t);
+            cpu->cpu_regs.pc += sizeof(sh2e_insn_t);
             break;
         }
         case SH2E_BRANCH_STATE_DELAY: // Delay branch instruction.
         case SH2E_BRANCH_STATE_EXECUTE: { // Execute delayed branch.
-            cpu->cpu_regs.pc = cpu->pc_next;
-            cpu->pc_next += sizeof(sh2e_insn_t);
+            cpu->cpu_regs.pc = cpu->pc_target; // Jump to the target address.
             cpu->br_state = SH2E_BRANCH_STATE_NONE;
             break;
         }

@@ -327,8 +327,8 @@ typedef struct sh2e_cpu {
 
     /* Execution state. */
 
-    /** The next value of PC. Used to implement jumps, branches, and traps. */
-    uint32_t pc_next;
+    /** Value of the effective target of a branch instructions. */
+    uint32_t pc_target;
 
     sh2e_processing_state_t pr_state; /** Processing state. */
 

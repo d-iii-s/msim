@@ -44,11 +44,16 @@ sh2e_cpu_set_sr(sh2e_cpu_t *const restrict cpu, uint32_t const value)
  * SH-2E template instructions
  ****************************************************************************/
 
+/**
+ * @param cpu SH-2E CPU instance.
+ * @param insn_disp Displacement decoded from the instruction, scaled by the instruction size (2 bytes).
+ * @param byte_disp Additional byte offset added to the computed address.
+ */
 static ALWAYS_INLINE uint32_t
-sh2e_addr_pc_relative_insn(sh2e_cpu_t *const restrict cpu, signed const disp)
+sh2e_addr_pc_relative_insn(sh2e_cpu_t *const restrict cpu, signed const insn_disp, signed const byte_disp)
 {
     // PC relative instruction addressing.
-    return cpu->cpu_regs.pc + disp * sizeof(sh2e_insn_t);
+    return cpu->cpu_regs.pc + byte_disp + insn_disp * sizeof(sh2e_insn_t);
 }
 
 static ALWAYS_INLINE uint32_t
@@ -78,7 +83,7 @@ sh2e_insn_branch_t_eq(
         unsigned const t_expected, bool const delayed)
 {
     uint32_t const disp = sign_extend_8_32(insn.d8);
-    uint32_t const target = sh2e_addr_pc_relative_insn(cpu, 2 + disp);
+    uint32_t const target = sh2e_addr_pc_relative_insn(cpu, disp, 2 * sizeof(sh2e_insn_t));
 
     if (cpu->br_state == SH2E_BRANCH_STATE_DELAY) {
         // We need to set this value here because it will be pushed
@@ -427,7 +432,7 @@ sh2e_insn_exec_bra(sh2e_cpu_t *const restrict cpu, sh2e_insn_d12_t const insn)
     }
 
     uint32_t const disp = sign_extend_12_32(insn.d12);
-    cpu->pc_target = sh2e_addr_pc_relative_insn(cpu, 2 + disp);
+    cpu->pc_target = sh2e_addr_pc_relative_insn(cpu, disp, 2 * sizeof(sh2e_insn_t));
 
     cpu->br_state = SH2E_BRANCH_STATE_DELAY_NEXT;
     return SH2E_EXCEPTION_NONE;
@@ -445,7 +450,7 @@ sh2e_insn_exec_braf(sh2e_cpu_t *const restrict cpu, sh2e_insn_m_t const insn)
         return SH2E_EXCEPTION_ILLEGAL_SLOT_INSTRUCTION;
     }
 
-    cpu->pc_target = sh2e_addr_pc_relative_insn(cpu, 2) + cpu->cpu_regs.general[insn.rm];
+    cpu->pc_target = sh2e_addr_pc_relative_insn(cpu, 0, 2 * sizeof(sh2e_insn_t)) + cpu->cpu_regs.general[insn.rm];
     cpu->br_state = SH2E_BRANCH_STATE_DELAY_NEXT;
     return SH2E_EXCEPTION_NONE;
 }
@@ -463,8 +468,8 @@ sh2e_insn_exec_bsr(sh2e_cpu_t *const restrict cpu, sh2e_insn_d12_t const insn)
     }
 
     uint32_t const disp = sign_extend_12_32(insn.d12);
-    cpu->cpu_regs.pr = sh2e_addr_pc_relative_insn(cpu, 2);
-    cpu->pc_target = sh2e_addr_pc_relative_insn(cpu, 2 + disp);
+    cpu->cpu_regs.pr = sh2e_addr_pc_relative_insn(cpu, 0, 2 * sizeof(sh2e_insn_t));
+    cpu->pc_target = sh2e_addr_pc_relative_insn(cpu, disp, 2 * sizeof(sh2e_insn_t));
 
     cpu->br_state = SH2E_BRANCH_STATE_DELAY_NEXT;
     return SH2E_EXCEPTION_NONE;
@@ -482,8 +487,8 @@ sh2e_insn_exec_bsrf(sh2e_cpu_t *const restrict cpu, sh2e_insn_m_t const insn)
         return SH2E_EXCEPTION_ILLEGAL_SLOT_INSTRUCTION;
     }
 
-    cpu->cpu_regs.pr = sh2e_addr_pc_relative_insn(cpu, 2);
-    cpu->pc_target = sh2e_addr_pc_relative_insn(cpu, 2) + cpu->cpu_regs.general[insn.rm];
+    cpu->cpu_regs.pr = sh2e_addr_pc_relative_insn(cpu, 0, 2 * sizeof(sh2e_insn_t));
+    cpu->pc_target = sh2e_addr_pc_relative_insn(cpu, 0, 2 * sizeof(sh2e_insn_t)) + cpu->cpu_regs.general[insn.rm];
     cpu->br_state = SH2E_BRANCH_STATE_DELAY_NEXT;
     return SH2E_EXCEPTION_NONE;
 }
@@ -764,7 +769,7 @@ sh2e_insn_exec_jsr(sh2e_cpu_t *const restrict cpu, sh2e_insn_m_t const insn)
         return SH2E_EXCEPTION_ILLEGAL_SLOT_INSTRUCTION;
     }
 
-    cpu->cpu_regs.pr = sh2e_addr_pc_relative_insn(cpu, 2);
+    cpu->cpu_regs.pr = sh2e_addr_pc_relative_insn(cpu, 0, 2 * sizeof(sh2e_insn_t));
     cpu->pc_target = cpu->cpu_regs.general[insn.rm];
 
     cpu->br_state = SH2E_BRANCH_STATE_DELAY_NEXT;
@@ -1028,8 +1033,8 @@ sh2e_insn_exec_macw(sh2e_cpu_t *const restrict cpu, sh2e_insn_nm_t const insn)
         return cpu_read_ex;
     }
 
-    cpu->cpu_regs.general[insn.rn] += 2;
-    cpu->cpu_regs.general[insn.rm] += 2;
+    cpu->cpu_regs.general[insn.rn] += sizeof(sh2e_insn_t);
+    cpu->cpu_regs.general[insn.rm] += sizeof(sh2e_insn_t);
 
     int32_t const product = (int32_t) value_rn * (int32_t) value_rm;
 
@@ -1772,7 +1777,7 @@ sh2e_insn_exec_trapa(sh2e_cpu_t *const restrict cpu, sh2e_insn_i_t const insn)
         return cpu_rdwr_ex;
     }
 
-    uint32_t const stack_pc = sh2e_addr_pc_relative_insn(cpu, 1);
+    uint32_t const stack_pc = sh2e_addr_pc_relative_insn(cpu, 0, sizeof(sh2e_insn_t));
     uint32_t const stack_pc_addr = stack_sr_addr - sizeof(uint32_t);
     cpu_rdwr_ex = sh2e_cpu_write_long(cpu, stack_pc_addr, stack_pc);
     if (cpu_rdwr_ex != SH2E_EXCEPTION_NONE) {

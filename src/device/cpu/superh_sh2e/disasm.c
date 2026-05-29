@@ -343,7 +343,7 @@ void sh2e_insn_desc_dump_d_format_mova(
             } else {
                 pc_addr = cpu->pc_target + sizeof(sh2e_insn_t);
             }
-            uint32_t const target_addr = ALIGN_DOWN((pc_addr + sizeof(sh2e_insn_t)), scale) + (disp * scale);
+            uint32_t const target_addr = ALIGN_DOWN(pc_addr, scale) + (disp * scale);
             string_printf(mnemonics, "%#010" PRIx32, target_addr);
             format += strlen(disp_pc_arg);
         } else {
@@ -444,7 +444,7 @@ sh2e_insn_desc_dump_nd8_format(
             } else {
                 pc_addr = cpu->pc_target + sizeof(sh2e_insn_t);
             }
-            uint32_t const target_addr = ALIGN_DOWN((pc_addr + sizeof(sh2e_insn_t)), scale) + (disp * scale);
+            uint32_t const target_addr = ALIGN_DOWN(pc_addr, scale) + (disp * scale);
             string_printf(mnemonics, "%#010" PRIx32, target_addr);
             format += strlen(disp_pc_arg);
         } else if (strstr(format, rn_arg) == format) {

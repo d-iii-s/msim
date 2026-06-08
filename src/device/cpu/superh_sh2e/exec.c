@@ -87,9 +87,6 @@ sh2e_insn_branch_t_eq(
     uint32_t const target = sh2e_addr_pc_relative_insn(cpu, 2, disp);
 
     if (cpu->br_state == SH2E_BRANCH_STATE_DELAY) {
-        // We need to set this value here because it will be pushed
-        // to the stack when the exception processing starts
-        cpu->pc_target = cpu->cpu_regs.pc;
         return SH2E_EXCEPTION_ILLEGAL_SLOT_INSTRUCTION;
     }
 
@@ -426,9 +423,6 @@ sh2e_exception_t
 sh2e_insn_exec_bra(sh2e_cpu_t *const restrict cpu, sh2e_insn_d12_t const insn)
 {
     if (cpu->br_state == SH2E_BRANCH_STATE_DELAY) {
-        // We need to set this value here because it will be pushed
-        // to the stack when the exception processing starts
-        cpu->pc_target = cpu->cpu_regs.pc;
         return SH2E_EXCEPTION_ILLEGAL_SLOT_INSTRUCTION;
     }
 
@@ -445,9 +439,6 @@ sh2e_exception_t
 sh2e_insn_exec_braf(sh2e_cpu_t *const restrict cpu, sh2e_insn_m_t const insn)
 {
     if (cpu->br_state == SH2E_BRANCH_STATE_DELAY) {
-        // We need to set this value here because it will be pushed
-        // to the stack when the exception processing starts
-        cpu->pc_target = cpu->cpu_regs.pc;
         return SH2E_EXCEPTION_ILLEGAL_SLOT_INSTRUCTION;
     }
 
@@ -462,9 +453,6 @@ sh2e_exception_t
 sh2e_insn_exec_bsr(sh2e_cpu_t *const restrict cpu, sh2e_insn_d12_t const insn)
 {
     if (cpu->br_state == SH2E_BRANCH_STATE_DELAY) {
-        // We need to set this value here because it will be pushed
-        // to the stack when the exception processing starts
-        cpu->pc_target = cpu->cpu_regs.pc;
         return SH2E_EXCEPTION_ILLEGAL_SLOT_INSTRUCTION;
     }
 
@@ -482,9 +470,6 @@ sh2e_exception_t
 sh2e_insn_exec_bsrf(sh2e_cpu_t *const restrict cpu, sh2e_insn_m_t const insn)
 {
     if (cpu->br_state == SH2E_BRANCH_STATE_DELAY) {
-        // We need to set this value here because it will be pushed
-        // to the stack when the exception processing starts
-        cpu->pc_target = cpu->cpu_regs.pc;
         return SH2E_EXCEPTION_ILLEGAL_SLOT_INSTRUCTION;
     }
 
@@ -746,9 +731,6 @@ sh2e_insn_exec_jmp(sh2e_cpu_t *const restrict cpu, sh2e_insn_m_t const insn)
 {
 
     if (cpu->br_state == SH2E_BRANCH_STATE_DELAY) {
-        // We need to set this value here because it will be pushed
-        // to the stack when the exception processing starts
-        cpu->pc_target = cpu->cpu_regs.pc;
         return SH2E_EXCEPTION_ILLEGAL_SLOT_INSTRUCTION;
     }
 
@@ -764,9 +746,6 @@ sh2e_insn_exec_jsr(sh2e_cpu_t *const restrict cpu, sh2e_insn_m_t const insn)
 {
 
     if (cpu->br_state == SH2E_BRANCH_STATE_DELAY) {
-        // We need to set this value here because it will be pushed
-        // to the stack when the exception processing starts
-        cpu->pc_target = cpu->cpu_regs.pc;
         return SH2E_EXCEPTION_ILLEGAL_SLOT_INSTRUCTION;
     }
 
@@ -1429,9 +1408,6 @@ sh2e_exception_t
 sh2e_insn_exec_rte(sh2e_cpu_t *const restrict cpu, sh2e_insn_z_t const insn)
 {
     if (cpu->br_state == SH2E_BRANCH_STATE_DELAY) {
-        // We need to set this value here because it will be pushed
-        // to the stack when the exception processing starts
-        cpu->pc_target = cpu->cpu_regs.pc;
         return SH2E_EXCEPTION_ILLEGAL_SLOT_INSTRUCTION;
     }
 
@@ -1465,9 +1441,6 @@ sh2e_exception_t
 sh2e_insn_exec_rts(sh2e_cpu_t *const restrict cpu, sh2e_insn_z_t const insn)
 {
     if (cpu->br_state == SH2E_BRANCH_STATE_DELAY) {
-        // We need to set this value here because it will be pushed
-        // to the stack when the exception processing starts
-        cpu->pc_target = cpu->cpu_regs.pc;
         return SH2E_EXCEPTION_ILLEGAL_SLOT_INSTRUCTION;
     }
 

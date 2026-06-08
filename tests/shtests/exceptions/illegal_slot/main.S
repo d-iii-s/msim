@@ -18,13 +18,13 @@ _start:
     bra     label_2
     nop
 
-# Should not be taken
 label:
     mov     #1, r1
-
-label_2:
-    mov     #1, r2
     cpu_dump
     ehalt
+
+# Should not be taken
+label_2:
+    mov     #1, r2
 
     

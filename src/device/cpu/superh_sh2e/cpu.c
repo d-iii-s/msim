@@ -305,8 +305,8 @@ sh2e_cpu_handle_exception(sh2e_cpu_t *const restrict cpu, sh2e_exception_t ex, b
         break;
     }
     case SH2E_EXCEPTION_ILLEGAL_SLOT_INSTRUCTION: {
-        // The PC value saved is the jump address of the delayed branch instruction
-        // immediately before the undefined code or address of the instruction that rewrites the PC.
+        // The PC value saved is the jump address of the delayed branch instruction which is placed
+        // immediately before the undefined code or the instruction that rewrites the PC.
         stack_pc = cpu->pc_target;
         // Clear the branch state
         cpu->br_state = SH2E_BRANCH_STATE_NONE;

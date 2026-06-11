@@ -1,6 +1,7 @@
 
 #include <inttypes.h>
 
+#include "../arch/endianness.h"
 #include "../assert.h"
 #include "../fault.h"
 #include "../utils.h"
@@ -144,8 +145,6 @@ dsh2eintc_cmd_add_interrupt_source(token_t *parm, device_t *const dev)
  * @param addr Address of the read operation
  * @param val  Pointer to store the read value
  *
- * @return Read value
- *
  */
 static void dsh2eintc_read16(unsigned int procno, struct device *dev, ptr36_t addr, uint16_t *val)
 {
@@ -166,20 +165,21 @@ static void dsh2eintc_read16(unsigned int procno, struct device *dev, ptr36_t ad
     case SH2E_INTC_IPRK_REGISTER_ADDRESS_OFFSET:
     case SH2E_INTC_IPRL_REGISTER_ADDRESS_OFFSET: {
         uint8_t index = (addr - sh2e_intc->regs_addr) / sizeof(uint16_t);
-        *val = sh2e_intc_priority_register_read(sh2e_intc, index);
+        *val = htobe16(sh2e_intc_priority_register_read(sh2e_intc, index));
         break;
     }
     case SH2E_INTC_ICR_REGISTER_ADDRESS_OFFSET:
-        *val = sh2e_intc_icr_reg_read(sh2e_intc).value;
+        *val = htobe16(sh2e_intc_icr_reg_read(sh2e_intc).value);
         break;
     case SH2E_INTC_ISR_REGISTER_ADDRESS_OFFSET:
-        *val = sh2e_intc_isr_reg_read(sh2e_intc).value;
+        *val = htobe16(sh2e_intc_isr_reg_read(sh2e_intc).value);
         break;
     }
 }
 
 /** Write command implementation
  *
+ * @param procno Processor number
  * @param dev  Device pointer
  * @param addr Address of the write operation
  * @param val  Value to write
@@ -190,6 +190,8 @@ static void dsh2eintc_write16(unsigned int procno, device_t *dev, ptr36_t addr,
 {
     general_intc_t *generic_intc = (general_intc_t *) dev->data;
     sh2e_intc_t *sh2e_intc = (sh2e_intc_t *) generic_intc->data;
+
+    uint16_t be_val = be16toh(val);
 
     switch (addr - sh2e_intc->regs_addr) {
     case SH2E_INTC_IPRA_REGISTER_ADDRESS_OFFSET:
@@ -205,14 +207,14 @@ static void dsh2eintc_write16(unsigned int procno, device_t *dev, ptr36_t addr,
     case SH2E_INTC_IPRK_REGISTER_ADDRESS_OFFSET:
     case SH2E_INTC_IPRL_REGISTER_ADDRESS_OFFSET: {
         uint8_t index = (addr - sh2e_intc->regs_addr) / sizeof(uint16_t);
-        sh2e_intc_priority_register_write(sh2e_intc, index, val);
+        sh2e_intc_priority_register_write(sh2e_intc, index, be_val);
         break;
     }
     case SH2E_INTC_ICR_REGISTER_ADDRESS_OFFSET:
-        sh2e_intc_icr_reg_write(sh2e_intc, val);
+        sh2e_intc_icr_reg_write(sh2e_intc, be_val);
         break;
     case SH2E_INTC_ISR_REGISTER_ADDRESS_OFFSET:
-        sh2e_intc_isr_reg_write(sh2e_intc, val);
+        sh2e_intc_isr_reg_write(sh2e_intc, be_val);
         break;
     }
 }

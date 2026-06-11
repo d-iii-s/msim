@@ -303,27 +303,25 @@ static void dsh2ecmt_read16(unsigned int procno, device_t *dev, ptr36_t addr, ui
 
     switch (offset) {
     case SH2E_CMT_CMSTR_REGISTER_ADDRESS_OFFSET: {
-        *val = sh2e_cmt->cmt_regs.cmstr.value;
+        *val = htobe16(sh2e_cmt->cmt_regs.cmstr.value);
         break;
     }
     case SH2E_CMT_CMCSR0_REGISTER_ADDRESS_OFFSET:
     case SH2E_CMT_CMCSR1_REGISTER_ADDRESS_OFFSET: {
-        *val = sh2e_cmt->cmt_regs.channels[channel_num].cmcsr.value;
+        *val = htobe16(sh2e_cmt->cmt_regs.channels[channel_num].cmcsr.value);
         break;
     }
     case SH2E_CMT_CMCNT0_REGISTER_ADDRESS_OFFSET:
     case SH2E_CMT_CMCNT1_REGISTER_ADDRESS_OFFSET: {
-        *val = sh2e_cmt->cmt_regs.channels[channel_num].cmcnt;
+        *val = htobe16(sh2e_cmt->cmt_regs.channels[channel_num].cmcnt);
         break;
     }
     case SH2E_CMT_CMCOR0_REGISTER_ADDRESS_OFFSET:
     case SH2E_CMT_CMCOR1_REGISTER_ADDRESS_OFFSET: {
-        *val = sh2e_cmt->cmt_regs.channels[channel_num].cmcor;
+        *val = htobe16(sh2e_cmt->cmt_regs.channels[channel_num].cmcor);
         break;
     }
     }
-
-    *val = htobe16(*val);
 }
 
 /** Read longword command implementation
@@ -332,8 +330,6 @@ static void dsh2ecmt_read16(unsigned int procno, device_t *dev, ptr36_t addr, ui
  * @param dev  Device pointer
  * @param addr Address of the read operation
  * @param val  Pointer to store the read value
- *
- * @return Read value
  *
  */
 static void dsh2ecmt_read32(unsigned int procno, device_t *dev, ptr36_t addr, uint32_t *val)
@@ -346,26 +342,24 @@ static void dsh2ecmt_read32(unsigned int procno, device_t *dev, ptr36_t addr, ui
 
     switch (offset) {
     case SH2E_CMT_CMSTR_REGISTER_ADDRESS_OFFSET: {
-        *val = (uint32_t) (sh2e_cmt->cmt_regs.cmstr.value << 16) | (uint32_t) sh2e_cmt->cmt_regs.channels[0].cmcsr.value;
+        *val = htobe32((uint32_t) (sh2e_cmt->cmt_regs.cmstr.value << 16) | (uint32_t) sh2e_cmt->cmt_regs.channels[0].cmcsr.value);
         break;
     }
     case SH2E_CMT_CMCNT0_REGISTER_ADDRESS_OFFSET: {
-        *val = (uint32_t) (sh2e_cmt->cmt_regs.channels[0].cmcnt << 16) | (uint32_t) sh2e_cmt->cmt_regs.channels[0].cmcor;
+        *val = htobe32((uint32_t) (sh2e_cmt->cmt_regs.channels[0].cmcnt << 16) | (uint32_t) sh2e_cmt->cmt_regs.channels[0].cmcor);
         break;
     }
     case SH2E_CMT_CMCSR1_REGISTER_ADDRESS_OFFSET: {
-        *val = (uint32_t) (sh2e_cmt->cmt_regs.channels[1].cmcsr.value << 16) | (uint32_t) sh2e_cmt->cmt_regs.channels[1].cmcnt;
+        *val = htobe32((uint32_t) (sh2e_cmt->cmt_regs.channels[1].cmcsr.value << 16) | (uint32_t) sh2e_cmt->cmt_regs.channels[1].cmcnt);
         break;
     }
     case SH2E_CMT_CMCOR1_REGISTER_ADDRESS_OFFSET: {
         // This case is a bit special, as there is no register that would be read together with CMCOR1.
         // We will return the value of CMCOR1 in the upper half of the returned value, and 0 in the lower half.
-        *val = (sh2e_cmt->cmt_regs.channels[1].cmcor << 16);
+        *val = htobe32(sh2e_cmt->cmt_regs.channels[1].cmcor << 16);
         break;
     }
     }
-
-    *val = htobe32(*val);
 }
 
 /** Write byte command implementation
@@ -461,10 +455,8 @@ static void dsh2ecmt_write16(unsigned int procno, device_t *dev, ptr36_t addr, u
  *
  * @param procno Processor number
  * @param dev  Device pointer
- * @param addr Address of the read operation
- * @param val  Pointer to store the read value
- *
- * @return Read value
+ * @param addr Address of the write operation
+ * @param val  Value to write
  *
  */
 static void dsh2ecmt_write32(unsigned int procno, device_t *dev, ptr36_t addr, uint32_t val)

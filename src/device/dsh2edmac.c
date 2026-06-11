@@ -414,8 +414,6 @@ static void dsh2edmac_read16(unsigned int procno, device_t *dev, ptr36_t addr, u
  * @param addr Address of the read operation
  * @param val  Pointer to store the read value
  *
- * @return Read value
- *
  */
 static void dsh2edmac_read32(unsigned int procno, device_t *dev, ptr36_t addr, uint32_t *val)
 {
@@ -430,7 +428,7 @@ static void dsh2edmac_read32(unsigned int procno, device_t *dev, ptr36_t addr, u
 
     /* DMAOR */
     if (offset == SH2E_DMAC_DMAOR_ADDRESS_OFFSET) {
-        error("Reading by a longword transfer function to DMAOR register is not supported. DMAOR register must be read by word transfer function.");
+        error("Reading by a longword transfer function to DMAOR register is not supported. DMAOR register must be read by a word transfer function.");
         return;
     }
 
@@ -604,8 +602,8 @@ static void dsh2edmac_write32(unsigned int procno, device_t *dev, ptr36_t addr, 
 
 static void byte_transfer(sh2e_dmac_t *dmac, uint32_t const s_addr, uint32_t const d_addr)
 {
-    uint8_t data = physmem_read8(dmac->cpu->cpuno, s_addr, true);
-    physmem_write8(dmac->cpu->cpuno, d_addr, data, true);
+    uint8_t data = physmem_read8(-1, s_addr, true);
+    physmem_write8(-1, d_addr, data, true);
 }
 
 static void word_transfer(sh2e_dmac_t *dmac, uint32_t const s_addr, uint32_t const d_addr)
@@ -615,8 +613,8 @@ static void word_transfer(sh2e_dmac_t *dmac, uint32_t const s_addr, uint32_t con
         cpu_interrupt_up(dmac->cpu, SH2E_INTC_DMAC_VECTOR_ADDRESS_OFFSET);
         return;
     }
-    uint32_t data = physmem_read16(dmac->cpu->cpuno, s_addr, true);
-    physmem_write16(dmac->cpu->cpuno, d_addr, data, true);
+    uint32_t data = physmem_read16(-1, s_addr, true);
+    physmem_write16(-1, d_addr, data, true);
 }
 
 static void longword_transfer(sh2e_dmac_t *dmac, uint32_t const s_addr, uint32_t const d_addr)
@@ -626,8 +624,8 @@ static void longword_transfer(sh2e_dmac_t *dmac, uint32_t const s_addr, uint32_t
         cpu_interrupt_up(dmac->cpu, SH2E_INTC_DMAC_VECTOR_ADDRESS_OFFSET);
         return;
     }
-    uint32_t data = physmem_read32(dmac->cpu->cpuno, s_addr, true);
-    physmem_write32(dmac->cpu->cpuno, d_addr, data, true);
+    uint32_t data = physmem_read32(-1, s_addr, true);
+    physmem_write32(-1, d_addr, data, true);
 }
 
 static void regs_update_after_transfer(sh2e_dmac_t *dmac, unsigned int channel_num)
@@ -661,7 +659,7 @@ static void perform_transfer(sh2e_dmac_t *dmac, unsigned int c_no)
         s_addr = channel_regs->sar;
     } else {
         // Indirect address mode (only for channel 3)
-        s_addr = physmem_read32(dmac->cpu->cpuno, channel_regs->sar, true);
+        s_addr = physmem_read32(-1, channel_regs->sar, true);
     }
 
     // Perform transfers

@@ -268,7 +268,7 @@ static void dsh2ewdt_read16(unsigned int procno, device_t *dev, ptr36_t addr, ui
     ptr36_t wdt_end = wdt_start + (SH2E_WDT_REGISTERS_COUNT * sizeof(uint8_t));
 
     if (addr >= wdt_start && addr < wdt_end) {
-        error("Reading from the registers by a word transfer function if not supported. Registers must be read by byte transfer functions.");
+        error("Reading from the registers by a word transfer function if not supported. Registers must be read by a byte transfer function.");
     }
 }
 
@@ -279,8 +279,6 @@ static void dsh2ewdt_read16(unsigned int procno, device_t *dev, ptr36_t addr, ui
  * @param addr Address of the read operation
  * @param val  Pointer to store the read value
  *
- * @return Read value
- *
  */
 static void dsh2ewdt_read32(unsigned int procno, device_t *dev, ptr36_t addr, uint32_t *val)
 {
@@ -290,7 +288,7 @@ static void dsh2ewdt_read32(unsigned int procno, device_t *dev, ptr36_t addr, ui
     ptr36_t wdt_end = wdt_start + (SH2E_WDT_REGISTERS_COUNT * sizeof(uint8_t));
 
     if (addr >= wdt_start && addr < wdt_end) {
-        error("Reading from the registers by a longword transfer function if not supported. Registers must be read by byte transfer functions.");
+        error("Reading from the registers by a longword transfer function if not supported. Registers must be read by a byte transfer function.");
     }
 }
 
@@ -310,7 +308,7 @@ static void dsh2ewdt_write8(unsigned int procno, device_t *dev, ptr36_t addr, ui
     ptr36_t wdt_end = wdt_start + (SH2E_WDT_REGISTERS_COUNT * sizeof(uint8_t));
 
     if (addr >= wdt_start && addr < wdt_end) {
-        error("Writing to the registers by a byte transfer function if not supported. Registers must be written to by word transfer functions.");
+        error("Writing to the registers by a byte transfer function if not supported. Registers must be written to by a word transfer function.");
     }
 }
 
@@ -383,10 +381,8 @@ static void dsh2ewdt_write16(unsigned int procno, device_t *dev, ptr36_t addr, u
  *
  * @param procno Processor number
  * @param dev  Device pointer
- * @param addr Address of the read operation
- * @param val  Pointer to store the read value
- *
- * @return Read value
+ * @param addr Address of the write operation
+ * @param val  Value to write
  *
  */
 static void dsh2ewdt_write32(unsigned int procno, device_t *dev, ptr36_t addr, uint32_t val)
@@ -396,7 +392,7 @@ static void dsh2ewdt_write32(unsigned int procno, device_t *dev, ptr36_t addr, u
     ptr36_t wdt_end = wdt_start + (SH2E_WDT_REGISTERS_COUNT * sizeof(uint8_t));
 
     if (addr >= wdt_start && addr < wdt_end) {
-        error("Writing to the registers by a longword transfer function if not supported. Registers must be written to by word transfer functions.");
+        error("Writing to the registers by a longword transfer function if not supported. Registers must be written to by a word transfer function.");
     }
 }
 

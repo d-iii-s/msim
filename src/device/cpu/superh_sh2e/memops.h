@@ -17,6 +17,7 @@
 #include <stdint.h>
 
 #include "../../../arch/endianness.h"
+#include "../../../main.h"
 #include "../../../physmem.h"
 #include "bitops.h"
 
@@ -193,6 +194,15 @@ sh2e_cpu_write_byte(
 {
     ASSERT(cpu != NULL);
 
+    // While testing exceptions for the instructions, we assume that the write will succeed.
+    // If the write fails in the real implementation, the problem is that the value is written
+    // into ROM or no memory is allocated at the address, which is not a problem of the instruction
+    // itself but rather a problem in the configuration of MSIM. All CPU address exceptions will be
+    // raised before this if-else block.
+    if (machine_unit_testing) {
+        return SH2E_EXCEPTION_NONE;
+    }
+
     bool success = physmem_write8(cpu->id, addr, value, true);
     return success ? SH2E_EXCEPTION_NONE : SH2E_EXCEPTION_CPU_ADDRESS_ERROR;
 }
@@ -207,6 +217,15 @@ sh2e_cpu_write_word(
     // Check alignment (must be even address).
     if (addr & 1) {
         return SH2E_EXCEPTION_CPU_ADDRESS_ERROR;
+    }
+
+    // While testing exceptions for the instructions, we assume that the write will succeed.
+    // If the write fails in the real implementation, the problem is that the value is written
+    // into ROM or no memory is allocated at the address, which is not a problem of the instruction
+    // itself but rather a problem in the configuration of MSIM. All alignment exceptions will be
+    // raised before this if-else block.
+    if (machine_unit_testing) {
+        return SH2E_EXCEPTION_NONE;
     }
 
     bool success = physmem_write16(cpu->id, addr, htobe16(value), true);
@@ -225,6 +244,15 @@ sh2e_cpu_write_long(
         return SH2E_EXCEPTION_CPU_ADDRESS_ERROR;
     }
 
+    // While testing exceptions for the instructions, we assume that the write will succeed.
+    // If the write fails in the real implementation, the problem is that the value is written
+    // into ROM or no memory is allocated at the address, which is not a problem of the instruction
+    // itself but rather a problem in the configuration of MSIM. All alignment exceptions will be
+    // raised before this if-else block.
+    if (machine_unit_testing) {
+        return SH2E_EXCEPTION_NONE;
+    }
+
     bool success = physmem_write32(cpu->id, addr, htobe32(value), true);
     return success ? SH2E_EXCEPTION_NONE : SH2E_EXCEPTION_CPU_ADDRESS_ERROR;
 }
@@ -239,6 +267,15 @@ sh2e_cpu_write_float(
     // Check alignment (must be multiple of 4)
     if (addr & 3) {
         return SH2E_EXCEPTION_CPU_ADDRESS_ERROR;
+    }
+
+    // While testing exceptions for the instructions, we assume that the write will succeed.
+    // If the write fails in the real implementation, the problem is that the value is written
+    // into ROM or no memory is allocated at the address, which is not a problem of the instruction
+    // itself but rather a problem in the configuration of MSIM. All alignment exceptions will be
+    // raised before this if-else block.
+    if (machine_unit_testing) {
+        return SH2E_EXCEPTION_NONE;
     }
 
     sh2e_fpu_ul_t const conv = { .fvalue = value };

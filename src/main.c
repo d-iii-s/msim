@@ -100,6 +100,9 @@ bool machine_specific_instructions = true;
 /** Allow XINT even when terminal is not available. */
 bool machine_allow_interactive_without_tty = false;
 
+/** Unit testing mode */
+bool machine_unit_testing = false;
+
 /**
  * Number of steps to run before switching
  * to interactive mode. Zero means infinite.

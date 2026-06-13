@@ -216,7 +216,7 @@ sh2e_insn_nm_t insn_movbs0 = {
 
 sh2e_insn_nm_t insn_movws0 = {
     .ic_h = sh2e_insn_nm_ic_h_movws0,
-    .rn = R0_REG,
+    .rn = R1_REG,
     .rm = R1_REG,
     .ic_l = sh2e_insn_nm_ic_l_movws0,
 };

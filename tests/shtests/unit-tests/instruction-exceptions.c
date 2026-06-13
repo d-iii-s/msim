@@ -172,43 +172,39 @@ PCUT_TEST(movll_cpu_address_ex)
     PCUT_ASSERT_INT_EQUALS(SH2E_EXCEPTION_CPU_ADDRESS_ERROR, ex);
 }
 
-// TODO: Fix these, I need to have a memory allocated somewhere for these tests to work
+PCUT_TEST(movbs_no_ex)
+{
+    sh2e_exception_t ex = sh2e_insn_exec_movbs(&cpu1, insn_movbs);
 
-// PCUT_TEST(movbs_no_ex)
-// {
-//     sh2e_exception_t ex = sh2e_insn_exec_movbs(&cpu1, insn_movbs);
+    PCUT_ASSERT_INT_EQUALS(SH2E_EXCEPTION_NONE, ex);
+}
 
-//     PCUT_ASSERT_INT_EQUALS(SH2E_EXCEPTION_NONE, ex);
-// }
+PCUT_TEST(movws_no_ex)
+{
+    sh2e_exception_t ex = sh2e_insn_exec_movws(&cpu1, insn_movws);
 
-// PCUT_TEST(movws_no_ex)
-// {
-//     sh2e_exception_t ex = sh2e_insn_exec_movws(&cpu1, insn_movws);
-
-//     PCUT_ASSERT_INT_EQUALS(SH2E_EXCEPTION_NONE, ex);
-// }
+    PCUT_ASSERT_INT_EQUALS(SH2E_EXCEPTION_NONE, ex);
+}
 
 PCUT_TEST(movws_cpu_address_ex)
 {
-    cpu1.cpu_regs.general[insn_movws.rm] = 0x01;
+    cpu1.cpu_regs.general[insn_movws.rn] = 0x01;
 
     sh2e_exception_t ex = sh2e_insn_exec_movws(&cpu1, insn_movws);
 
     PCUT_ASSERT_INT_EQUALS(SH2E_EXCEPTION_CPU_ADDRESS_ERROR, ex);
 }
 
-// TODO: also here
+PCUT_TEST(movls_no_ex)
+{
+    sh2e_exception_t ex = sh2e_insn_exec_movls(&cpu1, insn_movls);
 
-// PCUT_TEST(movls_no_ex)
-// {
-//     sh2e_exception_t ex = sh2e_insn_exec_movls(&cpu1, insn_movls);
-
-//     PCUT_ASSERT_INT_EQUALS(SH2E_EXCEPTION_NONE, ex);
-// }
+    PCUT_ASSERT_INT_EQUALS(SH2E_EXCEPTION_NONE, ex);
+}
 
 PCUT_TEST(movls_cpu_address_ex)
 {
-    cpu1.cpu_regs.general[insn_movls.rm] = 0x01;
+    cpu1.cpu_regs.general[insn_movls.rn] = 0x01;
 
     sh2e_exception_t ex = sh2e_insn_exec_movls(&cpu1, insn_movls);
 
@@ -254,25 +250,23 @@ PCUT_TEST(movlp_cpu_address_ex)
     PCUT_ASSERT_INT_EQUALS(SH2E_EXCEPTION_CPU_ADDRESS_ERROR, ex);
 }
 
-// TODO: here as well
+PCUT_TEST(movbm_no_ex)
+{
+    cpu1.cpu_regs.general[insn_movbm.rn] = 0x01;
 
-// PCUT_TEST(movbm_no_ex)
-// {
-//     cpu1.cpu_regs.general[insn_movbm.rn] = 0x01;
+    sh2e_exception_t ex = sh2e_insn_exec_movbm(&cpu1, insn_movbm);
 
-//     sh2e_exception_t ex = sh2e_insn_exec_movbm(&cpu1, insn_movbm);
+    PCUT_ASSERT_INT_EQUALS(SH2E_EXCEPTION_NONE, ex);
+}
 
-//     PCUT_ASSERT_INT_EQUALS(SH2E_EXCEPTION_NONE, ex);
-// }
+PCUT_TEST(movwm_no_ex)
+{
+    cpu1.cpu_regs.general[insn_movwm.rn] = 0x02;
 
-// PCUT_TEST(movwm_no_ex)
-// {
-//     cpu1.cpu_regs.general[insn_movwm.rn] = 0x02;
+    sh2e_exception_t ex = sh2e_insn_exec_movwm(&cpu1, insn_movwm);
 
-//     sh2e_exception_t ex = sh2e_insn_exec_movwm(&cpu1, insn_movwm);
-
-//     PCUT_ASSERT_INT_EQUALS(SH2E_EXCEPTION_NONE, ex);
-// }
+    PCUT_ASSERT_INT_EQUALS(SH2E_EXCEPTION_NONE, ex);
+}
 
 PCUT_TEST(movwm_cpu_address_ex)
 {
@@ -283,16 +277,14 @@ PCUT_TEST(movwm_cpu_address_ex)
     PCUT_ASSERT_INT_EQUALS(SH2E_EXCEPTION_CPU_ADDRESS_ERROR, ex);
 }
 
-// TODO: and here
+PCUT_TEST(movlm_no_ex)
+{
+    cpu1.cpu_regs.general[insn_movlm.rn] = 0x04;
 
-// PCUT_TEST(movlm_no_ex)
-// {
-//     cpu1.cpu_regs.general[insn_movlm.rn] = 0x04;
+    sh2e_exception_t ex = sh2e_insn_exec_movlm(&cpu1, insn_movlm);
 
-//     sh2e_exception_t ex = sh2e_insn_exec_movlm(&cpu1, insn_movlm);
-
-//     PCUT_ASSERT_INT_EQUALS(SH2E_EXCEPTION_NONE, ex);
-// }
+    PCUT_ASSERT_INT_EQUALS(SH2E_EXCEPTION_NONE, ex);
+}
 
 PCUT_TEST(movlm_cpu_address_ex)
 {
@@ -303,19 +295,19 @@ PCUT_TEST(movlm_cpu_address_ex)
     PCUT_ASSERT_INT_EQUALS(SH2E_EXCEPTION_CPU_ADDRESS_ERROR, ex);
 }
 
-// PCUT_TEST(movbl0_no_ex)
-// {
-//     sh2e_exception_t ex = sh2e_insn_exec_movbl0(&cpu1, insn_movbl0);
+PCUT_TEST(movbl0_no_ex)
+{
+    sh2e_exception_t ex = sh2e_insn_exec_movbl0(&cpu1, insn_movbl0);
 
-//     PCUT_ASSERT_INT_EQUALS(SH2E_EXCEPTION_NONE, ex);
-// }
+    PCUT_ASSERT_INT_EQUALS(SH2E_EXCEPTION_NONE, ex);
+}
 
-// PCUT_TEST(movwl0_no_ex)
-// {
-//     sh2e_exception_t ex = sh2e_insn_exec_movwl0(&cpu1, insn_movwl0);
+PCUT_TEST(movwl0_no_ex)
+{
+    sh2e_exception_t ex = sh2e_insn_exec_movwl0(&cpu1, insn_movwl0);
 
-//     PCUT_ASSERT_INT_EQUALS(SH2E_EXCEPTION_NONE, ex);
-// }
+    PCUT_ASSERT_INT_EQUALS(SH2E_EXCEPTION_NONE, ex);
+}
 
 PCUT_TEST(movwl0_cpu_address_ex)
 {
@@ -326,12 +318,12 @@ PCUT_TEST(movwl0_cpu_address_ex)
     PCUT_ASSERT_INT_EQUALS(SH2E_EXCEPTION_CPU_ADDRESS_ERROR, ex);
 }
 
-// PCUT_TEST(movll0_no_ex)
-// {
-//     sh2e_exception_t ex = sh2e_insn_exec_movll0(&cpu1, insn_movll0);
+PCUT_TEST(movll0_no_ex)
+{
+    sh2e_exception_t ex = sh2e_insn_exec_movll0(&cpu1, insn_movll0);
 
-//     PCUT_ASSERT_INT_EQUALS(SH2E_EXCEPTION_NONE, ex);
-// }
+    PCUT_ASSERT_INT_EQUALS(SH2E_EXCEPTION_NONE, ex);
+}
 
 PCUT_TEST(movll0_cpu_address_ex)
 {
@@ -342,19 +334,19 @@ PCUT_TEST(movll0_cpu_address_ex)
     PCUT_ASSERT_INT_EQUALS(SH2E_EXCEPTION_CPU_ADDRESS_ERROR, ex);
 }
 
-// PCUT_TEST(movbs0_no_ex)
-// {
-//     sh2e_exception_t ex = sh2e_insn_exec_movbs0(&cpu1, insn_movbs0);
+PCUT_TEST(movbs0_no_ex)
+{
+    sh2e_exception_t ex = sh2e_insn_exec_movbs0(&cpu1, insn_movbs0);
 
-//     PCUT_ASSERT_INT_EQUALS(SH2E_EXCEPTION_NONE, ex);
-// }
+    PCUT_ASSERT_INT_EQUALS(SH2E_EXCEPTION_NONE, ex);
+}
 
-// PCUT_TEST(movws0_no_ex)
-// {
-//     sh2e_exception_t ex = sh2e_insn_exec_movws0(&cpu1, insn_movws0);
+PCUT_TEST(movws0_no_ex)
+{
+    sh2e_exception_t ex = sh2e_insn_exec_movws0(&cpu1, insn_movws0);
 
-//     PCUT_ASSERT_INT_EQUALS(SH2E_EXCEPTION_NONE, ex);
-// }
+    PCUT_ASSERT_INT_EQUALS(SH2E_EXCEPTION_NONE, ex);
+}
 
 PCUT_TEST(movws0_cpu_address_ex)
 {
@@ -365,12 +357,12 @@ PCUT_TEST(movws0_cpu_address_ex)
     PCUT_ASSERT_INT_EQUALS(SH2E_EXCEPTION_CPU_ADDRESS_ERROR, ex);
 }
 
-// PCUT_TEST(movls0_no_ex)
-// {
-//     sh2e_exception_t ex = sh2e_insn_exec_movls0(&cpu1, insn_movls0);
+PCUT_TEST(movls0_no_ex)
+{
+    sh2e_exception_t ex = sh2e_insn_exec_movls0(&cpu1, insn_movls0);
 
-//     PCUT_ASSERT_INT_EQUALS(SH2E_EXCEPTION_NONE, ex);
-// }
+    PCUT_ASSERT_INT_EQUALS(SH2E_EXCEPTION_NONE, ex);
+}
 
 PCUT_TEST(movls0_cpu_address_ex)
 {
@@ -420,23 +412,19 @@ PCUT_TEST(movll4_cpu_address_ex)
     PCUT_ASSERT_INT_EQUALS(SH2E_EXCEPTION_CPU_ADDRESS_ERROR, ex);
 }
 
-// TODO: also here
+PCUT_TEST(movbs4_no_ex)
+{
+    sh2e_exception_t ex = sh2e_insn_exec_movbs4(&cpu1, insn_movbs4);
 
-// PCUT_TEST(movbs4_no_ex)
-// {
-//     sh2e_exception_t ex = sh2e_insn_exec_movbs4(&cpu1, insn_movbs4);
+    PCUT_ASSERT_INT_EQUALS(SH2E_EXCEPTION_NONE, ex);
+}
 
-//     PCUT_ASSERT_INT_EQUALS(SH2E_EXCEPTION_NONE, ex);
-// }
+PCUT_TEST(movws4_no_ex)
+{
+    sh2e_exception_t ex = sh2e_insn_exec_movws4(&cpu1, insn_movws4);
 
-// TODO: also here
-
-// PCUT_TEST(movws4_no_ex)
-// {
-//     sh2e_exception_t ex = sh2e_insn_exec_movws4(&cpu1, insn_movws4);
-
-//     PCUT_ASSERT_INT_EQUALS(SH2E_EXCEPTION_NONE, ex);
-// }
+    PCUT_ASSERT_INT_EQUALS(SH2E_EXCEPTION_NONE, ex);
+}
 
 PCUT_TEST(movws4_cpu_address_ex)
 {
@@ -447,18 +435,16 @@ PCUT_TEST(movws4_cpu_address_ex)
     PCUT_ASSERT_INT_EQUALS(SH2E_EXCEPTION_CPU_ADDRESS_ERROR, ex);
 }
 
-// TODO: also here
+PCUT_TEST(movls4_no_ex)
+{
+    sh2e_exception_t ex = sh2e_insn_exec_movls4(&cpu1, insn_movls4);
 
-// PCUT_TEST(movls4_no_ex)
-// {
-//     sh2e_exception_t ex = sh2e_insn_exec_movls4(&cpu1, insn_movls4);
-
-//     PCUT_ASSERT_INT_EQUALS(SH2E_EXCEPTION_NONE, ex);
-// }
+    PCUT_ASSERT_INT_EQUALS(SH2E_EXCEPTION_NONE, ex);
+}
 
 PCUT_TEST(movls4_cpu_address_ex)
 {
-    cpu1.cpu_regs.general[insn_movls4.rm] = 0x01;
+    cpu1.cpu_regs.general[insn_movls4.rn] = 0x01;
 
     sh2e_exception_t ex = sh2e_insn_exec_movls4(&cpu1, insn_movls4);
 
@@ -504,21 +490,19 @@ PCUT_TEST(movllg_cpu_address_ex)
     PCUT_ASSERT_INT_EQUALS(SH2E_EXCEPTION_CPU_ADDRESS_ERROR, ex);
 }
 
-// TODO: also here
+PCUT_TEST(movbsg_no_ex)
+{
+    sh2e_exception_t ex = sh2e_insn_exec_movbsg(&cpu1, insn_movbsg);
 
-// PCUT_TEST(movbsg_no_ex)
-// {
-//     sh2e_exception_t ex = sh2e_insn_exec_movbsg(&cpu1, insn_movbsg);
+    PCUT_ASSERT_INT_EQUALS(SH2E_EXCEPTION_NONE, ex);
+}
 
-//     PCUT_ASSERT_INT_EQUALS(SH2E_EXCEPTION_NONE, ex);
-// }
+PCUT_TEST(movwsg_no_ex)
+{
+    sh2e_exception_t ex = sh2e_insn_exec_movwsg(&cpu1, insn_movwsg);
 
-// PCUT_TEST(movwsg_no_ex)
-// {
-//     sh2e_exception_t ex = sh2e_insn_exec_movwsg(&cpu1, insn_movwsg);
-
-//     PCUT_ASSERT_INT_EQUALS(SH2E_EXCEPTION_NONE, ex);
-// }
+    PCUT_ASSERT_INT_EQUALS(SH2E_EXCEPTION_NONE, ex);
+}
 
 PCUT_TEST(movwsg_cpu_address_ex)
 {
@@ -529,14 +513,12 @@ PCUT_TEST(movwsg_cpu_address_ex)
     PCUT_ASSERT_INT_EQUALS(SH2E_EXCEPTION_CPU_ADDRESS_ERROR, ex);
 }
 
-// TODO: also here
+PCUT_TEST(movlsg_no_ex)
+{
+    sh2e_exception_t ex = sh2e_insn_exec_movlsg(&cpu1, insn_movlsg);
 
-// PCUT_TEST(movlsg_no_ex)
-// {
-//     sh2e_exception_t ex = sh2e_insn_exec_movlsg(&cpu1, insn_movlsg);
-
-//     PCUT_ASSERT_INT_EQUALS(SH2E_EXCEPTION_NONE, ex);
-// }
+    PCUT_ASSERT_INT_EQUALS(SH2E_EXCEPTION_NONE, ex);
+}
 
 PCUT_TEST(movlsg_cpu_address_ex)
 {
@@ -589,14 +571,12 @@ PCUT_TEST(andi_no_ex)
     PCUT_ASSERT_INT_EQUALS(SH2E_EXCEPTION_NONE, ex);
 }
 
-// TODO: also here
+PCUT_TEST(andm_no_ex)
+{
+    sh2e_exception_t ex = sh2e_insn_exec_andm(&cpu1, insn_andm);
 
-// PCUT_TEST(andm_no_ex)
-// {
-//     sh2e_exception_t ex = sh2e_insn_exec_andm(&cpu1, insn_andm);
-
-//     PCUT_ASSERT_INT_EQUALS(SH2E_EXCEPTION_NONE, ex);
-// }
+    PCUT_ASSERT_INT_EQUALS(SH2E_EXCEPTION_NONE, ex);
+}
 
 PCUT_TEST(bra_no_ex)
 {
@@ -1120,14 +1100,12 @@ PCUT_TEST(ori_no_ex)
     PCUT_ASSERT_INT_EQUALS(SH2E_EXCEPTION_NONE, ex);
 }
 
-// TODO: here again
+PCUT_TEST(orm_no_ex)
+{
+    sh2e_exception_t ex = sh2e_insn_exec_orm(&cpu1, insn_orm);
 
-// PCUT_TEST(orm_no_ex)
-// {
-//     sh2e_exception_t ex = sh2e_insn_exec_orm(&cpu1, insn_orm);
-
-//     PCUT_ASSERT_INT_EQUALS(SH2E_EXCEPTION_NONE, ex);
-// }
+    PCUT_ASSERT_INT_EQUALS(SH2E_EXCEPTION_NONE, ex);
+}
 
 PCUT_TEST(rte_no_ex)
 {
@@ -1501,30 +1479,19 @@ PCUT_TEST(swapw_no_ex)
     PCUT_ASSERT_INT_EQUALS(SH2E_EXCEPTION_NONE, ex);
 }
 
-// TODO: here again
-
-// PCUT_TEST(tas_no_ex)
-// {
-//     sh2e_exception_t ex = sh2e_insn_exec_tas(&cpu1, insn_tas);
-
-//     PCUT_ASSERT_INT_EQUALS(SH2E_EXCEPTION_NONE, ex);
-// }
-
-PCUT_TEST(tas_cpu_address_ex)
+PCUT_TEST(tas_no_ex)
 {
-    cpu1.cpu_regs.general[insn_tas.rn] = 0x01;
-
     sh2e_exception_t ex = sh2e_insn_exec_tas(&cpu1, insn_tas);
 
-    PCUT_ASSERT_INT_EQUALS(SH2E_EXCEPTION_CPU_ADDRESS_ERROR, ex);
+    PCUT_ASSERT_INT_EQUALS(SH2E_EXCEPTION_NONE, ex);
 }
 
-// PCUT_TEST(trapa_no_ex)
-// {
-//     sh2e_exception_t ex = sh2e_insn_exec_trapa(&cpu1, insn_trapa);
+PCUT_TEST(trapa_no_ex)
+{
+    sh2e_exception_t ex = sh2e_insn_exec_trapa(&cpu1, insn_trapa);
 
-//     PCUT_ASSERT_INT_EQUALS(SH2E_EXCEPTION_NONE, ex);
-// }
+    PCUT_ASSERT_INT_EQUALS(SH2E_EXCEPTION_NONE, ex);
+}
 
 PCUT_TEST(trapa_cpu_address_ex)
 {
@@ -1570,14 +1537,12 @@ PCUT_TEST(xori_no_ex)
     PCUT_ASSERT_INT_EQUALS(SH2E_EXCEPTION_NONE, ex);
 }
 
-// TODO: also here
+PCUT_TEST(xorm_no_ex)
+{
+    sh2e_exception_t ex = sh2e_insn_exec_xorm(&cpu1, insn_xorm);
 
-// PCUT_TEST(xorm_no_ex)
-// {
-//     sh2e_exception_t ex = sh2e_insn_exec_xorm(&cpu1, insn_xorm);
-
-//     PCUT_ASSERT_INT_EQUALS(SH2E_EXCEPTION_NONE, ex);
-// }
+    PCUT_ASSERT_INT_EQUALS(SH2E_EXCEPTION_NONE, ex);
+}
 
 PCUT_TEST(xtrct_no_ex)
 {
@@ -1984,14 +1949,12 @@ PCUT_TEST(fmovlr_cpu_address_ex)
     PCUT_ASSERT_INT_EQUALS(SH2E_EXCEPTION_CPU_ADDRESS_ERROR, ex);
 }
 
-// TODO: also here
+PCUT_TEST(fmovs_no_ex)
+{
+    sh2e_exception_t ex = sh2e_insn_exec_fmovs(&cpu1, insn_fmovs);
 
-// PCUT_TEST(fmovs_no_ex)
-// {
-//     sh2e_exception_t ex = sh2e_insn_exec_fmovs(&cpu1, insn_fmovs);
-
-//     PCUT_ASSERT_INT_EQUALS(SH2E_EXCEPTION_NONE, ex);
-// }
+    PCUT_ASSERT_INT_EQUALS(SH2E_EXCEPTION_NONE, ex);
+}
 
 PCUT_TEST(fmovs_cpu_address_ex)
 {
@@ -2002,14 +1965,12 @@ PCUT_TEST(fmovs_cpu_address_ex)
     PCUT_ASSERT_INT_EQUALS(SH2E_EXCEPTION_CPU_ADDRESS_ERROR, ex);
 }
 
-// TODO: here
+PCUT_TEST(fmovsi_no_ex)
+{
+    sh2e_exception_t ex = sh2e_insn_exec_fmovsi(&cpu1, insn_fmovsi);
 
-// PCUT_TEST(fmovsi_no_ex)
-// {
-//     sh2e_exception_t ex = sh2e_insn_exec_fmovsi(&cpu1, insn_fmovsi);
-
-//     PCUT_ASSERT_INT_EQUALS(SH2E_EXCEPTION_NONE, ex);
-// }
+    PCUT_ASSERT_INT_EQUALS(SH2E_EXCEPTION_NONE, ex);
+}
 
 PCUT_TEST(fmovsi_cpu_address_ex)
 {
@@ -2020,14 +1981,14 @@ PCUT_TEST(fmovsi_cpu_address_ex)
     PCUT_ASSERT_INT_EQUALS(SH2E_EXCEPTION_CPU_ADDRESS_ERROR, ex);
 }
 
-// PCUT_TEST(fmovss_no_ex)
-// {
-//     cpu1.cpu_regs.general[insn_fmovss.rn] = 0x4;
+PCUT_TEST(fmovss_no_ex)
+{
+    cpu1.cpu_regs.general[insn_fmovss.rn] = 0x4;
 
-//     sh2e_exception_t ex = sh2e_insn_exec_fmovss(&cpu1, insn_fmovss);
+    sh2e_exception_t ex = sh2e_insn_exec_fmovss(&cpu1, insn_fmovss);
 
-//     PCUT_ASSERT_INT_EQUALS(SH2E_EXCEPTION_NONE, ex);
-// }
+    PCUT_ASSERT_INT_EQUALS(SH2E_EXCEPTION_NONE, ex);
+}
 
 PCUT_TEST(fmovss_cpu_address_ex)
 {

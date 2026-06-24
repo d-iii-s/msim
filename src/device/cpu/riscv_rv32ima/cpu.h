@@ -60,6 +60,9 @@ typedef struct rv32_cpu {
     /** breakpoints **/
     list_t bps;
 
+    bool pending_fetch_fault;
+    uint32_t pending_fetch_fault_pc;
+
 } rv32_cpu_t;
 
 /** Basic CPU routines */

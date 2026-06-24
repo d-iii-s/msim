@@ -28,12 +28,14 @@ typedef uint64_t virt_t;
 typedef int64_t xlen_t;
 typedef __int128 bigxlen_t;
 typedef unsigned __int128 ubigxlen_t;
+#define RV_PRIXLEN "016lx"
 #elif XLEN == 32
 typedef uint32_t uxlen_t;
 typedef uint32_t virt_t;
 typedef int32_t xlen_t;
 typedef int64_t bigxlen_t;
 typedef uint64_t ubigxlen_t;
+#define RV_PRIXLEN "08x"
 #else
 #error "XLEN is not set to 32 or 64 bits"
 #endif

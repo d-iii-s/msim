@@ -129,6 +129,21 @@ static rv_exc_t rv_sret_instr(rv_cpu_t *cpu, rv_instr_t instr)
     }
 
     cpu->pc_next = cpu->csr.sepc;
+
+    if (cpu->pending_fetch_fault) {
+        if (cpu->csr.sepc == cpu->pending_fetch_fault_pc) {
+            ptr36_t phys;
+            if (rv_convert_addr(cpu, cpu->csr.sepc, &phys, false, true, false) != rv_exc_none) {
+                alert("Exception handler returned to 0x%" RV_PRIXLEN ", but code at that address is not mapped!", (uxlen_t) cpu->pending_fetch_fault_pc);
+
+                /* if (machine_trace) {
+                    rv_idump(cpu, cpu->csr.sepc, (rv_instr_t) 0U);
+                } */
+            }
+        }
+        cpu->pending_fetch_fault = false;
+    }
+
     return rv_exc_none;
 }
 
@@ -169,6 +184,21 @@ static rv_exc_t rv_mret_instr(rv_cpu_t *cpu, rv_instr_t instr)
     }
 
     cpu->pc_next = cpu->csr.mepc;
+
+    if (cpu->pending_fetch_fault) {
+        if (cpu->csr.mepc == cpu->pending_fetch_fault_pc) {
+            ptr36_t phys;
+            if (rv_convert_addr(cpu, cpu->csr.mepc, &phys, false, true, false) != rv_exc_none) {
+                alert("Exception handler returned to 0x%" RV_PRIXLEN ", but code at that address is not mapped!", (uxlen_t) cpu->pending_fetch_fault_pc);
+
+                /* if (machine_trace) {
+                    rv_idump(cpu, cpu->csr.mepc, (rv_instr_t) 0U);
+                } */
+            }
+        }
+        cpu->pending_fetch_fault = false;
+    }
+
     return rv_exc_none;
 }
 

@@ -96,6 +96,8 @@ void rv64_cpu_init(rv64_cpu_t *cpu, unsigned int procno)
 
     rv64_tlb_init(&cpu->tlb, DEFAULT_RV64_TLB_SIZE);
 
+    cpu->pending_fetch_fault = false;
+
     cpu->priv_mode = rv_mmode;
 }
 
@@ -792,10 +794,9 @@ static rv_exc_t execute(rv64_cpu_t *cpu)
     rv_exc_t ex = rv_convert_addr(cpu, cpu->pc, &phys, false, true, true);
 
     if (ex != rv_exc_none) {
-        alert("Fetching from unconvertable address!");
-        // if (machine_trace) {
-        //     rv64_idump(cpu, cpu->pc, (rv_instr_t) 0U);
-        // }
+        cpu->pending_fetch_fault = true;
+        cpu->pending_fetch_fault_pc = cpu->pc;
+
         return ex;
     }
 

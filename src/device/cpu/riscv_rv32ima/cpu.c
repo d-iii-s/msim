@@ -98,6 +98,8 @@ void rv32_cpu_init(rv32_cpu_t *cpu, unsigned int procno)
 
     cpu->priv_mode = rv_mmode;
 
+    cpu->pending_fetch_fault = false;
+
     /* Breakpoints */
     list_init(&cpu->bps);
 }
@@ -725,10 +727,8 @@ static rv_exc_t execute(rv32_cpu_t *cpu)
     rv_exc_t ex = rv_convert_addr(cpu, cpu->pc, &phys, false, true, true);
 
     if (ex != rv_exc_none) {
-        alert("Fetching from unconvertable address!");
-        if (machine_trace) {
-            // rv32_idump(cpu, cpu->pc, (rv_instr_t) 0U);
-        }
+        cpu->pending_fetch_fault = true;
+        cpu->pending_fetch_fault_pc = cpu->pc;
         return ex;
     }
 

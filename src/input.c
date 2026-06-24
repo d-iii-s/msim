@@ -94,6 +94,7 @@ static char **msim_completion(const char *text, int start, int end)
  */
 void input_init(void)
 {
+    using_history();
     input_term = !!isatty(0);
 
     if (!input_term) {
@@ -118,7 +119,6 @@ void input_init(void)
     tio_inter.c_cc[VMIN] = 1;
     tio_inter.c_cc[VTIME] = 0;
 
-    using_history();
     rl_readline_name = "msim";
     rl_attempted_completion_function = msim_completion;
 }
@@ -153,7 +153,14 @@ void interactive_control(void)
 
     while (machine_interactive) {
         input_back();
-        char *cmdline = readline(PROMPT);
+
+        // Print the prompt via printf call because of the BSD's editline and GNU's readline library differences.
+        // When the GNU readline sees EOF on the input it still prints the prompt, but the BSD editline doesn't.
+        // To ensure the prompt is printed in both cases, we print it here and flush the output.
+        printf("%s", PROMPT);
+        fflush(stdout);
+
+        char *cmdline = readline(NULL);
         input_shadow();
 
         if (!cmdline) {

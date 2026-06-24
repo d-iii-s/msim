@@ -18,6 +18,11 @@ jobs:
         curl -L -o libpcut.deb https://github.com/vhotspur/pcut/releases/download/v0.0.1/libpcut_0.0.1_amd64.deb
         sudo apt-get install ./libpcut.deb
 
+        sudo wget "https://d3s.mff.cuni.cz/f/teaching/nswi200/202526/pkg/ubuntu-24.04/mffd3s-binutils-riscv32-unknown-elf_2.45_amd64.deb"
+        sudo apt-get install ./mffd3s-binutils-riscv32-unknown-elf_2.45_amd64.deb
+        sudo wget "https://d3s.mff.cuni.cz/f/teaching/nswi200/202526/pkg/ubuntu-24.04/mffd3s-gcc-riscv32-unknown-elf_15.2.0_amd64.deb"
+        sudo apt-get install ./mffd3s-gcc-riscv32-unknown-elf_15.2.0_amd64.deb
+
     - name: configure
       run: ./configure
 

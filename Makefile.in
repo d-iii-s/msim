@@ -37,6 +37,7 @@ distclean: clean
 test:
 	make -C . rvtest
 	bats tests/system/
+	make -C tests/devices test
 
 rvtest:
 	@echo "\nUnit tests:"

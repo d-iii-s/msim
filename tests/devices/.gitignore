@@ -1,0 +1,8 @@
+target/
+config.mk
+*.bin
+*.dep
+*.disasm
+*.map
+*.o
+*.raw

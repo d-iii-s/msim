@@ -1,0 +1,17 @@
+certifi==2026.6.17
+charset-normalizer==3.4.7
+copr==2.6
+copr-cli==2.5
+filelock==3.29.4
+humanize==4.15.0
+idna==3.18
+Jinja2==3.1.6
+markdown-it-py==4.2.0
+MarkupSafe==3.0.3
+mdurl==0.1.2
+munch==4.0.0
+Pygments==2.20.0
+requests==2.34.2
+requests-toolbelt==1.0.0
+rich==15.0.0
+urllib3==2.7.0

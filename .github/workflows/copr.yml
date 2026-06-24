@@ -17,16 +17,13 @@ jobs:
     runs-on: ubuntu-latest
     steps:
 
-    - name: Setup Python dependencies
-      run: echo copr-cli >requirements.txt
-
     - uses: actions/setup-python@v6
       with:
-       python-version: '3.11'
+       python-version: '3.13'
        cache: pip
 
     - name: Install COPR CLI
-      run: pip install -r requirements.txt
+      run: pip install -r contrib/requirements-ci-copr.txt
 
     - name: Setup COPR credentials
       run: echo "${{ secrets.D3S_COPR_CONFIG }}" >copr.conf

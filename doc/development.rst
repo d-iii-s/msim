@@ -34,4 +34,6 @@ All the devices are specified in the ``device`` directory.
 The general CPU interface in located in ``device/cpu/general_cpu.h``.
 
 The CPU architectures are implemented in their own directories: inside
-``device/cpu/mips_r4000`` and ``device/cpu/riscv_rv32ima``.
+``device/cpu/mips_r4000``, ``device/cpu/riscv_rv32ima``, ``device/cpu/riscv_rv64ima`` and ``device/cpu/superh_sh2e``.
+
+The general INTC interface is located in ``device/intc/intc.h`` and the implementation of the SH-2E INTC is located in ``device/intc/sh2e_intc.c``.

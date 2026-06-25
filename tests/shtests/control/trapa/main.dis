@@ -1,0 +1,81 @@
+
+main.raw:     file format elf32-sh
+
+
+Disassembly of section .text:
+
+00000000 <start-0x400>:
+	...
+
+00000400 <start>:
+ 400:	c3 20       	trapa	#32
+ 402:	00 09       	nop	
+ 404:	c3 21       	trapa	#33
+ 406:	00 09       	nop	
+ 408:	c3 22       	trapa	#34
+ 40a:	00 09       	nop	
+ 40c:	c3 23       	trapa	#35
+ 40e:	00 09       	nop	
+ 410:	c3 24       	trapa	#36
+ 412:	00 09       	nop	
+ 414:	c3 25       	trapa	#37
+ 416:	00 09       	nop	
+ 418:	c3 26       	trapa	#38
+ 41a:	00 09       	nop	
+ 41c:	c3 27       	trapa	#39
+ 41e:	00 09       	nop	
+ 420:	c3 28       	trapa	#40
+ 422:	00 09       	nop	
+ 424:	c3 3f       	trapa	#63
+ 426:	00 09       	nop	
+ 428:	82 01       	.word 0x8201
+ 42a:	82 00       	.word 0x8200
+	...
+ 480:	e0 01       	mov	#1,r0
+ 482:	00 2b       	rte	
+ 484:	00 09       	nop	
+	...
+ 48e:	00 00       	.word 0x0000
+ 490:	e1 01       	mov	#1,r1
+ 492:	00 2b       	rte	
+ 494:	00 09       	nop	
+	...
+ 4fe:	00 00       	.word 0x0000
+ 500:	e2 01       	mov	#1,r2
+ 502:	00 2b       	rte	
+ 504:	00 09       	nop	
+	...
+ 50e:	00 00       	.word 0x0000
+ 510:	e3 01       	mov	#1,r3
+ 512:	00 2b       	rte	
+ 514:	00 09       	nop	
+	...
+ 51e:	00 00       	.word 0x0000
+ 520:	e4 01       	mov	#1,r4
+ 522:	00 2b       	rte	
+ 524:	00 09       	nop	
+	...
+ 52e:	00 00       	.word 0x0000
+ 530:	e5 01       	mov	#1,r5
+ 532:	00 2b       	rte	
+ 534:	00 09       	nop	
+	...
+ 53e:	00 00       	.word 0x0000
+ 540:	e6 01       	mov	#1,r6
+ 542:	00 2b       	rte	
+ 544:	00 09       	nop	
+	...
+ 54e:	00 00       	.word 0x0000
+ 550:	e7 01       	mov	#1,r7
+ 552:	00 2b       	rte	
+ 554:	00 09       	nop	
+	...
+ 55e:	00 00       	.word 0x0000
+ 560:	e8 01       	mov	#1,r8
+ 562:	00 2b       	rte	
+ 564:	00 09       	nop	
+	...
+ 56e:	00 00       	.word 0x0000
+ 570:	e9 01       	mov	#1,r9
+ 572:	00 2b       	rte	
+ 574:	00 09       	nop	

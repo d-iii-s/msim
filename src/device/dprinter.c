@@ -15,6 +15,7 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include "../arch/endianness.h"
 #include "../assert.h"
 #include "../fault.h"
 #include "../parser.h"
@@ -27,6 +28,9 @@
 #define REGISTER_CHAR 0 /**< Output character */
 #define REGISTER_LIMIT 4 /**< Size of the register block */
 
+const char *const big_endian_str = "big";
+const char *const little_endian_str = "little";
+
 typedef struct {
     ptr36_t addr; /**< Printer register address */
 
@@ -34,6 +38,10 @@ typedef struct {
     char *fname; /**< Output file name */
 
     uint64_t count; /**< Number of printed characters */
+
+    // true for little endian
+    // false for big endian
+    bool endianness;
 } printer_data_t;
 
 /** Init command implementation
@@ -71,6 +79,7 @@ static bool dprinter_init(token_t *parm, device_t *dev)
     data->file = stdout;
     data->fname = NULL;
     data->count = 0;
+    data->endianness = true;
 
     return true;
 }
@@ -125,8 +134,8 @@ static bool dprinter_info(token_t *parm, device_t *dev)
 {
     printer_data_t *data = (printer_data_t *) dev->data;
 
-    printf("[address ]\n");
-    printf("%#11" PRIx64 "\n", data->addr);
+    printf("[address  ] [endianness]\n");
+    printf("%#11" PRIx64 " %12s\n", data->addr, data->endianness ? little_endian_str : big_endian_str);
 
     return true;
 }
@@ -160,10 +169,27 @@ static void printer_done(device_t *dev)
     safe_free(dev->data);
 }
 
-/** Write command implementation
+/** Endian command implementation
  *
  */
-static void printer_write32(unsigned int procno, device_t *dev, ptr36_t addr, uint32_t val)
+static bool dprinter_endian(token_t *parm, device_t *dev)
+{
+    printer_data_t *data = (printer_data_t *) dev->data;
+    char *endian = parm_str(parm);
+
+    if (strcmp(endian, big_endian_str) == 0) {
+        data->endianness = false;
+    } else {
+        data->endianness = true;
+    }
+
+    return true;
+}
+
+/** Write byte command implementation
+ *
+ */
+static void printer_write8(unsigned int procno, device_t *dev, ptr36_t addr, uint8_t val)
 {
     ASSERT(dev != NULL);
 
@@ -172,6 +198,52 @@ static void printer_write32(unsigned int procno, device_t *dev, ptr36_t addr, ui
     switch (addr - data->addr) {
     case REGISTER_CHAR:
         fprintf(data->file, "%c", (char) val);
+        /* Write to console is flushed immediately */
+        /* This makes debugging somewhat easier */
+        if (data->file == stdout) {
+            fflush(data->file);
+        }
+        data->count++;
+        break;
+    }
+}
+
+/** Write 16-bit word command implementation
+ *
+ */
+static void printer_write16(unsigned int procno, device_t *dev, ptr36_t addr, uint16_t val)
+{
+    ASSERT(dev != NULL);
+
+    printer_data_t *data = (printer_data_t *) dev->data;
+    uint16_t value = data->endianness ? le16toh(val) : be16toh(val);
+
+    switch (addr - data->addr) {
+    case REGISTER_CHAR:
+        fprintf(data->file, "%c", (char) value);
+        /* Write to console is flushed immediately */
+        /* This makes debugging somewhat easier */
+        if (data->file == stdout) {
+            fflush(data->file);
+        }
+        data->count++;
+        break;
+    }
+}
+
+/** Write 32-bit word command implementation
+ *
+ */
+static void printer_write32(unsigned int procno, device_t *dev, ptr36_t addr, uint32_t val)
+{
+    ASSERT(dev != NULL);
+
+    printer_data_t *data = (printer_data_t *) dev->data;
+    uint32_t value = data->endianness ? le32toh(val) : be32toh(val);
+
+    switch (addr - data->addr) {
+    case REGISTER_CHAR:
+        fprintf(data->file, "%c", (char) value);
         /* Write to console is flushed immediately */
         /* This makes debugging somewhat easier */
         if (data->file == stdout) {
@@ -230,6 +302,13 @@ static cmd_t printer_cmds[] = {
             "Redirect output to the standard output",
             "Redirect output to the standard output",
             NOCMD },
+    { "endian",
+            (fcmd_t) dprinter_endian,
+            DEFAULT,
+            DEFAULT,
+            "Change the endianness",
+            "Change the endianness",
+            REQ STR "big/little (default little)" END },
     LAST_CMD
 };
 
@@ -246,6 +325,8 @@ device_type_t dprinter = {
 
     /* Functions */
     .done = printer_done,
+    .write8 = printer_write8,
+    .write16 = printer_write16,
     .write32 = printer_write32,
 
     /* Commands */

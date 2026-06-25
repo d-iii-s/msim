@@ -309,6 +309,7 @@ breakpoint_t *breakpoint_find_by_address(list_t breakpoints,
  */
 bool breakpoint_check_for_code_breakpoints(void)
 {
+    // TODO: add SH2E support
     bool hit = false;
     device_t *dev = NULL;
 

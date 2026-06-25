@@ -140,3 +140,40 @@ The following example shows an implementation in GCC:
 
     #define ___ehalt()      asm volatile ( ".word 0x8C000073\n");
     #define ___edump()      asm volatile ( ".word 0x8C100073\n");
+
+
+SuperH instructions
+-------------------
+
+Halt machine ``HALT``
+^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+Halt the machine as well as the simulation immediately.
+
+**Opcode**: ``0x8200``
+
+Dump general CPU registers ``CDUMP``
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+The instruction dumps the content of all the general CPU registers to the screen.
+
+**Opcode**: ``0x8201``
+
+Dump general FPU registers ``FDUMP``
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+The instruction dumps the content of all the general FPU registers to the screen.
+
+**Opcode**: ``0x8202``
+
+
+GCC macros
+^^^^^^^^^^
+
+The following example shows an implementation in GCC:
+
+.. code-block:: c
+
+    #define ___halt()      asm volatile ( ".word 0x8200\n");
+    #define ___cdump()     asm volatile ( ".word 0x8201\n");
+    #define ___fdump()     asm volatile ( ".word 0x8202\n");

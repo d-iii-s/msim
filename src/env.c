@@ -17,6 +17,7 @@
 #include "device/cpu/mips_r4000/cpu.h"
 #include "device/cpu/mips_r4000/debug.h"
 #include "device/cpu/riscv_rv32ima/debug.h"
+#include "device/cpu/superh_sh2e/debug.h"
 #include "env.h"
 #include "fault.h"
 #include "parser.h"
@@ -33,6 +34,7 @@ unsigned int r4k_ireg = 2;
 unsigned int __rv_ireg_mock = 1; // this variable is never written to,
                                  // but it has to be here, because of
                                  // the parsing algorithm
+unsigned int __sh2e_ireg_mock = 1; // same here for SuperH SH-2E
 
 /*
  * Boolean constants
@@ -198,6 +200,13 @@ const env_t global_env[] = {
             vt_uint,
             &__rv_ireg_mock, // unused
             rv32_debug_change_regnames },
+    { "sh2e_ireg",
+            "SuperH SH-2E Register name mode",
+            "Mode 0 (numerical): r0, r15, fr0, fr15, etc.\n"
+            "Mode 1 (ABI): r0, sp, fr0, fr15, etc.\n",
+            vt_uint,
+            &__sh2e_ireg_mock,
+            sh2e_debug_set_regname_style },
     { "debugging",
             "Debugging features",
             NULL,

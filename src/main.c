@@ -27,6 +27,7 @@
 #include "device/cpu/general_cpu.h"
 #include "device/cpu/mips_r4000/cpu.h"
 #include "device/cpu/mips_r4000/debug.h"
+#include "device/cpu/superh_sh2e/debug.h"
 #include "device/device.h"
 #include "device/dr4kcpu.h"
 #include "endian.h"
@@ -98,6 +99,9 @@ bool machine_specific_instructions = true;
 
 /** Allow XINT even when terminal is not available. */
 bool machine_allow_interactive_without_tty = false;
+
+/** Unit testing mode */
+bool machine_unit_testing = false;
 
 /**
  * Number of steps to run before switching
@@ -442,6 +446,7 @@ int main(int argc, char *args[])
     r4k_debug_init();
     rv32_debug_init();
     rv64_debug_init();
+    sh2e_debug_init();
 
     input_init();
     input_shadow();

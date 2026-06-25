@@ -264,6 +264,142 @@ Commands
 The command and behavior is virtually identical to ``drvcpu`` but the CPU is
 emulating a 64-bit RISC-V processor.
 
+SuperH SH-2E Processor ``dsh2ecpu``
+-----------------------------------
+
+The ``dsh2ecpu`` device encapsulates a SuperH SH-2E processor.
+The device supports a system on-chip (SoC) configuration with other SH-2E peripheral devices (``dsh2edmac``, ``dsh2ecmt`` and ``dsh2ewdt``) but it can be used without them as well.
+By adding peripheral devices to the CPU, it is possible to inform the attached devices about interrupts and resets so they can update their state accordingly.
+
+Initialization parameters: none
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+Commands
+^^^^^^^^
+
+``help [cmd]``
+   Display a help text for the specified command or a list of available commands.
+``info``
+   Display the processor configuration
+``md saddr count``
+   Dump specified physical memory block
+``id saddr count``
+   Dump instructions from physical memory location
+``rd``
+   Dump contents of CPU general registers
+``frd``
+   Dump contents of FPU registers
+``goto addr``
+   Go to address
+``assertint intno``
+   Assert an interrupt (the interrupt number needs to be configured in the configuration file)
+``setintc intc_name``
+   Assign the interrupt controller to the CPU
+``addperipheral dev_name``
+   Add a peripheral device to the CPU (currently supported only for the ``dsh2edmac``, ``dsh2ecmt`` and ``dsh2ewdt`` devices)
+
+Examples
+^^^^^^^^
+
+Example of the ``help`` command:
+
+.. code:: msim
+
+   [msim] sh2e1 help
+   [Command and arguments       ] [Description
+   help [<cmd>]                   Display this help text
+   info                           Display configuration information
+   md <saddr> <size>              Dump specified physical memory block
+   id <saddr> <cnt>               Dump instructions from physical memory location
+   rd                             Dump contents of CPU registers
+   frd                            Dump contents of FPU registers
+   goto <addr>                    Go to address
+   stat                           Display CPU statistics
+   assertint <interrupt_source>   Assert interrupt
+   setintc <intc_device_name>     Set interrupt controller
+   addperipheral <device_name>    Add a peripheral to the CPU's on-chip peripherals
+   [msim]
+
+Example of the ``info`` command:
+
+.. code:: msim
+
+   [msim] sh2e1 info
+   SH-2E
+   [msim]
+
+Example of the ``stat`` command:
+
+.. code:: msim
+
+   [msim] sh2e1 stat
+   [Total cycles            ] [Program execution cycles] [Power down cycles       ]
+                        11002                      11002                          0
+
+   [msim]
+
+Example of the ``md`` command:
+
+.. code:: msim
+
+   [msim] sh2e1 md 0x400 10
+     0x000400    d001400b 00098200 00000de4 2fe67ff0
+     0x000410    6ef361e3 71d0114e 625361e3 71d0116c
+     0x000420    61e36023 801461e3
+   [msim]
+
+Example of the ``id`` command:
+
+.. code:: text
+
+   [msim] sh2e1 id 0x400 10
+   cpu0   00000400  D001  mov.l   @(0x00000408), r0                    ; [PC + ZE(disp) × 4] → Rn
+   cpu0   00000402  400B  jsr     @r0                                  ; PC + 4 → PR, Rm → PC (delayed)
+   cpu0   00000404  0009  nop                                          ; (no operation)
+   cpu0   00000406  8200  halt                                         ; (halt machine)
+   cpu0   00000408  0000  <ILLEGAL>
+   cpu0   0000040A  0DE4  mov.b   r14, @(r0, r13)                      ; Rm{7:0} → [R0 + Rn]
+   cpu0   0000040C  2FE6  mov.l   r14, @-sp                            ; Rn - 4 → Rn, Rm → [Rn]
+   cpu0   0000040E  7FF0  add     -16, sp                              ; Rn + SE(#imm) → Rn
+   cpu0   00000410  6EF3  mov     sp, r14                              ; Rm → Rn
+   cpu0   00000412  61E3  mov     r14, r1                              ; Rm → Rn
+   [msim]
+
+Example of the ``rd`` command:
+
+.. code:: msim
+
+   [msim] sh2e1 rd
+   processor 0
+       r0:       65    r1: ffff9fc8    r2: 90000000    r3:        0
+       r4:       65    r5:        0    r6:        0    r7:        0
+       r8:        0    r9:        0   r10:        0   r11:        0
+      r12:        0   r13:        0   r14: ffff9fc8    sp: ffff9fc8
+       pc:      48e    pr:      4da  mach:        0  macl:        0
+       sr:       f0   gbr:        0   vbr:        0
+   [msim]
+
+Example of the ``frd`` command:
+
+.. code:: msim
+
+   [msim] sh2e1 frd
+   processor 0
+      fr0: +3.5           fr1: -3.5           fr2: -8.75          fr3: +0
+      fr4: +0             fr5: +0             fr6: +0             fr7: +0
+      fr8: +0             fr9: +0            fr10: +0            fr11: +0
+     fr12: +0            fr13: +0            fr14: +0            fr15: +0
+     fpul: nan           fpul: ffffffff     fpscr: 40001
+   [msim]
+
+Example of the ``addperipheral`` command:
+
+.. code:: msim
+
+   [msim] add dsh2ecpu cpu0
+   [msim] add dsh2ewdt wdt
+   [msim] cpu0 addperipheral wdt
+
 
 Read/write memory ``rwm``
 -------------------------
@@ -499,6 +635,8 @@ Commands
    Redirect the output to the file specified.
 ``stdout``
    Redirect the output to the standard output.
+``endian``
+   Change the endianness of the device.
 
 Example
 ^^^^^^^
@@ -509,7 +647,8 @@ Example of the ``info`` command:
 
    [msim] add dprinter printer 0x10000000
    [msim] printer info
-   address:0x01000000
+   [address  ] [endianness]
+    0x10000000       little
    [msim]
 
 Example of the ``stat`` command:
@@ -517,7 +656,19 @@ Example of the ``stat`` command:
 .. code:: msim
 
    [msim] printer stat
-   count:11385
+   [count             ]
+                  11385
+   [msim]
+
+Example of the ``endian`` command:
+
+.. code:: msim
+
+   [msim] add dprinter printer 0x10000000
+   [msim] printer endian big
+   [msim] printer info
+   [address  ] [endianness]
+    0x10000000          big
    [msim]
 
 Example of a simple output implementation in the MIPS code:
@@ -1019,3 +1170,665 @@ Commands
     Print a help on the command specified or a list of available commands.
 ``info``
     Print configuration information (number of columns, number of rows, assigned register address).
+
+
+SuperH SH-2E Interrupt controller ``dsh2eintc``
+------------------------------------------------
+
+The ``dsh2eintc`` device simulates an interrupt controller for the SuperH SH-2E processor based on the `SH-2E SH7055S F-ZTAT Hardware Manual <https://www.renesas.com/en/document/mah/sh-2e-sh7055s-hardware-manual?language=en>`_.
+
+
+Initialization parameters: ``address`` (optional)
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+``address``
+   Starting physical address of device registers. (default: ``0xFFFFED00``)
+
+Commands
+^^^^^^^^
+
+``help [cmd]``
+   Display a help text for the specified command or a list of available commands.
+
+``info``
+   Display the interrupt controller configuration
+
+``stat``
+   Display interrupt controller statistics.
+
+``rd``
+   Dump contents of interrupt controller registers.
+
+``addintsrc source_id priority_pool_index priority``
+   Add a new interrupt source to the controller. Required parameters are:
+
+   :source_id: interrupt source ID
+   :priority_pool_index: index of the priority pool (0-31)
+   :priority: interrupt priority (0-14)
+
+``conf``
+   Display the current interrupt source configuration.
+
+Examples
+^^^^^^^^
+
+Simple usage example with the SuperH SH-2E CPU:
+
+.. code:: msim
+
+   [msim] add dsh2ecpu cpu0
+   [msim] add dsh2eintc intc0
+   [msim] cpu0 setintc intc0
+
+Example of the ``info`` command:
+
+.. code:: msim
+
+   [msim] intc0 info
+   SH-2E INTC
+
+Example of the ``stat`` command:
+
+.. code:: msim
+
+   [msim] intc0 stat
+   [Number of accepted interrupts] [Number of accepted resets    ] [Total accepted               ]
+                                 0                               1                               1
+
+Example of the ``rd`` command:
+
+.. code:: msim
+
+   [msim] intc0 rd
+   intc 0
+     ipra: e000
+     iprb: 0000
+     iprc: 0000
+     iprd: 0000
+     ipre: 0000
+     iprf: 0000
+     iprg: 0000
+     iprh: 0000
+     ipri: 0000
+     iprj: 0000
+     iprk: 0000
+     iprl: 0000
+      icr:    0
+      isr:    0
+
+Example of the ``addintsrc`` command:
+
+.. code:: msim
+
+   [msim] intc0 addintsrc 190 0 14
+   [msim] intc0 rd
+   intc 0
+     ipra: e000
+     iprb: 0000
+     iprc: 0000
+     iprd: 0000
+     ipre: 0000
+     iprf: 0000
+     iprg: 0000
+     iprh: 0000
+     ipri: 0000
+     iprj: 0000
+     iprk: 0000
+     iprl: 0000
+      icr:    0
+      isr:    0
+
+Snippet from the `msim.conf` which configures the SH-2E INTC to mimic the SH7055 interrupt mapping:
+
+.. code:: text
+
+   add dsh2eintc intc0
+
+   # power-on reset (external)
+   intc0 addintsrc 0 0 0
+   # power-on reset (internal)
+   intc0 addintsrc 1 0 0
+   # manual reset
+   intc0 addintsrc 2 0 0
+
+   # UBC (fixed priority 15)
+   intc0 addintsrc 12 0 0
+   # H-UDI (fixed priority 15)
+   intc0 addintsrc 14 0 0
+
+   # IRQ0-IRQ7
+   intc0 addintsrc 64 0 14 # IPRA (15-12), priority 14
+   intc0 addintsrc 65 1 13 # IPRA (11-8), priority 13
+   intc0 addintsrc 66 2 12 # IPRA (7-4), priority 12
+   intc0 addintsrc 67 3 11 # IPRA (3-0), priority 11
+   intc0 addintsrc 68 4 10 # IPRB (15-12), priority 10
+   intc0 addintsrc 69 5 9 # IPRB (15-12), priority 9
+   intc0 addintsrc 70 6 8 # IPRB (15-12), priority 8
+   intc0 addintsrc 71 7 7 # IPRB (15-12), priority 7
+
+   # DMAC0-DMAC3
+   intc0 addintsrc 72 8 6 # IPRC (15-12), priority 6
+   intc0 addintsrc 74 8 6 # IPRC (15-12), priority 6
+   intc0 addintsrc 76 9 6 # IPRC (11-8), priority 6
+   intc0 addintsrc 78 9 6 # IPRC (11-8), priority 6
+
+   # ATU
+   intc0 addintsrc 80 10 5 # IPRC (7-4), priority 5
+   intc0 addintsrc 84 11 5 # IPRC (3-0), priority 5
+   intc0 addintsrc 86 11 5 # IPRC (3-0), priority 5
+   intc0 addintsrc 88 12 5 # IPRD (15-12), priority 5
+   intc0 addintsrc 90 12 5 # IPRD (15-12), priority 5
+   intc0 addintsrc 92 13 5 # IPRD (11-8), priority 5
+   intc0 addintsrc 96 14 5 # IPRD (7-4), priority 5
+   intc0 addintsrc 97 14 5 # IPRD (7-4), priority 5
+   intc0 addintsrc 98 14 5 # IPRD (7-4), priority 5
+   intc0 addintsrc 99 14 5 # IPRD (7-4), priority 5
+   intc0 addintsrc 100 15 5 # IPRD (3-0), priority 5
+   intc0 addintsrc 101 15 5 # IPRD (3-0), priority 5
+   intc0 addintsrc 102 15 5 # IPRD (3-0), priority 5
+   intc0 addintsrc 103 15 5 # IPRD (3-0), priority 5
+   intc0 addintsrc 104 16 5 # IPRE (15-12), priority 5
+   intc0 addintsrc 108 17 5 # IPRE (11-8), priority 5
+   intc0 addintsrc 109 17 5 # IPRE (11-8), priority 5
+   intc0 addintsrc 110 17 5 # IPRE (11-8), priority 5
+   intc0 addintsrc 111 17 5 # IPRE (11-8), priority 5
+   intc0 addintsrc 112 18 5 # IPRE (7-4), priority 5
+   intc0 addintsrc 113 18 5 # IPRE (7-4), priority 5
+   intc0 addintsrc 114 18 5 # IPRE (7-4), priority 5
+   intc0 addintsrc 115 18 5 # IPRE (7-4), priority 5
+   intc0 addintsrc 116 19 5 # IPRE (3-0), priority 5
+   intc0 addintsrc 120 20 5 # IPRF (15-12), priority 5
+   intc0 addintsrc 121 20 5 # IPRF (15-12), priority 5
+   intc0 addintsrc 122 20 5 # IPRF (15-12), priority 5
+   intc0 addintsrc 123 20 5 # IPRF (15-12), priority 5
+   intc0 addintsrc 124 21 5 # IPRF (11-8), priority 5
+   intc0 addintsrc 128 22 5 # IPRF (7-4), priority 5
+   intc0 addintsrc 129 22 5 # IPRF (7-4), priority 5
+   intc0 addintsrc 130 22 5 # IPRF (7-4), priority 5
+   intc0 addintsrc 131 22 5 # IPRF (7-4), priority 5
+   intc0 addintsrc 132 23 5 # IPRF (3-0), priority 5
+   intc0 addintsrc 136 24 5 # IPRG (15-12), priority 5
+   intc0 addintsrc 137 24 5 # IPRG (15-12), priority 5
+   intc0 addintsrc 138 24 5 # IPRG (15-12), priority 5
+   intc0 addintsrc 139 24 5 # IPRG (15-12), priority 5
+   intc0 addintsrc 140 25 5 # IPRG (11-8), priority 5
+   intc0 addintsrc 144 26 5 # IPRG (7-4), priority 5
+   intc0 addintsrc 145 26 5 # IPRG (7-4), priority 5
+   intc0 addintsrc 146 26 5 # IPRG (7-4), priority 5
+   intc0 addintsrc 147 26 5 # IPRG (7-4), priority 5
+   intc0 addintsrc 148 27 5 # IPRG (3-0), priority 5
+   intc0 addintsrc 149 27 5 # IPRG (3-0), priority 5
+   intc0 addintsrc 150 27 5 # IPRG (3-0), priority 5
+   intc0 addintsrc 151 27 5 # IPRG (3-0), priority 5
+   intc0 addintsrc 152 28 5 # IPRH (15-12), priority 5
+   intc0 addintsrc 153 28 5 # IPRH (15-12), priority 5
+   intc0 addintsrc 154 28 5 # IPRH (15-12), priority 5
+   intc0 addintsrc 155 28 5 # IPRH (15-12), priority 5
+   intc0 addintsrc 156 29 5 # IPRH (11-8), priority 5
+   intc0 addintsrc 157 29 5 # IPRH (11-8), priority 5
+   intc0 addintsrc 158 29 5 # IPRH (11-8), priority 5
+   intc0 addintsrc 159 29 5 # IPRH (11-8), priority 5
+   intc0 addintsrc 160 30 5 # IPRH (7-4), priority 5
+   intc0 addintsrc 161 30 5 # IPRH (7-4), priority 5
+   intc0 addintsrc 162 30 5 # IPRH (7-4), priority 5
+   intc0 addintsrc 163 30 5 # IPRH (7-4), priority 5
+   intc0 addintsrc 164 31 5 # IPRH (3-0), priority 5
+   intc0 addintsrc 165 31 5 # IPRH (3-0), priority 5
+   intc0 addintsrc 166 31 5 # IPRH (3-0), priority 5
+   intc0 addintsrc 167 31 5 # IPRH (3-0), priority 5
+   intc0 addintsrc 168 32 5 # IPRI (15-12), priority 5
+   intc0 addintsrc 169 32 5 # IPRI (15-12), priority 5
+   intc0 addintsrc 170 32 5 # IPRI (15-12), priority 5
+   intc0 addintsrc 171 32 5 # IPRI (15-12), priority 5
+   intc0 addintsrc 172 33 5 # IPRI (11-8), priority 5
+   intc0 addintsrc 174 33 5 # IPRI (11-8), priority 5
+   intc0 addintsrc 176 34 5 # IPRI (7-4), priority 5
+   intc0 addintsrc 178 34 5 # IPRI (7-4), priority 5
+   intc0 addintsrc 180 35 5 # IPRI (3-0), priority 5
+   intc0 addintsrc 184 36 5 # IPRJ (15-12), priority 5
+   intc0 addintsrc 186 36 5 # IPRJ (15-12), priority 5
+   intc0 addintsrc 187 36 5 # IPRJ (15-12), priority 5
+
+   # CMT0
+   intc0 addintsrc 188 37 4 # IPRJ (11-8), priority 4
+
+   # A/D0
+   intc0 addintsrc 190 37 4 # IPRJ (11-8), priority 4
+
+   # CMT1
+   intc0 addintsrc 192 38 4 # IPRJ (7-4), priority 4
+
+   # A/D1-A/D2
+   intc0 addintsrc 194 38 4 # IPRJ (7-4), priority 4
+   intc0 addintsrc 196 39 4 # IPRJ (3-0), priority 4
+
+   # SCI0-SCI4
+   intc0 addintsrc 200 40 3 # IPRK (15-12), priority 3
+   intc0 addintsrc 201 40 3 # IPRK (15-12), priority 3
+   intc0 addintsrc 202 40 3 # IPRK (15-12), priority 3
+   intc0 addintsrc 203 40 3 # IPRK (15-12), priority 3
+   intc0 addintsrc 204 41 3 # IPRK (11-8), priority 3
+   intc0 addintsrc 205 41 3 # IPRK (11-8), priority 3
+   intc0 addintsrc 206 41 3 # IPRK (11-8), priority 3
+   intc0 addintsrc 207 41 3 # IPRK (11-8), priority 3
+   intc0 addintsrc 208 42 3 # IPRK (7-4), priority 3
+   intc0 addintsrc 209 42 3 # IPRK (7-4), priority 3
+   intc0 addintsrc 210 42 3 # IPRK (7-4), priority 3
+   intc0 addintsrc 211 42 3 # IPRK (7-4), priority 3
+   intc0 addintsrc 212 43 3 # IPRK (3-0), priority 3
+   intc0 addintsrc 213 43 3 # IPRK (3-0), priority 3
+   intc0 addintsrc 214 43 3 # IPRK (3-0), priority 3
+   intc0 addintsrc 215 43 3 # IPRK (3-0), priority 3
+   intc0 addintsrc 216 44 3 # IPRL (15-12), priority 3
+   intc0 addintsrc 217 44 3 # IPRL (15-12), priority 3
+   intc0 addintsrc 218 44 3 # IPRL (15-12), priority 3
+   intc0 addintsrc 219 44 3 # IPRL (15-12), priority 3
+
+   # HCAN0
+   intc0 addintsrc 220 45 2 # IPRL (11-8), priority 2
+   intc0 addintsrc 221 45 2 # IPRL (11-8), priority 2
+   intc0 addintsrc 222 45 2 # IPRL (11-8), priority 2
+   intc0 addintsrc 223 45 2 # IPRL (11-8), priority 2
+
+   # WDT
+   intc0 addintsrc 224 46 2 # IPRL (7-4), priority 2
+
+   # HCAN1
+   intc0 addintsrc 228 47 1 # IPRL (3-0), priority 1
+   intc0 addintsrc 229 47 1 # IPRL (3-0), priority 1
+   intc0 addintsrc 230 47 1 # IPRL (3-0), priority 1
+   intc0 addintsrc 231 47 1 # IPRL (3-0), priority 1
+
+After this configuration, the INTC registers look like this:
+
+.. code:: msim
+
+   [msim] intc0 rd
+   intc 0
+      ipra: edcb
+      iprb: a987
+      iprc: 6655
+      iprd: 5555
+      ipre: 5555
+      iprf: 5555
+      iprg: 5555
+      iprh: 5555
+      ipri: 5555
+      iprj: 5444
+      iprk: 3333
+      iprl: 3221
+       icr:    0
+       isr:    0
+
+Example of the ``conf`` command:
+
+.. code:: msim
+
+   [msim] intc0 conf
+   intc 0
+   [Interrupt no] [Type of interrupt      ] [Pending] [Priority register] [IPR bits]
+               0   External power-on reset     false                   -          -
+               1   Internal power-on reset     false                   -          -
+               2              Manual reset     false                   -          -
+              11                       NMI     false                   -          -
+              12        Internal interrupt     false                   -          -
+              14        Internal interrupt     false                   -          -
+              64                      IRQ0     false                IPRA      15-12
+              65                      IRQ1     false                IPRA       11-8
+              66                      IRQ2     false                IPRA        7-4
+              67                      IRQ3     false                IPRA        3-0
+              68                      IRQ4     false                IPRB      15-12
+              69                      IRQ5     false                IPRB       11-8
+              70                      IRQ6     false                IPRB        7-4
+              71                      IRQ7     false                IPRB        3-0
+              72        Internal interrupt     false                IPRC      15-12
+              74        Internal interrupt     false                IPRC      15-12
+              76        Internal interrupt     false                IPRC       11-8
+              78        Internal interrupt     false                IPRC       11-8
+
+
+SuperH SH-2E Watchdog Timer ``dsh2ewdt``
+------------------------------------------------
+
+The ``dsh2ewdt`` device simulates a watchdog timer based on the `SH-2E SH7055S F-ZTAT Hardware Manual <https://www.renesas.com/en/document/mah/sh-2e-sh7055s-hardware-manual?language=en>`_ (page 431).
+
+The watchdog timer works in 2 modes:
+
+* Watchdog timer mode: the timer generates a reset when it overflows. The reset can be either a power-on reset or a manual reset, depending on the configuration.
+* Interval timer mode: the timer generates an interrupt when it overflows.
+
+The device also has 8 different counter input clocks.
+
+
+Initialization parameters: ``int_no``, ``address`` (optional)
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+``int_no``
+   Interrupt number for the watchdog timer.
+
+``address`` (optional)
+   Starting physical address of device registers. (default: ``0xFFFFEC10``)
+
+Commands
+^^^^^^^^
+
+``help [cmd]``
+   Display a help text for the specified command or a list of available commands.
+
+``info``
+   Display the watchdog timer configuration
+
+``stat``
+   Display watchdog timer statistics.
+
+``rd``
+   Dump contents of watchdog timer registers.
+
+``addcpu cpu_name``
+   Add a CPU reference to the watchdog timer. Required parameter is:
+
+   :cpu_name: name of the CPU device to which the watchdog timer will send interrupts.
+
+Examples
+^^^^^^^^
+
+Simple usage example with the SuperH SH-2E CPU:
+
+.. code:: msim
+
+   [msim] add dsh2ecpu cpu0
+   [msim] add dsh2eintc intc0
+   [msim] cpu0 setintc intc0
+   [msim] add dsh2ewdt wdt 224
+   [msim] intc0 addintsrc 224 0 10
+   [msim] cpu0 addperipheral wdt
+   [msim] wdt addcpu cpu0
+
+Example of the ``info`` command:
+
+.. code:: msim
+
+   [msim] wdt info
+   SH-2E Watchdog Timer (WDT)
+
+Example of the ``stat`` command:
+
+.. code:: msim
+
+   [msim] wdt stat
+   [WDT interrupts] [WDT power-on resets] [WDT manual resets]
+                  0                     0                   0
+
+Example of the ``rd`` command:
+
+.. code:: msim
+
+   [msim] wdt rd
+   WDT
+      tcsr: 38
+      tcnt: 02
+    rstcsr: 1f
+
+Example of the ``addcpu cpu_name`` command:
+
+.. code:: msim
+
+   [msim] add dsh2ecpu cpu0
+   [msim] cpu0 addperipheral wdt
+   [msim] wdt addcpu cpu0
+
+
+SuperH SH-2E Compare Match Timer ``dsh2ecmt``
+------------------------------------------------
+
+The ``dsh2ecmt`` device simulates a compare match timer based on the `SH-2E SH7055S F-ZTAT Hardware Manual <https://www.renesas.com/en/document/mah/sh-2e-sh7055s-hardware-manual?language=en>`_ (page 445).
+
+The CMT has following features:
+
+* 2 independent 16-bit timer channels (CMT0 and CMT1)
+* 4 different internal clocks can be selected independently for each channel
+* Each channel can generate an interrupt when the timer value matches the value in the compare register.
+
+Initialization parameters: ``int_no_0``, ``int_no_1``, ``address`` (optional)
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+``int_no_0``
+   Interrupt number for the CMT0 channel.
+
+``int_no_1``
+   Interrupt number for the CMT1 channel.
+
+``address`` (optional)
+   Starting physical address of device registers. (default: ``0xFFFFF710``)
+
+Commands
+^^^^^^^^
+
+``help [cmd]``
+   Display a help text for the specified command or a list of available commands.
+
+``info``
+   Display the compare match timer configuration
+
+``stat``
+   Display compare match timer statistics.
+
+``rd``
+   Dump contents of compare match timer registers.
+
+``addcpu cpu_name``
+   Add a CPU reference to the compare match timer. Required parameter is:
+
+   :cpu_name: name of the CPU device to which the compare match timer will send interrupts.
+
+Examples
+^^^^^^^^
+
+Simple usage example with the SuperH SH-2E CPU:
+
+.. code:: msim
+
+   [msim] add dsh2ecpu cpu0
+   [msim] add dsh2eintc intc0
+   [msim] cpu0 setintc intc0
+   [msim] add dsh2ecmt cmt 188 192
+   [msim] intc0 addintsrc 188 0 12
+   [msim] intc0 addintsrc 192 1 11
+   [msim] cpu0 addperipheral cmt
+   [msim] cmt addcpu cpu0
+
+Example of the ``info`` command:
+
+.. code:: msim
+
+   [msim] cmt info
+   SH-2E Compare Match Timer (CMT)
+
+Example of the ``stat`` command:
+
+.. code:: msim
+
+   [msim] cmt stat
+   [CMT0 interrupts] [CMT1 interrupts] [Total interrupts]
+                   0                 0                  0
+
+Example of the ``rd`` command:
+
+.. code:: msim
+
+   [msim] cmt rd
+   CMT
+     cmstr: 0003
+    cmcsr0: 0040
+    cmcnt0: 0001
+    cmcor0: ffff
+    cmcsr1: 0041
+    cmcnt1: 0000
+    cmcor1: ffff
+
+Example of the ``addcpu cpu_name`` command:
+
+.. code:: msim
+
+   [msim] add dsh2ecpu cpu0
+   [msim] cpu0 addperipheral cmt
+   [msim] cmt addcpu cpu0
+
+
+SuperH SH-2E Direct Memory Access Controller ``dsh2edmac``
+-----------------------------------------------------------
+
+The ``dsh2edmac`` device simulates a direct memory access controller based on the `SH-2E SH7055S F-ZTAT Hardware Manual <https://www.renesas.com/en/document/mah/sh-2e-sh7055s-hardware-manual?language=en>`_ (page 157).
+
+The DMAC has following features:
+
+* Four channels
+* 8-, 16-, or 32-bit selectable data transfer length
+* Address modes:
+   Both the transfer source and transfer destination are accessed by address. There are two transfer modes: direct address and indirect address.
+
+   * Direct address transfer mode: Values set in a DMAC internal register indicate the accessed address for both the transfer source and transfer destination.
+   * Indirect address transfer mode: The value stored at the location pointed to by the address set in the DMAC internal transfer source register is used as the address. Operation is otherwise the same as for direct access. This function can only be set for channel 3.
+
+* Direct address transfer mode or indirect address transfer mode can be specified for channel 3.
+* Reload function
+   * Enables automatic reloading of the value set in the first source address register every fourth DMA transfer. This function can be executed on channel 2 only.
+
+* Transfer requests
+   There are two DMAC transfer activation requests, as indicated below.
+
+   * Requests from on-chip peripheral modules: Transfer requests from on-chip modules
+   * Auto-request: The transfer request is generated automatically within the DMAC.
+
+* Transfer modes
+   As the MSIM does not simulate the bus, the DMAC transfer modes are simplified as follows:
+
+   * Cycle-steal mode: 1 transfer per 1 CPU cycle.
+   * Burst-mode: 2 transfers per 1 CPU cycle.
+
+* CPU can be interrupted when the specified number of data transfers are completed.
+* Fixed DMAC channel priority ranking is 0 > 1 > 2 > 3.
+
+Initialization parameters: ``int_no_0``, ``int_no_1``, ``int_no_2``, ``int_no_3``, ``address`` (optional)
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+``int_no_0``
+   Interrupt number for the DMAC0 channel.
+
+``int_no_1``
+   Interrupt number for the DMAC1 channel.
+
+``int_no_2``
+   Interrupt number for the DMAC2 channel.
+
+``int_no_3``
+   Interrupt number for the DMAC3 channel.
+
+``address`` (optional)
+   Starting physical address of device registers. (default: ``0xFFFFECB0``)
+
+Commands
+^^^^^^^^
+
+``help [cmd]``
+   Display a help text for the specified command or a list of available commands.
+
+``info``
+   Display the DMAC configuration
+
+``stat``
+   Display the DMAC statistics.
+
+``rd``
+   Dump contents of DMAC registers.
+
+``addcpu cpu_name``
+   Add a CPU reference to the DMAC. Required parameter is:
+
+   :cpu_name: name of the CPU device to which the compare match timer will send interrupts.
+
+``addsource request_index request_type address``
+   Add a new request source to the DMAC. Required parameters are:
+
+   :request_index: index of the request source (0-31)
+   :request_type: type of the request source (0: RECEIVE, 1: TRANSMIT, 2: DO_NOT_CARE)
+
+      * RECEIVE: the transfer is valid and will proceed only if the SAR contains the same address as the ``address`` parameter of the ``addsource`` command.
+      * TRANSMIT: the transfer is valid and will proceed only if the DAR contains the same address as the ``address`` parameter of the ``addsource`` command.
+      * DO_NOT_CARE: the transfer is valid and will proceed regardless of the SAR and DAR values.
+
+   :address: address to read from/write to for peripheral request sources (required only for RECEIVE and TRANSMIT request types)
+
+Examples
+^^^^^^^^
+
+Simple usage example with the SuperH SH-2E CPU:
+
+.. code:: msim
+
+   [msim] add dsh2ecpu cpu0
+   [msim] add dsh2eintc intc0
+   [msim] cpu0 setintc intc0
+   [msim] add dsh2edmac dmac 72 74 76 78
+   [msim] intc0 addintsrc 72 8 10
+   [msim] intc0 addintsrc 74 8 10
+   [msim] intc0 addintsrc 76 8 10
+   [msim] intc0 addintsrc 78 8 10
+   [msim] cpu0 addperipheral dmac
+   [msim] dmac addcpu cpu0
+
+Example of the ``info`` command:
+
+.. code:: msim
+
+   [msim] dmac info
+   SH-2E DMAC
+
+
+Example of the ``stat`` command:
+
+.. code:: msim
+
+   [msim] dmac stat
+   [Total transfers] [Total interrupts]
+                   0                  0
+
+Example of the ``rd`` command:
+
+.. code:: msim
+
+   [msim] dmac rd
+   DMAC
+      sar0: ffffa010
+      dar0: ffffb010
+      tcr0: 00000000
+     chcr0: 001f1127
+      sar1: 00000000
+      dar1: 00000000
+      tcr1: 00000000
+     chcr1: 00000000
+      sar2: ffffa01c
+      dar2: ffffb01c
+      tcr2: 00000001
+     chcr2: 011f1125
+      sar3: 00000000
+      dar3: 00000000
+      tcr3: 00000000
+     chcr3: 00000000
+     dmaor: 0001
+
+Example of the ``addcpu cpu_name`` command:
+
+.. code:: msim
+
+   [msim] add dsh2ecpu cpu0
+   [msim] cpu0 addperipheral dmac
+   [msim] dmac addcpu cpu0
+
+
+Example of the ``addsource`` command:
+
+.. code:: msim
+
+   [msim] dmac addsource 1 1 0xffffe000
+   [msim] dmac addsource 2 2

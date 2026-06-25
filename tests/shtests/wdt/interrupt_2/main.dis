@@ -1,0 +1,28 @@
+
+main.raw:     file format elf32-sh
+
+
+Disassembly of section .text:
+
+00000000 <start-0x400>:
+	...
+
+00000400 <start>:
+ 400:	40 0e       	ldc	r0,sr
+ 402:	d0 03       	mov.l	410 <wdt_tcsr_address>,r0	! ffffec10
+ 404:	91 06       	mov.w	414 <wdt_tcsr_value>,r1	! a538
+ 406:	20 11       	mov.w	r1,@r0
+
+00000408 <loop>:
+ 408:	49 15       	cmp/pl	r9
+ 40a:	8b fd       	bf	408 <loop>
+ 40c:	82 01       	.word 0x8201
+ 40e:	82 00       	.word 0x8200
+
+00000410 <wdt_tcsr_address>:
+ 410:	ff ff       	.word 0xffff
+ 412:	ec 10       	mov	#16,r12
+
+00000414 <wdt_tcsr_value>:
+ 414:	a5 38       	bra	e88 <wdt_tcsr_value+0xa74>
+ 416:	00 09       	nop	

@@ -83,6 +83,7 @@ extern bool machine_newline;
 extern bool machine_undefined;
 extern bool machine_specific_instructions;
 extern bool machine_allow_interactive_without_tty;
+extern bool machine_unit_testing;
 extern uint64_t stepping;
 
 #endif

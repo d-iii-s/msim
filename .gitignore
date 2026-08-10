@@ -25,3 +25,6 @@ doxygen/
 /.cproject
 /.settings
 /.pydevproject
+
+# MacOS
+.DS_Store

@@ -1,8 +1,8 @@
 Introduction
 ============
 
-MSIM is a light-weight computer simulator, supporting MIPS R4000 and
-RISC-V RV32IMA CPUs.
+MSIM is a light-weight computer simulator, supporting MIPS R4000,
+RISC-V RV32IMA and SuperH SH-2E CPUs.
 
 MSIM does not aim to be a speed-optimized real hardware simulator, but rather
 a fully deterministic simulator useful for kernel debugging. There are several

@@ -40,12 +40,20 @@ typedef struct {
     void (*step4k)(struct device *dev);
 
     /** Device memory read */
+    void (*read8)(unsigned int procno, struct device *dev, ptr36_t addr,
+            uint8_t *val);
+    void (*read16)(unsigned int procno, struct device *dev, ptr36_t addr,
+            uint16_t *val);
     void (*read32)(unsigned int procno, struct device *dev, ptr36_t addr,
             uint32_t *val);
     void (*read64)(unsigned int procno, struct device *dev, ptr36_t addr,
             uint64_t *val);
 
     /** Device memory write */
+    void (*write8)(unsigned int procno, struct device *dev, ptr36_t addr,
+            uint8_t val);
+    void (*write16)(unsigned int procno, struct device *dev, ptr36_t addr,
+            uint16_t val);
     void (*write32)(unsigned int procno, struct device *dev, ptr36_t addr,
             uint32_t val);
     void (*write64)(unsigned int procno, struct device *dev, ptr36_t addr,
@@ -109,6 +117,10 @@ extern size_t dev_count_by_partial_name(const char *prefix_name,
         device_t **device);
 
 extern bool dev_next(device_t **dev, device_filter_t filter);
+
+extern bool is_dev_cpu(const device_t *dev);
+
+extern bool is_dev_peripheral(const device_t *dev);
 
 /*
  * General utilities

@@ -33,6 +33,11 @@ SOURCES = \
 	debug/gdb.c \
 	debug/breakpoint.c \
 	debug/dap.c \
+	device/cpu/superh_sh2e/cpu.c \
+	device/cpu/superh_sh2e/exec.c \
+	device/cpu/superh_sh2e/disasm.c \
+	device/cpu/superh_sh2e/decode.c \
+	device/cpu/superh_sh2e/debug.c \
 	device/cpu/mips_r4000/cpu.c \
 	device/cpu/mips_r4000/debug.c \
 	device/cpu/riscv_rv32ima/cpu.c \
@@ -53,6 +58,7 @@ SOURCES = \
 	device/dr4kcpu.c \
 	device/drvcpu.c  \
 	device/drv64cpu.c  \
+	device/dsh2ecpu.c  \
 	device/dcycle.c \
 	device/dkeyboard.c \
 	device/dlcd.c \
@@ -61,6 +67,13 @@ SOURCES = \
 	device/dprinter.c \
 	device/dtime.c \
 	device/device.c \
+	device/dsh2ecmt.c \
+	device/dsh2edmac.c \
+	device/dsh2eintc.c \
+	device/dsh2ewdt.c \
+	device/intc/general_intc.c \
+	device/intc/superh_sh2e/intc.c \
+	device/intc/superh_sh2e/debug.c \
 	arch/win32/mmap.c \
 	arch/win32/stdin.c \
 	arch/win32/signal.c \
@@ -72,7 +85,7 @@ OBJECTS := $(addsuffix .o,$(basename $(SOURCES)))
 export MSIM_OBJECTS = $(OBJECTS)
 export MSIM_LIBS = $(LIBS)
 
-.PHONY: all clean distclean rvtest
+.PHONY: all clean distclean rvtest shtest
 
 all: $(TARGET)
 	-[ -f $(DEPEND) ] && $(CP) -a $(DEPEND) $(DEPEND_PREV)
@@ -97,3 +110,6 @@ $(DEPEND):
 
 rvtest: all
 	$(MAKE) -C ../tests/rvtests/unit-tests test
+
+shtest: all
+	$(MAKE) -C ../tests/shtests/unit-tests test

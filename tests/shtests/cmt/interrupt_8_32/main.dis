@@ -1,0 +1,38 @@
+
+main.raw:     file format elf32-sh
+
+
+Disassembly of section .text:
+
+00000000 <start-0x400>:
+	...
+
+00000400 <start>:
+ 400:	40 0e       	ldc	r0,sr
+ 402:	d0 06       	mov.l	41c <cmt_cmstr_address>,r0	! fffff710
+ 404:	e1 03       	mov	#3,r1
+ 406:	20 11       	mov.w	r1,@r0
+ 408:	d0 05       	mov.l	420 <cmt_cmcsr0_address>,r0	! fffff712
+ 40a:	e1 40       	mov	#64,r1
+ 40c:	20 11       	mov.w	r1,@r0
+ 40e:	d0 05       	mov.l	424 <cmt_cmcsr1_address>,r0	! fffff718
+ 410:	e1 41       	mov	#65,r1
+ 412:	20 11       	mov.w	r1,@r0
+
+00000414 <loop>:
+ 414:	49 15       	cmp/pl	r9
+ 416:	8b fd       	bf	414 <loop>
+ 418:	82 01       	.word 0x8201
+ 41a:	82 00       	.word 0x8200
+
+0000041c <cmt_cmstr_address>:
+ 41c:	ff ff       	.word 0xffff
+ 41e:	f7 10       	fadd	fr1,fr7
+
+00000420 <cmt_cmcsr0_address>:
+ 420:	ff ff       	.word 0xffff
+ 422:	f7 12       	fmul	fr1,fr7
+
+00000424 <cmt_cmcsr1_address>:
+ 424:	ff ff       	.word 0xffff
+ 426:	f7 18       	fmov	@r1,fr7

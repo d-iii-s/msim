@@ -1,6 +1,5 @@
 #!/usr/bin/env python3
 
-from distutils.log import error
 import os
 import subprocess
 import filecmp

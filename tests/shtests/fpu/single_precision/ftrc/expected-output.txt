@@ -1,0 +1,8 @@
+processor 0
+   fr0: +3.5           fr1: +0             fr2: +0             fr3: +0          
+   fr4: +0             fr5: +0             fr6: +0             fr7: +0          
+   fr8: +0             fr9: +0            fr10: +0            fr11: +0          
+  fr12: +0            fr13: +0            fr14: +0            fr15: +0          
+  fpul: +4.2039e-45   fpul: 3            fpscr: 40001   
+
+Cycles: 6

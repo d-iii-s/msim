@@ -47,7 +47,7 @@ typedef struct {
     sc_access_func_t sc_access;
 } cpu_ops_t;
 
-/** Structure describinfg cpu methods */
+/** Structure describing CPU methods */
 typedef struct {
     item_t item;
     unsigned int cpuno;

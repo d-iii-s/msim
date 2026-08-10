@@ -32,6 +32,11 @@
 #include "dorder.h"
 #include "dprinter.h"
 #include "dr4kcpu.h"
+#include "dsh2ecmt.h"
+#include "dsh2ecpu.h"
+#include "dsh2edmac.h"
+#include "dsh2eintc.h"
+#include "dsh2ewdt.h"
 #include "dtime.h"
 #include "mem.h"
 
@@ -41,14 +46,16 @@
 #include "drv64cpu.h"
 #undef XLEN
 
-/** Count of device types */
-#define DEVICE_TYPE_COUNT 13
-
-/* Implemented peripheral list */
-const device_type_t *device_types[DEVICE_TYPE_COUNT] = {
+/* Known device types. */
+static device_type_t const *const device_types[] = {
     &dr4kcpu,
     &drvcpu,
     &drv64cpu,
+    &dsh2ecmt,
+    &dsh2ecpu,
+    &dsh2edmac,
+    &dsh2eintc,
+    &dsh2ewdt,
     &dcycle,
     &drwm,
     &drom,
@@ -64,6 +71,29 @@ const device_type_t *device_types[DEVICE_TYPE_COUNT] = {
 /* List of all devices */
 list_t device_list = LIST_INITIALIZER;
 
+/** Search for device type by name.
+ *
+ * @param device_name Name, which will be set to created device.
+ *
+ * @return Pointer to the device type or NULL if the device
+ * type cannot be found.
+ */
+static device_type_t const *
+dev_type_by_name(char const *const type_name)
+{
+    ASSERT(type_name != NULL);
+
+    for (unsigned i = 0; i < array_len(device_types); i++) {
+        device_type_t const *device_type = device_types[i];
+        if (strcmp(type_name, device_type->name) == 0) {
+            return device_type;
+        }
+    }
+
+    // Not found.
+    return NULL;
+}
+
 /** Search for device type and allocates device structure
  *
  * @param type_string Exact name of device type.
@@ -73,22 +103,12 @@ list_t device_list = LIST_INITIALIZER;
  *         was not specified correctly.
  *
  */
-device_t *alloc_device(const char *type_string, const char *device_name)
+device_t *
+alloc_device(char const *const type_string, char const *const device_name)
 {
-    const device_type_t *device_type = NULL;
-
-    /* Search for device type */
-    unsigned int i;
-    for (i = 0; i < DEVICE_TYPE_COUNT; i++) {
-        const device_type_t *type = device_types[i];
-        if (strcmp(type_string, type->name) == 0) {
-            device_type = type;
-            break;
-        }
-    }
-
+    device_type_t const *device_type = dev_type_by_name(type_string);
     if (device_type == NULL) {
-        error("Unknown device type");
+        error("Unknown type for device %s: %s", device_name, type_string);
         return NULL;
     }
 
@@ -100,10 +120,9 @@ device_t *alloc_device(const char *type_string, const char *device_name)
         return NULL;
     }
 
-    /* Allocate a new instance */
-    device_t *dev = safe_malloc_t(device_t);
+    // Allocate and initialize the device.
+    device_t *const dev = safe_malloc_t(device_t);
 
-    /* Inicialization */
     dev->type = device_type;
     dev->name = safe_strdup(device_name);
     dev->data = NULL;
@@ -137,6 +156,9 @@ void add_device(device_t *dev)
  */
 static bool dev_match_to_filter(device_t *device, device_filter_t filter)
 {
+    // TODO: Add RV support
+    // TODO: Add SH2E support
+
     ASSERT(device != NULL);
 
     switch (filter) {
@@ -197,31 +219,31 @@ bool dev_next(device_t **device, device_filter_t filter)
  *
  * @param name_prefix  First letters of the device type to be found.
  * @param device_order Position in the device_types array from the searching
- *                     will start. Next start position is returned throught
+ *                     will start. Next start position is returned through
  *                     this parameter. If the array was all searched the
- *                     DEVICE_TYPE_COUNT is returned.
+ *                     number of device types is returned.
  *
  * @return Name of found searched device type or NULL, if there is not any.
  *
  */
-const char *dev_type_by_partial_name(const char *name_prefix,
-        uint32_t *device_order)
+char const *
+dev_type_by_partial_name(
+        char const *const name_prefix, uint32_t *const next_index)
 {
     ASSERT(name_prefix != NULL);
 
     /* Search from the specified device */
-    unsigned int i;
-    for (i = *device_order; i < DEVICE_TYPE_COUNT; i++) {
-        const char *device_name = device_types[i]->name;
+    for (unsigned i = *next_index; i < array_len(device_types); i++) {
+        char const *const device_name = device_types[i]->name;
 
         if (prefix(name_prefix, device_name)) {
             /* Move the order to the next device */
-            *device_order = i + 1;
+            *next_index = i + 1;
             return device_name;
         }
     }
 
-    *device_order = DEVICE_TYPE_COUNT;
+    *next_index = array_len(device_types);
     return NULL;
 }
 
@@ -389,4 +411,20 @@ gen_t dev_find_generator(token_t **parm, const device_t *dev,
     }
 
     return NULL;
+}
+
+/**
+ * Check if the given device is a CPU device by comparing its type name.
+ *
+ * @param dev Pointer to the device to be checked.
+ * @return True if the device is a CPU device, false otherwise.
+ */
+bool is_dev_cpu(const device_t *const dev)
+{
+    return !strcmp(dev->type->name, dsh2ecpu.name) || !strcmp(dev->type->name, dr4kcpu.name) || !strcmp(dev->type->name, drvcpu.name) || !strcmp(dev->type->name, drv64cpu.name);
+}
+
+bool is_dev_peripheral(const device_t *const dev)
+{
+    return !strcmp(dev->type->name, dsh2ecmt.name) || !strcmp(dev->type->name, dsh2edmac.name) || !strcmp(dev->type->name, dsh2ewdt.name);
 }

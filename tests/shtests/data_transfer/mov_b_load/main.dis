@@ -1,0 +1,20 @@
+
+main.raw:     file format elf32-sh
+
+
+Disassembly of section .text:
+
+00000000 <start-0x400>:
+	...
+
+00000400 <start>:
+ 400:	d0 02       	mov.l	40c <data_address>,r0	! f0000000
+ 402:	61 00       	mov.b	@r0,r1
+ 404:	70 01       	add	#1,r0
+ 406:	62 00       	mov.b	@r0,r2
+ 408:	82 01       	.word 0x8201
+ 40a:	82 00       	.word 0x8200
+
+0000040c <data_address>:
+ 40c:	f0 00       	fadd	fr0,fr0
+	...

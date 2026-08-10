@@ -1,0 +1,16 @@
+processor 0
+    r0:        4    r1: f0000000    r2: 12345678    r3: aaaaaaaa
+    r4:        0    r5:        0    r6:        0    r7:        0
+    r8:        0    r9:        0   r10:        0   r11:        0
+   r12:        0   r13:        0   r14:        0    sp: ffff8000
+    pc:      408    pr:        0  mach:        0  macl:        0
+    sr:       f0   gbr:        0   vbr:        0
+processor 0
+    r0:        4    r1: f0000000    r2: 12345678    r3: 12345678
+    r4:        0    r5:        0    r6:        0    r7:        0
+    r8:        0    r9:        0   r10:        0   r11:        0
+   r12:        0   r13:        0   r14:        0    sp: ffff8000
+    pc:      40e    pr:        0  mach:        0  macl:        0
+    sr:       f0   gbr:        0   vbr:        0
+
+Cycles: 10

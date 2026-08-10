@@ -33,6 +33,7 @@ bool machine_newline = false;
 bool machine_undefined = false;
 bool machine_specific_instructions = true;
 bool machine_allow_interactive_without_tty = false;
+bool machine_unit_testing = true;
 uint64_t stepping = 0;
 
 PCUT_INIT

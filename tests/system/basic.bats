@@ -57,6 +57,20 @@ load "common"
     msim_command_check
 }
 
+@test "Add SH-2E CPU" {
+    config="
+        add dsh2ecpu sh2e
+        sh2e info
+        dumpdev
+    " \
+    expected="
+        SH-2E
+        [  name  ] [  type  ] [ parameters...
+        sh2e       dsh2ecpu   SH-2E
+    " \
+    msim_command_check
+}
+
 @test "Empty machine device dump" {
     config="
         dumpdev

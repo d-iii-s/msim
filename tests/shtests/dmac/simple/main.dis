@@ -1,0 +1,158 @@
+
+main.raw:     file format elf32-sh
+
+
+Disassembly of section .text:
+
+00000000 <start-0x400>:
+	...
+
+00000400 <start>:
+ 400:	40 0e       	ldc	r0,sr
+ 402:	e8 02       	mov	#2,r8
+ 404:	e0 01       	mov	#1,r0
+ 406:	d1 32       	mov.l	4d0 <source_address_0>,r1	! ffffa000
+ 408:	21 02       	mov.l	r0,@r1
+ 40a:	70 01       	add	#1,r0
+ 40c:	71 04       	add	#4,r1
+ 40e:	21 02       	mov.l	r0,@r1
+ 410:	70 01       	add	#1,r0
+ 412:	71 04       	add	#4,r1
+ 414:	21 02       	mov.l	r0,@r1
+ 416:	70 01       	add	#1,r0
+ 418:	71 04       	add	#4,r1
+ 41a:	21 02       	mov.l	r0,@r1
+ 41c:	70 01       	add	#1,r0
+ 41e:	d1 2d       	mov.l	4d4 <source_address_2>,r1	! ffffa010
+ 420:	21 02       	mov.l	r0,@r1
+ 422:	70 01       	add	#1,r0
+ 424:	71 04       	add	#4,r1
+ 426:	21 02       	mov.l	r0,@r1
+ 428:	70 01       	add	#1,r0
+ 42a:	71 04       	add	#4,r1
+ 42c:	21 02       	mov.l	r0,@r1
+ 42e:	70 01       	add	#1,r0
+ 430:	71 04       	add	#4,r1
+ 432:	21 02       	mov.l	r0,@r1
+ 434:	da 26       	mov.l	4d0 <source_address_0>,r10	! ffffa000
+ 436:	d0 1b       	mov.l	4a4 <dmac_sar0_address>,r0	! ffffecc0
+ 438:	20 a2       	mov.l	r10,@r0
+ 43a:	da 27       	mov.l	4d8 <destination_address_0>,r10	! ffffb000
+ 43c:	d0 1a       	mov.l	4a8 <dmac_dar0_address>,r0	! ffffecc4
+ 43e:	20 a2       	mov.l	r10,@r0
+ 440:	e1 04       	mov	#4,r1
+ 442:	d0 1a       	mov.l	4ac <dmac_dmatcr0_address>,r0	! ffffecc8
+ 444:	20 12       	mov.l	r1,@r0
+ 446:	d1 20       	mov.l	4c8 <dmac_chcr0_value>,r1	! 1f1125
+ 448:	d0 19       	mov.l	4b0 <dmac_chcr0_address>,r0	! ffffeccc
+ 44a:	20 12       	mov.l	r1,@r0
+ 44c:	db 21       	mov.l	4d4 <source_address_2>,r11	! ffffa010
+ 44e:	d0 19       	mov.l	4b4 <dmac_sar2_address>,r0	! ffffece0
+ 450:	20 b2       	mov.l	r11,@r0
+ 452:	db 22       	mov.l	4dc <destination_address_2>,r11	! ffffb010
+ 454:	d0 18       	mov.l	4b8 <dmac_dar2_address>,r0	! ffffece4
+ 456:	20 b2       	mov.l	r11,@r0
+ 458:	e1 04       	mov	#4,r1
+ 45a:	d0 18       	mov.l	4bc <dmac_dmatcr2_address>,r0	! ffffece8
+ 45c:	20 12       	mov.l	r1,@r0
+ 45e:	d1 1b       	mov.l	4cc <dmac_chcr2_value>,r1	! 11f1125
+ 460:	d0 17       	mov.l	4c0 <dmac_chcr2_address>,r0	! ffffecec
+ 462:	20 12       	mov.l	r1,@r0
+ 464:	e0 01       	mov	#1,r0
+ 466:	d1 17       	mov.l	4c4 <dmac_dmaor_address>,r1	! ffffecb0
+ 468:	21 01       	mov.w	r0,@r1
+
+0000046a <main_loop>:
+ 46a:	39 82       	cmp/hs	r8,r9
+ 46c:	8b fd       	bf	46a <main_loop>
+ 46e:	00 09       	nop	
+ 470:	d2 0c       	mov.l	4a4 <dmac_sar0_address>,r2	! ffffecc0
+ 472:	63 22       	mov.l	@r2,r3
+ 474:	d6 0f       	mov.l	4b4 <dmac_sar2_address>,r6	! ffffece0
+ 476:	67 62       	mov.l	@r6,r7
+ 478:	82 01       	.word 0x8201
+ 47a:	60 a6       	mov.l	@r10+,r0
+ 47c:	61 b6       	mov.l	@r11+,r1
+ 47e:	82 01       	.word 0x8201
+ 480:	60 a6       	mov.l	@r10+,r0
+ 482:	61 b6       	mov.l	@r11+,r1
+ 484:	82 01       	.word 0x8201
+ 486:	60 a6       	mov.l	@r10+,r0
+ 488:	61 b6       	mov.l	@r11+,r1
+ 48a:	82 01       	.word 0x8201
+ 48c:	60 a6       	mov.l	@r10+,r0
+ 48e:	61 b6       	mov.l	@r11+,r1
+ 490:	82 01       	.word 0x8201
+ 492:	82 00       	.word 0x8200
+
+00000494 <dmac_handler>:
+ 494:	e0 00       	mov	#0,r0
+ 496:	79 01       	add	#1,r9
+ 498:	40 0e       	ldc	r0,sr
+ 49a:	af e6       	bra	46a <main_loop>
+ 49c:	00 09       	nop	
+
+0000049e <dmac_error_handler>:
+ 49e:	e9 02       	mov	#2,r9
+ 4a0:	af e3       	bra	46a <main_loop>
+ 4a2:	00 09       	nop	
+
+000004a4 <dmac_sar0_address>:
+ 4a4:	ff ff       	.word 0xffff
+ 4a6:	ec c0       	mov	#-64,r12
+
+000004a8 <dmac_dar0_address>:
+ 4a8:	ff ff       	.word 0xffff
+ 4aa:	ec c4       	mov	#-60,r12
+
+000004ac <dmac_dmatcr0_address>:
+ 4ac:	ff ff       	.word 0xffff
+ 4ae:	ec c8       	mov	#-56,r12
+
+000004b0 <dmac_chcr0_address>:
+ 4b0:	ff ff       	.word 0xffff
+ 4b2:	ec cc       	mov	#-52,r12
+
+000004b4 <dmac_sar2_address>:
+ 4b4:	ff ff       	.word 0xffff
+ 4b6:	ec e0       	mov	#-32,r12
+
+000004b8 <dmac_dar2_address>:
+ 4b8:	ff ff       	.word 0xffff
+ 4ba:	ec e4       	mov	#-28,r12
+
+000004bc <dmac_dmatcr2_address>:
+ 4bc:	ff ff       	.word 0xffff
+ 4be:	ec e8       	mov	#-24,r12
+
+000004c0 <dmac_chcr2_address>:
+ 4c0:	ff ff       	.word 0xffff
+ 4c2:	ec ec       	mov	#-20,r12
+
+000004c4 <dmac_dmaor_address>:
+ 4c4:	ff ff       	.word 0xffff
+ 4c6:	ec b0       	mov	#-80,r12
+
+000004c8 <dmac_chcr0_value>:
+ 4c8:	00 1f       	mac.l	@r1+,@r0+
+ 4ca:	11 25       	mov.l	r2,@(20,r1)
+
+000004cc <dmac_chcr2_value>:
+ 4cc:	01 1f       	mac.l	@r1+,@r1+
+ 4ce:	11 25       	mov.l	r2,@(20,r1)
+
+000004d0 <source_address_0>:
+ 4d0:	ff ff       	.word 0xffff
+ 4d2:	a0 00       	bra	4d6 <source_address_2+0x2>
+
+000004d4 <source_address_2>:
+ 4d4:	ff ff       	.word 0xffff
+ 4d6:	a0 10       	bra	4fa <destination_address_2+0x1e>
+
+000004d8 <destination_address_0>:
+ 4d8:	ff ff       	.word 0xffff
+ 4da:	b0 00       	bsr	4de <destination_address_2+0x2>
+
+000004dc <destination_address_2>:
+ 4dc:	ff ff       	.word 0xffff
+ 4de:	b0 10       	bsr	502 <destination_address_2+0x26>

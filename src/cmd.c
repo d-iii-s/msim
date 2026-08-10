@@ -27,6 +27,8 @@
 #include "device/cpu/mips_r4000/debug.h"
 #include "device/cpu/riscv_rv32ima/cpu.h"
 #include "device/cpu/riscv_rv32ima/debug.h"
+#include "device/cpu/superh_sh2e/cpu.h"
+#include "device/cpu/superh_sh2e/debug.h"
 #include "device/device.h"
 #include "env.h"
 #include "fault.h"
@@ -162,27 +164,33 @@ static bool system_dumpins(token_t *parm, void *data)
     ASSERT(parm != NULL);
 
     char *_cpu = parm_str_next(&parm);
-    uint64_t _addr = ALIGN_DOWN(parm_uint_next(&parm), 4);
-    uint64_t _cnt = parm_uint(parm);
 
     bool is_rv = strcmp(_cpu, "rv") == 0;
     bool is_r4k = strcmp(_cpu, "r4k") == 0;
-    if (!is_rv && !is_r4k) {
-        error("Unknown CPU type (supported types: r4k, rv)");
+    bool is_sh2e = strcmp(_cpu, "sh2e") == 0;
+
+    if (!is_rv && !is_r4k && !is_sh2e) {
+        error("Unknown CPU type (supported types: r4k, rv, sh2e)");
         return false;
     }
 
+    // TODO Instruction size depends on the CPU!
+    const unsigned insn_sz = is_sh2e ? sizeof(sh2e_insn_t) : (is_rv ? sizeof(rv_instr_t) : sizeof(r4k_instr_t));
+
+    // TODO Alignment depends on instruction size.
+    uint64_t _addr = ALIGN_DOWN(parm_uint_next(&parm), insn_sz);
     if (!phys_range(_addr)) {
         error("Physical address out of range");
         return false;
     }
 
+    uint64_t _cnt = parm_uint(parm);
     if (!phys_range(_cnt)) {
         error("Count out of physical memory range");
         return false;
     }
 
-    if (!phys_range(_addr + _cnt * 4)) {
+    if (!phys_range(_addr + _cnt * insn_sz)) {
         error("Count exceeds physical memory range");
         return false;
     }
@@ -190,17 +198,22 @@ static bool system_dumpins(token_t *parm, void *data)
     ptr36_t addr;
     len36_t cnt;
 
+    // TODO This should be handled by CPU devices.
+    // TODO Memory reads should be handled by the CPU devices to account for endianness.
     for (addr = (ptr36_t) _addr, cnt = (len36_t) _cnt; cnt > 0;
-            addr += 4, cnt--) {
+            addr += insn_sz, cnt--) {
 
         if (is_r4k) {
             r4k_instr_t instr;
             instr.val = physmem_read32(-1, addr, false);
             r4k_idump_phys(addr, instr);
+
         } else if (is_rv) {
             rv_instr_t instr;
             instr.val = physmem_read32(-1, addr, false);
             rv32_idump_phys(addr, instr);
+        } else if (is_sh2e) {
+            sh2e_dump_insn_phys(addr);
         }
     }
 

@@ -34,6 +34,7 @@ fi
 AC_PROG_INSTALL
 
 AC_CHECK_LIB(readline, readline,, [AC_MSG_FAILURE(Library readline not found.)])
+AC_CHECK_LIB(m, fmaf,, [AC_MSG_FAILURE(Math library not found.)])
 AC_CHECK_LIB(wsock32, main)
 
 AC_CHECK_INCLUDES_DEFAULT
@@ -43,6 +44,7 @@ AC_CHECK_HEADERS([ \
 	fcntl.h \
 	getopt.h \
 	inttypes.h \
+	math.h \
 	readline/history.h \
 	readline/readline.h \
 	signal.h \

@@ -1,0 +1,4 @@
+*.raw
+*.o
+*.out
+*/out.txt

@@ -1,0 +1,9 @@
+---
+Language: Cpp
+BasedOnStyle: WebKit
+BreakBeforeBraces: Custom
+BraceWrapping:   
+  AfterFunction: false
+AlignEscapedNewlines: DontAlign
+ContinuationIndentWidth: 8
+...

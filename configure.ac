@@ -80,6 +80,6 @@ AC_SUBST(AFTERBUILD)
 AC_SUBST(INSTALL_PREFIX)
 
 AC_CONFIG_HEADERS([config.h])
-AC_CONFIG_FILES([Makefile src/Makefile])
+AC_CONFIG_FILES([Makefile src/Makefile tests/rvtests/unit-tests/Makefile])
 
 AC_OUTPUT

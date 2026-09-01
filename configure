@@ -4603,50 +4603,11 @@ printf "%s\n" "$ac_cv_sizeof_void_p" >&6; }
 printf "%s\n" "#define SIZEOF_VOID_P $ac_cv_sizeof_void_p" >>confdefs.h
 
 
-{ printf "%s\n" "$as_me:${as_lineno-$LINENO}: checking whether compiling in 32-bit or 64-bit mode" >&5
-printf %s "checking whether compiling in 32-bit or 64-bit mode... " >&6; }
-if test "$cross_compiling" = yes
-then :
-  	 if test "$ac_cv_sizeof_void_p" -eq 8; then
-		BUILD_RV64=yes
-		{ printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: 64-bit (cross-compile)" >&5
-printf "%s\n" "64-bit (cross-compile)" >&6; }
-	 else
-		BUILD_RV64=no
-		{ printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: 32-bit (cross-compile)" >&5
-printf "%s\n" "32-bit (cross-compile)" >&6; }
-	 fi
-
-else case e in #(
-  e) cat confdefs.h - <<_ACEOF >conftest.$ac_ext
-/* end confdefs.h.  */
-#include <stdio.h>
-int
-main (void)
-{
-
-	if (sizeof(void*) == 8) return 0; else return 1;
-
-  ;
-  return 0;
-}
-_ACEOF
-if ac_fn_c_try_run "$LINENO"
-then :
-  BUILD_RV64=yes
-	 { printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: 64-bit" >&5
-printf "%s\n" "64-bit" >&6; }
-else case e in #(
-  e) BUILD_RV64=no
-	 { printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: 32-bit" >&5
-printf "%s\n" "32-bit" >&6; } ;;
-esac
+if test "$ac_cv_sizeof_void_p" -eq 8; then
+	BUILD_RV64=yes
+else
+	BUILD_RV64=no
 fi
-rm -f core *.core core.conftest.* gmon.out bb.out conftest$ac_exeext \
-  conftest.$ac_objext conftest.beam conftest.$ac_ext ;;
-esac
-fi
-
 
 
 
@@ -4848,7 +4809,7 @@ fi
 
 ac_config_headers="$ac_config_headers config.h"
 
-ac_config_files="$ac_config_files Makefile src/Makefile"
+ac_config_files="$ac_config_files Makefile src/Makefile tests/rvtests/unit-tests/Makefile"
 
 
 cat >confcache <<\_ACEOF
@@ -5549,6 +5510,7 @@ do
     "config.h") CONFIG_HEADERS="$CONFIG_HEADERS config.h" ;;
     "Makefile") CONFIG_FILES="$CONFIG_FILES Makefile" ;;
     "src/Makefile") CONFIG_FILES="$CONFIG_FILES src/Makefile" ;;
+    "tests/rvtests/unit-tests/Makefile") CONFIG_FILES="$CONFIG_FILES tests/rvtests/unit-tests/Makefile" ;;
 
   *) as_fn_error $? "invalid argument: '$ac_config_target'" "$LINENO" 5;;
   esac

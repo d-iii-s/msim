@@ -35,32 +35,32 @@ static struct {
 };
 
 static char *cp0_dump_str[] = {
-    "  00 Index\t%08X  index: %02X res: %x p: %01x \n",
-    "  01 Random\t%08X  random: %02X, res: %07X\n",
-    "  02 EntryLo0\t%08X  g: %x v: %x d: %x c: %x pfn: %06X res: %x\n",
-    "  03 EntryLo1\t%08X  g: %x v: %x d: %x c: %x pfn: %06X res: %x\n",
-    "  04 Context\t%08X  res: %x badvpn2: %05X ptebase: %03X\n",
-    "  05 PageMask\t%08X  res1: %04x mask: %03X (%s) res2: %02X\n",
-    "  06 Wired\t%08X  wired: %x res: %07X\n",
+    "  00 Index\t%08" PRIX64 "  index: %02" PRIX64 " res: %" PRIx64 " p: %01" PRIx64 " \n",
+    "  01 Random\t%08" PRIX64 "  random: %02" PRIX64 ", res: %07" PRIX64 "\n",
+    "  02 EntryLo0\t%08" PRIX64 "  g: %" PRIx64 " v: %" PRIx64 " d: %" PRIx64 " c: %" PRIx64 " pfn: %06" PRIX64 " res: %" PRIx64 "\n",
+    "  03 EntryLo1\t%08" PRIX64 "  g: %" PRIx64 " v: %" PRIx64 " d: %" PRIx64 " c: %" PRIx64 " pfn: %06" PRIX64 " res: %" PRIx64 "\n",
+    "  04 Context\t%08" PRIX64 "  res: %" PRIx64 " badvpn2: %05" PRIX64 " ptebase: %03" PRIX64 "\n",
+    "  05 PageMask\t%08" PRIX64 "  res1: %04" PRIx64 " mask: %03" PRIX64 " (%s) res2: %02" PRIX64 "\n",
+    "  06 Wired\t%08" PRIX64 "  wired: %" PRIx64 " res: %07X\n",
     "  07 Reserved\n",
-    "  08 BadVAddr\t%08X\n",
-    "  09 Count\t%08X\n",
-    "  0a EntryHi\t%08X  asid: %02X res: %x vpn2: %05X\n",
-    "  0b Compare\t%08X\n",
-    "  0c Status\t%08X  ie: %x exl: %x erl: %x ksu: %x "
-    "ux: %x sx: %x kx: %x\n\t\t\t  im: %02X de: %x "
-    "ce: %x ch: %x res1: %x sr: %x ts: %x\n\t\t\t  "
-    "bev: %x res2: %x re: %x fr: %x rp: %x cu: %x\n",
-    "  0d Cause\t%08X  res1: %x exccode: %02X (%s) res2: %x "
-    "ip: %02X res3: %02X\n\t\t\t  ce: %d res4: %d bd: %d\n",
-    "  0e EPC\t%08X\n",
-    "  0f PRId\t%08X  rev: %02X imp: %02X res: %04X\n",
-    "  10 Config\t%08X  k0: %x cu: %x db: %x b: %x dc: %x "
-    "ic: %x res: %x eb: %x\n\t\t\t  em: %x be: %x sm: %x sc: %x "
-    "ew: %x sw: %x ss: %x sb: %x\n\t\t\t  ep: %x ec: %x cm: %x\n",
-    "  11 LLAddr\t%08X\n",
-    "  12 WatchLo\t%08X  w: %x r: %x res: %x paddr0: %08X\n",
-    "  13 WatchHi\t%08X  res: %08X paddr1: %x\n",
+    "  08 BadVAddr\t%08" PRIX64 "\n",
+    "  09 Count\t%08" PRIX64 "\n",
+    "  0a EntryHi\t%08" PRIX64 "  asid: %02" PRIX64 " res: %" PRIx64 " vpn2: %05" PRIX64 "\n",
+    "  0b Compare\t%08" PRIX64 "\n",
+    "  0c Status\t%08" PRIX64 "  ie: %" PRIX64 " exl: %" PRIX64 " erl: %" PRIX64 " ksu: %" PRIx64 " "
+    "ux: %" PRIx64 " sx: %" PRIx64 " kx: %" PRIx64 "\n\t\t\t  im: %02" PRIX64 " de: %" PRIx64 " "
+    "ce: %" PRIx64 " ch: %" PRIx64 " res1: %" PRIx64 " sr: %" PRIx64 " ts: %" PRIx64 "\n\t\t\t  "
+    "bev: %" PRIx64 " res2: %" PRIx64 " re: %" PRIx64 " fr: %" PRIx64 " rp: %" PRIx64 " cu: %" PRIx64 "\n",
+    "  0d Cause\t%08" PRIX64 "  res1: %" PRIX64 " exccode: %02" PRIX64 " (%s) res2: %" PRIx64 " "
+    "ip: %02" PRIX64 " res3: %02" PRIX64 "\n\t\t\t  ce: %" PRId64 " res4: %" PRId64 " bd: %" PRId64 "\n",
+    "  0e EPC\t%08" PRIX64 "\n",
+    "  0f PRId\t%08" PRIX64 "  rev: %02" PRIX64 " imp: %02" PRIX64 " res: %04" PRIX64 "\n",
+    "  10 Config\t%08" PRIX64 "  k0: %" PRIx64 " cu: %" PRIx64 " db: %" PRIx64 " b: %" PRIx64 " dc: %" PRIx64 " "
+    "ic: %" PRIx64 " res: %" PRIx64 " eb: %" PRIx64 "\n\t\t\t  em: %" PRIx64 " be: %" PRIx64 " sm: %" PRIx64 " sc: %" PRIx64 " "
+    "ew: %" PRIx64 " sw: %" PRIx64 " ss: %" PRIx64 " sb: %" PRIx64 "\n\t\t\t  ep: %" PRIx64 " ec: %" PRIx64 " cm: %" PRIx64 "\n",
+    "  11 LLAddr\t%08" PRIX64 "\n",
+    "  12 WatchLo\t%08" PRIX64 "  w: %" PRIx64 " r: %" PRIx64 " res: %" PRIx64 " paddr0: %08" PRIX64 "\n",
+    "  13 WatchHi\t%08" PRIX64 "  res: %08" PRIX64 " paddr1: %" PRIx64 "\n",
     "  14 XContext\n",
     "  15 Reserved\n",
     "  16 Reserved\n",
@@ -71,7 +71,7 @@ static char *cp0_dump_str[] = {
     "  1b Reserved\n",
     "  1c Reserved\n",
     "  1d Reserved\n",
-    "  1e ErrorEPC\t%08x  errorepc: %08x\n",
+    "  1e ErrorEPC\t%08" PRIx64 "  errorepc: %08" PRIx64 "\n",
     "  1f Reserved\n"
 };
 
@@ -153,37 +153,37 @@ static void r4k_cp0_dump_reg(r4k_cpu_t *cpu, unsigned int reg)
     switch (reg) {
     case cp0_Index:
         printf(s,
-                cp0_index(cpu),
+                cp0_index(cpu).val,
                 cp0_index_index(cpu), cp0_index_res(cpu), cp0_index_p(cpu));
         break;
     case cp0_Random:
         printf(s,
-                cp0_random(cpu), cp0_random_random(cpu), cp0_random_res(cpu));
+                cp0_random(cpu).val, cp0_random_random(cpu), cp0_random_res(cpu));
         break;
     case cp0_EntryLo0:
         printf(s,
-                cp0_entrylo0(cpu),
+                cp0_entrylo0(cpu).val,
                 cp0_entrylo0_g(cpu), cp0_entrylo0_v(cpu),
                 cp0_entrylo0_d(cpu), cp0_entrylo0_c(cpu),
                 cp0_entrylo0_pfn(cpu), cp0_entrylo0_res1(cpu));
         break;
     case cp0_EntryLo1:
         printf(s,
-                cp0_entrylo1(cpu),
+                cp0_entrylo1(cpu).val,
                 cp0_entrylo1_g(cpu), cp0_entrylo1_v(cpu),
                 cp0_entrylo1_d(cpu), cp0_entrylo1_c(cpu),
                 cp0_entrylo1_pfn(cpu), cp0_entrylo1_res1(cpu));
         break;
     case cp0_Context:
         printf(s,
-                cp0_context(cpu),
+                cp0_context(cpu).val,
                 cp0_context_res1(cpu),
                 cp0_context_badvpn2(cpu),
                 cp0_context_ptebase(cpu));
         break;
     case cp0_PageMask:
         printf(s,
-                cp0_pagemask(cpu),
+                cp0_pagemask(cpu).val,
                 cp0_pagemask_res1(cpu),
                 cp0_pagemask_mask(cpu),
                 get_pagemask_name(cp0_pagemask_mask(cpu)),
@@ -191,25 +191,25 @@ static void r4k_cp0_dump_reg(r4k_cpu_t *cpu, unsigned int reg)
         break;
     case cp0_Wired:
         printf(s,
-                cp0_wired(cpu), cp0_wired_w(cpu), cp0_wired_res1(cpu));
+                cp0_wired(cpu).val, cp0_wired_w(cpu), cp0_wired_res1(cpu));
         break;
     case cp0_BadVAddr:
-        printf(s, cp0_badvaddr(cpu));
+        printf(s, cp0_badvaddr(cpu).val);
         break;
     case cp0_Count:
-        printf(s, cp0_count(cpu));
+        printf(s, cp0_count(cpu).val);
         break;
     case cp0_EntryHi:
         printf(s,
-                cp0_entryhi(cpu), cp0_entryhi_asid(cpu),
+                cp0_entryhi(cpu).val, cp0_entryhi_asid(cpu),
                 cp0_entryhi_res1(cpu), cp0_entryhi_vpn2(cpu));
         break;
     case cp0_Compare:
-        printf(s, cp0_compare(cpu));
+        printf(s, cp0_compare(cpu).val);
         break;
     case cp0_Status:
         printf(s,
-                cp0_status(cpu),
+                cp0_status(cpu).val,
                 cp0_status_ie(cpu), cp0_status_exl(cpu), cp0_status_erl(cpu),
                 cp0_status_ksu(cpu), cp0_status_ux(cpu), cp0_status_sx(cpu),
                 cp0_status_kx(cpu), cp0_status_im(cpu), cp0_status_de(cpu),
@@ -220,22 +220,22 @@ static void r4k_cp0_dump_reg(r4k_cpu_t *cpu, unsigned int reg)
         break;
     case cp0_Cause:
         printf(s,
-                cp0_cause(cpu), cp0_cause_res1(cpu),
+                cp0_cause(cpu).val, cp0_cause_res1(cpu),
                 cp0_cause_exccode(cpu), cp0_cause_exccode_str[cp0_cause_exccode(cpu)],
                 cp0_cause_res2(cpu), cp0_cause_ip(cpu), cp0_cause_res3(cpu),
                 cp0_cause_ce(cpu), cp0_cause_res4(cpu), cp0_cause_bd(cpu));
         break;
     case cp0_EPC:
-        printf(s, cp0_epc(cpu));
+        printf(s, cp0_epc(cpu).val);
         break;
     case cp0_PRId:
         printf(s,
-                cp0_prid(cpu), cp0_prid_rev(cpu),
+                cp0_prid(cpu).val, cp0_prid_rev(cpu),
                 cp0_prid_imp(cpu), cp0_prid_res(cpu));
         break;
     case cp0_Config:
         printf(s,
-                cp0_config(cpu), cp0_config_k0(cpu), cp0_config_cu(cpu),
+                cp0_config(cpu).val, cp0_config_k0(cpu), cp0_config_cu(cpu),
                 cp0_config_db(cpu), cp0_config_b(cpu), cp0_config_dc(cpu),
                 cp0_config_ic(cpu), cp0_config_res(cpu), cp0_config_eb(cpu),
                 cp0_config_em(cpu), cp0_config_be(cpu), cp0_config_sm(cpu),
@@ -244,19 +244,19 @@ static void r4k_cp0_dump_reg(r4k_cpu_t *cpu, unsigned int reg)
                 cp0_config_ec(cpu), cp0_config_cm(cpu));
         break;
     case cp0_LLAddr:
-        printf(s, cp0_lladdr(cpu));
+        printf(s, cp0_lladdr(cpu).val);
         break;
     case cp0_WatchLo:
         printf(s,
-                cp0_watchlo(cpu), cp0_watchlo_w(cpu), cp0_watchlo_r(cpu),
+                cp0_watchlo(cpu).val, cp0_watchlo_w(cpu), cp0_watchlo_r(cpu),
                 cp0_watchlo_res(cpu), cp0_watchlo_paddr0(cpu));
         break;
     case cp0_WatchHi:
         printf(s,
-                cp0_watchhi(cpu), cp0_watchhi_paddr1(cpu), cp0_watchhi_res(cpu));
+                cp0_watchhi(cpu).val, cp0_watchhi_paddr1(cpu), cp0_watchhi_res(cpu));
         break;
     case cp0_ErrorEPC:
-        printf(s, cp0_errorepc(cpu), cp0_errorepc(cpu));
+        printf(s, cp0_errorepc(cpu).val, cp0_errorepc(cpu).val);
         break;
     default:
         printf("%s", s);

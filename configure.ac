@@ -63,6 +63,15 @@ AC_C_BIGENDIAN
 AC_C_CONST
 AC_TYPE_SIZE_T
 
+dnl Check pointer size to determine if we can build RV64 support
+AC_CHECK_SIZEOF([void *])
+if test "$ac_cv_sizeof_void_p" -eq 8; then
+	BUILD_RV64=yes
+else
+	BUILD_RV64=no
+fi
+AC_SUBST(BUILD_RV64)
+
 AC_CHECK_FUNCS([getopt_long],, [AC_MSG_FAILURE(Function getopt_long not defined.)])
 AC_SYS_LARGEFILE
 
@@ -71,6 +80,6 @@ AC_SUBST(AFTERBUILD)
 AC_SUBST(INSTALL_PREFIX)
 
 AC_CONFIG_HEADERS([config.h])
-AC_CONFIG_FILES([Makefile src/Makefile])
+AC_CONFIG_FILES([Makefile src/Makefile tests/rvtests/unit-tests/Makefile])
 
 AC_OUTPUT

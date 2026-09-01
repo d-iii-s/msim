@@ -30,6 +30,11 @@ deindent() {
     python3 -c 'import sys,textwrap; print(textwrap.dedent(sys.stdin.read()).strip())'
 }
 
+show_string_diff() {
+    echo "-- Difference (- expected, + actual)"
+    diff -ud <( printf '%s\n' "$1" ) <( printf '%s\n' "$2" )
+}
+
 msim_command_check() {
     local expected="$( echo "$expected" | deindent )"
     local expected_exit_code_is_zero="${exit_success:-true}"
@@ -70,6 +75,7 @@ msim_command_check() {
             echo "$expected"
             echo "-- Actual --"
             echo "$output"
+            show_string_diff "$expected" "$output"
             echo "--"
         } | fail
     fi
@@ -115,6 +121,7 @@ msim_run_code() {
             echo "$expected_from_simulator"
             echo "-- Actual --"
             echo "$output"
+            show_string_diff "$expected_from_simulator" "$output"
             echo "--"
         } | fail
     fi
@@ -128,6 +135,7 @@ msim_run_code() {
             echo "$expected_from_guest"
             echo "-- Actual --"
             echo "$guest_output"
+            show_string_diff "$expected_from_guest" "$guest_output"
             echo "--"
         } | fail
     fi

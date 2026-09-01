@@ -1,6 +1,9 @@
 # Not to be run on its own, but as src/Makefile rvtest
-CC = gcc
-CFLAGS = -g -Wall -Wextra
+CC = @CC@
+CFLAGS = @CFLAGS@
+LDFLAGS= @LDFLAGS@
+BUILD_RV64 = @BUILD_RV64@
+
 LIBS = -lpcut
 SOURCES = $(wildcard *.c)
 OBJECTS := $(addsuffix .o,$(basename $(SOURCES)))
@@ -11,22 +14,31 @@ MSIM_OBJECTS := $(filter-out main.o, $(MSIM_OBJECTS))
 # change relativity of paths
 MSIM_OBJECTS := $(addprefix ../../../src/, $(MSIM_OBJECTS))
 
-ARCH32_CFLAGS = $(CFLAGS_BASE) -DARCH=32
-ARCH64_CFLAGS = $(CFLAGS_BASE) -DARCH=64
+ARCH32_CFLAGS = $(CFLAGS) -DARCH=32
+ARCH64_CFLAGS = $(CFLAGS) -DARCH=64
 TARGET_32 = tests_32
 TARGET_64 = tests_64
 OBJECTS_32 := $(addprefix 32bit/, $(addsuffix .o, $(basename $(SOURCES))))
 OBJECTS_64 := $(addprefix 64bit/, $(addsuffix .o, $(basename $(SOURCES))))
 
+ifeq ($(BUILD_RV64),yes)
+TARGETS = test32 test64
+else
+TARGETS = test32
+endif
+
 RM = rm
-TARGET = tests
 
-.PHONY: test test32 test64 clean distclean
+.PHONY: all test test32 test64 clean distclean
 
-test: test32 test64
+all:
+	@echo "Do not run directly, use make rvtest from top-level directory."
+	exit 1
+
+test: $(TARGETS)
 
 $(TARGET_32): $(OBJECTS_32)
-	$(CC) $(ARCH32_CFLAGS) -o $@ $(MSIM_OBJECTS) $(OBJECTS_32) $(LIBS) $(MSIM_LIBS)
+	$(CC) $(ARCH32_CFLAGS) $(LDFLAGS) -o $@ $(MSIM_OBJECTS) $(OBJECTS_32) $(LIBS) $(MSIM_LIBS)
 
 32bit/%.o: %.c | 32bit
 	$(CC) -c $(ARCH32_CFLAGS) -o $@ $<
@@ -36,10 +48,10 @@ test32: $(TARGET_32)
 	./$(TARGET_32)
 
 $(TARGET_64): $(OBJECTS_64)
-		$(CC) $(ARCH64_CFLAGS) -o $@ $(MSIM_OBJECTS) $(OBJECTS_64) $(LIBS) $(MSIM_LIBS)
+	$(CC) $(ARCH64_CFLAGS) $(LDFLAGS) -o $@ $(MSIM_OBJECTS) $(OBJECTS_64) $(LIBS) $(MSIM_LIBS)
 
 64bit/%.o: %.c | 64bit
-		$(CC) -c $(ARCH64_CFLAGS) -o $@ $<
+	$(CC) -c $(ARCH64_CFLAGS) -o $@ $<
 
 test64: $(TARGET_64)
 	@echo "Running 64-bit tests..."

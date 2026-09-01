@@ -35,7 +35,7 @@ static struct {
 };
 
 static char *cp0_dump_str[] = {
-    "  00 Index\t%08" PRIX64 "  index: %02" PRIX64 " res: %" PRIx64 " p: %01" PRIx64 " \n",
+    "  00 Index\t%08" PRIX64 "  index: %02" PRIX64 " res: %" PRIx64 " p: %01" PRIx64 "\n",
     "  01 Random\t%08" PRIX64 "  random: %02" PRIX64 ", res: %07" PRIX64 "\n",
     "  02 EntryLo0\t%08" PRIX64 "  g: %" PRIx64 " v: %" PRIx64 " d: %" PRIx64 " c: %" PRIx64 " pfn: %06" PRIX64 " res: %" PRIx64 "\n",
     "  03 EntryLo1\t%08" PRIX64 "  g: %" PRIx64 " v: %" PRIx64 " d: %" PRIx64 " c: %" PRIx64 " pfn: %06" PRIX64 " res: %" PRIx64 "\n",

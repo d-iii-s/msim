@@ -9,7 +9,7 @@ processor 0
   fp                0   ra                0   pc ffffffffbfc00004   lo                0   hi                0
 <msim> Alert: XCRD: CP0 register dump
   no name       hex dump  readable dump
-  00 Index	00000000  index: 00 res: 0 p: 0 
+  00 Index	00000000  index: 00 res: 0 p: 0
   01 Random	0000002C  random: 2C, res: 0000000
   02 EntryLo0	00000000  g: 0 v: 0 d: 0 c: 0 pfn: 000000 res: 0
   03 EntryLo1	00000000  g: 0 v: 0 d: 0 c: 0 pfn: 000000 res: 0

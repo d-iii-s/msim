@@ -91,8 +91,6 @@ are usually necessary.
 
     make
 
-Note that MSIM uses ``makedepend`` for dependency generation.
-
 
 Installation
 ^^^^^^^^^^^^

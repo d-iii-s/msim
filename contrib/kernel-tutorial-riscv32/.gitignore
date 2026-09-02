@@ -1,5 +1,4 @@
 *.bin
-*.dep
 *.disasm
 *.map
 *.o

@@ -9,7 +9,7 @@ SLOT="0"
 KEYWORDS="amd64 x86 ppc sparc"
 
 IUSE=""
-DEPEND="sys-libs/readline x11-misc/makedepend sys-apps/diffutils"
+DEPEND="sys-libs/readline"
 RDEPEND="sys-libs/readline"
 
 src_compile() {

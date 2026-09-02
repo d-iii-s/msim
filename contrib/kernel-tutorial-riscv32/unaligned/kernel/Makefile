@@ -21,7 +21,6 @@
 
 
 -include ../config.mk
--include Makefile.depend
 
 CCFLAGS = -O2 -msmall-data-limit=0 -mstrict-align -fno-pic -fno-builtin -ffreestanding -nostdlib -nostdinc -mno-riscv-attribute -pipe -Wall -Wextra -Werror -Wno-unused-parameter -Wmissing-prototypes -g3 -std=c11 -march=rv32g
 ASFLAGS = -msmall-data-limit=0 -mstrict-align -fno-pic -fno-builtin -ffreestanding -nostdlib -nostdinc -mno-riscv-attribute -pipe -Wall -Wextra -Werror -Wno-unused-parameter -Wmissing-prototypes -g3 -std=c11 -I. -D__ASM__ -march=rv32g
@@ -39,7 +38,7 @@ distclean: clean
 
 clean:
 	rm -f *.map *.disasm *.raw
-	find . -\( -name '*.o' -o -name '*.dep' -\) -exec rm -f \{\} \;
+	find . -name '*.o' -exec rm -f \{\} \;
 
 %.disasm: %.raw
 	$(OBJDUMP) -d $< > $@

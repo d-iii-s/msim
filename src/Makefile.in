@@ -6,17 +6,11 @@
 #
 
 CC = @CC@
-CFLAGS = @CFLAGS@
+CFLAGS = @CFLAGS@ -MMD -MP
 LIBS = @LIBS@
-CP = @CP@
-MV = @MV@
 RM = @RM@
-DIFF = @DIFF@
-MAKEDEPEND = @MAKEDEPEND@
 BUILD_RV64 = @BUILD_RV64@
 
-DEPEND = Makefile.depend
-DEPEND_PREV = $(DEPEND).prev
 TARGET = ../msim
 
 SOURCES_COMMON = \
@@ -79,6 +73,7 @@ CFLAGS += -DBUILD_RV64=0
 endif
 
 OBJECTS := $(addsuffix .o,$(basename $(SOURCES)))
+DEPS := $(OBJECTS:.o=.d)
 
 export MSIM_OBJECTS = $(OBJECTS)
 export MSIM_LIBS = $(LIBS)
@@ -86,25 +81,20 @@ export MSIM_LIBS = $(LIBS)
 .PHONY: all clean distclean rvtest
 
 all: $(TARGET)
-	-[ -f $(DEPEND) ] && $(CP) -a $(DEPEND) $(DEPEND_PREV)
 
 clean:
-	$(RM) -f $(TARGET) $(OBJECTS) $(DEPEND) $(DEPEND_PREV)
+	$(RM) -f $(TARGET) $(OBJECTS) $(DEPS)
 
 distclean: clean
 	$(RM) -f Makefile
 
--include $(DEPEND)
+-include $(DEPS)
 
-$(TARGET): $(OBJECTS) $(DEPEND)
+$(TARGET): $(OBJECTS)
 	$(CC) $(CFLAGS) -o $@ $(OBJECTS) $(LIBS)
 
-%.o: %.c $(DEPEND)
+%.o: %.c
 	$(CC) -c $(CFLAGS) -o $@ $<
-
-$(DEPEND):
-	$(MAKEDEPEND) -f - -- $(CFLAGS) -- $(SOURCES) > $@ 2> /dev/null
-	-[ -f $(DEPEND_PREV) ] && $(DIFF) -q $(DEPEND_PREV) $@ && $(MV) -f $(DEPEND_PREV) $@
 
 rvtest: all
 	$(MAKE) -C ../tests/rvtests/unit-tests test

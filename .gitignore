@@ -9,10 +9,9 @@
 /debian-package
 /msim
 /src/Makefile
-/src/Makefile.depend
-/src/Makefile.depend.prev
 /tests/rvtests/unit-tests/Makefile
 *.o
+*.d
 
 stamp-h
 

@@ -9,7 +9,7 @@ VCS: {{{ git_dir_vcs }}}
 Source: {{{ git_dir_pack }}}
 Requires: readline
 
-BuildRequires: readline-devel, makedepend, diffutils
+BuildRequires: readline-devel
 
 %description
 MSIM is a light-weight computer simulator based on MIPS R4000 and RISC-V.

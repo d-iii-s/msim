@@ -13,6 +13,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 * PC translation alerts show only when unhandled in simulated code (see #106, @rosenbergm)
 * Compile on 32bit hosts (without RISC-V 64 guest) (see #94, @rosenbergm, @vhotspur)
+* Add GCC as build requirement for Fedora (@vhotspur)
 
 ### Added
 

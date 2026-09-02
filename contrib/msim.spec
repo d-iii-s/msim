@@ -9,7 +9,7 @@ Source: https://github.com/d-iii-s/msim/archive/refs/tags/v%{version}.tar.gz
 Requires: readline
 
 BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
-BuildRequires: readline-devel
+BuildRequires: gcc, readline-devel
 
 %description
 MSIM is a light-weight computer simulator based on MIPS R4000 and RISC-V.

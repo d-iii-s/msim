@@ -139,6 +139,13 @@ def discover_expected_outputs(test, base_path, arch):
             "host.expected"
     ))
 
+def discover_msim_conf(test, base_path, test_type, arch):
+    test.set_msim_conf(find_nearest_file(
+            base_path,
+            f"msim.{arch}.conf",
+            TESTS_ROOT.joinpath(f"msim.{test_type}.{arch}.conf")
+    ))
+
 
 def print_makefile(tests, output):
     build_phony = " ".join(["build_" + t.get_target_filename() for t in tests])
@@ -295,11 +302,7 @@ def main():
                         SHARED_ROOT.joinpath(f"boot.{arch}.S"),
                         LINKER_SCRIPTS_ROOT.joinpath(f"boot.{arch}.lds")
                 )
-                test.set_msim_conf(find_nearest_file(
-                        base['path'],
-                        f"msim.{arch}.conf",
-                        TESTS_ROOT.joinpath(f"msim.kernel.{arch}.conf")
-                ))
+                discover_msim_conf(test, base['path'], 'kernel', arch)
                 discover_expected_outputs(test, base['path'], arch)
             continue
         for arch in ARCHS.keys():
@@ -311,11 +314,7 @@ def main():
                     boot_file,
                     find_nearest_file(base['path'], f"boot.{arch}.lds")
             )
-            test.set_msim_conf(find_nearest_file(
-                    base['path'],
-                    f"msim.{arch}.conf",
-                    TESTS_ROOT.joinpath(f"msim.boot.{arch}.conf")
-            ))
+            discover_msim_conf(test, base['path'], 'boot', arch)
             discover_expected_outputs(test, base['path'], arch)
 
     if config.makefile:

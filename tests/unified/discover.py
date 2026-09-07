@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 
 import argparse
+import os
 import pathlib
 import sys
 
@@ -14,6 +15,8 @@ ARCHS = {
 }
 
 TESTS_ROOT = pathlib.Path("src/tests")
+SHARED_ROOT = pathlib.Path("src/shared")
+LINKER_SCRIPTS_ROOT = pathlib.Path("src")
 
 class TestCase:
     all_ = []
@@ -34,6 +37,9 @@ class TestCase:
         self.msim_conf = None
         self.bootloader_asm = None
         self.bootloader_lds = None
+        self.kernel_asm = None
+        self.kernel_c = None
+        self.kernel_lds = None
         self.guest_expected = None
         self.host_expected = None
 
@@ -55,6 +61,15 @@ class TestCase:
     def get_bootloader_ldscript(self):
         return self.bootloader_lds
 
+    def get_kernel_asm(self):
+        return self.kernel_asm
+
+    def get_kernel_c(self):
+        return self.kernel_c
+
+    def get_kernel_ldscript(self):
+        return self.kernel_lds
+
     def get_guest_expected(self):
         return self.guest_expected
 
@@ -67,6 +82,11 @@ class TestCase:
     def set_bootloader(self, asm, lds):
         self.bootloader_asm = asm
         self.bootloader_lds = lds
+
+    def set_kernel(self, asm, c, lds):
+        self.kernel_asm = asm
+        self.kernel_c = c
+        self.kernel_lds = lds
 
     def set_guest_expected(self, path):
         self.guest_expected = path
@@ -185,6 +205,37 @@ def print_makefile(tests, output):
                 ["./boot.raw"],
                 f"$({make_arch}_OBJCOPY) -O binary $< $@"
         )
+        if test.get_kernel_c() is not None:
+            ldscript = test.get_kernel_ldscript()
+            subtarget(
+                    "_head.o",
+                    [test.get_kernel_asm()],
+                    f"$({make_arch}_AS) $({make_arch}_ASFLAGS) -c -o $@ $<",
+                    False
+            )
+            objs = ["_head.o"]
+            for src in test.get_kernel_c():
+                target = os.path.basename(src) + ".o"
+                subtarget(
+                        target,
+                        [src],
+                        f"$({make_arch}_CC) $({make_arch}_CFLAGS) -c -o $@ $<",
+                        False
+                )
+                objs.append(target)
+            subtarget(
+                    "kernel.raw",
+                    [f"./{i}" for i in objs],
+                    f"$({make_arch}_LD) $({make_arch}_LDFLAGS) -T {ldscript} -o $@ $^",
+                    False
+            )
+            subtarget(
+                    "kernel.bin",
+                    ["./kernel.raw"],
+                    f"$({make_arch}_OBJCOPY) -O binary $< $@"
+            )
+
+
 
         subtarget_deps = " ".join([i["target"] for i in subtargets])
         print(f"{top_target}: {subtarget_deps}\n", file=output)
@@ -230,7 +281,26 @@ def main():
 
     for base in discover_test_dirs():
         if base['path'].joinpath("kernel.c").exists():
-            # TODO
+            for arch in ARCHS.keys():
+                test = TestCase.make(arch, base['name'])
+                test.set_kernel(
+                        SHARED_ROOT.joinpath(f"kernelhead.{arch}.S"),
+                        [
+                            SHARED_ROOT.joinpath("kernelwrap.c"),
+                            base['path'].joinpath("kernel.c"),
+                        ],
+                        LINKER_SCRIPTS_ROOT.joinpath(f"kernel.{arch}.lds")
+                )
+                test.set_bootloader(
+                        SHARED_ROOT.joinpath(f"boot.{arch}.S"),
+                        LINKER_SCRIPTS_ROOT.joinpath(f"boot.{arch}.lds")
+                )
+                test.set_msim_conf(find_nearest_file(
+                        base['path'],
+                        f"msim.{arch}.conf",
+                        TESTS_ROOT.joinpath(f"msim.kernel.{arch}.conf")
+                ))
+                discover_expected_outputs(test, base['path'], arch)
             continue
         for arch in ARCHS.keys():
             boot_file = base['path'].joinpath(f"boot.{arch}.S")
@@ -246,16 +316,7 @@ def main():
                     f"msim.{arch}.conf",
                     TESTS_ROOT.joinpath(f"msim.boot.{arch}.conf")
             ))
-            test.set_guest_expected(find_one_of(
-                    base['path'],
-                    f"guest.{arch}.expected",
-                    "guest.expected"
-            ))
-            test.set_host_expected(find_one_of(
-                    base['path'],
-                    f"host.{arch}.expected",
-                    "host.expected"
-            ))
+            discover_expected_outputs(test, base['path'], arch)
 
     if config.makefile:
         with open(config.makefile, "wt") as f:

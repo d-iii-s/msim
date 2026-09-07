@@ -89,7 +89,7 @@ msim_run_code() {
 
     echo "quit" >>"$MSIM_TEST_TMPDIR/msim.conf"
     (
-        sed "s#\"boot.bin\"#\"$test_dir/boot.bin\"#" <"$test_dir/msim.conf"
+        sed -e "s#\"boot.bin\"#\"$test_dir/boot.bin\"#" -e "s#\"kernel.bin\"#\"$test_dir/kernel.bin\"#" <"$test_dir/msim.conf"
         if grep -q printer "$test_dir/msim.conf"; then
             echo "printer redir \"$MSIM_TEST_TMPDIR/printer.output\""
         fi

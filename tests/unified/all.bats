@@ -5,6 +5,14 @@
 load "../system/common"
 
 
+@test "MIPS 32: basic/interactive" {
+    msim_run_code "images/basic__interactive__mips32"
+}
+
+@test "RISC-V 32: basic/interactive" {
+    msim_run_code "images/basic__interactive__riscv32"
+}
+
 @test "MIPS 32: basic/printer" {
     msim_run_code "images/basic__printer__mips32"
 }

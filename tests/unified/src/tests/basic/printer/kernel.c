@@ -2,12 +2,14 @@
 
 #define PRINTER_ADDRESS 0x90000000
 
-static inline void putc(char symbol) {
+static inline void putc(char symbol)
+{
     volatile char *device = (volatile char *) PRINTER_ADDRESS;
     *device = symbol;
 }
 
-void kernel_main() {
+void kernel_main()
+{
     putc('H');
     putc('e');
     putc('l');
@@ -16,4 +18,3 @@ void kernel_main() {
     putc('!');
     putc('\n');
 }
-

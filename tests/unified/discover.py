@@ -306,14 +306,15 @@ def main():
     config = args.parse_args()
 
     for base in discover_test_dirs():
-        if base['path'].joinpath("kernel.c").exists():
+        kernel_c = find_nearest_file(base['path'], "kernel.c", None, True)
+        if kernel_c is not None:
             for arch in ARCHS.keys():
                 test = TestCase.make(arch, base['name'])
                 test.set_kernel(
                         SHARED_ROOT.joinpath(f"kernelhead.{arch}.S"),
                         [
                             SHARED_ROOT.joinpath("kernelwrap.c"),
-                            base['path'].joinpath("kernel.c"),
+                            kernel_c,
                         ],
                         LINKER_SCRIPTS_ROOT.joinpath(f"kernel.{arch}.lds")
                 )

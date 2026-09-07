@@ -57,3 +57,7 @@ load "../system/common"
     msim_run_code "images/basic__printer__riscv32"
 }
 
+@test "MIPS 32: mips32/dval" {
+    msim_run_code "images/mips32__dval__mips32"
+}
+

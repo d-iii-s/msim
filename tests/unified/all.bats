@@ -13,6 +13,14 @@ load "../system/common"
     msim_run_code "images/basic__printer__riscv32"
 }
 
+@test "MIPS 32: basic/tracing" {
+    msim_run_code "images/basic__tracing__mips32"
+}
+
+@test "RISC-V 32: basic/tracing" {
+    msim_run_code "images/basic__tracing__riscv32"
+}
+
 @test "MIPS 32: dnomem/break" {
     msim_run_code "images/dnomem__break__mips32"
 }

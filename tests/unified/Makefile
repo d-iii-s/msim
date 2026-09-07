@@ -1,7 +1,7 @@
 
 all: run-tests
 
-.PHONY: all run-tests
+.PHONY: all rebuild run-tests
 
 run-tests:
 	./all.bats

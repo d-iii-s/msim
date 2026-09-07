@@ -17,6 +17,38 @@ load "../system/common"
     msim_run_code "images/riscv32__basic__riscv32"
 }
 
+@test "MIPS 32: dnomem/break" {
+    msim_run_code "images/dnomem__break__mips32"
+}
+
+@test "RISC-V 32: dnomem/break" {
+    msim_run_code "images/dnomem__break__riscv32"
+}
+
+@test "MIPS 32: dnomem/halt" {
+    msim_run_code "images/dnomem__halt__mips32"
+}
+
+@test "RISC-V 32: dnomem/halt" {
+    msim_run_code "images/dnomem__halt__riscv32"
+}
+
+@test "MIPS 32: dnomem/warn" {
+    msim_run_code "images/dnomem__warn__mips32"
+}
+
+@test "RISC-V 32: dnomem/warn" {
+    msim_run_code "images/dnomem__warn__riscv32"
+}
+
+@test "MIPS 32: dnomem/regdump" {
+    msim_run_code "images/dnomem__regdump__mips32"
+}
+
+@test "RISC-V 32: dnomem/regdump" {
+    msim_run_code "images/dnomem__regdump__riscv32"
+}
+
 @test "MIPS 32: basic/printer" {
     msim_run_code "images/basic__printer__mips32"
 }

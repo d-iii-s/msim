@@ -107,13 +107,28 @@ def find_one_of(start, *args):
             return path
     raise Exception(f"None of {args} exists in {start}")
 
+def discover_expected_outputs(test, base_path, arch):
+    test.set_guest_expected(find_one_of(
+            base_path,
+            f"guest.{arch}.expected",
+            "guest.expected"
+    ))
+    test.set_host_expected(find_one_of(
+            base_path,
+            f"host.{arch}.expected",
+            "host.expected"
+    ))
+
+
 def print_makefile(tests, output):
     build_phony = " ".join(["build_" + t.get_target_filename() for t in tests])
     print("# Generated file. Do not edit, do not commit", file=output)
-    print(f"\n.PHONY: all {build_phony}\n\n", file=output)
+    print(f"\n.PHONY: all clean {build_phony}\n\n", file=output)
     print(f"all: {build_phony}\n", file=output)
     print("include toolchain.mk\n\n", file=output)
     print(f"-include local.mk\n", file=output)
+
+    cleanable_files = []
 
     for test in tests:
         target_dir = test.get_target_filename()
@@ -122,17 +137,20 @@ def print_makefile(tests, output):
         make_arch = test.get_arch().upper()
 
         subtargets = []
-        def subtarget(target, deps, command):
+        def subtarget(target, deps, command, is_versioned=True):
             def fix_dep_path(path):
                 if isinstance(path, str):
                     if path.startswith("./"):
                         return f"{image_dir}/{path[2:]}"
                 return str(path)
+            target_path = f"{image_dir}/{target}"
             subtargets.append({
-                    "target": f"{image_dir}/{target}",
+                    "target": target_path,
                     "deps": " ".join([fix_dep_path(i) for i in deps]),
                     "command": command,
             })
+            if not is_versioned:
+                cleanable_files.append(target_path)
 
         subtarget(
                 "msim.conf",
@@ -152,13 +170,15 @@ def print_makefile(tests, output):
         subtarget(
                 "boot.o",
                 [test.get_bootloader_asm()],
-                f"$({make_arch}_AS) $({make_arch}_ASFLAGS) -c -o $@ $<"
+                f"$({make_arch}_AS) $({make_arch}_ASFLAGS) -c -o $@ $<",
+                False
         )
         ldscript = test.get_bootloader_ldscript()
         subtarget(
                 "boot.raw",
                 ["./boot.o", ldscript],
-                f"$({make_arch}_LD) $({make_arch}_LDFLAGS) -T {ldscript} -o $@ $<"
+                f"$({make_arch}_LD) $({make_arch}_LDFLAGS) -T {ldscript} -o $@ $<",
+                False
         )
         subtarget(
                 "boot.bin",
@@ -174,6 +194,8 @@ def print_makefile(tests, output):
             print(f"\t{i['command']}\n", file=output)
 
         print(file=output)
+
+    print("\nclean:\n\trm -f " + " ".join(cleanable_files), file=output)
 
 
 def print_bats(tests, output):

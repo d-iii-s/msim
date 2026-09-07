@@ -35,6 +35,7 @@ class TestCase:
         self.arch = arch
         self.name = name
         self.msim_conf = None
+        self.msim_conf_appended = None
         self.bootloader_asm = None
         self.bootloader_lds = None
         self.kernel_asm = None
@@ -54,6 +55,9 @@ class TestCase:
 
     def get_msim_conf(self):
         return self.msim_conf
+
+    def get_msim_appended_conf(self):
+        return self.msim_conf_appended
 
     def get_bootloader_asm(self):
         return self.bootloader_asm
@@ -76,8 +80,9 @@ class TestCase:
     def get_host_expected(self):
         return self.host_expected
 
-    def set_msim_conf(self, path):
+    def set_msim_conf(self, path, appended):
         self.msim_conf = path
+        self.msim_conf_appended = appended
 
     def set_bootloader(self, asm, lds):
         self.bootloader_asm = asm
@@ -102,7 +107,7 @@ def discover_test_dirs():
             'name': f"{base_path.parent.name}/{base_path.name}"
         }
 
-def find_nearest_file(start, filename, fallback_path=None):
+def find_nearest_file(start, filename, fallback_path=None, missing_file_is_fine=False):
     # TODO: anchor this better
     iters = 5
     it = start.resolve()
@@ -112,7 +117,10 @@ def find_nearest_file(start, filename, fallback_path=None):
             if fallback_path is not None:
                 return fallback_path
             else:
-                raise Exception(f"No {filename} found in {start} or above.")
+                if missing_file_is_fine:
+                    return None
+                else:
+                    raise Exception(f"No {filename} found in {start} or above.")
         actual_path = it.joinpath(filename)
         if actual_path.exists():
             return actual_path
@@ -140,11 +148,20 @@ def discover_expected_outputs(test, base_path, arch):
     ))
 
 def discover_msim_conf(test, base_path, test_type, arch):
-    test.set_msim_conf(find_nearest_file(
-            base_path,
-            f"msim.{arch}.conf",
-            TESTS_ROOT.joinpath(f"msim.{test_type}.{arch}.conf")
-    ))
+    appended_files = [
+        find_nearest_file(base_path, f"msim.{test_type}.{arch}.conf.append", None, True),
+        find_nearest_file(base_path, f"msim.{arch}.conf.append", None, True),
+        find_nearest_file(base_path, f"msim.{test_type}.conf.append", None, True),
+        find_nearest_file(base_path, "msim.conf.append", None, True),
+    ]
+    test.set_msim_conf(
+            find_nearest_file(
+                base_path,
+                f"msim.{arch}.conf",
+                TESTS_ROOT.joinpath(f"msim.{test_type}.{arch}.conf")
+            ),
+            [i for i in appended_files if i is not None]
+    )
 
 
 def print_makefile(tests, output):
@@ -181,8 +198,8 @@ def print_makefile(tests, output):
 
         subtarget(
                 "msim.conf",
-                [test.get_msim_conf()],
-                "cat < $< > $@"
+                [test.get_msim_conf()] + test.get_msim_appended_conf(),
+                "cat $^ > $@"
         )
         subtarget(
                 "guest.expected",

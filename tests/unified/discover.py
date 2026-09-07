@@ -102,6 +102,8 @@ class TestCase:
 
 def discover_test_dirs():
     for base_path in TESTS_ROOT.glob("*/*"):
+        if not base_path.is_dir():
+            continue
         yield {
             'path': base_path,
             'name': f"{base_path.parent.name}/{base_path.name}"

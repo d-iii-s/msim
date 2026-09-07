@@ -100,7 +100,7 @@ class TestCase:
         self.host_expected = path
 
 
-def discover_test_dirs():
+def discover_test_dirs_impl():
     for base_path in TESTS_ROOT.glob("*/*"):
         if not base_path.is_dir():
             continue
@@ -108,6 +108,12 @@ def discover_test_dirs():
             'path': base_path,
             'name': f"{base_path.parent.name}/{base_path.name}"
         }
+
+def discover_test_dirs():
+    return sorted(
+        discover_test_dirs_impl(),
+        key=lambda element: element['path']
+    )
 
 def find_nearest_file(start, filename, fallback_path=None, missing_file_is_fine=False):
     # TODO: anchor this better

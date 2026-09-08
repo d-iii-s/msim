@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 
 import argparse
+import configparser
 import os
 import pathlib
 import sys
@@ -38,8 +39,10 @@ class TestCase:
     def __init__(self, arch, name):
         self.arch = arch
         self.name = name
+        self.internal_name = name
         self.msim_conf = None
         self.msim_conf_appended = None
+        self.exit_code = 0
         self.bootloader_asm = None
         self.bootloader_lds = None
         self.kernel_asm = None
@@ -48,14 +51,32 @@ class TestCase:
         self.guest_expected = None
         self.host_expected = None
 
+    def load_extras(self, test_dir):
+        config_file = test_dir.joinpath("test.ini")
+        if not config_file.exists():
+            return
+        config = configparser.ConfigParser(allow_unnamed_section=True)
+        config.read(config_file)
+        def load_it(name, converter=lambda x: x):
+            self.__dict__[name] = converter(config.get(
+                    configparser.UNNAMED_SECTION,
+                    name,
+                    fallback=self.__dict__[name]
+            ))
+        load_it('name')
+        load_it('exit_code', int)
+
     def get_arch(self):
         return self.arch
 
     def get_name(self):
         return self.name
 
+    def get_expected_exit_code(self):
+        return self.exit_code
+
     def get_target_filename(self):
-        return self.name.replace("/", "__").replace("-", "_") + f"__{self.arch}"
+        return self.internal_name.replace("/", "__").replace("-", "_") + f"__{self.arch}"
 
     def get_msim_conf(self):
         return self.msim_conf
@@ -299,7 +320,13 @@ def print_bats(tests, output):
         test_name = test.get_name()
 
         print(f"@test \"{test_arch}: {test_name}\" {{", file=output)
-        print(f"    msim_run_code \"{image_dir}\"", file=output)
+        if test.get_arch() == 'sys':
+            prefix = ""
+            if test.get_expected_exit_code() != 0:
+                prefix = "exit_success=false "
+            print(f"     {prefix}msim_run_sys \"{image_dir}\"", file=output)
+        else:
+            print(f"    msim_run_code \"{image_dir}\"", file=output)
         print("}\n", file=output)
 
 def main():
@@ -320,6 +347,7 @@ def main():
         if base['path'].joinpath("msim.sys.conf").exists():
             # Special test of MSIM itself without running any code
             test = TestCase.make('sys', base['name'])
+            test.load_extras(base['path'])
             test.set_msim_conf(base['path'].joinpath("msim.sys.conf"))
             discover_expected_outputs(test, base['path'], 'sys')
             continue
@@ -329,6 +357,7 @@ def main():
             # Test using compiled C code
             for arch in ARCH_LIST:
                 test = TestCase.make(arch, base['name'])
+                test.load_extras(base['path'])
                 test.set_kernel(
                         SHARED_ROOT.joinpath(f"kernelhead.{arch}.S"),
                         [
@@ -350,6 +379,7 @@ def main():
             if not boot_file.exists():
                 continue
             test = TestCase.make(arch, base['name'])
+            test.load_extras(base['path'])
             test.set_bootloader(
                     boot_file,
                     find_nearest_file(base['path'], f"boot.{arch}.lds")

@@ -81,6 +81,55 @@ msim_command_check() {
     fi
 }
 
+msim_run_sys() {
+    local test_dir="$( dirname "$BATS_TEST_FILENAME" )/$1"
+    shift
+    local expected_from_simulator="$( cat "$test_dir/${expected:-host.expected}" )"
+
+    local expected_exit_code_is_zero="${exit_success:-true}"
+
+    cat "$test_dir/msim.conf" >"$MSIM_TEST_TMPDIR/msim.conf"
+
+    {
+        echo
+        echo "# MSIM configuration msim.conf"
+        sed 's:.*:#  | &:' "$MSIM_TEST_TMPDIR/msim.conf"
+    } >&2
+
+    run bash -c "cd '$MSIM_TEST_TMPDIR' && '$MSIM'"
+    {
+        echo
+        echo "# MSIM output (stdout and stderr interleaved)"
+        echo "$output" | sed 's:.*:#  | &:'
+    } >&2
+
+    if $expected_exit_code_is_zero; then
+        if [ "$status" -ne 0 ]; then
+            fail "MSIM failed with exit code $status."
+        fi
+    else
+        if [ "$status" -eq 0 ]; then
+            fail "MSIM terminated with exit code 0 but expecting failure."
+        fi
+        if [ "$status" -eq 139 ]; then
+            fail "MSIM terminated with exit code 139 SIGSEGV."
+        fi
+    fi
+
+    if [ "$output" != "$expected_from_simulator" ]; then
+        {
+            echo "Failure: unexpected output."
+            echo "-- Expected --"
+            echo "$expected_from_simulator"
+            echo "-- Actual --"
+            echo "$output"
+            show_string_diff "$expected_from_simulator" "$output"
+            echo "--"
+        } | fail
+    fi
+}
+
+
 msim_run_code() {
     local test_dir="$( dirname "$BATS_TEST_FILENAME" )/$1"
     shift

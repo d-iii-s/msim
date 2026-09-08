@@ -311,7 +311,7 @@ def print_bats(tests, output):
     build_phony = " ".join(["build_" + t.get_target_filename() for t in tests])
     print("#!/usr/bin/env bats\n", file=output)
     print("# Generated file. Do not edit but commit\n", file=output)
-    print("load \"../system/common\"\n\n", file=output)
+    print("load \"common\"\n\n", file=output)
 
     for test in tests:
         target_dir = test.get_target_filename()

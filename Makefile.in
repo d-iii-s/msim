@@ -36,7 +36,6 @@ distclean: clean
 
 test:
 	make -C . rvtest
-	bats tests/system/
 	make -C tests/unified
 
 rvtest:

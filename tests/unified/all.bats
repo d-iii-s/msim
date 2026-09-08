@@ -2,7 +2,7 @@
 
 # Generated file. Do not edit but commit
 
-load "../system/common"
+load "common"
 
 
 @test "SYSTEM: basic/duplicate-device-name" {

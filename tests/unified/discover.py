@@ -12,7 +12,11 @@ ARCHS = {
     "riscv32": {
         "name": "RISC-V 32"
     },
+    "sys": {
+        "name": "SYSTEM"
+    }
 }
+ARCH_LIST = ["mips32", "riscv32"]
 
 TESTS_ROOT = pathlib.Path("src/tests")
 SHARED_ROOT = pathlib.Path("src/shared")
@@ -80,7 +84,7 @@ class TestCase:
     def get_host_expected(self):
         return self.host_expected
 
-    def set_msim_conf(self, path, appended):
+    def set_msim_conf(self, path, appended=[]):
         self.msim_conf = path
         self.msim_conf_appended = appended
 
@@ -207,7 +211,7 @@ def print_makefile(tests, output):
         subtarget(
                 "msim.conf",
                 [test.get_msim_conf()] + test.get_msim_appended_conf(),
-                "cat $^ > $@"
+                "cat $^ > $@" + ("; echo quit >> $@" if test.get_arch() == "sys" else "")
         )
         subtarget(
                 "guest.expected",
@@ -219,24 +223,25 @@ def print_makefile(tests, output):
                 [test.get_host_expected()],
                 "cat < $< > $@"
         )
-        subtarget(
-                "boot.o",
-                [test.get_bootloader_asm()],
-                f"$({make_arch}_AS) $({make_arch}_ASFLAGS) -c -o $@ $<",
-                False
-        )
-        ldscript = test.get_bootloader_ldscript()
-        subtarget(
-                "boot.raw",
-                ["./boot.o", ldscript],
-                f"$({make_arch}_LD) $({make_arch}_LDFLAGS) -T {ldscript} -o $@ $<",
-                False
-        )
-        subtarget(
-                "boot.bin",
-                ["./boot.raw"],
-                f"$({make_arch}_OBJCOPY) -O binary $< $@"
-        )
+        if test.get_bootloader_asm() is not None:
+            subtarget(
+                    "boot.o",
+                    [test.get_bootloader_asm()],
+                    f"$({make_arch}_AS) $({make_arch}_ASFLAGS) -c -o $@ $<",
+                    False
+            )
+            ldscript = test.get_bootloader_ldscript()
+            subtarget(
+                    "boot.raw",
+                    ["./boot.o", ldscript],
+                    f"$({make_arch}_LD) $({make_arch}_LDFLAGS) -T {ldscript} -o $@ $<",
+                    False
+            )
+            subtarget(
+                    "boot.bin",
+                    ["./boot.raw"],
+                    f"$({make_arch}_OBJCOPY) -O binary $< $@"
+            )
         if test.get_kernel_c() is not None:
             ldscript = test.get_kernel_ldscript()
             subtarget(
@@ -312,9 +317,17 @@ def main():
     config = args.parse_args()
 
     for base in discover_test_dirs():
+        if base['path'].joinpath("msim.sys.conf").exists():
+            # Special test of MSIM itself without running any code
+            test = TestCase.make('sys', base['name'])
+            test.set_msim_conf(base['path'].joinpath("msim.sys.conf"))
+            discover_expected_outputs(test, base['path'], 'sys')
+            continue
+
         kernel_c = find_nearest_file(base['path'], "kernel.c", None, True)
         if kernel_c is not None:
-            for arch in ARCHS.keys():
+            # Test using compiled C code
+            for arch in ARCH_LIST:
                 test = TestCase.make(arch, base['name'])
                 test.set_kernel(
                         SHARED_ROOT.joinpath(f"kernelhead.{arch}.S"),
@@ -331,7 +344,8 @@ def main():
                 discover_msim_conf(test, base['path'], 'kernel', arch)
                 discover_expected_outputs(test, base['path'], arch)
             continue
-        for arch in ARCHS.keys():
+        # Otherwise, only assembly code
+        for arch in ARCH_LIST:
             boot_file = base['path'].joinpath(f"boot.{arch}.S")
             if not boot_file.exists():
                 continue

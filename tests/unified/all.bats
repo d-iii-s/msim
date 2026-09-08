@@ -5,6 +5,10 @@
 load "../system/common"
 
 
+@test "SYSTEM: basic/duplicate-device-name" {
+     exit_success=false msim_run_sys "images/basic__duplicate_device_name__sys"
+}
+
 @test "MIPS 32: basic/interactive" {
     msim_run_code "images/basic__interactive__mips32"
 }
@@ -61,6 +65,10 @@ load "../system/common"
     msim_run_code "images/dnomem__warn__riscv32"
 }
 
+@test "SYSTEM: issue/44-invalid-add-call" {
+     exit_success=false msim_run_sys "images/issue__44_invalid_add_call__sys"
+}
+
 @test "MIPS 32: mips32/dval" {
     msim_run_code "images/mips32__dval__mips32"
 }
@@ -75,5 +83,25 @@ load "../system/common"
 
 @test "RISC-V 32: riscv32/basic" {
     msim_run_code "images/riscv32__basic__riscv32"
+}
+
+@test "SYSTEM: system/bad-device-name" {
+     exit_success=false msim_run_sys "images/system__bad_device_name__sys"
+}
+
+@test "SYSTEM: system/dumpdev-empty" {
+     msim_run_sys "images/system__dumpdev_empty__sys"
+}
+
+@test "SYSTEM: system/dumpdev-mips" {
+     msim_run_sys "images/system__dumpdev_mips__sys"
+}
+
+@test "SYSTEM: system/dumpdev-rv32" {
+     msim_run_sys "images/system__dumpdev_rv32__sys"
+}
+
+@test "SYSTEM: system/empty" {
+     msim_run_sys "images/system__empty__sys"
 }
 

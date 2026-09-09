@@ -3942,6 +3942,63 @@ See 'config.log' for more details" "$LINENO" 5; } ;;
 esac
 fi
 
+{ printf "%s\n" "$as_me:${as_lineno-$LINENO}: checking for fmaf in -lm" >&5
+printf %s "checking for fmaf in -lm... " >&6; }
+if test ${ac_cv_lib_m_fmaf+y}
+then :
+  printf %s "(cached) " >&6
+else case e in #(
+  e) ac_check_lib_save_LIBS=$LIBS
+LIBS="-lm  $LIBS"
+cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+
+/* Override any GCC internal prototype to avoid an error.
+   Use char because int might match the return type of a GCC
+   builtin and then its argument prototype would still apply.
+   The 'extern "C"' is for builds by C++ compilers;
+   although this is not generally supported in C code supporting it here
+   has little cost and some practical benefit (sr 110532).  */
+#ifdef __cplusplus
+extern "C"
+#endif
+char fmaf (void);
+int
+main (void)
+{
+return fmaf ();
+  ;
+  return 0;
+}
+_ACEOF
+if ac_fn_c_try_link "$LINENO"
+then :
+  ac_cv_lib_m_fmaf=yes
+else case e in #(
+  e) ac_cv_lib_m_fmaf=no ;;
+esac
+fi
+rm -f core conftest.err conftest.$ac_objext conftest.beam \
+    conftest$ac_exeext conftest.$ac_ext
+LIBS=$ac_check_lib_save_LIBS ;;
+esac
+fi
+{ printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: $ac_cv_lib_m_fmaf" >&5
+printf "%s\n" "$ac_cv_lib_m_fmaf" >&6; }
+if test "x$ac_cv_lib_m_fmaf" = xyes
+then :
+  printf "%s\n" "#define HAVE_LIBM 1" >>confdefs.h
+
+  LIBS="-lm $LIBS"
+
+else case e in #(
+  e) { { printf "%s\n" "$as_me:${as_lineno-$LINENO}: error: in '$ac_pwd':" >&5
+printf "%s\n" "$as_me: error: in '$ac_pwd':" >&2;}
+as_fn_error $? "Math library not found.
+See 'config.log' for more details" "$LINENO" 5; } ;;
+esac
+fi
+
 { printf "%s\n" "$as_me:${as_lineno-$LINENO}: checking for main in -lwsock32" >&5
 printf %s "checking for main in -lwsock32... " >&6; }
 if test ${ac_cv_lib_wsock32_main+y}
@@ -4014,7 +4071,7 @@ then :
 printf "%s\n" "#define STDC_HEADERS 1" >>confdefs.h
 
 fi
-       for ac_header in ctype.h errno.h fcntl.h getopt.h inttypes.h readline/history.h readline/readline.h signal.h stdarg.h stdbool.h stdint.h stdio.h stdlib.h string.h sys/stat.h sys/time.h sys/types.h time.h unistd.h
+       for ac_header in ctype.h errno.h fcntl.h getopt.h inttypes.h math.h readline/history.h readline/readline.h signal.h stdarg.h stdbool.h stdint.h stdio.h stdlib.h string.h sys/stat.h sys/time.h sys/types.h time.h unistd.h
 do :
   as_ac_Header=`printf "%s\n" "ac_cv_header_$ac_header" | sed "$as_sed_sh"`
 ac_fn_c_check_header_compile "$LINENO" "$ac_header" "$as_ac_Header" "$ac_includes_default"

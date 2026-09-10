@@ -1,11 +1,11 @@
 processor 0
-   0                0   at                0   v0 ffffffff88000000   v1                0   a0 ffffffff800002da
+   0                0   at                0   v0 ffffffff88000000   v1                0   a0 ffffffff800002ba
   a1 ffffffff90000000   a2                0   a3                0   t0                0   t1                0
   t2                0   t3                0   t4                0   t5                0   t6                0
   t7                0   s0                0   s1                0   s2                0   s3                0
   s4                0   s5                0   s6                0   s7                0   t8                0
-  t9                0   k0             ff00   k1                0   gp                0   sp ffffffff8cffffe8
-  fp                0   ra ffffffff80000230   pc ffffffff80000274   lo                0   hi                0
+  t9                0   k0             ff00   k1                0   gp                0   sp ffffffff8d000000
+  fp                0   ra ffffffff80000214   pc ffffffff80000254   lo                0   hi                0
 <msim> Alert: Halting after forbidden READ (at 0x008000008, 0x8 inside nomem).
 
-Cycles: 127
+Cycles: 123

@@ -366,7 +366,6 @@ def main():
                             SHARED_ROOT.joinpath(f"kernelhead.{arch}.S"),
                         ],
                         [
-                            SHARED_ROOT.joinpath("kernelwrap.c"),
                             kernel_c,
                         ],
                         LINKER_SCRIPTS_ROOT.joinpath(f"kernel.{arch}.lds")
@@ -379,6 +378,28 @@ def main():
                 discover_expected_outputs(test, base['path'], arch)
             continue
         # Otherwise, only assembly code
+        for arch in ARCH_LIST:
+            kernel_file = base['path'].joinpath(f"kernel.{arch}.S")
+            if not kernel_file.exists():
+                continue
+            test = TestCase.make(arch, base['name'])
+            test.load_extras(base['path'])
+            test.set_kernel(
+                    [
+                        SHARED_ROOT.joinpath(f"kernelhead.{arch}.S"),
+                        kernel_file,
+                    ],
+                    [
+                    ],
+                    LINKER_SCRIPTS_ROOT.joinpath(f"kernel.{arch}.lds")
+            )
+            test.set_bootloader(
+                    SHARED_ROOT.joinpath(f"boot.{arch}.S"),
+                    LINKER_SCRIPTS_ROOT.joinpath(f"boot.{arch}.lds")
+            )
+            discover_msim_conf(test, base['path'], 'kernel', arch)
+            discover_expected_outputs(test, base['path'], arch)
+
         for arch in ARCH_LIST:
             boot_file = base['path'].joinpath(f"boot.{arch}.S")
             if not boot_file.exists():

@@ -21,7 +21,9 @@ machine_trap_handler:
     /* Reset bare-mode */
     csrw satp, zero
 
-    /* Jump to C */
-    jal ra, kernel_wrap
+    /* Jump to the actual main now */
+    jal ra, kernel_main
     nop
+
+    simulator_halt
 

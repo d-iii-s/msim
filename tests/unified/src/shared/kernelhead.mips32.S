@@ -44,8 +44,10 @@ start:
     la $k0, 0xff00
     mtc0 $k0, $12
 
-    /* Jump to C */
-    jal kernel_wrap
+    /* Jump to the actual main now */
+    jal kernel_main
     nop
+    .insn
+    simulator_halt
 .end start
 

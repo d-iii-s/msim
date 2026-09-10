@@ -1,5 +1,5 @@
 .text
 .set noreorder
-la $ra, 0x80001000
+la $ra, 0x80000200
 j $ra
 nop

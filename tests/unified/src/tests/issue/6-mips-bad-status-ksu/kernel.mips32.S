@@ -15,35 +15,29 @@
  *
  * So when the whole status register is set to KSU 0b11, the
  * behaviour is probably undefined?
+ *
+ * MSIM raises address error as we do not know which memory
+ * (if any) restrictions to apply. Raising coprocessor unusable
+ * might be an option, probably?
  */
 
 #define status 12
 #define bad_status 0x18
 
 .text
-.set noat
 .set noreorder
-.ent __start
-__start:
-	nop
+
+.globl kernel_main
+.ent kernel_main
+kernel_main:
+    nop
 	la $a0, bad_status
 	mtc0 $a0, $status
-	nop
 
-	/*
-	 * So far, good. Now access the printer and
-	 * try to print "\n" to it.
-	 */
-	la $a0, 0x90000000
-	la $a1, 0x0A
-	sw $a1, 0($a0)
+    /* If we get here, we only return. */
 	nop
+    j $ra
+    nop
 
-	/*
-	 * If all is okay, terminate.
-	 */
-	.insn
-	.word 0x28
-	nop
-.end __start
+.end kernel_main
 

@@ -69,6 +69,10 @@ load "common"
      exit_success=false msim_run_sys "images/issue__44_invalid_add_call__sys"
 }
 
+@test "MIPS 32: issue/6-mips-bad-status-ksu" {
+    msim_run_code "images/issue__6_mips_bad_status_ksu__mips32"
+}
+
 @test "MIPS 32: mips32/dval" {
     msim_run_code "images/mips32__dval__mips32"
 }

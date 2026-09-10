@@ -94,6 +94,7 @@ static char **msim_completion(const char *text, int start, int end)
  */
 void input_init(void)
 {
+    using_history();
     input_term = !!isatty(0);
 
     if (!input_term) {
@@ -118,7 +119,6 @@ void input_init(void)
     tio_inter.c_cc[VMIN] = 1;
     tio_inter.c_cc[VTIME] = 0;
 
-    using_history();
     rl_readline_name = "msim";
     rl_attempted_completion_function = msim_completion;
 }
@@ -153,7 +153,43 @@ void interactive_control(void)
 
     while (machine_interactive) {
         input_back();
-        char *cmdline = readline(PROMPT);
+
+        /*
+         * Printing the prompt depends on whether the input is a terminal.
+         *
+         * When the input is a terminal, we let readline() print the prompt
+         * itself. This keeps the prompt on screen after a screen refresh
+         * (CTRL+L) -- readline needs to own the prompt string in order to be
+         * able to redraw it. Passing NULL here (or setting rl_already_prompted)
+         * would leave the top of the screen without the prompt after such a
+         * refresh.
+         *
+         * When the input is not a terminal (e.g. a file with a list of
+         * commands, or /dev/null), we print the prompt manually and pass NULL
+         * to readline(). This is done for consistency between the two readline
+         * implementations: GNU readline writes the prompt to the output even on
+         * a non-tty input, whereas the BSD editline (libedit) shipped with
+         * macOS does not. Printing it ourselves and giving readline a NULL
+         * prompt makes the output identical on both platforms, which matters
+         * for the test outputs.
+         *
+         * Note that rl_already_prompted is not honoured by libedit, so it can
+         * not be combined with a non-NULL prompt to achieve the same -- that
+         * would print the prompt twice on macOS.
+         *
+         * The two implementations still differ in whether commands read from a
+         * non-tty input are echoed to the output (GNU echoes them, libedit does
+         * not), so tests that feed a command file into the interactive mode are
+         * not portable yet.
+         */
+        if (!input_term) {
+            printf("%s", PROMPT);
+            fflush(stdout);
+            rl_already_prompted = 1;
+        }
+
+        char *cmdline = readline(input_term ? PROMPT : NULL);
+
         input_shadow();
 
         if (!cmdline) {

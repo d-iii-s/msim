@@ -10,6 +10,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+* Fixed inconsistent prompt printing between GNU readline and BSD editline (libedit) and fixed history initialization. (see #108, @MatusJurcak)
+
 ### Added
 
 ### Changed

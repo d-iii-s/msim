@@ -263,15 +263,18 @@ def print_makefile(tests, output):
                     ["./boot.raw"],
                     f"$({make_arch}_OBJCOPY) -O binary $< $@"
             )
-        if test.get_kernel_c() is not None:
+        if test.get_kernel_asm():
             ldscript = test.get_kernel_ldscript()
-            subtarget(
-                    "_head.o",
-                    [test.get_kernel_asm()],
-                    f"$({make_arch}_AS) $({make_arch}_ASFLAGS) -c -o $@ $<",
-                    False
-            )
-            objs = ["_head.o"]
+            objs = []
+            for src in test.get_kernel_asm():
+                target = os.path.basename(src) + ".o"
+                subtarget(
+                        target,
+                        [src],
+                        f"$({make_arch}_AS) $({make_arch}_ASFLAGS) -c -o $@ $<",
+                        False
+                )
+                objs.append(target)
             for src in test.get_kernel_c():
                 target = os.path.basename(src) + ".o"
                 subtarget(
@@ -359,7 +362,9 @@ def main():
                 test = TestCase.make(arch, base['name'])
                 test.load_extras(base['path'])
                 test.set_kernel(
-                        SHARED_ROOT.joinpath(f"kernelhead.{arch}.S"),
+                        [
+                            SHARED_ROOT.joinpath(f"kernelhead.{arch}.S"),
+                        ],
                         [
                             SHARED_ROOT.joinpath("kernelwrap.c"),
                             kernel_c,

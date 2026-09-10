@@ -1,0 +1,13 @@
+processor 0
+  zero:        0    ra: 8000020c    sp: 8d000000    gp:        0
+    tp:        0    t0: 80000200    t1:        0    t2:        0
+ s0/fp:        0    s1:        0    a0:        0    a1:        0
+    a2: 90000000    a3: 800002b6    a4:        0    a5: 88000000
+    a6:        0    a7:        0    s2:        0    s3:        0
+    s4:        0    s5:        0    s6:        0    s7:        0
+    s8:        0    s9:        0   s10:        0   s11:        0
+    t3:        0    t4:        0    t5:        0    t6:        0
+    pc: 80000250                               Privilege mode: M
+<msim> Alert: Halting after forbidden READ (at 0x088000008, 0x8 inside nomem).
+
+Cycles: 120

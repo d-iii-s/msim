@@ -1,0 +1,4 @@
+<msim> Alert: XVAL: Register a0 = 0xffffffffdeadbeef = 18446744073150512879 (-559038737)
+<msim> Alert: XHLT: Machine halt
+
+Cycles: 7

@@ -645,7 +645,11 @@ Registers
     :widths: auto
 
     "+0",4,"DMA buffer address (lower 32 bits)",read,"
-    Get the current physical address of the DMA buffer (lower 32 bits)
+    Get the current physical address inside the DMA buffer (lower 32 bits).
+
+    This register is updated by the device during the operation and points at
+    the position where the hardware is currently reading/writing the data from/to the disk.
+    Therefore, reading the register is practical only for debugging.
     "
     ,,,write,"
     Set the physical address of the DMA buffer (lower 32 bits).

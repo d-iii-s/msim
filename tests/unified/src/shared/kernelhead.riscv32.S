@@ -1,13 +1,27 @@
-.text
+.section .handlers
 
-/* Leave space for stack */
-.org 0x1000
-la sp, 0x80001000
+.macro rd_dump_and_quit
+    .word 0x8C100073
+    .word 0x8C000073
+.endm rd_dump_and_quit
 
-/* Reset bare-mode */
-csrw satp, zero
+.balign 4
+machine_trap_handler:
+    rd_dump_and_quit
 
-/* Jump to C */
-jal ra, kernel_wrap
-nop
+.section .head
+
+.org 0x200
+
+/* Initial code after handover from bootloader. */
+
+    /* Setup stack */
+    la sp, 0x8D000000
+
+    /* Reset bare-mode */
+    csrw satp, zero
+
+    /* Jump to C */
+    jal ra, kernel_wrap
+    nop
 

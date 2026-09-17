@@ -37,8 +37,8 @@ exception_general:
 .org 0x200
 .ent start
 start:
-    /* Setup stack */
-    la $sp, 0x8D000000
+    /* Setup stack (use the extra device in msim.conf) */
+    la $sp, 0x8D100000
 
     /* Leave BEV and disable interrupts globally. */
     la $k0, 0xff00

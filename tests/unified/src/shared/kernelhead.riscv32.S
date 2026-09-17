@@ -15,8 +15,8 @@ machine_trap_handler:
 
 /* Initial code after handover from bootloader. */
 
-    /* Setup stack */
-    la sp, 0x8D000000
+    /* Setup stack (use the extra device in msim.conf) */
+    la sp, 0x8D100000
 
     /* Reset bare-mode */
     csrw satp, zero

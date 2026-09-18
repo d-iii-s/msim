@@ -1,0 +1,4 @@
+<msim> Error in msim.conf on line 1:
+Missing parameter "register block address"
+<msim> Fault in msim.conf on line 1:
+Error in configuration file

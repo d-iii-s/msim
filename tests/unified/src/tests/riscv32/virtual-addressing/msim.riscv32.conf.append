@@ -1,0 +1,3 @@
+add rwm app 0x10008000
+app generic 4K
+app load "app.bin"

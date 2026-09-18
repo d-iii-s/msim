@@ -1,0 +1,9 @@
+cpu0  0xffffffffbfc00000 li a0, 12
+cpu0  0xffffffffbfc00004 li a1, 52
+cpu0  0xffffffffbfc00008 add a2, a0, a1
+cpu0  0xffffffffbfc0000c lui k0, 0x9000
+cpu0  0xffffffffbfc00010 sw a2, 0(k0)
+<msim> Alert: XHLT: Machine halt
+cpu0  0xffffffffbfc00014 _xhlt
+
+Cycles: 6

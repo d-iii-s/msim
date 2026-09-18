@@ -1,15 +1,22 @@
+/* SPDX-License-Identifier: Apache-2.0 */
+/* Copyright 2026 Charles University */
+
 OUTPUT_ARCH(riscv)
 
 SECTIONS {
-	.kernel 0x80000000 : {
-		*(.head)
-		*(.handlers)
+
+	/*
+	 * Fixed address for a test's user-mode ("app") program. Any test
+	 * using this must map this same address as executable+user in its
+	 * own page tables, and load "app.bin" at this same physical address
+	 * in its msim.conf.
+	 */
+	.app 0x10008000 : {
 		*(.text .text.*)
 		*(.data)
 		*(.rodata .rodata.*)
 		*(.bss .bss.*)
 		*(COMMON)
-		PROVIDE(__kernel_end = .);
 	}
 
 	/* Debugging information copied from default linker script */

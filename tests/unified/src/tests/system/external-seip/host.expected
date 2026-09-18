@@ -1,0 +1,4 @@
+mip (0x344):
+mip 0x00000000 [ MEIP 0, SEIP 0, MTIP 0, STIP 0, MSIP 0, SSIP 0 (External SEIP 1, External STIP 0) ]
+sip (0x144):
+sip 0x00000000 [ SEIP 0, STIP 0, SSIP 0 (External SEIP 1, External STIP 0) ]

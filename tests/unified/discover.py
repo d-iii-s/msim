@@ -4,6 +4,7 @@ import argparse
 import configparser
 import os
 import pathlib
+import re
 import sys
 
 ARCHS = {
@@ -50,6 +51,8 @@ class TestCase:
         self.kernel_lds = None
         self.guest_expected = None
         self.host_expected = None
+        self.extra_asm = []
+        self.extra_data = []
 
     def load_extras(self, test_dir):
         config_file = test_dir.joinpath("test.ini")
@@ -104,6 +107,18 @@ class TestCase:
 
     def get_host_expected(self):
         return self.host_expected
+
+    def get_extra_asm(self):
+        return self.extra_asm
+
+    def get_extra_data(self):
+        return self.extra_data
+
+    def set_extra_asm(self, items):
+        self.extra_asm = items
+
+    def set_extra_data(self, items):
+        self.extra_data = items
 
     def set_msim_conf(self, path, appended=[]):
         self.msim_conf = path
@@ -167,6 +182,34 @@ def find_one_of(start, *args):
         if path.exists():
             return path
     raise Exception(f"None of {args} exists in {start}")
+
+def referenced_bin_names(conf_files):
+    names = set()
+    for conf_file in conf_files:
+        text = conf_file.read_text()
+        names.update(m.group(1) for m in re.finditer(r'load\s+"([^"]+)\.bin"', text))
+    return names - {"boot", "kernel"}
+
+def resolve_extra(base_path, name, arch):
+    for candidate_dir in [base_path, SHARED_ROOT]:
+        src = candidate_dir.joinpath(f"{name}.{arch}.S")
+        if src.exists():
+            ldscript = base_path.joinpath(f"{name}.{arch}.lds")
+            if not ldscript.exists():
+                ldscript = LINKER_SCRIPTS_ROOT.joinpath(f"{name}.{arch}.lds")
+            if not ldscript.exists():
+                ldscript = LINKER_SCRIPTS_ROOT.joinpath(f"boot.{arch}.lds")
+            return ("asm", name, src, ldscript)
+    data_file = base_path.joinpath(f"{name}.bin")
+    if data_file.exists():
+        return ("data", name, data_file)
+    raise Exception(f"No source or data found for '{name}.bin' referenced from {base_path}'s msim.conf")
+
+def discover_extras(test, base_path, arch):
+    conf_files = [test.get_msim_conf()] + test.get_msim_appended_conf()
+    resolved = [resolve_extra(base_path, name, arch) for name in sorted(referenced_bin_names(conf_files))]
+    test.set_extra_asm([i[1:] for i in resolved if i[0] == "asm"])
+    test.set_extra_data([i[1:] for i in resolved if i[0] == "data"])
 
 def discover_expected_outputs(test, base_path, arch):
     test.set_guest_expected(find_one_of(
@@ -296,7 +339,31 @@ def print_makefile(tests, output):
                     f"$({make_arch}_OBJCOPY) -O binary $< $@"
             )
 
+        for name, src, ldscript in test.get_extra_asm():
+            subtarget(
+                    f"{name}.o",
+                    [src],
+                    f"$({make_arch}_AS) $({make_arch}_ASFLAGS) -c -o $@ $<",
+                    False
+            )
+            subtarget(
+                    f"{name}.raw",
+                    [f"./{name}.o", ldscript],
+                    f"$({make_arch}_LD) $({make_arch}_LDFLAGS) -T {ldscript} -o $@ $<",
+                    False
+            )
+            subtarget(
+                    f"{name}.bin",
+                    [f"./{name}.raw"],
+                    f"$({make_arch}_OBJCOPY) -O binary $< $@"
+            )
 
+        for name, src in test.get_extra_data():
+            subtarget(
+                    f"{name}.bin",
+                    [src],
+                    "cat < $< > $@"
+            )
 
         subtarget_deps = " ".join([i["target"] for i in subtargets])
         print(f"{top_target}: {subtarget_deps}\n", file=output)
@@ -352,6 +419,7 @@ def main():
             test = TestCase.make('sys', base['name'])
             test.load_extras(base['path'])
             test.set_msim_conf(base['path'].joinpath("msim.sys.conf"))
+            discover_extras(test, base['path'], 'sys')
             discover_expected_outputs(test, base['path'], 'sys')
             continue
 
@@ -375,29 +443,45 @@ def main():
                         LINKER_SCRIPTS_ROOT.joinpath(f"boot.{arch}.lds")
                 )
                 discover_msim_conf(test, base['path'], 'kernel', arch)
+                discover_extras(test, base['path'], arch)
                 discover_expected_outputs(test, base['path'], arch)
             continue
-        # Otherwise, only assembly code
+        # Otherwise, an arch-specific kernel (C or assembly), one arch at a time
         for arch in ARCH_LIST:
+            kernel_c_file = base['path'].joinpath(f"kernel.{arch}.c")
             kernel_file = base['path'].joinpath(f"kernel.{arch}.S")
-            if not kernel_file.exists():
+            if kernel_c_file.exists():
+                test = TestCase.make(arch, base['name'])
+                test.load_extras(base['path'])
+                test.set_kernel(
+                        [
+                            SHARED_ROOT.joinpath(f"kernelhead.{arch}.S"),
+                        ],
+                        [
+                            kernel_c_file,
+                        ],
+                        LINKER_SCRIPTS_ROOT.joinpath(f"kernel.{arch}.lds")
+                )
+            elif kernel_file.exists():
+                test = TestCase.make(arch, base['name'])
+                test.load_extras(base['path'])
+                test.set_kernel(
+                        [
+                            SHARED_ROOT.joinpath(f"kernelhead.{arch}.S"),
+                            kernel_file,
+                        ],
+                        [
+                        ],
+                        LINKER_SCRIPTS_ROOT.joinpath(f"kernel.{arch}.lds")
+                )
+            else:
                 continue
-            test = TestCase.make(arch, base['name'])
-            test.load_extras(base['path'])
-            test.set_kernel(
-                    [
-                        SHARED_ROOT.joinpath(f"kernelhead.{arch}.S"),
-                        kernel_file,
-                    ],
-                    [
-                    ],
-                    LINKER_SCRIPTS_ROOT.joinpath(f"kernel.{arch}.lds")
-            )
             test.set_bootloader(
                     SHARED_ROOT.joinpath(f"boot.{arch}.S"),
                     LINKER_SCRIPTS_ROOT.joinpath(f"boot.{arch}.lds")
             )
             discover_msim_conf(test, base['path'], 'kernel', arch)
+            discover_extras(test, base['path'], arch)
             discover_expected_outputs(test, base['path'], arch)
 
         for arch in ARCH_LIST:
@@ -411,6 +495,7 @@ def main():
                     find_nearest_file(base['path'], f"boot.{arch}.lds")
             )
             discover_msim_conf(test, base['path'], 'boot', arch)
+            discover_extras(test, base['path'], arch)
             discover_expected_outputs(test, base['path'], arch)
 
     if config.makefile:

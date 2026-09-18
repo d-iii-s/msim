@@ -10,6 +10,7 @@ MIPS32_ASFLAGS = \
 MIPS32_CFLAGS = \
 	-march=r4000 -mabi=32 -mgp32 -msoft-float -mlong32 -G 0 \
 	-mno-abicalls -fno-pic -fno-builtin -ffreestanding \
+	-fno-delete-null-pointer-checks \
 	-nostdlib -nostdinc \
 	-Isrc/shared/include \
 	-DARCH=MIPS32 -DARCH_MIPS32 \
@@ -28,12 +29,14 @@ RISCV32_ASFLAGS = \
 	-march=rv32g -msmall-data-limit=0 -mstrict-align \
 	-fno-pic -fno-builtin -ffreestanding \
 	-nostdlib -nostdinc \
+	-Isrc/shared \
 	"-Dsimulator_reg_dump=.word 0x8C100073" \
 	"-Dsimulator_halt=.word 0x8C000073" \
 	-pipe -Wall -Wextra -Werror -g3
 RISCV32_CFLAGS = \
 	-march=rv32g -msmall-data-limit=0 -mstrict-align \
 	-fno-pic -mno-riscv-attribute -fno-builtin -ffreestanding \
+	-fno-delete-null-pointer-checks \
 	-nostdlib -nostdinc \
 	-Isrc/shared/include \
 	-DARCH=RISCV32 -DARCH_RISCV32 \

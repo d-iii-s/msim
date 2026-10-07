@@ -27,7 +27,7 @@
  */
 #define CSR_MSTATUS_MPP_S 0x800
 
-.section .handlers
+.section .handlers, "ax"
 
 /*
  * Machine-mode trap handler.
@@ -50,7 +50,7 @@ machine_trap_handler:
     machine_halt_asm
 
 
-.section .head
+.section .head, "ax"
 
 /*
  * Kernel entry point (the boot loader code at 0xF0000000 jumps here).

@@ -13,7 +13,7 @@
 /** Where the entrypoint to the kernel lies */
 #define KERNEL_ENTRYPOINT 0x80001000
 
-.section .loader
+.section .loader, "ax"
 
 /*
  * The execution of the simulator starts here in M-mode.

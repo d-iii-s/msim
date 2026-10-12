@@ -395,7 +395,7 @@ original ``loader.S``. Do take a look.
       target address). The CPU does not have an instruction that can load an
       entire 32-bit constant in one go (because the instruction itself must
       fit into 32 bits), hence two instructions would need to be used
-      generally. (For example ``li t0, 0x0x80000001`` would be transformed
+      generally. (For example ``li t0, 0x80000001`` would be transformed
       into ``lui t0, 0x80000`` and ``addi t0, t0, 1`` - try it yourself!) Our
       code manages with only one, because the lowest 12 bits (3 hex digits) of
       our target address are all 0. The ``lui t0, 0x80001`` instruction loads

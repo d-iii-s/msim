@@ -14,32 +14,32 @@
 
 #define PAGE_SIZE 4096u
 
-#define KERNEL_BASE  0x80000000u
-#define STACK_BASE   0x8D000000u
+#define KERNEL_BASE 0x80000000u
+#define STACK_BASE 0x8D000000u
 #define PRINTER_BASE 0x90000000u
 
 /* The rest of the "interesting" pages, all inside one dedicated megapage
  * together with APP_ADDRESS/SUPERVISOR_ONLY_PAGE_ADDR/USER_ACCESSIBLE_PAGE_ADDR
  * (addresses.h) so that they all share one leaf table (test_leaf_table). */
-#define TEST_MEGAPAGE_BASE         0x10000000u
-#define READ_ONLY_PAGE_ADDR        0x10001000u
-#define EXECUTE_ONLY_PAGE_ADDR     0x10002000u
-#define NX_PAGE_ADDR               0x10004000u
-#define RESUME_PAGE_ADDR           0x10005000u
-#define NX_USER_PAGE_ADDR          0x10006000u
-#define RESUME_USER_PAGE_ADDR      0x10007000u
+#define TEST_MEGAPAGE_BASE 0x10000000u
+#define READ_ONLY_PAGE_ADDR 0x10001000u
+#define EXECUTE_ONLY_PAGE_ADDR 0x10002000u
+#define NX_PAGE_ADDR 0x10004000u
+#define RESUME_PAGE_ADDR 0x10005000u
+#define NX_USER_PAGE_ADDR 0x10006000u
+#define RESUME_USER_PAGE_ADDR 0x10007000u
 #define NON_LEAF_SECOND_LEVEL_ADDR 0x103FE000u
-#define INVALID_SECOND_LEVEL_ADDR  0x103FF000u
+#define INVALID_SECOND_LEVEL_ADDR 0x103FF000u
 
 /* Two more deliberately broken mappings, each in its own otherwise-unused
  * megapage. */
-#define UNALIGNED_MEGAPAGE_ADDR  0x20000000u
+#define UNALIGNED_MEGAPAGE_ADDR 0x20000000u
 #define INVALID_FIRST_LEVEL_ADDR 0x20400000u
 
 #define MSTATUS_MPP_S (1u << 11)
-#define SSTATUS_SPP   (1u << 8)
-#define SSTATUS_SUM   (1u << 18)
-#define SSTATUS_MXR   (1u << 19)
+#define SSTATUS_SPP (1u << 8)
+#define SSTATUS_SUM (1u << 18)
+#define SSTATUS_MXR (1u << 19)
 
 /* The "memory" clobber matters here: without it, nothing stops the
  * compiler from reordering the page-table stores in setup_paging()
@@ -187,16 +187,19 @@ static void access_dirty(void)
     volatile unsigned int *pte = &test_leaf_table[leaf_index(SUPERVISOR_ONLY_PAGE_ADDR)];
     volatile unsigned char *page = (volatile unsigned char *) SUPERVISOR_ONLY_PAGE_ADDR;
 
-    if ((*pte & (PTE_A | PTE_D)) != 0)
+    if ((*pte & (PTE_A | PTE_D)) != 0) {
         fail();
+    }
 
     (void) page[0]; /* a read must set Accessed */
-    if ((*pte & (PTE_A | PTE_D)) != PTE_A)
+    if ((*pte & (PTE_A | PTE_D)) != PTE_A) {
         fail();
+    }
 
     page[0] = 0; /* a write must set Dirty too */
-    if ((*pte & (PTE_A | PTE_D)) != (PTE_A | PTE_D))
+    if ((*pte & (PTE_A | PTE_D)) != (PTE_A | PTE_D)) {
         fail();
+    }
 
     kputc('S');
 }
@@ -240,7 +243,7 @@ static void execute_from_non_executable(void)
     /* Jumps to the last word of a non-executable page. That must trap on
      * fetch; the handler resumes one page later, at RESUME_PAGE_ADDR,
      * whose "ret" returns here via the same `ra` this call sets up. */
-    void (*fn)(void) = (void (*)(void)) (NX_PAGE_ADDR + PAGE_SIZE - 4);
+    void (*fn)(void) = (void (*)(void))(NX_PAGE_ADDR + PAGE_SIZE - 4);
     fn();
 }
 
@@ -250,7 +253,7 @@ static void supervisor_fetch_from_user_page(void)
      * only ever relaxes data access, never instruction fetch, so this
      * must trap regardless. */
     csr_set(sstatus, SSTATUS_SUM);
-    void (*fn)(void) = (void (*)(void)) (NX_USER_PAGE_ADDR + PAGE_SIZE - 4);
+    void (*fn)(void) = (void (*)(void))(NX_USER_PAGE_ADDR + PAGE_SIZE - 4);
     fn();
     csr_clear(sstatus, SSTATUS_SUM);
 }

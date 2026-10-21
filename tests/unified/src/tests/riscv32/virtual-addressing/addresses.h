@@ -3,6 +3,6 @@
  * compiled and linked completely independently and so cannot share C
  * symbols. */
 
-#define APP_ADDRESS               0x10008000u
+#define APP_ADDRESS 0x10008000u
 #define SUPERVISOR_ONLY_PAGE_ADDR 0x10000000u
 #define USER_ACCESSIBLE_PAGE_ADDR 0x10003000u

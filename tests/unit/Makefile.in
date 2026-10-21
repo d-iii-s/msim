@@ -1,0 +1,69 @@
+# Not to be run on its own, but as src/Makefile rvtest
+CC = @CC@
+CFLAGS = @CFLAGS@
+LDFLAGS= @LDFLAGS@
+BUILD_RV64 = @BUILD_RV64@
+
+LIBS = -lpcut @LIBS@
+SOURCES = $(wildcard *.c)
+OBJECTS := $(addsuffix .o,$(basename $(SOURCES)))
+
+include ../../src/files.mk
+
+# Remove main so we don't cause a linker conflict and make paths relative to us
+MSIM_OBJECTS := $(addprefix ../../src/, $(filter-out main.o, $(addsuffix .o,$(basename $(MSIM_SOURCES)))))
+
+ARCH32_CFLAGS = $(CFLAGS) -DARCH=32
+ARCH64_CFLAGS = $(CFLAGS) -DARCH=64
+TARGET_32 = tests_32
+TARGET_64 = tests_64
+OBJECTS_32 := $(addprefix 32bit/, $(addsuffix .o, $(basename $(SOURCES))))
+OBJECTS_64 := $(addprefix 64bit/, $(addsuffix .o, $(basename $(SOURCES))))
+
+ifeq ($(BUILD_RV64),yes)
+TARGETS = test32 test64
+BINARIES = tests_32 tests_64
+else
+TARGETS = test32
+BINARIES = tests_32
+endif
+
+RM = rm
+
+.PHONY: all test test32 test64 clean distclean
+
+all: $(BINARIES)
+
+test: $(TARGETS)
+
+$(TARGET_32): $(OBJECTS_32)
+	$(CC) $(ARCH32_CFLAGS) $(LDFLAGS) -o $@ $(MSIM_OBJECTS) $(OBJECTS_32) $(LIBS)
+
+32bit/%.o: %.c | 32bit
+	$(CC) -c $(ARCH32_CFLAGS) -o $@ $<
+
+test32: $(TARGET_32)
+	@echo "Running 32-bit tests..."
+	./$(TARGET_32)
+
+$(TARGET_64): $(OBJECTS_64)
+	$(CC) $(ARCH64_CFLAGS) $(LDFLAGS) -o $@ $(MSIM_OBJECTS) $(OBJECTS_64) $(LIBS)
+
+64bit/%.o: %.c | 64bit
+	$(CC) -c $(ARCH64_CFLAGS) -o $@ $<
+
+test64: $(TARGET_64)
+	@echo "Running 64-bit tests..."
+	./$(TARGET_64)
+
+32bit:
+	mkdir -p 32bit
+
+64bit:
+	mkdir -p 64bit
+
+clean:
+	$(RM) -f $(TARGET_32) $(TARGET_64)
+	$(RM) -rf 32bit 64bit
+
+distclean: clean

@@ -1,0 +1,3 @@
+<msim> Alert: Halting after forbidden READ (at 0x088000008, 0x8 inside nomem).
+
+Cycles: 120

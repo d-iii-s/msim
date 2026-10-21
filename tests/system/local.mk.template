@@ -1,0 +1,9 @@
+# Set these to point to the paths in your toolchain directory.
+# Always include trailing slash!
+#
+# Leave empty if your compiler is in the $PATH
+# Set to /opt/mffd3s/{arch}/bin/ when using NSWI200 toolchain (Charles Uni)
+
+MIPS32_TOOLCHAIN_BIN =
+RISCV32_TOOLCHAIN_BIN =
+

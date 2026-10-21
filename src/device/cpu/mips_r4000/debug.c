@@ -194,7 +194,7 @@ static void r4k_cp0_dump_reg(r4k_cpu_t *cpu, unsigned int reg)
                 cp0_wired(cpu).val, cp0_wired_w(cpu), cp0_wired_res1(cpu));
         break;
     case cp0_BadVAddr:
-        printf(s, cp0_badvaddr(cpu).val);
+        printf(s, cp0_badvaddr(cpu).val & UINT32_C(0xffffffff));
         break;
     case cp0_Count:
         printf(s, cp0_count(cpu).val);
@@ -226,7 +226,7 @@ static void r4k_cp0_dump_reg(r4k_cpu_t *cpu, unsigned int reg)
                 cp0_cause_ce(cpu), cp0_cause_res4(cpu), cp0_cause_bd(cpu));
         break;
     case cp0_EPC:
-        printf(s, cp0_epc(cpu).val);
+        printf(s, cp0_epc(cpu).val & UINT32_C(0xffffffff));
         break;
     case cp0_PRId:
         printf(s,
@@ -256,7 +256,7 @@ static void r4k_cp0_dump_reg(r4k_cpu_t *cpu, unsigned int reg)
                 cp0_watchhi(cpu).val, cp0_watchhi_paddr1(cpu), cp0_watchhi_res(cpu));
         break;
     case cp0_ErrorEPC:
-        printf(s, cp0_errorepc(cpu).val, cp0_errorepc(cpu).val);
+        printf(s, cp0_errorepc(cpu).val & UINT32_C(0xffffffff), cp0_errorepc(cpu).val);
         break;
     default:
         printf("%s", s);

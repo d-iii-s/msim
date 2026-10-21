@@ -18,6 +18,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+* Rework and unify test layout, both unit- and system-tests (see #113, @vhotspur)
+
 ### Deprecated
 
 ### Removed

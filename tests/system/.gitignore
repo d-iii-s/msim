@@ -1,0 +1,6 @@
+/rebuild.mk
+/local.mk
+
+*.raw
+*.o
+

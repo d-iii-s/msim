@@ -1,0 +1,9 @@
+cpu0  0xf0000000 addi a0, zero, 12           [ a0 = zero + 12 ]
+cpu0  0xf0000004 addi a1, zero, 52           [ a1 = zero + 52 ]
+cpu0  0xf0000008 add a2, a0, a1              [ a2 = a0 + a1 ]
+cpu0  0xf000000c lui t0, 0x90000             [ t0 = 0x90000000 ]
+cpu0  0xf0000010 sw a2, 0(t0)            
+cpu0  0xf0000014 ehalt                   
+<msim> Alert: EHALT: Machine halt
+
+Cycles: 6

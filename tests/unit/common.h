@@ -15,15 +15,15 @@
 
 #define rv_csr_set_asid_len rv32_csr_set_asid_len
 
-#include "../../../src/device/cpu/riscv_rv32ima/cpu.h"
-#include "../../../src/device/cpu/riscv_rv32ima/csr.h"
+#include "../../src/device/cpu/riscv_rv32ima/cpu.h"
+#include "../../src/device/cpu/riscv_rv32ima/csr.h"
 
 // Memory helpers
-#include "../../../src/device/cpu/riscv_rv_ima/memory.c"
+#include "../../src/device/cpu/riscv_rv_ima/memory.c"
 
 // Instruction implementations
-#include "../../../src/device/cpu/riscv_rv32ima/instr.c"
-#include "../../../src/device/cpu/riscv_rv_ima/instr.h"
+#include "../../src/device/cpu/riscv_rv32ima/instr.c"
+#include "../../src/device/cpu/riscv_rv_ima/instr.h"
 
 #elif ARCH == 64
 
@@ -37,15 +37,15 @@
 
 #define rv_csr_set_asid_len rv64_csr_set_asid_len
 
-#include "../../../src/device/cpu/riscv_rv64ima/cpu.h"
-#include "../../../src/device/cpu/riscv_rv64ima/csr.h"
+#include "../../src/device/cpu/riscv_rv64ima/cpu.h"
+#include "../../src/device/cpu/riscv_rv64ima/csr.h"
 
 // Memory helpers
-#include "../../../src/device/cpu/riscv_rv_ima/memory.c"
+#include "../../src/device/cpu/riscv_rv_ima/memory.c"
 
 // Instruction implementations
-#include "../../../src/device/cpu/riscv_rv64ima/instr.c"
-#include "../../../src/device/cpu/riscv_rv_ima/instr.h"
+#include "../../src/device/cpu/riscv_rv64ima/instr.c"
+#include "../../src/device/cpu/riscv_rv_ima/instr.h"
 
 #else
 #error "Unsupported architecture for tests"

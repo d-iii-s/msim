@@ -27,23 +27,17 @@ uninstall:
 
 clean:
 	$(MAKE) -C src clean
-	$(MAKE) -C tests/rvtests/unit-tests clean
+	$(MAKE) -C tests/unit clean
 
 distclean: clean
 	$(MAKE) -C src distclean
-	$(MAKE) -C tests/rvtests/unit-tests distclean
+	$(MAKE) -C tests/unit distclean
 	$(RM) -f Makefile config.log config.status config.h stamp-h
 
 test:
-	make -C . rvtest
-	make -C tests/unified
-
-rvtest:
-	@echo "\nUnit tests:"
-	$(MAKE) -C src rvtest
-	@echo "\nSystem tests:"
-	cd tests/rvtests ; python3 run_tests.py
-	@echo "\n All Tests Passed!"
+	make -C tests/unit test
+	make -C tests/system test
+	@echo "All tests passed."
 
 cstyle:
 	find src/ tests/ -name '*.[ch]' -exec clang-format -style=file -i {} \;

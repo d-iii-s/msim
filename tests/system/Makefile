@@ -1,11 +1,11 @@
 
 REBUILD_MAKEFILE = rebuild.mk
 
-all: run-tests
+all: test
 
-.PHONY: all clean rebuild run-tests
+.PHONY: all clean rebuild test
 
-run-tests:
+test:
 	./all.bats
 
 rebuild:

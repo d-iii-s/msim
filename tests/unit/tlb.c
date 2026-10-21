@@ -2,13 +2,13 @@
 #include <stdio.h>
 #include <pcut/pcut.h>
 
-#include "../../../src/device/cpu/riscv_rv32ima/cpu.h"
-#include "../../../src/device/cpu/riscv_rv32ima/csr.h"
-#include "../../../src/device/cpu/riscv_rv32ima/tlb.h"
-#include "../../../src/device/cpu/riscv_rv32ima/virt_mem.h"
+#include "../../src/device/cpu/riscv_rv32ima/cpu.h"
+#include "../../src/device/cpu/riscv_rv32ima/csr.h"
+#include "../../src/device/cpu/riscv_rv32ima/tlb.h"
+#include "../../src/device/cpu/riscv_rv32ima/virt_mem.h"
 
 // Memory helpers
-#include "../../../src/device/cpu/riscv_rv_ima/memory.c"
+#include "../../src/device/cpu/riscv_rv_ima/memory.c"
 
 PCUT_INIT
 

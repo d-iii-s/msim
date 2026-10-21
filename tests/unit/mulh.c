@@ -4,7 +4,7 @@
 
 #define XLEN ARCH
 
-#include "../../../src/device/cpu/riscv_rv_ima/types.h"
+#include "../../src/device/cpu/riscv_rv_ima/types.h"
 
 PCUT_INIT
 

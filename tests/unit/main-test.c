@@ -1,6 +1,6 @@
 #include <pcut/pcut.h>
 
-#include "../../../src/main.h"
+#include "../../src/main.h"
 
 /*
  * MSIM main.cpp MOCK

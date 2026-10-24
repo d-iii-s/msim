@@ -77,6 +77,8 @@ typedef struct {
     enum disk_type_e disk_type; /**< Disk type: none, memory, file-mapped */
     ptr36_t addr; /**< Disk memory location */
     uint64_t size; /**< Disk size */
+    uint32_t sector_size; /**< Sector size in bytes */
+    uint32_t sector_size_words; /**< Sector size in 32-bit words */
 
     /* Registers */
     ptr36_t disk_ptr; /**< Current DMA pointer */
@@ -96,6 +98,9 @@ typedef struct {
     uint64_t cmds_write; /**< Number of write commands */
     uint64_t cmds_error; /**< Number of illegal commands */
 } disk_data_s;
+
+/** Default sector size in bytes */
+#define DEFAULT_SECTOR_SIZE 512
 
 /** Clean up old configuration
  *
@@ -156,6 +161,20 @@ static bool ddisk_init(token_t *parm, device_t *dev)
         return false;
     }
 
+    uint64_t sector_size = DEFAULT_SECTOR_SIZE;
+    uint64_t sector_size_words = sector_size / sizeof(uint32_t);
+
+    if (parm_type(parm) == tt_uint) {
+        sector_size = parm_uint_next(&parm);
+
+        if (!IS_POWER_OF_2(sector_size)) {
+            error("Disk sector size must be a power of 2");
+            return false;
+        }
+
+        sector_size_words = sector_size / sizeof(uint32_t);
+    }
+
     bool uses_busy_bit = true;
     uint64_t intno = 0;
     uint64_t cpuid = 0;
@@ -205,6 +224,8 @@ static bool ddisk_init(token_t *parm, device_t *dev)
     data->uses_busy_bit = uses_busy_bit;
     data->cpuid = cpuid;
     data->size = 0;
+    data->sector_size = sector_size;
+    data->sector_size_words = sector_size_words;
     data->disk_ptr = 0;
     data->disk_secno = 0;
     data->disk_status = 0;
@@ -303,8 +324,8 @@ static bool ddisk_generic(token_t *parm, device_t *dev)
         return false;
     }
 
-    if ((size & 0x1ffU) != 0) {
-        error("Disk size must be 512-byte aligned");
+    if (!IS_ALIGNED(size, data->sector_size)) {
+        error("Disk size must be %u-byte aligned", data->sector_size);
         return false;
     }
 
@@ -364,12 +385,13 @@ static bool ddisk_fmap(token_t *parm, device_t *dev)
     }
 
     /* Align the file size to the nearest
-       smalled 512 B block */
-    fsize = ALIGN_DOWN(fsize, 512);
+       smaller block */
+    fsize = ALIGN_DOWN(fsize, data->sector_size);
 
     /* Disk size test */
     if (fsize == 0) {
-        error("File is too small; at least one sector (512 B) should be present");
+        error("File is too small; at least one sector (%u B) should be present",
+                data->sector_size);
         safe_fclose(file, path);
         return false;
     }
@@ -705,7 +727,7 @@ static void ddisk_write32(unsigned int procno, device_t *dev, ptr36_t addr,
         }
 
         /* Check bound */
-        if (((uint64_t) data->disk_secno + 1) * 512 > data->size) {
+        if (((uint64_t) data->disk_secno + 1) * data->sector_size > data->size) {
             /* Generate interrupt to indicate error */
             data->disk_status = STATUS_ERROR;
             if (!data->uses_busy_bit) {
@@ -757,7 +779,7 @@ static void ddisk_step(device_t *dev)
     /* Reading */
     switch (data->action) {
     case ACTION_READ:
-        pos = data->secno * 128 + data->cnt;
+        pos = data->secno * data->sector_size_words + data->cnt;
         physmem_write32(-1 /*NULL*/, data->disk_ptr, data->img[pos], true);
 
         /* Next word */
@@ -765,7 +787,7 @@ static void ddisk_step(device_t *dev)
         data->cnt++;
         break;
     case ACTION_WRITE:
-        pos = data->secno * 128 + data->cnt;
+        pos = data->secno * data->sector_size_words + data->cnt;
         data->img[pos] = physmem_read32(-1 /*NULL*/, data->disk_ptr, true);
 
         /* Next word */
@@ -777,7 +799,7 @@ static void ddisk_step(device_t *dev)
         return;
     }
 
-    if (data->cnt == 128) {
+    if (data->cnt == data->sector_size_words) {
         data->action = ACTION_NONE;
         data->disk_status &= ~STATUS_BUSY;
 
@@ -799,8 +821,9 @@ cmd_t ddisk_cmds[] = {
             "Initialization",
             REQ STR "name/disk name" NEXT
                     REQ INT "addr/register block address" NEXT
-                            OPT INT "intno/interrupt number within 0..6" NEXT
-                                    OPT STR "cpuname/name of the cpu device" END },
+                            OPT INT "sectorsize/sector size in bytes" NEXT
+                                    OPT INT "intno/interrupt number within 0..6" NEXT
+                                            OPT STR "cpuname/name of the cpu device" END },
     { "help",
             (fcmd_t) dev_generic_help,
             DEFAULT,

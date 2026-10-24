@@ -632,6 +632,8 @@ Initialization parameters: ``address`` ``intno``
 
 ``address``
    Physical address of the hard disk register.
+``sectorsize``
+   Sector size in bytes. Defaults to 512 bytes.
 ``intno``
    DMA Interrupt number.
 ``cpuname``

@@ -16,6 +16,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+* `ddisk` sector size is now configurable during initialization; defaults to `512` (@rosenbergm)
+
 ### Changed
 
 * Rework and unify test layout, both unit- and system-tests (see #113, @vhotspur)
